@@ -180,7 +180,15 @@ const annualBalanceEffects = (decision: { options: DecisionOption[] }) =>
     option.id,
     option.effects
       .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance")
-      .map((effect) => ({ delta: effect.delta, duration: effect.duration, timing: effect.timing })),
+      .map((effect) => ({
+        id: effect.id,
+        target: effect.target,
+        key: effect.key,
+        delta: effect.delta,
+        timing: effect.timing,
+        duration: effect.duration,
+        explanation: effect.explanation,
+      })),
   ] as const).sort(([left], [right]) => left.localeCompare(right));
 
 test("le pont V9 préserve exactement les effets de solde du snapshot historique", () => {
@@ -192,17 +200,23 @@ test("le pont V9 préserve exactement les effets de solde du snapshot historique
   }
 });
 
-test("le pont V9 conserve les cinq flux ponctuels avec leurs échéances exactes", () => {
+test("le pont V9 conserve les cinq flux ponctuels sous leurs causes historiques exactes", () => {
   const once = SCENARIO_V3_CATALOGUE.decisions
     .flatMap((decision) => decision.options)
     .flatMap((option) => option.effects
       .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance" && effect.duration === "once")
-      .map((effect) => ({ optionId: option.id, delta: effect.delta, timing: effect.timing })));
-  assert.deepEqual(once, [
-    { optionId: "sortir-de-l-euro:adopt", delta: -35_000, timing: { kind: "immediate" } },
-    { optionId: "referendum-sur-la-sortie-de-l-ue:adopt", delta: -500, timing: { kind: "immediate" } },
-    { optionId: "nationaliser-les-entreprises-strategiques:adopt", delta: -25_000, timing: { kind: "immediate" } },
-    { optionId: "nationaliser-les-autoroutes:adopt", delta: -18_000, timing: { kind: "immediate" } },
-    { optionId: "ceder-des-participations-non-strategiques-de-l:adopt", delta: 2_000, timing: { kind: "immediate" } },
+      .map((effect) => ({ optionId: option.id, id: effect.id, explanation: effect.explanation })));
+  assert.deepEqual(once.map((effect) => effect.optionId), [
+    "sortir-de-l-euro:adopt",
+    "referendum-sur-la-sortie-de-l-ue:adopt",
+    "nationaliser-les-entreprises-strategiques:adopt",
+    "nationaliser-les-autoroutes:adopt",
+    "ceder-des-participations-non-strategiques-de-l:adopt",
   ]);
+  for (const effect of once) {
+    assert.equal(effect.id, `${effect.optionId}:indicator:annualBalance`);
+    assert.match(effect.explanation, /Impact budgétaire retenu par le jeu/);
+    assert.doesNotMatch(effect.id, /:transition:/);
+    assert.doesNotMatch(effect.explanation, /Flux ponctuel sourcé/);
+  }
 });

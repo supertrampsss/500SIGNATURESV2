@@ -83,6 +83,12 @@ export type BudgetProfile = {
   exclusiveScopeKeys: string[];
 };
 
+/** Optional audit legs kept outside the operating budget equation. */
+export type BudgetEstimateReconciliation = {
+  outgoingAmountMillions: number;
+  counterpartAmountMillions: number;
+};
+
 export type BudgetEstimate = {
   key: string;
   baseYear: number;
@@ -98,6 +104,7 @@ export type BudgetEstimate = {
   estimateStatus: "observe" | "ex_ante" | "scenario";
   uncertainty: Uncertainty;
   exclusiveScopeKeys: readonly string[];
+  reconciliation?: BudgetEstimateReconciliation;
 };
 
 type EffectRuleBase = {

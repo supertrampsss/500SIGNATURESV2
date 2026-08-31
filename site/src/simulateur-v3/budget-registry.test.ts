@@ -3,12 +3,14 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  BUDGET_ESTIMATES,
   budgetEstimateFor,
   findExclusiveScopeCollisions,
   primeActivityRecycleDifferenceMillions,
+  validateBudgetEstimate,
   validateBudgetProfile,
 } from "./budget-registry.ts";
-import type { BudgetProfile } from "./types.ts";
+import type { BudgetEstimate, BudgetProfile } from "./types.ts";
 
 const profile = (scope: string): BudgetProfile => ({
   estimateKey: "test-estimate",
@@ -62,6 +64,49 @@ test("le recyclage de la prime d'activité reste neutre à un million près", ()
     estimate.recurringOperatingCostMillions,
     estimate.runRateMillions,
   ], [0, 0, 0, 0]);
+  assert.deepEqual(estimate.reconciliation, {
+    outgoingAmountMillions: 10_300,
+    counterpartAmountMillions: 10_300,
+  });
+});
+
+test("une estimation budgétaire invalide expose chaque erreur de contrat", () => {
+  const invalid = {
+    ...budgetEstimateFor("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024"),
+    key: " ",
+    scope: "",
+    baseAmountMillions: -1,
+    baseNature: "inconnue",
+    estimateStatus: "inconnu",
+    uncertainty: "inconnue",
+    sourceKeys: [],
+    reconciliation: { outgoingAmountMillions: -1, counterpartAmountMillions: Number.NaN },
+  } as unknown as BudgetEstimate;
+
+  assert.deepEqual(validateBudgetEstimate(invalid).sort(), [
+    "budget-estimate:unknown:base-amount-must-be-non-negative",
+    "budget-estimate:unknown:base-nature-invalid",
+    "budget-estimate:unknown:estimate-status-invalid",
+    "budget-estimate:unknown:key-required",
+    "budget-estimate:unknown:reconciliation-invalid",
+    "budget-estimate:unknown:scope-required",
+    "budget-estimate:unknown:source-keys-required",
+    "budget-estimate:unknown:uncertainty-invalid",
+  ]);
+  const nonFinite = { ...invalid, key: "finite-check", baseAmountMillions: Number.NaN } as BudgetEstimate;
+  assert.ok(validateBudgetEstimate(nonFinite).includes("budget-estimate:finite-check:baseAmountMillions-must-be-finite"));
+});
+
+test("le registre et ses données imbriquées sont profondément gelés", () => {
+  const estimate = budgetEstimateFor("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024");
+  assert.equal(Object.isFrozen(BUDGET_ESTIMATES), true);
+  assert.equal(Object.isFrozen(estimate), true);
+  assert.equal(Object.isFrozen(estimate.sourceKeys), true);
+  assert.equal(Object.isFrozen(estimate.transitionFlows), true);
+  assert.equal(Object.isFrozen(estimate.exclusiveScopeKeys), true);
+  assert.equal(Object.isFrozen(estimate.reconciliation!), true);
+  assert.throws(() => { (estimate.sourceKeys as string[]).push("mutation"); }, TypeError);
+  assert.throws(() => { (estimate.reconciliation as { outgoingAmountMillions: number }).outgoingAmountMillions = 1; }, TypeError);
 });
 
 test("les conséquences non budgétaires ne transportent aucun champ budgétaire historique", () => {

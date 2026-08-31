@@ -3,8 +3,6 @@ import type { BudgetEstimate, BudgetProfile, BudgetTransitionFlow, EffectTiming,
 const PRIME_ACTIVITY_DECISION_ID = "remplacer-prime-activite-prelevements-travail";
 const PRIME_ACTIVITY_OPTION_ID = "adopt";
 const PRIME_ACTIVITY_ESTIMATE_KEY = "prime-activity-recycle-2024";
-const PRIME_ACTIVITY_OUTGOING_MILLIONS = 10_300;
-const PRIME_ACTIVITY_WORK_LEVY_REDUCTION_MILLIONS = 10_300;
 
 function registryId(decisionId: string, optionId: string, estimateKey: string): string {
   return `${decisionId}:${optionId}:${estimateKey}`;
@@ -13,7 +11,7 @@ function registryId(decisionId: string, optionId: string, estimateKey: string): 
 const PRIME_ACTIVITY_RECYCLE: BudgetEstimate = {
   key: PRIME_ACTIVITY_ESTIMATE_KEY,
   baseYear: 2024,
-  baseAmountMillions: PRIME_ACTIVITY_OUTGOING_MILLIONS,
+  baseAmountMillions: 10_300,
   baseNature: "realise",
   scope: "Dépenses de prime d'activité 2024 intégralement recyclées en baisse des prélèvements sur les premiers revenus du travail.",
   // This entry documents a neutral recycling operation. The outgoing benefit
@@ -28,13 +26,25 @@ const PRIME_ACTIVITY_RECYCLE: BudgetEstimate = {
   estimateStatus: "observe",
   uncertainty: "faible",
   exclusiveScopeKeys: [],
+  reconciliation: {
+    outgoingAmountMillions: 10_300,
+    counterpartAmountMillions: 10_300,
+  },
 };
+
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === "object") {
+    for (const nested of Object.values(value)) deepFreeze(nested);
+    Object.freeze(value);
+  }
+  return value;
+}
 
 /**
  * Entries are keyed by their policy join, never by editorial wording. Task 2
  * fills this registry with the V10 catalogue estimates.
  */
-export const BUDGET_ESTIMATES: Readonly<Record<string, BudgetEstimate>> = Object.freeze({
+export const BUDGET_ESTIMATES: Readonly<Record<string, BudgetEstimate>> = deepFreeze({
   [registryId(PRIME_ACTIVITY_DECISION_ID, PRIME_ACTIVITY_OPTION_ID, PRIME_ACTIVITY_ESTIMATE_KEY)]: PRIME_ACTIVITY_RECYCLE,
 });
 
@@ -50,6 +60,10 @@ export function budgetEstimateFor(decisionId: string, optionId: string, estimate
 
 const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
+const isRecord = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object";
+const BASE_NATURES = new Set<BudgetEstimate["baseNature"]>(["realise", "prevision", "objectif", "notifie", "recouvre"]);
+const ESTIMATE_STATUSES = new Set<BudgetEstimate["estimateStatus"]>(["observe", "ex_ante", "scenario"]);
+const UNCERTAINTIES = new Set<BudgetEstimate["uncertainty"]>(["faible", "moyenne", "forte"]);
 
 function isEffectTiming(value: unknown): value is EffectTiming {
   if (!value || typeof value !== "object" || !("kind" in value)) return false;
@@ -105,9 +119,18 @@ export function validateBudgetProfile(profile: BudgetProfile, decisionId: string
 }
 
 export function validateBudgetEstimate(estimate: BudgetEstimate): string[] {
-  const prefix = `budget-estimate:${estimate.key}`;
+  const estimateKey = isNonEmptyString(estimate?.key) ? estimate.key : "unknown";
+  const prefix = `budget-estimate:${estimateKey}`;
   const errors: string[] = [];
+  if (!isRecord(estimate)) return [`${prefix}:required`];
+  if (!isNonEmptyString(estimate.key)) errors.push(`${prefix}:key-required`);
+  if (!isNonEmptyString(estimate.scope)) errors.push(`${prefix}:scope-required`);
   if (!Number.isInteger(estimate.baseYear) || estimate.baseYear < 1900) errors.push(`${prefix}:base-year-invalid`);
+  if (!isFiniteNumber(estimate.baseAmountMillions)) errors.push(`${prefix}:baseAmountMillions-must-be-finite`);
+  else if (estimate.baseAmountMillions < 0) errors.push(`${prefix}:base-amount-must-be-non-negative`);
+  if (!BASE_NATURES.has(estimate.baseNature)) errors.push(`${prefix}:base-nature-invalid`);
+  if (!ESTIMATE_STATUSES.has(estimate.estimateStatus)) errors.push(`${prefix}:estimate-status-invalid`);
+  if (!UNCERTAINTIES.has(estimate.uncertainty)) errors.push(`${prefix}:uncertainty-invalid`);
   for (const key of ["baseAmountMillions", "grossActionMillions", "behavioralOffsetMillions", "recurringOperatingCostMillions", "runRateMillions"] as const) {
     if (!isFiniteNumber(estimate[key])) errors.push(`${prefix}:${key}-must-be-finite`);
   }
@@ -119,6 +142,13 @@ export function validateBudgetEstimate(estimate: BudgetEstimate): string[] {
   }
   if (!Array.isArray(estimate.transitionFlows) || !estimate.transitionFlows.every(isTransitionFlow)) errors.push(`${prefix}:transition-flows-invalid`);
   if (!Array.isArray(estimate.exclusiveScopeKeys) || !estimate.exclusiveScopeKeys.every(isNonEmptyString)) errors.push(`${prefix}:exclusive-scope-keys-invalid`);
+  if (estimate.reconciliation !== undefined && (!isRecord(estimate.reconciliation)
+      || !isFiniteNumber(estimate.reconciliation.outgoingAmountMillions)
+      || estimate.reconciliation.outgoingAmountMillions < 0
+      || !isFiniteNumber(estimate.reconciliation.counterpartAmountMillions)
+      || estimate.reconciliation.counterpartAmountMillions < 0)) {
+    errors.push(`${prefix}:reconciliation-invalid`);
+  }
   return errors;
 }
 
@@ -132,5 +162,8 @@ export function findExclusiveScopeCollisions(profiles: readonly BudgetProfile[])
 }
 
 export function primeActivityRecycleDifferenceMillions(): number {
-  return PRIME_ACTIVITY_OUTGOING_MILLIONS - PRIME_ACTIVITY_WORK_LEVY_REDUCTION_MILLIONS;
+  const estimate = budgetEstimateFor(PRIME_ACTIVITY_DECISION_ID, PRIME_ACTIVITY_OPTION_ID, PRIME_ACTIVITY_ESTIMATE_KEY);
+  const reconciliation = estimate.reconciliation;
+  if (!reconciliation) throw new Error("Prime activity reconciliation is required");
+  return reconciliation.outgoingAmountMillions - reconciliation.counterpartAmountMillions;
 }

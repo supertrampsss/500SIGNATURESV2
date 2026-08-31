@@ -255,6 +255,7 @@ function consequenceTiming(horizon: PolicyHorizon): EffectRule["timing"] {
 
 function compiledOption(decisionId: string, definition: PolicyOptionDefinition): DecisionOption {
   const isLegacyOption = definition.budgetProfile.estimateKey?.startsWith("legacy:") ?? false;
+  const legacySchedule = legacyBudgetSchedules.get(definition);
   if (definition.id !== "adopt" && definition.id !== "keep" && !isLegacyOption) {
     throw new Error(`Identifiant local invalide : ${decisionId}:${definition.id}`);
   }
@@ -271,18 +272,23 @@ function compiledOption(decisionId: string, definition: PolicyOptionDefinition):
       `${decisionId}:${definition.id}:indicator:annualBalance`,
       "indicator",
       "annualBalance",
-      { delta: definition.budgetProfile.runRateMillions, duration: legacyBudgetSchedules.get(definition)?.duration ?? "annual" },
+      { delta: definition.budgetProfile.runRateMillions, duration: legacySchedule?.duration ?? "annual" },
       `${mechanism} Impact budgétaire retenu par le jeu : ${definition.budgetProfile.runRateMillions} millions d'euros.`,
-      legacyBudgetSchedules.get(definition)?.timing ?? definition.budgetProfile.runRateTiming!,
+      legacySchedule?.timing ?? definition.budgetProfile.runRateTiming!,
     ));
   }
   for (const flow of definition.budgetProfile.transitionFlows) {
+    const isLegacyOnceFlow = legacySchedule?.duration === "once";
     effects.push(effect(
-      `${decisionId}:${definition.id}:transition:${flow.id}`,
+      isLegacyOnceFlow
+        ? `${decisionId}:${definition.id}:indicator:annualBalance`
+        : `${decisionId}:${definition.id}:transition:${flow.id}`,
       "indicator",
       "annualBalance",
       { delta: flow.amountMillions, duration: "once" },
-      `${mechanism} Flux ponctuel sourcé : ${flow.amountMillions} millions d'euros.`,
+      isLegacyOnceFlow
+        ? `${mechanism} Impact budgétaire retenu par le jeu : ${flow.amountMillions} millions d'euros.`
+        : `${mechanism} Flux ponctuel sourcé : ${flow.amountMillions} millions d'euros.`,
       flow.timing,
     ));
   }
