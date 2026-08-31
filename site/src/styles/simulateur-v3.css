@@ -59,6 +59,14 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   box-shadow: 0 0 0 6px var(--v3-red);
 }
 
+/* Le titre reçoit le focus après chaque arbitrage afin d'annoncer le nouveau
+   dossier aux technologies d'assistance. Le focus reste actif sans reprendre
+   le cadre doré global réservé aux contrôles interactifs. */
+.simulateur-v3 .simulateur-v3__stage h1[tabindex="-1"]:focus,
+.simulateur-v3 .simulateur-v3__stage h1[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 .simulateur-v3__command-bar {
   position: relative;
   display: grid;

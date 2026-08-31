@@ -98,5 +98,7 @@ test("a V10 decision click skips hidden transition screens", async ({ page }) =>
     if (forbidden.test(text ?? "")) return false;
     return (await simulator.locator('[data-v3-action="select"], [data-v3-action="resolve-crisis"], [data-v3-action="share-verdict"], [data-v3-action="open-chapter"]').count()) > 0;
   }).toBe(true);
-  await expect(simulator.locator("h1").first()).toBeFocused();
+  const nextTitle = simulator.locator("h1").first();
+  await expect(nextTitle).toBeFocused();
+  await expect(nextTitle).toHaveCSS("outline-style", "none");
 });
