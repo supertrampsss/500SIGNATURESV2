@@ -17,6 +17,12 @@
  * fonction est pure, rend une chaîne, et c'est cette chaîne qui est testée.
  */
 
+import {
+  validerDossierAnalyse,
+  type DossierAnalyse,
+  type DossierAnalyseValide,
+  type SourceAnalyse,
+} from "./analyse-contrat.ts";
 import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
 import { formater } from "./echelle.ts";
@@ -69,7 +75,7 @@ export type TypeAnalyse =
 
 export type BudgetConcerne = "etat" | "secu" | "collectivites" | "bareme";
 
-export type Source = { titre: string; url: string; consulte_le: string };
+export type Source = { id?: string; titre: string; url: string; consulte_le: string };
 
 export type Analyse = {
   slug: string;
@@ -116,7 +122,26 @@ export type Analyse = {
   simulateur: { budget: string; contrat: string; lecture: string };
   mises_a_jour: { date: string; quoi: string }[];
   verifie_contre: string;
+  /** Absent sur les dossiers historiques ; présent, ce contenu suit le
+   *  contrat strict de `analyse-contrat.ts`. */
+  dossier?: DossierAnalyse;
 };
+
+/**
+ * Adapte les sources historiques au contrat long seulement quand celui-ci est
+ * présent. Les anciens JSON n'ont pas d'identifiant de source et n'en ont pas
+ * besoin ; un nouveau dossier, lui, échoue si l'un d'eux manque.
+ */
+export function contratDossierAnalyse(analyse: Analyse): DossierAnalyseValide | null {
+  if (analyse.dossier === undefined) return null;
+  const sources: SourceAnalyse[] = analyse.sources.map((source) => ({
+    id: source.id ?? "",
+    titre: source.titre,
+    url: source.url,
+    consulteLe: source.consulte_le,
+  }));
+  return validerDossierAnalyse(analyse.dossier, sources);
+}
 
 /** Les trois crans du verdict — jamais un jugement de valeur, toujours un fait. */
 export const LIBELLE_CRAN: Record<Cran, string> = {
@@ -600,6 +625,10 @@ export function rendu(
   adresse = "",
   indexSources?: IndexSources,
 ): string {
+  // La Task 7B donnera au contrat long son rendu propre. Le valider ici dès
+  // maintenant empêche toutefois qu'un nouveau JSON incomplet passe
+  // silencieusement par le renderer historique et y emprunte `sources[0]`.
+  contratDossierAnalyse(analyse);
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>
     ${verdictDuDossier(analyse)}
