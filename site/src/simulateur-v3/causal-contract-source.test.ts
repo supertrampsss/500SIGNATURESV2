@@ -4,6 +4,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
+import { BUDGET_ESTIMATES } from "./budget-registry.ts";
+import { POLICY_SOURCES } from "./policy-sources.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
+
 const ROOT = dirname(fileURLToPath(import.meta.url));
 type ProductionFile = { name: string; source: string };
 
@@ -44,4 +48,16 @@ test("le marqueur historique reste isolé dans la migration de stockage", () => 
     .filter(({ source }) => source.includes(":model:"))
     .map(({ name }) => name);
   assert.deepEqual(carryingMarker, ["storage.ts"]);
+});
+
+test("chaque chiffrage V10 et chaque flux renvoie à une source primaire déclarée", () => {
+  const referenced = new Set(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options.flatMap((option) => {
+    const localOptionId = option.id.split(":").at(-1)!;
+    return option.budgetProfile.estimateKey === null ? [] : [`${decision.id}:${localOptionId}:${option.budgetProfile.estimateKey}`];
+  })));
+  for (const [join, estimate] of Object.entries(BUDGET_ESTIMATES)) {
+    assert.ok(referenced.has(join), `${join}:orphan`);
+    for (const sourceKey of estimate.sourceKeys) assert.ok(sourceKey in POLICY_SOURCES, `${join}:${sourceKey}`);
+    for (const flow of estimate.transitionFlows) assert.ok(flow.sourceKey in POLICY_SOURCES, `${join}:${flow.sourceKey}`);
+  }
 });

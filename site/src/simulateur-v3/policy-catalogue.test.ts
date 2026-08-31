@@ -5,9 +5,49 @@ import { optionDistanceDimensions, policyDecision, type PolicyDecisionDefinition
 import { POLICY_CONSEQUENCES } from "./policy-consequences.ts";
 import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
+import { SCENARIO_V10_CATALOGUE, STRUCTURAL_ADOPT_DECISION_IDS, v10PolicyById } from "./scenario-v10-catalogue.ts";
+import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions } from "./budget-registry.ts";
 import type { DecisionOption } from "./types.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
+
+test("le catalogue V10 isole 96 dossiers atomiques et les substitutions doctrinales", () => {
+  assert.equal(SCENARIO_V10_CATALOGUE.version, 10);
+  assert.equal(SCENARIO_V10_CATALOGUE.decisions.length, 96);
+  assert.equal(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options).length, 192);
+  assert.equal(v10PolicyById("flat-tax-a-20-des-le-premier"), undefined);
+  assert.equal(v10PolicyById("flat-tax-a-20-avec-abattement-protegeant"), undefined);
+  const epr2 = v10PolicyById("engager-six-epr2-part-annuelle-de-l")!;
+  assert.deepEqual(epr2.options.map((option) => option.id), [
+    "engager-six-epr2-part-annuelle-de-l:adopt",
+    "engager-six-epr2-part-annuelle-de-l:keep",
+  ]);
+  assert.deepEqual(epr2.options.map((option) => option.label), ["Engager six EPR2", "Ne pas engager de nouvel EPR2"]);
+  assert.equal(v10PolicyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
+});
+
+test("le catalogue V10 relie tous ses profils non nuls ou audités au registre", () => {
+  const strictNull = { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] };
+  for (const decision of SCENARIO_V10_CATALOGUE.decisions) {
+    for (const option of decision.options) {
+      const localOptionId = option.id.split(":").at(-1)!;
+      if (option.budgetProfile.estimateKey !== null) {
+        assert.equal(hasBudgetEstimate(decision.id, localOptionId, option.budgetProfile.estimateKey), true, option.id);
+        assert.equal(option.budgetProfile.estimateKey.startsWith("legacy:"), false, option.id);
+      }
+      if (localOptionId === "keep") assert.deepEqual(option.budgetProfile, strictNull, option.id);
+    }
+  }
+  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.options[0]!.budgetProfile, strictNull);
+  assert.deepEqual(v10PolicyById("supprimer-subventions-directes-entreprises")!.options[0]!.budgetProfile, strictNull);
+  const prime = v10PolicyById("remplacer-prime-activite-prelevements-travail")!.options[0]!.budgetProfile;
+  assert.equal(prime.estimateKey, "prime-activity-recycle-2024");
+  assert.equal(prime.runRateMillions, 0);
+  assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
+  const structuralTotal = STRUCTURAL_ADOPT_DECISION_IDS.reduce((total, decisionId) =>
+    total + v10PolicyById(decisionId)!.options[0]!.budgetProfile.runRateMillions, 0);
+  assert.equal(structuralTotal, 21_689);
+});
 
 const VALID: PolicyDecisionDefinition = {
   id: "test-policy",

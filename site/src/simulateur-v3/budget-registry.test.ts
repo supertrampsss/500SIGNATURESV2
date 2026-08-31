@@ -12,6 +12,7 @@ import {
   validateBudgetProfile,
 } from "./budget-registry.ts";
 import type { BudgetEstimate, BudgetProfile } from "./types.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 
 const profile = (scope: string): BudgetProfile => ({
   estimateKey: "test-estimate",
@@ -46,6 +47,12 @@ test("un profil keep malformé retourne des erreurs au lieu de lever une excepti
     transitionFlows: null,
     exclusiveScopeKeys: null,
   } as unknown as BudgetProfile, "d", "keep").length > 0);
+});
+
+test("un keep qualifié reste soumis au profil strictement nul", () => {
+  assert.ok(validateBudgetProfile({
+    estimateKey: "audit-only", runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [],
+  }, "d", "d:keep").includes("budget-profile:d:d:keep:keep-must-be-null-profile"));
 });
 
 test("une estimation absente est refusée explicitement", () => {
@@ -114,4 +121,13 @@ test("le registre et ses données imbriquées sont profondément gelés", () => 
 test("les conséquences non budgétaires ne transportent aucun champ budgétaire historique", () => {
   const source = readFileSync(new URL("./policy-consequences.ts", import.meta.url), "utf8");
   assert.doesNotMatch(source, /budgetDuration|budgetTiming|annualBalance/);
+});
+
+test("le registre V10 ne conserve ni reliquat legacy ni estimation orpheline", () => {
+  const referenced = new Set(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options.flatMap((option) => {
+    const localOptionId = option.id.split(":").at(-1)!;
+    return option.budgetProfile.estimateKey === null ? [] : [`${decision.id}:${localOptionId}:${option.budgetProfile.estimateKey}`];
+  })));
+  assert.deepEqual(Object.keys(BUDGET_ESTIMATES).sort(), [...referenced].sort());
+  assert.equal(Object.values(BUDGET_ESTIMATES).some((estimate) => estimate.key.startsWith("legacy:")), false);
 });
