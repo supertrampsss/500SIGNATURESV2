@@ -7,6 +7,8 @@ import { confirmSelection } from "./effects.ts";
 import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V9 } from "./scenario-v9.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState, EffectRule } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
@@ -53,6 +55,24 @@ function stateAfter(count: number, phase: CampaignState["phase"]): CampaignState
     })),
   };
 }
+
+test("le verdict V9 historique reste rendu après le chargement du scénario V10", () => {
+  assert.equal(SCENARIO_V10.version, 10);
+  const decisions = SCENARIO_V9.decisions.map((decision, index) => ({
+    decisionId: decision.id,
+    optionId: decision.options[0]!.id,
+    status: "confirmed" as const,
+    confirmedAtIndex: index + 1,
+  }));
+  const state = {
+    ...createCampaign(SCENARIO_V9),
+    phase: "verdict" as const,
+    chapterIndex: SCENARIO_V9.chapters.length - 1,
+    decisionIndex: SCENARIO_V9.chapters.at(-1)!.decisionIds.length - 1,
+    decisions,
+  };
+  assert.match(renderSimulatorV3(state, SCENARIO_V9), /verdict/i);
+});
 
 test("l'entrée en fonction annonce la mission et un seul départ", () => {
   const html = renderSimulatorV3(createCampaign(SCENARIO_V3_PREVIEW), SCENARIO_V3_PREVIEW);

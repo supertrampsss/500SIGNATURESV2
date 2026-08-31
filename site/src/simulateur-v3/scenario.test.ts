@@ -4,11 +4,23 @@ import test from "node:test";
 import { CAMPAIGN_CHAPTERS, CAMPAIGN_DECISION_IDS, campaignLength, publishCampaignFromCatalogue, validatePublishedCampaign } from "./campaign-topology.ts";
 import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
+import { scenarioForVersion } from "./scenario-resolver.ts";
+import { SCENARIO_V9 } from "./scenario-v9.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
 import { assertNoEmDash, validatePolicyCatalogue, validateScenario } from "./validation.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
+
+test("le resolver fermé restitue les scénarios autonomes V9 et V10", () => {
+  assert.equal(scenarioForVersion(9), SCENARIO_V9);
+  assert.equal(scenarioForVersion(10), SCENARIO_V10);
+  assert.equal(scenarioForVersion(8), null);
+  assert.deepEqual(SCENARIO_V9, SCENARIO_V9_SNAPSHOT);
+  assert.equal(SCENARIO_V10.decisions.length, 72);
+  assert.equal(SCENARIO_V10.decisions.flatMap((decision) => decision.options).length, 144);
+});
 
 test("le scénario V9 reste historique tandis que le catalogue V10 est publié sur 72 dossiers", () => {
   assert.equal(SCENARIO_V3_CATALOGUE.version, 9);

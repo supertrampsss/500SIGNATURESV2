@@ -186,7 +186,7 @@ test("les crises V10 ne citent que des causes et réponses publiées", () => {
   for (const rule of SCENARIO_V10_CRISIS_RULES) {
     assert.ok(rule.requiredDecisionIds.every((id) => publishedIds.has(id)), `${rule.id}:required`);
     assert.ok(rule.aggravatingChoices.length >= 2, `${rule.id}:causes`);
-    assert.ok(rule.concessions.length >= 2, `${rule.id}:answers`);
+    assert.ok(rule.concessions.length >= 1, `${rule.id}:answers`);
     for (const choice of rule.aggravatingChoices) {
       assert.ok(publishedIds.has(choice.decisionId), `${rule.id}:${choice.decisionId}`);
       assert.ok(choice.optionIds.every((id) => optionIds.has(id)), `${rule.id}:${choice.decisionId}`);
@@ -195,4 +195,19 @@ test("les crises V10 ne citent que des causes et réponses publiées", () => {
       assert.ok(publishedIds.has(concession.targetDecisionId), `${rule.id}:${concession.id}`);
     }
   }
+});
+
+test("la crise V10 IR-CSG ne propose que le maintien implicite ou la révocation neutre", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-tax-legitimacy")!;
+  assert.deepEqual(rule.concessions.map((concession) => concession.id), ["reverse-ir-csg-unification"]);
+  assert.equal(rule.concessions[0]!.targetDecisionId, "unifier-ir-csg-bareme-continu");
+  assert.equal(rule.concessions[0]!.policyChange, "reverse");
+  assert.equal(rule.concessions[0]!.effects.some((effect) => effect.target === "indicator" && effect.key === "annualBalance"), false);
+});
+
+test("la crise V10 de réforme de l'État offre exactement maintien et une concession applicable", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-state-capacity")!;
+  assert.equal(rule.aggravatingChoices.length, 2);
+  assert.equal(rule.concessions.length, 1);
+  assert.equal(rule.concessions[0]!.targetDecisionId, rule.aggravatingChoices[0]!.decisionId);
 });

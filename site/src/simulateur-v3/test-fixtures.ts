@@ -180,7 +180,7 @@ export function validCampaignState(scenario = validScenario()): CampaignState {
     parliamentaryMajority: 0,
   };
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     scenarioVersion: scenario.version,
     seed: 1,
     phase: "decision_result",

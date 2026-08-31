@@ -10,7 +10,7 @@ export type CampaignPhase =
   | "pause"
   | "verdict";
 
-export const SCHEMA_VERSION = 4 as const;
+export const SCHEMA_VERSION = 5 as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
 export type DecisionKind = "gestion" | "transformation" | "rupture";

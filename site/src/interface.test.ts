@@ -3578,7 +3578,7 @@ test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
 test("la V3 possède son hôte et son branchement par le routeur", () => {
   assert.match(PAGE, /<section id="simulateur-v3" hidden><\/section>/);
   assert.match(MAIN, /import \{ mountSimulatorV3 \} from "\.\/simulateur-v3\/controller\.ts";/);
-  assert.match(MAIN, /import \{ SCENARIO_V3_PREVIEW \} from "\.\/simulateur-v3\/scenario\.ts";/);
+  assert.match(MAIN, /import \{ scenarioForVersion \} from "\.\/simulateur-v3\/scenario-resolver\.ts";/);
   assert.match(MAIN, /modeSimulateur\(location\.pathname, location\.search\) === "v3"/);
 });
 
@@ -3613,7 +3613,9 @@ test("la V3 attend une baseline nationale publiée avant tout montage", () => {
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
-  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW, \{[\s\S]*?crisisRules: SCENARIO_V3_CRISIS_RULES/);
+  assert.ok(brancheV3.indexOf("scenarioForVersion(10)") < brancheV3.indexOf("mountSimulatorV3("));
+  assert.match(brancheV3, /if \(!scenario\) throw new Error\("Scenario V10 unavailable"\);/);
+  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, scenario, \{[\s\S]*?crisisRules: SCENARIO_V10_CRISIS_RULES/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);

@@ -13,6 +13,8 @@ import type {
   Scenario,
 } from "./types.ts";
 import { positionAfterCompleted } from "./validation.ts";
+import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 
 const majorityCost: EffectRule = {
   id: "majority-cost",
@@ -103,6 +105,20 @@ function resolvedCrisis(
     resolvedBy: "hold-course",
   };
 }
+
+test("la concession IR-CSG V10 appelle la révocation causale sans flux budgétaire inventé", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-tax-legitimacy")!;
+  const count = Math.max(...rule.requiredDecisionIds.map((id) => SCENARIO_V10.decisions.findIndex((decision) => decision.id === id))) + 1;
+  const choices = Object.fromEntries(SCENARIO_V10.decisions.slice(0, count).map((decision) => [decision.id,
+    rule.requiredDecisionIds.includes(decision.id) ? `${decision.id}:adopt` : `${decision.id}:keep`]));
+  const state = stateAfterChoices(SCENARIO_V10, count, choices);
+  state.indicators[rule.indicator] = rule.threshold;
+  const crisis = detectCrisis(state, SCENARIO_V10, [rule]);
+  assert.deepEqual(availableConcessions(crisis, [rule]).map((concession) => concession.id), ["reverse-ir-csg-unification"]);
+  const resolved = resolveCrisis(crisis, [rule], "reverse-ir-csg-unification");
+  assert.equal(resolved.decisions.find((record) => record.decisionId === "unifier-ir-csg-bareme-continu")?.status, "reversed");
+  assert.equal(resolved.indicators.annualBalance, crisis.indicators.annualBalance);
+});
 
 test("une crise persiste le chapitre, le compteur et chaque choix aggravant exact", () => {
   const scenario = validScenario();

@@ -12,15 +12,65 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
   };
 }
 
-import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
+import { clearCampaign, hasReplacedReference, migrateV4ToV5, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import { selectOption } from "./campaign.ts";
 import { applyEffect, confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
 import { advanceMandateYear } from "./timeline.ts";
 import type { Scenario } from "./types.ts";
 import { isCampaignState, positionAfterCompleted, validateScenario } from "./validation.ts";
+
+test("une sauvegarde V4 sans référence remplacée migre vers le schéma 5 et V10", () => {
+  const v4 = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 };
+  const migrated = migrateV4ToV5(v4);
+  assert.ok(migrated);
+  assert.equal(migrated.schemaVersion, 5);
+  assert.equal(migrated.scenarioVersion, 10);
+  assert.equal(isCampaignState(migrated, SCENARIO_V10), true);
+
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(v4) });
+  assert.equal(restoreCampaign(storage, SCENARIO_V10).kind, "restored");
+});
+
+test("une référence V9 remplacée impose un redémarrage sans réécrire l'octet sauvegardé", () => {
+  const v4 = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 };
+  v4.lockedDecisionIds = ["flat-tax-a-20-des-le-premier"];
+  const serialized = JSON.stringify(v4);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+
+  assert.equal(hasReplacedReference(v4), true);
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V10), { kind: "restart_required" });
+  assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("la détection V4 couvre les surfaces persistées avec une frontière d'identifiant stricte", () => {
+  const target = "flat-tax-a-20-des-le-premier";
+  const base = () => ({ ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 }) as unknown as Record<string, unknown>;
+  const mutations: readonly [(state: Record<string, unknown>) => void, string][] = [
+    [(state) => { state.decisions = [{ decisionId: target, optionId: `${target}:adopt` }]; }, "decisions"],
+    [(state) => { state.pendingSelection = { decisionId: target, optionId: `${target}:adopt` }; }, "pending"],
+    [(state) => { state.lockedDecisionIds = [target]; }, "locks"],
+    [(state) => { state.unlockedDecisionIds = [target]; }, "unlocks"],
+    [(state) => { state.scheduledEvents = [{ id: `${target}:event`, sourceDecisionId: target, sourceOptionId: `${target}:adopt` }]; }, "events"],
+    [(state) => { state.eventHistory = [{ id: `${target}:event`, sourceDecisionId: target, sourceOptionId: `${target}:adopt` }]; }, "event-history"],
+    [(state) => { state.activePromises = [{ id: `${target}:promise`, sourceDecisionId: target, sourceOptionId: `${target}:adopt` }]; }, "promises"],
+    [(state) => { state.promiseHistory = [{ id: `${target}:promise`, sourceDecisionId: target, sourceOptionId: `${target}:adopt` }]; }, "promise-history"],
+    [(state) => { state.activeCrisis = { ruleId: "r", triggeredByDecisionId: target, aggravatingDecisionIds: [target], aggravatingChoices: [{ decisionId: target, optionId: `${target}:adopt` }] }; }, "active-crisis"],
+    [(state) => { state.crisisHistory = [{ ruleId: "r", triggeredByDecisionId: target, aggravatingDecisionIds: [target], aggravatingChoices: [{ decisionId: target, optionId: `${target}:adopt` }] }]; }, "crisis-history"],
+    [(state) => { state.causalLedger = [{ id: `${target}:ledger`, sourceId: `${target}:adopt` }]; }, "ledger"],
+  ];
+  for (const [mutate, label] of mutations) {
+    const state = base();
+    mutate(state);
+    assert.equal(hasReplacedReference(state), true, label);
+  }
+  const boundary = base();
+  boundary.lockedDecisionIds = [`unrelated-${target}-suffix`];
+  assert.equal(hasReplacedReference(boundary), false);
+});
 
 test("une campagne V3 sauvegardée est restaurée sans perte", () => {
   const storage = memoryStorage();

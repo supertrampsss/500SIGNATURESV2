@@ -16,7 +16,7 @@ import { positionAfterCompleted, positionBeforeNext, totalDecisions } from "./va
 
 test("une campagne neuve commence avant le premier chapitre", () => {
   const state = createCampaign(validScenario(), 42);
-  assert.equal(state.schemaVersion, 4);
+  assert.equal(state.schemaVersion, 5);
   assert.deepEqual(state.baseline, testBaseline());
   assert.deepEqual(state.annualCheckpoints, []);
   assert.equal(state.seed, 42);

@@ -41,7 +41,7 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     transitionFlows: [{ id: "transition-test", amountMillions: -1, timing: { kind: "immediate" }, sourceKey: "source-test" }],
     exclusiveScopeKeys: ["scope-test"],
   } satisfies BudgetProfile;
-  const state = { schemaVersion: 4, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
+  const state = { schemaVersion: 5, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
   const indicatorEffect = {
     id: "effect-test",
     target: "indicator",
@@ -56,9 +56,9 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     id: "effect-year-test",
     timing: { kind: "mandate_year", year: 3 },
   } satisfies EffectRule;
-  assert.equal(SCHEMA_VERSION, 4);
+  assert.equal(SCHEMA_VERSION, 5);
   assert.equal(decision.options[0]?.id, "keep");
-  assert.equal(state.schemaVersion, 4);
+  assert.equal(state.schemaVersion, 5);
   assert.equal(indicatorEffect.key, "growth");
   assert.equal(mandateYearEffect.timing.year, 3);
   assert.equal(annualProfile.transitionFlows[0].amountMillions, -1);

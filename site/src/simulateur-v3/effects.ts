@@ -367,7 +367,7 @@ function applyLocksAndUnlocks(state: CampaignState, option: DecisionOption): Cam
 /** Confirms the current pending decision exactly once and materializes all its consequences. */
 export function confirmSelection(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase !== "decision" || !state.pendingSelection) throw new Error("A selection required before confirmation");
-  const scenarioErrors = validateScenario(scenario);
+  const scenarioErrors = validateScenario(scenario, { allowConsequencesBeyondCampaign: scenario.version >= 10 });
   if (scenarioErrors.length > 0) throw new Error(`Invalid scenario: ${scenarioErrors.join(", ")}`);
   const decision = currentDecision(state, scenario);
   const { decisionId, optionId } = state.pendingSelection;

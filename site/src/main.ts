@@ -125,8 +125,8 @@ import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
-import { SCENARIO_V3_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
-import { SCENARIO_V3_PREVIEW } from "./simulateur-v3/scenario.ts";
+import { SCENARIO_V10_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
+import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import type { MandateBaseline } from "./simulateur-v3/types.ts";
@@ -3858,9 +3858,11 @@ async function ouvrirSimulateur(): Promise<void> {
       return;
     }
     if (!demonterSimulateurV3) {
-      demonterSimulateurV3 = mountSimulatorV3(hoteV3, SCENARIO_V3_PREVIEW, {
+      const scenario = scenarioForVersion(10);
+      if (!scenario) throw new Error("Scenario V10 unavailable");
+      demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
         baseline: baselineSimulateurV3,
-        crisisRules: SCENARIO_V3_CRISIS_RULES,
+        crisisRules: SCENARIO_V10_CRISIS_RULES,
       });
     }
     return;

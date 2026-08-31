@@ -1,4 +1,5 @@
 import { applyEffect } from "./effects.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCHEMA_VERSION, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
@@ -7,6 +8,29 @@ const V2_STORAGE_KEY = "tunnel-partie";
 const MODELED_EFFECT_SOURCE_VERSION = 5;
 const MODELED_EFFECT_TARGET_VERSION = 6;
 const HISTORICAL_MODELED_EFFECT_MARKER = ":model:";
+
+export const REPLACED_V9_DECISION_IDS = Object.freeze([
+  "geler-le-bareme-de-l-impot-sur",
+  "flat-tax-a-20-des-le-premier",
+  "flat-tax-a-20-avec-abattement-protegeant",
+  "tranche-a-50-au-dela-de-250",
+  "soumettre-les-revenus-du-capital-au-bareme",
+  "supprimer-les-allegements-de-cotisations-entre-2",
+  "fiscaliser-les-heures-supplementaires-comme-le",
+  "raboter-de-5-les-subventions-directes-aux",
+  "raboter-le-credit-d-impot-recherche-de",
+  "allocation-sociale-unique",
+  "imposer-generiques-et-biosimilaires-en-premiere-intention",
+  "renforcer-le-controle-des-arrets-de-travail",
+  "derembourser-les-cures-thermales",
+  "verser-le-rsa-automatiquement-fin-du-non",
+  "interdire-les-voitures-thermiques-en-2030",
+  "reduire-de-5-les-dotations-aux-collectivites",
+  "geler-le-point-d-indice-en-2026",
+  "fermer-un-tiers-des-agences-et-operateurs",
+  "diviser-par-deux-le-nombre-de-parlementaires",
+  "deux-jours-de-carence-dans-la-fonction",
+] as const);
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -46,6 +70,19 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
       return { kind: "restart_required" };
     }
     if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
+    if (isSchemaVersion(parsed, 4)) {
+      if (hasReplacedReference(parsed)) return { kind: "restart_required" };
+      const migrated = migrateV4ToV5(parsed);
+      if (!migrated || scenario.version !== 10 || !isCampaignState(migrated, scenario)) {
+        return { kind: "restart_required" };
+      }
+      try {
+        storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
+      } catch {
+        // A valid migration can still be used in this session without storage.
+      }
+      return { kind: "restored", state: migrated };
+    }
     const migrated = migratePreviousModeledEffects(parsed, scenario);
     if (migrated) {
       try {
@@ -60,6 +97,76 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
   } catch {
     return { kind: "invalid" };
   }
+}
+
+function isSchemaVersion(value: unknown, schemaVersion: number): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+    && (value as { schemaVersion?: unknown }).schemaVersion === schemaVersion;
+}
+
+function matchesReplacedReference(value: unknown): boolean {
+  return typeof value === "string" && REPLACED_V9_DECISION_IDS.some((id) => value === id || value.startsWith(`${id}:`));
+}
+
+function referencesInDecision(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  const impact = typeof record.impact === "object" && record.impact !== null ? record.impact as Record<string, unknown> : null;
+  return [record.decisionId, record.optionId, impact?.decisionId, impact?.optionId]
+    .some(matchesReplacedReference)
+    || (Array.isArray(impact?.indicators) && impact!.indicators.some((indicator) =>
+      typeof indicator === "object" && indicator !== null && Array.isArray((indicator as Record<string, unknown>).causalEntryIds)
+        && ((indicator as Record<string, unknown>).causalEntryIds as unknown[]).some(matchesReplacedReference)));
+}
+
+function referencesInEventOrPromise(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const entry = value as Record<string, unknown>;
+  return [entry.id, entry.sourceDecisionId, entry.sourceOptionId].some(matchesReplacedReference);
+}
+
+function referencesInCrisis(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const crisis = value as Record<string, unknown>;
+  return [crisis.ruleId, crisis.triggeredByDecisionId, crisis.resolvedBy]
+    .some(matchesReplacedReference)
+    || (Array.isArray(crisis.aggravatingDecisionIds) && crisis.aggravatingDecisionIds.some(matchesReplacedReference))
+    || (Array.isArray(crisis.aggravatingChoices) && crisis.aggravatingChoices.some(referencesInDecision));
+}
+
+/** Finds retired V9 decision references only at persisted identifier boundaries. */
+export function hasReplacedReference(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const state = value as Record<string, unknown>;
+  const some = (field: string, predicate: (entry: unknown) => boolean): boolean =>
+    Array.isArray(state[field]) && state[field].some(predicate);
+  return [state.pendingSelection].some(referencesInDecision)
+    || some("decisions", referencesInDecision)
+    || some("lockedDecisionIds", matchesReplacedReference)
+    || some("unlockedDecisionIds", matchesReplacedReference)
+    || some("scheduledEvents", referencesInEventOrPromise)
+    || some("eventHistory", referencesInEventOrPromise)
+    || some("activePromises", referencesInEventOrPromise)
+    || some("promiseHistory", referencesInEventOrPromise)
+    || [state.activeCrisis].some(referencesInCrisis)
+    || some("crisisHistory", referencesInCrisis)
+    || some("causalLedger", (entry) => typeof entry === "object" && entry !== null
+      && [
+        (entry as Record<string, unknown>).id,
+        (entry as Record<string, unknown>).sourceId,
+      ].some(matchesReplacedReference));
+}
+
+/**
+ * V4 has no V10 budget profile or exclusive scope in its records. Therefore
+ * only a pristine V4 state, whose absence of policy references is provable,
+ * can safely become V10; any selected policy requires a restart.
+ */
+export function migrateV4ToV5(value: unknown): CampaignState | null {
+  if (!isSchemaVersion(value, 4) || hasReplacedReference(value)) return null;
+  const candidate: Record<string, unknown> = { ...value, schemaVersion: SCHEMA_VERSION, scenarioVersion: 10 };
+  if (Array.isArray(candidate.decisions) && candidate.decisions.length > 0) return null;
+  return isCampaignState(candidate, SCENARIO_V10) ? candidate : null;
 }
 
 function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Scenario): boolean {

@@ -803,7 +803,7 @@ export function validateScenario(
         ? option.budgetProfile as BudgetProfile
         : null;
       if (!profile) {
-        errors.push(`option:${optionId}:budget-profile-required`);
+        if (scenario.version >= 10) errors.push(`option:${optionId}:budget-profile-required`);
       } else {
         errors.push(...validateBudgetProfile(profile, decision.id, optionId));
         const transitionFlows = Array.isArray(profile.transitionFlows) ? profile.transitionFlows : [];
@@ -935,9 +935,12 @@ export function validateScenario(
     const profilesByOptionId = new Map(budgetProfiles.map(({ optionId, profile }) => [optionId, profile]));
     for (const [optionId, count] of Object.entries(V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)) {
       const profile = profilesByOptionId.get(optionId);
-      if (profile?.runRateTiming?.kind !== "after_decisions") {
+      const timing = profile?.runRateTiming;
+      if (profile === undefined && scenario.decisions.length === 96) {
         errors.push(`option:${optionId}:run-rate-after-decisions-missing-canonical`);
-      } else if (profile.runRateTiming.count !== count) {
+      } else if (profile !== undefined && timing?.kind !== "after_decisions") {
+        errors.push(`option:${optionId}:run-rate-after-decisions-missing-canonical`);
+      } else if (timing?.kind === "after_decisions" && timing.count !== count) {
         errors.push(`option:${optionId}:run-rate-after-decisions-not-canonical`);
       }
     }
@@ -1074,7 +1077,7 @@ export function validateCrisisRules(scenario: Scenario, rules: readonly CrisisRu
 
 /** Narrow an untrusted persisted value to a reachable V3 campaign state. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
-  if (validateScenario(scenario).length > 0) return false;
+  if (validateScenario(scenario, { allowConsequencesBeyondCampaign: scenario.version >= 10 }).length > 0) return false;
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
   if (value.pausedFrom !== undefined) {
