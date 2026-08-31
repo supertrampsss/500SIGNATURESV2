@@ -1,0 +1,58 @@
+{
+  "slug": "prix-gaz-menages-2022-2025",
+  "titre": "Le gaz des ménages a-t-il encore augmenté ?",
+  "type": "mise_a_jour",
+  "publie_le": "2026-08-30",
+  "themes": ["energie", "macro"],
+  "budgets_concernes": ["etat"],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "Après la crise énergétique, le prix du gaz payé par les ménages est revenu à son niveau d'avant.",
+    "auteur": null,
+    "date": null,
+    "source": {"titre": "Affirmation courante confrontée à la série harmonisée d'Eurostat", "url": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_202/default/table", "consulte_le": "2026-08-30"}
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "Non. Pour la bande résidentielle D2 en France, le prix moyen TTC publié par Eurostat passe de 0,1008 euro par kWh au second semestre 2022 à 0,1436 euro au second semestre 2025. La hausse récente mélange coût hors taxes et prélèvements : il faut afficher les deux."
+  },
+  "chiffres": [
+    {"dit": "le prix du gaz est revenu à la normale", "valeur": 0.1436, "registre": "donnee_officielle", "lecture": "Eurostat publie 0,1436 euro par kWh TTC pour la bande résidentielle D2 en France au second semestre 2025."},
+    {"dit": "les taxes expliquent tout", "valeur": 0.0998, "registre": "donnee_officielle", "lecture": "Le prix hors taxes de la même bande atteint 0,0998 euro par kWh : la composante hors taxes a elle aussi augmenté depuis 2022."}
+  ],
+  "hypotheses": [
+    "La bande D2 correspond à une consommation annuelle standardisée ; elle ne représente pas chaque logement.",
+    "Le prix Eurostat est une moyenne semestrielle observée. Le prix repère de la CRE est une référence mensuelle de comparaison des offres, pas le prix moyen effectivement payé.",
+    "Une facture annuelle dépend aussi de la consommation, de l'abonnement, du climat et du contrat."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {"id": "eurostat-gaz", "titre": "Eurostat — prix du gaz des ménages, nrg_pc_202", "url": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_202/default/table", "consulte_le": "2026-08-30"},
+    {"id": "cre-prvg", "titre": "CRE — construction du prix repère de vente de gaz", "url": "https://www.cre.fr/documents/open-data/construction-du-prix-repere-de-vente-de-gaz-de-la-cre.html", "consulte_le": "2026-08-30"}
+  ],
+  "simulateur": {"budget": "", "contrat": "", "lecture": "Le simulateur teste des décisions ; cette page décrit les prix effectivement publiés, sans projeter une facture future."},
+  "mises_a_jour": [],
+  "verifie_contre": "Eurostat nrg_pc_202, France, bande D2, TTC et hors taxes",
+  "dossier": {
+    "chapo": "La moyenne semestrielle harmonisée permet de distinguer ce que paient les ménages, ce qui relève du prix hors taxes et ce qui relève des prélèvements. Elle ne prédit pas la prochaine facture.",
+    "sommaire": ["constat", "decomposition", "repere"],
+    "series": [
+      {"id": "gaz-ttc", "libelle": "Prix résidentiel du gaz TTC", "unit": "EUR_per_kWh", "definition": "Prix moyen semestriel TTC en France pour la bande de consommation D2.", "sourceId": "eurostat-gaz", "observations": [{"period": "2022-S2", "value": 0.1008}, {"period": "2023-S2", "value": 0.1181}, {"period": "2024-S2", "value": 0.1331}, {"period": "2025-S2", "value": 0.1436}]},
+      {"id": "gaz-hors-taxes", "libelle": "Prix résidentiel du gaz hors taxes", "unit": "EUR_per_kWh", "definition": "Prix moyen semestriel hors taxes et prélèvements en France pour la bande D2.", "sourceId": "eurostat-gaz", "observations": [{"period": "2022-S2", "value": 0.0754}, {"period": "2023-S2", "value": 0.0899}, {"period": "2024-S2", "value": 0.0939}, {"period": "2025-S2", "value": 0.0998}]}
+    ],
+    "preuves": [
+      {"id": "preuve-gaz-2022", "libelle": "Prix TTC au second semestre 2022", "value": 0.1008, "unit": "EUR_per_kWh", "period": "2022-S2", "definition": "Prix moyen semestriel TTC, France, bande D2.", "sourceId": "eurostat-gaz", "seriesId": "gaz-ttc"},
+      {"id": "preuve-gaz-2025", "libelle": "Prix TTC au second semestre 2025", "value": 0.1436, "unit": "EUR_per_kWh", "period": "2025-S2", "definition": "Prix moyen semestriel TTC, France, bande D2.", "sourceId": "eurostat-gaz", "seriesId": "gaz-ttc"},
+      {"id": "preuve-hors-taxes-2025", "libelle": "Prix hors taxes au second semestre 2025", "value": 0.0998, "unit": "EUR_per_kWh", "period": "2025-S2", "definition": "Prix moyen semestriel hors taxes, France, bande D2.", "sourceId": "eurostat-gaz", "seriesId": "gaz-hors-taxes"}
+    ],
+    "visualisations": [
+      {"id": "courbe-gaz", "type": "line", "titre": "Prix du gaz TTC et hors taxes depuis 2022", "resume": "Les deux séries augmentent ; l'écart entre elles correspond aux taxes et prélèvements dans cette définition.", "seriesIds": ["gaz-ttc", "gaz-hors-taxes"]}
+    ],
+    "sections": [
+      {"id": "constat", "titre": "Une hausse nette dans la série harmonisée", "paragraphes": ["Le prix TTC de la bande D2 augmente de 0,1008 à 0,1436 euro par kWh entre les seconds semestres 2022 et 2025."], "preuveIds": ["preuve-gaz-2022", "preuve-gaz-2025"], "visualisationIds": ["courbe-gaz"]},
+      {"id": "decomposition", "titre": "Le hors taxes augmente aussi", "paragraphes": ["Sur la même période, le prix hors taxes passe de 0,0754 à 0,0998 euro par kWh. La fiscalité compte dans le TTC, mais elle n'explique donc pas seule le mouvement."], "preuveIds": ["preuve-hors-taxes-2025"]},
+      {"id": "repere", "titre": "Ne pas confondre moyenne payée et prix repère", "paragraphes": ["Le prix repère mensuel de la CRE aide à comparer les offres après la fin des tarifs réglementés du gaz. Ce n'est ni une obligation tarifaire ni la moyenne observée par Eurostat."]}
+    ],
+    "limitations": ["La bande D2 ne décrit pas les petits et très gros consommateurs résidentiels.", "Les moyennes semestrielles lissent les variations mensuelles.", "Le prix au kWh ne suffit pas à calculer une facture sans abonnement et consommation."]
+  }
+}

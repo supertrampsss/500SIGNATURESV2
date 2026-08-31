@@ -15,6 +15,7 @@ eurostat,API de diffusion Eurostat,Eurostat,A,https://ec.europa.eu/eurostat/api/
 entsoe-transparency,ENTSO-E Transparency Platform,ENTSO-E,B,https://web-api.tp.entsoe.eu/api,https://www.entsoe.eu/data/transparency-platform/,securityToken query parameter via ENTSOE_API_TOKEN,ENTSO-E Transparency Platform terms of use,EU
 uba,Umweltbundesamt data,Umweltbundesamt,C,https://www.umweltbundesamt.de/daten,https://www.umweltbundesamt.de/daten/energie,,Nutzungsbedingungen des Umweltbundesamtes,EU
 cre,Open data CRE,Commission de regulation de l'energie,C,https://www.cre.fr/documents/open-data.html,https://www.cre.fr/documents/open-data.html,,Licence Ouverte 2.0,FR
+rte,RTE Analyses et donnees,RTE,C,https://analysesetdonnees.rte-france.com/,https://analysesetdonnees.rte-france.com/,,Donnees RTE selon conditions de reutilisation,FR
 gisco,GISCO (geometries NUTS/LAU),Eurostat,C,https://gisco-services.ec.europa.eu,https://ec.europa.eu/eurostat/web/gisco,,Licence Eurostat (reutilisation libre avec mention),EU
 urssaf,open.urssaf.fr,URSSAF Caisse nationale,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
 banque-de-france,Webstat,Banque de France,A,https://webstat.banque-france.fr/api/explore/v2.1/,https://webstat.banque-france.fr,cle selon volume,Conditions BdF (verifier par jeu),FR

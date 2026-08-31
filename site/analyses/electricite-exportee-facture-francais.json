@@ -1,0 +1,258 @@
+{
+  "slug": "electricite-exportee-facture-francais",
+  "titre": "Vend-on notre électricité moins cher à nos voisins qu'aux Français ?",
+  "type": "decryptage",
+  "publie_le": "2026-08-30",
+  "themes": ["energie", "europe"],
+  "budgets_concernes": ["etat"],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "La France vend son électricité nucléaire à bas prix aux pays voisins, puis les Français la rachètent plus cher.",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Affirmation courante confrontée aux bilans de RTE et à la construction des tarifs par la CRE",
+      "url": "https://analysesetdonnees.rte-france.com/bilan-electrique-2025/echanges",
+      "consulte_le": "2026-08-30"
+    }
+  },
+  "verdict": {
+    "cran": "hors_perimetre",
+    "confusion": "gros_detail",
+    "phrase": "L'affirmation mélange deux étages différents. Les échanges avec les voisins sont valorisés sur les marchés de gros, selon les prix des zones et les capacités d'interconnexion. La facture d'un ménage est un prix de détail qui inclut aussi l'approvisionnement lissé dans le temps, le réseau, la commercialisation, les prélèvements et la TVA. Il n'existe pas de mécanisme où les Français rachèteraient les électrons qu'ils viennent d'exporter."
+  },
+  "chiffres": [
+    {
+      "dit": "la France brade son électricité à l'étranger",
+      "valeur": 59,
+      "registre": "donnee_officielle",
+      "lecture": "En 2025, RTE valorise le mégawattheure exporté à 59 euros au prix français, contre 61 euros pour le prix spot moyen français."
+    },
+    {
+      "dit": "les pays voisins l'achètent moins cher que nous",
+      "valeur": 101.5,
+      "registre": "donnee_officielle",
+      "lecture": "Le même volume exporté est valorisé par RTE à 101,5 euros par mégawattheure avec les prix moyens des pays de destination. C'est une convention de valorisation distincte, pas un second prix payé sur une même transaction."
+    },
+    {
+      "dit": "les Français rachètent cette électricité plus cher",
+      "valeur": 239,
+      "registre": "donnee_officielle",
+      "lecture": "Le tarif réglementé résidentiel moyen proposé pour février 2025 était de 239 euros par mégawattheure TTC : il s'agit d'une facture de détail complète, pas du prix spot d'un mégawattheure exporté."
+    }
+  ],
+  "hypotheses": [
+    "Les valeurs de 59 et 101,5 euros par mégawattheure sont deux conventions de valorisation publiées par RTE. Elles ne doivent pas être présentées comme la marge d'un intermédiaire ni comme deux prix successifs d'un même contrat.",
+    "Le tarif réglementé n'est pas la facture de chaque Français : les contrats, puissances souscrites et consommations diffèrent. Il sert ici à montrer la composition d'un prix de détail TTC.",
+    "Cette comparaison ne mesure pas le coût complet du parc nucléaire historique et ne permet pas, à elle seule, de dire quel prix serait optimal pour EDF, l'État ou les consommateurs."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "id": "rte-echanges-2024",
+      "titre": "RTE — Bilan électrique 2024, échanges",
+      "url": "https://analysesetdonnees.rte-france.com/bilan-electrique-2024/echanges",
+      "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "rte-echanges-2025",
+      "titre": "RTE — Bilan électrique 2025, échanges",
+      "url": "https://analysesetdonnees.rte-france.com/bilan-electrique-2025/echanges",
+      "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "cre-trve",
+      "titre": "CRE — Comprendre les tarifs réglementés de vente d'électricité",
+      "url": "https://www.cre.fr/consommateurs/comprendre-les-tarifs-reglementes-de-vente-delectricite-trve.html",
+      "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "cre-trve-2025",
+      "titre": "CRE — Proposition de baisse des tarifs réglementés au 1er février 2025",
+      "url": "https://www.cre.fr/actualites/toute-lactualite/la-cre-propose-une-baisse-moyenne-de-15-des-tarifs-reglementes-de-vente-delectricite-ttc-au-1er-fevrier-2025-pour-les-consommateurs-souscrivant-une-puissance-inferieure-ou-egale-a-36-kva.html",
+      "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "cre-arenh",
+      "titre": "CRE — Accès régulé à l'électricité nucléaire historique",
+      "url": "https://www.cre.fr/electricite/marche-de-gros-de-lelectricite/acces-regule-a-lelectricite-nucleaire-historique-arenh.html",
+      "consulte_le": "2026-08-30"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le simulateur peut faire varier des choix énergétiques, mais il ne transforme pas un prix spot en facture domestique : ces grandeurs restent séparées."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": "RTE 2024-2025 et CRE, pages consultées le 30 août 2026",
+  "dossier": {
+    "chapo": "La France exporte beaucoup d'électricité lorsqu'elle en produit davantage qu'elle n'en consomme et que les interconnexions le permettent. Mais comparer le prix de gros de ces flux à une facture résidentielle TTC revient à comparer deux objets différents.",
+    "sommaire": ["reponse", "echanges", "facture", "arenh"],
+    "series": [
+      {
+        "id": "solde-exportateur",
+        "libelle": "Solde net exportateur de la France",
+        "unit": "GWh",
+        "definition": "Exportations physiques diminuées des importations physiques d'électricité sur l'année.",
+        "sourceId": "rte-echanges-2025",
+        "observations": [
+          {"period": "2024", "value": 89000},
+          {"period": "2025", "value": 92300}
+        ]
+      },
+      {
+        "id": "valorisations-gros-2025",
+        "libelle": "Valorisations de gros publiées par RTE",
+        "unit": "EUR_per_MWh",
+        "definition": "Prix moyen 2025 selon trois conventions : volumes exportés au prix français, prix spot moyen français et volumes exportés aux prix moyens des destinations.",
+        "sourceId": "rte-echanges-2025",
+        "observations": [
+          {"period": "export-prix-francais", "value": 59},
+          {"period": "spot-france", "value": 61},
+          {"period": "export-prix-destinations", "value": 101.5}
+        ]
+      },
+      {
+        "id": "trve-moyen-ttc",
+        "libelle": "Tarif réglementé résidentiel moyen TTC",
+        "unit": "EUR_per_MWh",
+        "definition": "Niveau moyen TTC du tarif réglementé pour les consommateurs d'une puissance inférieure ou égale à 36 kVA, publié par la CRE.",
+        "sourceId": "cre-trve-2025",
+        "observations": [
+          {"period": "2024", "value": 281},
+          {"period": "2025-02", "value": 239}
+        ]
+      }
+    ],
+    "preuves": [
+      {
+        "id": "preuve-solde-2024",
+        "libelle": "Solde net exportateur 2024",
+        "value": 89000,
+        "unit": "GWh",
+        "period": "2024",
+        "definition": "Exportations diminuées des importations d'électricité.",
+        "sourceId": "rte-echanges-2024"
+      },
+      {
+        "id": "preuve-solde-2025",
+        "libelle": "Solde net exportateur 2025",
+        "value": 92300,
+        "unit": "GWh",
+        "period": "2025",
+        "definition": "Exportations diminuées des importations d'électricité.",
+        "sourceId": "rte-echanges-2025",
+        "seriesId": "solde-exportateur"
+      },
+      {
+        "id": "preuve-export-prix-francais",
+        "libelle": "Mégawattheure exporté valorisé au prix français",
+        "value": 59,
+        "unit": "EUR_per_MWh",
+        "period": "2025",
+        "definition": "Valeur moyenne des volumes exportés en appliquant le prix de gros français.",
+        "sourceId": "rte-echanges-2025"
+      },
+      {
+        "id": "preuve-spot-france",
+        "libelle": "Prix spot moyen français",
+        "value": 61,
+        "unit": "EUR_per_MWh",
+        "period": "2025",
+        "definition": "Prix moyen journalier du marché de gros français en 2025.",
+        "sourceId": "rte-echanges-2025"
+      },
+      {
+        "id": "preuve-export-destinations",
+        "libelle": "Mégawattheure exporté valorisé aux prix des destinations",
+        "value": 101.5,
+        "unit": "EUR_per_MWh",
+        "period": "2025",
+        "definition": "Valeur moyenne des volumes exportés en appliquant les prix moyens des pays de destination.",
+        "sourceId": "rte-echanges-2025"
+      },
+      {
+        "id": "preuve-trve-2025",
+        "libelle": "Tarif réglementé résidentiel moyen TTC",
+        "value": 239,
+        "unit": "EUR_per_MWh",
+        "period": "2025-02",
+        "definition": "Tarif réglementé moyen TTC proposé par la CRE après la baisse du 1er février 2025.",
+        "sourceId": "cre-trve-2025",
+        "seriesId": "trve-moyen-ttc"
+      },
+      {
+        "id": "preuve-arenh",
+        "libelle": "Prix historique de l'ARENH",
+        "value": 42,
+        "unit": "EUR_per_MWh",
+        "period": "2012-2025",
+        "definition": "Prix régulé auquel les fournisseurs pouvaient acheter une part de la production nucléaire historique pour leurs portefeuilles de clients en France ; dispositif terminé le 31 décembre 2025.",
+        "sourceId": "cre-arenh"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "solde-exportateur-figure",
+        "type": "bar",
+        "titre": "Une France nettement exportatrice en 2024 et 2025",
+        "resume": "Le solde exportateur net atteint 89 000 GWh en 2024 et 92 300 GWh en 2025.",
+        "seriesIds": ["solde-exportateur"]
+      },
+      {
+        "id": "prix-gros-detail",
+        "type": "snapshot_table",
+        "titre": "Trois valorisations de gros et une facture de détail",
+        "resume": "Les valeurs de gros de RTE se comparent entre elles ; le tarif TTC de la CRE appartient à un autre étage de prix.",
+        "preuveIds": ["preuve-export-prix-francais", "preuve-spot-france", "preuve-export-destinations", "preuve-trve-2025"]
+      }
+    ],
+    "sections": [
+      {
+        "id": "reponse",
+        "titre": "La réponse courte : non, pas de vente puis de rachat",
+        "paragraphes": [
+          "Le réseau européen met en commun des zones reliées entre elles. À chaque instant, l'électricité circule selon la production disponible, la demande, les prix de gros et la capacité des interconnexions. Un flux exporté n'est pas étiqueté puis revendu au ménage français.",
+          "La bonne comparaison oppose d'abord des prix de gros entre eux. Elle examine ensuite, séparément, comment un prix de détail est construit."
+        ],
+        "preuveIds": ["preuve-export-prix-francais", "preuve-spot-france", "preuve-export-destinations"],
+        "visualisationIds": ["prix-gros-detail"]
+      },
+      {
+        "id": "echanges",
+        "titre": "Pourquoi exporter quand l'électricité française est abondante",
+        "paragraphes": [
+          "Quand la production française disponible dépasse la demande intérieure, exporter évite de réduire davantage les moyens de production et permet de valoriser le surplus. En 2024 comme en 2025, la France a été très largement exportatrice nette.",
+          "RTE montre aussi pourquoi la formule « vendu moins cher aux voisins » est trompeuse : en 2025, le mégawattheure exporté vaut 59 euros au prix français, presque le prix spot français de 61 euros, tandis que la valorisation aux prix des pays de destination atteint 101,5 euros. Ces deux valorisations encadrent le même flux avec des conventions différentes ; elles ne décrivent pas un cadeau suivi d'un rachat."
+        ],
+        "preuveIds": ["preuve-solde-2024", "preuve-solde-2025"],
+        "visualisationIds": ["solde-exportateur-figure"]
+      },
+      {
+        "id": "facture",
+        "titre": "Pourquoi la facture française est plus élevée qu'un prix spot",
+        "paragraphes": [
+          "Une facture de détail ne reprend pas simplement le prix spot du jour. Elle agrège le coût d'approvisionnement du fournisseur, souvent couvert à l'avance, la capacité, l'utilisation des réseaux, la commercialisation, les prélèvements et la TVA.",
+          "Le tarif réglementé moyen est passé de 281 à 239 euros par mégawattheure TTC au 1er février 2025 lorsque les coûts d'approvisionnement ont baissé. Ce mouvement confirme que le prix de détail réagit aux coûts de gros, mais avec sa propre composition et son propre calendrier."
+        ],
+        "preuveIds": ["preuve-trve-2025"]
+      },
+      {
+        "id": "arenh",
+        "titre": "Le chiffre de 42 euros de l'ARENH ne décrit pas une vente aux pays étrangers",
+        "paragraphes": [
+          "Le prix de 42 euros par mégawattheure souvent cité correspondait à l'ARENH. Ce mécanisme permettait aux fournisseurs d'accéder à une quantité régulée de production nucléaire historique en fonction de leurs portefeuilles de clients en France.",
+          "L'ARENH n'était donc pas un tarif préférentiel consenti à des États voisins. Il a pris fin le 31 décembre 2025. Le confondre avec le prix des exportations transfrontalières ajoute un troisième objet à deux grandeurs déjà différentes."
+        ],
+        "preuveIds": ["preuve-arenh"]
+      }
+    ],
+    "limitations": [
+      "Les valeurs de RTE décrivent des moyennes annuelles ; les prix horaires peuvent être beaucoup plus élevés, plus faibles ou négatifs.",
+      "Les électrons ne sont pas traçables par origine commerciale dans le réseau maillé : la formulation « notre nucléaire vendu puis racheté » est une image, pas une opération physique observée.",
+      "La valeur de 101,5 euros par mégawattheure aux prix des destinations est une convention de valorisation publiée par RTE, pas la recette contractuelle exacte de chaque échange.",
+      "Le tarif réglementé moyen TTC illustre un prix de détail ; il ne représente ni tous les contrats ni toutes les factures des ménages."
+    ]
+  }
+}

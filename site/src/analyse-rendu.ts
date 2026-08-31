@@ -44,7 +44,9 @@ export type Confusion =
   | "stock_flux"
   | "etat_apu"
   | "annuel_cumule"
-  | "perimetre_geographique";
+  | "perimetre_geographique"
+  | "gros_detail"
+  | "panier_partiel";
 
 /**
  * Le libellé éditorial que les nouveaux dossiers affichent en premier.
@@ -164,6 +166,8 @@ export const LIBELLE_CONFUSION: Record<Confusion, string> = {
   etat_apu: "Le périmètre de l'État confondu avec celui des administrations publiques",
   annuel_cumule: "Un montant annuel confondu avec un montant cumulé sur plusieurs exercices",
   perimetre_geographique: "Deux périmètres géographiques différents confondus",
+  gros_detail: "Un prix de gros de l'électricité confondu avec une facture de détail",
+  panier_partiel: "Le prix d'un sous-panier confondu avec une dépense totale",
 };
 
 /** Les six verdicts stables de l'interface éditoriale. */
@@ -190,6 +194,8 @@ function qualificationConfusion(confusion: Confusion): QualificationVerdict {
   switch (confusion) {
     case "ae_cp":
     case "vote_execute":
+    case "gros_detail":
+    case "panier_partiel":
       return "contexte_manquant";
     case "brut_net":
       return "ordre_grandeur";

@@ -432,6 +432,8 @@ test("la qualification distingue exactitude, périmètre et absence de preuve", 
     etat_apu: "perimetre_trompeur",
     annuel_cumule: "contredit",
     perimetre_geographique: "perimetre_trompeur",
+    gros_detail: "contexte_manquant",
+    panier_partiel: "contexte_manquant",
   } satisfies Record<Confusion, QualificationVerdict>;
   for (const [confusion, qualification] of Object.entries(attendues) as [
     Confusion,

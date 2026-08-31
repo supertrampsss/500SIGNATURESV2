@@ -1,7 +1,6 @@
 """Contrat de registre pour les cinq analyses editoriales V3."""
 
 import csv
-import re
 from collections import Counter
 from pathlib import Path
 
@@ -15,11 +14,10 @@ DATASET_REGISTRY = ROOT / "infra/seed/dataset_registry.csv"
 REQUIRED_EXTERNAL_IDS = {
     "eurostat-nrg-pc-202": "nrg_pc_202",
     "eurostat-nrg-pc-204": "nrg_pc_204",
-    "eurostat-nrg-bal-peh": "nrg_bal_peh",
-    "eurostat-nrg-ti-eh": "nrg_ti_eh",
-    "eurostat-nrg-te-eh": "nrg_te_eh",
-    "entsoe-a44-day-ahead": "A44",
-    "uba-electricity-generation": "erneuerbare-konventionelle-stromerzeugung",
+    "rte-bilan-electrique-2024-echanges": "bilan-electrique-2024-echanges",
+    "rte-bilan-electrique-2025-echanges": "bilan-electrique-2025-echanges",
+    "cre-trve": "tarifs-reglementes-vente-electricite",
+    "cre-arenh": "acces-regule-electricite-nucleaire-historique",
     "bdm-fournitures-001765036": "001765036",
     "bdm-ipc-ensemble-001764363": "001764363",
     "bdm-gaz-menages-011815828": "011815828",
@@ -65,7 +63,7 @@ def test_analysis_rows_are_unique_complete_and_source_backed():
     assert {
         datasets_by_id[dataset_id]["source_id"]
         for dataset_id in REQUIRED_EXTERNAL_IDS
-    } == {"cre", "entsoe-transparency", "eurostat", "insee-bdm", "insee-fichiers", "insee-melodi", "uba"}
+    } == {"cre", "eurostat", "insee-bdm", "insee-fichiers", "insee-melodi", "rte"}
 
 
 def test_housing_publications_are_separate_and_exclude_unverified_2006_point():
@@ -86,14 +84,13 @@ def test_housing_publications_are_separate_and_exclude_unverified_2006_point():
     assert len({row["external_id"] for row in housing.values()}) == len(housing)
 
 
-def test_entsoe_declares_token_location_but_contains_no_secret():
+def test_electricity_claim_uses_french_primary_sources_without_api_secret():
     sources = {row["source_id"]: row for row in _read_csv(SOURCE_REGISTRY)}
-    auth = sources["entsoe-transparency"]["auth_mode"]
 
-    assert "securityToken" in auth
-    assert "ENTSOE_API_TOKEN" in auth
-    assert not re.search(r"(?i)(?:securityToken|token)\s*=\s*[^ ;]+", auth)
-    assert not re.search(r"[A-Za-z0-9_-]{32,}", auth.replace("ENTSOE_API_TOKEN", ""))
+    assert sources["rte"]["producer"] == "RTE"
+    assert sources["cre"]["producer"] == "Commission de regulation de l'energie"
+    assert sources["rte"]["auth_mode"] == ""
+    assert sources["cre"]["auth_mode"] == ""
 
 
 def test_registry_sync_resolves_analysis_ids_and_preserves_asset_lineage(tmp_path):

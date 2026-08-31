@@ -1,0 +1,55 @@
+{
+  "slug": "age-achat-residence-principale",
+  "titre": "À quel âge achète-t-on sa première résidence principale ?",
+  "type": "decryptage",
+  "publie_le": "2026-08-30",
+  "themes": ["logement", "population"],
+  "budgets_concernes": ["etat"],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "On peut tracer année par année l'âge moyen du premier achat immobilier en France.",
+    "auteur": null,
+    "date": null,
+    "source": {"titre": "Question confrontée aux enquêtes Logement publiées par l'Insee", "url": "https://www.insee.fr/fr/statistiques/7765775", "consulte_le": "2026-08-30"}
+  },
+  "verdict": {
+    "cran": "introuvable",
+    "phrase": "Il n'existe pas, dans les publications officielles identifiées, de série annuelle homogène de l'âge moyen au premier achat de résidence principale. Deux repères sont publiés : 36 ans pour les premières acquisitions de 1998 à 2001 dans l'enquête Logement 2002, puis 39 ans pour les primo-accédants observés dans l'enquête Logement 2013. Ils suggèrent un décalage, mais ne constituent pas une courbe annuelle."
+  },
+  "chiffres": [
+    {"dit": "un âge moyen annuel disponible depuis des décennies", "valeur": 36, "registre": "donnee_officielle", "lecture": "L'enquête Logement 2002 publie 36 ans en moyenne pour les premières acquisitions réalisées entre 1998 et 2001."},
+    {"dit": "une évolution continue et directement comparable", "valeur": 39, "registre": "donnee_officielle", "lecture": "Une publication Insee fondée sur l'enquête Logement 2013 donne 39 ans pour les primo-accédants, avec une autre fenêtre d'observation."}
+  ],
+  "hypotheses": [
+    "Les deux repères viennent d'enquêtes et de périodes différentes ; les relier par une droite inventerait des années non observées.",
+    "L'âge à l'achat d'une résidence principale n'est pas toujours l'âge du premier accès à la propriété selon la définition et le parcours du ménage.",
+    "Les publications Histoire de vie et Patrimoine décrivent aussi la distribution par âge des acquéreurs récents, mais pas un nouvel âge moyen directement comparable aux deux repères."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {"id": "insee-enl-2002", "titre": "Insee — Accession à la propriété, enquête Logement 2002", "url": "https://www.insee.fr/fr/statistiques/fichier/1376575/es381-382c.pdf", "consulte_le": "2026-08-30"},
+    {"id": "insee-enl-2013", "titre": "Insee — Les primo-accédants dans l'enquête Logement 2013", "url": "https://www.insee.fr/fr/statistiques/7765775", "consulte_le": "2026-08-30"},
+    {"id": "insee-hvp", "titre": "Insee — Les conditions d'accès à la propriété, Histoire de vie et Patrimoine 2017-2018", "url": "https://www.insee.fr/fr/statistiques/5371267", "consulte_le": "2026-08-30"}
+  ],
+  "simulateur": {"budget": "", "contrat": "", "lecture": "Le simulateur peut tester des politiques de logement ; il ne complète pas les années absentes d'une série statistique."},
+  "mises_a_jour": [],
+  "verifie_contre": "Enquêtes Logement 2002 et 2013, publication HVP 2017-2018",
+  "dossier": {
+    "chapo": "La réponse honnête tient en deux points officiels et une limite majeure : aucune série annuelle homogène n'autorise une courbe continue de l'âge du premier achat.",
+    "sommaire": ["reperes", "comparabilite", "manquants"],
+    "series": [],
+    "preuves": [
+      {"id": "preuve-2002", "libelle": "Âge moyen des premières acquisitions de 1998 à 2001", "value": 36, "unit": "years", "period": "1998-2001", "definition": "Âge moyen lors de la première acquisition pour les ménages observés dans l'enquête Logement 2002.", "sourceId": "insee-enl-2002", "qualityFlags": ["fenetre-pluriannuelle"]},
+      {"id": "preuve-2013", "libelle": "Âge moyen des primo-accédants dans l'enquête 2013", "value": 39, "unit": "years", "period": "2013", "definition": "Âge moyen publié pour les primo-accédants dans l'enquête Logement 2013.", "sourceId": "insee-enl-2013", "qualityFlags": ["enquete-ponctuelle"]}
+    ],
+    "visualisations": [
+      {"id": "table-reperes", "type": "snapshot_table", "titre": "Deux repères officiels, pas une série annuelle", "resume": "Les deux âges sont affichés avec leur fenêtre et leur définition ; aucune valeur intermédiaire n'est interpolée.", "preuveIds": ["preuve-2002", "preuve-2013"]}
+    ],
+    "sections": [
+      {"id": "reperes", "titre": "Les deux repères que l'on peut publier", "paragraphes": ["Le premier repère est une moyenne sur les acquisitions de 1998 à 2001. Le second vient de l'enquête Logement 2013. L'écart brut est de trois ans."], "preuveIds": ["preuve-2002", "preuve-2013"], "visualisationIds": ["table-reperes"]},
+      {"id": "comparabilite", "titre": "Pourquoi il ne faut pas dessiner une tendance annuelle", "paragraphes": ["Les fenêtres, populations observées et formulations ne sont pas une série administrative annuelle. Présenter une ligne de 36 à 39 ans ferait croire que chaque année intermédiaire a été mesurée."]},
+      {"id": "manquants", "titre": "Ce qu'il faudrait pour mesurer réellement l'évolution", "paragraphes": ["Il faudrait une série répétée avec une définition stable du premier achat, un âge observé à la transaction et une couverture nationale constante. Les sources identifiées n'offrent pas ces trois propriétés ensemble."]}
+    ],
+    "limitations": ["Deux observations ne suffisent pas à établir une trajectoire continue.", "Les définitions et fenêtres d'enquête doivent rester visibles à côté des âges.", "Aucun point 2006 non vérifié n'est interpolé ou repris."]
+  }
+}

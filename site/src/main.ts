@@ -128,6 +128,7 @@ import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./simulateur-v3/scenario.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
+import { brancherQuestions } from "./questions-ui.ts";
 import type { MandateBaseline } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
@@ -139,6 +140,7 @@ import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";
 import "./styles/dossiers-verification.css";
 import "./styles/registre-sources.css";
+import "./styles/questions.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -4000,6 +4002,7 @@ async function demarrer(): Promise<void> {
   // ne doit pas laisser sa barre repliée sur une liste qu'on voulait réduire.
   brancherFiltresAnalyses();
   brancherRegistreSources();
+  brancherQuestions();
   // Et pour la même raison encore : les chiffres citables portent déjà leur
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
