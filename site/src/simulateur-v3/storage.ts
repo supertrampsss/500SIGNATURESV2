@@ -1,5 +1,5 @@
 import { applyEffect } from "./effects.ts";
-import { V3_MODELED_EFFECT_MARKER, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
+import { SCHEMA_VERSION, V3_MODELED_EFFECT_MARKER, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
 export const V3_STORAGE_KEY = "simulateur-v3-campaign";
@@ -46,16 +46,31 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
     }
     if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
     const migrated = migratePreviousModeledEffects(parsed, scenario);
-    if (!migrated) return { kind: "invalid" };
-    try {
-      storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
-    } catch {
-      // The corrected state can still be used for this session when persistence is unavailable.
+    if (migrated) {
+      try {
+        storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
+      } catch {
+        // The corrected state can still be used for this session when persistence is unavailable.
+      }
+      return { kind: "restored", state: migrated };
     }
-    return { kind: "restored", state: migrated };
+    if (isValidCampaignFromAnotherScenarioVersion(parsed, scenario)) return { kind: "restart_required" };
+    return { kind: "invalid" };
   } catch {
     return { kind: "invalid" };
   }
+}
+
+function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Scenario): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const campaign = value as Record<string, unknown>;
+  if (campaign.schemaVersion !== SCHEMA_VERSION
+      || typeof campaign.scenarioVersion !== "number"
+      || !Number.isFinite(campaign.scenarioVersion)
+      || campaign.scenarioVersion === scenario.version) {
+    return false;
+  }
+  return isCampaignState({ ...campaign, scenarioVersion: scenario.version }, scenario);
 }
 
 function migratePreviousModeledEffects(value: unknown, scenario: Scenario): CampaignState | null {

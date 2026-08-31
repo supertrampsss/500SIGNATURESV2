@@ -6,6 +6,8 @@ import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scena
 import { assertNoEmDash, validateScenario } from "./validation.ts";
 
 test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
+  assert.equal(SCENARIO_V3_CATALOGUE.version, 8);
+  assert.equal(SCENARIO_V3.version, 8);
   assert.equal(SCENARIO_V3_CATALOGUE.decisions.length, 96);
   assert.equal(SCENARIO_V3.decisions.length, 60);
   assert.deepEqual(SCENARIO_V3.chapters.map((chapter) => chapter.decisionIds.length), [8, 8, 8, 8, 7, 7, 7, 7]);
@@ -63,7 +65,6 @@ test("le scénario provisoire satisfait toutes les portes du moteur V3", () => {
 });
 
 test("les réactions des dossiers alimentent les indicateurs visibles du verdict", () => {
-  assert.equal(SCENARIO_V3_PREVIEW.version, 7);
   const effects = SCENARIO_V3_PREVIEW.decisions.flatMap((decision) => (
     decision.options.flatMap((option) => option.effects)
   ));

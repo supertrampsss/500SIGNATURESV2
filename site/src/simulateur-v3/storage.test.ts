@@ -51,17 +51,30 @@ test("une sauvegarde schema 4 conserve sa baseline et sa version de publication"
   if (restored.kind === "restored") assert.deepEqual(restored.state.baseline, baseline);
 });
 
+test("une sauvegarde du scénario 7 exige un nouveau mandat face au scénario 8", () => {
+  const scenarioV7: Scenario = { ...SCENARIO_V3_PREVIEW, version: 7 };
+  const scenarioV8: Scenario = { ...SCENARIO_V3_PREVIEW, version: 8 };
+  const serialized = JSON.stringify(createCampaign(scenarioV7));
+  const storage = memoryStorage({
+    [V3_STORAGE_KEY]: serialized,
+    "tunnel-partie": JSON.stringify({ version: 2, phase: "conseil" }),
+  });
+
+  assert.deepEqual(restoreCampaign(storage, scenarioV8), { kind: "restart_required" });
+  assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
 test("une sauvegarde V2 est détectée mais jamais convertie silencieusement", () => {
   const storage = memoryStorage({ "tunnel-partie": JSON.stringify({ version: 2, phase: "conseil" }) });
   assert.deepEqual(restoreCampaign(storage, validScenario()), { kind: "v2_found" });
 });
 
-test("un scénario mis à jour invalide proprement l'ancienne campagne", () => {
+test("un scénario mis à jour exige explicitement un nouveau mandat", () => {
   const storage = memoryStorage();
   const oldScenario = validScenario();
   saveCampaign(storage, createCampaign(oldScenario));
   const newScenario = { ...oldScenario, version: oldScenario.version + 1 };
-  assert.deepEqual(restoreCampaign(storage, newScenario), { kind: "invalid" });
+  assert.deepEqual(restoreCampaign(storage, newScenario), { kind: "restart_required" });
 });
 
 test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre les choix", () => {
@@ -110,7 +123,7 @@ test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre
   }
 });
 
-test("la transition topologique 6 vers 7 invalide la sauvegarde sans rejouer les effets modélisés", () => {
+test("la transition topologique 6 vers 7 exige un nouveau mandat sans rejouer les effets modélisés", () => {
   const scenarioV6: Scenario = { ...SCENARIO_V3_PREVIEW, version: 6 };
   const decision = scenarioV6.decisions[0]!;
   const option = decision.options[0]!;
@@ -121,8 +134,30 @@ test("la transition topologique 6 vers 7 invalide la sauvegarde sans rejouer les
   const serialized = JSON.stringify(oldState);
   const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
 
-  assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "invalid" });
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "restart_required" });
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("une version de scénario absente, non numérique ou portée par un état corrompu reste invalide", () => {
+  const oldScenario = validScenario();
+  const currentScenario: Scenario = { ...oldScenario, version: oldScenario.version + 1 };
+  const state = createCampaign(oldScenario);
+  const { scenarioVersion: _scenarioVersion, ...withoutScenarioVersion } = state;
+  const corruptions = [
+    withoutScenarioVersion,
+    { ...state, scenarioVersion: "1" },
+    { ...state, phase: "inconnue" },
+  ];
+
+  for (const corrupted of corruptions) {
+    const serialized = JSON.stringify(corrupted);
+    const storage = memoryStorage({
+      [V3_STORAGE_KEY]: serialized,
+      "tunnel-partie": JSON.stringify({ version: 2 }),
+    });
+    assert.deepEqual(restoreCampaign(storage, currentScenario), { kind: "invalid" });
+    assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+  }
 });
 
 test("une sauvegarde V3 invalide est refusée sans effacer les données", () => {

@@ -123,8 +123,8 @@ function buildScenario(title: string, version: number, selectedDecisions: Decisi
   };
 }
 
-export const SCENARIO_V3_CATALOGUE = buildScenario("Bibliothèque des politiques", 7, catalogueDecisions);
-export const SCENARIO_V3 = buildScenario("La France à l'épreuve des comptes", 7, campaignDecisions);
+export const SCENARIO_V3_CATALOGUE = buildScenario("Bibliothèque des politiques", 8, catalogueDecisions);
+export const SCENARIO_V3 = buildScenario("La France à l'épreuve des comptes", 8, campaignDecisions);
 export const SCENARIO_V3_PREVIEW = SCENARIO_V3;
 
 export function policyById(id: string): Decision | undefined {
