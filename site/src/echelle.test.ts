@@ -10,6 +10,8 @@ import { test } from "node:test";
 import {
   expressionCouleur,
   formater,
+  formaterValeurAnalyse,
+  libelleUniteAnalyse,
   montantLisible,
   noteEchelle,
   parHabitantAUnSens,
@@ -275,4 +277,25 @@ test("un loyer au mètre carré ne se légende pas en euros courants", () => {
   assert.match(note, /reste grise/);
   assert.doesNotMatch(note, /euros courants/);
   assert.match(formater(12.7, "€/m²/mois", false), /12,7 €\/m²\/mois/);
+});
+
+test("les unités des dossiers longs gardent leur échelle publiée", () => {
+  assert.equal(formaterValeurAnalyse(0.4023, "EUR_per_kWh"), "0,4023\u202f€/kWh");
+  assert.equal(formaterValeurAnalyse(102.45, "EUR_per_MWh"), "102,45\u202f€/MWh");
+  assert.equal(formaterValeurAnalyse(120_000, "GWH"), "120\u202f000\u202fGWh");
+  assert.equal(formaterValeurAnalyse(353, "gCO2_per_kWh"), "353\u202fgCO₂e/kWh");
+  assert.equal(formaterValeurAnalyse(113.4, "index_2015_100"), "113,4");
+  assert.equal(formaterValeurAnalyse(7.2, "score_0_10"), "7,2");
+  assert.equal(formaterValeurAnalyse(35.17, "years"), "35,17\u202fans");
+  assert.equal(formaterValeurAnalyse(42.1, "percent"), `42,1${FINE}%`);
+});
+
+test("le libellé explicite la base, l'échelle et le dénominateur", () => {
+  assert.equal(libelleUniteAnalyse("EUR_per_kWh"), "euros par kilowattheure");
+  assert.equal(libelleUniteAnalyse("EUR_per_MWh"), "euros par mégawattheure");
+  assert.equal(libelleUniteAnalyse("gCO2_per_kWh"), "grammes de CO₂e par kilowattheure");
+  assert.equal(libelleUniteAnalyse("index_2015_100"), "indice, base 2015 = 100");
+  assert.equal(libelleUniteAnalyse("score_0_10"), "score de 0 à 10");
+  assert.equal(libelleUniteAnalyse("years"), "années");
+  assert.equal(libelleUniteAnalyse("unite_source"), "unite_source");
 });

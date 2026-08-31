@@ -18,14 +18,18 @@
  */
 
 import {
+  sourceDePreuve,
   validerDossierAnalyse,
   type DossierAnalyse,
   type DossierAnalyseValide,
+  type PreuveAnalyse,
+  type SerieAnalyse,
   type SourceAnalyse,
+  type VisualisationAnalyse,
 } from "./analyse-contrat.ts";
 import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
-import { formater } from "./echelle.ts";
+import { formater, formaterValeurAnalyse, libelleUniteAnalyse } from "./echelle.ts";
 import { lienSource, sourceIdPourUrl, type IndexSources } from "./registre-sources.ts";
 import { aplatir } from "./simulateur.ts";
 import { libelleTheme } from "./themes.ts";
@@ -607,6 +611,583 @@ function sources(analyse: Analyse, indexSources?: IndexSources): string {
   </section>`;
 }
 
+/* --------------------------------------------------------------------------
+ * Dossiers longs : chaque valeur reste attachée à son unité, sa définition et
+ * sa source locale. Ce chemin ne lit aucun chiffre du catalogue historique.
+ * ----------------------------------------------------------------------- */
+
+function sourceHistorique(source: SourceAnalyse): Source {
+  return {
+    id: source.id,
+    titre: source.titre,
+    url: source.url,
+    consulte_le: source.consulteLe,
+  };
+}
+
+function lienSourceDossier(source: SourceAnalyse, indexSources?: IndexSources): string {
+  const historique = sourceHistorique(source);
+  return `${lienPrimaire(historique)}${lienRegistre(historique, indexSources)}`;
+}
+
+function dateFrancaise(dateIso: string): string {
+  const correspondance = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateIso);
+  if (!correspondance) return dateIso;
+  const mois = [
+    "janvier",
+    "février",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juillet",
+    "août",
+    "septembre",
+    "octobre",
+    "novembre",
+    "décembre",
+  ];
+  const numeroMois = Number(correspondance[2]);
+  const libelleMois = mois[numeroMois - 1];
+  if (!libelleMois) return dateIso;
+  return `${Number(correspondance[3])} ${libelleMois} ${correspondance[1]}`;
+}
+
+/** Une preuve longue connaît sa source par identifiant. Aucun ordre de liste
+ * ne participe à l'attribution de la citation. */
+function commandeCiterPreuve(
+  preuve: PreuveAnalyse,
+  contrat: DossierAnalyseValide,
+  adresse: string,
+): string {
+  const source = sourceDePreuve(contrat, preuve.id);
+  const citation: Citation = {
+    libelle: preuve.libelle,
+    valeur: preuve.value,
+    unite: preuve.unit,
+    id: preuve.seriesId ?? preuve.id,
+    source: source.titre,
+    millesime: preuve.period,
+    permalien: adresse,
+  };
+  if (!citable(citation)) return "";
+  return ` <button type="button" class="citer" data-citer="${echapper(
+    JSON.stringify(citation),
+  )}">Citer ce chiffre</button>`;
+}
+
+function signauxQualite(flags: readonly string[] | undefined): string {
+  if (!flags?.length) return "";
+  return `<ul class="analyse-longue__qualite" aria-label="Signaux de qualité">${flags
+    .map((flag) => `<li>${echapper(flag)}</li>`)
+    .join("")}</ul>`;
+}
+
+function texteSignauxQualite(flags: readonly string[] | undefined): string {
+  return flags?.length ? flags.map(echapper).join(", ") : "Aucun signal déclaré";
+}
+
+function renduPreuveLongue(
+  preuve: PreuveAnalyse,
+  contrat: DossierAnalyseValide,
+  adresse: string,
+  indexSources?: IndexSources,
+): string {
+  const source = sourceDePreuve(contrat, preuve.id);
+  return `<article class="analyse-longue__preuve" id="preuve-${echapper(
+    preuve.id,
+  )}" data-preuve-id="${echapper(preuve.id)}">
+    <h3>${echapper(preuve.libelle)}</h3>
+    <p class="analyse-longue__valeur"><strong>${echapper(
+      formaterValeurAnalyse(preuve.value, preuve.unit),
+    )}</strong> <span>${echapper(libelleUniteAnalyse(preuve.unit))}</span></p>
+    <p class="analyse-longue__periode">Période : ${echapper(preuve.period)}</p>
+    <p class="analyse-longue__definition">${echapper(preuve.definition)}</p>
+    ${signauxQualite(preuve.qualityFlags)}
+    <p class="analyse-longue__source">Source : ${lienSourceDossier(
+      source,
+      indexSources,
+    )}${commandeCiterPreuve(preuve, contrat, adresse)}</p>
+  </article>`;
+}
+
+function unitesVisualisation(
+  visualisation: VisualisationAnalyse,
+  contrat: DossierAnalyseValide,
+): Map<string, { series: SerieAnalyse[]; preuves: PreuveAnalyse[] }> {
+  const groupes = new Map<string, { series: SerieAnalyse[]; preuves: PreuveAnalyse[] }>();
+  const groupe = (unite: string) => {
+    const existant = groupes.get(unite);
+    if (existant) return existant;
+    const nouveau = { series: [] as SerieAnalyse[], preuves: [] as PreuveAnalyse[] };
+    groupes.set(unite, nouveau);
+    return nouveau;
+  };
+  for (const id of visualisation.seriesIds ?? []) {
+    const serie = contrat.serieParId.get(id);
+    if (serie) groupe(serie.unit).series.push(serie);
+  }
+  for (const id of visualisation.preuveIds ?? []) {
+    const preuve = contrat.preuveParId.get(id);
+    if (preuve) groupe(preuve.unit).preuves.push(preuve);
+  }
+  return groupes;
+}
+
+function axesVisualisation(
+  visualisation: VisualisationAnalyse,
+  contrat: DossierAnalyseValide,
+): string {
+  if (visualisation.axes?.length) {
+    return `<dl class="analyse-longue__axes">${visualisation.axes
+      .map((axe, index) => {
+        const noms = axe.seriesIds
+          .map((id) => contrat.serieParId.get(id)?.libelle ?? id)
+          .map(echapper)
+          .join(" ; ");
+        return `<div data-axis-id="${echapper(axe.id)}"><dt>Axe ${index + 1}</dt><dd>${echapper(
+          libelleUniteAnalyse(axe.unit),
+        )} : ${noms}</dd></div>`;
+      })
+      .join("")}</dl>`;
+  }
+
+  const groupes = unitesVisualisation(visualisation, contrat);
+  if (groupes.size === 1) {
+    const [unite] = groupes.keys();
+    return `<p class="analyse-longue__unite-figure">Unité : ${echapper(
+      libelleUniteAnalyse(unite!),
+    )}</p>`;
+  }
+  // Les instantanés peuvent mêler des unités sans porter d'axes au contrat.
+  // Le rendu crée alors un groupe nommé par unité, jamais un axe implicite.
+  return `<dl class="analyse-longue__axes">${[...groupes.entries()]
+    .map(([unite, contenu], index) => {
+      const noms = [...contenu.series, ...contenu.preuves]
+        .map((element) => element.libelle)
+        .map(echapper)
+        .join(" ; ");
+      return `<div data-axis-id="unite-${index + 1}"><dt>Échelle ${index + 1}</dt><dd>${echapper(
+        libelleUniteAnalyse(unite),
+      )} : ${noms}</dd></div>`;
+    })
+    .join("")}</dl>`;
+}
+
+function lignesFigureSeries(
+  visualisation: VisualisationAnalyse,
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  return (visualisation.seriesIds ?? [])
+    .flatMap((id) => {
+      const serie = contrat.serieParId.get(id);
+      if (!serie) return [];
+      const source = contrat.sourceParId.get(serie.sourceId)!;
+      return serie.observations.map(
+        (observation) => `<tr>
+          <th scope="row">${echapper(serie.libelle)}</th>
+          <td>${echapper(observation.period)}</td>
+          <td>${echapper(formaterValeurAnalyse(observation.value, serie.unit))}</td>
+          <td>${echapper(libelleUniteAnalyse(serie.unit))}</td>
+          <td>${echapper(serie.definition)}</td>
+          <td>${lienSourceDossier(source, indexSources)}</td>
+          <td>${texteSignauxQualite(observation.qualityFlags)}</td>
+        </tr>`,
+      );
+    })
+    .join("");
+}
+
+function lignesFigurePreuves(
+  visualisation: VisualisationAnalyse,
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  return (visualisation.preuveIds ?? [])
+    .map((id) => {
+      const preuve = contrat.preuveParId.get(id)!;
+      const source = sourceDePreuve(contrat, id);
+      return `<tr>
+        <th scope="row">${echapper(preuve.libelle)}</th>
+        <td>${echapper(preuve.period)}</td>
+        <td>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))}</td>
+        <td>${echapper(libelleUniteAnalyse(preuve.unit))}</td>
+        <td>${echapper(preuve.definition)}</td>
+        <td>${lienSourceDossier(source, indexSources)}</td>
+        <td>${texteSignauxQualite(preuve.qualityFlags)}</td>
+      </tr>`;
+    })
+    .join("");
+}
+
+function renduVisualisationLongue(
+  visualisation: VisualisationAnalyse,
+  contrat: DossierAnalyseValide,
+  niveauTitre: 2 | 3,
+  indexSources?: IndexSources,
+): string {
+  const identifiant = echapper(visualisation.id);
+  const Titre = `h${niveauTitre}`;
+  const lignes = `${lignesFigureSeries(visualisation, contrat, indexSources)}${lignesFigurePreuves(
+    visualisation,
+    contrat,
+    indexSources,
+  )}`;
+  return `<figure class="analyse-longue__figure analyse-longue__figure--${echapper(
+    visualisation.type,
+  )}" id="figure-${identifiant}" aria-labelledby="figure-${identifiant}-titre" aria-describedby="figure-${identifiant}-resume">
+    <figcaption>
+      <${Titre} id="figure-${identifiant}-titre">${echapper(visualisation.titre)}</${Titre}>
+      <p id="figure-${identifiant}-resume">${echapper(visualisation.resume)}</p>
+    </figcaption>
+    ${axesVisualisation(visualisation, contrat)}
+    <div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="Données de la figure ${echapper(
+      visualisation.titre,
+    )}">
+      <table class="analyse-longue__tableau">
+        <caption>Données de la figure : ${echapper(visualisation.titre)}</caption>
+        <thead><tr>
+          <th scope="col">Série ou preuve</th>
+          <th scope="col">Période</th>
+          <th scope="col">Valeur</th>
+          <th scope="col">Unité</th>
+          <th scope="col">Définition</th>
+          <th scope="col">Source</th>
+          <th scope="col">Qualité</th>
+        </tr></thead>
+        <tbody>${lignes}</tbody>
+      </table>
+    </div>
+  </figure>`;
+}
+
+function renduSommaireLong(contrat: DossierAnalyseValide): string {
+  const ids = contrat.dossier.sommaire ?? contrat.dossier.sections.map((section) => section.id);
+  const sections = ids.map((id) => contrat.sectionParId.get(id)!);
+  const liens = [
+    ...sections.map(
+      (section) => `<li><a href="#${echapper(section.id)}">${echapper(section.titre)}</a></li>`,
+    ),
+    '<li><a href="#limites">Limites</a></li>',
+    '<li><a href="#methode">Méthode</a></li>',
+    '<li><a href="#donnees-completes">Données complètes</a></li>',
+    '<li><a href="#sources">Sources</a></li>',
+  ].join("");
+  return `<nav class="analyse-longue__sommaire" aria-label="Sommaire">
+    <h2>Sommaire</h2>
+    <ol>${liens}</ol>
+  </nav>`;
+}
+
+function renduSectionsLongues(
+  contrat: DossierAnalyseValide,
+  adresse: string,
+  preuvesRendues: Set<string>,
+  visualisationsRendues: Set<string>,
+  indexSources?: IndexSources,
+): string {
+  return contrat.dossier.sections
+    .map((section) => {
+      const preuves = (section.preuveIds ?? [])
+        .map((id) => {
+          const preuve = contrat.preuveParId.get(id)!;
+          if (preuvesRendues.has(id)) {
+            return `<li><a href="#preuve-${echapper(id)}">${echapper(preuve.libelle)}</a></li>`;
+          }
+          preuvesRendues.add(id);
+          return `<li class="analyse-longue__preuve-integree">${renduPreuveLongue(
+            preuve,
+            contrat,
+            adresse,
+            indexSources,
+          )}</li>`;
+        })
+        .join("");
+      const visualisations = (section.visualisationIds ?? [])
+        .map((id) => {
+          if (visualisationsRendues.has(id)) return "";
+          visualisationsRendues.add(id);
+          return renduVisualisationLongue(
+            contrat.visualisationParId.get(id)!,
+            contrat,
+            3,
+            indexSources,
+          );
+        })
+        .join("");
+      return `<section class="analyse-longue__section" id="${echapper(section.id)}">
+        <h2>${echapper(section.titre)}</h2>
+        <div class="analyse-longue__prose">${section.paragraphes
+          .map((paragraphe) => `<p>${echapper(paragraphe)}</p>`)
+          .join("")}</div>
+        ${preuves ? `<ul class="analyse-longue__renvois">${preuves}</ul>` : ""}
+        ${visualisations}
+      </section>`;
+    })
+    .join("");
+}
+
+function renduPreuvesComplementaires(
+  contrat: DossierAnalyseValide,
+  adresse: string,
+  preuvesRendues: Set<string>,
+  indexSources?: IndexSources,
+): string {
+  const restantes = contrat.dossier.preuves.filter((preuve) => !preuvesRendues.has(preuve.id));
+  if (!restantes.length) return "";
+  restantes.forEach((preuve) => preuvesRendues.add(preuve.id));
+  return `<section class="analyse-longue__complements">
+    <h2>Preuves complémentaires</h2>
+    <div class="analyse-longue__preuves">${restantes
+      .map((preuve) => renduPreuveLongue(preuve, contrat, adresse, indexSources))
+      .join("")}</div>
+  </section>`;
+}
+
+function renduVisualisationsComplementaires(
+  contrat: DossierAnalyseValide,
+  visualisationsRendues: Set<string>,
+  indexSources?: IndexSources,
+): string {
+  const restantes = contrat.dossier.visualisations.filter(
+    (visualisation) => !visualisationsRendues.has(visualisation.id),
+  );
+  if (!restantes.length) return "";
+  restantes.forEach((visualisation) => visualisationsRendues.add(visualisation.id));
+  return `<section class="analyse-longue__complements">
+    <h2>Visualisations complémentaires</h2>
+    ${restantes
+      .map((visualisation) => renduVisualisationLongue(visualisation, contrat, 3, indexSources))
+      .join("")}
+  </section>`;
+}
+
+function renduLimitesLongues(contrat: DossierAnalyseValide): string {
+  return `<section class="analyse-longue__limites" id="limites">
+    <h2>Ce que les données ne permettent pas de conclure</h2>
+    <ul>${contrat.dossier.limitations
+      .map((limitation) => `<li>${echapper(limitation)}</li>`)
+      .join("")}</ul>
+  </section>`;
+}
+
+function renduMethodeLongue(
+  contrat: DossierAnalyseValide,
+  version: string,
+  indexSources?: IndexSources,
+): string {
+  const series = contrat.dossier.series
+    .map((serie) => {
+      const source = contrat.sourceParId.get(serie.sourceId)!;
+      return `<div>
+        <dt>${echapper(serie.libelle)}</dt>
+        <dd>
+          <p>${echapper(serie.definition)}</p>
+          <p>Unité publiée : ${echapper(libelleUniteAnalyse(serie.unit))}.</p>
+          <p>Source : ${lienSourceDossier(source, indexSources)}</p>
+        </dd>
+      </div>`;
+    })
+    .join("");
+  const instantanes = contrat.dossier.preuves
+    .filter((preuve) => !preuve.seriesId)
+    .map((preuve) => {
+      const source = sourceDePreuve(contrat, preuve.id);
+      return `<div>
+        <dt>${echapper(preuve.libelle)}</dt>
+        <dd>
+          <p>${echapper(preuve.definition)}</p>
+          <p>Unité publiée : ${echapper(libelleUniteAnalyse(preuve.unit))}.</p>
+          <p>Source : ${lienSourceDossier(source, indexSources)}</p>
+        </dd>
+      </div>`;
+    })
+    .join("");
+  const millesime = version
+    ? `<p class="analyse-longue__version">Version des données utilisées : ${echapper(version)}.</p>`
+    : "";
+  return `<section class="analyse-longue__methode" id="methode">
+    <h2>Méthode et périmètre</h2>
+    ${millesime}
+    <dl>${series}${instantanes}</dl>
+  </section>`;
+}
+
+function groupesSeriesParUnite(series: readonly SerieAnalyse[]): Map<string, SerieAnalyse[]> {
+  const groupes = new Map<string, SerieAnalyse[]>();
+  for (const serie of series) {
+    const groupe = groupes.get(serie.unit) ?? [];
+    groupe.push(serie);
+    groupes.set(serie.unit, groupe);
+  }
+  return groupes;
+}
+
+function tableauSeriesCompletes(
+  unite: string,
+  series: readonly SerieAnalyse[],
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  const lignes = series
+    .flatMap((serie) => {
+      const source = contrat.sourceParId.get(serie.sourceId)!;
+      return serie.observations.map(
+        (observation) => `<tr>
+          <th scope="row">${echapper(serie.libelle)}</th>
+          <td>${echapper(observation.period)}</td>
+          <td>${echapper(formaterValeurAnalyse(observation.value, serie.unit))}</td>
+          <td>${echapper(serie.definition)}</td>
+          <td>${lienSourceDossier(source, indexSources)}</td>
+          <td>${texteSignauxQualite(observation.qualityFlags)}</td>
+        </tr>`,
+      );
+    })
+    .join("");
+  return `<section class="analyse-longue__groupe-unite" data-unit="${echapper(unite)}">
+    <h3>${echapper(libelleUniteAnalyse(unite))}</h3>
+    <div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="Séries en ${echapper(
+      libelleUniteAnalyse(unite),
+    )}">
+      <table class="analyse-longue__tableau">
+        <caption>Séries publiées en ${echapper(libelleUniteAnalyse(unite))}</caption>
+        <thead><tr>
+          <th scope="col">Série</th><th scope="col">Période</th><th scope="col">Valeur</th>
+          <th scope="col">Définition</th><th scope="col">Source</th><th scope="col">Qualité</th>
+        </tr></thead>
+        <tbody>${lignes}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function tableauxInstantanes(
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  const groupes = new Map<string, PreuveAnalyse[]>();
+  contrat.dossier.preuves
+    .filter((preuve) => !preuve.seriesId)
+    .forEach((preuve) => {
+      const groupe = groupes.get(preuve.unit) ?? [];
+      groupe.push(preuve);
+      groupes.set(preuve.unit, groupe);
+    });
+  return [...groupes.entries()]
+    .map(([unite, preuves]) => {
+      const lignes = preuves
+        .map((preuve) => {
+          const source = sourceDePreuve(contrat, preuve.id);
+          return `<tr>
+            <th scope="row">${echapper(preuve.libelle)}</th>
+            <td>${echapper(preuve.period)}</td>
+            <td>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))}</td>
+            <td>${echapper(preuve.definition)}</td>
+            <td>${lienSourceDossier(source, indexSources)}</td>
+            <td>${texteSignauxQualite(preuve.qualityFlags)}</td>
+          </tr>`;
+        })
+        .join("");
+      return `<section class="analyse-longue__groupe-unite" data-unit="${echapper(unite)}">
+        <h3>Instantanés, ${echapper(libelleUniteAnalyse(unite))}</h3>
+        <div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="Instantanés en ${echapper(
+          libelleUniteAnalyse(unite),
+        )}">
+          <table class="analyse-longue__tableau">
+            <caption>Instantanés publiés en ${echapper(libelleUniteAnalyse(unite))}</caption>
+            <thead><tr>
+              <th scope="col">Preuve</th><th scope="col">Période</th><th scope="col">Valeur</th>
+              <th scope="col">Définition</th><th scope="col">Source</th><th scope="col">Qualité</th>
+            </tr></thead>
+            <tbody>${lignes}</tbody>
+          </table>
+        </div>
+      </section>`;
+    })
+    .join("");
+}
+
+function renduDonneesCompletes(
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  const series = [...groupesSeriesParUnite(contrat.dossier.series).entries()]
+    .map(([unite, groupe]) => tableauSeriesCompletes(unite, groupe, contrat, indexSources))
+    .join("");
+  return `<section class="analyse-longue__donnees" id="donnees-completes">
+    <h2>Données complètes</h2>
+    ${series}
+    ${tableauxInstantanes(contrat, indexSources)}
+  </section>`;
+}
+
+function renduSourcesLongues(
+  contrat: DossierAnalyseValide,
+  indexSources?: IndexSources,
+): string {
+  return `<section class="analyse-longue__sources" id="sources">
+    <h2>Sources</h2>
+    <ol>${contrat.sources
+      .map(
+        (source) => `<li data-source-id="${echapper(source.id)}">${lienSourceDossier(
+          source,
+          indexSources,
+        )}</li>`,
+      )
+      .join("")}</ol>
+  </section>`;
+}
+
+function renduDossierLong(
+  analyse: Analyse,
+  contrat: DossierAnalyseValide,
+  version: string,
+  adresse: string,
+  indexSources?: IndexSources,
+): string {
+  const preuvesReponse = contrat.dossier.preuves.slice(0, 3);
+  const preuvesRendues = new Set(preuvesReponse.map((preuve) => preuve.id));
+  const principale = contrat.dossier.visualisations[0]!;
+  const visualisationsRendues = new Set([principale.id]);
+  const sections = renduSectionsLongues(
+    contrat,
+    adresse,
+    preuvesRendues,
+    visualisationsRendues,
+    indexSources,
+  );
+  return `<article class="analyse-rendu analyse-rendu--long" data-slug="${echapper(analyse.slug)}">
+    <nav class="analyse-longue__fil" aria-label="Fil d’Ariane">
+      <a href="/analyses/">Dossiers</a><span aria-hidden="true">›</span><span aria-current="page">${echapper(
+        analyse.titre,
+      )}</span>
+    </nav>
+    <header class="analyse-longue__entete">
+      <p class="analyse-longue__meta"><span>${echapper(LIBELLE_TYPE[analyse.type])}</span><span>Publié le <time datetime="${echapper(
+        analyse.publie_le,
+      )}">${echapper(dateFrancaise(analyse.publie_le))}</time></span></p>
+      <h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>
+      <p class="analyse-longue__chapo">${echapper(contrat.dossier.chapo)}</p>
+    </header>
+    <section class="analyse-longue__reponse" aria-labelledby="reponse-30-secondes">
+      <h2 id="reponse-30-secondes">Réponse en 30 secondes</h2>
+      <div class="analyse-longue__preuves">${preuvesReponse
+        .map((preuve) => renduPreuveLongue(preuve, contrat, adresse, indexSources))
+        .join("")}</div>
+    </section>
+    ${renduSommaireLong(contrat)}
+    ${renduVisualisationLongue(principale, contrat, 2, indexSources)}
+    ${sections}
+    ${renduPreuvesComplementaires(contrat, adresse, preuvesRendues, indexSources)}
+    ${renduVisualisationsComplementaires(contrat, visualisationsRendues, indexSources)}
+    ${renduLimitesLongues(contrat)}
+    ${renduMethodeLongue(contrat, version, indexSources)}
+    ${renduDonneesCompletes(contrat, indexSources)}
+    ${renduSourcesLongues(contrat, indexSources)}
+  </article>`;
+}
+
 /** Rendu pur d'une analyse, sans DOM : c'est lui qui est testé.
  *
  *  `version` est le millésime des fichiers publiés que le pré-rendu a lus
@@ -625,10 +1206,8 @@ export function rendu(
   adresse = "",
   indexSources?: IndexSources,
 ): string {
-  // La Task 7B donnera au contrat long son rendu propre. Le valider ici dès
-  // maintenant empêche toutefois qu'un nouveau JSON incomplet passe
-  // silencieusement par le renderer historique et y emprunte `sources[0]`.
-  contratDossierAnalyse(analyse);
+  const contrat = contratDossierAnalyse(analyse);
+  if (contrat) return renduDossierLong(analyse, contrat, version, adresse, indexSources);
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>
     ${verdictDuDossier(analyse)}

@@ -137,6 +137,203 @@ function analyseMixte(overrides: Partial<Analyse> = {}): Analyse {
   });
 }
 
+/** Deux séries et deux sources qui forcent le rendu long à rendre ses axes et
+ * ses citations explicitement, sans pouvoir emprunter la première source. */
+function analyseLongue(): Analyse {
+  return analyseMinimale({
+    slug: "dossier-long",
+    titre: "Comment ces deux grandeurs ont-elles évolué ?",
+    publie_le: "2026-08-30",
+    sources: [
+      {
+        id: "eurostat",
+        titre: "Eurostat, prix de l'électricité",
+        url: "https://ec.europa.eu/eurostat/prix",
+        consulte_le: "2026-08-29",
+      },
+      {
+        id: "insee",
+        titre: "Insee, satisfaction dans la vie",
+        url: "https://www.insee.fr/satisfaction",
+        consulte_le: "2026-08-28",
+      },
+    ],
+    dossier: {
+      chapo: "Deux publications officielles répondent à deux questions distinctes.",
+      sommaire: ["constat"],
+      series: [
+        {
+          id: "prix-electricite",
+          libelle: "Prix de l'électricité des ménages",
+          unit: "EUR_per_kWh",
+          definition: "Prix TTC des ménages dans la bande de consommation DC.",
+          sourceId: "eurostat",
+          observations: [
+            { period: "2024-S1", value: 0.4023, qualityFlags: ["provisional"] },
+          ],
+        },
+        {
+          id: "satisfaction",
+          libelle: "Satisfaction dans la vie",
+          unit: "score_0_10",
+          definition: "Note moyenne déclarée par les personnes âgées de 16 ans ou plus.",
+          sourceId: "insee",
+          observations: [{ period: "2024", value: 7.2 }],
+        },
+      ],
+      preuves: [
+        {
+          id: "preuve-prix",
+          libelle: "Prix semestriel publié",
+          value: 0.4023,
+          unit: "EUR_per_kWh",
+          period: "2024-S1",
+          definition: "Prix TTC des ménages dans la bande de consommation DC.",
+          sourceId: "eurostat",
+          seriesId: "prix-electricite",
+          qualityFlags: ["provisional"],
+        },
+        {
+          id: "preuve-satisfaction",
+          libelle: "Satisfaction annuelle publiée",
+          value: 7.2,
+          unit: "score_0_10",
+          period: "2024",
+          definition: "Note moyenne déclarée par les personnes âgées de 16 ans ou plus.",
+          sourceId: "insee",
+          seriesId: "satisfaction",
+        },
+      ],
+      visualisations: [
+        {
+          id: "comparaison",
+          type: "line",
+          titre: "Deux échelles publiées séparément",
+          resume: "Le tableau restitue chaque observation dans son unité officielle.",
+          seriesIds: ["prix-electricite", "satisfaction"],
+          axes: [
+            { id: "axe-prix", unit: "EUR_per_kWh", seriesIds: ["prix-electricite"] },
+            { id: "axe-score", unit: "score_0_10", seriesIds: ["satisfaction"] },
+          ],
+        },
+      ],
+      sections: [
+        {
+          id: "constat",
+          titre: "Ce que montrent les publications",
+          paragraphes: ["Les deux séries restent séparées car elles ne mesurent pas la même chose."],
+          preuveIds: ["preuve-prix", "preuve-satisfaction"],
+          visualisationIds: ["comparaison"],
+        },
+      ],
+      limitations: ["Ces deux grandeurs ne permettent pas d'établir une relation causale."],
+    },
+  });
+}
+
+test("un dossier long déroule la réponse, le sommaire, les figures et la méthode", () => {
+  const html = rendu(
+    analyseLongue(),
+    CATALOGUE,
+    "2026-08-30T1200",
+    "https://500signatures.fr/analyses/dossier-long/",
+  );
+
+  assert.match(html, /class="analyse-rendu analyse-rendu--long"/);
+  assert.match(html, /<nav class="analyse-longue__fil" aria-label="Fil d’Ariane">/);
+  assert.match(html, /<time datetime="2026-08-30">30 août 2026<\/time>/);
+  assert.match(html, /<h1[^>]*>Comment ces deux grandeurs ont-elles évolué \?<\/h1>/);
+  assert.match(html, /Deux publications officielles répondent à deux questions distinctes\./);
+  assert.match(html, /Réponse en 30 secondes/);
+  assert.match(html, /<nav class="analyse-longue__sommaire" aria-label="Sommaire">/);
+  assert.match(html, /href="#constat"/);
+  assert.match(html, /<figure[^>]*aria-labelledby="figure-comparaison-titre"[^>]*aria-describedby="figure-comparaison-resume"/);
+  assert.match(html, /<table[^>]*>/);
+  assert.match(html, /<th scope="col">Période<\/th>/);
+  assert.match(html, /<th scope="row">Prix de l&#39;électricité des ménages<\/th>/);
+  assert.match(html, /id="constat"/);
+  assert.match(html, /Ce que les données ne permettent pas de conclure/);
+  assert.match(html, /Méthode et périmètre/);
+  assert.match(html, /Données complètes/);
+  assert.match(html, /Sources/);
+});
+
+test("deux unités ne partagent jamais un axe implicite", () => {
+  const html = rendu(analyseLongue(), CATALOGUE);
+  const figure = html.slice(
+    html.indexOf('id="figure-comparaison"'),
+    html.indexOf("</figure>", html.indexOf('id="figure-comparaison"')),
+  );
+
+  assert.match(figure, /data-axis-id="axe-prix"/);
+  assert.match(figure, /euros par kilowattheure/);
+  assert.match(figure, /data-axis-id="axe-score"/);
+  assert.match(figure, /score de 0 à 10/);
+  assert.match(figure, /0,4023 €\/kWh/);
+  assert.match(figure, /7,2/);
+  assert.doesNotMatch(figure, /Unité non précisée/);
+});
+
+test("chaque preuve garde sa définition et cite sa propre source à proximité", () => {
+  const html = rendu(
+    analyseLongue(),
+    CATALOGUE,
+    "",
+    "https://500signatures.fr/analyses/dossier-long/",
+  );
+  const carte = (id: string) => {
+    const debut = html.indexOf(`data-preuve-id="${id}"`);
+    assert.ok(debut > -1, `preuve ${id} introuvable`);
+    return html.slice(html.lastIndexOf("<article", debut), html.indexOf("</article>", debut));
+  };
+
+  const prix = carte("preuve-prix");
+  assert.match(prix, /Prix TTC des ménages dans la bande de consommation DC\./);
+  assert.match(prix, /Eurostat, prix de l&#39;électricité/);
+  assert.doesNotMatch(prix, /Insee, satisfaction/);
+
+  const satisfaction = carte("preuve-satisfaction");
+  assert.match(satisfaction, /Note moyenne déclarée par les personnes âgées de 16 ans ou plus\./);
+  assert.match(satisfaction, /Insee, satisfaction dans la vie/);
+  assert.doesNotMatch(satisfaction, /Eurostat, prix/);
+
+  assert.deepEqual(
+    citations(html).map(({ source, unite, millesime }) => ({ source, unite, millesime })),
+    [
+      {
+        source: "Eurostat, prix de l'électricité",
+        unite: "EUR_per_kWh",
+        millesime: "2024-S1",
+      },
+      {
+        source: "Insee, satisfaction dans la vie",
+        unite: "score_0_10",
+        millesime: "2024",
+      },
+    ],
+  );
+});
+
+test("les observations complètes restent regroupées par unité et sourcées ligne à ligne", () => {
+  const html = rendu(analyseLongue(), CATALOGUE);
+  const donnees = html.slice(html.indexOf('id="donnees-completes"'), html.indexOf('id="sources"'));
+
+  assert.match(donnees, /data-unit="EUR_per_kWh"/);
+  assert.match(donnees, /data-unit="score_0_10"/);
+  assert.match(donnees, /Prix TTC des ménages dans la bande de consommation DC\./);
+  assert.match(donnees, /Note moyenne déclarée par les personnes âgées de 16 ans ou plus\./);
+  assert.match(donnees, /Eurostat, prix de l&#39;électricité/);
+  assert.match(donnees, /Insee, satisfaction dans la vie/);
+});
+
+test("un dossier historique conserve le renderer court", () => {
+  const html = rendu(analyseMinimale(), CATALOGUE);
+  assert.match(html, /class="analyse-rendu" data-slug=/);
+  assert.doesNotMatch(html, /analyse-rendu--long|analyse-longue__/);
+  assert.match(html, /dossier-preuve__verdict/);
+  assert.match(html, /analyse-rendu__express/);
+});
+
 test("une provenance mène à la fiche exacte du registre", () => {
   const analyse = analyseMinimale();
   const fiches = construireRegistre({ jeux: [], indicateurs: [], analyses: [analyse] });
