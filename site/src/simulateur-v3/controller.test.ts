@@ -109,14 +109,46 @@ test("choisir une carte conserve la position de lecture", () => {
   assert.equal(host.scrollCalls, avantChoix);
 });
 
-test("un choix sans événement ouvre immédiatement le dossier suivant", () => {
+test("sélectionner, changer, confirmer puis continuer sont quatre états distincts", () => {
   const host = new FakeHost();
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  assert.match(host.innerHTML, /aria-pressed="true"/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, 0);
+
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
+  assert.ok(host.innerHTML.includes(decision.options[1]!.summary.replaceAll("'", "&#39;")));
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, 0);
+
+  host.click("confirm");
+  const confirmed = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(confirmed.decisions.length, 1);
+  assert.equal(confirmed.decisions[0].optionId, decision.options[1]!.id);
+  assert.equal(confirmed.phase, "decision_result");
+  assert.match(host.innerHTML, /Décision enregistrée/);
+
+  host.click("continue");
   assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
+});
+
+test("Modifier ferme le détail sans appliquer le moindre effet", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  host.click("modify");
+
+  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(saved.decisions.length, 0);
+  assert.equal(saved.pendingSelection, undefined);
+  assert.doesNotMatch(host.innerHTML, /data-v3-action="confirm"|simulateur-v3__option-detail/);
 });
 
 test("Pause reprend exactement la phase interrompue et Quitter vise France", () => {
@@ -176,7 +208,7 @@ test("démonter retire l'unique écouteur délégué", () => {
   assert.equal(host.hasListener(), false);
 });
 
-test("un clic sur une carte enregistre la décision et ouvre directement sa conséquence", () => {
+test("une crise n'est évaluée qu'après sélection, confirmation et lecture du résultat", () => {
   const host = new FakeHost();
   const initial = stateBefore("flat-tax-a-20-des-le-premier");
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
@@ -185,12 +217,20 @@ test("un clic sur une carte enregistre la décision et ouvre directement sa cons
   const option = decision.options[0]!;
 
   host.click("select", { decisionId: decision.id, optionId: option.id });
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, initial.decisions.length);
+  assert.doesNotMatch(host.innerHTML, /Conseil de crise/);
+
+  host.click("confirm");
+  assert.match(host.innerHTML, /Décision enregistrée/);
+  assert.doesNotMatch(host.innerHTML, /Conseil de crise/);
 
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions.length, initial.decisions.length + 1);
   assert.equal(saved.decisions.at(-1).optionId, option.id);
+  assert.equal(saved.phase, "decision_result");
+
+  host.click("continue");
   assert.match(host.innerHTML, /Conseil de crise/);
-  assert.doesNotMatch(host.innerHTML, /Confirmer ce choix|Décision actée/);
 });
 
 test("une crise interrompt la progression et sa concession suspend réellement la réforme", () => {
@@ -200,6 +240,8 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: IMMEDIATE_FLAT_TAX_CRISIS_RULES });
   const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  host.click("confirm");
+  host.click("continue");
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.match(host.innerHTML, /Suspendre la flat tax/);
 
@@ -253,6 +295,8 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   for (let index = 0; index < 4; index += 1) {
     const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
     host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
+    host.click("confirm");
+    host.click("continue");
   }
   assert.match(host.innerHTML, /Dossier 5 sur 60/);
   assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);

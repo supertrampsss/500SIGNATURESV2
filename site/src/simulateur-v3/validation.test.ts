@@ -472,6 +472,22 @@ test("un état V3 refuse les DecisionRecord dupliqués, hors ordre ou non séque
   assert.equal(isCampaignState(nonSequentialIndex, scenario), false);
 });
 
+test("un instantané de résultat refuse une cause étrangère ou un delta falsifié", () => {
+  const scenario = validScenario();
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(
+    selectOption(started, scenario, "decision-1", "decision-1-option-a"),
+    scenario,
+  );
+  const foreignCause = structuredClone(confirmed);
+  foreignCause.decisions[0]!.impact!.indicators[0]!.causalEntryIds = ["cause-étrangère"];
+  const falseDelta = structuredClone(confirmed);
+  falseDelta.decisions[0]!.impact!.indicators[0]!.delta += 1;
+
+  assert.equal(isCampaignState(foreignCause, scenario), false);
+  assert.equal(isCampaignState(falseDelta, scenario), false);
+});
+
 test("un état V3 refuse les conséquences dont la source n'a pas été confirmée", () => {
   const scenario = validScenario();
   const scheduled = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);

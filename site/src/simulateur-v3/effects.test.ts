@@ -10,6 +10,7 @@ import {
   scheduleOptionConsequences,
 } from "./effects.ts";
 import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
+import { restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
@@ -59,6 +60,53 @@ test("confirmer applique les effets immédiats une seule fois", () => {
   assert.equal(confirmed.decisions[0]?.status, "confirmed");
   assert.equal(confirmed.phase, "decision_result");
   assert.throws(() => confirmSelection(confirmed, scenario), /selection required/);
+});
+
+test("la confirmation persiste un instantané exact avant, après et causes", () => {
+  const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
+  const started = startAtFirstDecision(scenario);
+  const confirmed = confirmSelection(
+    selectOption(started, scenario, "decision-1", "decision-1-option-a"),
+    scenario,
+  );
+  const impact = confirmed.decisions[0]!.impact!;
+
+  assert.equal(impact.decisionId, "decision-1");
+  assert.equal(impact.optionId, "decision-1-option-a");
+  assert.equal(impact.confirmedAtIndex, 1);
+  assert.deepEqual(impact.indicators.map(({ key, before, after, delta }) => ({ key, before, after, delta })), [{
+    key: "annualBalance",
+    before: started.indicators.annualBalance,
+    after: started.indicators.annualBalance + 1_000,
+    delta: 1_000,
+  }, {
+    key: "financialCredibility",
+    before: started.indicators.financialCredibility,
+    after: started.indicators.financialCredibility + 1,
+    delta: 1,
+  }]);
+  assert.ok(impact.indicators.every((indicator) => indicator.causalEntryIds.length === 1));
+});
+
+test("un résultat tout différé persiste un instantané vide après sauvegarde et reprise", () => {
+  const scenario = scenarioWithEffect("growth", -0.4, { kind: "after_decisions", count: 2 });
+  const confirmed = confirmFirstDecision(scenario);
+  assert.deepEqual(confirmed.decisions[0]!.impact?.indicators, []);
+
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => { values.set(key, value); },
+    removeItem: (key: string) => { values.delete(key); },
+  };
+  saveCampaign(storage, confirmed, new Date("2026-08-30T12:00:00.000Z"));
+  assert.ok(values.has(V3_STORAGE_KEY));
+  const restored = restoreCampaign(storage, scenario);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.equal(restored.state.phase, "decision_result");
+    assert.deepEqual(restored.state.decisions[0]!.impact, confirmed.decisions[0]!.impact);
+  }
 });
 
 test("un effet différé attend le bon nombre de décisions", () => {

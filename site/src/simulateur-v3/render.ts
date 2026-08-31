@@ -17,7 +17,9 @@ import type {
   Decision,
   DecisionOption,
   EffectRule,
+  PoliticalPromise,
   Scenario,
+  ScheduledEvent,
 } from "./types.ts";
 
 export type RenderSimulatorV3Options = {
@@ -193,6 +195,18 @@ function effectLabel(effect: { target: "indicator" | "group"; key: string; delta
   return `${label} ${effect.delta > 0 ? "+" : ""}${value} ${point} d'indice`;
 }
 
+function formatIndicatorSnapshotValue(key: keyof typeof INDICATOR_META, value: number): string {
+  const meta = INDICATOR_META[key];
+  if (meta.unit === "M€") return formatV3Amount(value);
+  const formatted = value.toLocaleString("fr-FR", {
+    minimumFractionDigits: meta.precision,
+    maximumFractionDigits: meta.precision,
+  });
+  if (meta.unit === "% du PIB") return `${formatted} % du PIB`;
+  if (meta.unit === "% par an") return `${formatted} % par an`;
+  return `${formatted} / 100`;
+}
+
 function timingLabel(timing: EffectRule["timing"]): string {
   if (timing.kind === "immediate") return "";
   if (timing.kind === "mandate_year") return `année ${timing.year}`;
@@ -278,56 +292,51 @@ function renderMandateDashboard(state: CampaignState): string {
     </aside>`;
 }
 
-function illustrationKind(decision: Decision): string {
-  const words = `${decision.chapterId} ${decision.id} ${decision.title}`.toLocaleLowerCase("fr");
-  if (/epr|nuclé|réacteur/.test(words)) return "nuclear";
-  if (/défense|armée|otan|militaire/.test(words)) return "defence";
-  if (/energy|climat|agriculture|transport|train|vélo|voiture|véhicule|avion/.test(words)) return "transport";
-  if (/hôpital|santé|soin|médic/.test(words)) return "health";
-  if (/école|université|enseign/.test(words)) return "education";
-  if (/logement|loyer|foncier/.test(words)) return "housing";
-  if (/retraite|travail|salaire|chômage/.test(words)) return "work";
-  if (/impôt|tax|tva|fiscal|succession|patrimoine/.test(words)) return "tax";
-  return "state";
+function principalIndicatorEffect(option: DecisionOption): EffectRule | undefined {
+  const candidates = option.effects.filter((effect): effect is Extract<EffectRule, { target: "indicator" }> =>
+    effect.target === "indicator" && effect.key !== "annualBalance");
+  return [...candidates].sort((left, right) =>
+    INDICATOR_META[right.key].priority - INDICATOR_META[left.key].priority
+    || left.id.localeCompare(right.id, "fr")).at(0);
 }
 
-function illustrationDrawing(kind: string, variant: number): string {
-  if (kind === "nuclear") {
-    if (variant === 2) return `<path d="M15 84h150M27 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M72 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M117 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M30 51h28M75 51h28M120 51h28"/><path d="M40 25c-8-8 5-12-3-19M85 25c-8-8 5-12-3-19M130 25c-8-8 5-12-3-19"/><path d="M151 7h15v15h-15z"/>`;
-    if (variant === 3) return `<path d="M36 84h108M58 84c9-20 11-39 7-58h34c-4 19-2 38 7 58M62 49h40"/><path d="M77 20c-9-9 5-13-3-20M126 17l20-20M126-3l20 20"/>`;
-  }
-  const drawings: Record<string, string> = {
-    nuclear: `<path d="M22 84h136M42 84c9-20 11-39 7-58h26c-4 19-2 38 7 58M98 84c9-20 11-39 7-58h26c-4 19-2 38 7 58M45 48h33M101 48h33"/><path d="M55 20c-9-9 5-13-3-20M116 20c-9-9 5-13-3-20"/>`,
-    tax: `<ellipse cx="55" cy="75" rx="31" ry="10"/><path d="M24 56v19c0 6 14 11 31 11s31-5 31-11V56M24 56c0 6 14 11 31 11s31-5 31-11-14-11-31-11-31 5-31 11Z"/><circle cx="122" cy="47" r="28"/><path d="M122 31v32M112 38c3-8 22-7 22 2 0 13-24 5-24 17 0 9 20 10 25 1"/>`,
-    defence: `<path d="M28 79h124M44 72V35l42-17 50 22v32M59 72V50h62v22M76 72V57h28v15"/><path d="M85 18V7l23 8-22 8"/>`,
-    transport: `<path d="M22 78h136M41 69h96l-13-34H56L41 69Z"/><circle cx="61" cy="74" r="10"/><circle cx="117" cy="74" r="10"/><path d="M66 35l12 34M107 35l-8 34M28 27h31M19 38h27"/>`,
-    health: `<path d="M73 19h34v22h22v34h-22v22H73V75H51V41h22V19Z"/><path d="M24 90h132"/>`,
-    education: `<path d="M20 42l70-28 70 28-70 27-70-27Z"/><path d="M48 54v25c20 14 64 14 84 0V54M151 46v38"/>`,
-    housing: `<path d="M25 85h130M39 85V45l51-31 51 31v40M62 85V58h23v27M103 52h19v19h-19V52Z"/>`,
-    work: `<circle cx="57" cy="39" r="19"/><path d="M24 88c4-25 16-37 33-37s29 12 33 37M112 77h45M121 77V51h27v26M134 51V35"/>`,
-    state: `<path d="M22 85h136M34 78h112M45 71V39M69 71V39M93 71V39M117 71V39M141 71V39M30 32h126L93 11 30 32Z"/>`,
-  };
-  const marker = variant === 1 ? `<circle cx="153" cy="17" r="8"/>` : variant === 2 ? `<path d="M146 9h15v15h-15z"/>` : `<path d="M145 23l16-16M145 7l16 16"/>`;
-  return `${drawings[kind] ?? drawings.state}${marker}`;
+function renderOptionDetail(option: DecisionOption): string {
+  const detailId = `v3-option-detail-${option.id}`;
+  return `
+      <details class="simulateur-v3__option-detail" id="${escapeHtml(detailId)}" open>
+        <summary>Détail de l'option sélectionnée</summary>
+        <div class="simulateur-v3__option-detail-body">
+          <p class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</p>
+          <dl class="simulateur-v3__option-mechanism">
+            <div><dt>Mécanisme</dt><dd>${escapeHtml(option.mechanism)}</dd></div>
+            <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
+            <div><dt>Bénéficiaires</dt><dd>${escapeHtml(option.beneficiaries.join(", "))}</dd></div>
+            <div><dt>Contributeurs</dt><dd>${escapeHtml(option.contributors.join(", "))}</dd></div>
+          </dl>
+          <section class="simulateur-v3__option-all-effects" aria-label="Tous les effets chiffrés">
+            <h3>Effets chiffrés</h3>
+            <ul>${option.effects.map((effect) => `<li>${escapeHtml(effectLabelWithTiming(effect))}</li>`).join("")}</ul>
+          </section>
+          <p class="simulateur-v3__legal"><strong>Contraintes juridiques :</strong> ${escapeHtml(option.legalConstraints.length > 0 ? option.legalConstraints.join(" ; ") : "Aucune contrainte spécifique documentée.")}</p>
+          <div class="simulateur-v3__confirmation-bar">
+            <button type="button" class="simulateur-v3__secondary" data-v3-action="modify">Modifier</button>
+            <button type="button" class="simulateur-v3__primary" data-v3-action="confirm">Confirmer et voir l'impact</button>
+          </div>
+        </div>
+      </details>`;
 }
 
-function renderIllustration(decision: Decision, optionIndex: number): string {
-  const kind = illustrationKind(decision);
-  return `<svg class="simulateur-v3__decision-illustration simulateur-v3__decision-illustration--${kind} simulateur-v3__decision-illustration--variant-${optionIndex + 1}" aria-hidden="true" viewBox="0 0 180 104">${illustrationDrawing(kind, optionIndex + 1)}</svg>`;
-}
-
-function renderOption(decision: Decision, option: DecisionOption, optionIndex: number): string {
+function renderOption(decision: Decision, option: DecisionOption, selected: boolean): string {
   const budget = annualBalanceEffect(option);
-  const visibleEffects = option.effects
-    .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
-    .slice(0, 2);
+  const principalImpact = principalIndicatorEffect(option);
   const budgetTiming = budget ? timingLabel(budget.timing) : "";
   const budgetLabel = budget
     ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
     : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
+  const detailId = `v3-option-detail-${option.id}`;
   return `
-    <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
+    <article class="simulateur-v3__option${selected ? " simulateur-v3__option--selected" : ""}" data-option-id="${escapeHtml(option.id)}">
       <button
         type="button"
         class="simulateur-v3__option-select"
@@ -335,42 +344,27 @@ function renderOption(decision: Decision, option: DecisionOption, optionIndex: n
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
         aria-label="Choisir : ${escapeHtml(option.label)}"
+        aria-pressed="${selected}"
+        ${selected ? `aria-controls="${escapeHtml(detailId)}"` : ""}
       >
-        ${renderIllustration(decision, optionIndex)}
-        <span class="simulateur-v3__option-head">
-          <span class="simulateur-v3__option-label">${escapeHtml(compactOptionLabel(option.label))}</span>
-          <strong class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}">${escapeHtml(budgetLabel)}</strong>
-        </span>
-        ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
-        <span class="simulateur-v3__option-effects">
-          ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabelWithTiming(effect))}</span>`).join("")}
-        </span>
-        <span class="simulateur-v3__option-confidence">Risque ${escapeHtml(option.uncertainty)}<i aria-hidden="true" data-risk="${option.uncertainty}"></i></span>
+        <span class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
+        <strong class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
+        <span class="simulateur-v3__option-impact" data-v3-fact="impact">${escapeHtml(principalImpact ? effectLabelWithTiming(principalImpact) : "Impact détaillé dans le mécanisme")}</span>
+        <span class="simulateur-v3__option-confidence" data-v3-fact="risk">Incertitude ${escapeHtml(option.uncertainty)}</span>
       </button>
+      ${selected ? renderOptionDetail(option) : ""}
     </article>`;
 }
 
 function renderEvidence(decision: Decision): string {
   return `
     <details class="simulateur-v3__evidence">
-      <summary>Voir l'analyse et les sources</summary>
+      <summary>Preuves, réserves et sources</summary>
       <div class="simulateur-v3__evidence-body">
         <section class="simulateur-v3__analysis">
           <h3>Le dossier</h3>
           <p>${escapeHtml(decision.context)}</p>
         </section>
-        ${decision.options.map((option) => `
-          <section>
-            <h3>${escapeHtml(option.label)}</h3>
-            <dl>
-              <div><dt>Mécanisme</dt><dd>${escapeHtml(option.mechanism)}</dd></div>
-              <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
-              <div><dt>Bénéficiaires</dt><dd>${escapeHtml(option.beneficiaries.join(", "))}</dd></div>
-              <div><dt>Contributeurs</dt><dd>${escapeHtml(option.contributors.join(", "))}</dd></div>
-              <div><dt>Incertitude</dt><dd>${escapeHtml(option.uncertainty)}</dd></div>
-            </dl>
-            ${option.legalConstraints.length > 0 ? `<p><strong>Contraintes juridiques :</strong> ${escapeHtml(option.legalConstraints.join(" ; "))}</p>` : ""}
-          </section>`).join("")}
         <section class="simulateur-v3__source-block">
           <h3>Sources</h3>
           <p>${escapeHtml(decision.evidence[0]?.label ?? "")}</p>
@@ -391,6 +385,9 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
   const decision = currentDecision(state, scenario);
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
   const chapter = scenario.chapters[state.chapterIndex]!;
+  const selectedOptionId = state.pendingSelection?.decisionId === decision.id
+    ? state.pendingSelection.optionId
+    : undefined;
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
@@ -401,14 +398,65 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
             <p class="simulateur-v3__context">${escapeHtml(compactText(decision.context))}</p>
           </header>
           <div class="simulateur-v3__scene-body">
-            <section class="simulateur-v3__options simulateur-v3__options--${decision.options.length}" aria-label="Choix possibles">
-              ${decision.options.map((option, index) => renderOption(decision, option, index)).join("")}
-            </section>
-            ${renderMandateDashboard(state)}
+            <fieldset class="simulateur-v3__options simulateur-v3__options--${decision.options.length}">
+              <legend>Choix possibles</legend>
+              ${decision.options.map((option) => renderOption(decision, option, option.id === selectedOptionId)).join("")}
+            </fieldset>
             ${renderEvidence(decision)}
           </div>
         </article>
       </div>
+    </main>`;
+}
+
+function renderDecisionResult(state: CampaignState, scenario: Scenario): string {
+  const record = state.decisions.at(-1);
+  const decision = record
+    ? scenario.decisions.find((candidate) => candidate.id === record.decisionId)
+    : undefined;
+  const option = decision?.options.find((candidate) => candidate.id === record?.optionId);
+  if (!record || !decision || !option) return renderUnavailable("Le résultat de cette décision n'est plus disponible.");
+
+  const changes = record.impact?.indicators.slice(0, 3) ?? [];
+  const nextEvent = [...state.scheduledEvents]
+    .filter((event) => event.sourceDecisionId === decision.id && event.sourceOptionId === option.id)
+    .sort((left, right) => left.dueAtDecision - right.dueAtDecision)
+    .at(0);
+  const nextPromise = [...state.activePromises]
+    .filter((promise) => promise.sourceDecisionId === decision.id && promise.sourceOptionId === option.id)
+    .sort((left, right) => left.dueAtDecision - right.dueAtDecision)
+    .at(0);
+  const nextDueValues = [nextEvent?.dueAtDecision, nextPromise?.dueAtDecision]
+    .filter((value): value is number => value !== undefined);
+  nextDueValues.sort((left, right) => left - right);
+  const nextDue = nextDueValues.at(0);
+
+  return `
+    <main class="simulateur-v3__stage simulateur-v3__stage--result">
+      <article class="simulateur-v3__dossier simulateur-v3__result" aria-live="polite">
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Décision enregistrée</p>
+          <h1>${escapeHtml(compactOptionLabel(option.label))}</h1>
+          <p class="simulateur-v3__lead">${escapeHtml(decision.title)}</p>
+        </header>
+        <div class="simulateur-v3__scene-body">
+          ${changes.length > 0 ? `<dl class="simulateur-v3__result-metrics">${changes.map((change) => `
+            <div>
+              <dt>${escapeHtml(INDICATOR_META[change.key].label)}</dt>
+              <dd><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.before))}</span><span aria-hidden="true">→</span><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.after))}</span><strong>${escapeHtml(effectLabel({ target: "indicator", key: change.key, delta: change.delta }))}</strong></dd>
+            </div>`).join("")}</dl>` : `<p class="simulateur-v3__result-no-metric">Aucun indicateur ne change immédiatement. Les effets arrivent selon le calendrier annoncé.</p>`}
+          <section class="simulateur-v3__result-cause" aria-label="Chaîne causale">
+            <h2>Ce qui change</h2>
+            <p>${escapeHtml(option.mechanism)}</p>
+            <dl>
+              <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
+              <div><dt>Incertitude</dt><dd>${escapeHtml(option.uncertainty)}</dd></div>
+              ${nextDue === undefined ? "" : `<div><dt>Prochaine échéance</dt><dd>Dossier ${nextDue} sur ${totalDecisions(scenario)}</dd></div>`}
+            </dl>
+          </section>
+        </div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Dossier suivant</button></footer>
+      </article>
     </main>`;
 }
 
@@ -528,22 +576,85 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
     </main>`;
 }
 
-function renderDelayedEvent(state: CampaignState, scenario: Scenario): string {
+type DueConsequenceGroup = {
+  key: string;
+  sourceDecisionId: string;
+  sourceOptionId: string;
+  dueAtDecision: number;
+  events: ScheduledEvent[];
+  promises: PoliticalPromise[];
+};
+
+function groupDueConsequences(state: CampaignState): DueConsequenceGroup[] {
   const events = state.scheduledEvents.filter((event) => event.dueAtDecision <= state.decisions.length);
   const promises = state.activePromises.filter((promise) => promise.dueAtDecision <= state.decisions.length);
-  const first = events[0];
-  const source = first ? scenario.decisions.find((decision) => decision.id === first.sourceDecisionId) : undefined;
+  const groups = new Map<string, DueConsequenceGroup>();
+  const getGroup = (sourceDecisionId: string, sourceOptionId: string, dueAtDecision: number) => {
+    const key = `${sourceDecisionId}:${sourceOptionId}:${dueAtDecision}`;
+    const existing = groups.get(key);
+    if (existing) return existing;
+    const created = { key, sourceDecisionId, sourceOptionId, dueAtDecision, events: [], promises: [] };
+    groups.set(key, created);
+    return created;
+  };
+  for (const event of events) getGroup(event.sourceDecisionId, event.sourceOptionId, event.dueAtDecision).events.push(event);
+  for (const promise of promises) getGroup(promise.sourceDecisionId, promise.sourceOptionId, promise.dueAtDecision).promises.push(promise);
+  return [...groups.values()].sort((left, right) =>
+    left.dueAtDecision - right.dueAtDecision
+    || left.sourceDecisionId.localeCompare(right.sourceDecisionId, "fr")
+    || left.sourceOptionId.localeCompare(right.sourceOptionId, "fr"));
+}
+
+function renderDueConsequenceGroup(group: DueConsequenceGroup, scenario: Scenario, visible: boolean): string {
+  const decision = scenario.decisions.find((candidate) => candidate.id === group.sourceDecisionId);
+  const option = decision?.options.find((candidate) => candidate.id === group.sourceOptionId);
+  const consequences = [
+    ...group.events.flatMap((event) => event.effects.length > 0
+      ? event.effects.map((effect) => ({ title: event.title, body: event.body, effect: effectLabel(effect) }))
+      : [{ title: event.title, body: event.body, effect: "" }]),
+    ...group.promises.flatMap((promise) => {
+      if (promise.fulfilled) return [{ title: promise.label, body: "Promesse tenue.", effect: "" }];
+      return promise.failureEffects.length > 0
+        ? promise.failureEffects.map((effect) => ({
+          title: promise.label,
+          body: "Promesse non tenue. Le coût politique arrive à échéance.",
+          effect: effectLabel(effect),
+        }))
+        : [{ title: promise.label, body: "Promesse non tenue.", effect: "" }];
+    }),
+  ];
+  const direct = consequences.slice(0, 2);
+  const remaining = consequences.slice(2);
+  const renderConsequence = (consequence: (typeof consequences)[number]) => `<li>
+    <strong>${escapeHtml(consequence.title)}</strong>
+    <span>${escapeHtml(consequence.body)}</span>
+    ${consequence.effect ? `<small>${escapeHtml(consequence.effect)}</small>` : ""}
+  </li>`;
+  return `<section class="simulateur-v3__event-group" data-v3-event-group="${escapeHtml(group.key)}" data-v3-event-group-visible="${visible}">
+    <header>
+      <h2>${escapeHtml(decision?.title ?? group.sourceDecisionId)}</h2>
+      <p><strong>Option d'origine</strong>${escapeHtml(option ? compactOptionLabel(option.label) : group.sourceOptionId)} · échéance dossier ${group.dueAtDecision}</p>
+    </header>
+    <ul>${direct.map(renderConsequence).join("")}</ul>
+    ${remaining.length > 0 ? `<details><summary>Voir ${remaining.length} ${remaining.length === 1 ? "autre effet" : "autres effets"}</summary><ul>${remaining.map(renderConsequence).join("")}</ul></details>` : ""}
+  </section>`;
+}
+
+function renderDelayedEvent(state: CampaignState, scenario: Scenario): string {
+  const groups = groupDueConsequences(state);
+  const visibleGroups = groups.slice(0, 4);
+  const overflowGroups = groups.slice(4);
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__event">
         <header class="simulateur-v3__scene-header">
           <p class="simulateur-v3__eyebrow">Conséquence différée</p>
-          <h1>${escapeHtml(first?.title ?? "Une promesse revient dans le débat.")}</h1>
-          ${source ? `<p class="simulateur-v3__event-source"><strong>Décision d'origine</strong>${escapeHtml(source.title)}</p>` : ""}
+          <h1>Les effets annoncés arrivent à échéance.</h1>
+          <p class="simulateur-v3__lead">Chaque conséquence reste reliée au choix qui l'a produite.</p>
         </header>
         <div class="simulateur-v3__scene-body">
-          ${events.map((event) => `<section class="simulateur-v3__event-card"><p>${escapeHtml(event.body)}</p><ul>${event.effects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul></section>`).join("")}
-          ${promises.map((promise) => `<section class="simulateur-v3__event-card"><h2>${escapeHtml(promise.label)}</h2><p>${promise.fulfilled ? "Promesse tenue." : "Promesse non tenue. Le coût politique est appliqué."}</p>${promise.fulfilled ? "" : `<ul>${promise.failureEffects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul>`}</section>`).join("")}
+          <div class="simulateur-v3__event-groups">${visibleGroups.map((group) => renderDueConsequenceGroup(group, scenario, true)).join("")}</div>
+          ${overflowGroups.length > 0 ? `<details class="simulateur-v3__event-overflow"><summary>Voir ${overflowGroups.length} autres conséquences</summary>${overflowGroups.map((group) => renderDueConsequenceGroup(group, scenario, false)).join("")}</details>` : ""}
         </div>
         <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Assumer la suite</button></footer>
       </article>
@@ -558,14 +669,6 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__crisis">
-        <div class="simulateur-v3__crisis-visual" aria-hidden="true">
-          <svg viewBox="0 0 1200 330" preserveAspectRatio="xMidYMid slice">
-            <path class="simulateur-v3__crisis-sky" d="M0 0h1200v330H0z"/>
-            <path class="simulateur-v3__crisis-city" d="M0 245h62v-74h44v74h75v-118h66v118h59v-63h83v63h56v-151h82v151h61v-90h65v90h89v-122h71v122h49v-71h90v71h60v-137h66v137h74v85H0z"/>
-            <path class="simulateur-v3__crisis-crowd" d="M0 288c95-33 176-13 251-30 81-19 159-29 255 4 85 29 167-22 260-5 87 16 170 42 264 8 62-22 119-15 170 3v62H0z"/>
-            <path class="simulateur-v3__crisis-flare" d="M160 265l34-105 35 105M932 270l38-129 42 129"/>
-          </svg>
-        </div>
         <header class="simulateur-v3__scene-header">
           <p class="simulateur-v3__eyebrow">Conseil de crise</p>
           <h1>${escapeHtml(rule.title)}</h1>
@@ -738,7 +841,7 @@ export function renderSimulatorV3(
       content = renderDecision(state, scenario);
       break;
     case "decision_result":
-      content = "";
+      content = renderDecisionResult(state, scenario);
       break;
     case "pause":
       content = renderPause(state, scenario, options.pauseView ?? "menu");

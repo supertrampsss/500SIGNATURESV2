@@ -14,6 +14,7 @@ import {
   type Scenario,
 } from "./types.ts";
 import { optionDistanceDimensions } from "./policy-catalogue.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import {
   CHAPTER_MANDATE_YEARS,
   decisionCountAtMandateYearEnd,
@@ -280,7 +281,34 @@ function isDecisionRecord(value: unknown, decisions: Map<string, Decision>): val
     && typeof value.status === "string"
     && DECISION_STATUSES.has(value.status)
     && isPositiveInteger(value.confirmedAtIndex)
+    && (value.impact === undefined || isDecisionImpactSnapshot(value.impact, value))
     && (value.changedByCrisisId === undefined || typeof value.changedByCrisisId === "string");
+}
+
+function isDecisionImpactSnapshot(value: unknown, record: Record<string, unknown>): boolean {
+  if (!isRecord(value)
+      || value.decisionId !== record.decisionId
+      || value.optionId !== record.optionId
+      || value.confirmedAtIndex !== record.confirmedAtIndex
+      || !Array.isArray(value.indicators)) return false;
+  const keys: IndicatorKey[] = [];
+  for (const indicator of value.indicators) {
+    if (!isRecord(indicator)
+        || !isIndicatorKey(indicator.key)
+        || typeof indicator.before !== "number" || !Number.isFinite(indicator.before)
+        || typeof indicator.after !== "number" || !Number.isFinite(indicator.after)
+        || typeof indicator.delta !== "number" || !Number.isFinite(indicator.delta)
+        || Math.abs((indicator.after - indicator.before) - indicator.delta) > 1e-9
+        || indicator.delta === 0
+        || !Array.isArray(indicator.causalEntryIds)
+        || indicator.causalEntryIds.length === 0
+        || !indicator.causalEntryIds.every((id) => typeof id === "string" && id.length > 0)
+        || hasDuplicates(indicator.causalEntryIds as string[])) return false;
+    keys.push(indicator.key);
+  }
+  if (new Set(keys).size !== keys.length) return false;
+  return keys.every((key, index) => index === 0
+    || INDICATOR_META[keys[index - 1]!].priority >= INDICATOR_META[key].priority);
 }
 
 function isScheduledEvent(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, campaignLength: number): boolean {
@@ -922,6 +950,20 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!causalLedger.every((entry) => isCausalEntry(entry, sourceIds, decisionRecords.length))) return false;
   if (hasDuplicates((causalLedger as { id: string }[]).map((entry) => entry.id))) return false;
   const causalEntries = new Map((causalLedger as CausalEntry[]).map((entry) => [entry.id, entry]));
+  for (const record of decisionRecords as DecisionRecord[]) {
+    if (!record.impact) continue;
+    const expectedSourceId = `${record.decisionId}:${record.optionId}`;
+    for (const indicator of record.impact.indicators) {
+      if (!indicator.causalEntryIds.every((id) => {
+        const entry = causalEntries.get(id);
+        return entry?.sourceType === "decision"
+          && entry.sourceId === expectedSourceId
+          && entry.target === "indicator"
+          && entry.key === indicator.key
+          && entry.appliedAtDecision === record.confirmedAtIndex;
+      })) return false;
+    }
+  }
   if (!(value.annualCheckpoints as CampaignState["annualCheckpoints"]).every((checkpoint) => (
     checkpoint.causes.every((id) => {
       const entry = causalEntries.get(id);

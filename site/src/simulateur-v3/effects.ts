@@ -1,4 +1,5 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import { isEffectRule, totalDecisions, validateScenario } from "./validation.ts";
 import { materializedDelayedEventId } from "./types.ts";
 import { decisionCountAtMandateYearEnd } from "./timeline.ts";
@@ -254,20 +255,46 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
   if (!option) throw new Error("Pending selection has an unknown option");
   if (state.decisions.some((record) => record.decisionId === decisionId)) throw new Error(`Decision already confirmed: ${decisionId}`);
 
+  const confirmedAtIndex = state.decisions.length + 1;
+  const indicatorsBefore = { ...state.indicators };
+  const ledgerLengthBefore = state.causalLedger.length;
   const confirmed = {
     ...state,
     decisions: [...state.decisions, {
       decisionId,
       optionId,
       status: "confirmed" as const,
-      confirmedAtIndex: state.decisions.length + 1,
+      confirmedAtIndex,
     }],
   };
   const withImmediateEffects = applyImmediateEffects(confirmed, option.effects, {
     sourceType: "decision",
     sourceId: `${decisionId}:${optionId}`,
   });
-  const withConsequences = scheduleOptionConsequences(withImmediateEffects, decision, option, scenario);
+  const immediateCausalEntries = withImmediateEffects.causalLedger.slice(ledgerLengthBefore);
+  const indicatorKeys = (Object.keys(INDICATOR_META) as IndicatorKey[])
+    .filter((key) => withImmediateEffects.indicators[key] !== indicatorsBefore[key]);
+  indicatorKeys.sort((left, right) => INDICATOR_META[right].priority - INDICATOR_META[left].priority);
+  const impact = {
+    decisionId,
+    optionId,
+    confirmedAtIndex,
+    indicators: indicatorKeys.map((key) => ({
+      key,
+      before: indicatorsBefore[key],
+      after: withImmediateEffects.indicators[key],
+      delta: withImmediateEffects.indicators[key] - indicatorsBefore[key],
+      causalEntryIds: immediateCausalEntries
+        .filter((entry) => entry.target === "indicator" && entry.key === key)
+        .map((entry) => entry.id),
+    })),
+  };
+  const withImpact = {
+    ...withImmediateEffects,
+    decisions: withImmediateEffects.decisions.map((record, index) =>
+      index === withImmediateEffects.decisions.length - 1 ? { ...record, impact } : record),
+  };
+  const withConsequences = scheduleOptionConsequences(withImpact, decision, option, scenario);
   const withFulfilledPromises = option.fulfillsPromises.length === 0
     ? withConsequences
     : {

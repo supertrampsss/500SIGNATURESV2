@@ -15,6 +15,22 @@ function occurrences(source: string, needle: string): number {
   return source.split(needle).length - 1;
 }
 
+function closedOptionButtons(html: string): string[] {
+  return html
+    .split('class="simulateur-v3__option-select"')
+    .slice(1)
+    .map((part) => part.slice(0, part.indexOf("</button>")));
+}
+
+function escapedHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 test("les montants utilisent le singulier quand il le faut", () => {
   assert.equal(formatV3Amount(1_200), "+1 milliard d'euros");
   assert.equal(formatV3Amount(-1), "-1 million d'euros");
@@ -97,8 +113,8 @@ test("les choix retirent la démonstration répétée après les deux-points", (
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
 
-  assert.match(html, /simulateur-v3__option-label">Geler le barème<\/span>/);
-  assert.doesNotMatch(html, /simulateur-v3__option-label">Geler le barème de l'impôt sur le revenu \(non-indexation\)/);
+  assert.match(html, /simulateur-v3__option-label"[^>]*>Geler le barème<\/span>/);
+  assert.doesNotMatch(html, /simulateur-v3__option-label"[^>]*>Geler le barème de l'impôt sur le revenu \(non-indexation\)/);
 });
 
 test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () => {
@@ -117,30 +133,22 @@ test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () =
   }
 });
 
-test("un dossier desktop suit la planche EPR avec une scène centrale et un tableau compact", () => {
+test("un dossier garde une scène centrale sans répéter le tableau complet du mandat", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.match(html, /class="simulateur-v3__decision-layout"/);
   assert.doesNotMatch(html, /simulateur-v3__rail/);
-  assert.match(html, /class="simulateur-v3__mandate-dashboard"/);
-  assert.match(html, />Finances</);
-  assert.match(html, />Pays</);
-  assert.match(html, />Pouvoir</);
-  assert.match(html, />Confiance</);
-  const dossier = html.slice(html.indexOf('class="simulateur-v3__dossier simulateur-v3__decision '));
-  assert.ok(dossier.indexOf('class="simulateur-v3__mandate-dashboard"') < dossier.lastIndexOf("</article>"));
+  assert.doesNotMatch(html, /class="simulateur-v3__mandate-dashboard"/);
 });
 
-test("chaque choix reçoit une illustration éditoriale dans la carte cliquable", () => {
+test("aucun choix ne reçoit une illustration ou un SVG décoratif", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
-  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(html, 'class="simulateur-v3__decision-illustration'), decision.options.length);
-  assert.equal(occurrences(html, 'aria-hidden="true" viewBox="0 0 180 104"'), decision.options.length);
+  assert.doesNotMatch(html, /simulateur-v3__decision-illustration|<svg/);
 });
 
-test("la trajectoire des finances du tableau réagit au registre causal", () => {
-  const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+test("la trajectoire des finances reste disponible au Conseil, pas dans chaque décision", () => {
+  const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "council" as const };
   const moved: CampaignState = {
     ...base,
     indicators: { ...base.indicators, annualBalance: base.indicators.annualBalance + 10_000 },
@@ -160,40 +168,50 @@ test("la trajectoire des finances du tableau réagit au registre causal", () => 
   assert.notEqual(points(renderSimulatorV3(base, SCENARIO_V3_PREVIEW)), points(renderSimulatorV3(moved, SCENARIO_V3_PREVIEW)));
 });
 
-test("les cartes montrent les conséquences politiques essentielles avant le clic", () => {
+test("chaque bouton fermé expose exactement nom, budget, un impact principal et risque", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(html, 'class="simulateur-v3__option-effects"'), decision.options.length);
-  assert.match(html, /Confiance institutionnelle [+-]\d+ points? d&#39;indice/);
+  const buttons = closedOptionButtons(html);
+  assert.equal(buttons.length, decision.options.length);
+  for (const button of buttons) {
+    assert.equal(occurrences(button, "data-v3-fact="), 4);
+    assert.equal(occurrences(button, 'data-v3-fact="name"'), 1);
+    assert.equal(occurrences(button, 'data-v3-fact="budget"'), 1);
+    assert.equal(occurrences(button, 'data-v3-fact="impact"'), 1);
+    assert.equal(occurrences(button, 'data-v3-fact="risk"'), 1);
+    assert.doesNotMatch(button, /simulateur-v3__option-summary|Mécanisme|Bénéficiaires|Contributeurs/);
+  }
 });
 
-test("les cartes montrent aussi les impacts principaux différés avec leur échéance", () => {
+test("l'impact principal est unique, priorisé par INDICATOR_META et garde son échéance", () => {
   const scenario = structuredClone(SCENARIO_V3_PREVIEW);
   const option = scenario.decisions[0]!.options[0]!;
   option.horizon = { kind: "immediate" };
   option.effects = [{
-    id: "delayed-investment",
-    target: "indicator",
-    key: "investment",
-    delta: 4,
-    timing: { kind: "after_decisions", count: 2 },
-    duration: "once",
-    explanation: "Les commandes deviennent visibles.",
-  }, {
     id: "delayed-opinion",
     target: "indicator",
     key: "opinion",
     delta: -2,
+    timing: { kind: "after_decisions", count: 2 },
+    duration: "once",
+    explanation: "La réforme divise.",
+  }, {
+    id: "delayed-investment",
+    target: "indicator",
+    key: "investment",
+    delta: 4,
     timing: { kind: "mandate_year", year: 3 } as EffectRule["timing"],
     duration: "once",
-    explanation: "La réforme entre en vigueur.",
+    explanation: "Les commandes deviennent visibles.",
   }] as typeof option.effects;
   const state = { ...createCampaign(scenario), phase: "decision" as const };
   const html = renderSimulatorV3(state, scenario);
+  const firstButton = closedOptionButtons(html)[0]!;
 
-  assert.match(html, /Investissement \+4 points d&#39;indice · après 2 décisions/);
-  assert.match(html, /Opinion -2 points d&#39;indice · année 3/);
+  assert.match(firstButton, /Investissement \+4 points d&#39;indice · année 3/);
+  assert.doesNotMatch(firstButton, /Opinion -2 points d&#39;indice/);
+  assert.equal(occurrences(firstButton, 'data-v3-fact="impact"'), 1);
 });
 
 test("les conséquences affichent l'unité propre à chaque indicateur", () => {
@@ -218,35 +236,55 @@ test("les conséquences affichent l'unité propre à chaque indicateur", () => {
     explanation: "Hypothèse de test.",
   }];
   const state = { ...createCampaign(scenario), phase: "decision" as const };
-  const html = renderSimulatorV3(state, scenario);
+  const selected = selectOption(state, scenario, scenario.decisions[0]!.id, option.id);
+  const html = renderSimulatorV3(selected, scenario);
+  const detail = html.split('class="simulateur-v3__option-detail"')[1]!.split("</details>")[0]!;
 
-  assert.match(html, /Croissance nominale annuelle \+0,12 point de pourcentage par an/);
-  assert.match(html, /Charge d&#39;intérêt annuelle \+12 milliards d&#39;euros/);
+  assert.equal(occurrences(detail, "Croissance nominale annuelle +0,12 point de pourcentage par an"), 1);
+  assert.equal(occurrences(detail, "Charge d&#39;intérêt annuelle +12 milliards d&#39;euros"), 1);
+  assert.equal(occurrences(detail, "<li>"), option.effects.length);
 });
 
-test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
+test("le résumé est absent de la surface fermée puis visible uniquement dans le détail sélectionné", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   assert.notEqual(decision.options[0]!.summary, decision.context);
-  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), 2);
+  const closed = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.doesNotMatch(closed, /simulateur-v3__option-summary/);
+
+  const selected = renderSimulatorV3(selectOption(state, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(selected, 'class="simulateur-v3__option-detail"'), 1);
+  assert.equal(occurrences(selected, 'class="simulateur-v3__option-summary"'), 1);
+  assert.ok(selected.includes(escapedHtml(decision.options[0]!.summary)));
+  assert.ok(!selected.includes(escapedHtml(decision.options[1]!.summary)));
 });
 
-test("les cartes tranchent directement sans confirmation intermédiaire", () => {
+test("la sélection est réversible et la confirmation reste une action distincte", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(html, 'data-v3-action="select"'), decision.options.length);
-  assert.equal(occurrences(html, 'aria-label="Choisir :'), decision.options.length);
-  assert.doesNotMatch(html, /data-v3-action="confirm"|data-v3-action="cancel"|aria-pressed/);
+  const initial = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(initial, 'data-v3-action="select"'), decision.options.length);
+  assert.equal(occurrences(initial, 'aria-pressed="false"'), decision.options.length);
+  assert.doesNotMatch(initial, /data-v3-action="confirm"|data-v3-action="modify"/);
+
+  const selectedState = selectOption(state, SCENARIO_V3_PREVIEW, decision.id, decision.options[1]!.id);
+  const selected = renderSimulatorV3(selectedState, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(selected, 'aria-pressed="true"'), 1);
+  assert.equal(occurrences(selected, 'data-v3-action="confirm"'), 1);
+  assert.equal(occurrences(selected, 'data-v3-action="modify"'), 1);
 });
 
-test("l'état technique de résultat ne produit aucun écran de validation", () => {
+test("le résultat confirmé reste lisible et causal jusqu'à une continuation explicite", () => {
   const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const confirmed = confirmSelection(selectOption(base, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
   const html = renderSimulatorV3(confirmed, SCENARIO_V3_PREVIEW);
-  assert.doesNotMatch(html, /Décision actée|Continuer le mandat|data-v3-action="continue"/);
+  assert.match(html, /Décision enregistrée/);
+  assert.ok(html.includes(escapedHtml(decision.options[0]!.mechanism)));
+  assert.match(html, /class="[^"]*simulateur-v3__result[^"]*" aria-live="polite"/);
+  assert.match(html, /-153 milliards d&#39;euros[\s\S]*-151 milliards d&#39;euros/);
+  assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
+  assert.match(html, /Dossier suivant/);
 });
 
 test("chaque phase rend la barre de commandement sans cadratin", () => {
@@ -310,6 +348,39 @@ test("une conséquence différée rappelle la décision d'origine et ses effets"
   assert.match(html, /simulateur-v3__scene-body/);
 });
 
+test("les conséquences dues à la décision 60 sont groupées par source sans fausse attribution", () => {
+  const state = stateAfter(60, "delayed_event");
+  const sources = SCENARIO_V3_PREVIEW.decisions.slice(-6);
+  const effectCounts = [6, 5, 5, 5, 5, 5];
+  state.scheduledEvents = sources.flatMap((source, sourceIndex) => Array.from({ length: effectCounts[sourceIndex]! }, (_, effectIndex) => ({
+    id: `event-${sourceIndex}-${effectIndex}`,
+    sourceDecisionId: source.id,
+    sourceOptionId: source.options[0]!.id,
+    dueAtDecision: 60,
+    title: `Échéance ${sourceIndex + 1}`,
+    body: `Conséquence ${effectIndex + 1} de ${source.title}`,
+    effects: [{
+      id: `effect-${sourceIndex}-${effectIndex}`,
+      target: "indicator" as const,
+      key: "opinion" as const,
+      delta: -(effectIndex + 1),
+      timing: { kind: "immediate" as const },
+      duration: "once" as const,
+      explanation: `Effet ${effectIndex + 1}`,
+    }],
+  })));
+
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'data-v3-event-group="'), sources.length);
+  assert.equal(occurrences(html, 'data-v3-event-group-visible="true"'), 4);
+  assert.match(html, /Voir 2 autres conséquences/);
+  for (const source of sources) {
+    assert.equal(occurrences(html, `data-v3-event-group="${source.id}:${source.options[0]!.id}:60"`), 1);
+    assert.match(html, new RegExp(source.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.equal(occurrences(html, "<span>Conséquence "), 31);
+});
+
 test("la crise expose sa cause et une concession qui modifie la réforme", () => {
   const decisionIndex = SCENARIO_V3_PREVIEW.decisions.findIndex((candidate) => candidate.id === "flat-tax-a-20-des-le-premier");
   const fresh = createCampaign(SCENARIO_V3_PREVIEW);
@@ -329,7 +400,7 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   assert.match(html, new RegExp(decision.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Suspendre la flat tax/);
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
-  assert.match(html, /class="simulateur-v3__crisis-visual"/);
+  assert.doesNotMatch(html, /simulateur-v3__crisis-visual|<svg/);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);
 });

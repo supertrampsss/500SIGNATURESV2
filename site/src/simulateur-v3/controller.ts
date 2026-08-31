@@ -1,4 +1,5 @@
 import {
+  clearSelection,
   createCampaign,
   normalizeChapterTransition,
   selectOption,
@@ -190,21 +191,24 @@ export function mountSimulatorV3(
       const decisionId = node.dataset.decisionId;
       const optionId = node.dataset.optionId;
       if (!decisionId || !optionId) return;
-      state = confirmSelection(selectOption(state, scenario, decisionId, optionId), scenario);
+      state = selectOption(state, scenario, decisionId, optionId);
+      persistAndRender();
+      return;
+    }
+
+    if (action === "modify" && state.phase === "decision" && state.pendingSelection) {
+      state = clearSelection(state);
+      persistAndRender();
+      return;
+    }
+
+    if (action === "confirm" && state.phase === "decision" && state.pendingSelection) {
+      state = confirmSelection(state, scenario);
       emit({
         type: "decision_confirmed",
         chapter: state.chapterIndex + 1,
         position: state.decisions.length,
       });
-      state = advanceCampaign(state, scenario, crisisRules);
-      if (state.phase === "decision") {
-        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
-      }
-      if (state.phase === "crisis" && state.activeCrisis) {
-        emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
-      }
-      if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
-      if (state.phase === "verdict") emit({ type: "campaign_completed" });
       persistAndRender();
       return;
     }

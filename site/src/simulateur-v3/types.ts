@@ -146,11 +146,27 @@ export type Scenario = {
   decisions: Decision[];
 };
 
+export type IndicatorImpactSnapshot = {
+  key: IndicatorKey;
+  before: number;
+  after: number;
+  delta: number;
+  causalEntryIds: string[];
+};
+
+export type DecisionImpactSnapshot = {
+  decisionId: string;
+  optionId: string;
+  confirmedAtIndex: number;
+  indicators: IndicatorImpactSnapshot[];
+};
+
 export type DecisionRecord = {
   decisionId: string;
   optionId: string;
   status: DecisionStatus;
   confirmedAtIndex: number;
+  impact?: DecisionImpactSnapshot;
   changedByCrisisId?: string;
 };
 
