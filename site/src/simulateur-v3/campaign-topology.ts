@@ -1,15 +1,15 @@
 import { PROMOTION_REPORT } from "./promotion-report.ts";
-import type { Decision, Scenario } from "./types.ts";
+import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
+import type { CrisisRule, Scenario } from "./types.ts";
 
 export type { PromotionEvidence } from "./promotion-report.ts";
 
 export type CampaignChapter = Readonly<{ id: string; decisionIds: readonly string[] }>;
-export type KnownCampaignDecision = Readonly<{ id: string; chapterId: string }>;
 export type PublishedCampaignValidationInput = Readonly<{
+  catalogue: Scenario;
+  crisisRules: readonly CrisisRule[];
   chapters?: readonly CampaignChapter[];
-  knownDecisions?: readonly KnownCampaignDecision[];
   checkpoints?: readonly number[];
-  references?: readonly string[];
 }>;
 
 const CORE_CHAPTERS: readonly CampaignChapter[] = [
@@ -78,20 +78,18 @@ export function mandateCheckpointsFor(chapters: readonly CampaignChapter[]): num
 }
 
 export const CAMPAIGN_MANDATE_CHECKPOINTS = Object.freeze(mandateCheckpointsFor(CAMPAIGN_CHAPTERS));
-const DEFAULT_KNOWN_DECISIONS = Object.freeze(CAMPAIGN_CHAPTERS.flatMap((chapter) => chapter.decisionIds.map((id) => ({ id, chapterId: chapter.id }))));
 
 function sameSequence<T>(left: readonly T[], right: readonly T[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-export function validatePublishedCampaign(input: PublishedCampaignValidationInput = {}): string[] {
+export function validatePublishedCampaign(input: PublishedCampaignValidationInput): string[] {
   const chapters = input.chapters ?? CAMPAIGN_CHAPTERS;
-  const knownDecisions = input.knownDecisions ?? DEFAULT_KNOWN_DECISIONS;
   const checkpoints = input.checkpoints ?? mandateCheckpointsFor(chapters);
   const errors: string[] = [];
   const ids = chapters.flatMap((chapter) => chapter.decisionIds);
   const chapterIds = chapters.map((chapter) => chapter.id);
-  const knownById = new Map(knownDecisions.map((decision) => [decision.id, decision]));
+  const knownById = new Map(input.catalogue.decisions.map((decision) => [decision.id, decision]));
 
   if (chapters.length !== 8) errors.push("campaign-chapter-count");
   if (new Set(chapterIds).size !== chapterIds.length) errors.push("campaign-chapter-duplicate");
@@ -116,36 +114,41 @@ export function validatePublishedCampaign(input: PublishedCampaignValidationInpu
 
   const expectedCheckpoints = mandateCheckpointsFor(chapters);
   if (checkpoints.length !== 5 || !sameSequence(checkpoints, expectedCheckpoints) || checkpoints.at(-1) !== ids.length) errors.push("campaign-mandate-checkpoints");
-  const references = input.references ?? PROMOTION_REPORT.candidates.flatMap((candidate) => [candidate.decisionId, candidate.replacesDecisionId]);
-  if (references.some((id) => !ids.includes(id))) errors.push("campaign-unpublished-reference");
+  const publishedIds = new Set(ids);
+  for (const id of ids) {
+    const decision = knownById.get(id);
+    if (!decision) continue;
+    for (const dependency of decision.dependencies) if (!publishedIds.has(dependency)) errors.push(`campaign-unpublished-reference:dependency:${id}:${dependency}`);
+    for (const conflict of decision.conflicts) if (!publishedIds.has(conflict)) errors.push(`campaign-unpublished-reference:conflict:${id}:${conflict}`);
+    for (const option of decision.options) {
+      for (const lock of option.locks) if (!publishedIds.has(lock)) errors.push(`campaign-unpublished-reference:lock:${id}:${lock}`);
+      for (const unlock of option.unlocks) if (!publishedIds.has(unlock)) errors.push(`campaign-unpublished-reference:unlock:${id}:${unlock}`);
+    }
+  }
+  for (const rule of input.crisisRules) {
+    for (const id of rule.requiredDecisionIds) if (!publishedIds.has(id)) errors.push(`campaign-unpublished-reference:crisis-required:${rule.id}:${id}`);
+    for (const choice of rule.aggravatingChoices) {
+      if (!publishedIds.has(choice.decisionId)) errors.push(`campaign-unpublished-reference:crisis-cause:${rule.id}:${choice.decisionId}`);
+      const decision = knownById.get(choice.decisionId);
+      for (const optionId of choice.optionIds) if (!decision?.options.some((option) => option.id === optionId)) errors.push(`campaign-unpublished-reference:crisis-option:${rule.id}:${optionId}`);
+    }
+    for (const concession of rule.concessions) {
+      if (!publishedIds.has(concession.targetDecisionId)) errors.push(`campaign-unpublished-reference:crisis-answer:${rule.id}:${concession.targetDecisionId}`);
+      for (const unlock of concession.unlocksDecisionIds ?? []) if (!publishedIds.has(unlock)) errors.push(`campaign-unpublished-reference:crisis-unlock:${rule.id}:${unlock}`);
+    }
+  }
   return errors;
 }
 
-function publishedDecision(decision: Decision, selectedIds: ReadonlySet<string>): Decision {
-  const clone = structuredClone(decision);
-  return {
-    ...clone,
-    dependencies: clone.dependencies.filter((id) => selectedIds.has(id)),
-    conflicts: clone.conflicts.filter((id) => selectedIds.has(id)),
-    options: clone.options.map((option) => ({
-      ...option,
-      locks: option.locks.filter((id) => selectedIds.has(id)),
-      unlocks: option.unlocks.filter((id) => selectedIds.has(id)),
-    })),
-  };
-}
-
 export function publishCampaignFromCatalogue(catalogue: Scenario): Scenario {
-  const knownDecisions = catalogue.decisions.map(({ id, chapterId }) => ({ id, chapterId }));
-  const topologyErrors = validatePublishedCampaign({ chapters: CAMPAIGN_CHAPTERS, knownDecisions });
+  const topologyErrors = validatePublishedCampaign({ catalogue, crisisRules: SCENARIO_V10_CRISIS_RULES, chapters: CAMPAIGN_CHAPTERS });
   if (topologyErrors.length > 0) throw new Error(`Invalid published campaign: ${topologyErrors.join(", ")}`);
-  const selectedIds = new Set(CAMPAIGN_DECISION_IDS);
   const byId = new Map(catalogue.decisions.map((decision) => [decision.id, decision]));
   const byChapter = new Map(catalogue.chapters.map((chapter) => [chapter.id, chapter]));
   const decisions = CAMPAIGN_DECISION_IDS.map((id) => {
     const decision = byId.get(id);
     if (!decision) throw new Error(`Unknown published campaign decision ID: ${id}`);
-    return publishedDecision(decision, selectedIds);
+    return structuredClone(decision);
   });
   return deepFreeze({
     version: catalogue.version,

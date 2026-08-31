@@ -5,7 +5,9 @@ import { currentDecision, selectOption } from "./campaign.ts";
 import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
-import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
+import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
+import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState, CrisisRule, DecisionOption } from "./types.ts";
@@ -173,4 +175,24 @@ test("la crise de la flat tax cite le choix exact et permet de suspendre la réf
 
 test("les textes des crises ne contiennent aucun cadratin", () => {
   assert.equal(JSON.stringify(SCENARIO_V3_CRISIS_RULES).includes("\u2014"), false);
+});
+
+test("les crises V10 ne citent que des causes et réponses publiées", () => {
+  const publishedIds = new Set(CAMPAIGN_DECISION_IDS);
+  const optionIds = new Set(SCENARIO_V10_CATALOGUE.decisions
+    .filter((decision) => publishedIds.has(decision.id))
+    .flatMap((decision) => decision.options.map((option) => option.id)));
+
+  for (const rule of SCENARIO_V10_CRISIS_RULES) {
+    assert.ok(rule.requiredDecisionIds.every((id) => publishedIds.has(id)), `${rule.id}:required`);
+    assert.ok(rule.aggravatingChoices.length >= 2, `${rule.id}:causes`);
+    assert.ok(rule.concessions.length >= 2, `${rule.id}:answers`);
+    for (const choice of rule.aggravatingChoices) {
+      assert.ok(publishedIds.has(choice.decisionId), `${rule.id}:${choice.decisionId}`);
+      assert.ok(choice.optionIds.every((id) => optionIds.has(id)), `${rule.id}:${choice.decisionId}`);
+    }
+    for (const concession of rule.concessions) {
+      assert.ok(publishedIds.has(concession.targetDecisionId), `${rule.id}:${concession.id}`);
+    }
+  }
 });

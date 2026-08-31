@@ -13,7 +13,7 @@ function crisisEffect(id: string, key: IndicatorKey, delta: number, explanation:
 }
 
 /** One conditional and option-traceable crisis family for each campaign chapter. */
-export const SCENARIO_V3_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
+export const SCENARIO_V9_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
   {
     id: "flat-tax-revolt",
     title: "Le pays se fracture sur l'impôt et le déficit",
@@ -409,4 +409,62 @@ export const SCENARIO_V3_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
       crisisEffect("state-collapse:trust", "institutionalTrust", -3, "L'éloignement des services dégrade la confiance."),
     ],
   },
+]);
+
+/** Compatibility name for the historical V9 simulator and its frozen snapshot. */
+export const SCENARIO_V3_CRISIS_RULES = SCENARIO_V9_CRISIS_RULES;
+
+type V10CrisisDefinition = Readonly<{
+  id: string;
+  title: string;
+  body: string;
+  indicator: IndicatorKey;
+  threshold: number;
+  eligibleFromChapterIndex: number;
+  causes: readonly [string, string];
+}>;
+
+function v10Crisis(definition: V10CrisisDefinition): CrisisRule {
+  const [firstCause, secondCause] = definition.causes;
+  return {
+    id: definition.id,
+    title: definition.title,
+    body: definition.body,
+    indicator: definition.indicator,
+    threshold: definition.threshold,
+    comparator: "lte",
+    eligibleFromChapterIndex: definition.eligibleFromChapterIndex,
+    maxOccurrences: 1,
+    requiredDecisionIds: [firstCause, secondCause],
+    aggravatingChoices: [firstCause, secondCause].map((decisionId) => ({
+      decisionId,
+      optionIds: [`${decisionId}:adopt`],
+    })),
+    concessions: [firstCause, secondCause].map((targetDecisionId, index) => ({
+      id: `${definition.id}:amend-${index + 1}`,
+      label: `Amender ${targetDecisionId}`,
+      targetDecisionId,
+      policyChange: "amend" as const,
+      effects: [
+        crisisEffect(`${definition.id}:amend-${index + 1}:services`, "publicServices", 2, "Le compromis rétablit une partie de la capacité publique."),
+        crisisEffect(`${definition.id}:amend-${index + 1}:budget`, "annualBalance", -250, "Le compromis réduit la marge budgétaire annuelle."),
+      ],
+    })),
+    holdCourseEffects: [
+      crisisEffect(`${definition.id}:hold-opinion`, "opinion", -3, "Le maintien du cap élargit la contestation."),
+      crisisEffect(`${definition.id}:hold-trust`, "institutionalTrust", -2, "Le conflit persistant dégrade la confiance institutionnelle."),
+    ],
+  };
+}
+
+/** V10 rules are independent from the V9 rules: every policy reference is published in the 72-decision campaign. */
+export const SCENARIO_V10_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
+  v10Crisis({ id: "v10-tax-legitimacy", title: "La réforme fiscale cristallise la contestation", body: "Les choix fiscaux simultanés mettent en cause la lisibilité de l'effort demandé.", indicator: "opinion", threshold: 55, eligibleFromChapterIndex: 0, causes: ["unifier-ir-csg-bareme-continu", "relever-tva-restauration-commerciale"] }),
+  v10Crisis({ id: "v10-labour-blockade", title: "Le conflit social bloque les transports", body: "Les réformes de l'emploi et des retraites créent un front social durable.", indicator: "opinion", threshold: 45, eligibleFromChapterIndex: 1, causes: ["repousser-l-age-legal-a-65-ans", "durcir-l-assurance-chomage-degressivite-duree"] }),
+  v10Crisis({ id: "v10-care-access", title: "L'accès aux soins se dégrade", body: "Le reste à charge et les économies de santé rendent les renoncements aux soins visibles.", indicator: "publicServices", threshold: 50, eligibleFromChapterIndex: 2, causes: ["doubler-les-franchises-medicales", "medicaments-comparables-achats-sante"] }),
+  v10Crisis({ id: "v10-rule-of-law", title: "La contestation juridique devient institutionnelle", body: "Les mesures d'éloignement et de prestations font converger les recours.", indicator: "institutionalTrust", threshold: 45, eligibleFromChapterIndex: 3, causes: ["doubler-l-execution-des-eloignements-oqtf", "reserver-les-prestations-non-contributives-aux-nationaux"] }),
+  v10Crisis({ id: "v10-currency-shock", title: "Le choc monétaire atteint les banques", body: "Les options de rupture européenne alimentent une prime de risque immédiate.", indicator: "financialCredibility", threshold: 40, eligibleFromChapterIndex: 4, causes: ["sortir-de-l-euro", "referendum-sur-la-sortie-de-l-ue"] }),
+  v10Crisis({ id: "v10-energy-bottleneck", title: "Le système énergétique manque d'investissements", body: "Les arbitrages sur la rénovation et le rail font apparaître un risque de sous-investissement.", indicator: "investment", threshold: 100, eligibleFromChapterIndex: 5, causes: ["doubler-maprimerenov", "plan-ferroviaire-3-000-m-de-plus"] }),
+  v10Crisis({ id: "v10-education-housing", title: "Les écoles et le logement décrochent", body: "Les arbitrages éducatifs et étudiants font monter les tensions de service.", indicator: "publicServices", threshold: 50, eligibleFromChapterIndex: 6, causes: ["revaloriser-les-enseignants-de-5", "doubler-les-bourses-etudiantes-sur-criteres"] }),
+  v10Crisis({ id: "v10-state-capacity", title: "La capacité opérationnelle de l'État décroche", body: "Les réformes territoriales et les achats publics saturent les services restants.", indicator: "publicServices", threshold: 90, eligibleFromChapterIndex: 7, causes: ["clarifier-competences-doublons-territoriaux", "mutualiser-achats-publics"] }),
 ]);

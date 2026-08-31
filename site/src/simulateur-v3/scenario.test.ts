@@ -5,6 +5,7 @@ import { CAMPAIGN_CHAPTERS, CAMPAIGN_DECISION_IDS, campaignLength, publishCampai
 import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
+import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
 import { assertNoEmDash, validatePolicyCatalogue, validateScenario } from "./validation.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
@@ -30,15 +31,10 @@ test("la publication V10 dérive 72 dossiers et 144 options de la topologie seul
   assert.equal(published.length, campaignLength);
   assert.equal(published.flatMap((decision) => decision.options).length, 144);
   assert.deepEqual(published.map((decision) => decision.id), CAMPAIGN_DECISION_IDS);
-  const references = published.flatMap((decision) => [
-    ...decision.dependencies,
-    ...decision.conflicts,
-    ...decision.options.flatMap((option) => [...option.locks, ...option.unlocks]),
-  ]);
   assert.deepEqual(validatePublishedCampaign({
+    catalogue: SCENARIO_V10_CATALOGUE,
+    crisisRules: SCENARIO_V10_CRISIS_RULES,
     chapters: CAMPAIGN_CHAPTERS,
-    knownDecisions: SCENARIO_V10_CATALOGUE.decisions.map(({ id, chapterId }) => ({ id, chapterId })),
-    references,
   }), []);
 });
 
