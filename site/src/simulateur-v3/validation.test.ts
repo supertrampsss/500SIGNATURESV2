@@ -85,6 +85,50 @@ test("V10 refuse une clé legacy même pour un profil budgétairement neutre", (
   assert.ok(validateScenario(scenario).includes("option:decision-1:adopt:legacy-budget-estimate-forbidden"));
 });
 
+test("V10 exige une estimation enregistrée même pour un profil d'audit neutre", () => {
+  const scenario = validScenario();
+  scenario.version = 10;
+  for (const decision of scenario.decisions) {
+    decision.options[0]!.id = `${decision.id}:adopt`;
+    decision.options[1]!.id = `${decision.id}:keep`;
+  }
+  scenario.decisions[0]!.options[0]!.budgetProfile = {
+    estimateKey: "audit-only-missing",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [],
+    exclusiveScopeKeys: [],
+  };
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("option:decision-1:adopt:unregistered-budget-estimate"));
+  assert.equal(errors.some((error) => error.includes(":keep:unregistered-budget-estimate")), false);
+
+  const registered = validScenario();
+  registered.version = 10;
+  const decision = registered.decisions[0]!;
+  const priorDecisionId = decision.id;
+  decision.id = "remplacer-prime-activite-prelevements-travail";
+  for (const chapter of registered.chapters) {
+    chapter.decisionIds = chapter.decisionIds.map((id) => id === priorDecisionId ? decision.id : id);
+  }
+  for (const candidate of registered.decisions) {
+    candidate.options[0]!.id = `${candidate.id}:adopt`;
+    candidate.options[1]!.id = `${candidate.id}:keep`;
+  }
+  decision.options[0]!.budgetProfile = {
+    estimateKey: "prime-activity-recycle-2024",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [],
+    exclusiveScopeKeys: [],
+  };
+  assert.equal(
+    validateScenario(registered).includes("option:remplacer-prime-activite-prelevements-travail:adopt:unregistered-budget-estimate"),
+    false,
+  );
+});
+
 test("V10 compare les flux de transition par identifiant, montant, échéance et durée", () => {
   const scenario = validScenario();
   scenario.version = 10;

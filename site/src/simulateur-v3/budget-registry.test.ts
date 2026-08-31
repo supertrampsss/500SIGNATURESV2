@@ -6,6 +6,7 @@ import {
   BUDGET_ESTIMATES,
   budgetEstimateFor,
   findExclusiveScopeCollisions,
+  hasBudgetEstimate,
   primeActivityRecycleDifferenceMillions,
   validateBudgetEstimate,
   validateBudgetProfile,
@@ -56,6 +57,7 @@ test("une clé de périmètre exclusive revendiquée deux fois est détectée", 
 });
 
 test("le recyclage de la prime d'activité reste neutre à un million près", () => {
+  assert.equal(hasBudgetEstimate("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024"), true);
   assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
   const estimate = budgetEstimateFor("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024");
   assert.deepEqual([

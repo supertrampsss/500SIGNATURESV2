@@ -834,10 +834,8 @@ export function validateScenario(
             errors.push(`option:${optionId}:budget-profile-does-not-match-estimate`);
           }
         }
-        if (scenario.version >= 10 && (profile.runRateMillions !== 0 || transitionFlows.length > 0)) {
-          if (profile.estimateKey === null || !hasRegisteredEstimate) {
-            errors.push(`option:${optionId}:unregistered-budget-estimate`);
-          }
+        if (scenario.version >= 10 && profile.estimateKey !== null && !hasRegisteredEstimate) {
+          errors.push(`option:${optionId}:unregistered-budget-estimate`);
         }
       }
       if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
