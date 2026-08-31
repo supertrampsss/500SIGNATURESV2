@@ -10,7 +10,7 @@ Périmètre : catalogue de 96 dossiers, campagne publiée fixe de 72 dossiers, c
 
 Le simulateur doit permettre de conduire une refonte fiscale, sociale et administrative ambitieuse sans créer de mode spécial, de paquet préfabriqué ni de bouton d'équilibre. Chaque réforme reste un dossier politique normal, rangé dans l'un des huit chapitres existants et soumis au même choix que les autres.
 
-Le parcours doctrinal de référence ajoute exactement 21 689 M€ d'amélioration annuelle structurelle auditée : 18 dossiers, dont trois neutres ou bloqués à 0. Ce montant est une somme de rendements annuels nets documentés, pas une somme sur cinq exercices ni un rendement théorique à dix ans. Les deux promotions fiscales restent hors de ce plafond : 8 617 M€ nets supplémentaires, soit 30 306 M€ pour l'ensemble structurel plus promotions. Trois parcours compatibles sont construits uniquement avec les options sourcées ; ils visent un solde final nul ou positif, mais le build doit publier l'écart honnête si les hypothèses sourcées ne le permettent pas. Le maximum compatible est calculé et rapporté depuis le registre après application des verrous, sans cible chiffrée préalable ni gonflement de ligne.
+Le parcours doctrinal de référence ajoute exactement 21 689 M€ d'amélioration annuelle structurelle auditée : 18 dossiers, dont trois neutres ou bloqués à 0. Ce montant est une somme de rendements annuels nets documentés, pas une somme sur cinq exercices ni un rendement théorique à dix ans. Les deux promotions fiscales restent hors de ce plafond : 8 617 M€ nets supplémentaires, soit 30 306 M€ pour l'ensemble structurel et les deux promotions fiscales. Trois parcours compatibles sont construits uniquement avec les options sourcées ; ils visent un solde final nul ou positif, mais le build doit publier l'écart honnête si les hypothèses sourcées ne le permettent pas. Le maximum compatible est calculé et rapporté depuis le registre après application des verrous, sans cible chiffrée préalable ni gonflement de ligne.
 
 Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md`, qui reste la référence pour le déroulement, les crises, l'exigence d'un solde nul ou positif et le verdict unique. Elle remplace seulement les sections 4.1, 4.2, 4.3 et 12.1 de `2026-08-30-v3-impact-analyses-questions-design.md`, ainsi que les anciens invariants de campagne 96 fois 12 du plan de reconstruction. Les pauses et bilans de fin de chapitre de la section 4.1 sont supprimés ; les checkpoints restent calculés sans écran. Les sections consacrées aux analyses, aux questions, au verdict et à l'accessibilité restent applicables lorsqu'elles ne contredisent pas le flux continu du 31 août.
 
@@ -70,7 +70,7 @@ Le contrat budgétaire actuel doit évoluer. Une option peut avoir :
 
 Les coûts de transfert d'agents, d'indemnisation, de migration informatique, de travaux immobiliers ou de déploiement fiscal sont appliqués une seule fois à la bonne année. Ils diminuent la trajectoire et augmentent la dette si le solde ne les absorbe pas. Ils ne sont pas lissés artificiellement dans le rendement annuel.
 
-Les 21 689 M€ structurels audités et les 8 617 M€ de promotions sont des rendements annuels nets des charges récurrentes lorsqu'une telle décomposition est publiée. Les coûts ponctuels restent en plus visibles dans les checkpoints et dans le registre causal.
+Les 21 689 M€ structurels audités et les 8 617 M€ des deux promotions fiscales sont des rendements annuels nets des charges récurrentes lorsqu'une telle décomposition est publiée. Les coûts ponctuels restent en plus visibles dans les checkpoints et dans le registre causal.
 
 ## 4. Doctrine fiscale et sociale
 
@@ -108,7 +108,7 @@ La réforme ne se limite pas à prélever davantage. Elle fournit trois contrepa
 
 ## 5. Dossiers structurants et chiffrage cible
 
-Les valeurs ci-dessous constituent le plafond structurel audité de 21 689 M€ par an. Elles ne peuvent être inscrites dans le catalogue qu'après création de l'entrée nominative correspondante dans le registre de chiffrage, avec assiette, millésime, calcul net, délai et coûts de transition. Trois dossiers sont neutres ou bloqués à 0 ; aucune combinaison compatible de ces 18 dossiers ne peut dépasser ce sous-total. Les autres dossiers de campagne, y compris les promotions, conservent leurs propres effets et ne sont pas compris dans ce plafond.
+Les valeurs ci-dessous constituent le plafond structurel audité de 21 689 M€ par an. Elles ne peuvent être inscrites dans le catalogue qu'après création de l'entrée nominative correspondante dans le registre de chiffrage, avec assiette, millésime, calcul net, délai et coûts de transition. Trois dossiers sont neutres ou bloqués à 0 ; aucune combinaison compatible de ces 18 dossiers ne peut dépasser ce sous-total. Les autres dossiers de campagne, y compris les douze promotions, conservent leurs propres effets et ne sont pas compris dans ce plafond.
 
 | `chapterId` existant | Dossier à créer ou refondre | Effet annuel cible | Règle de périmètre |
 |---|---|---:|---|
@@ -117,7 +117,7 @@ Les valeurs ci-dessous constituent le plafond structurel audité de 21 689 M€ 
 | `taxes-assets-transmission` | Exploiter la facturation électronique contre la fraude à la TVA | +2 700 M€ | Objectif public de 3 000 M€ diminué des frais récurrents et d'une marge d'exécution ; aucune économie privée de conformité n'est portée au solde public. |
 | `work-wages-pensions` | Remplacer la prime d'activité par une baisse des prélèvements sur le travail | 0 M€ | Enveloppe intégralement recyclée ; aucun dividende cash et aucune économie fictive. |
 | `work-wages-pensions` | Cibler les aides à l'apprentissage sur les formations et contrats à effet d'emploi démontré | +1 200 M€ | Aides employeurs et exonérations d'apprentis uniquement ; exclusion de toute ligne reprise dans les aides générales aux entreprises. |
-| `work-wages-pensions` | Supprimer les subventions directes aux entreprises insuffisamment évaluées | 0 M€ (bloqué) | Aucun gisement retenu tant que le périmètre et le net ne sont pas documentés ; exclusion de l'apprentissage, du CIR, des exonérations sociales et des tarifs énergétiques. |
+| `work-wages-pensions` | Supprimer les subventions directes aux entreprises insuffisamment évaluées | 0 M€ (gain bloqué) | L'option `adopt` reste sélectionnable et publiable, sans effet budgétaire tant que le périmètre et le net ne sont pas documentés ; exclusion de l'apprentissage, du CIR, des exonérations sociales et des tarifs énergétiques. |
 | `work-wages-pensions` | Recentrer le CIR et les niches fiscales bénéficiant aux entreprises | +3 799 M€ | Scénario explicite de demi-taux du CIR ; aucun maintien de toute dépense de R&D additionnelle n'est présumé démontré et aucun chevauchement avec les subventions directes n'est admis. |
 | `work-wages-pensions` | Recentrer les allègements et exonérations sociales | +3 100 M€ | Suppression ciblée au-dessus des bas salaires et des exemptions peu évaluées ; exclusion de l'apprentissage et des prélèvements personnels fusionnés. |
 | `health-social-protection` | Généraliser les médicaments comparables les moins coûteux et mutualiser les achats | +300 M€ | Médicaments, biosimilaires et achats hospitaliers définis ; pas de baisse uniforme de l'ONDAM. |
@@ -148,7 +148,7 @@ Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossie
 | 3 | `facturation-electronique-controle-tva` | `taxes-assets-transmission` | `adopt` | 2 700 | année 2 | `vat-fraud-einvoice` | `plan-antifraude-facturation-electronique` |
 | 1 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 3 100 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
 | 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 1 200 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
-| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (bloqué) | non activable | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
+| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (gain bloqué) | sans effet budgétaire | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
 | 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 3 799 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
 | 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
 | 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 300 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
@@ -332,7 +332,7 @@ Les douze dossiers ci-dessous forment la seule liste de promotion de cette versi
 
 La présence de douze candidats ne préjuge pas du résultat du filtre. Avant la compilation du scénario, chaque candidat reçoit un statut versionné `promoted` ou `rejected`. Un candidat est `promoted` si et seulement s'il franchit tous les verrous et obtient au moins 8 sur 10. Le build V10 exige 12 statuts `promoted`. `CAMPAIGN_CHAPTERS` insère ensuite, dans l'ordre stable de la table, les candidats `promoted` après leur ancre du noyau.
 
-Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 21 689 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les promotions sont chiffrées séparément (6 570 M€ de surtaxe IS et 2 047 M€ de TVA restauration, soit 8 617 M€) et ne modifient pas ce plafond.
+Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 21 689 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les deux promotions fiscales sont chiffrées séparément (6 570 M€ de surtaxe IS et 2 047 M€ de TVA restauration, soit 8 617 M€) et ne modifient pas ce plafond. Les dix autres promotions gardent leurs effets propres hors de ce total.
 
 ## 7. Incompatibilités et absence de double compte
 
@@ -466,7 +466,7 @@ La conception est correctement implémentée si :
 5. le prélèvement personnel unifié n'engendre ni crédit remboursable, ni versement cash, ni rendement budgétaire artificiel ;
 6. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
 7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 21 689 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
-8. aucune combinaison compatible de ces seules 18 options ne dépasse 21 689 M€ ; les deux promotions totalisent séparément 8 617 M€ nets, et le total structurel plus promotions est 30 306 M€ ;
+8. aucune combinaison compatible de ces seules 18 options ne dépasse 21 689 M€ ; les deux promotions fiscales totalisent séparément 8 617 M€ nets, et le total structurel plus les deux promotions fiscales est 30 306 M€ ; les dix autres promotions restent hors de ce total ;
 9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-21689`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié et une réponse nommée à chaque crise déclenchée ; un test de simulation complet résout ces crises jusqu'au verdict et prouve un solde annuel nul ou positif lorsque les seules options sourcées le permettent, sinon publie l'écart de solde sans chiffrage ajouté ;
 10. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
 11. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
