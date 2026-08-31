@@ -48,4 +48,4 @@ Vérification des deux promotions fiscales : `6 570 + 2 047 = 8 617 M€`; total
 
 ## Exigences d'implémentation
 
-Le code ne peut transformer une ligne non nulle de cette annexe en option budgétaire que si le registre relie son `estimateKey`, sa source et ses clés exclusives. Le build calcule le maximum compatible à partir des seules entrées de registre et le rapporte avec sa provenance ; il ne recherche aucune cible externe. Le test Task 2 fige le sous-total structurel à 21 689 M€ après application de cette annexe complète.
+Le code ne peut transformer une ligne non nulle de cette annexe en option budgétaire que si le registre relie son `estimateKey`, sa source et ses clés exclusives. Toute `estimateKey` non nulle, y compris l'estimation de réconciliation de la prime à flux nul, doit être résolue par le registre. Le build calcule le maximum compatible à partir des seules entrées de registre et le rapporte avec sa provenance ; il ne recherche aucune cible externe. Le test Task 2 fige le sous-total structurel à 21 689 M€ après application de cette annexe complète.

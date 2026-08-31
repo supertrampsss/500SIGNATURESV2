@@ -94,7 +94,7 @@ git commit -m "test: freeze simulator scenario v9"
 - Test: `site/src/simulateur-v3/policy-consequences.test.ts`
 
 **Interfaces:**
-- Produces `BudgetProfile`, `BudgetEstimate`, `validateBudgetProfile(profile, decisionId, optionId): string[]`, `budgetEstimateFor(decisionId, optionId, estimateKey): BudgetEstimate`, `primeActivityRecycleDifferenceMillions(): number` and `findExclusiveScopeCollisions(profiles): string[]`.
+- Produces `BudgetProfile`, `BudgetEstimate`, `validateBudgetProfile(profile, decisionId, optionId): string[]`, `budgetEstimateFor(decisionId, optionId, estimateKey): BudgetEstimate`, `hasBudgetEstimate(decisionId, optionId, estimateKey): boolean`, `primeActivityRecycleDifferenceMillions(): number` and `findExclusiveScopeCollisions(profiles): string[]`.
 - Consumes `EffectTiming`, `DecisionOption` and `PolicyOptionDefinition` from the current simulator contract.
 
 - [ ] **Step 1: Write failing tests for a valid typed estimate, an absent estimate, a duplicate scope and a null keep profile.**
@@ -102,6 +102,7 @@ git commit -m "test: freeze simulator scenario v9"
 ```ts
 assert.deepEqual(validateBudgetProfile({ estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] }, "d", "keep"), []);
 assert.throws(() => budgetEstimateFor("d", "adopt", "missing"), /Unknown budget estimate/);
+assert.equal(hasBudgetEstimate("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024"), true);
 assert.deepEqual(findExclusiveScopeCollisions([profile("scope-a"), profile("scope-a")]), ["scope-a"]);
 assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
 assert.doesNotMatch(readFileSync(new URL("./policy-consequences.ts", import.meta.url), "utf8"), /budgetDuration|budgetTiming|annualBalance/);
@@ -122,7 +123,7 @@ export type BudgetProfile = { estimateKey: string | null; runRateMillions: numbe
 export type BudgetEstimate = { key: string; baseYear: number; baseAmountMillions: number; baseNature: "realise" | "prevision" | "objectif" | "notifie" | "recouvre"; scope: string; grossActionMillions: number; behavioralOffsetMillions: number; recurringOperatingCostMillions: number; runRateMillions: number; transitionFlows: BudgetTransitionFlow[]; sourceKeys: readonly string[]; estimateStatus: "observe" | "ex_ante" | "scenario"; uncertainty: Uncertainty; exclusiveScopeKeys: readonly string[] };
 ```
 
-`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`; valider ses IDs locaux `adopt`/`keep`; puis compiler uniquement les effets budgétaires dérivés de ce profil avec `DecisionOption.id` égal à `decisionId + ":" + localOptionId`. Dans `policy-consequences.ts`, retirer les métadonnées budgétaires héritées, conserver seulement les conséquences non budgétaires et faire vérifier par `policy-consequences.test.ts` que ni `budgetDuration` ni `budgetTiming` ni un delta `annualBalance` ne peut y être déclaré.
+`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, impose que toute `estimateKey` non nulle se résolve dans le registre même avec flux nul, impose un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`; valider ses IDs locaux `adopt`/`keep`; puis compiler uniquement les effets budgétaires dérivés de ce profil avec `DecisionOption.id` égal à `decisionId + ":" + localOptionId`. Dans `policy-consequences.ts`, retirer les métadonnées budgétaires héritées, conserver seulement les conséquences non budgétaires et faire vérifier par `policy-consequences.test.ts` que ni `budgetDuration` ni `budgetTiming` ni un delta `annualBalance` ne peut y être déclaré.
 
 - [ ] **Step 4: Run the focused tests and type check.**
 
@@ -154,7 +155,7 @@ git commit -m "feat: add typed simulator budget registry"
 - Test: `site/src/simulateur-v3/causal-contract-source.test.ts`
 
 **Interfaces:**
-- Produces a 96-decision V10 catalogue whose every option has `budgetProfile`; every non-null, nonzero `adopt` estimate resolves in `BUDGET_ESTIMATES`, and the neutral prime-activity `adopt` resolves to `prime-activity-recycle-2024` while IR-CSG and unquantified direct subsidies use the strict null profile.
+- Produces a 96-decision V10 catalogue whose every option has `budgetProfile`; every non-null `estimateKey` resolves in `BUDGET_ESTIMATES`, including the neutral prime-activity `adopt` and `prime-activity-recycle-2024`, while IR-CSG and unquantified direct subsidies use the strict null profile.
 - Consumes the Task 1 registry and returns only two options per decision.
 
 - [ ] **Step 1: Write red inventory tests.**
@@ -168,6 +169,7 @@ assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map(
 assert.equal(policyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
 assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "unifier-ir-csg-bareme-continu:adopt")!.budgetProfile.runRateMillions, 0);
 assert.equal(policyById("remplacer-prime-activite-prelevements-travail")!.options.find((option) => option.id === "remplacer-prime-activite-prelevements-travail:adopt")!.budgetProfile.estimateKey, "prime-activity-recycle-2024");
+assert.equal(hasBudgetEstimate("remplacer-prime-activite-prelevements-travail", "adopt", "prime-activity-recycle-2024"), true);
 assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
 assert.equal(STRUCTURAL_ADOPT_DECISION_IDS.reduce((sum, decisionId) => sum + policyById(decisionId)!.options.find((option) => option.id === `${decisionId}:adopt`)!.budgetProfile.runRateMillions, 0), 21_689);
 assert.deepEqual(findExclusiveScopeCollisions([
@@ -193,7 +195,7 @@ Define the two added promotions with IDs, source keys and scopes exactly as foll
 "relever-tva-restauration-commerciale": { estimateKey: "commercial-restaurant-vat-net", exclusiveScopeKeys: ["commercial-restaurant-vat-10"], sourceKeys: ["bofip-tva-restauration-2024", "evm-2026-tva-restauration"] },
 ```
 
-The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs and register each with its exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`; its `adopt` sum is exactly 21 689 M€. Set `remplacer-prime-activite-prelevements-travail:adopt` to `estimateKey: "prime-activity-recycle-2024"`, `runRateMillions: 0`, `runRateTiming: null`, `transitionFlows: []`, `exclusiveScopeKeys: []` and the audited 10 300/10 300 reconciliation. Keep `unifier-ir-csg-bareme-continu:adopt` and `supprimer-subventions-directes-entreprises:adopt` selectable with the strict null profile (`estimateKey: null`, `exclusiveScopeKeys: []`); they claim no scope while their gain is null. Give every `keep` option the strict null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
+The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs solely to calculate the 21 689 M€ structural subtotal. Register the 15 nonzero `adopt` estimates with their exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`, plus the audit-only prime exception `prime-activity-recycle-2024`: this is exactly 16 `BudgetEstimate` entries. Set `remplacer-prime-activite-prelevements-travail:adopt` to that key with `runRateMillions: 0`, `runRateTiming: null`, `transitionFlows: []`, `exclusiveScopeKeys: []` and the audited 10 300/10 300 reconciliation. Keep `unifier-ir-csg-bareme-continu:adopt` and `supprimer-subventions-directes-entreprises:adopt` selectable with the strict null profile (`estimateKey: null`, `exclusiveScopeKeys: []`), without `BudgetEstimate`; they claim no scope while their gain is null. Give every `keep` option the strict null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
 
 - [ ] **Step 4: Run catalogue and source tests.**
 
