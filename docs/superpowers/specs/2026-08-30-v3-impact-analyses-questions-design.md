@@ -2,7 +2,9 @@
 
 Date : 30 août 2026
 
-Statut : validé pour préparation du plan d'implémentation
+Statut : validé pour implémentation avec l'addendum design
+
+Addendum design obligatoire : `2026-08-30-v3-direction-design-addendum.md`
 
 Dépôt cible : dépôt existant `500SIGNATURESV2`
 

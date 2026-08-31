@@ -2,18 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Provide a chat-like French question interface whose public answers are entirely pre-rendered, source-linked and free of model calls at request time.
+**Goal:** Provide a French question desk whose public answers are entirely pre-rendered, source-linked and free of model calls at request time.
 
-**Architecture:** Store a reviewed, versioned question corpus in the repository. Resolve exact aliases and weighted local matches in the browser, render one validated answer at a time, and refuse unsupported questions with three close suggestions. An optional editorial command may use the OpenAI Responses API with Structured Outputs to propose aliases, but its output goes to a candidate file and never directly to production.
+**Architecture:** Store a reviewed, versioned question corpus in the repository. Resolve exact aliases and weighted local matches in the browser, distinguish ambiguity from absence, render one validated answer at a canonical route, and refuse unsupported questions with three close suggestions. An optional post-MVP editorial command may use the OpenAI Responses API with Structured Outputs to propose aliases, but its output goes to a candidate file and never directly to production.
 
 **Tech Stack:** TypeScript, JSON, Node test runner, Vite pre-render, optional OpenAI JavaScript SDK used only by an editorial script
 
 ## Global Constraints
 
 - Execute `2026-08-30-v3-cinq-analyses.md` first so all nine analysis slugs and source IDs exist.
+- Treat `../specs/2026-08-30-v3-direction-design-addendum.md` as a required acceptance contract.
 - No browser or edge call to OpenAI or another model.
 - No API key in bundled source, static assets or Cloudflare functions.
 - Unsupported questions receive no generated answer.
+- Ambiguous questions receive no answer until the user selects a canonical question.
+- Raw user questions are never stored in a URL.
 - Every answer references validated analysis, indicator and source IDs.
 - Model-assisted editorial output must use Structured Outputs, be reviewed and be committed before publication.
 - The normal `npm run build` command must work without `OPENAI_API_KEY`.
@@ -29,14 +32,14 @@
 - Create `site/src/questions/corpus.test.ts`: referential and editorial gates.
 - Create `site/src/questions/search.ts`: local normalisation and ranking.
 - Create `site/src/questions/search.test.ts`: exact, paraphrase and refusal tests.
-- Create `site/src/questions/render.ts`: chat-like answer HTML.
+- Create `site/src/questions/render.ts`: editorial question-desk HTML.
 - Create `site/src/questions/render.test.ts`: one-answer and source-link tests.
 - Create `site/src/questions/controller.ts`: form and suggestion interactions.
 - Create `site/src/questions/controller.test.ts`: DOM-independent action tests.
 - Create `site/scripts/suggest-question-variants.ts`: optional editorial OpenAI command.
 - Create `site/scripts/suggest-question-variants.test.ts`: request isolation and candidate validation.
 - Modify `site/package.json`: add editorial command and OpenAI as a development dependency.
-- Modify `site/src/routes.ts`, `site/src/routes.test.ts`, `site/src/main.ts`: `/questions/` route.
+- Modify `site/src/routes.ts`, `site/src/routes.test.ts`, `site/src/main.ts`: `/questions/` index and `/questions/<id>/` canonical routes.
 - Modify `site/scripts/prerendre.ts`, `site/scripts/prerendre.test.ts`: canonical question page and sitemap.
 - Create `site/src/styles/questions.css` and import it from the existing style entry point.
 
@@ -150,7 +153,7 @@ git commit -m "feat: add reviewed question corpus"
 
 **Interfaces:**
 - Consumes: `QuestionAnswer[]` and raw French query.
-- Produces: `QuestionMatch` with `exact`, `matched` or `unsupported` status.
+- Produces: `QuestionMatch` with `exact`, `matched`, `ambiguous` or `unsupported` status.
 
 - [ ] **Step 1: Write exact, paraphrase and refusal tests**
 
@@ -170,6 +173,13 @@ test("une question sans preuve est refusée avec trois suggestions au plus", () 
   assert.equal(result.status, "unsupported");
   assert.ok(result.suggestions.length <= 3);
   assert.equal(result.answer, undefined);
+});
+
+test("une question ambiguë ne choisit jamais une réponse à la place du lecteur", () => {
+  const result = searchQuestions("le gaz augmente ou on en consomme plus", CORPUS);
+  assert.equal(result.status, "ambiguous");
+  assert.equal(result.answer, undefined);
+  assert.ok(result.suggestions.length >= 2 && result.suggestions.length <= 3);
 });
 ```
 
@@ -202,16 +212,16 @@ function overlap(query: Set<string>, candidate: Set<string>): number {
 function score(query: string, answer: QuestionAnswer): number {
   const q = tokens(query);
   const questionScore = Math.max(...[answer.canonicalQuestion, ...answer.variants].map((text) => overlap(q, tokens(text))));
-  const keywordScore = overlap(q, new Set(answer.keywords.map(normalizeQuestion)));
+  const keywordScore = overlap(q, new Set(answer.keywords.flatMap((keyword) => [...tokens(keyword)])));
   return questionScore * 0.8 + keywordScore * 0.2;
 }
 ```
 
-Return `exact` for a normalised canonical question or variant. Return `matched` only when the best score is at least `0.55` and exceeds the second score by at least `0.08`. Otherwise return `unsupported` and the three highest non-zero candidates as suggestions.
+Return `exact` for a normalised canonical question or variant. Return `matched` only when the best score is at least `0.55` and exceeds the second score by at least `0.08`. Return `ambiguous` when at least two non-zero candidates are within `0.08` and expose two or three canonical suggestions without an answer. Return `unsupported` only when no candidate reaches the minimum evidence threshold.
 
 - [ ] **Step 4: Add an ambiguity regression test**
 
-Queries matching gas consumption and gas price equally must be unsupported until an explicit variant disambiguates them.
+Queries matching gas consumption and gas price equally must be `ambiguous` until an explicit variant disambiguates them.
 
 - [ ] **Step 5: Run and commit**
 
@@ -224,7 +234,7 @@ git add site/src/questions/search.ts site/src/questions/search.test.ts
 git commit -m "feat: add local question matching"
 ```
 
-### Task 3: Render the chat-like page without pretending it is generative
+### Task 3: Render an editorial answer desk without fake chat
 
 **Files:**
 - Create: `site/src/questions/render.ts`
@@ -242,20 +252,26 @@ git commit -m "feat: add local question matching"
 test("la page annonce des réponses validées et pas une IA en direct", () => {
   const html = renderQuestionPage(CORPUS);
   assert.match(html, /Réponses validées et sourcées/);
-  assert.doesNotMatch(html, /Demandez-moi n'importe quoi|intelligence artificielle en direct/);
+  assert.doesNotMatch(html, /Demandez-moi n'importe quoi|intelligence artificielle en direct|avatar|typing|message-bubble/);
 });
 
 test("une réponse rend ses limites et ses sources", () => {
   const html = renderQuestionResult(matchFor(CORPUS[0]!));
   assert.match(html, /question-answer__limits/);
   assert.match(html, /href="\/analyses\//);
-  assert.match(html, /href="\/sources\//);
+  assert.match(html, /href="\/sources\/#/);
+});
+
+test("une ambiguïté propose des questions sans rendre de réponse", () => {
+  const html = renderQuestionResult(ambiguousMatch());
+  assert.match(html, /question-answer__suggestions/);
+  assert.doesNotMatch(html, /question-answer__short/);
 });
 ```
 
 - [ ] **Step 2: Implement semantic markup**
 
-The form contains a visible label, search input, submit button and five initial suggestions. The result uses `aria-live="polite"`. Render exactly one answer at a time. The unsupported copy is exactly:
+The form contains a visible label, search input, submit button and five initial suggestions. The page states the real scope, `9 réponses validées aujourd'hui`. The result uses `aria-live="polite"`. Render exactly one answer at a time. A `matched` result names the canonical question it selected. The unsupported copy is exactly:
 
 ```html
 <p>Nous n'avons pas encore de réponse validée à cette question.</p>
@@ -266,9 +282,11 @@ The form contains a visible label, search input, submit button and five initial 
 ```css
 .question-page { max-width: 54rem; margin: 0 auto; padding: clamp(1rem, 4vw, 3rem); }
 .question-form { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
-.question-answer { margin-top: 1rem; padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--couleur-filet); border-radius: 1rem; }
+.question-answer { margin-top: 1rem; padding: clamp(1rem, 3vw, 1.5rem); border-block: 1px solid var(--couleur-filet); }
 @media (max-width: 600px) { .question-form { grid-template-columns: 1fr; } }
 ```
+
+Use the shared local navigation `Vue d'ensemble`, `Dossiers`, `Questions`. Do not render avatars, chat bubbles, a typing indicator, fake streaming or a conversation history. Keep one paper answer surface and progressive sections for details, limits and sources.
 
 - [ ] **Step 4: Run and commit**
 
@@ -292,13 +310,14 @@ git commit -m "feat: render validated question answers"
 
 **Interfaces:**
 - Consumes: query form, suggestion buttons and local matcher.
-- Produces: client-side answer updates and shareable `?q=` state.
+- Produces: client-side answer updates and canonical answer routes without raw query parameters.
 
 - [ ] **Step 1: Add route tests**
 
 ```ts
 assert.equal(vueDepuisAdresse("/questions/", ""), "questions");
 assert.equal(vueDepuisAdresse("/questions", ""), "questions");
+assert.equal(vueDepuisAdresse("/questions/prix-du-gaz/", ""), "questions");
 ```
 
 - [ ] **Step 2: Add controller reducer tests**
@@ -312,7 +331,7 @@ assert.deepEqual(questionAction({ type: "submit", value: "prix gaz" }, CORPUS), 
 
 - [ ] **Step 3: Wire the page**
 
-On submit, call `history.replaceState()` with `/questions/?q=<encoded query>`, update only the result region and focus its heading. On page load, resolve `q` if present. Suggestion buttons submit their exact canonical question. Do not call `fetch()`.
+On submit, keep the raw query only in memory. For `exact` or `matched`, call `history.replaceState()` with `/questions/<answer.id>/`, update only the result region and focus its heading. For `ambiguous` or `unsupported`, keep `/questions/` and render suggestions. On page load, resolve the canonical path segment only. Suggestion buttons use the answer ID. Do not call `fetch()`.
 
 - [ ] **Step 4: Run and commit**
 
@@ -333,19 +352,22 @@ git commit -m "feat: add local questions route"
 
 **Interfaces:**
 - Consumes: reviewed corpus.
-- Produces: `/questions/index.html` plus one crawlable canonical answer fragment per corpus entry.
+- Produces: `/questions/index.html` plus one complete `/questions/<id>/index.html` page per corpus entry.
 
 - [ ] **Step 1: Write pre-render assertions**
 
 ```ts
 assert.ok(ecrites.some(({ chemin }) => chemin === "questions/index.html"));
 assert.match(planDuSite(analyses, corpus), /<loc>https:\/\/500signatures\.fr\/questions\/<\/loc>/);
-for (const answer of corpus) assert.match(htmlQuestions, new RegExp(echapper(answer.canonicalQuestion)));
+for (const answer of corpus) {
+  assert.ok(ecrites.some(({ chemin }) => chemin === `questions/${answer.id}/index.html`));
+  assert.match(planDuSite(analyses, corpus), new RegExp(`/questions/${answer.id}/`));
+}
 ```
 
 - [ ] **Step 2: Add static fallback content**
 
-The pre-rendered page includes the search form and a collapsed list of canonical questions with complete answers. JavaScript-enhanced use continues to show one answer at a time. This preserves useful content for crawlers and no-script users.
+The pre-rendered index includes the search form and a list of canonical questions linked to their pages. It does not stack the nine complete answers. Each canonical page contains its full answer, limits, precise source anchors and analysis link without requiring JavaScript.
 
 - [ ] **Step 3: Run and commit**
 
@@ -358,7 +380,9 @@ git add site/scripts/prerendre.ts site/scripts/prerendre.test.ts
 git commit -m "feat: prerender validated question corpus"
 ```
 
-### Task 6: Add optional OpenAI-assisted editorial suggestions
+### Task 6: Add optional OpenAI-assisted editorial suggestions after MVP
+
+This task is excluded from the first implementation pass. Execute Task 7 and publish the manual nine-entry corpus first. Return here only when editorial volume justifies the development dependency and paid editorial call.
 
 **Files:**
 - Create: `site/scripts/suggest-question-variants.ts`
@@ -461,7 +485,8 @@ Each corpus entry gets at least two unseen paraphrases. Add ambiguous cases for 
 
 ```ts
 assert.ok(coveredCorrect / coveredTotal >= 0.9);
-assert.ok(unsupportedRefused / unsupportedTotal >= 0.95);
+assert.equal(ambiguousRefused / ambiguousTotal, 1);
+assert.equal(unsupportedRefused / unsupportedTotal, 1);
 assert.equal(wrongAnswerCount, 0);
 ```
 
@@ -479,6 +504,8 @@ assert.doesNotMatch(FUNCTION_SOURCES, /api\.openai\.com|OPENAI_API_KEY|new OpenA
 Run: `cd site && npm test && npm run build`
 
 Expected: PASS and build completes without OpenAI environment variables.
+
+Verify `/questions/` and one canonical answer at 390 x 844 and 1440 x 900: labelled field, 44 px controls, no horizontal overflow, one answer surface, no chat bubble or fake streaming, focus visible, ambiguous state announced, precise source links and complete no-JavaScript page.
 
 ```bash
 git add site/questions/evaluation.json site/src/questions/evaluation.test.ts site/src/interface.test.ts

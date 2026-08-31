@@ -4,13 +4,14 @@
 
 **Goal:** Publish five source-backed analyses on German nuclear power and prices, school supplies, household gas prices, homebuyer age and quality of life.
 
-**Architecture:** Add focused normalizers to the existing Python pipeline, publish versioned country-level series, then create five JSON analysis pages consumed by the current pre-renderer. The France page becomes a featured view plus searchable progressive catalogue, so adding analyses no longer creates a full-page content wall.
+**Architecture:** Add focused normalizers to the existing Python pipeline, publish versioned country-level series, extend the analysis contract so every series and proof owns its source, then create five pre-rendered dossiers. France keeps eight thematic entry points while `/analyses/` becomes the searchable progressive catalogue.
 
 **Tech Stack:** Python pipeline, Eurostat JSON-stat API, Insee BDM and downloadable tables, DuckDB tests, TypeScript renderer, Vite pre-render
 
 ## Global Constraints
 
 - Every visible number has a source, period, unit and methodological reserve.
+- Treat `../specs/2026-08-30-v3-direction-design-addendum.md` as a required acceptance contract.
 - Prefer primary official sources.
 - Do not infer causality from the German nuclear chronology alone.
 - Do not describe the school-supply CPI as the complete back-to-school cost.
@@ -34,8 +35,12 @@
 - Create `pipeline/plateforme/normalize/qualite_vie.py`: Insee and Eurostat life-satisfaction series.
 - Create `pipeline/tests/test_qualite_vie.py`: scale and separate dimensions.
 - Create five files under `site/analyses/` with stable slugs.
+- Modify `site/src/analyses.ts`: narrative sections, typed series, visualisations, anchors and proof-level source IDs.
+- Modify `site/src/analyse-rendu.ts`: answer-first long dossier with evidence beside each claim.
+- Modify `site/src/styles/dossiers-verification.css`: 60 to 68 character prose and full-width charts.
 - Modify `site/src/insights-france.ts`: add five teaser cards.
 - Modify `site/src/insights-rendu.ts`: featured and searchable catalogue modes.
+- Add or modify the `/analyses/` route and pre-rendered index.
 - Modify `site/src/insights-rendu.test.ts`, `site/src/insights-france.test.ts`, `site/scripts/prerendre.test.ts`: publication gates.
 
 ### Task 1: Ingest household electricity and gas prices
@@ -336,7 +341,45 @@ git add pipeline/plateforme/ingest.py pipeline/plateforme/publish.py pipeline/te
 git commit -m "feat: publish five new analysis datasets"
 ```
 
-### Task 7: Create five pre-rendered analysis pages
+### Task 7: Extend the contract and renderer for sourced series dossiers
+
+**Files:**
+- Modify: `site/src/analyses.ts`
+- Modify: `site/src/analyses.test.ts`
+- Modify: `site/src/analyse-rendu.ts`
+- Modify: `site/src/analyse-rendu.test.ts`
+- Modify: `site/src/echelle.ts`
+- Modify: `site/src/echelle.test.ts`
+- Modify: `site/src/styles/dossiers-verification.css`
+
+**Interfaces:**
+- Consumes: existing fact-check dossiers and the new published time series.
+- Produces: a backwards-compatible dossier schema with narrative sections, typed series and proof-level sources.
+
+- [ ] **Step 1: Write failing schema and attribution tests**
+
+Require a chapô, stable section anchors, optional table of contents, `series[]` with unit, period, definition and `sourceId`, and `preuves[]` whose numbers each own a `sourceId`. Add a regression test proving that two proofs using different sources render different citations. Explicitly reject an automatic fallback to `sources[0]`.
+
+- [ ] **Step 2: Extend the schema without expanding each observation into `chiffres[]`**
+
+Represent one time series as metadata plus ordered observations. Keep the existing short dossier shape readable for older files. Allow a descriptive conclusion without forcing the three-level fact-check verdict when that language does not fit the subject.
+
+- [ ] **Step 3: Render the evidence-first hierarchy**
+
+Render in this order: breadcrumb and metadata, H1 phrased as a question, chapô, `Réponse en 30 secondes`, two or three key figures, table of contents, primary chart, narrative sections, `Ce que les données ne permettent pas de conclure`, method, complete data and sources. Keep prose between 60 and 68 characters per line while charts may use the full dossier width.
+
+- [ ] **Step 4: Run and commit**
+
+Run: `cd site && node --experimental-strip-types --test src/analyses.test.ts src/analyse-rendu.test.ts src/echelle.test.ts`
+
+Expected: PASS.
+
+```bash
+git add site/src/analyses.ts site/src/analyses.test.ts site/src/analyse-rendu.ts site/src/analyse-rendu.test.ts site/src/echelle.ts site/src/echelle.test.ts site/src/styles/dossiers-verification.css
+git commit -m "feat: support sourced series analysis dossiers"
+```
+
+### Task 8: Create five pre-rendered analysis pages
 
 **Files:**
 - Create: `site/analyses/nucleaire-allemand-prix-energie.json`
@@ -364,9 +407,9 @@ for (const slug of [
 ]) assert.ok(slugs.has(slug), slug);
 ```
 
-- [ ] **Step 2: Author the JSON using the existing `Analyse` schema**
+- [ ] **Step 2: Author the JSON using the sourced-series contract**
 
-Each file must contain only values read from the publication artifact for its declared indicator, country and period. Use `type: "comparaison"` for nuclear and gas, `type: "decryptage"` for supplies and quality of life, and `type: "mise_a_jour"` for buyer age. Put causal limits in `hypotheses`, not in a footnote outside the schema.
+Each file contains only values read from the publication artifact for its declared indicator, country and period. Use `type: "comparaison"` for nuclear and gas and `type: "decryptage"` for supplies, quality of life and buyer age. Use `mise_a_jour` only when a dossier truly revises an earlier publication. Attach `sourceId`, unit, definition and period to every series or proof. Put causal limits in the explicit limits section, not in an unlinked footnote.
 
 - [ ] **Step 3: Run pre-render tests**
 
@@ -381,46 +424,60 @@ git add site/analyses site/src/analyse-rendu.test.ts site/scripts/prerendre.test
 git commit -m "feat: publish five requested analyses"
 ```
 
-### Task 8: Replace the France content wall with discovery controls
+### Task 9: Replace the France content wall with thematic discovery
 
 **Files:**
+- Modify: `site/src/insights-france.ts`
 - Modify: `site/src/insights-rendu.ts`
 - Modify: `site/src/insights-rendu.test.ts`
 - Modify: `site/src/main.ts`
+- Modify: `site/src/routes.ts`
+- Modify: `site/src/routes.test.ts`
 - Modify: `site/src/styles/bilan-guide.css`
 - Modify: `site/scripts/prerendre.ts`
+- Modify: `site/scripts/prerendre.test.ts`
 
 **Interfaces:**
-- Consumes: all `Insight` items and five analysis routes.
-- Produces: eight featured cards, filters, search and progressive catalogue.
+- Consumes: all `Insight` items, eight themes and canonical analysis routes.
+- Produces: eight thematic entries on `/bilan`, a separate `/analyses/` catalogue, filters, search and progressive batches of twelve.
 
 - [ ] **Step 1: Write the eight-card initial-render test**
 
 ```ts
 test("France peint huit analyses puis garde le catalogue recherchable", () => {
-  const html = renduInsights(manyInsights(105), catalogue, { contexte: "france", initialLimit: 8 });
+  const html = renduInsightsFrance(manyInsights(105), { initialLimit: 8 });
   assert.equal((html.match(/class="insight /g) ?? []).length, 8);
+  assert.deepEqual(themesRendered(html), EIGHT_THEMES);
+  assert.match(html, /href="\/analyses\/"/);
+  assert.doesNotMatch(html, /data-insights-catalogue/);
+});
+
+test("le catalogue peint douze résultats puis reste recherchable", () => {
+  const html = renduCatalogueAnalyses(manyInsights(105), { initialLimit: 12 });
+  assert.equal((html.match(/class="insight /g) ?? []).length, 12);
   assert.match(html, /type="search"/);
   assert.match(html, /data-insights-catalogue/);
 });
 ```
 
-- [ ] **Step 2: Add render options**
+- [ ] **Step 2: Add typed discovery metadata**
 
 ```ts
 export type InsightRenderOptions = {
-  contexte: "france" | "territoire";
+  contexte: "france" | "catalogue" | "territoire";
   initialLimit?: number;
   query?: string;
   family?: string;
 };
 ```
 
-`renduInsights()` sorts featured items first, renders `initialLimit ?? items.length`, and embeds the remaining catalogue as escaped JSON for local filtering. The page must not duplicate the hidden cards as full HTML.
+Add a stable `analysisId` or canonical `link`, theme, question and keywords to every short card. Mark exactly one item per theme for the eight France entries. The France page does not embed the complete catalogue. `/analyses/` renders twelve initial items and embeds the remaining metadata as escaped JSON for local filtering without duplicating hidden cards as full HTML.
 
 - [ ] **Step 3: Add local filtering**
 
-In `main.ts`, normalise accents and case, filter by title, verdict text and keywords, then render results in batches of 12. Search never requests a server.
+In `main.ts`, normalise accents and case, filter by title, question, verdict text and tokenised keywords, then render results in batches of 12. Search never requests a server. Add a local navigation shared by `/bilan`, `/analyses/` and `/questions/`: `Vue d'ensemble`, `Dossiers`, `Questions`.
+
+At 390 px, use one column, a full-width labelled search field and a select or accessible filter drawer. At 1440 px, use an asymmetric featured composition on France and at most two columns in the catalogue. Fix the existing `h3` versus rendered `h4` selector mismatch and remove unresolved `--focus` or `--espace-9` usage.
 
 - [ ] **Step 4: Run and commit**
 
@@ -429,14 +486,14 @@ Run: `cd site && node --experimental-strip-types --test src/insights-rendu.test.
 Expected: PASS and build exit 0.
 
 ```bash
-git add site/src/insights-rendu.ts site/src/insights-rendu.test.ts site/src/main.ts site/src/styles/bilan-guide.css site/scripts/prerendre.ts
+git add site/src/insights-france.ts site/src/insights-rendu.ts site/src/insights-rendu.test.ts site/src/main.ts site/src/routes.ts site/src/routes.test.ts site/src/styles/bilan-guide.css site/scripts/prerendre.ts site/scripts/prerendre.test.ts
 git commit -m "feat: add progressive France analysis catalogue"
 ```
 
-### Task 9: Run the analysis publication gate
+### Task 10: Run the analysis publication gate
 
 **Files:**
-- Modify only on failure: files from Tasks 1 to 8.
+- Modify only on failure: files from Tasks 1 to 9.
 
 **Interfaces:**
 - Consumes: pipeline and site work.
@@ -460,7 +517,11 @@ Run: `rg -n "DVF.*âge moyen|coût total de la rentrée|nucléaire.*cause unique
 
 Expected: no published assertion matching these prohibited shortcuts.
 
-- [ ] **Step 4: Commit gate-only fixes**
+- [ ] **Step 4: Verify design and canonical routes**
+
+At 390 x 844 and 1440 x 900, capture France, the catalogue and each dossier family. Verify eight France entries, twelve initial catalogue results, no horizontal overflow, 44 px controls, 60 to 68 character prose, one source beside each proof and canonical routes usable without JavaScript.
+
+- [ ] **Step 5: Commit gate-only fixes**
 
 ```bash
 git add pipeline site docs/01-registre-sources.md
