@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
+import { CAMPAIGN_CHAPTERS, CAMPAIGN_DECISION_IDS, campaignLength, publishCampaignFromCatalogue, validatePublishedCampaign } from "./campaign-topology.ts";
 import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { assertNoEmDash, validatePolicyCatalogue, validateScenario } from "./validation.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
 
-test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
+test("le scénario V9 reste historique tandis que le catalogue V10 est publié sur 72 dossiers", () => {
   assert.equal(SCENARIO_V3_CATALOGUE.version, 9);
   assert.equal(SCENARIO_V3.version, 9);
   assert.equal(SCENARIO_V3_CATALOGUE.decisions.length, 96);
@@ -20,10 +22,30 @@ test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
   ));
 });
 
-test("la campagne suit exactement l'ordre explicite de sa topologie", () => {
+test("la publication V10 dérive 72 dossiers et 144 options de la topologie seule", () => {
+  const publishedScenario = publishCampaignFromCatalogue(SCENARIO_V10_CATALOGUE);
+  const published = publishedScenario.decisions;
+  assert.equal(SCENARIO_V10_CATALOGUE.decisions.length, 96);
+  assert.equal(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options).length, 192);
+  assert.equal(published.length, campaignLength);
+  assert.equal(published.flatMap((decision) => decision.options).length, 144);
+  assert.deepEqual(published.map((decision) => decision.id), CAMPAIGN_DECISION_IDS);
+  const references = published.flatMap((decision) => [
+    ...decision.dependencies,
+    ...decision.conflicts,
+    ...decision.options.flatMap((option) => [...option.locks, ...option.unlocks]),
+  ]);
+  assert.deepEqual(validatePublishedCampaign({
+    chapters: CAMPAIGN_CHAPTERS,
+    knownDecisions: SCENARIO_V10_CATALOGUE.decisions.map(({ id, chapterId }) => ({ id, chapterId })),
+    references,
+  }), []);
+});
+
+test("la campagne V9 suit exactement son historique, indépendamment de la topologie V10", () => {
   assert.deepEqual(
     SCENARIO_V3.chapters.flatMap((chapter) => chapter.decisionIds),
-    [...CAMPAIGN_DECISION_IDS],
+    SCENARIO_V9_SNAPSHOT.chapters.flatMap((chapter) => chapter.decisionIds),
   );
 });
 

@@ -6,7 +6,7 @@ import { SOVEREIGNTY_DECISIONS } from "./policies/sovereignty.ts";
 import { STATE_DECISIONS } from "./policies/state.ts";
 import { TAX_DECISIONS } from "./policies/taxes.ts";
 import { WORK_DECISIONS } from "./policies/work.ts";
-import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
+import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 import type { Chapter, Decision, Scenario } from "./types.ts";
 
 const CHAPTERS: Omit<Chapter, "decisionIds">[] = [
@@ -87,10 +87,10 @@ function normalizeDecisionReferences(decision: Decision): Decision {
 
 const catalogueDecisions = rawDecisions.map(normalizeDecisionReferences);
 const catalogueById = new Map(catalogueDecisions.map((decision) => [decision.id, decision]));
-const selected = new Set<string>(CAMPAIGN_DECISION_IDS);
-const campaignDecisions = CAMPAIGN_DECISION_IDS.map((id) => {
+const selected = new Set<string>(SCENARIO_V9_SNAPSHOT.chapters.flatMap((chapter) => chapter.decisionIds));
+const campaignDecisions = [...selected].map((id) => {
   const decision = catalogueById.get(id);
-  if (!decision) throw new Error(`Unknown campaign decision ID: ${id}`);
+  if (!decision) throw new Error(`Unknown historical campaign decision ID: ${id}`);
   return decision;
 }).map((decision) => ({
   ...decision,
@@ -100,7 +100,6 @@ const campaignDecisions = CAMPAIGN_DECISION_IDS.map((id) => {
     unlocks: option.unlocks.filter((id) => selected.has(id)),
   })),
 }));
-
 function buildScenario(title: string, version: number, selectedDecisions: Decision[]): Scenario {
   const selectedIds = new Set(selectedDecisions.map(({ id }) => id));
   return {
@@ -124,6 +123,7 @@ function buildScenario(title: string, version: number, selectedDecisions: Decisi
 }
 
 export const SCENARIO_V3_CATALOGUE = buildScenario("Bibliothèque des politiques", 9, catalogueDecisions);
+export const SCENARIO_V9 = SCENARIO_V9_SNAPSHOT;
 export const SCENARIO_V3 = buildScenario("La France à l'épreuve des comptes", 9, campaignDecisions);
 export const SCENARIO_V3_PREVIEW = SCENARIO_V3;
 
