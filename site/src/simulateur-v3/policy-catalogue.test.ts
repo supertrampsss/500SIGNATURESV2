@@ -38,15 +38,42 @@ test("le catalogue V10 relie tous ses profils non nuls ou audités au registre",
       if (localOptionId === "keep") assert.deepEqual(option.budgetProfile, strictNull, option.id);
     }
   }
-  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.options[0]!.budgetProfile, strictNull);
-  assert.deepEqual(v10PolicyById("supprimer-subventions-directes-entreprises")!.options[0]!.budgetProfile, strictNull);
+  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.options[0]!.budgetProfile, {
+    estimateKey: "personal-levy-progressive-gross", runRateMillions: 17_900,
+    runRateTiming: { kind: "mandate_year", year: 2 }, transitionFlows: [],
+    exclusiveScopeKeys: ["personal-levy-progressive-one-point"],
+  });
+  assert.deepEqual(v10PolicyById("supprimer-subventions-directes-entreprises")!.options[0]!.budgetProfile, {
+    estimateKey: "business-direct-subsidies-residual", runRateMillions: 24_600,
+    runRateTiming: { kind: "mandate_year", year: 5 }, transitionFlows: [],
+    exclusiveScopeKeys: ["business-direct-budget-subsidies-residual"],
+  });
+  assert.deepEqual(v10PolicyById("clarifier-competences-doublons-territoriaux")!.options[0]!.budgetProfile, {
+    estimateKey: "territorial-competencies-net", runRateMillions: 7_500,
+    runRateTiming: { kind: "mandate_year", year: 5 }, transitionFlows: [],
+    exclusiveScopeKeys: ["local-competency-staff-overlap"],
+  });
+  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.options[0]!.beneficiaries, ["finances publiques", "lisibilité fiscale"]);
+  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.options[0]!.contributors, ["titulaires de revenus d'activité, de remplacement et du capital"]);
+  assert.deepEqual(v10PolicyById("unifier-ir-csg-bareme-continu")!.evidence.map((source) => source.sourceUrl), [
+    "https://www.impots.gouv.fr/dgfip-statistiques-limpot-sur-le-revenu-2024-ete-plus-dynamique-que-les-revenus",
+    "https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/CCSS/2025/CCSS_octobre%202025_VDEF.pdf",
+    "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053542636/2026-05-21",
+    "https://www.senat.fr/rap/r24-901/r24-90153.html",
+  ]);
+  assert.deepEqual(v10PolicyById("supprimer-subventions-directes-entreprises")!.evidence.map((source) => source.sourceUrl), [
+    "https://www.strategie-plan.gouv.fr/publications/les-aides-aux-entreprises-en-france-de-quoi-parle-t",
+    "https://www.senat.fr/rap/r24-808-1/r24-808-120.html",
+  ]);
+  assert.equal(v10PolicyById("clarifier-competences-doublons-territoriaux")!.evidence.some((source) =>
+    source.sourceUrl === "https://www.senat.fr/rap/a25-749/a25-7490.html"), true);
   const prime = v10PolicyById("remplacer-prime-activite-prelevements-travail")!.options[0]!.budgetProfile;
   assert.equal(prime.estimateKey, "prime-activity-recycle-2024");
   assert.equal(prime.runRateMillions, 0);
   assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
   const structuralTotal = STRUCTURAL_ADOPT_DECISION_IDS.reduce((total, decisionId) =>
     total + v10PolicyById(decisionId)!.options[0]!.budgetProfile.runRateMillions, 0);
-  assert.equal(structuralTotal, 21_689);
+  assert.equal(structuralTotal, 71_314);
 });
 
 test("les vingt substitutions V10 ne réemploient aucun contrat éditorial ou causal V9", () => {

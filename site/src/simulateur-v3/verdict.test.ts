@@ -27,9 +27,9 @@ test("le verdict V10 classe le parcours réel par les rythmes annuels des profil
   const view = buildMandateVerdictViewModel(finalState, SCENARIO_V10, SCENARIO_V10_CRISIS_RULES);
 
   assert.deepEqual(view.decisiveChoices.map(({ decisionId, budgetDelta, budgetDuration }) => [decisionId, budgetDelta, budgetDuration]), [
-    ["perenniser-surtaxe-grandes-entreprises", 6_570, "annual"],
-    ["supprimer-niches-fiscales-menages-capital", 5_234, "annual"],
-    ["recentrer-cir-niches-fiscales-entreprises", 3_799, "annual"],
+    ["supprimer-subventions-directes-entreprises", 24_600, "annual"],
+    ["unifier-ir-csg-bareme-continu", 17_900, "annual"],
+    ["clarifier-competences-doublons-territoriaux", 7_500, "annual"],
   ]);
 });
 

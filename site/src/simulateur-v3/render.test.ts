@@ -83,6 +83,20 @@ test("une carte V10 affiche uniquement son BudgetProfile et aucun impact avant l
   assert.doesNotMatch(html, /\u2014/);
 });
 
+test("les trois leviers V10 affichent leur gain annuel arrondi sans solde inchangé", () => {
+  for (const [decisionId, amount] of [
+    ["unifier-ir-csg-bareme-continu", 18],
+    ["supprimer-subventions-directes-entreprises", 25],
+    ["clarifier-competences-doublons-territoriaux", 8],
+  ] as const) {
+    const html = renderSimulatorV3(v10StateBefore(decisionId), SCENARIO_V10);
+    const adopt = closedOptionButtons(html).find((button) => button.includes(`data-option-id="${decisionId}:adopt"`));
+    assert.ok(adopt, decisionId);
+    assert.match(adopt, new RegExp(`\\+${amount} milliards d&#39;euros par an`));
+    assert.doesNotMatch(adopt, /Solde public inchangé/);
+  }
+});
+
 test("une carte V10 affiche son coût ponctuel au lieu d'annoncer un solde inchangé", () => {
   const html = renderSimulatorV3(v10StateBefore("sortir-de-l-euro"), SCENARIO_V10);
   const adopt = closedOptionButtons(html).find((button) => button.includes('data-option-id="sortir-de-l-euro:adopt"'));

@@ -38,10 +38,10 @@ test("doctrine-21689 conserve exactement les 18 adoptions structurelles et les t
     .map((optionId) => optionId.slice(0, -":adopt".length))
     .filter((decisionId) => STRUCTURAL_ADOPT_DECISION_IDS.includes(decisionId as typeof STRUCTURAL_ADOPT_DECISION_IDS[number]));
   assert.deepEqual(adoptedStructuralIds, STRUCTURAL_ADOPT_DECISION_IDS);
-  assert.equal(structuralRunRate(doctrine, SCENARIO_V10), 21_689);
+  assert.equal(structuralRunRate(doctrine, SCENARIO_V10), 71_314);
   const structuralAndFiscal = structuralRunRate(doctrine, SCENARIO_V10, { includeFiscalPromotions: true });
   assert.equal(structuralAndFiscal - structuralRunRate(doctrine, SCENARIO_V10), 8_617);
-  assert.equal(structuralAndFiscal, 30_306);
+  assert.equal(structuralAndFiscal, 79_931);
 });
 
 test("le maximum compatible ne retient que des estimations enregistrées avec provenance déterministe", () => {
@@ -49,13 +49,41 @@ test("le maximum compatible ne retient que des estimations enregistrées avec pr
   const second = maximumCompatibleProvenance(SCENARIO_V10);
   assert.deepEqual(first, second);
   assert.equal(maximumCompatibleRunRate(SCENARIO_V10), first.reduce((sum, estimate) => sum + estimate.runRateMillions, 0));
+  assert.equal(maximumCompatibleRunRate(SCENARIO_V10), 157_281);
   assert.equal(first.every((estimate) => Object.values(BUDGET_ESTIMATES).includes(estimate)), true);
+});
+
+test("le parcours maximal compatible rejoue les 44 adoptions et maintient le cap à chaque crise", () => {
+  const selectedKeys = new Set(maximumCompatibleProvenance(SCENARIO_V10).map((estimate) => estimate.key));
+  const path = {
+    id: "doctrine-21689",
+    optionIds: CAMPAIGN_DECISION_IDS.map((decisionId) => {
+      const adopt = SCENARIO_V10.decisions.find((decision) => decision.id === decisionId)!.options[0]!;
+      return `${decisionId}:${adopt.budgetProfile.estimateKey !== null && selectedKeys.has(adopt.budgetProfile.estimateKey) ? "adopt" : "keep"}` as const;
+    }),
+    crisisChoiceIds: [
+      "v10-tax-legitimacy:hold-course",
+      "v10-labour-blockade:hold-course",
+      "v10-care-access:hold-course",
+      "v10-rule-of-law:hold-course",
+      "v10-state-capacity:hold-course",
+    ],
+  };
+
+  const result = simulatePath(path, SCENARIO_V10);
+
+  assert.equal(path.optionIds.filter((optionId) => optionId.endsWith(":adopt")).length, 44);
+  assert.equal(result.phase, "verdict");
+  assert.equal(result.decisions.length, 72);
+  assert.deepEqual(result.annualCheckpoints.map((checkpoint) => checkpoint.annualBalance), [-134_232, -73_532, -63_822, -56_122, 4_749]);
+  assert.equal(result.indicators.annualBalance, 4_749);
+  assert.deepEqual(result.crisisHistory.map((crisis) => `${crisis.ruleId}:${crisis.resolvedBy}`), path.crisisChoiceIds);
 });
 
 test("le maximum compatible respecte aussi un conflit déclaré par une décision déjà retenue", () => {
   const scenario = structuredClone(SCENARIO_V10);
   scenario.decisions.find((decision) => decision.id === "supprimer-niches-fiscales-menages-capital")!.conflicts = ["facturation-electronique-controle-tva"];
-  assert.equal(maximumCompatibleRunRate(scenario), 104_956);
+  assert.equal(maximumCompatibleRunRate(scenario), 154_581);
   assert.equal(maximumCompatibleProvenance(scenario).some((estimate) => estimate.key === "vat-einvoice-control-net"), false);
 });
 
