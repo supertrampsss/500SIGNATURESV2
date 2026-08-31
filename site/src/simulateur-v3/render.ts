@@ -302,33 +302,7 @@ function principalIndicatorEffect(option: DecisionOption): EffectRule | undefine
     || left.id.localeCompare(right.id, "fr")).at(0);
 }
 
-function renderOptionDetail(option: DecisionOption): string {
-  const detailId = `v3-option-detail-${option.id}`;
-  return `
-      <details class="simulateur-v3__option-detail" id="${escapeHtml(detailId)}" open>
-        <summary>Détail de l'option sélectionnée</summary>
-        <div class="simulateur-v3__option-detail-body">
-          <p class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</p>
-          <dl class="simulateur-v3__option-mechanism">
-            <div><dt>Mécanisme</dt><dd>${escapeHtml(option.mechanism)}</dd></div>
-            <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
-            <div><dt>Bénéficiaires</dt><dd>${escapeHtml(option.beneficiaries.join(", "))}</dd></div>
-            <div><dt>Contributeurs</dt><dd>${escapeHtml(option.contributors.join(", "))}</dd></div>
-          </dl>
-          <section class="simulateur-v3__option-all-effects" aria-label="Tous les effets chiffrés">
-            <h3>Effets chiffrés</h3>
-            <ul>${option.effects.map((effect) => `<li>${escapeHtml(effectLabelWithTiming(effect))}</li>`).join("")}</ul>
-          </section>
-          <p class="simulateur-v3__legal"><strong>Contraintes juridiques :</strong> ${escapeHtml(option.legalConstraints.length > 0 ? option.legalConstraints.join(" ; ") : "Aucune contrainte spécifique documentée.")}</p>
-          <div class="simulateur-v3__confirmation-bar">
-            <button type="button" class="simulateur-v3__secondary" data-v3-action="modify">Modifier</button>
-            <button type="button" class="simulateur-v3__primary" data-v3-action="confirm">Confirmer et voir l'impact</button>
-          </div>
-        </div>
-      </details>`;
-}
-
-function renderOption(decision: Decision, option: DecisionOption, selected: boolean): string {
+function renderOption(decision: Decision, option: DecisionOption): string {
   const budget = annualBalanceEffect(option);
   const principalImpact = principalIndicatorEffect(option);
   const budgetTiming = budget ? timingLabel(budget.timing) : "";
@@ -336,13 +310,13 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
     ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
     : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
-  const detailId = `v3-option-detail-${option.id}`;
   const labelId = `v3-option-label-${option.id}`;
+  const summaryId = `v3-option-summary-${option.id}`;
   const budgetId = `v3-option-budget-${option.id}`;
   const impactId = `v3-option-impact-${option.id}`;
   const riskId = `v3-option-risk-${option.id}`;
   return `
-    <article class="simulateur-v3__option${selected ? " simulateur-v3__option--selected" : ""}" data-option-id="${escapeHtml(option.id)}">
+    <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
       <button
         type="button"
         class="simulateur-v3__option-select"
@@ -350,16 +324,16 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
         aria-labelledby="${escapeHtml(labelId)}"
-        aria-describedby="${escapeHtml(`${budgetId} ${impactId} ${riskId}`)}"
-        aria-pressed="${selected}"
-        ${selected ? `aria-controls="${escapeHtml(detailId)}"` : ""}
+        aria-describedby="${escapeHtml(`${summaryId} ${budgetId} ${impactId} ${riskId}`)}"
       >
-        <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
+        <span class="simulateur-v3__option-copy">
+          <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
+          <span id="${escapeHtml(summaryId)}" class="simulateur-v3__option-summary" data-v3-fact="summary">${escapeHtml(compactText(option.summary, 120))}</span>
+        </span>
         <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
         <span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact" data-v3-fact="impact">${escapeHtml(principalImpact ? effectLabelWithTiming(principalImpact) : "Impact détaillé dans le mécanisme")}</span>
         <span id="${escapeHtml(riskId)}" class="simulateur-v3__option-confidence" data-v3-fact="risk">Incertitude ${escapeHtml(option.uncertainty)}</span>
       </button>
-      ${selected ? renderOptionDetail(option) : ""}
     </article>`;
 }
 
@@ -398,9 +372,6 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
   const decision = currentDecision(state, scenario);
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
   const chapter = scenario.chapters[state.chapterIndex]!;
-  const selectedOptionId = state.pendingSelection?.decisionId === decision.id
-    ? state.pendingSelection.optionId
-    : undefined;
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
@@ -413,7 +384,7 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
           <div class="simulateur-v3__scene-body">
             <fieldset class="simulateur-v3__options simulateur-v3__options--${decision.options.length}">
               <legend>Choix possibles</legend>
-              ${decision.options.map((option) => renderOption(decision, option, option.id === selectedOptionId)).join("")}
+              ${decision.options.map((option) => renderOption(decision, option)).join("")}
             </fieldset>
             ${renderEvidence(decision)}
           </div>
