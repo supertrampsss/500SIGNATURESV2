@@ -131,12 +131,12 @@ export const CAMPAIGN_DECISION_IDS = [
   "cheque-education-par-eleve",
   "supprimer-le-financement-public-du-prive",
   "autonomie-complete-des-etablissements",
+  "reduire-de-5-les-dotations-aux-collectivites",
+  "regle-d-or-constitutionnelle",
   "geler-le-point-d-indice-en-2026",
   "ne-pas-remplacer-un-depart-administratif-sur",
   "fermer-un-tiers-des-agences-et-operateurs",
   "diviser-par-deux-le-nombre-de-parlementaires",
-  "reduire-de-5-les-dotations-aux-collectivites",
-  "regle-d-or-constitutionnelle",
   "proportionnelle-integrale",
 ] as const;
 
@@ -263,6 +263,10 @@ git commit -m "feat: split policy catalogue from 60 decision campaign"
 ### Task 3: Remove 96 and 12 arithmetic from validation and navigation
 
 **Files:**
+- Modify: `site/src/simulateur-v3/campaign-topology.ts`
+- Modify: `site/src/simulateur-v3/campaign-topology.test.ts`
+- Modify: `site/src/simulateur-v3/scenario.ts`
+- Modify: `site/src/simulateur-v3/scenario.test.ts`
 - Modify: `site/src/simulateur-v3/validation.ts`
 - Modify: `site/src/simulateur-v3/validation.test.ts`
 - Modify: `site/src/simulateur-v3/campaign.ts`
@@ -271,10 +275,18 @@ git commit -m "feat: split policy catalogue from 60 decision campaign"
 - Modify: `site/src/simulateur-v3/effects.test.ts`
 - Modify: `site/src/simulateur-v3/render.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
+- Modify: `site/src/simulateur-v3/controller.ts`
+- Modify: `site/src/simulateur-v3/controller.test.ts`
+- Modify: `site/src/simulateur-v3/storage.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/verdict.ts`
+- Modify: `site/src/simulateur-v3/verdict.test.ts`
 
 **Interfaces:**
 - Consumes: `scenario.chapters[*].decisionIds` and topology helpers.
 - Produces: scenario-derived state positioning and due-date validation.
+
+The two chapter-eight policies with three-decision consequences are deliberately placed at positions 54 and 55 so their causal events remain observable before the 60-decision verdict. `SCENARIO_V3` must preserve this explicit topology order rather than filtering in catalogue order. Historical modeled-effect migration remains limited to scenario 5 to 6; a version 6 save is not silently migrated into the topologically different version 7 campaign.
 
 - [ ] **Step 1: Add failing variable-chapter tests**
 
@@ -372,9 +384,22 @@ git commit -m "refactor: derive campaign progression from scenario"
 - Create: `site/src/simulateur-v3/timeline.ts`
 - Create: `site/src/simulateur-v3/timeline.test.ts`
 - Modify: `site/src/simulateur-v3/campaign.ts`
+- Modify: `site/src/simulateur-v3/campaign.test.ts`
+- Modify: `site/src/simulateur-v3/flow.ts`
+- Modify: `site/src/simulateur-v3/flow.test.ts`
+- Modify: `site/src/simulateur-v3/controller.ts`
+- Modify: `site/src/simulateur-v3/controller.test.ts`
+- Modify: `site/src/simulateur-v3/storage.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/render.ts`
+- Modify: `site/src/simulateur-v3/render.test.ts`
+- Modify: `site/src/simulateur-v3/verdict.ts`
+- Modify: `site/src/simulateur-v3/verdict.test.ts`
+- Modify: `site/src/main.ts`
+- Modify: `site/src/interface.test.ts`
 
 **Interfaces:**
-- Consumes: published France GDP and debt series passed by the controller.
+- Consumes: `pays.FR.series` and `donnees.version()` after the published data loader is ready.
 - Produces: `MandateBaseline`, `AnnualCheckpoint[]` and `advanceMandateYear()`.
 
 - [ ] **Step 1: Write stock-flow tests using explicit fixture values**
@@ -389,7 +414,33 @@ test("un déficit annuel augmente le stock de dette une seule fois", () => {
 });
 
 test("le moteur refuse une baseline non sourcée", () => {
-  assert.throws(() => validateBaseline({ nominalGdpMillions: 0, debtMillions: 1, interestCostMillions: 1, sourceIds: [] }), /baseline/i);
+  assert.throws(() => validateBaseline({
+    period: "2025",
+    debtPeriod: "2025-Q4",
+    nominalGdpMillions: 0,
+    debtMillions: 1,
+    annualBalanceMillions: -1,
+    interestCostMillions: 1,
+    nominalGrowthPercent: 1,
+    sourceIds: [],
+    dataVersion: "test",
+  }), /baseline/i);
+});
+
+test("la baseline aligne les flux annuels sur la dette du quatrième trimestre", () => {
+  const baseline = buildMandateBaseline({
+    gdp: { "2024": 2_935_251_000_000, "2025": 2_991_055_900_000 },
+    debtToGdp: { "2025-Q4": 115.7, "2026-Q1": 116.3 },
+    balance: { "2025": -152_532_000_000 },
+    interest: { "2025": 66_635_900_000 },
+    dataVersion: "2026-08-22T1939",
+  });
+  assert.equal(baseline?.period, "2025");
+  assert.equal(baseline?.debtPeriod, "2025-Q4");
+  assert.equal(baseline?.nominalGdpMillions, 2_991_055.9);
+  assert.equal(baseline?.annualBalanceMillions, -152_532);
+  assert.equal(baseline?.interestCostMillions, 66_635.9);
+  assert.ok(Math.abs((baseline?.nominalGrowthPercent ?? 0) - 1.9017) < 0.0001);
 });
 ```
 
@@ -405,6 +456,8 @@ Expected: FAIL because `timeline.ts` is missing.
 export type MandateYear = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type MandateBaseline = {
+  period: string;
+  debtPeriod: string;
   nominalGdpMillions: number;
   debtMillions: number;
   annualBalanceMillions: number;
@@ -432,10 +485,12 @@ Add `baseline: MandateBaseline` and `annualCheckpoints: AnnualCheckpoint[]` to `
 
 ```ts
 export function validateBaseline(value: MandateBaseline): void {
-  if (value.nominalGdpMillions <= 0 || value.debtMillions < 0 || value.interestCostMillions < 0) {
+  if (value.nominalGdpMillions <= 0 || value.debtMillions < 0 || value.interestCostMillions < 0
+      || !Number.isFinite(value.annualBalanceMillions) || !Number.isFinite(value.nominalGrowthPercent)) {
     throw new Error("Invalid campaign baseline values");
   }
-  if (value.sourceIds.length === 0 || !value.dataVersion.trim()) {
+  if (!/^\d{4}$/.test(value.period) || value.debtPeriod !== `${value.period}-Q4`
+      || !sameIds(value.sourceIds, REQUIRED_BASELINE_INDICATORS) || !value.dataVersion.trim()) {
     throw new Error("Campaign baseline must be sourced and versioned");
   }
 }
@@ -456,22 +511,32 @@ export function projectYear(
 }
 ```
 
-The controller must construct the real baseline from the latest common published period of `eurostat_pib_montant`, `insee_dette_apu_part_pib`, `insee_apu_solde` and `eurostat_apu_interets`. Compute the debt stock from GDP times the published debt ratio. Derive nominal growth from the last two valid GDP amount observations rather than substituting the real-growth series. Initialise `annualBalance`, `debtToGdp`, `interestCost` and `growth` from this baseline; delete their numeric production defaults. `sourceIds` must contain all four indicator IDs. If no common valid baseline and preceding GDP value exist, the campaign entry screen must be unavailable with a factual data error. Do not add a numeric fallback. The explicitly ludic political and service indices may retain documented neutral starting values.
+`buildMandateBaseline()` selects the latest annual period `Y` for which GDP, balance, interest and debt ratio at `Y-Q4` are all finite, and requires GDP at one preceding annual period. Published stock and flow series are in euros; convert to millions exactly once. Compute debt stock from GDP times the published debt ratio. Derive nominal growth from the last two valid GDP amount observations rather than substituting the real-growth series. For the current publication this aligns annual 2025 data with debt `2025-Q4`; never mix `2026-Q1` with 2025 flows.
 
-- [ ] **Step 5: Create annual checkpoints at chapter boundaries**
+The controller must construct the real baseline from `eurostat_pib_montant`, `insee_dette_apu_part_pib`, `insee_apu_solde` and `eurostat_apu_interets`, with `dataVersion` supplied by `donnees.version()`. Initialise `annualBalance`, `debtToGdp`, `interestCost` and `growth` from this baseline; delete their numeric production defaults. `sourceIds` contains exactly those four indicator IDs; source-registry record IDs may be stored separately and must not replace them. If no common valid baseline and preceding GDP value exist, the campaign entry screen is unavailable with a factual data error and no start button. Do not add a numeric fallback. The explicitly ludic political and service indices may retain documented neutral starting values.
 
-Map the eight chapter completions to mandate years `[1, 1, 2, 2, 3, 4, 4, 5]`. A year is projected only the first time its final chapter is completed. Store the causal ledger IDs that contributed to the annual balance, growth or rate used by that checkpoint.
+`annualBalance`, GDP stock, debt stock and `interestCost` all use millions of euros in the engine. Correct any policy delta still expressed as billions, including the euro-exit interest effect (`12_000`, not `12`). Derive the projection rate from `interestCostMillions / debtMillions * 100`; do not mix a cost in millions with a percentage.
 
-- [ ] **Step 6: Run timeline and campaign tests**
+- [ ] **Step 5: Create exactly five annual checkpoints at the final chapter of each year**
 
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/timeline.test.ts src/simulateur-v3/campaign.test.ts src/simulateur-v3/storage.test.ts`
+Map the eight chapter completions to mandate years `[1, 1, 2, 2, 3, 4, 4, 5]`. A year is projected only after its final chapter is completed, at cumulative decision counts `[16, 32, 39, 53, 60]`, and only if no checkpoint for that year exists. Resolve due events, promises and crises before projection. Store the causal ledger IDs that contributed to the annual balance, growth or rate used by that checkpoint. At the four non-final annual checkpoints, `continue` leaves the Council for the next chapter introduction. At the year-five Council, `continue` enters the verdict. No new state enters `chapter_verdict`.
 
-Expected: PASS and schema 3 saves rejected by storage tests.
+- [ ] **Step 6: Integrate published-data availability and storage migration**
 
-- [ ] **Step 7: Commit**
+Require a baseline when creating or mounting a new campaign. In `main.ts`, initialise published data, read `pays.FR.series`, build the baseline, then mount V3. Never mount V3 first and patch the values later. When construction fails, keep the V3 section visible with a factual error, disable the primary simulation entry and offer retry/back navigation.
+
+Increment `SCHEMA_VERSION` from 3 to 4. A schema 3 save produces an explicit `restart_required` result; it is not interpreted as schema 4 and is never silently combined with the current publication. A restored schema 4 campaign keeps its persisted baseline and data version for reproducibility.
+
+- [ ] **Step 7: Run timeline and campaign tests**
+
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/timeline.test.ts src/simulateur-v3/campaign.test.ts src/simulateur-v3/flow.test.ts src/simulateur-v3/controller.test.ts src/simulateur-v3/storage.test.ts src/simulateur-v3/validation.test.ts src/simulateur-v3/render.test.ts src/simulateur-v3/verdict.test.ts src/interface.test.ts`
+
+Expected: PASS, Councils occur only at `[16, 32, 39, 53, 60]`, missing baselines block entry, and schema 3 saves require restart.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/timeline.ts site/src/simulateur-v3/timeline.test.ts site/src/simulateur-v3/campaign.ts site/src/simulateur-v3/campaign.test.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/storage.test.ts
+git add site/src/simulateur-v3 site/src/main.ts site/src/interface.test.ts
 git commit -m "feat: add sourced five year campaign timeline"
 ```
 
