@@ -145,6 +145,8 @@ git commit -m "feat: add typed simulator budget registry"
 - Modify: `site/src/simulateur-v3/policies/health.ts`
 - Modify: `site/src/simulateur-v3/policies/energy.ts`
 - Modify: `site/src/simulateur-v3/policies/state.ts`
+- Modify: `site/src/simulateur-v3/budget-registry.ts`
+- Modify: `site/src/simulateur-v3/budget-registry.test.ts`
 - Modify: `site/src/simulateur-v3/policy-sources.ts`
 - Modify: `site/src/simulateur-v3/policy-catalogue.test.ts`
 - Modify: `site/src/simulateur-v3/scenario.test.ts`
@@ -152,7 +154,7 @@ git commit -m "feat: add typed simulator budget registry"
 - Test: `site/src/simulateur-v3/causal-contract-source.test.ts`
 
 **Interfaces:**
-- Produces a 96-decision V10 catalogue whose every option has `budgetProfile` and whose `adopt` estimates resolve in `BUDGET_ESTIMATES`.
+- Produces a 96-decision V10 catalogue whose every option has `budgetProfile`; every non-null, nonzero `adopt` estimate resolves in `BUDGET_ESTIMATES`, while neutral `adopt` options use the strict null profile.
 - Consumes the Task 1 registry and returns only two options per decision.
 
 - [ ] **Step 1: Write red inventory tests.**
@@ -190,7 +192,7 @@ Define the two added promotions with IDs, source keys and scopes exactly as foll
 "relever-tva-restauration-commerciale": { estimateKey: "commercial-restaurant-vat-net", exclusiveScopeKeys: ["commercial-restaurant-vat-10"], sourceKeys: ["bofip-tva-restauration-2024", "evm-2026-tva-restauration"] },
 ```
 
-The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs and register each with its exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`; its `adopt` sum is exactly 21 689 M€. Keep `supprimer-subventions-directes-entreprises:adopt` selectable and published with `estimateKey: null` and a null profile. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
+The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs and register each with its exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`; its `adopt` sum is exactly 21 689 M€. Keep `supprimer-subventions-directes-entreprises:adopt` selectable and published with the strict null profile (`estimateKey: null`, `exclusiveScopeKeys: []`); it claims no scope while the gain is null. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
 
 - [ ] **Step 4: Run catalogue and source tests.**
 
@@ -201,7 +203,7 @@ Expected: PASS; 96 decisions, 192 options, no flat-tax decision, no 150 000 M€
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/policies site/src/simulateur-v3/policy-sources.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/causal-contract-source.test.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/campaign.test.ts
+git add site/src/simulateur-v3/policies site/src/simulateur-v3/budget-registry.ts site/src/simulateur-v3/budget-registry.test.ts site/src/simulateur-v3/policy-sources.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/causal-contract-source.test.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/campaign.test.ts
 git commit -m "feat: rebuild v10 policy catalogue"
 ```
 

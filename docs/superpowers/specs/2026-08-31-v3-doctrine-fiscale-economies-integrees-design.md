@@ -148,7 +148,7 @@ Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossie
 | 3 | `facturation-electronique-controle-tva` | `taxes-assets-transmission` | `adopt` | 2 700 | année 2 | `vat-fraud-einvoice` | `plan-antifraude-facturation-electronique` |
 | 1 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 3 100 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
 | 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 1 200 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
-| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (gain bloqué) | sans effet budgétaire | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
+| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (gain bloqué) | sans effet budgétaire | aucune ; aucun périmètre revendiqué tant que le profil reste nul | `hcsp-aides-entreprises-2025` |
 | 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 3 799 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
 | 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
 | 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 300 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
