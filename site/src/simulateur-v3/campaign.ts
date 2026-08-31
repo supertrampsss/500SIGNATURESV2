@@ -122,7 +122,7 @@ function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignSta
 export function advanceAfterResult(
   state: CampaignState,
   scenario: Scenario,
-  stopAtDecisionCounts: readonly number[] = [],
+  stopAfterSuperseded = false,
 ): CampaignState {
   let advanced = advanceOneScreen(state, scenario);
   while (advanced.phase === "decision") {
@@ -140,7 +140,7 @@ export function advanceAfterResult(
         confirmedAtIndex: advanced.decisions.length + 1,
       }],
     };
-    if (stopAtDecisionCounts.includes(superseded.decisions.length)) return superseded;
+    if (stopAfterSuperseded) return superseded;
     advanced = advanceOneScreen(superseded, scenario);
   }
   return advanced;

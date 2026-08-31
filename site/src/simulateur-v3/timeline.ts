@@ -1,4 +1,4 @@
-import type { CampaignState, MandateBaseline, MandateYear, Scenario } from "./types.ts";
+import type { CampaignState, MandateBaseline, MandateYear } from "./types.ts";
 
 export const REQUIRED_BASELINE_INDICATORS = [
   "eurostat_pib_montant",
@@ -96,28 +96,6 @@ export function mandateYearEndingAfterChapter(chapterIndex: number): Exclude<Man
   const current = CHAPTER_MANDATE_YEARS[chapterIndex];
   if (current === undefined) return null;
   return CHAPTER_MANDATE_YEARS[chapterIndex + 1] === current ? null : current;
-}
-
-export function mandateYearEndingAtDecisionCount(
-  scenario: Scenario,
-  decisionCount: number,
-): Exclude<MandateYear, 0> | null {
-  let completed = 0;
-  for (let chapterIndex = 0; chapterIndex < scenario.chapters.length; chapterIndex += 1) {
-    completed += scenario.chapters[chapterIndex]!.decisionIds.length;
-    if (completed === decisionCount) return mandateYearEndingAfterChapter(chapterIndex);
-  }
-  return null;
-}
-
-export function annualCouncilDecisionCounts(scenario: Scenario): number[] {
-  let completed = 0;
-  const counts: number[] = [];
-  scenario.chapters.forEach((chapter, chapterIndex) => {
-    completed += chapter.decisionIds.length;
-    if (mandateYearEndingAfterChapter(chapterIndex) !== null) counts.push(completed);
-  });
-  return counts;
 }
 
 export function advanceMandateYear(

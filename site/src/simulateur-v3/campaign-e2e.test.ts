@@ -28,6 +28,13 @@ function playFullCampaign(optionIndex: 0 | 1): CampaignState {
       state = advanceCampaign(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
     }
 
+    if (state.phase === "council") {
+      assert.ok(state.scheduledEvents.every((event) => event.dueAtDecision > state.decisions.length));
+      assert.ok(state.activePromises.every((promise) => promise.dueAtDecision > state.decisions.length));
+      if (state.decisions.length === 53 && optionIndex === 0) {
+        assert.ok(state.eventHistory.some((event) => event.id === "housing-rent-capture"));
+      }
+    }
     assert.equal(isCampaignState(state, SCENARIO_V3_PREVIEW), true, `état invalide en phase ${state.phase}`);
   }
 

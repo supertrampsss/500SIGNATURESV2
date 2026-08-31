@@ -1,5 +1,4 @@
 import {
-  advanceAfterResult,
   createCampaign,
   normalizeChapterTransition,
   selectOption,
@@ -179,8 +178,10 @@ export function mountSimulatorV3(
     }
 
     if (action === "open-chapter" && state.phase === "chapter_intro") {
-      state = advanceAfterResult(state, scenario);
-      emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      state = advanceCampaign(state, scenario, crisisRules);
+      if (state.phase === "decision") {
+        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      }
       persistAndRender(true);
       return;
     }

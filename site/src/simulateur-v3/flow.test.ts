@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { currentDecision, selectOption } from "./campaign.ts";
+import { resolveCrisis } from "./crises.ts";
+import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
-import { createTestCampaign, validCampaignState, validScenario } from "./test-fixtures.ts";
+import { createTestCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, CrisisRule } from "./types.ts";
 import { positionAfterCompleted } from "./validation.ts";
 
@@ -177,4 +180,135 @@ test("une conséquence différée est résolue avant le Conseil annuel", () => {
   assert.equal(council.phase, "council");
   assert.equal(council.annualCheckpoints[0]?.annualBalance, state.indicators.annualBalance + 1_000);
   assert.ok(council.annualCheckpoints[0]?.causes.includes("event:annual-event:annual-event-balance:1"));
+});
+
+test("un dossier final verrouillé repasse par conséquences, promesses et crise avant le Conseil", () => {
+  const state = stateAfterPreviewDecisions(52);
+  const source = state.decisions[49]!;
+  const lockedDecisionId = SCENARIO_V3_PREVIEW.decisions[52]!.id;
+  state.annualCheckpoints = testAnnualCheckpoints(SCENARIO_V3_PREVIEW, 3);
+  state.lockedDecisionIds = [lockedDecisionId];
+  state.indicators.opinion = 12;
+  state.scheduledEvents = [{
+    id: "locked-year-event",
+    sourceDecisionId: source.decisionId,
+    sourceOptionId: source.optionId,
+    dueAtDecision: 53,
+    title: "La réforme revient",
+    body: "Le coût arrive en fin d'année.",
+    effects: [
+      {
+        id: "locked-year-event-balance",
+        target: "indicator",
+        key: "annualBalance",
+        delta: 1_000,
+        timing: { kind: "immediate" },
+        duration: "annual",
+        explanation: "Le solde est révisé.",
+      },
+      {
+        id: "locked-year-event-opinion",
+        target: "indicator",
+        key: "opinion",
+        delta: -3,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "L'opinion décroche.",
+      },
+    ],
+  }];
+  state.activePromises = [{
+    id: "locked-year-promise",
+    sourceDecisionId: source.decisionId,
+    sourceOptionId: source.optionId,
+    label: "Tenir la promesse annuelle",
+    dueAtDecision: 53,
+    fulfilled: false,
+    failureEffects: [{
+      id: "locked-year-promise-balance",
+      target: "indicator",
+      key: "annualBalance",
+      delta: 2_000,
+      timing: { kind: "immediate" },
+      duration: "annual",
+      explanation: "La promesse non tenue révise le solde.",
+    }],
+  }];
+  const boundaryCrisis: CrisisRule = {
+    id: "locked-year-crisis",
+    title: "La fin d'année se tend",
+    body: "Le Conseil doit attendre la résolution.",
+    indicator: "opinion",
+    threshold: 10,
+    comparator: "lte",
+    aggravatingDecisionIds: [source.decisionId],
+    concessions: [],
+    holdCourseEffects: [{
+      id: "locked-year-crisis-balance",
+      target: "indicator",
+      key: "annualBalance",
+      delta: 3_000,
+      timing: { kind: "immediate" },
+      duration: "annual",
+      explanation: "La résolution révise le solde.",
+    }],
+  };
+
+  const delayed = advanceCampaign(state, SCENARIO_V3_PREVIEW, [boundaryCrisis]);
+  assert.equal(delayed.phase, "delayed_event");
+  assert.equal(delayed.decisions.length, 53);
+  assert.equal(delayed.decisions.at(-1)?.status, "superseded");
+  assert.equal(delayed.annualCheckpoints.length, 3);
+
+  const crisisState = advanceCampaign(delayed, SCENARIO_V3_PREVIEW, [boundaryCrisis]);
+  assert.equal(crisisState.phase, "crisis");
+  assert.equal(crisisState.eventHistory.at(-1)?.id, "locked-year-event");
+  assert.equal(crisisState.promiseHistory.at(-1)?.id, "locked-year-promise");
+  assert.equal(crisisState.annualCheckpoints.length, 3);
+
+  const resolved = resolveCrisis(crisisState, [boundaryCrisis], "hold-course");
+  const council = advanceCampaign(resolved, SCENARIO_V3_PREVIEW, [boundaryCrisis]);
+  assert.equal(council.phase, "council");
+  assert.equal(council.annualCheckpoints.length, 4);
+  assert.equal(council.annualCheckpoints.at(-1)?.annualBalance, state.indicators.annualBalance + 6_000);
+  for (const sourceId of ["locked-year-event", "locked-year-promise", "locked-year-crisis"]) {
+    const cause = council.causalLedger.find((entry) => entry.sourceId === sourceId && entry.key === "annualBalance");
+    assert.ok(cause);
+    assert.ok(council.annualCheckpoints.at(-1)?.causes.includes(cause.id));
+  }
+});
+
+test("la sortie de l'euro résout la conversion avant le Conseil atteint par deux dossiers verrouillés", () => {
+  let state: CampaignState = { ...createTestCampaign(SCENARIO_V3_PREVIEW), phase: "chapter_intro" };
+  state = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
+  while (state.decisions.length < 36) {
+    assert.equal(state.phase, "decision");
+    const decision = currentDecision(state, SCENARIO_V3_PREVIEW)!;
+    const keep = decision.options.at(-1)!;
+    state = confirmSelection(selectOption(state, SCENARIO_V3_PREVIEW, decision.id, keep.id), SCENARIO_V3_PREVIEW);
+    do state = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
+    while (state.phase !== "decision");
+  }
+
+  const euroExit = currentDecision(state, SCENARIO_V3_PREVIEW)!;
+  assert.equal(euroExit.id, "sortir-de-l-euro");
+  state = confirmSelection(
+    selectOption(state, SCENARIO_V3_PREVIEW, euroExit.id, euroExit.options[0]!.id),
+    SCENARIO_V3_PREVIEW,
+  );
+
+  const delayed = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
+  assert.equal(delayed.phase, "delayed_event");
+  assert.equal(delayed.decisions.length, 38);
+  assert.equal(delayed.decisions.at(-1)?.status, "superseded");
+  assert.ok(delayed.scheduledEvents.some((event) => event.id === "currency-conversion" && event.dueAtDecision === 38));
+  assert.equal(delayed.annualCheckpoints.length, 2);
+
+  const council = advanceCampaign(delayed, SCENARIO_V3_PREVIEW, []);
+  assert.equal(council.phase, "council");
+  assert.equal(council.decisions.length, 39);
+  assert.equal(council.decisions.at(-1)?.status, "superseded");
+  assert.ok(council.eventHistory.some((event) => event.id === "currency-conversion"));
+  assert.ok(council.scheduledEvents.every((event) => event.dueAtDecision > council.decisions.length));
+  assert.equal(council.annualCheckpoints.at(-1)?.afterDecisionCount, 39);
 });
