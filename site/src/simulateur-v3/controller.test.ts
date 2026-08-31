@@ -11,7 +11,7 @@ import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
-import type { Scenario } from "./types.ts";
+import type { CampaignPhase, Scenario } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
 
 const IMMEDIATE_FLAT_TAX_CRISIS_RULES = SCENARIO_V3_CRISIS_RULES.map((rule) => ({
@@ -106,6 +106,21 @@ function stateBefore(decisionId: string) {
     })),
   };
 }
+
+test("le chrome global reste sur l'introduction puis cède la place au mandat", () => {
+  const host = new FakeHost();
+  const phases: Array<CampaignPhase | null> = [];
+  const unmount = mountSimulatorV3(host, SCENARIO_V3_PREVIEW, {
+    storage: memoryStorage(),
+    onPhaseChange: (phase) => phases.push(phase),
+  });
+
+  assert.deepEqual(phases, ["intro"]);
+  host.click("start");
+  assert.equal(phases.at(-1), "chapter_intro");
+  unmount();
+  assert.equal(phases.at(-1), null);
+});
 
 test("un verdict V9 schema 4 est relu sans réécriture puis monté comme verdict V9", () => {
   const verdict = {

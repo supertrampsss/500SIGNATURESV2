@@ -39,8 +39,8 @@ body[data-vue="simulateur"] #vue-simulateur {
   padding-inline: 0;
 }
 
-body[data-vue="simulateur"][data-simulateur-version="3"] .entete { display: none; }
-body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-height: 100dvh; }
+body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started="true"] .entete { display: none; }
+body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started="true"] .simulateur-v3 { min-height: 100dvh; }
 
 #simulateur-v3 { scroll-margin-top: var(--haut-entete); }
 

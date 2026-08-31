@@ -340,9 +340,19 @@ function principalIndicatorEffect(option: DecisionOption): Extract<EffectRule, {
     || left.id.localeCompare(right.id, "fr")).at(0);
 }
 
+function principalBudgetProfileValue(option: DecisionOption): number {
+  const runRate = option.budgetProfile.runRateMillions;
+  if (runRate !== 0) return runRate;
+  return [...option.budgetProfile.transitionFlows]
+    .sort((left, right) => Math.abs(right.amountMillions) - Math.abs(left.amountMillions))[0]
+    ?.amountMillions ?? 0;
+}
+
 function budgetProfileLabel(option: DecisionOption): string {
   const runRate = option.budgetProfile.runRateMillions;
-  return runRate === 0 ? "Solde public inchangé" : `${formatV3Amount(runRate)} par an`;
+  if (runRate !== 0) return `${formatV3Amount(runRate)} par an`;
+  const transition = principalBudgetProfileValue(option);
+  return transition === 0 ? "Solde public inchangé" : `${formatV3Amount(transition)} une seule fois`;
 }
 
 function renderOption(decision: Decision, option: DecisionOption, scenario: Scenario): string {
@@ -355,7 +365,7 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
     : budget
       ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
       : "Solde inchangé";
-  const budgetValue = isV10 ? option.budgetProfile.runRateMillions : budget?.delta ?? 0;
+  const budgetValue = isV10 ? principalBudgetProfileValue(option) : budget?.delta ?? 0;
   const budgetSignal = budgetValue === 0 ? "neutral" : budgetValue > 0 ? "positive" : "negative";
   const impactLabel = principalImpact ? compactImpactLabel(principalImpact) : "Impact non chiffré";
   const impactDescription = principalImpact ? effectLabelWithTiming(principalImpact) : impactLabel;
@@ -1012,5 +1022,6 @@ export function renderSimulatorV3(
   const saveWarning = options.saveFailed
     ? `<p class="simulateur-v3__save-error" role="status">La sauvegarde locale est indisponible. La partie continue dans cet onglet.</p>`
     : "";
-  return `<section class="simulateur-v3">${renderCommandBar(state, scenario)}${saveWarning}${accessibleContent}</section>`;
+  const commandBar = state.phase === "intro" ? "" : renderCommandBar(state, scenario);
+  return `<section class="simulateur-v3">${commandBar}${saveWarning}${accessibleContent}</section>`;
 }

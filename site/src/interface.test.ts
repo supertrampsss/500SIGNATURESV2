@@ -3551,8 +3551,8 @@ test("le bureau de décision V3 retrouve la composition centrale de la planche E
   assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*28ch;[^}]*font-size:\s*2\.5rem;/s);
 });
 
-test("la barre de commandement remplace le header global pendant toute la V3", () => {
-  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\] \.entete\s*\{[^}]*display:\s*none;/s);
+test("la barre de commandement remplace le header global seulement après la prise de fonctions", () => {
+  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\]\[data-simulateur-started="true"\] \.entete\s*\{[^}]*display:\s*none;/s);
   assert.doesNotMatch(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete__nav a\s*\{/s);
 });
 
@@ -3610,6 +3610,15 @@ test("la V3 attend une baseline nationale publiée avant tout montage", () => {
   assert.match(indisponible, /Retourner à France/);
 });
 
+test("l'ouverture directe V3 n'affiche pas une fausse indisponibilité pendant le chargement", () => {
+  const bascule = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf("function appliquerModeCarte"));
+  const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
+
+  assert.match(bascule, /vue === "simulateur" && \([\s\S]*?e2eBaseline\(\) !== undefined[\s\S]*?baselineSimulateurV3 !== null[\s\S]*?erreurBaselineSimulateurV3 !== null[\s\S]*?ouvrirSimulateur\(\)/);
+  assert.ok(ouverture.indexOf("if (erreurBaselineSimulateurV3 === null) return;") < ouverture.indexOf("rendreSimulateurV3Indisponible("));
+  assert.ok(ouverture.indexOf("if (!baseline)") < ouverture.indexOf("hoteV3.hidden = false;"));
+});
+
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
@@ -3622,7 +3631,8 @@ test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jam
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
   assert.match(brancheV3, /document\.body\.dataset\.simulateurVersion = "3"/);
-  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\] \.entete\s*\{[^}]*display:\s*none;/s);
+  assert.match(brancheV3, /onPhaseChange:\s*\(phase\)\s*=>/);
+  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\]\[data-simulateur-started="true"\] \.entete\s*\{[^}]*display:\s*none;/s);
   assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
 });
 

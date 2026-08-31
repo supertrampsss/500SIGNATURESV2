@@ -2639,6 +2639,7 @@ function basculerVue(): void {
     terminerSessionImmersive = null;
     demonterApercuSimulateurV3();
     delete document.body.dataset.simulateurVersion;
+    delete document.body.dataset.simulateurStarted;
   }
   document.body.dataset.vue = vue;
   rendreNavigationPrincipale();
@@ -2659,7 +2660,12 @@ function basculerVue(): void {
   // BILAN ne porte plus que les cinq chapitres et le pied de sources.
   $("vue-bilan").hidden = vue !== "bilan";
   $("vue-simulateur").hidden = vue !== "simulateur";
-  if (vue === "simulateur") void ouvrirSimulateur();
+  if (vue === "simulateur" && (
+    !versionSimulateurV3()
+    || e2eBaseline() !== undefined
+    || baselineSimulateurV3 !== null
+    || erreurBaselineSimulateurV3 !== null
+  )) void ouvrirSimulateur();
   // Remonter en haut n'a de sens qu'en changeant de vue. Sur une page déjà
   // affichée, un `hashchange` vise une ancre interne — le sommaire des Repères
   // vise `#bloc-etat` — et remonter annulerait le défilement du navigateur
@@ -3877,9 +3883,10 @@ async function ouvrirSimulateur(): Promise<void> {
     document.body.dataset.simulateurVersion = "3";
     tunnel.hidden = true;
     expert.hidden = true;
-    hoteV3.hidden = false;
     const baseline = e2eBaseline() ?? baselineSimulateurV3;
     if (!baseline) {
+      if (erreurBaselineSimulateurV3 === null) return;
+      hoteV3.hidden = false;
       rendreSimulateurV3Indisponible(
         hoteV3,
         erreurBaselineSimulateurV3 ?? "Chargement des données nationales publiées.",
@@ -3887,6 +3894,7 @@ async function ouvrirSimulateur(): Promise<void> {
       );
       return;
     }
+    hoteV3.hidden = false;
     if (!demonterSimulateurV3) {
       const historicalV9 = completedV9StateFromStorage(localStorage);
       const scenario = scenarioForVersion(historicalV9 ? 9 : 10);
@@ -3895,6 +3903,10 @@ async function ouvrirSimulateur(): Promise<void> {
         baseline,
         crisisRules: scenario.version === 9 ? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES,
         initialState: historicalV9 ?? e2eInitialState(scenario),
+        onPhaseChange: (phase) => {
+          if (phase === null || phase === "intro") delete document.body.dataset.simulateurStarted;
+          else document.body.dataset.simulateurStarted = "true";
+        },
       });
     }
     return;
@@ -3902,6 +3914,7 @@ async function ouvrirSimulateur(): Promise<void> {
 
   demonterApercuSimulateurV3();
   delete document.body.dataset.simulateurVersion;
+  delete document.body.dataset.simulateurStarted;
   hoteV3.hidden = true;
   tunnel.hidden = false;
   if (atelierMonte || !exercicesParVolet.length) return;

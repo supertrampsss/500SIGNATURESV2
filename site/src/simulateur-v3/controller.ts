@@ -45,6 +45,8 @@ export type SimulatorV3Dependencies = {
   currentUrl?: () => string;
   /** A read-only historical state selected before mounting (not replayed). */
   initialState?: CampaignState;
+  /** Keeps the surrounding site chrome aligned with the current scene. */
+  onPhaseChange?: (phase: CampaignPhase | null) => void;
 };
 
 type ActionNode = {
@@ -140,6 +142,7 @@ export function mountSimulatorV3(
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
 
   const render = (resetScene = false) => {
+    dependencies.onPhaseChange?.(state.phase);
     host.innerHTML = renderSimulatorV3(state, scenario, {
       v2Found,
       restartRequired,
@@ -310,5 +313,6 @@ export function mountSimulatorV3(
 
   return () => {
     host.removeEventListener("click", onClick);
+    dependencies.onPhaseChange?.(null);
   };
 }

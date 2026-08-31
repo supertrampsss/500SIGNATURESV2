@@ -83,6 +83,15 @@ test("une carte V10 affiche uniquement son BudgetProfile et aucun impact avant l
   assert.doesNotMatch(html, /\u2014/);
 });
 
+test("une carte V10 affiche son coût ponctuel au lieu d'annoncer un solde inchangé", () => {
+  const html = renderSimulatorV3(v10StateBefore("sortir-de-l-euro"), SCENARIO_V10);
+  const adopt = closedOptionButtons(html).find((button) => button.includes('data-option-id="sortir-de-l-euro:adopt"'));
+
+  assert.ok(adopt);
+  assert.match(html, /-35 milliards d&#39;euros une seule fois/);
+  assert.doesNotMatch(adopt, /Solde public inchangé/);
+});
+
 test("une carte V10 ne conserve aucun libellé de la campagne historique", () => {
   const html = renderSimulatorV3(v10StateBefore("perenniser-surtaxe-grandes-entreprises"), SCENARIO_V10);
 
@@ -151,7 +160,7 @@ test("l'entrée en fonction annonce la mission et un seul départ", () => {
   assert.match(html, /153 milliards d&#39;euros/);
   assert.equal(occurrences(html, 'data-v3-action="start"'), 1);
   assert.match(html, /Prendre mes fonctions/);
-  assert.match(html, /href="\/bilan"/);
+  assert.doesNotMatch(html, /simulateur-v3__command-bar/);
   assert.doesNotMatch(html, /data-v3-action="pause"/);
 });
 
@@ -354,10 +363,9 @@ test("le résultat confirmé reste lisible et causal jusqu'à une continuation e
   assert.match(html, /Dossier suivant/);
 });
 
-test("chaque phase rend la barre de commandement sans cadratin", () => {
+test("la barre de commandement remplace l'introduction après la prise de fonctions", () => {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
   const phases = [
-    base,
     { ...base, phase: "chapter_intro" as const },
     { ...base, phase: "decision" as const },
     { ...base, phase: "pause" as const },
@@ -369,6 +377,7 @@ test("chaque phase rend la barre de commandement sans cadratin", () => {
     assert.match(html, /Dossier 1 sur 60/);
     assert.doesNotMatch(html, /\u2014/);
   }
+  assert.doesNotMatch(renderSimulatorV3(base, SCENARIO_V3_PREVIEW), /simulateur-v3__command-bar/);
 });
 
 test("la barre de commandement garde le solde et une progression lisibles sur mobile", () => {
