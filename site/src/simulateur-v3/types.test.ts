@@ -1,18 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { SCHEMA_VERSION, type CampaignState, type Decision, type DecisionOption, type EffectRule } from "./types.ts";
+import { SCHEMA_VERSION, type BudgetProfile, type CampaignState, type Decision, type DecisionOption, type EffectRule } from "./types.ts";
 
 test("le schéma V3 représente une décision confirmable et une campagne versionnée", () => {
   const option: DecisionOption = {
-    id: "maintenir",
+    id: "keep",
     label: "Maintenir le cap",
     summary: "La politique reste en vigueur.",
     mechanism: "Conserver le droit existant.",
     horizon: { kind: "immediate" },
     legalConstraints: [],
-    budgetDuration: "annual",
-    budgetTiming: { kind: "immediate" },
+    budgetProfile: { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] },
     beneficiaries: ["entreprises"],
     contributors: ["budget_public"],
     uncertainty: "moyenne",
@@ -35,6 +34,13 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     dependencies: [],
     conflicts: [],
   };
+  const annualProfile = {
+    estimateKey: "estimate-test",
+    runRateMillions: 1,
+    runRateTiming: { kind: "mandate_year", year: 3 },
+    transitionFlows: [{ id: "transition-test", amountMillions: -1, timing: { kind: "immediate" }, sourceKey: "source-test" }],
+    exclusiveScopeKeys: ["scope-test"],
+  } satisfies BudgetProfile;
   const state = { schemaVersion: 4, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
   const indicatorEffect = {
     id: "effect-test",
@@ -51,8 +57,9 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     timing: { kind: "mandate_year", year: 3 },
   } satisfies EffectRule;
   assert.equal(SCHEMA_VERSION, 4);
-  assert.equal(decision.options[0]?.id, "maintenir");
+  assert.equal(decision.options[0]?.id, "keep");
   assert.equal(state.schemaVersion, 4);
   assert.equal(indicatorEffect.key, "growth");
   assert.equal(mandateYearEffect.timing.year, 3);
+  assert.equal(annualProfile.transitionFlows[0].amountMillions, -1);
 });

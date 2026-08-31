@@ -40,10 +40,37 @@ test("un scénario valide contient chaque décision une seule fois", () => {
   assert.deepEqual(validateScenario(validScenario()), []);
 });
 
-test("la validation impose timing budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {
+test("V10 refuse un chiffrage non enregistré et une collision de périmètre", () => {
   const scenario = validScenario();
+  scenario.version = 10;
+  for (const decision of scenario.decisions) {
+    decision.options[0]!.id = `${decision.id}:adopt`;
+    decision.options[1]!.id = `${decision.id}:keep`;
+  }
+  for (const decision of scenario.decisions.slice(0, 2)) {
+    const option = decision.options[0]!;
+    option.budgetProfile = {
+      estimateKey: "unsourced",
+      runRateMillions: 1,
+      runRateTiming: { kind: "immediate" },
+      transitionFlows: [],
+      exclusiveScopeKeys: ["shared-scope"],
+    };
+    option.effects.push({
+      id: `${option.id}:annual`, target: "indicator", key: "annualBalance", delta: 1,
+      timing: { kind: "immediate" }, duration: "annual", explanation: "Flux de test.",
+    });
+  }
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("option:decision-1:adopt:unregistered-budget-estimate"));
+  assert.ok(errors.includes("scenario:exclusive-scope-collision:shared-scope"));
+});
+
+test("la validation impose un profil budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {
+  const scenario = validScenario();
+  scenario.version = 10;
   const option = scenario.decisions[0]!.options[0]! as unknown as Record<string, unknown>;
-  option.budgetTiming = { kind: "after_decisions", count: 2 };
   option.legalConstraints = ["Voter la loi", " Voter la loi ", "   "];
   option.beneficiaries = ["ménages", " ménages "];
   option.contributors = ["   "];
@@ -63,8 +90,7 @@ test("la validation impose timing budgétaire, listes nettoyées et contrat budg
   assert.ok(errors.includes("option:decision-1-option-a:blank-legal-constraint"));
   assert.ok(errors.includes("option:decision-1-option-a:duplicate-beneficiary:ménages"));
   assert.ok(errors.includes("option:decision-1-option-a:blank-contributor"));
-  assert.ok(errors.includes("option:decision-1-option-a:budget-timing-mismatch"));
-  assert.ok(errors.includes("option:decision-1-option-a:budget-duration-mismatch"));
+  assert.ok(errors.includes("option:decision-1-option-a:transition-flow-effect-mismatch"));
 });
 
 test("la validation refuse une année d'effet antérieure au chapitre de la décision", () => {
@@ -117,12 +143,11 @@ test("la validation refuse une année de mandat sans checkpoint dans la topologi
   };
   const option = scenario.decisions[0]!.options[0]!;
   option.horizon = { kind: "mandate_year", year: 3 };
-  option.budgetTiming = { kind: "mandate_year", year: 3 };
+  option.budgetProfile = { estimateKey: "test", runRateMillions: 1, runRateTiming: { kind: "mandate_year", year: 3 }, transitionFlows: [], exclusiveScopeKeys: [] };
   option.effects[0]!.timing = { kind: "mandate_year", year: 3 };
 
   const errors = validateScenario(scenario);
   assert.ok(errors.includes(`option:${option.id}:horizon-year-without-checkpoint`));
-  assert.ok(errors.includes(`option:${option.id}:budget-timing-year-without-checkpoint`));
   assert.ok(errors.includes(`effect:${option.effects[0]!.id}:timing-year-without-checkpoint`));
 });
 
@@ -141,13 +166,12 @@ test("la validation refuse un chapitre au-delà du calendrier du mandat", () => 
   });
   const option = decision.options[0]!;
   option.horizon = { kind: "mandate_year", year: 5 };
-  option.budgetTiming = { kind: "mandate_year", year: 5 };
+  option.budgetProfile = { estimateKey: "test", runRateMillions: 1, runRateTiming: { kind: "mandate_year", year: 5 }, transitionFlows: [], exclusiveScopeKeys: [] };
   option.effects[0]!.timing = { kind: "mandate_year", year: 5 };
 
   const errors = validateScenario(scenario);
   assert.ok(errors.includes("scenario:chapters-exceed-mandate-calendar"));
   assert.ok(errors.includes(`option:${option.id}:horizon-before-decision`));
-  assert.ok(errors.includes(`option:${option.id}:budget-timing-before-decision`));
   assert.ok(errors.includes(`effect:${option.effects[0]!.id}:timing-before-decision`));
 });
 
@@ -411,12 +435,19 @@ test("un état V3 refuse les listes d'identifiants dupliquées ou inconnues", ()
   assert.equal(isCampaignState(confirmedUnlockedState, scenario), false);
 });
 
-test("la validation refuse une durée budgétaire ponctuelle sans effet de solde", () => {
+test("la validation refuse un flux de transition sans effet de solde", () => {
   const scenario = validScenario();
+  scenario.version = 10;
   const option = scenario.decisions[0]!.options[0]!;
-  option.budgetDuration = "once";
+  option.budgetProfile = {
+    estimateKey: "test",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [{ id: "transition", amountMillions: -1, timing: { kind: "immediate" }, sourceKey: "test" }],
+    exclusiveScopeKeys: [],
+  };
 
-  assert.ok(validateScenario(scenario).includes(`option:${option.id}:once-budget-effect-required`));
+  assert.ok(validateScenario(scenario).includes(`option:${option.id}:transition-flow-effect-mismatch`));
 });
 
 test("un état V3 refuse une règle d'effet incomplète", () => {

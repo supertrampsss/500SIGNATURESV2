@@ -63,6 +63,43 @@ export type EffectTiming =
   | { kind: "after_decisions"; count: number }
   | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
 
+/** A dated, one-off budget flow. It is distinct from an annual run rate. */
+export type BudgetTransitionFlow = {
+  id: string;
+  amountMillions: number;
+  timing: EffectTiming;
+  sourceKey: string;
+};
+
+export type RunRateTiming =
+  | { kind: "immediate" }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
+
+export type BudgetProfile = {
+  estimateKey: string | null;
+  runRateMillions: number;
+  runRateTiming: RunRateTiming | null;
+  transitionFlows: BudgetTransitionFlow[];
+  exclusiveScopeKeys: string[];
+};
+
+export type BudgetEstimate = {
+  key: string;
+  baseYear: number;
+  baseAmountMillions: number;
+  baseNature: "realise" | "prevision" | "objectif" | "notifie" | "recouvre";
+  scope: string;
+  grossActionMillions: number;
+  behavioralOffsetMillions: number;
+  recurringOperatingCostMillions: number;
+  runRateMillions: number;
+  transitionFlows: BudgetTransitionFlow[];
+  sourceKeys: readonly string[];
+  estimateStatus: "observe" | "ex_ante" | "scenario";
+  uncertainty: Uncertainty;
+  exclusiveScopeKeys: readonly string[];
+};
+
 type EffectRuleBase = {
   id: string;
   delta: number;
@@ -103,8 +140,7 @@ export type DecisionOption = {
   mechanism: string;
   horizon: PolicyHorizon;
   legalConstraints: string[];
-  budgetDuration: "annual" | "once";
-  budgetTiming: EffectTiming;
+  budgetProfile: BudgetProfile;
   beneficiaries: string[];
   contributors: string[];
   uncertainty: Uncertainty;

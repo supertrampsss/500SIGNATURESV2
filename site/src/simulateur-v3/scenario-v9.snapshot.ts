@@ -10,6 +10,7 @@ function deepFreeze<T>(value: T, seen = new WeakSet<object>()): T {
   return value;
 }
 
+// Historical JSON remains byte-for-byte unchanged; this is the only V9 type bridge.
 export const SCENARIO_V9_SNAPSHOT: Scenario = deepFreeze(
 {
   "version": 9,
@@ -12373,5 +12374,5 @@ export const SCENARIO_V9_SNAPSHOT: Scenario = deepFreeze(
       "conflicts": []
     }
   ]
-}
+} as unknown as Scenario
 );

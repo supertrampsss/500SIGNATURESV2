@@ -18,13 +18,13 @@ const VALID: PolicyDecisionDefinition = {
   evidenceLabel: "Une publication identifiable.",
   options: [
     {
-      id: "yes", label: "Décider", summary: "Le choix produit un effet.", mechanism: "Voter un crédit.",
-      horizon: { kind: "immediate" }, legalConstraints: ["Voter la loi."], budgetDelta: 1, budgetDuration: "annual", budgetTiming: { kind: "immediate" },
+      id: "adopt", label: "Décider", summary: "Le choix produit un effet.", mechanism: "Voter un crédit.",
+      horizon: { kind: "immediate" }, legalConstraints: ["Voter la loi."], budgetProfile: { estimateKey: "test-estimate", runRateMillions: 1, runRateTiming: { kind: "immediate" }, transitionFlows: [], exclusiveScopeKeys: [] },
       beneficiaries: ["A"], contributors: ["B"], indicatorEffects: { investment: 2 }, groupEffects: { businesses: 1 },
     },
     {
-      id: "no", label: "Refuser", summary: "Le choix conserve le dispositif.", mechanism: "Maintenir le crédit actuel.",
-      horizon: { kind: "after_decisions", count: 1 }, legalConstraints: [], budgetDelta: 0, budgetDuration: "annual", budgetTiming: { kind: "immediate" },
+      id: "keep", label: "Refuser", summary: "Le choix conserve le dispositif.", mechanism: "Maintenir le crédit actuel.",
+      horizon: { kind: "after_decisions", count: 1 }, legalConstraints: [], budgetProfile: { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] },
       beneficiaries: ["B"], contributors: ["A"], indicatorEffects: { investment: -1 }, groupEffects: { businesses: -1 },
     },
   ],
@@ -46,42 +46,23 @@ test("un horizon relatif diffère les conséquences de capacité, pas l'ouvertur
       : effect.timing.kind === "after_decisions" && effect.timing.count === 1));
 });
 
-test("le timing budgétaire est explicite et indépendant de l'horizon principal", () => {
+test("le profil budgétaire porte le rythme annuel indépendamment de l'horizon principal", () => {
   const definition = structuredClone(VALID);
   definition.options[0]!.horizon = { kind: "immediate" };
-  definition.options[0]!.budgetTiming = { kind: "after_decisions", count: 2 };
+  definition.options[0]!.budgetProfile.runRateTiming = { kind: "mandate_year", year: 2 };
   const option = policyDecision(definition).options[0]!;
   const budget = option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")!;
 
-  assert.deepEqual(option.budgetTiming, { kind: "after_decisions", count: 2 });
-  assert.deepEqual(budget.timing, { kind: "after_decisions", count: 2 });
-  assert.equal(budget.duration, option.budgetDuration);
+  assert.deepEqual(option.budgetProfile.runRateTiming, { kind: "mandate_year", year: 2 });
+  assert.deepEqual(budget.timing, { kind: "mandate_year", year: 2 });
+  assert.equal(budget.duration, "annual");
 });
 
-test("les rythmes budgétaires revus portent leur échéance normative", () => {
-  const expected = new Map<string, DecisionOption["budgetTiming"]>([
-    ["durcir-l-assurance-chomage-degressivite-duree", { kind: "mandate_year", year: 2 }],
-    ["retablir-la-semaine-de-39-heures", { kind: "mandate_year", year: 2 }],
-    ["allocation-sociale-unique", { kind: "mandate_year", year: 3 }],
-    ["repousser-l-age-legal-a-65-ans", { kind: "mandate_year", year: 5 }],
-    ["revenir-a-62-ans", { kind: "mandate_year", year: 5 }],
-    ["assurance-maladie-publique-unique", { kind: "mandate_year", year: 4 }],
-    ["fusionner-agences-sanitaires-et-echelons-des-ars", { kind: "mandate_year", year: 3 }],
-    ["supprimer-le-financement-public-du-prive", { kind: "after_decisions", count: 2 }],
-    ["regle-d-or-constitutionnelle", { kind: "after_decisions", count: 3 }],
-    ["ne-pas-remplacer-un-depart-administratif-sur", { kind: "after_decisions", count: 3 }],
-    ["fermer-un-tiers-des-agences-et-operateurs", { kind: "after_decisions", count: 2 }],
-    ["diviser-par-deux-le-nombre-de-parlementaires", { kind: "mandate_year", year: 5 }],
-    ["supprimer-le-cese", { kind: "mandate_year", year: 5 }],
-    ["supprimer-le-senat", { kind: "mandate_year", year: 5 }],
-    ["supprimer-les-departements", { kind: "after_decisions", count: 3 }],
-    ["revaloriser-les-enseignants-de-5", { kind: "immediate" }],
-  ]);
-  for (const [decisionId, timing] of expected) {
-    const option = policyById(decisionId)!.options.find((candidate) => candidate.id.endsWith(":adopt"))!;
-    const budget = option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")!;
-    assert.deepEqual(option.budgetTiming, timing, decisionId);
-    assert.deepEqual(budget.timing, timing, decisionId);
+test("chaque option publique expose un profil budgétaire", () => {
+  for (const option of SCENARIO_V3_CATALOGUE.decisions.flatMap((decision) => decision.options)) {
+    assert.ok(option.budgetProfile, option.id);
+    assert.equal("budgetDuration" in option, false, option.id);
+    assert.equal("budgetTiming" in option, false, option.id);
   }
 });
 
@@ -125,15 +106,15 @@ test("le catalogue expose 193 options au contrat causal explicite", () => {
         || (option.horizon.kind === "mandate_year" && option.horizon.year >= 1 && option.horizon.year <= 5), `${option.id}:horizon`);
       assert.ok(Array.isArray(option.legalConstraints), `${option.id}:legalConstraints`);
       assert.ok(option.effects.some((effect) => effect.target === "indicator" && effect.key !== "annualBalance"), `${option.id}:non-budget-indicator`);
-      assert.ok(option.budgetTiming, `${option.id}:budgetTiming`);
+      assert.ok(option.budgetProfile, `${option.id}:budgetProfile`);
       assert.ok(option.beneficiaries.length > 0 && option.beneficiaries.every((item) => item.trim()), `${option.id}:beneficiaries`);
       assert.ok(option.contributors.length > 0 && option.contributors.every((item) => item.trim()), `${option.id}:contributors`);
       assert.ok(!option.beneficiaries.includes("continuité du dispositif"), `${option.id}:generic-beneficiary`);
       assert.ok(!option.contributors.includes("marges de réforme non mobilisées"), `${option.id}:generic-contributor`);
       const budget = option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance");
-      if (budget) {
-        assert.deepEqual(budget.timing, option.budgetTiming, `${option.id}:budgetTiming`);
-        assert.equal(budget.duration, option.budgetDuration, `${option.id}:budgetDuration`);
+      if (option.budgetProfile.runRateMillions !== 0) {
+        assert.equal(budget?.delta, option.budgetProfile.runRateMillions, `${option.id}:run-rate`);
+        assert.equal(budget?.duration, "annual", `${option.id}:run-rate-duration`);
       }
       assert.ok(option.effects.every((effect) => !effect.id.includes(HISTORICAL_EFFECT_MARKER)), `${option.id}:historical-marker`);
     }
@@ -184,33 +165,6 @@ test("la distance normalise l'ordre et les doublons des listes de contrats", () 
   reordered.fulfillsPromises = [" promise-a ", "promise-b", "promise-a"];
 
   assert.deepEqual(optionDistanceDimensions(base, reordered), []);
-});
-
-test("les flux ponctuels déclarés compilent avec duration once", () => {
-  const expected = new Map([
-    ["sortir-de-l-euro:adopt", -35_000],
-    ["referendum-sur-la-sortie-de-l-ue:adopt", -500],
-    ["nationaliser-les-entreprises-strategiques:adopt", -25_000],
-    ["nationaliser-les-autoroutes:adopt", -18_000],
-    ["ceder-des-participations-non-strategiques-de-l:adopt", 2_000],
-  ]);
-  for (const [optionId, delta] of expected) {
-    const option = SCENARIO_V3_CATALOGUE.decisions.flatMap((decision) => decision.options).find((candidate) => candidate.id === optionId)!;
-    const budget = option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")!;
-    assert.equal(budget.delta, delta, optionId);
-    assert.equal(budget.duration, "once", optionId);
-  }
-  const declaredOnce = SCENARIO_V3_CATALOGUE.decisions.flatMap((decision) => decision.options)
-    .filter((option) => option.budgetDuration === "once")
-    .map((option) => option.id)
-    .sort();
-  assert.deepEqual(declaredOnce, [...expected.keys()].sort());
-  for (const optionId of declaredOnce) {
-    const option = SCENARIO_V3_CATALOGUE.decisions.flatMap((decision) => decision.options)
-      .find((candidate) => candidate.id === optionId)!;
-    assert.ok(option.effects.some((effect) =>
-      effect.target === "indicator" && effect.key === "annualBalance" && effect.duration === "once"), optionId);
-  }
 });
 
 test("la sortie de l'euro conserve le coût d'intérêt annuel séparé", () => {

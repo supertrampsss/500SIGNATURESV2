@@ -4,6 +4,7 @@ import { INDICATOR_META } from "./indicator-meta.ts";
 import { policyConsequence, type ExplicitEffect } from "./policy-consequences.ts";
 import { policyEvidence, type PolicySourceKey } from "./policy-sources.ts";
 import type {
+  BudgetProfile,
   Decision,
   DecisionKind,
   DecisionOption,
@@ -23,9 +24,7 @@ export type PolicyOptionDefinition = {
   mechanism: string;
   horizon: PolicyHorizon;
   legalConstraints: string[];
-  budgetDelta: number;
-  budgetDuration: "annual" | "once";
-  budgetTiming: EffectRule["timing"];
+  budgetProfile: BudgetProfile;
   beneficiaries: string[];
   contributors: string[];
   uncertainty?: Uncertainty;
@@ -53,12 +52,11 @@ export type PolicyDecisionDefinition = {
 };
 
 /** Catalogue inventory only; causal fields live exclusively in policy-consequences.ts. */
-type PolicyOptionDraft = Omit<PolicyOptionDefinition,
+type LegacyPolicyOptionDraft = Omit<PolicyOptionDefinition,
   | "mechanism"
   | "horizon"
   | "legalConstraints"
-  | "budgetDuration"
-  | "budgetTiming"
+  | "budgetProfile"
   | "indicatorEffects"
   | "groupEffects"
   | "locks"
@@ -66,9 +64,12 @@ type PolicyOptionDraft = Omit<PolicyOptionDefinition,
   | "scheduledEvents"
   | "promises"
   | "fulfillsPromises"
->;
+> & {
+  /** V9-only adapter input. It is never exposed on a public option or V10 estimate. */
+  budgetDelta: number;
+};
 
-type PolicyDecisionDraft = Omit<PolicyDecisionDefinition, "options"> & { options: PolicyOptionDraft[] };
+type LegacyPolicyDecisionDraft = Omit<PolicyDecisionDefinition, "options"> & { options: LegacyPolicyOptionDraft[] };
 
 export type ExistingPolicyCopy = {
   id: string;
@@ -216,19 +217,36 @@ function consequenceTiming(horizon: PolicyHorizon): EffectRule["timing"] {
 }
 
 function compiledOption(decisionId: string, definition: PolicyOptionDefinition): DecisionOption {
+  const isLegacyOption = definition.budgetProfile.estimateKey?.startsWith("legacy:") ?? false;
+  if (definition.id !== "adopt" && definition.id !== "keep" && !isLegacyOption) {
+    throw new Error(`Identifiant local invalide : ${decisionId}:${definition.id}`);
+  }
   if (!definition.mechanism.trim()) throw new Error(`Mécanisme absent : ${decisionId}:${definition.id}`);
   if (!validHorizon(definition.horizon)) throw new Error(`Horizon invalide : ${decisionId}:${definition.id}`);
   if (!Array.isArray(definition.legalConstraints)) throw new Error(`Contraintes absentes : ${decisionId}:${definition.id}`);
+  if (definition.budgetProfile.runRateMillions !== 0 && definition.budgetProfile.runRateTiming === null) {
+    throw new Error(`Calendrier budgétaire absent : ${decisionId}:${definition.id}`);
+  }
   const mechanism = clean(definition.mechanism);
   const effects: EffectRule[] = [];
-  if (definition.budgetDelta !== 0) {
+  if (definition.budgetProfile.runRateMillions !== 0) {
     effects.push(effect(
       `${decisionId}:${definition.id}:indicator:annualBalance`,
       "indicator",
       "annualBalance",
-      { delta: definition.budgetDelta, duration: definition.budgetDuration },
-      `${mechanism} Impact budgétaire retenu par le jeu : ${definition.budgetDelta} millions d'euros.`,
-      definition.budgetTiming,
+      { delta: definition.budgetProfile.runRateMillions, duration: "annual" },
+      `${mechanism} Impact budgétaire retenu par le jeu : ${definition.budgetProfile.runRateMillions} millions d'euros.`,
+      definition.budgetProfile.runRateTiming!,
+    ));
+  }
+  for (const flow of definition.budgetProfile.transitionFlows) {
+    effects.push(effect(
+      `${decisionId}:${definition.id}:transition:${flow.id}`,
+      "indicator",
+      "annualBalance",
+      { delta: flow.amountMillions, duration: "once" },
+      `${mechanism} Flux ponctuel sourcé : ${flow.amountMillions} millions d'euros.`,
+      flow.timing,
     ));
   }
   for (const [key, value] of Object.entries(definition.indicatorEffects)) {
@@ -261,8 +279,7 @@ function compiledOption(decisionId: string, definition: PolicyOptionDefinition):
     mechanism,
     horizon: definition.horizon,
     legalConstraints: definition.legalConstraints.map(clean),
-    budgetDuration: definition.budgetDuration,
-    budgetTiming: definition.budgetTiming,
+    budgetProfile: definition.budgetProfile,
     beneficiaries: definition.beneficiaries.map(clean),
     contributors: definition.contributors.map(clean),
     uncertainty: definition.uncertainty ?? "moyenne",
@@ -275,9 +292,35 @@ function compiledOption(decisionId: string, definition: PolicyOptionDefinition):
   };
 }
 
+/**
+ * Transitional V9-only bridge for policy literals that still carry a scalar
+ * amount. It is private, produces no registry entry, and is eliminated when
+ * Task 2 migrates those literals to explicit sourced profiles.
+ */
+function legacyBudgetProfile(
+  decisionId: string,
+  optionId: string,
+  budgetDelta: number,
+  horizon: PolicyHorizon,
+): BudgetProfile {
+  if (optionId === "keep") {
+    return { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] };
+  }
+  const runRateTiming = horizon.kind === "mandate_year"
+    ? { kind: "mandate_year" as const, year: horizon.year }
+    : { kind: "immediate" as const };
+  return {
+    estimateKey: `legacy:${decisionId}:${optionId}`,
+    runRateMillions: budgetDelta,
+    runRateTiming: budgetDelta === 0 ? null : runRateTiming,
+    transitionFlows: [],
+    exclusiveScopeKeys: [],
+  };
+}
+
 function consequenceOption(
   decisionId: string,
-  draft: PolicyOptionDraft,
+  draft: LegacyPolicyOptionDraft,
 ): PolicyOptionDefinition {
   const consequence = policyConsequence(decisionId, draft.id);
   return {
@@ -285,8 +328,7 @@ function consequenceOption(
     mechanism: consequence.mechanism,
     horizon: consequence.horizon,
     legalConstraints: consequence.legalConstraints,
-    budgetDuration: consequence.budgetDuration,
-    budgetTiming: consequence.budgetTiming,
+    budgetProfile: legacyBudgetProfile(decisionId, draft.id, draft.budgetDelta, consequence.horizon),
     indicatorEffects: consequence.indicatorEffects,
     groupEffects: consequence.groupEffects,
     uncertainty: consequence.uncertainty ?? draft.uncertainty,
@@ -367,7 +409,7 @@ export function existingPolicy(copy: ExistingPolicyCopy): PolicyDecisionDefiniti
   };
 }
 
-export function standalonePolicy(definition: PolicyDecisionDraft): PolicyDecisionDefinition {
+export function standalonePolicy(definition: LegacyPolicyDecisionDraft): PolicyDecisionDefinition {
   return {
     ...definition,
     dependencies: [],
@@ -462,8 +504,7 @@ export function optionDistanceDimensions(a: DecisionOption, b: DecisionOption): 
   const bBudget = aggregateEffects(b, "indicator", true).get("annualBalance") ?? 0;
   if (
     Math.abs(aBudget - bBudget) >= INDICATOR_META.annualBalance.epsilon
-    || a.budgetDuration !== b.budgetDuration
-    || !sameJson(a.budgetTiming, b.budgetTiming)
+    || !sameJson(a.budgetProfile, b.budgetProfile)
   ) dimensions.push("budget");
   if (effectProfilesDiffer(
     aggregateEffects(a, "indicator", false),
