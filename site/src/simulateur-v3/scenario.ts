@@ -6,7 +6,9 @@ import { SOVEREIGNTY_DECISIONS } from "./policies/sovereignty.ts";
 import { STATE_DECISIONS } from "./policies/state.ts";
 import { TAX_DECISIONS } from "./policies/taxes.ts";
 import { WORK_DECISIONS } from "./policies/work.ts";
-import type { Chapter, Scenario } from "./types.ts";
+import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
+import { registerPolicyCatalogue } from "./policy-catalogue.ts";
+import type { Chapter, Decision, Scenario } from "./types.ts";
 
 const CHAPTERS: Omit<Chapter, "decisionIds">[] = [
   {
@@ -70,7 +72,7 @@ const rawDecisions = [
   ...STATE_DECISIONS,
 ];
 const knownDecisionIds = new Set(rawDecisions.map((decision) => decision.id));
-const decisions = rawDecisions.map((decision) => {
+function normalizeDecisionReferences(decision: Decision): Decision {
   const conflicts = decision.conflicts.filter((id) => id !== decision.id && knownDecisionIds.has(id));
   return {
     ...decision,
@@ -82,14 +84,42 @@ const decisions = rawDecisions.map((decision) => {
       unlocks: option.unlocks.filter((id) => id !== decision.id && knownDecisionIds.has(id)),
     })),
   };
-});
+}
 
-export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 6,
-  title: "La France à l'épreuve des comptes",
-  chapters: CHAPTERS.map((chapter) => ({
-    ...chapter,
-    decisionIds: decisions.filter((decision) => decision.chapterId === chapter.id).map((decision) => decision.id),
+const catalogueDecisions = rawDecisions.map(normalizeDecisionReferences);
+const selected = new Set<string>(CAMPAIGN_DECISION_IDS);
+const campaignDecisions = catalogueDecisions.filter(({ id }) => selected.has(id)).map((decision) => ({
+  ...decision,
+  options: decision.options.map((option) => ({
+    ...option,
+    locks: option.locks.filter((id) => selected.has(id)),
+    unlocks: option.unlocks.filter((id) => selected.has(id)),
   })),
-  decisions,
-};
+}));
+
+function buildScenario(title: string, version: number, selectedDecisions: Decision[]): Scenario {
+  const selectedIds = new Set(selectedDecisions.map(({ id }) => id));
+  return {
+    version,
+    title,
+    chapters: CHAPTERS.map((chapter) => ({
+      ...chapter,
+      decisionIds: selectedDecisions
+        .filter((decision) => decision.chapterId === chapter.id)
+        .map((decision) => decision.id),
+    })),
+    decisions: selectedDecisions.map((decision) => ({
+      ...decision,
+      options: decision.options.map((option) => ({
+        ...option,
+        locks: option.locks.filter((id) => selectedIds.has(id)),
+        unlocks: option.unlocks.filter((id) => selectedIds.has(id)),
+      })),
+    })),
+  };
+}
+
+export const SCENARIO_V3_CATALOGUE = buildScenario("Bibliothèque des politiques", 7, catalogueDecisions);
+registerPolicyCatalogue(SCENARIO_V3_CATALOGUE.decisions);
+export const SCENARIO_V3 = buildScenario("La France à l'épreuve des comptes", 7, campaignDecisions);
+export const SCENARIO_V3_PREVIEW = SCENARIO_V3;

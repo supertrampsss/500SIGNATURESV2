@@ -1,24 +1,34 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { assertNoEmDash, validateScenario } from "./validation.ts";
 
-test("le scénario provisoire porte huit chapitres de douze décisions uniques", () => {
-  assert.equal(SCENARIO_V3_PREVIEW.chapters.length, 8);
-  assert.deepEqual(SCENARIO_V3_PREVIEW.chapters.map((chapter) => chapter.decisionIds.length), Array(8).fill(12));
-  assert.equal(SCENARIO_V3_PREVIEW.decisions.length, 96);
-  assert.equal(new Set(SCENARIO_V3_PREVIEW.decisions.map((decision) => decision.id)).size, 96);
+test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
+  assert.equal(SCENARIO_V3_CATALOGUE.decisions.length, 96);
+  assert.equal(SCENARIO_V3.decisions.length, 60);
+  assert.deepEqual(SCENARIO_V3.chapters.map((chapter) => chapter.decisionIds.length), [8, 8, 8, 8, 7, 7, 7, 7]);
+  assert.ok(SCENARIO_V3.decisions.every(({ id }) =>
+    SCENARIO_V3_CATALOGUE.decisions.some((candidate) => candidate.id === id),
+  ));
 });
 
-test("chaque chapitre contient quatre gestions, quatre transformations et quatre ruptures", () => {
-  for (const chapter of SCENARIO_V3_PREVIEW.chapters) {
-    const kinds = chapter.decisionIds.map((id) => SCENARIO_V3_PREVIEW.decisions.find((decision) => decision.id === id)!.kind);
-    assert.deepEqual({
-      gestion: kinds.filter((kind) => kind === "gestion").length,
-      transformation: kinds.filter((kind) => kind === "transformation").length,
-      rupture: kinds.filter((kind) => kind === "rupture").length,
-    }, { gestion: 4, transformation: 4, rupture: 4 }, chapter.title);
+test("chaque chapitre joué conserve les trois niveaux de choix", () => {
+  for (const chapter of SCENARIO_V3.chapters) {
+    const kinds = new Set(chapter.decisionIds.map((id) =>
+      SCENARIO_V3.decisions.find((decision) => decision.id === id)!.kind,
+    ));
+    assert.deepEqual(kinds, new Set(["gestion", "transformation", "rupture"]), chapter.title);
+  }
+});
+
+test("la campagne ne verrouille ou déverrouille que ses dossiers joués", () => {
+  const campaignIds = new Set(SCENARIO_V3.decisions.map(({ id }) => id));
+  for (const decision of SCENARIO_V3.decisions) {
+    for (const option of decision.options) {
+      assert.ok(option.locks.every((id) => campaignIds.has(id)), `${decision.id}:lock`);
+      assert.ok(option.unlocks.every((id) => campaignIds.has(id)), `${decision.id}:unlock`);
+    }
   }
 });
 
@@ -40,12 +50,12 @@ test("les conséquences structurantes ne sont pas décoratives", () => {
 });
 
 test("le scénario provisoire satisfait toutes les portes du moteur V3", () => {
-  assert.deepEqual(validateScenario(SCENARIO_V3_PREVIEW), []);
-  assert.deepEqual(assertNoEmDash(SCENARIO_V3_PREVIEW), []);
+  assert.deepEqual(validateScenario(SCENARIO_V3_CATALOGUE), []);
+  assert.deepEqual(assertNoEmDash(SCENARIO_V3_CATALOGUE), []);
 });
 
 test("les réactions des dossiers alimentent les indicateurs visibles du verdict", () => {
-  assert.equal(SCENARIO_V3_PREVIEW.version, 6);
+  assert.equal(SCENARIO_V3_PREVIEW.version, 7);
   const effects = SCENARIO_V3_PREVIEW.decisions.flatMap((decision) => (
     decision.options.flatMap((option) => option.effects)
   ));
@@ -83,14 +93,14 @@ test("le dossier nucléaire reprend les trois voies de la planche validée", () 
 });
 
 test("seule l'adoption d'une mesure ferme ses dossiers incompatibles", () => {
-  for (const decision of SCENARIO_V3_PREVIEW.decisions) {
+  for (const decision of SCENARIO_V3_CATALOGUE.decisions) {
     assert.deepEqual(new Set(decision.options[0]!.locks), new Set(decision.conflicts));
     assert.deepEqual(decision.options.at(-1)!.locks, []);
   }
 });
 
 test("adopter la flat tax rend sans objet les dossiers qui supposent encore le barème", () => {
-  const flatTax = SCENARIO_V3_PREVIEW.decisions.find((decision) => decision.id === "flat-tax-a-20-des-le-premier")!;
+  const flatTax = SCENARIO_V3_CATALOGUE.decisions.find((decision) => decision.id === "flat-tax-a-20-des-le-premier")!;
   assert.deepEqual(new Set(flatTax.options[0]!.locks), new Set([
     "flat-tax-a-20-avec-abattement-protegeant",
     "tranche-a-50-au-dela-de-250",

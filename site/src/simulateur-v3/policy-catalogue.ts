@@ -64,6 +64,11 @@ export type ExistingPolicyCopy = {
 };
 
 const MEASURES_BY_ID = new Map(MESURES.map((measure) => [measure.id, measure]));
+let registeredCatalogue: readonly Decision[] = [];
+
+export function registerPolicyCatalogue(decisions: readonly Decision[]): void {
+  registeredCatalogue = decisions;
+}
 
 function clean(value: string): string {
   return value.replaceAll("\u2014", ":").replace(/\s+/g, " ").trim();
@@ -215,6 +220,10 @@ export function existingPolicy(copy: ExistingPolicyCopy): PolicyDecisionDefiniti
 
 export function standalonePolicy(definition: PolicyDecisionDefinition): PolicyDecisionDefinition {
   return definition;
+}
+
+export function policyById(id: string): Decision | undefined {
+  return registeredCatalogue.find((decision) => decision.id === id);
 }
 
 export function delayedEvent(

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { policyDecision, type PolicyDecisionDefinition } from "./policy-catalogue.ts";
+import { policyById, policyDecision, type PolicyDecisionDefinition } from "./policy-catalogue.ts";
+import { SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 
 const VALID: PolicyDecisionDefinition = {
   id: "test-policy",
@@ -27,4 +28,9 @@ test("le compilateur résout une source directe sans fabriquer le texte visible"
 test("le compilateur refuse une copie ou une source manquante", () => {
   assert.throws(() => policyDecision({ ...VALID, context: "" }));
   assert.throws(() => policyDecision({ ...VALID, sourceKeys: [] }));
+});
+
+test("l'accessor retrouve une politique dans le catalogue complet", () => {
+  assert.equal(policyById(SCENARIO_V3_CATALOGUE.decisions[0]!.id)?.id, SCENARIO_V3_CATALOGUE.decisions[0]!.id);
+  assert.equal(policyById("missing-policy"), undefined);
 });
