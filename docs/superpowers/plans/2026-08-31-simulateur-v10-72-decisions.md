@@ -154,7 +154,7 @@ git commit -m "feat: add typed simulator budget registry"
 - Test: `site/src/simulateur-v3/causal-contract-source.test.ts`
 
 **Interfaces:**
-- Produces a 96-decision V10 catalogue whose every option has `budgetProfile`; every non-null, nonzero `adopt` estimate resolves in `BUDGET_ESTIMATES`, while neutral `adopt` options use the strict null profile.
+- Produces a 96-decision V10 catalogue whose every option has `budgetProfile`; every non-null, nonzero `adopt` estimate resolves in `BUDGET_ESTIMATES`, and the neutral prime-activity `adopt` resolves to `prime-activity-recycle-2024` while IR-CSG and unquantified direct subsidies use the strict null profile.
 - Consumes the Task 1 registry and returns only two options per decision.
 
 - [ ] **Step 1: Write red inventory tests.**
@@ -167,6 +167,7 @@ assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map(
 assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.label), ["Engager six EPR2", "Ne pas engager de nouvel EPR2"]);
 assert.equal(policyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
 assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "unifier-ir-csg-bareme-continu:adopt")!.budgetProfile.runRateMillions, 0);
+assert.equal(policyById("remplacer-prime-activite-prelevements-travail")!.options.find((option) => option.id === "remplacer-prime-activite-prelevements-travail:adopt")!.budgetProfile.estimateKey, "prime-activity-recycle-2024");
 assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
 assert.equal(STRUCTURAL_ADOPT_DECISION_IDS.reduce((sum, decisionId) => sum + policyById(decisionId)!.options.find((option) => option.id === `${decisionId}:adopt`)!.budgetProfile.runRateMillions, 0), 21_689);
 assert.deepEqual(findExclusiveScopeCollisions([
@@ -192,7 +193,7 @@ Define the two added promotions with IDs, source keys and scopes exactly as foll
 "relever-tva-restauration-commerciale": { estimateKey: "commercial-restaurant-vat-net", exclusiveScopeKeys: ["commercial-restaurant-vat-10"], sourceKeys: ["bofip-tva-restauration-2024", "evm-2026-tva-restauration"] },
 ```
 
-The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs and register each with its exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`; its `adopt` sum is exactly 21 689 M€. Keep `supprimer-subventions-directes-entreprises:adopt` selectable and published with the strict null profile (`estimateKey: null`, `exclusiveScopeKeys: []`); it claims no scope while the gain is null. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
+The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Export the ordered `STRUCTURAL_ADOPT_DECISION_IDS` list of the 18 audited IDs and register each with its exact base, gross, behavior, operating-cost, timing and transition values from `2026-08-31-v10-budget-estimates-audit.md`; its `adopt` sum is exactly 21 689 M€. Set `remplacer-prime-activite-prelevements-travail:adopt` to `estimateKey: "prime-activity-recycle-2024"`, `runRateMillions: 0`, `runRateTiming: null`, `transitionFlows: []`, `exclusiveScopeKeys: []` and the audited 10 300/10 300 reconciliation. Keep `unifier-ir-csg-bareme-continu:adopt` and `supprimer-subventions-directes-entreprises:adopt` selectable with the strict null profile (`estimateKey: null`, `exclusiveScopeKeys: []`); they claim no scope while their gain is null. Give every `keep` option the strict null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
 
 - [ ] **Step 4: Run catalogue and source tests.**
 

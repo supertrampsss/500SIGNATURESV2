@@ -92,7 +92,7 @@ Les taux exacts ne sont pas figés par cette spécification. Ils doivent être c
 
 ### 4.2 Travail et prime d'activité
 
-La prime d'activité est supprimée progressivement en tant que chèque séparé. Son enveloppe est entièrement réemployée pour diminuer les prélèvements sur les premiers revenus du travail et améliorer le salaire net sur la fiche de paie. Cette transformation est neutre pour le solde : les 10,3 milliards d'euros versés en 2024 ne sont pas comptés comme économie.
+La prime d'activité est supprimée progressivement en tant que chèque séparé. Son enveloppe est entièrement réemployée pour diminuer les prélèvements sur les premiers revenus du travail et améliorer le salaire net sur la fiche de paie. Cette transformation est neutre pour le solde : les 10,3 milliards d'euros versés en 2024 ne sont pas comptés comme économie. Son option `adopt` conserve toutefois `estimateKey: "prime-activity-recycle-2024"` afin de rattacher au registre la réconciliation 10 300 M€ supprimés et 10 300 M€ réemployés ; son flux reste nul.
 
 Le salarié continue de payer le prélèvement personnel positif prévu dès le premier euro. Le gain vient de la diminution parallèle d'autres prélèvements sur le travail, pas d'un versement de l'État. Le travail supplémentaire doit toujours augmenter le revenu disponible.
 
@@ -150,7 +150,7 @@ Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossie
 | 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 1 200 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
 | 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (gain bloqué) | sans effet budgétaire | aucune ; aucun périmètre revendiqué tant que le profil reste nul | `hcsp-aides-entreprises-2025` |
 | 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 3 799 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
-| 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
+| 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire ; `estimateKey: prime-activity-recycle-2024` | aucune | `cnaf-prime-activite-2024` |
 | 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 300 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
 | 2 | `reduire-arrets-evitables-prescription` | `health-social-protection` | `adopt` | 103 | année 3 | `health-sick-leave-selected` | `ccss-ondam-2025` |
 | 3 | `recouvrer-fraude-sociale-additionnelle` | `health-social-protection` | `adopt` | 85 | année 3 | `social-fraud-additional-recovery` | `urssaf-fraude-2024`, `cnaf-fraude-2024` |
@@ -431,7 +431,7 @@ type BudgetProfile = {
 };
 ```
 
-Une option peut déclarer au plus un flux annuel et plusieurs flux ponctuels. `estimateKey` est obligatoire et typé sur le registre lorsque `runRateMillions` est non nul ou lorsque `transitionFlows` n'est pas vide. `runRateTiming` est obligatoire pour un flux annuel non nul et vaut `null` dans un profil entièrement nul. La jointure du registre est `decisionId:optionId:estimateKey`.
+Une option peut déclarer au plus un flux annuel et plusieurs flux ponctuels. `estimateKey` est obligatoire et typé sur le registre lorsque `runRateMillions` est non nul ou lorsque `transitionFlows` n'est pas vide. L'exception nominale est `remplacer-prime-activite-prelevements-travail:adopt`, qui conserve `estimateKey: "prime-activity-recycle-2024"` avec `runRateMillions: 0`, `runRateTiming: null`, aucun flux ponctuel et aucune clé de périmètre, afin de rendre auditables les 10 300 M€ supprimés puis réemployés. `runRateTiming` est obligatoire pour un flux annuel non nul et vaut `null` dans un profil sans flux. La jointure du registre est `decisionId:optionId:estimateKey`.
 
 Un flux ponctuel possède un identifiant causal unique dans tout le scénario, ne peut précéder la décision et ne peut dépasser le checkpoint final dérivé de `campaignLength`. Une option à flux annuel nul peut porter un coût de transition, à condition de le sourcer. Il n'existe aucun prorata infra-annuel : un flux récurrent prend son effet plein au checkpoint déclaré.
 
