@@ -402,7 +402,7 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
           ${isV10 ? "" : `<span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>`}
         </span>
       </button>
-      ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog">Détails</button>` : ""}
+      ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog"><span>Voir le détail</span><span aria-hidden="true">›</span></button>` : ""}
     </article>`;
 }
 
@@ -425,19 +425,25 @@ function renderOptionDetails(details: NonNullable<DecisionOption["displayCopy"]>
   return content;
 }
 
-function renderDetailPanel(option: DecisionOption): string {
+function renderDetailPanel(decision: Decision, option: DecisionOption): string {
   const copy = option.displayCopy;
   if (!copy) return "";
-  return `<div class="simulateur-v3__detail-layer">
-    <aside class="simulateur-v3__detail-panel" data-v3-detail-panel="${escapeHtml(option.id)}" role="dialog" aria-labelledby="v3-detail-title-${escapeHtml(option.id)}" tabindex="-1">
+  return `<div class="simulateur-v3__detail-layer" data-v3-action="close-details">
+    <aside class="simulateur-v3__detail-panel" data-v3-action="keep-details-open" data-v3-detail-panel="${escapeHtml(option.id)}" role="dialog" aria-modal="true" aria-labelledby="v3-detail-title-${escapeHtml(option.id)}" tabindex="-1">
       <header class="simulateur-v3__detail-panel-header">
         <p>Choix en détail</p>
-        <button type="button" class="simulateur-v3__detail-close" data-v3-action="close-details" aria-label="Fermer les détails">Fermer</button>
+        <button type="button" class="simulateur-v3__detail-close" data-v3-action="close-details" aria-label="Fermer les détails">×</button>
       </header>
       <div class="simulateur-v3__detail-panel-body">
-        <h2 id="v3-detail-title-${escapeHtml(option.id)}">${escapeHtml(copy.shortLabel)}</h2>
+        <div class="simulateur-v3__detail-title">
+          <h2 id="v3-detail-title-${escapeHtml(option.id)}">${escapeHtml(copy.shortLabel)}</h2>
+          <strong>${escapeHtml(budgetProfileLabel(option))}</strong>
+        </div>
         ${renderOptionDetails(copy.details)}
       </div>
+      <footer class="simulateur-v3__detail-actions">
+        <button type="button" class="simulateur-v3__primary" data-v3-action="select" data-decision-id="${escapeHtml(decision.id)}" data-option-id="${escapeHtml(option.id)}">Choisir cette option</button>
+      </footer>
     </aside>
   </div>`;
 }
@@ -496,7 +502,7 @@ function renderDecision(state: CampaignState, scenario: Scenario, options: Rende
           </div>
         </article>
       </div>
-      ${detailOption ? renderDetailPanel(detailOption) : ""}
+      ${detailOption ? renderDetailPanel(decision, detailOption) : ""}
     </main>`;
 }
 
@@ -864,10 +870,49 @@ function renderDelayedEvent(state: CampaignState, scenario: Scenario): string {
     </main>`;
 }
 
+function selectedCrisisOption(state: CampaignState, scenario: Scenario, decisionId: string): DecisionOption | undefined {
+  const record = state.decisions.find((candidate) => candidate.decisionId === decisionId);
+  return scenario.decisions.find((decision) => decision.id === decisionId)
+    ?.options.find((option) => option.id === record?.optionId);
+}
+
+function crisisBudget(value: number, prefix = ""): string {
+  const label = value === 0 ? "Solde public inchangé" : `${formatV3Amount(value)} par an`;
+  const signal = value === 0 ? "neutral" : value > 0 ? "positive" : "negative";
+  return `<strong class="simulateur-v3__crisis-budget simulateur-v3__crisis-budget--${signal}">${escapeHtml(prefix)}${escapeHtml(label)}</strong>`;
+}
+
+function optionAnnualBalance(option: DecisionOption, scenario: Scenario): number {
+  return scenario.version >= 10
+    ? option.budgetProfile.runRateMillions
+    : annualBalanceEffect(option)?.delta ?? 0;
+}
+
+function preservedCrisisBalance(state: CampaignState, scenario: Scenario): number {
+  return state.activeCrisis?.aggravatingChoices.reduce((sum, choice) => {
+    const option = selectedCrisisOption(state, scenario, choice.decisionId);
+    return sum + (option ? optionAnnualBalance(option, scenario) : 0);
+  }, 0) ?? 0;
+}
+
+function concessionBalance(state: CampaignState, scenario: Scenario, concession: ReturnType<typeof availableConcessions>[number]): number {
+  const explicit = concession.effects
+    .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance")
+    .reduce((sum, effect) => sum + effect.delta, 0);
+  if (concession.policyChange !== "reverse") return explicit;
+  const option = selectedCrisisOption(state, scenario, concession.targetDecisionId);
+  return explicit - (option ? optionAnnualBalance(option, scenario) : 0);
+}
+
+function firstPoliticalExplanation(effects: readonly EffectRule[], fallback: string): string {
+  return effects.find((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))?.explanation
+    ?? effects[0]?.explanation
+    ?? fallback;
+}
+
 function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly CrisisRule[]): string {
   const rule = rules.find((candidate) => candidate.id === state.activeCrisis?.ruleId);
   if (!rule || !state.activeCrisis) return renderUnavailable("Cette crise n'est plus disponible.");
-  const trigger = scenario.decisions.find((decision) => decision.id === state.activeCrisis?.triggeredByDecisionId);
   // Une crise reste un arbitrage binaire à l'écran : tenir ou céder sur le
   // premier compromis encore applicable. Les règles peuvent conserver des
   // concessions de repli pour d'autres combinaisons de décisions, sans
@@ -879,16 +924,18 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
         <header class="simulateur-v3__scene-header">
           <p class="simulateur-v3__eyebrow">Conseil de crise</p>
           <h1>${escapeHtml(rule.title)}</h1>
-          <p class="simulateur-v3__lead">${escapeHtml(rule.body)}</p>
         </header>
         <div class="simulateur-v3__scene-body">
-          <p class="simulateur-v3__crisis-cause"><strong>Décision déclencheuse</strong>${escapeHtml(trigger?.title ?? state.activeCrisis.triggeredByDecisionId)}</p>
+          <p class="simulateur-v3__crisis-cause"><strong>Pourquoi maintenant ?</strong>${escapeHtml(rule.body)}</p>
+          <p class="simulateur-v3__crisis-prompt">Décidez</p>
           <div class="simulateur-v3__crisis-options">
           <button type="button" class="simulateur-v3__crisis-option" data-v3-action="resolve-crisis" data-resolution-id="hold-course">
-            <span>Maintenir le cap</span><small>La réforme reste en vigueur.</small>
+            <span class="simulateur-v3__crisis-option-head"><b>Maintenir les réformes</b>${crisisBudget(preservedCrisisBalance(state, scenario), "Mesures conservées : ")}</span>
+            <span class="simulateur-v3__crisis-impact"><small><strong>Maintenant :</strong> ${escapeHtml(firstPoliticalExplanation(rule.holdCourseEffects, "La contestation continue."))}</small><small><strong>Décision :</strong> les mesures contestées restent en vigueur.</small></span>
           </button>
           ${concessions.map((concession) => `<button type="button" class="simulateur-v3__crisis-option simulateur-v3__crisis-option--concession" data-v3-action="resolve-crisis" data-resolution-id="${escapeHtml(concession.id)}">
-            <span>${escapeHtml(concession.label)}</span><small>${concession.policyChange === "suspend" ? "La réforme sera suspendue." : concession.policyChange === "amend" ? "La réforme sera amendée." : "La réforme sera renversée."}</small>
+            <span class="simulateur-v3__crisis-option-head"><b>${escapeHtml(concession.label)}</b>${crisisBudget(concessionBalance(state, scenario, concession))}</span>
+            <span class="simulateur-v3__crisis-impact"><small><strong>Maintenant :</strong> ${escapeHtml(firstPoliticalExplanation(concession.effects, "Le compromis réduit la tension."))}</small><small><strong>Ce que vous cédez :</strong> ${escapeHtml(selectedCrisisOption(state, scenario, concession.targetDecisionId)?.displayCopy?.shortLabel ?? selectedCrisisOption(state, scenario, concession.targetDecisionId)?.label ?? "la mesure contestée")}.</small></span>
           </button>`).join("")}
           </div>
         </div>

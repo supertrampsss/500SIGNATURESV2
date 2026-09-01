@@ -94,13 +94,18 @@ test("les détails IR-CSG sont lisibles avant le choix sans sélectionner une op
   assert.match(html, /Créer un impôt unique et progressif/);
   assert.match(html, /Tout le monde contribue dès le premier euro et le taux augmente avec le revenu\./);
   assert.equal(occurrences(html, 'data-v3-action="open-details"'), 2);
+  assert.equal(occurrences(html, "<span>Voir le détail</span>"), 2);
+  assert.doesNotMatch(html, />Détails<\/button>/);
   assert.match(html, new RegExp(`data-v3-detail-panel="${optionId}"`));
+  assert.match(html, /simulateur-v3__detail-layer" data-v3-action="close-details"/);
+  assert.match(html, /simulateur-v3__detail-panel"[^>]*data-v3-action="keep-details-open"/);
+  assert.match(html, /\+18 milliards d&#39;euros par an/);
   assert.doesNotMatch(html, /<details class="simulateur-v3__option-details"/);
   assert.match(html, /<h3>Ce qui change<\/h3>/);
   assert.match(html, /<h3>Comment ça marche<\/h3>/);
   assert.match(html, /<h3>Qui paie<\/h3>/);
   const panel = html.slice(html.indexOf(`data-v3-detail-panel="${optionId}"`));
-  assert.doesNotMatch(panel.slice(0, panel.indexOf("</aside>")), /data-v3-action="select"/);
+  assert.match(panel.slice(0, panel.indexOf("</aside>")), /data-v3-action="select"/);
 });
 
 test("la carte de résidence nomme les aides concernées en langage courant", () => {
@@ -178,7 +183,9 @@ test("une crise V10 ne montre que deux réponses lisibles sans delta politique",
   const html = renderSimulatorV3(state, SCENARIO_V10, { crisisRules: SCENARIO_V10_CRISIS_RULES });
 
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
-  assert.match(html, /Maintenir le cap/);
+  assert.match(html, /Maintenir les réformes/);
+  assert.match(html, /Mesures conservées : \+11 milliards d&#39;euros par an/);
+  assert.match(html, /-8 milliards d&#39;euros par an/);
   assert.match(html, /Renoncer au relèvement de l&#39;âge légal à 65 ans/);
   assert.doesNotMatch(html, /<em>|Opinion|Confiance|Majorité|points? d'indice/);
   assert.doesNotMatch(html, /Amender [a-z]+-[a-z]+/);
@@ -548,9 +555,14 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   );
   const html = renderSimulatorV3(crisis, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
   assert.match(html, /Le pays se fracture sur/);
-  assert.match(html, new RegExp(decision.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(html, /Pourquoi maintenant \?/);
+  assert.match(html, /Décidez/);
+  assert.match(html, /Maintenant/);
+  assert.match(html, /Ce que vous cédez/);
+  assert.match(html, /simulateur-v3__crisis-budget/);
   assert.match(html, /Suspendre la flat tax/);
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
+  assert.doesNotMatch(html, /Décision déclencheuse|La réforme sera renversée/);
   assert.doesNotMatch(html, /simulateur-v3__crisis-visual|<svg/);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);

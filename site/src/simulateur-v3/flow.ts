@@ -99,6 +99,7 @@ export function advanceCampaign(
 }
 
 const INVISIBLE_CAMPAIGN_PHASES = new Set<CampaignState["phase"]>([
+  "chapter_intro",
   "decision_result",
   "delayed_event",
   "council",

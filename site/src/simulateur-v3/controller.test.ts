@@ -88,7 +88,6 @@ class FakeHost implements SimulatorV3Host {
 
 function beginDecision(host: FakeHost): void {
   host.click("start");
-  host.click("open-chapter");
 }
 
 function stateBefore(decisionId: string) {
@@ -118,7 +117,7 @@ test("le chrome global reste sur l'introduction puis cède la place au mandat", 
 
   assert.deepEqual(phases, ["intro"]);
   host.click("start");
-  assert.equal(phases.at(-1), "chapter_intro");
+  assert.equal(phases.at(-1), "decision");
   unmount();
   assert.equal(phases.at(-1), null);
 });
@@ -165,19 +164,17 @@ test("un état initial injecté doit correspondre au scénario monté", () => {
   );
 });
 
-test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
+test("le contrôleur ouvre directement le premier dossier sans écran de chapitre", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   assert.match(host.innerHTML, /Prendre mes fonctions/);
   assert.equal(host.scrollCalls, 1);
   assert.equal(host.focusCalls, 1);
   host.click("start");
-  assert.match(host.innerHTML, /La ligne de fracture/);
-  assert.equal(host.scrollCalls, 2);
-  host.click("open-chapter");
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title.replaceAll("'", "&#39;")));
-  assert.equal(host.scrollCalls, 3);
-  assert.equal(host.focusCalls, 3);
+  assert.doesNotMatch(host.innerHTML, /La ligne de fracture|Ouvrir le premier dossier/);
+  assert.equal(host.scrollCalls, 2);
+  assert.equal(host.focusCalls, 2);
 });
 
 test("un clic sur une carte confirme le choix et ouvre directement le dossier suivant", () => {
@@ -232,7 +229,23 @@ test("Échap ferme le détail ouvert sans sélectionner une option", () => {
   assert.equal(storage.values.get(V3_STORAGE_KEY), savedBeforeOpening);
 });
 
-test("un choix en frontière annuelle rejoint la scène suivante sans rendre le Conseil", () => {
+test("un clic sur le fond ferme le détail mais un clic dans le panneau le garde ouvert", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V10, { storage });
+  beginDecision(host);
+  const optionId = "unifier-ir-csg-bareme-continu:adopt";
+
+  host.click("open-details", { optionId });
+  host.click("keep-details-open");
+  assert.match(host.innerHTML, /simulateur-v3__detail-panel/);
+
+  host.click("close-details");
+  assert.doesNotMatch(host.innerHTML, /simulateur-v3__detail-panel/);
+  assert.equal(host.lastFocusedSelector, `[data-v3-detail-trigger="${optionId}"]`);
+});
+
+test("un choix en frontière annuelle rejoint directement le dossier suivant", () => {
   const decisionId = SCENARIO_V3_PREVIEW.chapters[1]!.decisionIds.at(-1)!;
   const initialState = stateBefore(decisionId);
   const storage = memoryStorage();
@@ -245,9 +258,9 @@ test("un choix en frontière annuelle rejoint la scène suivante sans rendre le 
   host.click("select", { decisionId, optionId: decision.options[0]!.id });
 
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
-  assert.equal(saved.phase, "chapter_intro");
+  assert.equal(saved.phase, "decision");
   assert.equal(saved.annualCheckpoints.at(-1)?.afterDecisionCount, initialState.decisions.length + 1);
-  assert.match(host.innerHTML, /La ligne de fracture/);
+  assert.doesNotMatch(host.innerHTML, /La ligne de fracture|Ouvrir le premier dossier/);
   assert.doesNotMatch(host.innerHTML, /Le pays réagit à vos arbitrages/);
   assert.equal(host.scrollCalls, beforeScroll + 1);
   assert.equal(host.focusCalls, beforeFocus + 1);
@@ -272,7 +285,8 @@ test("une sauvegarde en phase intermédiaire est normalisée avant le premier re
     storage: memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(restored) }),
   });
 
-  assert.match(host.innerHTML, /La ligne de fracture/);
+  assert.doesNotMatch(host.innerHTML, /La ligne de fracture|Ouvrir le premier dossier/);
+  assert.match(host.innerHTML, /data-v3-action="select"/);
   assert.doesNotMatch(host.innerHTML, /Décision enregistrée|Le pays réagit à vos arbitrages/);
   assert.equal(host.scrollCalls, 1);
   assert.equal(host.focusCalls, 1);

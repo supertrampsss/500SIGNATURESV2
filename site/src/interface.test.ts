@@ -3543,6 +3543,19 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
 });
 
+test("les détails et les crises reprennent la finition éditoriale validée", () => {
+  const detailTrigger = SIMULATEUR_V3.match(/\.simulateur-v3__option-details-trigger\s*\{([^}]*)\}/s)?.[1] ?? "";
+  assert.match(detailTrigger, /border:\s*0;/);
+  assert.match(detailTrigger, /border-top:\s*1px solid var\(--v3-rule\);/);
+  const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 60rem)"));
+  assert.doesNotMatch(desktop, /\.simulateur-v3__detail-layer\s*\{[^}]*pointer-events:\s*none;/s);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__crisis\s*\{[^}]*background:\s*var\(--v3-dossier\);/s);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__crisis-prompt\s*\{/s);
+  const mobileCrisisHead = SIMULATEUR_V3.match(/\.simulateur-v3__crisis-option-head\s*\{([^}]*)\}/s)?.[1] ?? "";
+  assert.doesNotMatch(mobileCrisisHead, /grid-template-columns/);
+  assert.match(desktop, /\.simulateur-v3__crisis-option-head\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto;/s);
+});
+
 test("le bureau de décision V3 retrouve la composition centrale de la planche EPR", () => {
   assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\] #vue-simulateur\s*\{[^}]*max-width:\s*none;[^}]*padding-inline:\s*0;/s);
   const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 75rem)"));

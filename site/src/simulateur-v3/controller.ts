@@ -227,8 +227,11 @@ export function mountSimulatorV3(
     }
 
     if (action === "start" && state.phase === "intro") {
-      state = { ...state, phase: "chapter_intro" };
+      state = advanceToVisiblePhase({ ...state, phase: "chapter_intro" }, scenario, crisisRules);
       emit({ type: "campaign_started" });
+      if (state.phase === "decision") {
+        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      }
       persistAndRender(true);
       return;
     }
@@ -273,6 +276,8 @@ export function mountSimulatorV3(
       render();
       return;
     }
+
+    if (action === "keep-details-open" && detailOptionId) return;
 
     if (action === "continue" && ["decision_result", "delayed_event", "council"].includes(state.phase)) {
       const previousPhase = state.phase;

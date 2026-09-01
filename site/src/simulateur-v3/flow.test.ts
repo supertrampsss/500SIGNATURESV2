@@ -185,7 +185,7 @@ test("les cinq Conseils surviennent uniquement après 16, 32, 39, 53 et 60 déci
 test("un Conseil annuel est calculé sans devenir une scène visible", () => {
   const next = advanceToVisiblePhase(stateAfterPreviewDecisions(16), SCENARIO_V3_PREVIEW, []);
 
-  assert.equal(next.phase, "chapter_intro");
+  assert.equal(next.phase, "decision");
   assert.equal(next.annualCheckpoints.at(-1)?.afterDecisionCount, 16);
 });
 

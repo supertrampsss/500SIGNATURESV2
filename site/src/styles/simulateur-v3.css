@@ -363,20 +363,25 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 }
 
 .simulateur-v3__option-details-trigger {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  width: calc(100% - 2 * var(--espace-3));
   min-height: var(--cible);
   margin: 0 var(--espace-3) var(--espace-3);
-  padding: var(--espace-2) var(--espace-3);
+  padding: var(--espace-2) 0 0;
   color: var(--v3-ink);
   background: transparent;
-  border: 1px solid var(--v3-rule);
+  border: 0;
+  border-top: 1px solid var(--v3-rule);
   font: inherit;
   font-size: var(--texte-s);
   font-weight: 800;
+  text-align: left;
   cursor: pointer;
 }
+
+.simulateur-v3__option-details-trigger span:last-child { color: var(--v3-red); font-family: var(--serif); font-size: var(--texte-xl); line-height: 1; }
 
 .simulateur-v3__detail-layer {
   position: fixed;
@@ -411,7 +416,7 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   align-items: center;
   justify-content: space-between;
   min-width: 0;
-  padding: var(--espace-3) var(--espace-4);
+  padding: var(--espace-3) var(--espace-5);
   background: var(--v3-paper);
   border-bottom: 1px solid var(--v3-rule);
 }
@@ -427,30 +432,38 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 .simulateur-v3__detail-close {
   flex: 0 0 auto;
   min-height: var(--cible);
-  padding: var(--espace-2) var(--espace-3);
-  color: var(--v3-ink);
+  min-width: var(--cible);
+  padding: 0;
+  color: var(--v3-muted);
   background: transparent;
-  border: 1px solid var(--v3-ink);
+  border: 0;
+  border-radius: 50%;
   font: inherit;
-  font-weight: 800;
+  font-family: var(--serif);
+  font-size: 2rem;
+  line-height: 1;
   cursor: pointer;
 }
 
 .simulateur-v3__detail-panel-body {
   display: grid;
-  gap: var(--espace-5);
+  gap: 0;
   min-width: 0;
-  padding: var(--espace-5) var(--espace-4) var(--espace-7);
+  padding: 0 var(--espace-5);
   overflow-wrap: anywhere;
 }
 
-.simulateur-v3__detail-panel-body h2,
-.simulateur-v3__detail-panel-body h3 { margin: 0; font-family: var(--serif); }
+.simulateur-v3__detail-title { display: grid; gap: var(--espace-2); padding: var(--espace-5) 0; border-bottom: 1px solid var(--v3-rule); }
+.simulateur-v3__detail-panel-body h2 { margin: 0; font-family: var(--serif); }
 .simulateur-v3__detail-panel-body h2 { font-size: clamp(1.65rem, 7vw, 2.3rem); line-height: 1.08; }
-.simulateur-v3__detail-panel-body h3 { margin-bottom: var(--espace-2); font-size: var(--texte-l); }
+.simulateur-v3__detail-title strong { color: var(--v3-green); font-size: var(--texte-s); }
+.simulateur-v3__detail-panel-body section { padding: var(--espace-4) 0; border-bottom: 1px solid #e7dfd2; }
+.simulateur-v3__detail-panel-body h3 { margin: 0 0 var(--espace-2); color: var(--v3-red); font-family: var(--sans); font-size: var(--texte-xs); font-weight: 900; letter-spacing: 0.09em; text-transform: uppercase; }
 .simulateur-v3__detail-panel-body p,
-.simulateur-v3__detail-panel-body ul { margin: 0; color: var(--v3-muted); line-height: 1.55; }
+.simulateur-v3__detail-panel-body ul { margin: 0; color: var(--v3-muted); font-size: var(--texte-s); line-height: 1.45; }
 .simulateur-v3__detail-panel-body ul { display: grid; gap: var(--espace-2); padding-left: 1.2rem; }
+.simulateur-v3__detail-actions { position: sticky; bottom: 0; padding: var(--espace-4) var(--espace-5) var(--espace-5); background: var(--v3-paper); }
+.simulateur-v3__detail-actions .simulateur-v3__primary { width: 100%; background: var(--v3-ink); border-color: var(--v3-ink); }
 
 .simulateur-v3__option-copy { display: grid; gap: var(--espace-2); min-width: 0; }
 .simulateur-v3__option-signals { display: flex; flex-wrap: wrap; gap: var(--espace-2); align-items: center; min-width: 0; }
@@ -563,22 +576,29 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 .simulateur-v3__event-overflow { border-top: 1px solid var(--v3-rule); }
 .simulateur-v3__event-overflow > div { display: grid; gap: var(--espace-3); padding-top: var(--espace-3); }
 
-.simulateur-v3__crisis { position: relative; overflow: hidden; color: #ffffff; background: #0b1a2e; border-top-color: var(--v3-red); }
-.simulateur-v3__crisis .simulateur-v3__scene-header { border-bottom-color: rgb(255 255 255 / 0.2); }
-.simulateur-v3__crisis .simulateur-v3__lead { color: var(--v3-muted-on-shell); }
-.simulateur-v3__crisis .simulateur-v3__crisis-cause { color: #ffffff; background: rgb(255 255 255 / 0.07); }
-.simulateur-v3__crisis h1,
+.simulateur-v3__crisis { position: relative; width: min(100%, 64rem); overflow: hidden; color: var(--v3-ink); background: var(--v3-dossier); border-top-color: var(--v3-red); }
+.simulateur-v3__crisis .simulateur-v3__scene-header { padding-bottom: var(--espace-4); border-bottom: 3px solid var(--v3-red); }
+.simulateur-v3__crisis .simulateur-v3__scene-body { gap: var(--espace-4); margin-top: var(--espace-4); }
+.simulateur-v3__crisis .simulateur-v3__crisis-cause { padding: 0; color: var(--v3-muted); background: transparent; border: 0; font-size: var(--texte-m); line-height: 1.45; }
+.simulateur-v3__crisis .simulateur-v3__crisis-cause strong { color: var(--v3-ink); font-size: inherit; letter-spacing: 0; text-transform: none; }
+.simulateur-v3__crisis h1 { max-width: 18ch; font-size: clamp(2rem, 5vw, 3.5rem); }
 .simulateur-v3__event h1,
 .simulateur-v3__chapter-verdict h1,
 .simulateur-v3__pause-menu h1,
 .simulateur-v3__journal h1,
 .simulateur-v3__council h1 { font-size: clamp(2rem, 7vw, 4.5rem); }
+.simulateur-v3__crisis-prompt { margin: 0; padding-top: var(--espace-3); border-top: 1px solid var(--v3-rule); color: var(--v3-red); font-size: var(--texte-xs); font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
 .simulateur-v3__crisis-options { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--espace-3); }
-.simulateur-v3__crisis-option { display: grid; gap: var(--espace-3); min-height: var(--cible); padding: var(--espace-5); color: #ffffff; background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.28); border-left: 4px solid var(--v3-red); font: inherit; text-align: left; cursor: pointer; }
+.simulateur-v3__crisis-option { display: grid; gap: var(--espace-3); min-height: var(--cible); padding: var(--espace-4); color: var(--v3-ink); background: var(--v3-paper); border: 1px solid var(--v3-rule); border-left: 4px solid var(--v3-red); font: inherit; text-align: left; cursor: pointer; }
 .simulateur-v3__crisis-option--concession { border-left-color: var(--v3-gold); }
-.simulateur-v3__crisis-option span { font-family: var(--serif); font-size: var(--texte-xl); font-weight: 800; }
-.simulateur-v3__crisis-option small { color: var(--v3-muted-on-shell); }
-.simulateur-v3__crisis-option em { color: #ffffff; font-size: var(--texte-xs); font-style: normal; font-weight: 800; }
+.simulateur-v3__crisis-option-head { display: grid; gap: var(--espace-2); align-items: start; }
+.simulateur-v3__crisis-option-head b { font-family: var(--serif); font-size: var(--texte-xl); line-height: 1.1; }
+.simulateur-v3__crisis-budget { color: var(--v3-green); font-size: var(--texte-xs); text-align: left; }
+.simulateur-v3__crisis-budget--negative { color: var(--v3-red); }
+.simulateur-v3__crisis-budget--neutral { color: var(--v3-muted); }
+.simulateur-v3__crisis-impact { display: grid; gap: var(--espace-2); padding-top: var(--espace-3); border-top: 1px solid #e3dacb; }
+.simulateur-v3__crisis-impact small { color: var(--v3-muted); font-size: var(--texte-s); line-height: 1.4; }
+.simulateur-v3__crisis-impact strong { color: var(--v3-ink); }
 
 .simulateur-v3__chapter-score { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--v3-rule); }
 .simulateur-v3__chapter-score section { padding: var(--espace-4); border-right: 1px solid var(--v3-rule); }
@@ -740,7 +760,8 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 
 @media (hover: hover) {
   .simulateur-v3__option:hover { border-color: var(--v3-red); }
-  .simulateur-v3__crisis-option:hover { background: rgb(255 255 255 / 0.12); }
+  .simulateur-v3__option-details-trigger:hover { color: var(--v3-red); }
+  .simulateur-v3__crisis-option:hover { border-color: var(--v3-red); }
 }
 
 @media (max-width: 40rem) {
@@ -811,10 +832,12 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   .simulateur-v3__options,
   .simulateur-v3__options--3 { grid-template-columns: minmax(0, 1fr); }
   .simulateur-v3__crisis-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .simulateur-v3__crisis-option-head { grid-template-columns: minmax(0, 1fr) auto; gap: var(--espace-3); }
+  .simulateur-v3__crisis-budget { text-align: right; }
   .simulateur-v3__option-select { grid-template-columns: minmax(0, 1fr) auto; gap: var(--espace-4); align-items: center; min-height: var(--cible); }
   .simulateur-v3__option-signals { justify-content: flex-end; max-width: 25rem; }
-  .simulateur-v3__detail-layer { align-items: stretch; justify-items: end; padding: var(--espace-5); background: transparent; pointer-events: none; }
-  .simulateur-v3__detail-panel { width: min(34rem, 42vw); max-height: none; height: 100%; border: 1px solid var(--v3-rule); border-top: 4px solid var(--v3-gold); border-radius: var(--rayon); pointer-events: auto; box-shadow: -1rem 0 3rem rgb(13 33 60 / 0.24); }
+  .simulateur-v3__detail-layer { align-items: stretch; justify-items: end; padding: var(--espace-5); background: rgb(13 33 60 / 0.42); }
+  .simulateur-v3__detail-panel { width: min(34rem, 42vw); max-height: none; height: 100%; border: 1px solid var(--v3-rule); border-top: 4px solid var(--v3-gold); border-radius: var(--rayon); box-shadow: -1rem 0 3rem rgb(13 33 60 / 0.24); }
   .simulateur-v3__evidence-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simulateur-v3__analysis,
   .simulateur-v3__sources { grid-column: 1 / -1; }
