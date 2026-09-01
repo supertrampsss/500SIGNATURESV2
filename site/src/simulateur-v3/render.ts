@@ -1062,7 +1062,9 @@ function roundedBillions(value: number): string {
 }
 
 function renderVerdict(view: MandateVerdictViewModel, options: RenderSimulatorV3Options): string {
-  const scorePercent = view.target > 0 ? Math.round((view.score / view.target) * 100) : 100;
+  const scorePercent = view.target > 0
+    ? Math.max(0, Math.min(100, Math.round((view.score / view.target) * 100)))
+    : 100;
   const bestScore = options.bestScore ?? view.score;
   const recordImprovement = options.recordImprovement ?? 0;
   const record = recordImprovement > 0

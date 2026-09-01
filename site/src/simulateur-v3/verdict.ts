@@ -332,7 +332,7 @@ export function buildMandateVerdictViewModel(
 ): MandateVerdictViewModel {
   const target = Math.abs(state.baseline.annualBalanceMillions);
   const recovered = state.indicators.annualBalance - state.baseline.annualBalanceMillions;
-  const score = Math.min(target, Math.max(0, recovered));
+  const score = Math.min(target, recovered);
   return {
     headline: headlineFor(state.indicators.annualBalance, state.indicators.majority, state.indicators.opinion),
     summary: summaryFor(state),
@@ -340,7 +340,7 @@ export function buildMandateVerdictViewModel(
     annualBalanceDelta: state.indicators.annualBalance - state.baseline.annualBalanceMillions,
     target,
     score,
-    remaining: Math.max(0, target - score),
+    remaining: Math.max(0, -state.indicators.annualBalance),
     surplus: Math.max(0, state.indicators.annualBalance),
     signals: buildSignals(state),
     trajectory: buildTrajectory(state),

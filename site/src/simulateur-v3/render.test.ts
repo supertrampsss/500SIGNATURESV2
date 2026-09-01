@@ -645,6 +645,18 @@ test("le verdict final reprend la page de score compacte validée", () => {
   assert.doesNotMatch(html, /data-v3-action="pause"/);
 });
 
+test("le verdict montre la dégradation des comptes sans rendre la barre négative", () => {
+  const state = stateAfter(60, "verdict");
+  state.indicators.annualBalance = state.baseline.annualBalanceMillions - 31_000;
+
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+
+  assert.match(html, /<strong>-31<\/strong><span>\/ 153 Md€<\/span>/);
+  assert.match(html, /<strong>184 Md€<\/strong> restent à financer/);
+  assert.match(html, /aria-valuenow="0"/);
+  assert.doesNotMatch(html, /--v3-score:\s*-/);
+});
+
 test("le verdict ne répète pas les questions dans les trois choix décisifs", () => {
   const state = stateAfter(60, "verdict");
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);

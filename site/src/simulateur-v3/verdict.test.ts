@@ -224,6 +224,19 @@ test("le score mesure le déficit résorbé, sans dépasser la cible", () => {
   assert.equal(surplus.surplus, 8_000);
 });
 
+test("un déficit aggravé produit un score négatif et affiche le déficit réellement restant", () => {
+  const state = completedCampaign();
+  const target = Math.abs(state.baseline.annualBalanceMillions);
+  state.indicators.annualBalance = state.baseline.annualBalanceMillions - 31_000;
+
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+
+  assert.equal(view.target, target);
+  assert.equal(view.score, -31_000);
+  assert.equal(view.remaining, target + 31_000);
+  assert.equal(view.surplus, 0);
+});
+
 test("classe trois choix distincts et ne transporte pas la question à répéter", () => {
   const view = buildMandateVerdictViewModel(completedCampaign(), SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
 
