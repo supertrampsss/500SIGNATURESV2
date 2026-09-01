@@ -1,6 +1,7 @@
 import { validateBaseline } from "./timeline.ts";
 import { SCHEMA_VERSION, type CampaignState, type Decision, type IndicatorState, type MandateBaseline, type Scenario } from "./types.ts";
 import { totalDecisions, validateScenario } from "./validation.ts";
+import { buildSessionPlan, refreshFutureSessionPlan, sessionPosition } from "./adaptive-session.ts";
 
 const NEUTRAL_LUDIC_INDICATORS = Object.freeze({
   employment: 100,
@@ -53,6 +54,7 @@ export function createCampaign(scenario: Scenario, baseline: MandateBaseline, se
     phase: "intro",
     chapterIndex: 0,
     decisionIndex: 0,
+    ...(scenario.version === 11 ? { sessionDecisionIds: buildSessionPlan(scenario, seed) } : {}),
     decisions: [],
     baseline: structuredClone(baseline),
     annualCheckpoints: [],
@@ -72,6 +74,10 @@ export function createCampaign(scenario: Scenario, baseline: MandateBaseline, se
 }
 
 export function currentDecision(state: CampaignState, scenario: Scenario): Decision | null {
+  if (state.scenarioVersion === 11 && state.sessionDecisionIds) {
+    const decisionId = state.sessionDecisionIds[state.decisions.length];
+    return scenario.decisions.find((decision) => decision.id === decisionId) ?? null;
+  }
   const chapter = scenario.chapters[state.chapterIndex];
   const decisionId = chapter?.decisionIds[state.decisionIndex];
   return scenario.decisions.find((decision) => decision.id === decisionId) ?? null;
@@ -98,13 +104,25 @@ function nextChapter(state: CampaignState): CampaignState {
   return { ...state, chapterIndex: state.chapterIndex + 1, decisionIndex: 0, phase: "chapter_intro" };
 }
 
+function nextV11Chapter(state: CampaignState, scenario: Scenario): CampaignState {
+  const position = sessionPosition(state, scenario);
+  if (!position) return { ...state, phase: "verdict" };
+  return { ...state, ...position, phase: "chapter_intro" };
+}
+
 export function normalizeChapterTransition(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase !== "chapter_verdict") return state;
   if (state.decisions.length >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
+  if (state.scenarioVersion === 11 && state.sessionDecisionIds) return nextV11Chapter(state, scenario);
   return nextChapter(state);
 }
 
 function chapterIsComplete(state: CampaignState, scenario: Scenario): boolean {
+  if (state.scenarioVersion === 11 && state.sessionDecisionIds) {
+    const next = currentDecision(state, scenario);
+    const chapter = scenario.chapters[state.chapterIndex];
+    return next === null || chapter?.id !== next.chapterId;
+  }
   const chapter = scenario.chapters[state.chapterIndex];
   return chapter !== undefined && state.decisionIndex + 1 >= chapter.decisionIds.length;
 }
@@ -116,6 +134,10 @@ function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignSta
   const completedDecisions = state.decisions.length;
   if (completedDecisions >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
   if (chapterIsComplete(state, scenario)) return nextChapter(state);
+  if (state.scenarioVersion === 11 && state.sessionDecisionIds) {
+    const position = sessionPosition(state, scenario);
+    return position ? { ...state, ...position, phase: "decision" } : { ...state, phase: "verdict" };
+  }
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 }
 
@@ -124,7 +146,8 @@ export function advanceAfterResult(
   scenario: Scenario,
   stopAfterSuperseded = false,
 ): CampaignState {
-  let advanced = advanceOneScreen(state, scenario);
+  let advanced = refreshFutureSessionPlan(state, scenario);
+  advanced = advanceOneScreen(advanced, scenario);
   while (advanced.phase === "decision") {
     const decision = currentDecision(advanced, scenario);
     if (!decision || !advanced.lockedDecisionIds.includes(decision.id)) break;

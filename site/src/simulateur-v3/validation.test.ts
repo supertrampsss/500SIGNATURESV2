@@ -15,6 +15,21 @@ import { SCENARIO_V3 } from "./scenario.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
+import { SCENARIO_V11_CATALOGUE } from "./scenario-v11-catalogue.ts";
+
+test("le catalogue V11 accepte ses profils V10 clonés et ses options neutres", () => {
+  assert.deepEqual(validateScenario(SCENARIO_V11_CATALOGUE), []);
+});
+
+test("une sauvegarde V11 exige et conserve son plan de 45 cartes", () => {
+  const state = createCampaign(SCENARIO_V11_CATALOGUE, 417);
+  assert.equal(isCampaignState(JSON.parse(JSON.stringify(state)), SCENARIO_V11_CATALOGUE), true);
+  const missingPlan = { ...state } as Record<string, unknown>;
+  delete missingPlan.sessionDecisionIds;
+  assert.equal(isCampaignState(missingPlan, SCENARIO_V11_CATALOGUE), false);
+  const shortPlan = { ...state, sessionDecisionIds: state.sessionDecisionIds!.slice(0, 44) };
+  assert.equal(isCampaignState(shortPlan, SCENARIO_V11_CATALOGUE), false);
+});
 
 function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = index + 1): DecisionRecord {
   const decision = scenario.decisions[index]!;

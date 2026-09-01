@@ -10,6 +10,7 @@ import { completedV9StateFromStorage, V3_STORAGE_KEY, type StorageLike } from ".
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
 import type { CampaignPhase, Scenario } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
@@ -197,6 +198,38 @@ test("un clic sur une carte confirme le choix et ouvre directement le dossier su
   assert.equal(host.focusCalls, avantFocus + 1);
   assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
+});
+
+test("ouvrir puis fermer le détail ne choisit pas l'option et rend le focus à son bouton", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V10, { storage });
+  beginDecision(host);
+  const optionId = "unifier-ir-csg-bareme-continu:adopt";
+  const savedBeforeOpening = storage.values.get(V3_STORAGE_KEY);
+
+  host.click("open-details", { optionId });
+  assert.match(host.innerHTML, new RegExp(`data-v3-detail-panel="${optionId}"`));
+  assert.equal(storage.values.get(V3_STORAGE_KEY), savedBeforeOpening);
+  assert.equal(host.lastFocusedSelector, ".simulateur-v3__detail-panel");
+
+  host.click("close-details");
+  assert.doesNotMatch(host.innerHTML, /simulateur-v3__detail-panel/);
+  assert.equal(host.lastFocusedSelector, `[data-v3-detail-trigger="${optionId}"]`);
+});
+
+test("Échap ferme le détail ouvert sans sélectionner une option", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V10, { storage });
+  beginDecision(host);
+  const savedBeforeOpening = storage.values.get(V3_STORAGE_KEY);
+
+  host.click("open-details", { optionId: "unifier-ir-csg-bareme-continu:adopt" });
+  host.keydown("Escape");
+
+  assert.doesNotMatch(host.innerHTML, /simulateur-v3__detail-panel/);
+  assert.equal(storage.values.get(V3_STORAGE_KEY), savedBeforeOpening);
 });
 
 test("un choix en frontière annuelle rejoint la scène suivante sans rendre le Conseil", () => {

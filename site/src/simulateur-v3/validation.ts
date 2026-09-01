@@ -27,6 +27,10 @@ import { budgetEstimateFor, crisisTransitionEstimateFor, hasBudgetEstimate, vali
 import { POLICY_SOURCES } from "./policy-sources.ts";
 import type { BudgetProfile } from "./types.ts";
 
+// Kept local to avoid a validation -> V11 -> V10 -> validation module cycle.
+const V11_COMMON_SESSION_IDS = ["v11-01-prelevement-personnel", "v11-09-age-retraite", "v11-15-financement-soins", "v11-26-collectivites", "v11-28-ecole-moyens", "v11-35-securite-justice", "v11-46-nucleaire", "v11-50-budget-militaire"] as const;
+const V11_SYNTHESIS_SESSION_IDS = ["v11-14-revenu-travail", "v11-47-energies-fossiles", "v11-53-defense-europe"] as const;
+
 const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
   "delayed_event", "chapter_verdict", "pause", "verdict",
@@ -47,7 +51,7 @@ const DECISION_KINDS = ["gestion", "transformation", "rupture"] as const;
 type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex" | "status">;
 
 export const totalDecisions = (scenario: Scenario): number =>
-  scenario.chapters.reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
+  scenario.version === 11 ? 45 : scenario.chapters.reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
 
 export function positionBeforeNext(scenario: Scenario, completed: number): { chapterIndex: number; decisionIndex: number } | null {
   let remaining = completed;
@@ -134,8 +138,17 @@ function hasValidBaseline(value: unknown): boolean {
   }
 }
 
-function expectedAnnualCheckpoints(scenario: Scenario): Map<number, number> {
+function expectedAnnualCheckpoints(scenario: Scenario, sessionDecisionIds?: readonly string[]): Map<number, number> {
   const expected = new Map<number, number>();
+  if (scenario.version === 11 && sessionDecisionIds) {
+    const byId = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
+    sessionDecisionIds.forEach((id, index) => {
+      const chapterIndex = scenario.chapters.findIndex((chapter) => chapter.id === byId.get(id)?.chapterId);
+      const year = chapterIndex < 0 ? null : mandateYearEndingAfterChapter(chapterIndex);
+      if (year !== null) expected.set(year, index + 1);
+    });
+    return expected;
+  }
   let decisionCount = 0;
   scenario.chapters.forEach((chapter, chapterIndex) => {
     decisionCount += chapter.decisionIds.length;
@@ -145,8 +158,8 @@ function expectedAnnualCheckpoints(scenario: Scenario): Map<number, number> {
   return expected;
 }
 
-function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionCount: number): boolean {
-  const expected = expectedAnnualCheckpoints(scenario);
+function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionCount: number, sessionDecisionIds?: readonly string[]): boolean {
+  const expected = expectedAnnualCheckpoints(scenario, sessionDecisionIds);
   if (!Array.isArray(value) || value.length > expected.size) return false;
   return value.every((checkpoint, index) => {
     if (!isRecord(checkpoint) || checkpoint.year !== index + 1) return false;
@@ -418,6 +431,40 @@ function isAtPosition(value: Record<string, unknown>, chapterIndex: number, deci
   return value.chapterIndex === chapterIndex && value.decisionIndex === decisionIndex;
 }
 
+function hasValidV11SessionPlan(value: unknown, scenario: Scenario): value is string[] {
+  if (scenario.version !== 11 || !isStringArray(value) || value.length !== 45 || hasDuplicates(value)) return false;
+  const known = new Set(scenario.decisions.map((decision) => decision.id));
+  if (!value.every((id) => known.has(id))) return false;
+  if (!V11_COMMON_SESSION_IDS.every((id) => value.includes(id))
+      || !V11_SYNTHESIS_SESSION_IDS.every((id) => value.includes(id))) return false;
+  const anchors = new Set([...V11_COMMON_SESSION_IDS, ...V11_SYNTHESIS_SESSION_IDS]);
+  return value.filter((id) => !anchors.has(id as never)).length === 34;
+}
+
+function v11Position(
+  scenario: Scenario,
+  sessionDecisionIds: readonly string[],
+  completed: number,
+  afterConfirmation: boolean,
+): { chapterIndex: number; decisionIndex: number } | null {
+  const planIndex = afterConfirmation ? completed - 1 : completed;
+  if (planIndex < 0 || planIndex >= sessionDecisionIds.length) return null;
+  const id = sessionDecisionIds[planIndex]!;
+  const decision = scenario.decisions.find((candidate) => candidate.id === id);
+  const chapterIndex = scenario.chapters.findIndex((chapter) => chapter.id === decision?.chapterId);
+  if (chapterIndex < 0) return null;
+  const end = afterConfirmation ? completed : completed + 1;
+  const decisionIndex = sessionDecisionIds.slice(0, end)
+    .filter((candidateId) => scenario.decisions.find((candidate) => candidate.id === candidateId)?.chapterId === decision!.chapterId).length - 1;
+  return { chapterIndex, decisionIndex };
+}
+
+function v11ChapterBoundary(scenario: Scenario, sessionDecisionIds: readonly string[], decisionCount: number): boolean {
+  const before = v11Position(scenario, sessionDecisionIds, decisionCount, true);
+  const after = v11Position(scenario, sessionDecisionIds, decisionCount, false);
+  return before !== null && after !== null && after.chapterIndex === before.chapterIndex + 1 && after.decisionIndex === 0;
+}
+
 function matchesPositionBeforeConfirmation(value: Record<string, unknown>, scenario: Scenario, decisionCount: number): boolean {
   const position = positionBeforeNext(scenario, decisionCount);
   return position !== null && isAtPosition(value, position.chapterIndex, position.decisionIndex);
@@ -437,7 +484,33 @@ function isChapterBoundary(scenario: Scenario, decisionCount: number): boolean {
     && next.decisionIndex === 0;
 }
 
-function hasPhasePositionConsistency(value: Record<string, unknown>, scenario: Scenario, decisionCount: number): boolean {
+function hasPhasePositionConsistency(
+  value: Record<string, unknown>,
+  scenario: Scenario,
+  decisionCount: number,
+  sessionDecisionIds?: readonly string[],
+): boolean {
+  if (scenario.version === 11 && sessionDecisionIds) {
+    const campaignLength = sessionDecisionIds.length;
+    const before = v11Position(scenario, sessionDecisionIds, decisionCount, false);
+    const after = v11Position(scenario, sessionDecisionIds, decisionCount, true);
+    const atBefore = before !== null && isAtPosition(value, before.chapterIndex, before.decisionIndex);
+    const atAfter = after !== null && isAtPosition(value, after.chapterIndex, after.decisionIndex);
+    const boundary = v11ChapterBoundary(scenario, sessionDecisionIds, decisionCount);
+    switch (value.phase) {
+      case "intro": return decisionCount === 0 && atBefore;
+      case "chapter_intro": return (decisionCount === 0 || boundary) && atBefore;
+      case "decision": return atBefore;
+      case "decision_result":
+      case "crisis":
+      case "delayed_event":
+      case "council": return atAfter;
+      case "chapter_verdict": return boundary && atAfter;
+      case "verdict": return decisionCount === campaignLength && atAfter;
+      case "pause": return atBefore || atAfter;
+      default: return false;
+    }
+  }
   const campaignLength = totalDecisions(scenario);
   switch (value.phase) {
     case "intro":
@@ -672,7 +745,9 @@ export function validateScenario(
   }
 
   const errors: string[] = [];
-  const enforceCampaignBounds = !options.allowConsequencesBeyondCampaign;
+  // V11 has a persistent 45-card session selected from a 55-card library.
+  // Editorial positions in the full library are not campaign positions.
+  const enforceCampaignBounds = !options.allowConsequencesBeyondCampaign && scenario.version !== 11;
   const chapters = rawScenario.chapters;
   const rawDecisions = rawScenario.decisions;
   if (!isPositiveInteger(rawScenario.version)) errors.push("scenario:version:positive-integer-required");
@@ -707,7 +782,9 @@ export function validateScenario(
       : [])
     : []));
   const explicitScheduledEventIds = new Set(scheduledEventIds);
-  for (const id of duplicateValues(scheduledEventIds)) errors.push(`scenario:duplicate-scheduled-event-id:${id}`);
+  if (scenario.version !== 11) {
+    for (const id of duplicateValues(scheduledEventIds)) errors.push(`scenario:duplicate-scheduled-event-id:${id}`);
+  }
   for (const id of duplicateValues(promiseIds)) errors.push(`scenario:duplicate-promise-id:${id}`);
   for (const decision of decisions) {
     if (Array.isArray(decision.options) && hasDuplicates(decision.options.filter(isRecord).map((option) => typeof option.id === "string" ? option.id : "unknown"))) {
@@ -752,7 +829,7 @@ export function validateScenario(
     if (!Array.isArray(decision.evidence) || decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
     for (const [optionIndex, option] of options.entries()) {
       const optionId = isRecord(option) && typeof option.id === "string" ? option.id : `${decision.id}-option-${optionIndex + 1}`;
-      if (scenario.version >= 10) {
+      if (scenario.version === 10) {
         const localOptionId = optionId.split(":").at(-1) ?? optionId;
         if (localOptionId !== "adopt" && localOptionId !== "keep") errors.push(`option:${optionId}:local-id-must-be-adopt-or-keep`);
       }
@@ -823,7 +900,7 @@ export function validateScenario(
         const localOptionId = optionId.split(":").at(-1) ?? optionId;
         const hasRegisteredEstimate = typeof profile.estimateKey === "string"
           && hasBudgetEstimate(decision.id, localOptionId, profile.estimateKey);
-        if (scenario.version >= 10 && profile.runRateTiming?.kind === "after_decisions") {
+        if (scenario.version === 10 && profile.runRateTiming?.kind === "after_decisions") {
           const estimate = hasRegisteredEstimate
             ? budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string)
             : null;
@@ -835,10 +912,10 @@ export function validateScenario(
             errors.push(`option:${optionId}:run-rate-after-decisions-not-canonical`);
           }
         }
-        if (scenario.version >= 10 && typeof profile.estimateKey === "string" && profile.estimateKey.startsWith("legacy:")) {
+        if (scenario.version === 10 && typeof profile.estimateKey === "string" && profile.estimateKey.startsWith("legacy:")) {
           errors.push(`option:${optionId}:legacy-budget-estimate-forbidden`);
         }
-        if (scenario.version >= 10 && hasRegisteredEstimate) {
+        if (scenario.version === 10 && hasRegisteredEstimate) {
           const estimate = budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string);
           errors.push(...validateBudgetEstimate(estimate));
           if (estimate.runRateMillions !== profile.runRateMillions
@@ -847,12 +924,12 @@ export function validateScenario(
             errors.push(`option:${optionId}:budget-profile-does-not-match-estimate`);
           }
         }
-        if (scenario.version >= 10 && profile.estimateKey !== null && !hasRegisteredEstimate) {
+        if (scenario.version === 10 && profile.estimateKey !== null && !hasRegisteredEstimate) {
           errors.push(`option:${optionId}:unregistered-budget-estimate`);
         }
       }
-      if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
-      if (!effects.some((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key !== "annualBalance")) {
+      if (scenario.version !== 11 && effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
+      if (scenario.version !== 11 && !effects.some((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key !== "annualBalance")) {
         errors.push(`option:${optionId}:non-budget-indicator-required`);
       }
       const budgetEffects = effects.filter((effect) => isEffectRule(effect)
@@ -893,7 +970,7 @@ export function validateScenario(
       for (let right = left + 1; right < options.length; right += 1) {
         const leftOption = options[left];
         const rightOption = options[right];
-        if (isDistanceComparableOption(leftOption) && isDistanceComparableOption(rightOption)
+        if (scenario.version === 10 && isDistanceComparableOption(leftOption) && isDistanceComparableOption(rightOption)
             && optionDistanceDimensions(leftOption, rightOption).length < 2) {
           errors.push(`decision:${decision.id}:options-too-close:${String(leftOption.id)}:${String(rightOption.id)}`);
         }
@@ -913,7 +990,7 @@ export function validateScenario(
       errors.push(`precedent:${decision.id}:https-required`);
     }
   }
-  if (scenario.version >= 10) {
+  if (scenario.version === 10) {
     const scopeOwners = new Map<string, string>();
     const transitionFlowOwners = new Map<string, string>();
     for (const { decisionId, optionId, profile } of budgetProfiles) {
@@ -1107,13 +1184,17 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (validateScenario(scenario).length > 0) return false;
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
+  const sessionDecisionIds = scenario.version === 11 && hasValidV11SessionPlan(value.sessionDecisionIds, scenario)
+    ? value.sessionDecisionIds
+    : undefined;
+  if (scenario.version === 11 && sessionDecisionIds === undefined) return false;
   if (value.pausedFrom !== undefined) {
     if (value.phase !== "pause" || value.pausedFrom === "pause" || !PHASES.includes(value.pausedFrom as CampaignPhase)) return false;
   }
   const chapter = scenario.chapters[value.chapterIndex as number];
   if (!chapter || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= chapter.decisionIds.length) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
-  if (!hasValidBaseline(value.baseline) || !hasValidAnnualCheckpoints(value.annualCheckpoints, scenario, value.decisions.length)) return false;
+  if (!hasValidBaseline(value.baseline) || !hasValidAnnualCheckpoints(value.annualCheckpoints, scenario, value.decisions.length, sessionDecisionIds)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
   if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
@@ -1130,7 +1211,7 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   const lockedDecisionIds = value.lockedDecisionIds as unknown[];
 
   const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
-  const editorialOrder = scenario.chapters.flatMap((chapter) => chapter.decisionIds);
+  const editorialOrder = sessionDecisionIds ?? scenario.chapters.flatMap((chapter) => chapter.decisionIds);
   const campaignLength = totalDecisions(scenario);
   if (decisionRecords.length > campaignLength || !decisionRecords.every((record) => isDecisionRecord(record, decisions))) return false;
   if (!decisionRecords.every((record, index) => {
@@ -1142,13 +1223,13 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
     return [typedRecord.decisionId, typedRecord];
   }));
   if (confirmedDecisions.size !== decisionRecords.length) return false;
-  if (!hasPhasePositionConsistency(value, scenario, decisionRecords.length)) return false;
+  if (!hasPhasePositionConsistency(value, scenario, decisionRecords.length, sessionDecisionIds)) return false;
   if (value.phase === "council") {
     const latest = (value.annualCheckpoints as unknown[]).at(-1);
     if (!isRecord(latest) || latest.afterDecisionCount !== decisionRecords.length) return false;
   }
   if (value.phase === "verdict"
-      && (value.annualCheckpoints as unknown[]).length !== expectedAnnualCheckpoints(scenario).size) return false;
+      && (value.annualCheckpoints as unknown[]).length !== expectedAnnualCheckpoints(scenario, sessionDecisionIds).size) return false;
 
   const pendingSelection = value.pendingSelection;
   if (pendingSelection !== undefined) {

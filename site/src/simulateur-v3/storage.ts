@@ -264,6 +264,11 @@ function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Sce
       || campaign.scenarioVersion === scenario.version) {
     return false;
   }
+  // V11 stores a 45-card session plan that never existed in V10. A sound V10
+  // state therefore asks for a new mandate instead of being reshaped as V11.
+  if (scenario.version === 11 && campaign.scenarioVersion === 10) {
+    return isCampaignState(campaign, SCENARIO_V10);
+  }
   const confirmedDecisionIds = new Set(
     Array.isArray(campaign.decisions)
       ? campaign.decisions.flatMap((record) => typeof record === "object" && record !== null

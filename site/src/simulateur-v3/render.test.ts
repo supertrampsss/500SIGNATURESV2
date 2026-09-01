@@ -9,6 +9,7 @@ import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V3_CRISIS_RULES } from "./scenario-
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
+import { SCENARIO_V11 } from "./scenario-v11.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState, EffectRule } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
@@ -81,6 +82,38 @@ test("une carte V10 affiche uniquement son BudgetProfile et aucun impact avant l
   assert.match(html, /\+7 milliards d&#39;euros par an/);
   assert.doesNotMatch(html, /simulateur-v3__option-impact-pill|data-v3-fact="impact"|Opinion|Confiance|Marchés/);
   assert.doesNotMatch(html, /\u2014/);
+});
+
+test("les détails IR-CSG sont lisibles avant le choix sans sélectionner une option", () => {
+  const state = v10StateBefore("unifier-ir-csg-bareme-continu");
+  const optionId = "unifier-ir-csg-bareme-continu:adopt";
+  const html = renderSimulatorV3(state, SCENARIO_V10, { detailOptionId: optionId });
+
+  assert.match(html, /Fusionner l&#39;impôt sur le revenu et la CSG \?/);
+  assert.match(html, /La CSG est retirée des salaires, retraites et revenus du patrimoine pour financer la Sécurité sociale\./);
+  assert.match(html, /Créer un impôt unique et progressif/);
+  assert.match(html, /Tout le monde contribue dès le premier euro et le taux augmente avec le revenu\./);
+  assert.equal(occurrences(html, 'data-v3-action="open-details"'), 2);
+  assert.match(html, new RegExp(`data-v3-detail-panel="${optionId}"`));
+  assert.doesNotMatch(html, /<details class="simulateur-v3__option-details"/);
+  assert.match(html, /<h3>Ce qui change<\/h3>/);
+  assert.match(html, /<h3>Comment ça marche<\/h3>/);
+  assert.match(html, /<h3>Qui paie<\/h3>/);
+  const panel = html.slice(html.indexOf(`data-v3-detail-panel="${optionId}"`));
+  assert.doesNotMatch(panel.slice(0, panel.indexOf("</aside>")), /data-v3-action="select"/);
+});
+
+test("la carte de résidence nomme les aides concernées en langage courant", () => {
+  const html = renderSimulatorV3(v10StateBefore("reserver-les-prestations-non-contributives-aux-nationaux"), SCENARIO_V10, {
+    detailOptionId: "reserver-les-prestations-non-contributives-aux-nationaux:adopt",
+  });
+
+  assert.match(html, /Attendre cinq ans avant de recevoir certaines aides \?/);
+  assert.match(html, /étrangers hors Union européenne récemment installés/);
+  assert.match(html, /aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer/);
+  assert.match(html, /Exiger cinq ans de résidence régulière/);
+  assert.match(html, /Le revenu minimum, l&#39;assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus\./);
+  assert.doesNotMatch(html, /prestations non contributives|normes supérieures|contentieux juridique/i);
 });
 
 test("les trois leviers V10 affichent leur gain annuel arrondi sans solde inchangé", () => {
@@ -410,6 +443,29 @@ test("la barre de commandement calcule sa progression sur les 60 dossiers", () =
 
   assert.match(html, /Dossier 30 sur 60/);
   assert.match(html, /--v3-command-progress:\s*50%/);
+});
+
+test("la barre de commandement V11 compte les 45 cartes de la partie, pas les 55 de la bibliothèque", () => {
+  const state = createCampaign(SCENARIO_V11);
+  const plan = state.sessionDecisionIds!;
+  state.decisions = plan.slice(0, 20).map((decisionId, index) => ({
+    decisionId,
+    optionId: SCENARIO_V11.decisions.find((decision) => decision.id === decisionId)!.options[0]!.id,
+    status: "confirmed",
+    confirmedAtIndex: index + 1,
+  }));
+  const current = SCENARIO_V11.decisions.find((decision) => decision.id === plan[20])!;
+  state.chapterIndex = SCENARIO_V11.chapters.findIndex((chapter) => chapter.id === current.chapterId);
+  state.decisionIndex = plan.slice(0, 21).filter((decisionId) =>
+    SCENARIO_V11.decisions.find((decision) => decision.id === decisionId)?.chapterId === current.chapterId,
+  ).length - 1;
+  state.phase = "decision";
+
+  const html = renderSimulatorV3(state, SCENARIO_V11);
+
+  assert.match(html, /Dossier 21 sur 45/);
+  assert.match(html, /--v3-command-progress:\s*44%/);
+  assert.doesNotMatch(html, /sur 55/);
 });
 
 test("un gain budgétaire et un coût budgétaire ne portent pas le même signal", () => {

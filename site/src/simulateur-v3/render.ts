@@ -29,6 +29,8 @@ export type RenderSimulatorV3Options = {
   crisisRules?: readonly CrisisRule[];
   pauseView?: "menu" | "journal" | "restart";
   saveFailed?: boolean;
+  /** The option whose player-facing detail panel is currently open. */
+  detailOptionId?: string;
 };
 
 function escapeHtml(value: string): string {
@@ -73,6 +75,9 @@ export function formatV3Amount(value: number): string {
 }
 
 function globalPosition(state: CampaignState, scenario: Scenario): number {
+  if (state.scenarioVersion === 11 && state.sessionDecisionIds) {
+    return Math.min(state.sessionDecisionIds.length, state.decisions.length + 1);
+  }
   const before = scenario.chapters
     .slice(0, state.chapterIndex)
     .reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
@@ -355,7 +360,7 @@ function budgetProfileLabel(option: DecisionOption): string {
   return transition === 0 ? "Solde public inchangé" : `${formatV3Amount(transition)} une seule fois`;
 }
 
-function renderOption(decision: Decision, option: DecisionOption, scenario: Scenario): string {
+function renderOption(decision: Decision, option: DecisionOption, scenario: Scenario, detailOptionId?: string): string {
   const budget = annualBalanceEffect(option);
   const principalImpact = principalIndicatorEffect(option);
   const isV10 = scenario.version >= 10;
@@ -369,6 +374,10 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
   const budgetSignal = budgetValue === 0 ? "neutral" : budgetValue > 0 ? "positive" : "negative";
   const impactLabel = principalImpact ? compactImpactLabel(principalImpact) : "Impact non chiffré";
   const impactDescription = principalImpact ? effectLabelWithTiming(principalImpact) : impactLabel;
+  const displayCopy = option.displayCopy;
+  const label = displayCopy?.shortLabel ?? compactOptionLabel(option.label);
+  const summary = displayCopy?.outcome ?? option.summary;
+  const detailsOpen = option.id === detailOptionId;
   const labelId = `v3-option-label-${option.id}`;
   const summaryId = `v3-option-summary-${option.id}`;
   const budgetId = `v3-option-budget-${option.id}`;
@@ -385,15 +394,52 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
         aria-describedby="${escapeHtml(isV10 ? `${summaryId} ${budgetId}` : `${summaryId} ${budgetId} ${impactId}`)}"
       >
         <span class="simulateur-v3__option-copy">
-          <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
-          <span id="${escapeHtml(summaryId)}" class="simulateur-v3__option-summary" data-v3-fact="summary">${escapeHtml(option.summary)}</span>
+          <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(label)}</span>
+          <span id="${escapeHtml(summaryId)}" class="simulateur-v3__option-summary" data-v3-fact="summary">${escapeHtml(summary)}</span>
         </span>
         <span class="simulateur-v3__option-signals">
           <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
           ${isV10 ? "" : `<span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>`}
         </span>
       </button>
+      ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog">Détails</button>` : ""}
     </article>`;
+}
+
+function renderOptionDetails(details: NonNullable<DecisionOption["displayCopy"]>["details"]): string {
+  const sections: Array<[string, string | readonly string[] | undefined]> = [
+    ["Ce qui change", details.whatChanges],
+    ["Comment ça marche", details.howItWorks],
+    ["Qui paie", details.whoPays],
+    ["Qui gagne ou perd", details.whoGainsOrLoses],
+    ["Quand", details.when],
+    ["Sources et calcul", details.sourcesAndCalculation],
+  ];
+  const content = sections.flatMap(([title, body]) => {
+    if (!body || (Array.isArray(body) && body.length === 0)) return [];
+    const text = typeof body === "string"
+      ? `<p>${escapeHtml(body)}</p>`
+      : `<ul>${body.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    return [`<section><h3>${title}</h3>${text}</section>`];
+  }).join("");
+  return content;
+}
+
+function renderDetailPanel(option: DecisionOption): string {
+  const copy = option.displayCopy;
+  if (!copy) return "";
+  return `<div class="simulateur-v3__detail-layer">
+    <aside class="simulateur-v3__detail-panel" data-v3-detail-panel="${escapeHtml(option.id)}" role="dialog" aria-labelledby="v3-detail-title-${escapeHtml(option.id)}" tabindex="-1">
+      <header class="simulateur-v3__detail-panel-header">
+        <p>Choix en détail</p>
+        <button type="button" class="simulateur-v3__detail-close" data-v3-action="close-details" aria-label="Fermer les détails">Fermer</button>
+      </header>
+      <div class="simulateur-v3__detail-panel-body">
+        <h2 id="v3-detail-title-${escapeHtml(option.id)}">${escapeHtml(copy.shortLabel)}</h2>
+        ${renderOptionDetails(copy.details)}
+      </div>
+    </aside>
+  </div>`;
 }
 
 function renderEvidence(decision: Decision): string {
@@ -427,28 +473,30 @@ function renderEvidence(decision: Decision): string {
     </details>`;
 }
 
-function renderDecision(state: CampaignState, scenario: Scenario): string {
+function renderDecision(state: CampaignState, scenario: Scenario, options: RenderSimulatorV3Options): string {
   const decision = currentDecision(state, scenario);
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
   const chapter = scenario.chapters[state.chapterIndex]!;
+  const detailOption = decision.options.find((option) => option.id === options.detailOptionId);
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
         <article class="simulateur-v3__dossier simulateur-v3__decision simulateur-v3__decision--${decision.kind}">
           <header class="simulateur-v3__scene-header">
             <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state, scenario)}</p>
-            <h1>${escapeHtml(decision.title)}</h1>
-            <p class="simulateur-v3__context">${escapeHtml(compactText(decision.context))}</p>
+            <h1>${escapeHtml(decision.displayCopy?.question ?? decision.title)}</h1>
+            <p class="simulateur-v3__context">${escapeHtml(decision.displayCopy?.context ?? compactText(decision.context))}</p>
           </header>
           <div class="simulateur-v3__scene-body">
             <fieldset class="simulateur-v3__options simulateur-v3__options--${decision.options.length}">
               <legend>Choix possibles</legend>
-              ${decision.options.map((option) => renderOption(decision, option, scenario)).join("")}
+              ${decision.options.map((option) => renderOption(decision, option, scenario, options.detailOptionId)).join("")}
             </fieldset>
-            ${renderEvidence(decision)}
+            ${scenario.version >= 10 ? "" : renderEvidence(decision)}
           </div>
         </article>
       </div>
+      ${detailOption ? renderDetailPanel(detailOption) : ""}
     </main>`;
 }
 
@@ -995,7 +1043,7 @@ export function renderSimulatorV3(
       content = renderChapterIntro(state, scenario);
       break;
     case "decision":
-      content = renderDecision(state, scenario);
+      content = renderDecision(state, scenario, options);
       break;
     case "decision_result":
       content = renderDecisionResult(state, scenario);

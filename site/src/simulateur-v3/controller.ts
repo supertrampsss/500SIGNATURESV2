@@ -1,5 +1,6 @@
 import {
   createCampaign,
+  currentDecision,
   normalizeChapterTransition,
   selectOption,
 } from "./campaign.ts";
@@ -140,6 +141,8 @@ export function mountSimulatorV3(
     ? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario)
     : undefined;
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
+  let detailOptionId: string | undefined;
+  let returnFocusToDetailTrigger: string | undefined;
 
   const render = (resetScene = false) => {
     dependencies.onPhaseChange?.(state.phase);
@@ -149,7 +152,15 @@ export function mountSimulatorV3(
       crisisRules,
       pauseView,
       saveFailed,
+      detailOptionId,
     });
+    if (detailOptionId) {
+      host.querySelector?.(".simulateur-v3__detail-panel")?.focus?.({ preventScroll: true });
+    } else if (returnFocusToDetailTrigger) {
+      const optionId = returnFocusToDetailTrigger;
+      returnFocusToDetailTrigger = undefined;
+      host.querySelector?.(`[data-v3-detail-trigger="${optionId}"]`)?.focus?.({ preventScroll: true });
+    }
     if (!resetScene) return;
     host.scrollIntoView?.({ block: "start" });
     host.querySelector?.(".simulateur-v3__stage h1")?.focus?.({ preventScroll: true });
@@ -179,6 +190,8 @@ export function mountSimulatorV3(
   };
 
   const advanceToNextScene = (previousPhase: CampaignPhase) => {
+    detailOptionId = undefined;
+    returnFocusToDetailTrigger = undefined;
     state = advanceToVisiblePhase(state, scenario, crisisRules);
     if (state.phase === "decision") {
       emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
@@ -240,6 +253,24 @@ export function mountSimulatorV3(
         position: state.decisions.length,
       });
       advanceToNextScene("decision_result");
+      return;
+    }
+
+    if (action === "open-details" && state.phase === "decision") {
+      const optionId = node.dataset.optionId;
+      const available = currentDecision(state, scenario)
+        ?.options.some((option) => option.id === optionId && option.displayCopy !== undefined);
+      if (!optionId || !available) return;
+      detailOptionId = optionId;
+      returnFocusToDetailTrigger = undefined;
+      render();
+      return;
+    }
+
+    if (action === "close-details" && detailOptionId) {
+      returnFocusToDetailTrigger = detailOptionId;
+      detailOptionId = undefined;
+      render();
       return;
     }
 
@@ -308,11 +339,22 @@ export function mountSimulatorV3(
     }
   };
 
+  const onKeydown: EventListener = (event) => {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key !== "Escape" || !detailOptionId) return;
+    keyboardEvent.preventDefault();
+    returnFocusToDetailTrigger = detailOptionId;
+    detailOptionId = undefined;
+    render();
+  };
+
   host.addEventListener("click", onClick);
+  host.addEventListener("keydown", onKeydown);
   render(true);
 
   return () => {
     host.removeEventListener("click", onClick);
+    host.removeEventListener("keydown", onKeydown);
     dependencies.onPhaseChange?.(null);
   };
 }

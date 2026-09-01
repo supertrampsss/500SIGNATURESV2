@@ -11,6 +11,7 @@ import {
 import { createCampaign as createProductionCampaign } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
+import { SCENARIO_V11_CATALOGUE } from "./scenario-v11-catalogue.ts";
 import { createTestCampaign as createCampaign, testBaseline, validScenario } from "./test-fixtures.ts";
 import { positionAfterCompleted, positionBeforeNext, totalDecisions } from "./validation.ts";
 
@@ -25,6 +26,14 @@ test("une campagne neuve commence avant le premier chapitre", () => {
   assert.equal(state.savedAt, "1970-01-01T00:00:00.000Z");
   assert.notEqual(state.indicators, createCampaign(validScenario()).indicators);
   assert.notEqual(state.groups, createCampaign(validScenario()).groups);
+});
+
+test("une campagne V11 persiste un parcours de 45 cartes et lit sa décision courante dedans", () => {
+  const state = createCampaign(SCENARIO_V11_CATALOGUE, 417);
+
+  assert.equal(state.sessionDecisionIds?.length, 45);
+  assert.equal(new Set(state.sessionDecisionIds).size, 45);
+  assert.equal(currentDecision({ ...state, phase: "decision" }, SCENARIO_V11_CATALOGUE)?.id, state.sessionDecisionIds?.[0]);
 });
 
 test("une campagne neuve exige une baseline explicite", () => {

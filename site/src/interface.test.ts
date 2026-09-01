@@ -3537,7 +3537,9 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /:focus-visible/);
   assert.doesNotMatch(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
   assert.match(SIMULATEUR_V3, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
-  assert.doesNotMatch(SIMULATEUR_V3, /position:\s*fixed/);
+  const commandBar = SIMULATEUR_V3.match(/\.simulateur-v3__command-bar\s*\{([^}]*)\}/s)?.[1] ?? "";
+  assert.doesNotMatch(commandBar, /position:\s*(?:fixed|sticky)/);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__detail-layer\s*\{[^}]*position:\s*fixed;/s);
   assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
 });
 
@@ -3622,10 +3624,10 @@ test("l'ouverture directe V3 n'affiche pas une fausse indisponibilité pendant l
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
-  assert.ok(brancheV3.indexOf("completedV9StateFromStorage(localStorage)") < brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 10)"));
-  assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 10)") < brancheV3.indexOf("mountSimulatorV3("));
+  assert.ok(brancheV3.indexOf("completedV9StateFromStorage(localStorage)") < brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 11)"));
+  assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 11)") < brancheV3.indexOf("mountSimulatorV3("));
   assert.match(brancheV3, /if \(!scenario\) throw new Error\("Requested simulator scenario unavailable"\);/);
-  assert.match(brancheV3, /crisisRules: scenario\.version === 9 \? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES/);
+  assert.match(brancheV3, /crisisRules: scenario\.version === 9 \? SCENARIO_V9_CRISIS_RULES : SCENARIO_V11_CRISIS_RULES/);
   assert.match(brancheV3, /initialState: historicalV9 \?\? e2eInitialState\(scenario\)/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);

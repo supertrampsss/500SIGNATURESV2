@@ -2,13 +2,91 @@ import { BUDGET_ESTIMATES } from "./budget-registry.ts";
 import { policyEvidence, type PolicySourceKey } from "./policy-sources.ts";
 import { SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 import { validatePolicyCatalogue } from "./validation.ts";
-import type { BudgetProfile, Decision, DecisionKind, DecisionOption, GroupKey, IndicatorKey, Scenario } from "./types.ts";
+import type { BudgetProfile, Decision, DecisionDisplayCopy, DecisionKind, DecisionOption, DecisionOptionDisplayCopy, GroupKey, IndicatorKey, Scenario } from "./types.ts";
 
 export { STRUCTURAL_ADOPT_DECISION_IDS } from "./budget-registry.ts";
 
 const NULL_PROFILE: BudgetProfile = { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] };
 type Replacement = { id: string; chapterId: string; kind: DecisionKind; title: string; context: string; subject: string; legal: string; beneficiaries: string[]; contributors: string[]; indicator: IndicatorKey; group: GroupKey; sourceKeys: PolicySourceKey[]; estimateKey: string | null; year?: 2 | 3 | 5 };
 const TAX = "taxes-assets-transmission", WORK = "work-wages-pensions", HEALTH = "health-social-protection", ENERGY = "energy-climate-transport-agriculture", STATE = "state-institutions-territories";
+
+type PlayerCopy = {
+  decision: DecisionDisplayCopy;
+  options: Record<"adopt" | "keep", DecisionOptionDisplayCopy>;
+};
+
+// These texts are hand-written for the decision screen. They must never be
+// generated from the engine's legal, budgetary or group-effect metadata.
+const PLAYER_COPY: Readonly<Record<string, PlayerCopy>> = {
+  "unifier-ir-csg-bareme-continu": {
+    decision: {
+      question: "Fusionner l'impôt sur le revenu et la CSG ?",
+      context: "L'impôt sur le revenu dépend des revenus du foyer. La CSG est retirée des salaires, retraites et revenus du patrimoine pour financer la Sécurité sociale.",
+    },
+    options: {
+      adopt: {
+        shortLabel: "Créer un impôt unique et progressif",
+        outcome: "Tout le monde contribue dès le premier euro et le taux augmente avec le revenu.",
+        details: {
+          whatChanges: "L'impôt sur le revenu et la CSG sont remplacés par un seul prélèvement.",
+          howItWorks: "Le taux augmente progressivement avec le revenu, sans saut brutal entre deux niveaux.",
+          whoPays: ["Chaque personne ayant un revenu contribue selon ce barème."],
+        },
+      },
+      keep: {
+        shortLabel: "Garder le système actuel",
+        outcome: "L'impôt sur le revenu et la CSG restent calculés séparément.",
+        details: {
+          whatChanges: "Les deux prélèvements restent distincts.",
+          howItWorks: "L'impôt sur le revenu dépend du foyer et la CSG reste retirée directement des revenus concernés.",
+        },
+      },
+    },
+  },
+  "reserver-les-prestations-non-contributives-aux-nationaux": {
+    decision: {
+      question: "Attendre cinq ans avant de recevoir certaines aides ?",
+      context: "La mesure vise les étrangers hors Union européenne récemment installés. Elle concerne les aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer.",
+    },
+    options: {
+      adopt: {
+        shortLabel: "Exiger cinq ans de résidence régulière",
+        outcome: "Les aides concernées sont versées après cinq ans de résidence régulière.",
+        details: {
+          whatChanges: "Le délai s'applique aux aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer.",
+          howItWorks: "Une personne concernée attend cinq ans de résidence régulière avant de recevoir ces aides.",
+          whoPays: ["Les organismes qui versent ces aides les paient moins souvent pendant les cinq premières années."],
+          whoGainsOrLoses: [
+            "Les étrangers hors Union européenne installés depuis moins de cinq ans reçoivent ces aides plus tard.",
+            "Le revenu minimum, l'assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus.",
+          ],
+          when: "La règle commence après le changement de la loi et la date d'application retenue.",
+        },
+      },
+      keep: {
+        shortLabel: "Garder les règles actuelles",
+        outcome: "Chaque aide conserve ses propres conditions d'accès.",
+        details: {
+          whatChanges: "Les conditions d'accès aux aides concernées ne changent pas.",
+          howItWorks: "Chaque aide continue d'être versée selon ses règles actuelles.",
+        },
+      },
+    },
+  },
+};
+
+function applyPlayerCopy(decision: Decision): Decision {
+  const copy = PLAYER_COPY[decision.id];
+  if (!copy) return decision;
+  return {
+    ...decision,
+    displayCopy: copy.decision,
+    options: decision.options.map((option) => {
+      const localId = option.id.split(":").at(-1) as "adopt" | "keep";
+      return { ...option, displayCopy: copy.options[localId] };
+    }),
+  };
+}
 
 // Each entry is a new V10 decision definition. The V9 key only selects its catalogue slot;
 // no old copy, consequence, lock, event or effect is read while compiling these dossiers.
@@ -165,7 +243,7 @@ function retainedDecision(source: Decision): Decision {
 }
 function deepFreeze<T>(value: T): T { if (value && typeof value === "object") { for (const child of Object.values(value)) deepFreeze(child); Object.freeze(value); } return value; }
 export function buildV10Catalogue(source: Scenario = SCENARIO_V3_CATALOGUE): Scenario {
-  const decisions = source.decisions.map((decision) => REPLACEMENTS[decision.id] ? replacementDecision(REPLACEMENTS[decision.id]!) : retainedDecision(decision));
+  const decisions = source.decisions.map((decision) => applyPlayerCopy(REPLACEMENTS[decision.id] ? replacementDecision(REPLACEMENTS[decision.id]!) : retainedDecision(decision)));
   const catalogue: Scenario = { version: 10, title: "Bibliothèque V10 des politiques", chapters: source.chapters.map((chapter) => ({ ...structuredClone(chapter), decisionIds: decisions.filter((decision) => decision.chapterId === chapter.id).map((decision) => decision.id) })), decisions };
   const errors = validatePolicyCatalogue(catalogue);
   if (errors.length > 0) throw new Error(`Invalid V10 catalogue: ${errors.join(", ")}`);

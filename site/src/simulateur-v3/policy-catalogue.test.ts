@@ -76,6 +76,45 @@ test("le catalogue V10 relie tous ses profils non nuls ou audités au registre",
   assert.equal(structuralTotal, 71_314);
 });
 
+test("les cartes IR-CSG et résidence disposent d'une copie visible écrite pour le joueur", () => {
+  const levy = v10PolicyById("unifier-ir-csg-bareme-continu")!;
+  assert.deepEqual(levy.displayCopy, {
+    question: "Fusionner l'impôt sur le revenu et la CSG ?",
+    context: "L'impôt sur le revenu dépend des revenus du foyer. La CSG est retirée des salaires, retraites et revenus du patrimoine pour financer la Sécurité sociale.",
+  });
+  assert.deepEqual(levy.options.map((option) => option.displayCopy), [
+    {
+      shortLabel: "Créer un impôt unique et progressif",
+      outcome: "Tout le monde contribue dès le premier euro et le taux augmente avec le revenu.",
+      details: {
+        whatChanges: "L'impôt sur le revenu et la CSG sont remplacés par un seul prélèvement.",
+        howItWorks: "Le taux augmente progressivement avec le revenu, sans saut brutal entre deux niveaux.",
+        whoPays: ["Chaque personne ayant un revenu contribue selon ce barème."],
+      },
+    },
+    {
+      shortLabel: "Garder le système actuel",
+      outcome: "L'impôt sur le revenu et la CSG restent calculés séparément.",
+      details: {
+        whatChanges: "Les deux prélèvements restent distincts.",
+        howItWorks: "L'impôt sur le revenu dépend du foyer et la CSG reste retirée directement des revenus concernés.",
+      },
+    },
+  ]);
+
+  const residence = v10PolicyById("reserver-les-prestations-non-contributives-aux-nationaux")!;
+  assert.deepEqual(residence.displayCopy, {
+    question: "Attendre cinq ans avant de recevoir certaines aides ?",
+    context: "La mesure vise les étrangers hors Union européenne récemment installés. Elle concerne les aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer.",
+  });
+  assert.equal(residence.options[0]!.displayCopy?.shortLabel, "Exiger cinq ans de résidence régulière");
+  assert.equal(residence.options[0]!.displayCopy?.outcome, "Les aides concernées sont versées après cinq ans de résidence régulière.");
+  assert.deepEqual(residence.options[0]!.displayCopy?.details.whoGainsOrLoses, [
+    "Les étrangers hors Union européenne installés depuis moins de cinq ans reçoivent ces aides plus tard.",
+    "Le revenu minimum, l'assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus.",
+  ]);
+});
+
 test("les vingt substitutions V10 ne réemploient aucun contrat éditorial ou causal V9", () => {
   const replacements: Record<string, string> = {
     "geler-le-bareme-de-l-impot-sur": "facturation-electronique-controle-tva",

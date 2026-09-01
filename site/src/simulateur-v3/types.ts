@@ -141,6 +141,27 @@ export type PromiseRule = {
   failureEffects: EffectRule[];
 };
 
+/** Text written for a player. It is deliberately separate from engine metadata. */
+export type DecisionOptionDetails = {
+  whatChanges?: string;
+  howItWorks?: string;
+  whoPays?: string[];
+  whoGainsOrLoses?: string[];
+  when?: string;
+  sourcesAndCalculation?: string;
+};
+
+export type DecisionOptionDisplayCopy = {
+  shortLabel: string;
+  outcome: string;
+  details: DecisionOptionDetails;
+};
+
+export type DecisionDisplayCopy = {
+  question: string;
+  context: string;
+};
+
 export type DecisionOption = {
   id: string;
   label: string;
@@ -158,6 +179,8 @@ export type DecisionOption = {
   fulfillsPromises: string[];
   locks: string[];
   unlocks: string[];
+  /** Optional player-facing copy. Never infer it from beneficiaries or legal constraints. */
+  displayCopy?: DecisionOptionDisplayCopy;
 };
 
 export type Decision = {
@@ -167,6 +190,8 @@ export type Decision = {
   chapterId: string;
   title: string;
   context: string;
+  /** Optional player-facing copy. It replaces the historical dossier copy when present. */
+  displayCopy?: DecisionDisplayCopy;
   options: DecisionOption[];
   evidence: EvidenceBlock[];
   historicalPrecedent?: { title: string; body: string; sourceUrl: string };
@@ -332,6 +357,8 @@ export type CampaignState = {
   pausedFrom?: Exclude<CampaignPhase, "pause">;
   chapterIndex: number;
   decisionIndex: number;
+  /** V11 persists its selected 45-card route; V9/V10 keep their chapter order. */
+  sessionDecisionIds?: string[];
   pendingSelection?: { decisionId: string; optionId: string };
   decisions: DecisionRecord[];
   baseline: MandateBaseline;

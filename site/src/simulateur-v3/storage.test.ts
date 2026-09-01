@@ -18,6 +18,7 @@ import { applyEffect, confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
+import { SCENARIO_V11 } from "./scenario-v11.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
 import { advanceMandateYear } from "./timeline.ts";
@@ -134,6 +135,30 @@ test("une campagne V3 sauvegardée est restaurée sans perte", () => {
     kind: "restored",
     state: { ...state, savedAt: "2026-08-27T12:00:00.000Z" },
   });
+});
+
+test("une sauvegarde V10 demande un nouveau départ au lieu de devenir une partie V11", () => {
+  const state = createCampaign(SCENARIO_V10, 42);
+  const serialized = JSON.stringify(state);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V11), { kind: "restart_required" });
+  assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("une sauvegarde V11 garde exactement son parcours de 45 cartes", () => {
+  const state = createCampaign(SCENARIO_V11, 417);
+  const plan = [...state.sessionDecisionIds!];
+  const storage = memoryStorage();
+  const saved = saveCampaign(storage, state, new Date("2026-09-01T12:00:00.000Z"));
+  const restored = restoreCampaign(storage, SCENARIO_V11);
+
+  assert.equal(plan.length, 45);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.deepEqual(restored.state.sessionDecisionIds, plan);
+    assert.deepEqual(restored.state, saved);
+  }
 });
 
 test("une sauvegarde schema 3 exige explicitement un nouveau départ", () => {
