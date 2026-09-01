@@ -29,7 +29,7 @@ export const SCENARIO_V11_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
     requiredDecisionIds: ["v11-01-prelevement-personnel", "v11-02-tva"],
     aggravatingChoices: [
       { decisionId: "v11-01-prelevement-personnel", optionIds: ["v11-01-prelevement-personnel:option-1"] },
-      { decisionId: "v11-02-tva", optionIds: ["v11-02-tva:option-2"] },
+      { decisionId: "v11-02-tva", optionIds: ["v11-02-tva:option-2", "v11-02-tva:option-4"] },
     ],
     concessions: [
       {

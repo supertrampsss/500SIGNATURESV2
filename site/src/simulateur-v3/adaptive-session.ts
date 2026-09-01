@@ -14,7 +14,6 @@ const V11_ADAPTIVE_COUNT = 32;
  * in the same chapter, never an anchor or an already rendered decision.
  */
 const V11_ROUTE_EXCLUSIONS: Readonly<Record<string, readonly string[]>> = Object.freeze({
-  "v11-01-prelevement-personnel:option-1": ["v11-05-epargne"],
   "v11-46-nucleaire:option-3": ["v11-48-renouvelables"],
 });
 
@@ -53,28 +52,8 @@ function assertV11Roles(catalogue: Scenario): void {
   }
 }
 
-function adaptiveQuotas(catalogue: Scenario, seed: number): Map<string, number> {
-  const byId = decisionMap(catalogue);
-  const groups = catalogue.chapters.map((chapter) => ({
-    chapterId: chapter.id,
-    ids: V11_ADAPTIVE_DECISION_IDS.filter((id) => byId.get(id)?.chapterId === chapter.id),
-  })).filter((group) => group.ids.length > 0);
-  const exact = groups.map((group) => group.ids.length * V11_ADAPTIVE_COUNT / V11_ADAPTIVE_DECISION_IDS.length);
-  const quotas = exact.map(Math.floor);
-  let remaining = V11_ADAPTIVE_COUNT - quotas.reduce((sum, quota) => sum + quota, 0);
-  const tieBreak = seededRandom(seed ^ 0x45d9f3b);
-  const ordered = groups.map((group, index) => ({
-    index,
-    remainder: exact[index]! - quotas[index]!,
-    tie: tieBreak(),
-    chapterId: group.chapterId,
-  })).sort((left, right) => right.remainder - left.remainder || left.tie - right.tie || left.chapterId.localeCompare(right.chapterId));
-  for (const group of ordered) {
-    if (remaining <= 0) break;
-    quotas[group.index]! += 1;
-    remaining -= 1;
-  }
-  return new Map(groups.map((group, index) => [group.chapterId, quotas[index]!]));
+function maximumAnnualGain(decision: Decision): number {
+  return Math.max(...decision.options.map((option) => option.budgetProfile.runRateMillions));
 }
 
 /** Build the immutable 45-card route for one V11 mandate. */
@@ -82,13 +61,20 @@ export function buildSessionPlan(catalogue: Scenario, seed: number): string[] {
   assertV11Roles(catalogue);
   const byId = decisionMap(catalogue);
   const random = seededRandom(seed);
-  const quotas = adaptiveQuotas(catalogue, seed);
-  const selectedAdaptive = new Set<string>();
+  // Every route keeps the actual budget levers. Replayability comes from the
+  // remaining nine cards, not from silently creating an unwinnable mandate.
+  const selectedAdaptive = new Set(V11_ADAPTIVE_DECISION_IDS.filter((id) => maximumAnnualGain(byId.get(id)!) > 0));
+
+  // Keep at least one adaptive card in every chapter, including themes whose
+  // choices only spend money or change institutions.
   for (const chapter of catalogue.chapters) {
     const candidates = V11_ADAPTIVE_DECISION_IDS.filter((id) => byId.get(id)?.chapterId === chapter.id);
-    const quota = quotas.get(chapter.id) ?? 0;
-    for (const id of shuffled(candidates, random).slice(0, quota)) selectedAdaptive.add(id);
+    if (candidates.length > 0 && !candidates.some((id) => selectedAdaptive.has(id))) {
+      selectedAdaptive.add(shuffled(candidates, random)[0]!);
+    }
   }
+  const remainingCandidates = V11_ADAPTIVE_DECISION_IDS.filter((id) => !selectedAdaptive.has(id));
+  for (const id of shuffled(remainingCandidates, random).slice(0, V11_ADAPTIVE_COUNT - selectedAdaptive.size)) selectedAdaptive.add(id);
   if (selectedAdaptive.size !== V11_ADAPTIVE_COUNT) throw new Error("Invalid V11 adaptive selection");
 
   const selected = new Set([...V11_COMMON_DECISION_IDS, ...V11_SYNTHESIS_DECISION_IDS, ...selectedAdaptive]);

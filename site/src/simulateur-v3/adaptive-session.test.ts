@@ -6,13 +6,28 @@ import {
   refreshFutureSessionPlan,
   sessionPosition,
 } from "./adaptive-session.ts";
+import { BALANCED_PATH_BASELINE } from "./balanced-paths.ts";
+import { createCampaign, currentDecision, selectOption } from "./campaign.ts";
+import { resolveCrisis } from "./crises.ts";
+import { confirmSelection } from "./effects.ts";
+import { advanceCampaign } from "./flow.ts";
 import {
   SCENARIO_V11_CATALOGUE,
   V11_ADAPTIVE_DECISION_IDS,
   V11_COMMON_DECISION_IDS,
   V11_SYNTHESIS_DECISION_IDS,
 } from "./scenario-v11-catalogue.ts";
+import { SCENARIO_V11_CRISIS_RULES } from "./scenario-v11-crises.ts";
 import type { CampaignState } from "./types.ts";
+
+const REQUIRED_BUDGET_CAPACITY_MILLIONS = 152_532;
+
+function budgetCapacity(plan: readonly string[]): number {
+  const byId = new Map(SCENARIO_V11_CATALOGUE.decisions.map((decision) => [decision.id, decision]));
+  return plan.reduce((total, decisionId) => total + Math.max(
+    ...byId.get(decisionId)!.options.map((option) => option.budgetProfile.runRateMillions),
+  ), 0);
+}
 
 function v11State(plan: readonly string[], completed = 0): CampaignState {
   return {
@@ -64,6 +79,38 @@ test("un plan V11 est déterministe et contient exactement 45 cartes distinctes"
   assert.equal(V11_ADAPTIVE_DECISION_IDS.filter((id) => !first.includes(id)).length, 12);
 });
 
+test("chaque partie de 45 dossiers offre assez de leviers pour combler le déficit initial", () => {
+  for (let seed = 0; seed < 1_000; seed += 1) {
+    const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, seed);
+    assert.ok(
+      budgetCapacity(plan) >= REQUIRED_BUDGET_CAPACITY_MILLIONS,
+      `seed ${seed}: ${budgetCapacity(plan)} M€ seulement`,
+    );
+  }
+});
+
+test("le parcours maximal rejoue réellement 45 dossiers et atteint l'équilibre", () => {
+  for (const seed of [0, 1, 417, 999]) {
+    let state: CampaignState = { ...createCampaign(SCENARIO_V11_CATALOGUE, BALANCED_PATH_BASELINE, seed), phase: "chapter_intro" };
+    for (let step = 0; step < 500 && state.phase !== "verdict"; step += 1) {
+      if (state.phase === "decision") {
+        const decision = currentDecision(state, SCENARIO_V11_CATALOGUE)!;
+        const option = decision.options.reduce((best, candidate) =>
+          candidate.budgetProfile.runRateMillions > best.budgetProfile.runRateMillions ? candidate : best,
+        );
+        state = confirmSelection(selectOption(state, SCENARIO_V11_CATALOGUE, decision.id, option.id), SCENARIO_V11_CATALOGUE);
+      } else if (state.phase === "crisis") {
+        state = resolveCrisis(state, SCENARIO_V11_CRISIS_RULES, "hold-course");
+      } else {
+        state = advanceCampaign(state, SCENARIO_V11_CATALOGUE, SCENARIO_V11_CRISIS_RULES);
+      }
+    }
+    assert.equal(state.phase, "verdict", `seed ${seed}`);
+    assert.equal(state.decisions.length, 45, `seed ${seed}`);
+    assert.ok(state.indicators.annualBalance >= 0, `seed ${seed}: ${state.indicators.annualBalance} M€`);
+  }
+});
+
 test("police, justice et prisons sont trois choix cumulables présents dans chaque partie", () => {
   const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 417);
   for (const id of ["v11-35-police-gendarmerie", "v11-56-magistrats-greffiers", "v11-57-places-prison"]) {
@@ -87,7 +134,9 @@ test("le plan V11 conserve une enveloppe de cartes dans chaque thème", () => {
 test("une carte future verrouillée est remplacée par une carte adaptative du même thème", () => {
   const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 4);
   const chapterById = new Map(SCENARIO_V11_CATALOGUE.decisions.map((decision) => [decision.id, decision.chapterId]));
-  const blockedId = "v11-05-epargne";
+  const blockedId = plan.find((id) => V11_ADAPTIVE_DECISION_IDS.includes(id) && V11_ADAPTIVE_DECISION_IDS.some((candidate) =>
+    chapterById.get(candidate) === chapterById.get(id) && !plan.includes(candidate),
+  ))!;
   const futureIndex = plan.indexOf(blockedId);
   assert.ok(futureIndex >= 0 && V11_ADAPTIVE_DECISION_IDS.some((candidate) => chapterById.get(candidate) === chapterById.get(blockedId) && !plan.includes(candidate)));
   const state = v11State(plan, futureIndex);
@@ -102,7 +151,7 @@ test("une carte future verrouillée est remplacée par une carte adaptative du m
   assert.equal(new Set(refreshed.sessionDecisionIds).size, 45);
 });
 
-test("un choix fiscal structurant modifie seulement la suite fiscale de la partie", () => {
+test("le prélèvement unifié conserve la réforme distincte des niches d'épargne", () => {
   const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 4);
   const target = "v11-05-epargne";
   const targetIndex = plan.indexOf(target);
@@ -118,34 +167,25 @@ test("un choix fiscal structurant modifie seulement la suite fiscale de la parti
   const refreshed = refreshFutureSessionPlan(state, SCENARIO_V11_CATALOGUE);
 
   assert.deepEqual(refreshed.sessionDecisionIds!.slice(0, 1), plan.slice(0, 1));
-  assert.notEqual(refreshed.sessionDecisionIds![targetIndex], target);
+  assert.equal(refreshed.sessionDecisionIds![targetIndex], target);
   assert.equal(refreshed.sessionDecisionIds!.length, 45);
 });
 
-test("deux choix opposés produisent bien deux parcours futurs différents de 45 cartes", () => {
+test("deux choix énergétiques opposés produisent deux parcours futurs différents de 45 cartes", () => {
   const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 4);
-  const unified = v11State(plan, 1);
-  unified.decisions[0] = {
-    decisionId: "v11-01-prelevement-personnel",
-    optionId: "v11-01-prelevement-personnel:option-1",
-    status: "confirmed",
-    confirmedAtIndex: 1,
-  };
-  const separate = v11State(plan, 1);
-  separate.decisions[0] = {
-    decisionId: "v11-01-prelevement-personnel",
-    optionId: "v11-01-prelevement-personnel:option-2",
-    status: "confirmed",
-    confirmedAtIndex: 1,
-  };
+  const nuclearIndex = plan.indexOf("v11-46-nucleaire");
+  const unified = v11State(plan, nuclearIndex + 1);
+  unified.decisions[nuclearIndex] = { decisionId: "v11-46-nucleaire", optionId: "v11-46-nucleaire:option-3", status: "confirmed", confirmedAtIndex: nuclearIndex + 1 };
+  const separate = v11State(plan, nuclearIndex + 1);
+  separate.decisions[nuclearIndex] = { decisionId: "v11-46-nucleaire", optionId: "v11-46-nucleaire:option-2", status: "confirmed", confirmedAtIndex: nuclearIndex + 1 };
 
   const unifiedRoute = refreshFutureSessionPlan(unified, SCENARIO_V11_CATALOGUE).sessionDecisionIds!;
   const separateRoute = refreshFutureSessionPlan(separate, SCENARIO_V11_CATALOGUE).sessionDecisionIds!;
 
   assert.equal(unifiedRoute.length, 45);
   assert.equal(separateRoute.length, 45);
-  assert.deepEqual(unifiedRoute.slice(0, 1), separateRoute.slice(0, 1));
-  assert.notDeepEqual(unifiedRoute.slice(1), separateRoute.slice(1));
+  assert.deepEqual(unifiedRoute.slice(0, nuclearIndex + 1), separateRoute.slice(0, nuclearIndex + 1));
+  assert.notDeepEqual(unifiedRoute.slice(nuclearIndex + 1), separateRoute.slice(nuclearIndex + 1));
 });
 
 test("un choix énergétique incompatible modifie seulement une carte énergétique future", () => {
