@@ -9,7 +9,6 @@ import type {
   MandateVerdictViewModel,
   VerdictAftermath,
   VerdictChoice,
-  VerdictCheckpoint,
   VerdictSignal,
 } from "./verdict.ts";
 import type {
@@ -34,6 +33,10 @@ export type RenderSimulatorV3Options = {
   detailOptionId?: string;
   /** Whether the immediately preceding policy choice can be restored. */
   canUndo?: boolean;
+  /** Best score kept across completed mandates, expressed in millions of euros. */
+  bestScore?: number;
+  /** Improvement over the previous personal best, expressed in millions of euros. */
+  recordImprovement?: number;
 };
 
 function escapeHtml(value: string): string {
@@ -1014,16 +1017,6 @@ function formatVerdictSignal(signal: VerdictSignal): string {
   return `${Math.round(signal.value)} / 100`;
 }
 
-function formatVerdictDelta(signal: VerdictSignal): string {
-  if (signal.key === "growth") {
-    const value = signal.delta.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const point = Math.abs(signal.delta) <= 1 ? "point" : "points";
-    return `${signal.delta > 0 ? "+" : ""}${value} ${point} de pourcentage depuis le début`;
-  }
-  const rounded = Math.round(signal.delta);
-  return `${signed(rounded)} ${Math.abs(rounded) <= 1 ? "point" : "points"} d'indice depuis le début`;
-}
-
 function renderVerdictSignal(signal: VerdictSignal): string {
   const level = signal.key === "growth"
     ? Math.max(0, Math.min(100, Math.round(((signal.value + 1) / 4) * 100)))
@@ -1031,18 +1024,7 @@ function renderVerdictSignal(signal: VerdictSignal): string {
   return `<li class="simulateur-v3__verdict-signal simulateur-v3__verdict-signal--${signal.key}">
     <span class="simulateur-v3__verdict-signal-label">${escapeHtml(signal.label)}</span>
     <strong>${escapeHtml(formatVerdictSignal(signal))}</strong>
-    <span class="simulateur-v3__verdict-signal-delta">${escapeHtml(formatVerdictDelta(signal))}</span>
     <span class="simulateur-v3__verdict-signal-track" aria-hidden="true"><i style="--v3-verdict-level: ${level}%"></i></span>
-    <small>${escapeHtml(signal.descriptor)}</small>
-  </li>`;
-}
-
-function renderVerdictCheckpoint(point: VerdictCheckpoint, campaignLength: number): string {
-  return `<li class="simulateur-v3__verdict-checkpoint${point.decisionCount === campaignLength ? " simulateur-v3__verdict-checkpoint--final" : ""}">
-    <span class="simulateur-v3__verdict-checkpoint-dot" aria-hidden="true"></span>
-    <span class="simulateur-v3__verdict-checkpoint-label">${escapeHtml(point.label)}</span>
-    <strong>${escapeHtml(formatV3Amount(point.annualBalance))}</strong>
-    <small>Pouvoir ${Math.round(point.majority)} / 100</small>
   </li>`;
 }
 
@@ -1054,82 +1036,78 @@ function formatStructuralEffect(choice: VerdictChoice): string {
 
 function renderVerdictChoice(choice: VerdictChoice): string {
   return `<li class="simulateur-v3__verdict-choice">
-    <span class="simulateur-v3__verdict-choice-rank" aria-hidden="true">${String(choice.rank).padStart(2, "0")}</span>
     <div class="simulateur-v3__verdict-choice-copy">
-      <p>${escapeHtml(choice.chapter)}</p>
       <h3>${escapeHtml(choice.label)}</h3>
-      <dl>
-        <div><dt>${choice.budgetDuration === "once" ? "Impact ponctuel" : "Solde annuel"}</dt><dd>${choice.budgetDelta === 0 ? "Inchangé" : `${escapeHtml(formatV3Amount(choice.budgetDelta))} ${choice.budgetDuration === "once" ? "une seule fois" : "par an"}`}</dd></div>
-        <div><dt>Second effet</dt><dd>${escapeHtml(formatStructuralEffect(choice))}</dd></div>
-      </dl>
-      <span class="simulateur-v3__verdict-choice-status">${escapeHtml(choice.status)}</span>
+      <strong>${choice.budgetDelta === 0 ? "Solde inchangé" : `${escapeHtml(formatV3Amount(choice.budgetDelta))}${choice.budgetDuration === "once" ? " une fois" : " par an"}`}</strong>
     </div>
+  </li>`;
+}
+
+function renderVerdictChoiceConsequence(choice: VerdictChoice): string {
+  return `<li class="simulateur-v3__verdict-aftermath-item simulateur-v3__verdict-aftermath-item--choice">
+    <span>Effet</span>
+    <div><h3>${escapeHtml(choice.label)}</h3><p>${escapeHtml(formatStructuralEffect(choice))}</p></div>
   </li>`;
 }
 
 function renderVerdictAftermath(item: VerdictAftermath): string {
   return `<li class="simulateur-v3__verdict-aftermath-item simulateur-v3__verdict-aftermath-item--${item.kind}">
-    <div>
-      <span>${item.kind === "crisis" ? "Crise traversée" : escapeHtml(item.status ?? "Réforme modifiée")}</span>
-      <h3>${escapeHtml(item.title)}</h3>
-    </div>
-    <p>${escapeHtml(item.detail)}</p>
+    <span>${item.kind === "crisis" ? "Crise" : escapeHtml(item.status ?? "Réforme modifiée")}</span>
+    <div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.detail)}</p></div>
   </li>`;
 }
 
-function renderVerdict(view: MandateVerdictViewModel, scenario: Scenario): string {
+function roundedBillions(value: number): string {
+  return Math.round(value / 1_000).toLocaleString("fr-FR");
+}
+
+function renderVerdict(view: MandateVerdictViewModel, options: RenderSimulatorV3Options): string {
+  const scorePercent = view.target > 0 ? Math.round((view.score / view.target) * 100) : 100;
+  const bestScore = options.bestScore ?? view.score;
+  const recordImprovement = options.recordImprovement ?? 0;
+  const record = recordImprovement > 0
+    ? `Nouveau record personnel : +${roundedBillions(recordImprovement)} Md€`
+    : `Record personnel : ${roundedBillions(bestScore)} Md€`;
+  const consequenceItems = [
+    ...view.aftermath.slice(0, 3).map(renderVerdictAftermath),
+    ...view.decisiveChoices
+      .filter((choice) => choice.structuralEffect)
+      .slice(0, Math.max(0, 3 - view.aftermath.length))
+      .map(renderVerdictChoiceConsequence),
+  ];
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--verdict">
       <article class="simulateur-v3__verdict">
         <header class="simulateur-v3__verdict-hero">
-          <div class="simulateur-v3__verdict-hero-copy">
-            <p class="simulateur-v3__eyebrow">Le verdict du pays</p>
-            <h1>${escapeHtml(view.headline)}</h1>
-            <p class="simulateur-v3__verdict-summary">${escapeHtml(view.summary)}</p>
+          <p class="simulateur-v3__eyebrow">Résultat du mandat</p>
+          <h1 class="simulateur-v3__verdict-score"><strong>${roundedBillions(view.score)}</strong><span>/ ${roundedBillions(view.target)} Md€</span></h1>
+          <div class="simulateur-v3__verdict-progress-bar" role="progressbar" aria-label="Déficit résorbé" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${scorePercent}"><i style="--v3-score: ${scorePercent}%"></i></div>
+          <div class="simulateur-v3__verdict-remaining">
+            <span><strong>${roundedBillions(view.remaining)} Md€</strong> restent à financer</span>
+            ${view.surplus > 0 ? `<span><strong>${roundedBillions(view.surplus)} Md€</strong> d'excédent</span>` : ""}
           </div>
-          <div class="simulateur-v3__verdict-totem">
-            <span>Solde annuel</span>
-            <strong>${escapeHtml(formatV3Amount(view.annualBalance))}</strong>
-            <small>Écart au départ : ${escapeHtml(formatV3Amount(view.annualBalanceDelta))}</small>
-          </div>
+          <p class="simulateur-v3__verdict-record">${escapeHtml(record)}</p>
         </header>
 
         <section class="simulateur-v3__verdict-section simulateur-v3__verdict-signals" aria-labelledby="v3-verdict-signals-title">
-          <div class="simulateur-v3__verdict-section-heading">
-            <p class="simulateur-v3__eyebrow">État du mandat</p>
-            <h2 id="v3-verdict-signals-title">Le pays au dernier jour</h2>
-          </div>
+          <h2 id="v3-verdict-signals-title">Indicateurs</h2>
           <ul>${view.signals.map(renderVerdictSignal).join("")}</ul>
         </section>
 
-        <section class="simulateur-v3__verdict-section simulateur-v3__verdict-trajectory" aria-labelledby="v3-trajectory-title">
-          <div class="simulateur-v3__verdict-section-heading">
-            <p class="simulateur-v3__eyebrow">Cinq ans de décisions</p>
-            <h2 id="v3-trajectory-title">Votre trajectoire de pouvoir</h2>
-          </div>
-          <ol>${view.trajectory.map((point) => renderVerdictCheckpoint(point, totalDecisions(scenario))).join("")}</ol>
-        </section>
+        ${consequenceItems.length ? `<section class="simulateur-v3__verdict-section simulateur-v3__verdict-aftermath" aria-labelledby="v3-aftermath-title">
+          <h2 id="v3-aftermath-title">Conséquences</h2>
+          <ul>${consequenceItems.join("")}</ul>
+        </section>` : ""}
 
         <section class="simulateur-v3__verdict-section simulateur-v3__verdict-choices" aria-labelledby="v3-choices-title">
-          <div class="simulateur-v3__verdict-section-heading">
-            <p class="simulateur-v3__eyebrow">Votre ligne politique</p>
-            <h2 id="v3-choices-title">Les trois décisions qui définissent votre mandat</h2>
-          </div>
+          <h2 id="v3-choices-title">Choix décisifs</h2>
           <ol>${view.decisiveChoices.map(renderVerdictChoice).join("")}</ol>
         </section>
 
-        ${view.aftermath.length ? `<section class="simulateur-v3__verdict-section simulateur-v3__verdict-aftermath" aria-labelledby="v3-aftermath-title">
-          <div class="simulateur-v3__verdict-section-heading">
-            <p class="simulateur-v3__eyebrow">Ce que le pouvoir vous a coûté</p>
-            <h2 id="v3-aftermath-title">Crises et réformes sous pression</h2>
-          </div>
-          <ul>${view.aftermath.map(renderVerdictAftermath).join("")}</ul>
-        </section>` : ""}
-
         <footer class="simulateur-v3__verdict-actions">
-          <button type="button" class="simulateur-v3__primary" data-v3-action="share-verdict">Partager mon verdict</button>
-          <button type="button" class="simulateur-v3__secondary" data-v3-action="restart">Refaire un mandat</button>
-          <a class="simulateur-v3__verdict-france" href="/bilan">Retourner à France</a>
+          <button type="button" class="simulateur-v3__primary" data-v3-action="restart">Recommencer</button>
+          <button type="button" class="simulateur-v3__secondary" data-v3-action="share-verdict">Défier un proche</button>
+          <a class="simulateur-v3__verdict-france" href="/bilan">France</a>
           <p class="simulateur-v3__verdict-share-status" aria-live="polite"></p>
         </footer>
       </article>
@@ -1172,7 +1150,7 @@ export function renderSimulatorV3(
       content = renderCrisis(state, scenario, options.crisisRules ?? []);
       break;
     case "verdict":
-      content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []), scenario);
+      content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []), options);
       break;
     default:
       content = renderUnavailable("Cet écran du mandat n'est pas disponible.");

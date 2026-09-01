@@ -3571,16 +3571,14 @@ test("la barre de commandement remplace le header global seulement après la pri
   assert.doesNotMatch(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete__nav a\s*\{/s);
 });
 
-test("le verdict V3 possède une scène finale responsive et autonome", () => {
-  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict\s*\{[^}]*width:\s*min\(100%,\s*82rem\);/s);
-  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-hero\s*\{[^}]*display:\s*grid;/s);
-  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-signals\s*>\s*ul\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
-  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-trajectory\s*>\s*ol::before\s*\{[^}]*width:\s*2px;/s);
+test("le verdict V3 possède une scène finale compacte et responsive", () => {
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict\s*\{[^}]*width:\s*min\(100%,\s*54rem\);/s);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-hero\s*\{[^}]*display:\s*block;/s);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-signals\s*>\s*ul\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-aftermath-item\s*\{[^}]*grid-template-columns:\s*minmax\(5rem,\s*auto\)\s+minmax\(0,\s*1fr\);/s);
   assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-choice\s*\{[^}]*min-width:\s*0;/s);
   assert.match(SIMULATEUR_V3, /\.simulateur-v3__verdict-actions[^}]*min-height:\s*3rem;/s);
-  const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 60rem)"));
-  assert.match(desktop, /\.simulateur-v3__verdict-hero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*7fr\)\s+minmax\(17rem,\s*5fr\);/s);
-  assert.match(desktop, /\.simulateur-v3__verdict-trajectory\s*>\s*ol\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.doesNotMatch(SIMULATEUR_V3, /\.simulateur-v3__verdict-trajectory\s*[>{]/s);
 });
 
 test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {

@@ -57,6 +57,10 @@ export type MandateVerdictViewModel = {
   summary: string;
   annualBalance: number;
   annualBalanceDelta: number;
+  target: number;
+  score: number;
+  remaining: number;
+  surplus: number;
   signals: VerdictSignal[];
   trajectory: VerdictCheckpoint[];
   decisiveChoices: VerdictChoice[];
@@ -138,7 +142,7 @@ function descriptorFor(key: VerdictSignal["key"], value: number): string {
 function buildSignals(state: CampaignState): VerdictSignal[] {
   const initial = initialIndicators(state.baseline);
   return ([
-    ["growth", INDICATOR_META.growth.label],
+    ["growth", "Croissance"],
     ["majority", "Pouvoir"],
     ["opinion", "Opinion"],
   ] as const).map(([key, label]) => ({
@@ -234,7 +238,7 @@ function compareImpact(left: DecisionOption, right: DecisionOption, scenario: Sc
 
 function selfContainedChoiceLabel(decisionTitle: string | undefined, optionLabel: string): string {
   const title = decisionTitle?.replace(/\s*\?\s*$/, "").trim();
-  const label = optionLabel.trim();
+  const label = optionLabel.trim().replace(/^Mettre en œuvre\s+/i, "");
   if (!title || label.split(/\s+/).length > 3) return label;
   return title.toLocaleLowerCase("fr-FR").startsWith(label.toLocaleLowerCase("fr-FR")) ? title : label;
 }
@@ -273,7 +277,6 @@ function buildAftermath(
 ): VerdictAftermath[] {
   const crises: VerdictAftermath[] = state.crisisHistory.map((crisis) => {
     const rule = crisisRules.find((candidate) => candidate.id === crisis.ruleId);
-    const trigger = scenario.decisions.find((decision) => decision.id === crisis.triggeredByDecisionId);
     const concession = rule?.concessions.find((candidate) => candidate.id === crisis.resolvedBy);
     const resolution = crisis.resolvedBy === "hold-course"
       ? "Vous avez maintenu le cap."
@@ -283,7 +286,7 @@ function buildAftermath(
     return {
       kind: "crisis",
       title: rule?.title ?? "Crise du mandat",
-      detail: `${trigger?.title ?? "Une décision du mandat"}. ${resolution}`,
+      detail: resolution,
     };
   });
 
@@ -327,11 +330,18 @@ export function buildMandateVerdictViewModel(
   scenario: Scenario,
   crisisRules: readonly CrisisRule[] = [],
 ): MandateVerdictViewModel {
+  const target = Math.abs(state.baseline.annualBalanceMillions);
+  const recovered = state.indicators.annualBalance - state.baseline.annualBalanceMillions;
+  const score = Math.min(target, Math.max(0, recovered));
   return {
     headline: headlineFor(state.indicators.annualBalance, state.indicators.majority, state.indicators.opinion),
     summary: summaryFor(state),
     annualBalance: state.indicators.annualBalance,
     annualBalanceDelta: state.indicators.annualBalance - state.baseline.annualBalanceMillions,
+    target,
+    score,
+    remaining: Math.max(0, target - score),
+    surplus: Math.max(0, state.indicators.annualBalance),
     signals: buildSignals(state),
     trajectory: buildTrajectory(state),
     decisiveChoices: buildDecisiveChoices(state, scenario),

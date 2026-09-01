@@ -207,6 +207,23 @@ test("calcule les écarts des signaux depuis le début du mandat", () => {
   assert.equal(view.signals[0]!.descriptor, "Croissance nominale soutenue");
 });
 
+test("le score mesure le déficit résorbé, sans dépasser la cible", () => {
+  const state = completedCampaign();
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+  const target = Math.abs(state.baseline.annualBalanceMillions);
+
+  assert.equal(view.target, target);
+  assert.equal(view.score, 20_000);
+  assert.equal(view.remaining, target - 20_000);
+  assert.equal(view.surplus, 0);
+
+  state.indicators.annualBalance = 8_000;
+  const surplus = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+  assert.equal(surplus.score, target);
+  assert.equal(surplus.remaining, 0);
+  assert.equal(surplus.surplus, 8_000);
+});
+
 test("classe trois choix distincts et ne transporte pas la question à répéter", () => {
   const view = buildMandateVerdictViewModel(completedCampaign(), SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
 

@@ -60,6 +60,7 @@ type ActionNode = {
 };
 
 const V3_UNDO_STORAGE_KEY = "simulateur-v3-undo";
+const V3_BEST_SCORE_STORAGE_KEY = "simulateur-v3-best-score";
 
 function unavailableStorage(): StorageLike {
   return {
@@ -146,6 +147,8 @@ export function mountSimulatorV3(
   let detailOptionId: string | undefined;
   let returnFocusToDetailTrigger: string | undefined;
   let previousDecisionState: CampaignState | undefined;
+  let bestScore = 0;
+  let recordImprovement = 0;
   try {
     const serializedUndo = storage.getItem(V3_UNDO_STORAGE_KEY);
     const candidate = serializedUndo ? JSON.parse(serializedUndo) : undefined;
@@ -155,6 +158,23 @@ export function mountSimulatorV3(
   } catch {
     previousDecisionState = undefined;
   }
+
+  const syncVerdictRecord = () => {
+    if (state.phase !== "verdict") return;
+    const score = buildMandateVerdictViewModel(state, scenario, crisisRules).score;
+    let previous = 0;
+    try {
+      previous = Math.max(0, Number(storage.getItem(V3_BEST_SCORE_STORAGE_KEY)) || 0);
+    } catch {
+      previous = 0;
+    }
+    bestScore = Math.max(previous, score);
+    recordImprovement = Math.max(0, score - previous);
+    if (score > previous) {
+      try { storage.setItem(V3_BEST_SCORE_STORAGE_KEY, String(score)); } catch { /* optional storage */ }
+    }
+  };
+  syncVerdictRecord();
 
   const render = (resetScene = false) => {
     dependencies.onPhaseChange?.(state.phase);
@@ -166,6 +186,8 @@ export function mountSimulatorV3(
       saveFailed,
       detailOptionId,
       canUndo: previousDecisionState !== undefined,
+      bestScore,
+      recordImprovement,
     });
     if (detailOptionId) {
       host.querySelector?.(".simulateur-v3__detail-panel")?.focus?.({ preventScroll: true });
@@ -214,6 +236,7 @@ export function mountSimulatorV3(
     }
     if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
     if (state.phase === "verdict") emit({ type: "campaign_completed" });
+    syncVerdictRecord();
     persistAndRender(true);
   };
 

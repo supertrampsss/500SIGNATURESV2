@@ -618,7 +618,7 @@ test("aucune scène ne présente une addition de fin de chapitre", () => {
   assert.doesNotMatch(html, /simulateur-v3__chapter-verdict/);
 });
 
-test("le verdict final devient une scène éditoriale sans grille générique", () => {
+test("le verdict final reprend la page de score compacte validée", () => {
   const state = stateAfter(60, "verdict");
   state.crisisHistory = [{
     ruleId: "flat-tax-revolt", triggeredByDecisionId: state.decisions[0]!.decisionId,
@@ -626,15 +626,18 @@ test("le verdict final devient une scène éditoriale sans grille générique", 
   }];
   state.decisions[0] = { ...state.decisions[0]!, status: "suspended" };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
-  assert.match(html, /simulateur-v3__verdict-hero/);
+  assert.match(html, /Résultat du mandat/);
+  assert.match(html, /simulateur-v3__verdict-score/);
+  assert.match(html, /simulateur-v3__verdict-progress-bar/);
   assert.match(html, /simulateur-v3__verdict-signals/);
-  assert.match(html, /simulateur-v3__verdict-trajectory/);
   assert.match(html, /simulateur-v3__verdict-choices/);
   assert.match(html, /simulateur-v3__verdict-aftermath/);
-  assert.match(html, /60 arbitrages/);
-  assert.match(html, /1 crise traversée/);
-  assert.match(html, /1 réforme modifiée sous pression/);
+  assert.match(html, /Conséquences/);
+  assert.match(html, /Choix décisifs/);
+  assert.match(html, /Recommencer/);
   assert.doesNotMatch(html, /simulateur-v3__situation-grid/);
+  assert.doesNotMatch(html, /simulateur-v3__verdict-trajectory/);
+  assert.doesNotMatch(html, /Le verdict du pays|État du mandat|Le pays au dernier jour|Cinq ans de décisions|Votre trajectoire de pouvoir|Composition du résultat|mission accomplie/i);
   assert.doesNotMatch(html, /[\u2013\u2014]/u);
   assert.equal(occurrences(html, 'data-v3-action="share-verdict"'), 1);
   assert.equal(occurrences(html, 'data-v3-action="restart"'), 1);

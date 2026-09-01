@@ -541,3 +541,33 @@ test("partager le verdict copie un résultat dynamique sans quitter la scène fi
   assert.ok(events.includes("verdict_shared"));
   assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).phase, "verdict");
 });
+
+test("le meilleur score survit à Recommencer et ne peut pas baisser", () => {
+  const base = createCampaign(SCENARIO_V3_PREVIEW);
+  const verdict = {
+    ...base,
+    phase: "verdict" as const,
+    chapterIndex: 7,
+    decisionIndex: 6,
+    decisions: SCENARIO_V3_PREVIEW.decisions.map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+    annualCheckpoints: testAnnualCheckpoints(SCENARIO_V3_PREVIEW, 5, -42_000),
+    indicators: { ...base.indicators, annualBalance: -42_000 },
+  };
+  const storage = memoryStorage({
+    [V3_STORAGE_KEY]: JSON.stringify(verdict),
+    "simulateur-v3-best-score": "100000",
+  });
+  const host = new FakeHost();
+
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+
+  assert.equal(storage.values.get("simulateur-v3-best-score"), "110532");
+  assert.match(host.innerHTML, /Nouveau record personnel/);
+  host.click("restart");
+  assert.equal(storage.values.get("simulateur-v3-best-score"), "110532");
+});
