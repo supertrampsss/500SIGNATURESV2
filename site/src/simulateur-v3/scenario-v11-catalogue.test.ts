@@ -46,7 +46,7 @@ const TARGET_OPTIONS = [
   ["Verser les allocations dès le premier enfant ?", ["Garder le droit au deuxième enfant", "Ouvrir dès le premier enfant"]],
   ["Qui doit piloter et financer l'école ?", ["Garder le cadre national", "Donner plus d'autonomie et de choix", "Réduire le financement du privé"]],
   ["Rendre un service national obligatoire ?", ["Le garder volontaire", "L'étendre à une classe d'âge avec exemptions"]],
-  ["Où renforcer la sécurité et la justice ?", ["Garder la trajectoire", "Recruter police et gendarmerie", "Recruter magistrats et greffiers", "Construire des places de prison"]],
+  ["Faut-il recruter davantage de policiers et gendarmes ?", ["Garder les effectifs prévus", "Recruter police et gendarmerie"]],
   ["Décider plus vite sur les demandes d'asile ?", ["Garder les moyens", "Renforcer l'instruction et réduire les délais"]],
   ["Exécuter davantage d'OQTF ?", ["Garder les moyens", "Augmenter les éloignements et la rétention"]],
   ["Doubler les cours de français et l'aide vers l'emploi ?", ["Garder les moyens", "Doubler cours et accompagnement"]],
@@ -67,12 +67,14 @@ const TARGET_OPTIONS = [
   ["Quel niveau de défense partager en Europe ?", ["Garder les décisions nationales", "Acheter et financer en commun", "Intégrer des unités sous commandement commun"]],
   ["Quitter l'euro ?", ["Rester dans l'euro", "Rétablir une monnaie nationale"]],
   ["Organiser un référendum sur la sortie de l'Union ?", ["Ne pas l'organiser", "Organiser le référendum"]],
+  ["Faut-il recruter davantage de magistrats et greffiers ?", ["Garder les effectifs prévus", "Recruter magistrats et greffiers"]],
+  ["Faut-il construire 15 000 places de prison ?", ["Garder la trajectoire", "Construire 15 000 places"]],
 ] as const;
 
-test("le catalogue V11 contient les 55 dilemmes et les options ciblées", () => {
+test("le catalogue V11 contient les 57 dilemmes et les options ciblées", () => {
   assert.equal(SCENARIO_V11_CATALOGUE.version, 11);
-  assert.equal(SCENARIO_V11_CATALOGUE.decisions.length, 55);
-  assert.equal(new Set(SCENARIO_V11_CATALOGUE.decisions.map((decision) => decision.id)).size, 55);
+  assert.equal(SCENARIO_V11_CATALOGUE.decisions.length, 57);
+  assert.equal(new Set(SCENARIO_V11_CATALOGUE.decisions.map((decision) => decision.id)).size, 57);
   assert.equal(SCENARIO_V11_CATALOGUE.chapters.length, 8);
   assert.deepEqual(SCENARIO_V11_CATALOGUE.decisions.map((decision) => [decision.displayCopy?.question, decision.options.map((option) => option.displayCopy?.shortLabel)]), TARGET_OPTIONS);
   assert.equal(v11PolicyById(SCENARIO_V11_CATALOGUE.decisions[0]!.id)?.id, SCENARIO_V11_CATALOGUE.decisions[0]!.id);
@@ -94,12 +96,12 @@ test("V11 porte une copie visible complète et seulement des profils V10 ou nuls
   }
 });
 
-test("les rôles V11 couvrent les 55 décisions sans doublon", () => {
-  assert.equal(V11_COMMON_DECISION_IDS.length, 8);
+test("les rôles V11 couvrent les 57 décisions sans doublon", () => {
+  assert.equal(V11_COMMON_DECISION_IDS.length, 10);
   assert.equal(V11_SYNTHESIS_DECISION_IDS.length, 3);
   assert.equal(V11_ADAPTIVE_DECISION_IDS.length, 44);
   const ids = [...V11_COMMON_DECISION_IDS, ...V11_SYNTHESIS_DECISION_IDS, ...V11_ADAPTIVE_DECISION_IDS];
-  assert.equal(new Set(ids).size, 55);
+  assert.equal(new Set(ids).size, 57);
   assert.deepEqual(new Set(ids), new Set(SCENARIO_V11_CATALOGUE.decisions.map((decision) => decision.id)));
 });
 

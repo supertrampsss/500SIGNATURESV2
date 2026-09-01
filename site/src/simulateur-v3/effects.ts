@@ -2,7 +2,7 @@ import { clearSelection, currentDecision } from "./campaign.ts";
 import { INDICATOR_META } from "./indicator-meta.ts";
 import { isEffectRule, totalDecisions, validateScenario } from "./validation.ts";
 import { materializedDelayedEventId } from "./types.ts";
-import { decisionCountAtMandateYearEnd } from "./timeline.ts";
+import { CHAPTER_MANDATE_YEARS, decisionCountAtMandateYearEnd } from "./timeline.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -77,21 +77,39 @@ function eventForDelayedEffect(decision: Decision, option: DecisionOption, effec
   };
 }
 
+function campaignYearCheckpoint(
+  state: CampaignState,
+  scenario: Scenario,
+  year: 1 | 2 | 3 | 4 | 5,
+): number {
+  if (state.scenarioVersion !== 11 || !state.sessionDecisionIds) {
+    return decisionCountAtMandateYearEnd(scenario, year);
+  }
+  let finalChapterIndex = CHAPTER_MANDATE_YEARS.length - 1;
+  while (finalChapterIndex > 0 && CHAPTER_MANDATE_YEARS[finalChapterIndex] !== year) finalChapterIndex -= 1;
+  const includedChapterIds = new Set(scenario.chapters.slice(0, finalChapterIndex + 1).map((chapter) => chapter.id));
+  return state.sessionDecisionIds.filter((decisionId) => {
+    const decision = scenario.decisions.find((candidate) => candidate.id === decisionId);
+    return decision !== undefined && includedChapterIds.has(decision.chapterId);
+  }).length;
+}
+
 function dueAtDecisionForTiming(
   timing: Exclude<EffectRule["timing"], { kind: "immediate" }>,
   decisionCount: number,
+  state: CampaignState,
   scenario: Scenario,
 ): number {
   return timing.kind === "after_decisions"
     ? decisionCount + timing.count
-    : decisionCountAtMandateYearEnd(scenario, timing.year);
+    : campaignYearCheckpoint(state, scenario, timing.year);
 }
 
-function implementationDueAtDecision(option: DecisionOption, decisionCount: number, scenario: Scenario): number {
+function implementationDueAtDecision(option: DecisionOption, decisionCount: number, state: CampaignState, scenario: Scenario): number {
   if (option.horizon.kind === "immediate") return decisionCount;
   return option.horizon.kind === "after_decisions"
     ? decisionCount + option.horizon.count
-    : decisionCountAtMandateYearEnd(scenario, option.horizon.year);
+    : campaignYearCheckpoint(state, scenario, option.horizon.year);
 }
 
 /**
@@ -148,14 +166,14 @@ export function scheduleOptionConsequences(
   for (const effect of option.effects) {
     assertEffectRule(effect);
     if (effect.timing.kind === "immediate") continue;
-    const dueAtDecision = dueAtDecisionForTiming(effect.timing, decisionCount, scenario);
+    const dueAtDecision = dueAtDecisionForTiming(effect.timing, decisionCount, state, scenario);
     assertDueAtDecision(dueAtDecision, scenario);
     delayedEffects.push(eventForDelayedEffect(decision, option, effect, dueAtDecision));
   }
   const explicitEvents: ScheduledEvent[] = option.scheduledEvents.map((event) => {
     const dueAtDecision = Math.max(
       decisionCount + event.afterDecisions,
-      implementationDueAtDecision(option, decisionCount, scenario),
+      implementationDueAtDecision(option, decisionCount, state, scenario),
     );
     assertDueAtDecision(dueAtDecision, scenario);
     assertImmediateEffects(event.effects, "Scheduled event");
@@ -292,14 +310,14 @@ export function scheduleBudgetProfile(
       ? decisionCount
       : profile.runRateTiming.kind === "after_decisions"
         ? decisionCount + profile.runRateTiming.count
-        : decisionCountAtMandateYearEnd(scenario, profile.runRateTiming.year);
+        : campaignYearCheckpoint(state, scenario, profile.runRateTiming.year);
     applyOrQueue(id, profileDueAtDecision, budgetEffect(id, profile.runRateMillions, "annual", "Flux annuel sourcé du profil budgétaire."));
   }
   for (const flow of profile.transitionFlows) {
     const id = flow.id;
     const dueAtDecision = flow.timing.kind === "immediate"
       ? decisionCount
-      : dueAtDecisionForTiming(flow.timing, decisionCount, scenario);
+      : dueAtDecisionForTiming(flow.timing, decisionCount, state, scenario);
     applyOrQueue(id, dueAtDecision, budgetEffect(id, flow.amountMillions, "once", `Flux ponctuel sourcé : ${flow.id}.`));
   }
   assertUniqueDisjointIds("event", scheduled.scheduledEvents, scheduled.eventHistory, additions);

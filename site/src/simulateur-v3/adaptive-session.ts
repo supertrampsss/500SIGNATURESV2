@@ -6,7 +6,7 @@ import {
 import type { CampaignState, Decision, Scenario } from "./types.ts";
 
 export const V11_SESSION_LENGTH = 45;
-const V11_ADAPTIVE_COUNT = 34;
+const V11_ADAPTIVE_COUNT = 32;
 
 /**
  * Editorial alternatives for a shorter replayable route. They are deliberately
@@ -48,7 +48,7 @@ function assertV11Roles(catalogue: Scenario): void {
   if (catalogue.version !== 11) throw new Error("V11 session requires scenario version 11");
   const knownIds = new Set(catalogue.decisions.map((decision) => decision.id));
   const allRoleIds = [...V11_COMMON_DECISION_IDS, ...V11_SYNTHESIS_DECISION_IDS, ...V11_ADAPTIVE_DECISION_IDS];
-  if (allRoleIds.length !== 55 || new Set(allRoleIds).size !== 55 || allRoleIds.some((id) => !knownIds.has(id))) {
+  if (allRoleIds.length !== catalogue.decisions.length || new Set(allRoleIds).size !== catalogue.decisions.length || allRoleIds.some((id) => !knownIds.has(id))) {
     throw new Error("Invalid V11 session roles");
   }
 }

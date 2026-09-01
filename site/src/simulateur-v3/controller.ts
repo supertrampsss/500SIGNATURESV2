@@ -59,6 +59,8 @@ type ActionNode = {
   };
 };
 
+const V3_UNDO_STORAGE_KEY = "simulateur-v3-undo";
+
 function unavailableStorage(): StorageLike {
   return {
     getItem: () => { throw new Error("Storage unavailable"); },
@@ -143,6 +145,16 @@ export function mountSimulatorV3(
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
   let detailOptionId: string | undefined;
   let returnFocusToDetailTrigger: string | undefined;
+  let previousDecisionState: CampaignState | undefined;
+  try {
+    const serializedUndo = storage.getItem(V3_UNDO_STORAGE_KEY);
+    const candidate = serializedUndo ? JSON.parse(serializedUndo) : undefined;
+    if (candidate && isCampaignState(candidate, scenario) && candidate.decisions.length + 1 === state.decisions.length) {
+      previousDecisionState = candidate;
+    }
+  } catch {
+    previousDecisionState = undefined;
+  }
 
   const render = (resetScene = false) => {
     dependencies.onPhaseChange?.(state.phase);
@@ -153,6 +165,7 @@ export function mountSimulatorV3(
       pauseView,
       saveFailed,
       detailOptionId,
+      canUndo: previousDecisionState !== undefined,
     });
     if (detailOptionId) {
       host.querySelector?.(".simulateur-v3__detail-panel")?.focus?.({ preventScroll: true });
@@ -249,6 +262,12 @@ export function mountSimulatorV3(
       const decisionId = node.dataset.decisionId;
       const optionId = node.dataset.optionId;
       if (!decisionId || !optionId) return;
+      previousDecisionState = structuredClone(state);
+      try {
+        storage.setItem(V3_UNDO_STORAGE_KEY, JSON.stringify(previousDecisionState));
+      } catch {
+        // The in-memory snapshot still keeps Return usable in this tab.
+      }
       state = confirmSelection(selectOption(state, scenario, decisionId, optionId), scenario);
       emit({
         type: "decision_confirmed",
@@ -256,6 +275,20 @@ export function mountSimulatorV3(
         position: state.decisions.length,
       });
       advanceToNextScene("decision_result");
+      return;
+    }
+
+    if (action === "undo" && previousDecisionState) {
+      state = previousDecisionState;
+      previousDecisionState = undefined;
+      detailOptionId = undefined;
+      returnFocusToDetailTrigger = undefined;
+      try {
+        storage.removeItem(V3_UNDO_STORAGE_KEY);
+      } catch {
+        // Local persistence is optional; the state has already been restored.
+      }
+      persistAndRender(true);
       return;
     }
 
@@ -329,6 +362,8 @@ export function mountSimulatorV3(
       state = createCampaign(scenario, dependencies.baseline, state.seed + 1);
       phaseBeforePause = undefined;
       pauseView = "menu";
+      previousDecisionState = undefined;
+      try { storage.removeItem(V3_UNDO_STORAGE_KEY); } catch { /* optional storage */ }
       emit({ type: "campaign_restarted" });
       persistAndRender(true);
       return;

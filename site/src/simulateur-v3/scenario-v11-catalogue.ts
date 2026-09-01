@@ -45,7 +45,7 @@ const definitions: readonly Definition[] = [
   ["v11-32-allocations-familiales", ["-", "allocations-familiales-des-le-premier-enfant:adopt"]],
   ["v11-33-pilotage-ecole", ["-", "autonomie-complete-des-etablissements:adopt", "supprimer-le-financement-public-du-prive:adopt"]],
   ["v11-34-service-national", ["-", "generaliser-le-service-national-universel:adopt"]],
-  ["v11-35-securite-justice", ["-", "recruter-10-000-policiers-et-gendarmes:adopt", "recruter-3-000-magistrats-et-greffiers:adopt", "construire-15-000-places-de-prison-supplementaires:adopt"]],
+  ["v11-35-police-gendarmerie", ["-", "recruter-10-000-policiers-et-gendarmes:adopt"]],
   ["v11-36-asile", ["-", "reduire-les-delais-de-traitement-de-l:adopt"]],
   ["v11-37-oqtf", ["-", "doubler-l-execution-des-eloignements-oqtf:adopt"]],
   ["v11-38-integration", ["-", "doubler-les-moyens-de-l-integration-francais:adopt"]],
@@ -66,6 +66,8 @@ const definitions: readonly Definition[] = [
   ["v11-53-defense-europe", ["-", "achats-militaires-europeens-prioritaires:adopt", "creer-une-armee-europeenne:adopt"]],
   ["v11-54-euro", ["-", "sortir-de-l-euro:adopt"]],
   ["v11-55-referendum-union", ["-", "referendum-sur-la-sortie-de-l-ue:adopt"]],
+  ["v11-56-magistrats-greffiers", ["-", "recruter-3-000-magistrats-et-greffiers:adopt"]],
+  ["v11-57-places-prison", ["-", "construire-15-000-places-de-prison-supplementaires:adopt"]],
 ];
 
 const sourceById = new Map(SCENARIO_V10_CATALOGUE.decisions.map((decision) => [decision.id, decision]));
@@ -90,7 +92,7 @@ function optionFor(reference: string, id: string, copy: (typeof V11_COPY)[number
   if (reference === "-") return { ...neutralOption(id, copy.shortLabel), displayCopy: copy };
   const source = structuredClone(sourceOption(reference));
   return {
-    ...source, id, label: copy.shortLabel, summary: copy.outcome, mechanism: copy.outcome,
+    ...source, id, label: copy.shortLabel, summary: copy.outcome,
     // Locks on separate V10 cards become alternatives of this single V11 card.
     // V11 is a library: its future campaign owns the event and promise topology.
     scheduledEvents: [], promises: [], fulfillsPromises: [], locks: [], unlocks: [], displayCopy: copy,
@@ -101,9 +103,12 @@ function buildDecision(definition: Definition, index: number): Decision {
   const [id, sources] = definition;
   const copy = V11_COPY[index]!;
   const seed = sourceDecision(sources);
+  const evidence = [...new Map(sources.filter((reference) => reference !== "-")
+    .flatMap((reference) => sourceById.get(reference.split(":")[0])?.evidence ?? [])
+    .map((item) => [`${item.sourceName}:${item.sourceUrl}`, structuredClone(item)] as const)).values()];
   return {
     ...structuredClone(seed), id, version: 11, title: copy.decision.question, context: copy.decision.context, displayCopy: copy.decision,
-    dependencies: [], conflicts: [], options: sources.map((source, optionIndex) => optionFor(source, `${id}:option-${optionIndex + 1}`, copy.options[optionIndex]!)),
+    evidence, dependencies: [], conflicts: [], options: sources.map((source, optionIndex) => optionFor(source, `${id}:option-${optionIndex + 1}`, copy.options[optionIndex]!)),
   };
 }
 
@@ -123,9 +128,9 @@ export const SCENARIO_V11_CATALOGUE: Scenario = freeze({
   decisions,
 });
 
-export const V11_COMMON_DECISION_IDS = definitions.filter((_, index) => [0, 8, 14, 25, 27, 34, 45, 49].includes(index)).map(([id]) => id);
+export const V11_COMMON_DECISION_IDS = definitions.filter((_, index) => [0, 8, 14, 25, 27, 34, 45, 49, 55, 56].includes(index)).map(([id]) => id);
 export const V11_SYNTHESIS_DECISION_IDS = definitions.filter((_, index) => [13, 46, 52].includes(index)).map(([id]) => id);
-export const V11_ADAPTIVE_DECISION_IDS = definitions.filter((_, index) => ![0, 8, 14, 25, 27, 34, 45, 49, 13, 46, 52].includes(index)).map(([id]) => id);
+export const V11_ADAPTIVE_DECISION_IDS = definitions.filter((_, index) => ![0, 8, 14, 25, 27, 34, 45, 49, 55, 56, 13, 46, 52].includes(index)).map(([id]) => id);
 
 export function v11PolicyById(id: string): Decision | undefined {
   return SCENARIO_V11_CATALOGUE.decisions.find((decision) => decision.id === id);

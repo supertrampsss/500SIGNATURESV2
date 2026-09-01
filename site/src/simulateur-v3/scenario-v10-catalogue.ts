@@ -60,7 +60,6 @@ const PLAYER_COPY: Readonly<Record<string, PlayerCopy>> = {
             "Les étrangers hors Union européenne installés depuis moins de cinq ans reçoivent ces aides plus tard.",
             "Le revenu minimum, l'assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus.",
           ],
-          when: "La règle commence après le changement de la loi et la date d'application retenue.",
         },
       },
       keep: {

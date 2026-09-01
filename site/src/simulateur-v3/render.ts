@@ -1,4 +1,5 @@
 import { currentDecision } from "./campaign.ts";
+import { BUDGET_ESTIMATES } from "./budget-registry.ts";
 import { availableConcessions } from "./crises.ts";
 import { INDICATOR_META } from "./indicator-meta.ts";
 import { groupJournal } from "./presentation.ts";
@@ -31,6 +32,8 @@ export type RenderSimulatorV3Options = {
   saveFailed?: boolean;
   /** The option whose player-facing detail panel is currently open. */
   detailOptionId?: string;
+  /** Whether the immediately preceding policy choice can be restored. */
+  canUndo?: boolean;
 };
 
 function escapeHtml(value: string): string {
@@ -84,7 +87,7 @@ function globalPosition(state: CampaignState, scenario: Scenario): number {
   return Math.min(totalDecisions(scenario), before + state.decisionIndex + 1);
 }
 
-function renderCommandBar(state: CampaignState, scenario: Scenario): string {
+function renderCommandBar(state: CampaignState, scenario: Scenario, canUndo = false): string {
   const total = totalDecisions(scenario);
   const progressLevel = Math.max(0, Math.min(100, Math.round((state.decisions.length / total) * 100)));
   const trailing = state.phase === "intro"
@@ -96,7 +99,7 @@ function renderCommandBar(state: CampaignState, scenario: Scenario): string {
         : `<button type="button" class="simulateur-v3__pause" data-v3-action="pause">Pause</button>`;
   const progress = state.phase === "verdict"
     ? `<p class="simulateur-v3__verdict-progress">Verdict du mandat</p>`
-    : `<p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur ${scenario.chapters.length}</p>
+    : `<button type="button" class="simulateur-v3__undo" data-v3-action="undo"${canUndo ? "" : " disabled"}>Retour</button>
       <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state, scenario)} sur ${total}</p>`;
   return `
     <header class="simulateur-v3__command-bar">
@@ -402,24 +405,86 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
           ${isV10 ? "" : `<span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>`}
         </span>
       </button>
-      ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog"><span>Voir le détail</span><span aria-hidden="true">›</span></button>` : ""}
+      ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog"><span>Comprendre ce choix</span><span aria-hidden="true">›</span></button>` : ""}
     </article>`;
 }
 
-function renderOptionDetails(details: NonNullable<DecisionOption["displayCopy"]>["details"]): string {
-  const sections: Array<[string, string | readonly string[] | undefined]> = [
-    ["Ce qui change", details.whatChanges],
-    ["Comment ça marche", details.howItWorks],
-    ["Qui paie", details.whoPays],
-    ["Qui gagne ou perd", details.whoGainsOrLoses],
-    ["Quand", details.when],
-    ["Sources et calcul", details.sourcesAndCalculation],
+const DETAIL_SCOPE_BY_ESTIMATE: Readonly<Record<string, readonly string[]>> = {
+  "benefits-backoffice-net": [
+    "Le calcul porte sur la gestion des aides personnelles au logement, pas sur le montant versé aux ménages.",
+    "Une demande commune évite de ressaisir les mêmes informations et mutualise l'instruction entre organismes.",
+  ],
+  "brown-tax-expenditures-net": [
+    "Tarif réduit sur le gazole, le fioul lourd et le gaz utilisés pour l'agriculture et les travaux forestiers.",
+    "Remboursement d'accise sur le gazole des poids lourds du transport routier de marchandises.",
+    "Remboursement d'accise sur les carburants utilisés par les taxis.",
+    "Tarif réduit sur le gazole du transport ferroviaire de personnes ou de marchandises.",
+  ],
+  "household-capital-tax-expenditures-net": [
+    "Abattement de 10 % sur les pensions et retraites imposables.",
+    "Exonération ou imposition réduite de certains produits de l'assurance-vie et des contrats de capitalisation.",
+  ],
+};
+
+function estimateFor(option: DecisionOption) {
+  const key = option.budgetProfile.estimateKey;
+  if (!key) return undefined;
+  return Object.values(BUDGET_ESTIMATES).find((estimate) => estimate.key === key);
+}
+
+function calculationLines(option: DecisionOption): string[] {
+  const estimate = estimateFor(option);
+  if (!estimate) return [];
+  const lines = [
+    `Montant de départ du calcul : ${formatV3Amount(Math.abs(estimate.baseAmountMillions)).replace(/^\+/, "")} (${estimate.baseYear}).`,
   ];
-  const content = sections.flatMap(([title, body]) => {
+  if (estimate.grossActionMillions !== estimate.runRateMillions) {
+    lines.push(`Gain ou coût avant corrections : ${formatV3Amount(estimate.grossActionMillions)}.`);
+  }
+  if (estimate.behavioralOffsetMillions > 0) {
+    lines.push(`Réactions et changements de comportement déduits : ${formatV3Amount(-estimate.behavioralOffsetMillions)}.`);
+  }
+  if (estimate.recurringOperatingCostMillions > 0) {
+    lines.push(`Coût annuel de fonctionnement déduit : ${formatV3Amount(-estimate.recurringOperatingCostMillions)}.`);
+  }
+  lines.push(`Résultat annuel retenu : ${formatV3Amount(estimate.runRateMillions)}.`);
+  return lines;
+}
+
+function usefulPeople(option: DecisionOption): string[] {
+  const ignored = new Set(["personnes concernées", "finances publiques"]);
+  const entries = [
+    ...option.beneficiaries.map((item) => `Bénéficient : ${item}.`),
+    ...option.contributors.map((item) => `Contribuent ou s'adaptent : ${item}.`),
+  ];
+  return entries.filter((entry) => ![...ignored].some((item) => entry.includes(item)));
+}
+
+function renderOptionDetails(decision: Decision, option: DecisionOption): string {
+  const details = option.displayCopy!.details;
+  const estimateKey = option.budgetProfile.estimateKey;
+  const sourceMechanism = /^(Conserver|Maintenir)\b/i.test(option.mechanism) ? undefined : option.mechanism;
+  const measure = [details.howItWorks, details.whatChanges, sourceMechanism]
+    .filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index);
+  const affected = [...(details.whoPays ?? []), ...(details.whoGainsOrLoses ?? []), ...usefulPeople(option)];
+  const calculation = calculationLines(option);
+  const specifics = estimateKey ? DETAIL_SCOPE_BY_ESTIMATE[estimateKey] : undefined;
+  const sources = decision.evidence.map((evidence) => evidence.sourceUrl
+    ? `<a href="${escapeHtml(evidence.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(evidence.sourceName)}</a>`
+    : escapeHtml(evidence.sourceName));
+  const sections: Array<[string, string | readonly string[] | undefined, boolean?]> = [
+    ["Aujourd'hui", decision.displayCopy?.context ?? decision.context],
+    ["La mesure", specifics ?? measure],
+    ["Personnes concernées", affected],
+    ["Le calcul", calculation],
+    ["À savoir", option.legalConstraints],
+    ["Sources", sources, true],
+  ];
+  const content = sections.flatMap(([title, body, allowHtml = false]) => {
     if (!body || (Array.isArray(body) && body.length === 0)) return [];
     const text = typeof body === "string"
       ? `<p>${escapeHtml(body)}</p>`
-      : `<ul>${body.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      : `<ul>${body.map((item) => `<li>${allowHtml ? item : escapeHtml(item)}</li>`).join("")}</ul>`;
     return [`<section><h3>${title}</h3>${text}</section>`];
   }).join("");
   return content;
@@ -439,7 +504,7 @@ function renderDetailPanel(decision: Decision, option: DecisionOption): string {
           <h2 id="v3-detail-title-${escapeHtml(option.id)}">${escapeHtml(copy.shortLabel)}</h2>
           <strong>${escapeHtml(budgetProfileLabel(option))}</strong>
         </div>
-        ${renderOptionDetails(copy.details)}
+        ${renderOptionDetails(decision, option)}
       </div>
       <footer class="simulateur-v3__detail-actions">
         <button type="button" class="simulateur-v3__primary" data-v3-action="select" data-decision-id="${escapeHtml(decision.id)}" data-option-id="${escapeHtml(option.id)}">Choisir cette option</button>
@@ -482,14 +547,13 @@ function renderEvidence(decision: Decision): string {
 function renderDecision(state: CampaignState, scenario: Scenario, options: RenderSimulatorV3Options): string {
   const decision = currentDecision(state, scenario);
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
-  const chapter = scenario.chapters[state.chapterIndex]!;
   const detailOption = decision.options.find((option) => option.id === options.detailOptionId);
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
         <article class="simulateur-v3__dossier simulateur-v3__decision simulateur-v3__decision--${decision.kind}">
           <header class="simulateur-v3__scene-header">
-            <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state, scenario)}</p>
+            <p class="simulateur-v3__eyebrow">Dossier ${globalPosition(state, scenario)}</p>
             <h1>${escapeHtml(decision.displayCopy?.question ?? decision.title)}</h1>
             <p class="simulateur-v3__context">${escapeHtml(decision.displayCopy?.context ?? compactText(decision.context))}</p>
           </header>
@@ -1117,6 +1181,6 @@ export function renderSimulatorV3(
   const saveWarning = options.saveFailed
     ? `<p class="simulateur-v3__save-error" role="status">La sauvegarde locale est indisponible. La partie continue dans cet onglet.</p>`
     : "";
-  const commandBar = state.phase === "intro" ? "" : renderCommandBar(state, scenario);
+  const commandBar = state.phase === "intro" ? "" : renderCommandBar(state, scenario, options.canUndo);
   return `<section class="simulateur-v3">${commandBar}${saveWarning}${accessibleContent}</section>`;
 }

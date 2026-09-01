@@ -147,7 +147,6 @@ export type DecisionOptionDetails = {
   howItWorks?: string;
   whoPays?: string[];
   whoGainsOrLoses?: string[];
-  when?: string;
   sourcesAndCalculation?: string;
 };
 

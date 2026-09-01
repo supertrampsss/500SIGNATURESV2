@@ -12,7 +12,7 @@ test("le resolver conserve V9 et V10 puis publie V11 pour les nouvelles parties"
   assert.equal(scenarioForVersion(11), SCENARIO_V11);
   assert.equal(scenarioForVersion(12), null);
   assert.equal(SCENARIO_V11.version, 11);
-  assert.equal(SCENARIO_V11.decisions.length, 55);
+  assert.equal(SCENARIO_V11.decisions.length, 57);
 });
 
 test("V11 ne propose jamais plus de trois crises et chaque réponse vise une carte V11 active", () => {

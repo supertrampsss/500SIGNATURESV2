@@ -74,6 +74,19 @@ function v10StateBefore(decisionId: string): CampaignState {
   };
 }
 
+function v11StateBefore(decisionId: string): CampaignState {
+  const decision = SCENARIO_V11.decisions.find((candidate) => candidate.id === decisionId);
+  assert.ok(decision, `dossier V11 introuvable : ${decisionId}`);
+  const base = createCampaign(SCENARIO_V11);
+  return {
+    ...base,
+    phase: "decision",
+    chapterIndex: SCENARIO_V11.chapters.findIndex((chapter) => chapter.id === decision.chapterId),
+    decisionIndex: 0,
+    sessionDecisionIds: [decision.id, ...base.sessionDecisionIds!.filter((id) => id !== decision.id)].slice(0, 45),
+  };
+}
+
 test("une carte V10 affiche uniquement son BudgetProfile et aucun impact avant le choix", () => {
   const state = v10StateBefore("perenniser-surtaxe-grandes-entreprises");
   const html = renderSimulatorV3(state, SCENARIO_V10);
@@ -94,18 +107,47 @@ test("les détails IR-CSG sont lisibles avant le choix sans sélectionner une op
   assert.match(html, /Créer un impôt unique et progressif/);
   assert.match(html, /Tout le monde contribue dès le premier euro et le taux augmente avec le revenu\./);
   assert.equal(occurrences(html, 'data-v3-action="open-details"'), 2);
-  assert.equal(occurrences(html, "<span>Voir le détail</span>"), 2);
+  assert.equal(occurrences(html, "<span>Comprendre ce choix</span>"), 2);
   assert.doesNotMatch(html, />Détails<\/button>/);
   assert.match(html, new RegExp(`data-v3-detail-panel="${optionId}"`));
   assert.match(html, /simulateur-v3__detail-layer" data-v3-action="close-details"/);
   assert.match(html, /simulateur-v3__detail-panel"[^>]*data-v3-action="keep-details-open"/);
   assert.match(html, /\+18 milliards d&#39;euros par an/);
   assert.doesNotMatch(html, /<details class="simulateur-v3__option-details"/);
-  assert.match(html, /<h3>Ce qui change<\/h3>/);
-  assert.match(html, /<h3>Comment ça marche<\/h3>/);
-  assert.match(html, /<h3>Qui paie<\/h3>/);
+  assert.match(html, /<h3>Aujourd'hui<\/h3>/);
+  assert.match(html, /<h3>La mesure<\/h3>/);
+  assert.match(html, /<h3>Personnes concernées<\/h3>/);
+  assert.match(html, /<h3>Le calcul<\/h3>/);
+  assert.match(html, /Montant de départ du calcul : 18 milliards d&#39;euros/);
+  assert.match(html, /Résultat annuel retenu : \+18 milliards d&#39;euros/);
+  assert.doesNotMatch(html, /<h3>Quand<\/h3>/);
   const panel = html.slice(html.indexOf(`data-v3-detail-panel="${optionId}"`));
   assert.match(panel.slice(0, panel.indexOf("</aside>")), /data-v3-action="select"/);
+});
+
+test("le détail des prestations explique le périmètre et les 22 millions", () => {
+  const decision = SCENARIO_V11.decisions.find((candidate) => candidate.id === "v11-19-prestations")!;
+  const option = decision.options.find((candidate) => candidate.budgetProfile.estimateKey === "benefits-backoffice-net")!;
+  const state = v11StateBefore(decision.id);
+  const html = renderSimulatorV3(state, SCENARIO_V11, { detailOptionId: option.id });
+
+  assert.match(html, /aides personnelles au logement/i);
+  assert.match(html, /322 millions d&#39;euros/);
+  assert.match(html, /32 millions d&#39;euros/);
+  assert.match(html, /10 millions d&#39;euros/);
+  assert.match(html, /22 millions d&#39;euros/);
+  assert.doesNotMatch(html, /### Quand|<h3>Quand<\/h3>/i);
+});
+
+test("le détail des avantages fossiles nomme les quatre dispositifs supprimés", () => {
+  const decision = SCENARIO_V11.decisions.find((candidate) => candidate.id === "v11-49-avantages-fossiles")!;
+  const option = decision.options.find((candidate) => candidate.budgetProfile.estimateKey === "brown-tax-expenditures-net")!;
+  const html = renderSimulatorV3(v11StateBefore(decision.id), SCENARIO_V11, { detailOptionId: option.id });
+
+  assert.match(html, /agriculture.*travaux forestiers/i);
+  assert.match(html, /transport routier de marchandises/i);
+  assert.match(html, /taxis/i);
+  assert.match(html, /transport ferroviaire de personnes ou de marchandises/i);
 });
 
 test("la carte de résidence nomme les aides concernées en langage courant", () => {
@@ -427,7 +469,7 @@ test("la barre de commandement remplace l'introduction après la prise de foncti
   for (const state of phases) {
     const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
     assert.match(html, /simulateur-v3__command-bar/);
-    assert.match(html, /Chapitre 1 sur 8/);
+    assert.doesNotMatch(html, /Chapitre 1 sur 8/);
     assert.match(html, /Dossier 1 sur 60/);
     assert.doesNotMatch(html, /\u2014/);
   }
@@ -452,7 +494,7 @@ test("la barre de commandement calcule sa progression sur les 60 dossiers", () =
   assert.match(html, /--v3-command-progress:\s*50%/);
 });
 
-test("la barre de commandement V11 compte les 45 cartes de la partie, pas les 55 de la bibliothèque", () => {
+test("la barre de commandement V11 compte les 45 cartes de la partie, pas toute la bibliothèque", () => {
   const state = createCampaign(SCENARIO_V11);
   const plan = state.sessionDecisionIds!;
   state.decisions = plan.slice(0, 20).map((decisionId, index) => ({
@@ -471,8 +513,10 @@ test("la barre de commandement V11 compte les 45 cartes de la partie, pas les 55
   const html = renderSimulatorV3(state, SCENARIO_V11);
 
   assert.match(html, /Dossier 21 sur 45/);
+  assert.match(html, /data-v3-action="undo" disabled/);
+  assert.doesNotMatch(html, /Chapitre\s+\d+\s+sur\s+8/i);
   assert.match(html, /--v3-command-progress:\s*44%/);
-  assert.doesNotMatch(html, /sur 55/);
+  assert.doesNotMatch(html, /sur 57/);
 });
 
 test("un gain budgétaire et un coût budgétaire ne portent pas le même signal", () => {

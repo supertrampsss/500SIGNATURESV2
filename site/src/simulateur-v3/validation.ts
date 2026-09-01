@@ -28,7 +28,7 @@ import { POLICY_SOURCES } from "./policy-sources.ts";
 import type { BudgetProfile } from "./types.ts";
 
 // Kept local to avoid a validation -> V11 -> V10 -> validation module cycle.
-const V11_COMMON_SESSION_IDS = ["v11-01-prelevement-personnel", "v11-09-age-retraite", "v11-15-financement-soins", "v11-26-collectivites", "v11-28-ecole-moyens", "v11-35-securite-justice", "v11-46-nucleaire", "v11-50-budget-militaire"] as const;
+const V11_COMMON_SESSION_IDS = ["v11-01-prelevement-personnel", "v11-09-age-retraite", "v11-15-financement-soins", "v11-26-collectivites", "v11-28-ecole-moyens", "v11-35-police-gendarmerie", "v11-46-nucleaire", "v11-50-budget-militaire", "v11-56-magistrats-greffiers", "v11-57-places-prison"] as const;
 const V11_SYNTHESIS_SESSION_IDS = ["v11-14-revenu-travail", "v11-47-energies-fossiles", "v11-53-defense-europe"] as const;
 
 const PHASES: readonly CampaignPhase[] = [
@@ -438,7 +438,7 @@ function hasValidV11SessionPlan(value: unknown, scenario: Scenario): value is st
   if (!V11_COMMON_SESSION_IDS.every((id) => value.includes(id))
       || !V11_SYNTHESIS_SESSION_IDS.every((id) => value.includes(id))) return false;
   const anchors = new Set([...V11_COMMON_SESSION_IDS, ...V11_SYNTHESIS_SESSION_IDS]);
-  return value.filter((id) => !anchors.has(id as never)).length === 34;
+  return value.filter((id) => !anchors.has(id as never)).length === 32;
 }
 
 function v11Position(
@@ -745,7 +745,7 @@ export function validateScenario(
   }
 
   const errors: string[] = [];
-  // V11 has a persistent 45-card session selected from a 55-card library.
+  // V11 has a persistent 45-card session selected from its larger library.
   // Editorial positions in the full library are not campaign positions.
   const enforceCampaignBounds = !options.allowConsequencesBeyondCampaign && scenario.version !== 11;
   const chapters = rawScenario.chapters;

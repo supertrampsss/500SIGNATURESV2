@@ -84,6 +84,7 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 }
 
 .simulateur-v3__brand,
+.simulateur-v3__undo,
 .simulateur-v3__pause,
 .simulateur-v3__pause-state { min-height: var(--cible); }
 
@@ -114,7 +115,6 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 
 .simulateur-v3__mandate,
 .simulateur-v3__command-balance,
-.simulateur-v3__chapter-progress,
 .simulateur-v3__decision-progress,
 .simulateur-v3__verdict-progress {
   margin: 0;
@@ -136,7 +136,21 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 
 .simulateur-v3__command-balance span { color: var(--v3-muted-on-shell); }
 .simulateur-v3__command-balance strong { color: #ffffff; font-family: var(--serif); font-size: var(--texte-m); line-height: 1; }
-.simulateur-v3__chapter-progress { grid-column: 2; grid-row: 2; }
+.simulateur-v3__undo {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 0;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.simulateur-v3__undo:disabled { visibility: hidden; }
 .simulateur-v3__decision-progress { grid-column: 3; grid-row: 2; text-align: end; }
 .simulateur-v3__verdict-progress { grid-column: 2 / 4; grid-row: 2; text-align: end; }
 
@@ -768,6 +782,8 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   body[data-simulateur-version="3"] .vue { padding-bottom: 0; }
   body[data-simulateur-version="3"] .simulateur-v3 { min-height: 100dvh; }
   .simulateur-v3__command-bar { padding: var(--espace-1) var(--espace-4) var(--espace-2); }
+  .simulateur-v3__command-balance span { display: none; }
+  .simulateur-v3__command-balance strong { font-size: var(--texte-s); white-space: nowrap; }
   .simulateur-v3__stage { padding: var(--espace-4) var(--espace-3) var(--espace-5); }
   .simulateur-v3__stage--decision,
   .simulateur-v3__stage--verdict { padding-top: 0; }
@@ -819,7 +835,7 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   .simulateur-v3__command-balance { grid-column: 2; grid-row: 1; justify-content: start; }
   .simulateur-v3__command-balance span { display: none; }
   .simulateur-v3__command-balance strong { font-size: var(--texte-m); }
-  .simulateur-v3__chapter-progress { grid-column: 3; grid-row: 1; }
+  .simulateur-v3__undo { grid-column: 3; grid-row: 1; }
   .simulateur-v3__decision-progress { grid-column: 4; grid-row: 1; }
   .simulateur-v3__verdict-progress { grid-column: 3 / 5; grid-row: 1; text-align: end; }
   .simulateur-v3__command-progress { grid-column: auto; grid-row: auto; }

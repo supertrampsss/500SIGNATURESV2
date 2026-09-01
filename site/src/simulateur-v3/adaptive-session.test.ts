@@ -60,8 +60,16 @@ test("un plan V11 est déterministe et contient exactement 45 cartes distinctes"
   assert.equal(new Set(first).size, 45);
   assert.ok(V11_COMMON_DECISION_IDS.every((id) => first.includes(id)));
   assert.ok(V11_SYNTHESIS_DECISION_IDS.every((id) => first.includes(id)));
-  assert.equal(first.filter((id) => V11_ADAPTIVE_DECISION_IDS.includes(id)).length, 34);
-  assert.equal(V11_ADAPTIVE_DECISION_IDS.filter((id) => !first.includes(id)).length, 10);
+  assert.equal(first.filter((id) => V11_ADAPTIVE_DECISION_IDS.includes(id)).length, 32);
+  assert.equal(V11_ADAPTIVE_DECISION_IDS.filter((id) => !first.includes(id)).length, 12);
+});
+
+test("police, justice et prisons sont trois choix cumulables présents dans chaque partie", () => {
+  const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 417);
+  for (const id of ["v11-35-police-gendarmerie", "v11-56-magistrats-greffiers", "v11-57-places-prison"]) {
+    assert.ok(plan.includes(id), id);
+    assert.equal(SCENARIO_V11_CATALOGUE.decisions.find((decision) => decision.id === id)?.options.length, 2, id);
+  }
 });
 
 test("le plan V11 conserve une enveloppe de cartes dans chaque thème", () => {
@@ -160,7 +168,7 @@ test("un choix énergétique incompatible modifie seulement une carte énergéti
   assert.equal(refreshed.sessionDecisionIds!.length, 45);
 });
 
-test("la position de session suit les 45 cartes persistées, pas les 55 de la bibliothèque", () => {
+test("la position de session suit les 45 cartes persistées, pas toute la bibliothèque", () => {
   const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 91);
   const state = v11State(plan, 44);
   assert.deepEqual(sessionPosition(state, SCENARIO_V11_CATALOGUE), {

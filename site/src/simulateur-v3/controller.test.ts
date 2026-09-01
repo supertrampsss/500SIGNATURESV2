@@ -11,6 +11,7 @@ import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
+import { SCENARIO_V11 } from "./scenario-v11.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
 import type { CampaignPhase, Scenario } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
@@ -195,6 +196,45 @@ test("un clic sur une carte confirme le choix et ouvre directement le dossier su
   assert.equal(host.focusCalls, avantFocus + 1);
   assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
+});
+
+test("Retour annule le dernier choix et restaure exactement le dossier précédent", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V11, { storage });
+  host.click("start");
+  const firstId = JSON.parse(storage.values.get(V3_STORAGE_KEY)!).sessionDecisionIds[0];
+  const first = SCENARIO_V11.decisions.find((decision) => decision.id === firstId)!;
+  const before = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+
+  host.click("select", { decisionId: first.id, optionId: first.options[0]!.id });
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, 1);
+  host.click("undo");
+
+  const restored = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.deepEqual(restored.indicators, before.indicators);
+  assert.deepEqual(restored.groups, before.groups);
+  assert.equal(restored.decisions.length, 0);
+  assert.ok(host.innerHTML.includes(first.displayCopy!.question.replaceAll("'", "&#39;")));
+});
+
+test("Aller vers 65 ans est cliquable et enregistré immédiatement", () => {
+  const retirement = SCENARIO_V11.decisions.find((decision) => decision.id === "v11-09-age-retraite")!;
+  assert.equal(retirement.options[2]!.displayCopy?.shortLabel, "Aller vers 65 ans");
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  const created = createCampaign(SCENARIO_V11);
+  const plan = created.sessionDecisionIds!;
+  const initialState = {
+    ...created,
+    phase: "decision" as const,
+    chapterIndex: SCENARIO_V11.chapters.findIndex((chapter) => chapter.id === retirement.chapterId),
+    decisionIndex: 0,
+    sessionDecisionIds: [retirement.id, ...plan.filter((id) => id !== retirement.id)].slice(0, plan.length),
+  };
+  mountSimulatorV3(host, SCENARIO_V11, { storage, initialState });
+  host.click("select", { decisionId: retirement.id, optionId: retirement.options[2]!.id });
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions[0]?.optionId, retirement.options[2]!.id);
 });
 
 test("ouvrir puis fermer le détail ne choisit pas l'option et rend le focus à son bouton", () => {
@@ -457,7 +497,8 @@ test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", (
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, {
     storage: memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(legacy) }),
   });
-  assert.match(host.innerHTML, /Chapitre 2 sur 8/);
+  assert.match(host.innerHTML, /Dossier 9 sur 60/);
+  assert.doesNotMatch(host.innerHTML, /Chapitre 2 sur 8/);
   assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);
 });
 

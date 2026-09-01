@@ -38,7 +38,7 @@ const rows: readonly [string, readonly string[]][] = [
   ["Verser les allocations dès le premier enfant ?", ["Garder le droit au deuxième enfant", "Ouvrir dès le premier enfant"]],
   ["Qui doit piloter et financer l'école ?", ["Garder le cadre national", "Donner plus d'autonomie et de choix", "Réduire le financement du privé"]],
   ["Rendre un service national obligatoire ?", ["Le garder volontaire", "L'étendre à une classe d'âge avec exemptions"]],
-  ["Où renforcer la sécurité et la justice ?", ["Garder la trajectoire", "Recruter police et gendarmerie", "Recruter magistrats et greffiers", "Construire des places de prison"]],
+  ["Faut-il recruter davantage de policiers et gendarmes ?", ["Garder les effectifs prévus", "Recruter police et gendarmerie"]],
   ["Décider plus vite sur les demandes d'asile ?", ["Garder les moyens", "Renforcer l'instruction et réduire les délais"]],
   ["Exécuter davantage d'OQTF ?", ["Garder les moyens", "Augmenter les éloignements et la rétention"]],
   ["Doubler les cours de français et l'aide vers l'emploi ?", ["Garder les moyens", "Doubler cours et accompagnement"]],
@@ -59,6 +59,8 @@ const rows: readonly [string, readonly string[]][] = [
   ["Quel niveau de défense partager en Europe ?", ["Garder les décisions nationales", "Acheter et financer en commun", "Intégrer des unités sous commandement commun"]],
   ["Quitter l'euro ?", ["Rester dans l'euro", "Rétablir une monnaie nationale"]],
   ["Organiser un référendum sur la sortie de l'Union ?", ["Ne pas l'organiser", "Organiser le référendum"]],
+  ["Faut-il recruter davantage de magistrats et greffiers ?", ["Garder les effectifs prévus", "Recruter magistrats et greffiers"]],
+  ["Faut-il construire 15 000 places de prison ?", ["Garder la trajectoire", "Construire 15 000 places"]],
 ];
 
 const contexts = [
@@ -96,7 +98,7 @@ const contexts = [
   "Les allocations familiales commencent aujourd'hui au deuxième enfant dans la plupart des cas.",
   "L'État fixe le cadre commun de l'école ; les établissements peuvent aussi recevoir davantage d'autonomie.",
   "Un service national peut rester volontaire ou être étendu à une classe d'âge avec des exemptions.",
-  "Police, gendarmerie, justice et prison ne répondent pas aux mêmes besoins ni aux mêmes délais.",
+  "Police et gendarmerie interviennent sur le terrain ; leurs effectifs ne remplacent ni les magistrats ni les places de prison.",
   "Les demandes d'asile doivent être instruites, avec des recours et des conditions d'accueil.",
   "Une obligation de quitter le territoire français doit respecter les recours et les documents nécessaires au retour.",
   "Les cours de français et l'accompagnement vers l'emploi aident les personnes nouvellement arrivées à s'insérer.",
@@ -117,10 +119,12 @@ const contexts = [
   "Acheter ou commander en commun avec d'autres pays européens partage les coûts et une part de la décision.",
   "Rétablir une monnaie nationale obligerait à traiter les contrats, les dépôts, la dette et les paiements.",
   "Un référendum ouvre un choix politique ; une sortie de l'Union ne commencerait qu'après un vote favorable et une procédure distincte.",
+  "Magistrats et greffiers instruisent et jugent les affaires ; leurs effectifs ne remplacent ni la police ni les places de prison.",
+  "Les prisons françaises sont surchargées ; construire des places ne remplace ni les magistrats ni les forces de sécurité.",
 ] as const;
 
 const cardPayers = [
-  "Les contribuables versent selon le barème retenu.", "Les clients paient la taxe sur les achats concernés.", "Les groupes visés paient sur leurs bénéfices ou leurs rachats.", "Les détenteurs des patrimoines au-dessus du seuil paient davantage.", "Les utilisateurs des avantages supprimés paient davantage.", "Les héritiers paient selon la transmission.", "Les employeurs concernés versent davantage de cotisations ou perdent une aide.", "Les entreprises visées perdent une aide ou un avantage fiscal.", "Les régimes de retraite, salariés et employeurs sont concernés par la date de départ.", "Les retraités et les régimes de retraite sont concernés.", "Les demandeurs d'emploi concernés reçoivent moins longtemps ou moins.", "Les actifs financent aussi les pensions en cours pendant la transition.", "Les salariés et les employeurs sont concernés par les heures et le salaire.", "Les employeurs ou le budget de la prime financent le changement.", "Les patients ou consommateurs des produits taxés paient davantage.", "L'assurance maladie et les hôpitaux achètent les produits concernés.", "Les organismes d'assurance maladie financent prévention et contrôle.", "L'État finance les postes, la formation et les lieux de travail.", "Les organismes qui versent les prestations financent la mise en place.", "Les départements et organismes payeurs versent le revenu de solidarité active.", "L'État et les hôpitaux supportent les dépenses de soins.", "Les ménages, employeurs et assureurs financent selon la couverture choisie.", "L'État et les employeurs publics financent les effectifs et rémunérations.", "L'État finance la réorganisation et les outils partagés.", "L'État finance l'achat ou reçoit le produit de la vente.", "L'État et les collectivités financent les compétences transférées.", "L'État organise le scrutin selon les règles retenues.", "L'État finance les salaires ou les postes nécessaires.", "L'État verse les bourses aux étudiants éligibles.", "L'État finance les logements ou verse l'aide au logement.", "L'État, les collectivités et les familles financent les places.", "Les caisses familiales versent les allocations selon la règle retenue.", "L'État, les collectivités et les établissements financent l'organisation.", "L'État finance l'encadrement, l'hébergement et les exemptions.", "L'État finance recrutements, formation et fonctionnement.", "L'État finance l'instruction, l'hébergement et les recours.", "L'État finance les moyens d'éloignement et de rétention.", "L'État finance les cours et l'accompagnement.", "Les organismes versent les aides selon les conditions de résidence.", "Les employeurs recrutent selon les titres et métiers autorisés.", "L'État finance les conséquences pour la justice et les prisons.", "L'État finance le contrôle, la prévention et les soins.", "L'État finance l'aide et les contrôles des travaux.", "L'État finance les travaux sur le réseau ferroviaire.", "L'État finance l'aide à l'achat ou à la location.", "L'État et les consommateurs financent les travaux et les installations.", "Les usagers des carburants et combustibles paient la taxe retenue.", "Les contrats et soutiens existants restent à la charge de leurs financeurs.", "Les bénéficiaires des avantages supprimés paient davantage.", "L'État finance les commandes, stocks et recrutements militaires.", "L'État finance formation, équipement et disponibilité des effectifs.", "L'État finance recrutements, outils et contrôles.", "La France finance sa part des programmes et unités retenus.", "L'État, les banques et les entreprises financent la conversion éventuelle.", "L'État finance l'organisation du vote.",
+  "Les contribuables versent selon le barème retenu.", "Les clients paient la taxe sur les achats concernés.", "Les groupes visés paient sur leurs bénéfices ou leurs rachats.", "Les détenteurs des patrimoines au-dessus du seuil paient davantage.", "Les utilisateurs des avantages supprimés paient davantage.", "Les héritiers paient selon la transmission.", "Les employeurs concernés versent davantage de cotisations ou perdent une aide.", "Les entreprises visées perdent une aide ou un avantage fiscal.", "Les régimes de retraite, salariés et employeurs sont concernés par la date de départ.", "Les retraités et les régimes de retraite sont concernés.", "Les demandeurs d'emploi concernés reçoivent moins longtemps ou moins.", "Les actifs financent aussi les pensions en cours pendant la transition.", "Les salariés et les employeurs sont concernés par les heures et le salaire.", "Les employeurs ou le budget de la prime financent le changement.", "Les patients ou consommateurs des produits taxés paient davantage.", "L'assurance maladie et les hôpitaux achètent les produits concernés.", "Les organismes d'assurance maladie financent prévention et contrôle.", "L'État finance les postes, la formation et les lieux de travail.", "Les organismes qui versent les prestations financent la mise en place.", "Les départements et organismes payeurs versent le revenu de solidarité active.", "L'État et les hôpitaux supportent les dépenses de soins.", "Les ménages, employeurs et assureurs financent selon la couverture choisie.", "L'État et les employeurs publics financent les effectifs et rémunérations.", "L'État finance la réorganisation et les outils partagés.", "L'État finance l'achat ou reçoit le produit de la vente.", "L'État et les collectivités financent les compétences transférées.", "L'État organise le scrutin selon les règles retenues.", "L'État finance les salaires ou les postes nécessaires.", "L'État verse les bourses aux étudiants éligibles.", "L'État finance les logements ou verse l'aide au logement.", "L'État, les collectivités et les familles financent les places.", "Les caisses familiales versent les allocations selon la règle retenue.", "L'État, les collectivités et les établissements financent l'organisation.", "L'État finance l'encadrement, l'hébergement et les exemptions.", "L'État finance recrutements, formation et fonctionnement.", "L'État finance l'instruction, l'hébergement et les recours.", "L'État finance les moyens d'éloignement et de rétention.", "L'État finance les cours et l'accompagnement.", "Les organismes versent les aides selon les conditions de résidence.", "Les employeurs recrutent selon les titres et métiers autorisés.", "L'État finance les conséquences pour la justice et les prisons.", "L'État finance le contrôle, la prévention et les soins.", "L'État finance l'aide et les contrôles des travaux.", "L'État finance les travaux sur le réseau ferroviaire.", "L'État finance l'aide à l'achat ou à la location.", "L'État et les consommateurs financent les travaux et les installations.", "Les usagers des carburants et combustibles paient la taxe retenue.", "Les contrats et soutiens existants restent à la charge de leurs financeurs.", "Les bénéficiaires des avantages supprimés paient davantage.", "L'État finance les commandes, stocks et recrutements militaires.", "L'État finance formation, équipement et disponibilité des effectifs.", "L'État finance recrutements, outils et contrôles.", "La France finance sa part des programmes et unités retenus.", "L'État, les banques et les entreprises financent la conversion éventuelle.", "L'État finance l'organisation du vote.", "L'État finance les recrutements et les moyens des juridictions.", "L'État finance la construction et le fonctionnement des établissements.",
 ] as const;
 
 const outcomeRows = [
@@ -158,7 +162,7 @@ const outcomeRows = [
   ["Le droit commence au deuxième enfant.", "Le droit s'ouvre dès le premier enfant."],
   ["Le cadre national est conservé.", "Les établissements reçoivent plus d'autonomie.", "Le financement public du privé diminue."],
   ["Le service national reste volontaire.", "Une classe d'âge est appelée avec les exemptions prévues."],
-  ["La trajectoire actuelle est maintenue.", "Police et gendarmerie recrutent davantage.", "Magistrats et greffiers recrutent davantage.", "De nouvelles places de prison sont construites."],
+  ["Les effectifs prévus sont maintenus.", "Police et gendarmerie recrutent davantage."],
   ["Les moyens actuels sont conservés.", "L'instruction est renforcée pour réduire les délais."],
   ["Les moyens actuels sont conservés.", "Les moyens d'éloignement et de rétention augmentent sans promettre un nombre de retours."],
   ["Les moyens actuels sont conservés.", "Les cours de français et l'accompagnement vers l'emploi doublent."],
@@ -179,6 +183,8 @@ const outcomeRows = [
   ["Les décisions restent nationales.", "Certains programmes sont achetés et financés en commun.", "Des unités désignées passent sous commandement commun."],
   ["Contrats, dépôts et paiements restent en euro.", "Les contrats, dépôts, dettes et paiements sont préparés pour une nouvelle monnaie."],
   ["Aucun référendum n'est lancé.", "Le vote est préparé et tenu ; la sortie n'est pas encore décidée."],
+  ["Les effectifs prévus sont maintenus.", "Magistrats et greffiers recrutent davantage."],
+  ["La trajectoire actuelle est maintenue.", "Quinze mille places de prison sont construites."],
 ] as const;
 
 function writtenOption(index: number, optionIndex: number, label: string): DecisionOptionDisplayCopy {
@@ -190,7 +196,6 @@ function writtenOption(index: number, optionIndex: number, label: string): Decis
     details: {
       whatChanges: outcome,
       whoPays: [cardPayers[index]!],
-      when: /^(Garder|Ne pas|Le garder|Rester|Poursuivre|Prolonger|Tenir|Indexer|Les conserver)/i.test(label) ? "Le calendrier actuel continue." : "La règle prend effet après les textes et préparatifs nécessaires.",
     },
   };
 }
@@ -219,7 +224,7 @@ const approvedCopy: Readonly<Record<number, V11Copy>> = {
     },
     options: [
       { shortLabel: "Garder les règles actuelles", outcome: "Chaque aide conserve ses propres conditions d'accès.", details: { whatChanges: "Les conditions d'accès aux aides concernées ne changent pas.", howItWorks: "Chaque aide continue d'être versée selon ses règles actuelles." } },
-      { shortLabel: "Exiger cinq ans de résidence régulière", outcome: "Les aides concernées sont versées après cinq ans de résidence régulière.", details: { whatChanges: "Le délai s'applique aux aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer.", howItWorks: "Une personne concernée attend cinq ans de résidence régulière avant de recevoir ces aides.", whoPays: ["Les organismes qui versent ces aides les paient moins souvent pendant les cinq premières années."], whoGainsOrLoses: ["Les étrangers hors Union européenne installés depuis moins de cinq ans reçoivent ces aides plus tard.", "Le revenu minimum, l'assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus."], when: "La règle commence après le changement de la loi et la date d'application retenue." } },
+      { shortLabel: "Exiger cinq ans de résidence régulière", outcome: "Les aides concernées sont versées après cinq ans de résidence régulière.", details: { whatChanges: "Le délai s'applique aux aides pour les enfants, la naissance, la rentrée scolaire et celles qui réduisent le loyer.", howItWorks: "Une personne concernée attend cinq ans de résidence régulière avant de recevoir ces aides.", whoPays: ["Les organismes qui versent ces aides les paient moins souvent pendant les cinq premières années."], whoGainsOrLoses: ["Les étrangers hors Union européenne installés depuis moins de cinq ans reçoivent ces aides plus tard.", "Le revenu minimum, l'assurance chômage, les retraites, les aides liées au handicap et les remboursements de soins ne sont pas inclus."] } },
     ],
   },
 };
