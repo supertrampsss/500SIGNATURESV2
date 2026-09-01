@@ -1,4 +1,5 @@
 import { applyEffect } from "./effects.ts";
+import { refreshFutureSessionPlan } from "./adaptive-session.ts";
 import { budgetEstimateFor } from "./budget-registry.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
@@ -122,7 +123,17 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
         && (parsed as { schemaVersion?: unknown }).schemaVersion === 3) {
       return { kind: "restart_required" };
     }
-    if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
+    if (isCampaignState(parsed, scenario)) {
+      const restored = refreshFutureSessionPlan(parsed, scenario);
+      if (restored !== parsed) {
+        try {
+          storage.setItem(V3_STORAGE_KEY, JSON.stringify(restored));
+        } catch {
+          // The repaired route remains usable when persistence is unavailable.
+        }
+      }
+      return { kind: "restored", state: restored };
+    }
     if (isSchemaVersion(parsed, 4)) {
       if (hasReplacedReference(parsed)) return { kind: "restart_required" };
       const migrated = migrateV4ToV5(parsed);

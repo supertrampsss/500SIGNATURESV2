@@ -7,6 +7,7 @@ import type { CampaignState, Decision, Scenario } from "./types.ts";
 
 export const V11_SESSION_LENGTH = 45;
 const V11_ADAPTIVE_COUNT = 32;
+const V11_REQUIRED_BUDGET_CAPACITY_MILLIONS = 152_532;
 
 /**
  * Editorial alternatives for a shorter replayable route. They are deliberately
@@ -54,6 +55,43 @@ function assertV11Roles(catalogue: Scenario): void {
 
 function maximumAnnualGain(decision: Decision): number {
   return Math.max(...decision.options.map((option) => option.budgetProfile.runRateMillions));
+}
+
+function planBudgetCapacity(plan: readonly string[], byId: ReadonlyMap<string, Decision>): number {
+  return plan.reduce((sum, id) => sum + maximumAnnualGain(byId.get(id)!), 0);
+}
+
+function repairBudgetCapacity(
+  plan: string[],
+  catalogue: Scenario,
+  futureStart: number,
+  replacedIds: Set<string>,
+): void {
+  const byId = decisionMap(catalogue);
+  if (planBudgetCapacity(plan, byId) >= V11_REQUIRED_BUDGET_CAPACITY_MILLIONS) return;
+  const omitted = V11_ADAPTIVE_DECISION_IDS.filter((id) => !plan.includes(id))
+    .sort((left, right) => maximumAnnualGain(byId.get(right)!) - maximumAnnualGain(byId.get(left)!));
+
+  for (const candidateId of omitted) {
+    if (planBudgetCapacity(plan, byId) >= V11_REQUIRED_BUDGET_CAPACITY_MILLIONS) break;
+    const candidate = byId.get(candidateId)!;
+    const candidateGain = maximumAnnualGain(candidate);
+    let replacementIndex = -1;
+    let replacementGain = Number.POSITIVE_INFINITY;
+    for (let index = futureStart; index < plan.length; index += 1) {
+      const selectedId = plan[index]!;
+      if (!V11_ADAPTIVE_DECISION_IDS.includes(selectedId)) continue;
+      const selected = byId.get(selectedId)!;
+      const selectedGain = maximumAnnualGain(selected);
+      if (selected.chapterId === candidate.chapterId && selectedGain < candidateGain && selectedGain < replacementGain) {
+        replacementIndex = index;
+        replacementGain = selectedGain;
+      }
+    }
+    if (replacementIndex < 0) continue;
+    replacedIds.add(plan[replacementIndex]!);
+    plan[replacementIndex] = candidateId;
+  }
 }
 
 /** Build the immutable 45-card route for one V11 mandate. */
@@ -167,6 +205,8 @@ export function refreshFutureSessionPlan(state: CampaignState, catalogue: Scenar
     nextPlan[index] = replacement;
     replacedIds.add(id);
   }
+
+  repairBudgetCapacity(nextPlan, catalogue, futureStart, replacedIds);
 
   if (replacedIds.size === 0) return state;
   return {

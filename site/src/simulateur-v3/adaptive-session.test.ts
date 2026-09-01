@@ -89,6 +89,31 @@ test("chaque partie de 45 dossiers offre assez de leviers pour combler le défic
   }
 });
 
+test("une ancienne partie impossible conserve ses choix passés et répare seulement sa suite", () => {
+  const plan = buildSessionPlan(SCENARIO_V11_CATALOGUE, 417);
+  const byId = new Map(SCENARIO_V11_CATALOGUE.decisions.map((decision) => [decision.id, decision]));
+  const degraded = [...plan];
+  const omitted = V11_ADAPTIVE_DECISION_IDS.filter((id) => !degraded.includes(id));
+  for (const replacement of omitted) {
+    const replacementDecision = byId.get(replacement)!;
+    const candidates = degraded.map((id, index) => ({ id, index, decision: byId.get(id)! }))
+      .filter(({ id, decision }) => V11_ADAPTIVE_DECISION_IDS.includes(id) && decision.chapterId === replacementDecision.chapterId)
+      .sort((left, right) => Math.max(...right.decision.options.map((option) => option.budgetProfile.runRateMillions))
+        - Math.max(...left.decision.options.map((option) => option.budgetProfile.runRateMillions)));
+    const target = candidates[0];
+    if (target) degraded[target.index] = replacement;
+  }
+  assert.ok(budgetCapacity(degraded) < REQUIRED_BUDGET_CAPACITY_MILLIONS, "la fixture doit reproduire un ancien tirage impossible");
+  const state = v11State(degraded, 1);
+
+  const repaired = refreshFutureSessionPlan(state, SCENARIO_V11_CATALOGUE);
+
+  assert.deepEqual(repaired.sessionDecisionIds!.slice(0, 1), degraded.slice(0, 1));
+  assert.ok(budgetCapacity(repaired.sessionDecisionIds!) >= REQUIRED_BUDGET_CAPACITY_MILLIONS);
+  assert.equal(repaired.sessionDecisionIds!.length, 45);
+  assert.equal(new Set(repaired.sessionDecisionIds).size, 45);
+});
+
 test("le parcours maximal rejoue réellement 45 dossiers et atteint l'équilibre", () => {
   for (const seed of [0, 1, 417, 999]) {
     let state: CampaignState = { ...createCampaign(SCENARIO_V11_CATALOGUE, BALANCED_PATH_BASELINE, seed), phase: "chapter_intro" };

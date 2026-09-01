@@ -19,6 +19,7 @@ import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCENARIO_V11 } from "./scenario-v11.ts";
+import { V11_ADAPTIVE_DECISION_IDS } from "./scenario-v11-catalogue.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
 import { advanceMandateYear } from "./timeline.ts";
@@ -158,6 +159,36 @@ test("une sauvegarde V11 garde exactement son parcours de 45 cartes", () => {
   if (restored.kind === "restored") {
     assert.deepEqual(restored.state.sessionDecisionIds, plan);
     assert.deepEqual(restored.state, saved);
+  }
+});
+
+test("une ancienne sauvegarde V11 impossible reçoit un parcours équilibrable à la restauration", () => {
+  const state = createCampaign(SCENARIO_V11, 417);
+  const oldPlan = [...state.sessionDecisionIds!];
+  const byId = new Map(SCENARIO_V11.decisions.map((decision) => [decision.id, decision]));
+  const capacity = (plan: readonly string[]) => plan.reduce((sum, id) => sum + Math.max(
+    ...byId.get(id)!.options.map((option) => option.budgetProfile.runRateMillions),
+  ), 0);
+  for (const replacement of V11_ADAPTIVE_DECISION_IDS.filter((id) => !oldPlan.includes(id))) {
+    const replacementDecision = byId.get(replacement)!;
+    const target = oldPlan.map((id, index) => ({ id, index, decision: byId.get(id)! }))
+      .filter(({ id, decision }) => V11_ADAPTIVE_DECISION_IDS.includes(id) && decision.chapterId === replacementDecision.chapterId)
+      .sort((left, right) => Math.max(...right.decision.options.map((option) => option.budgetProfile.runRateMillions))
+        - Math.max(...left.decision.options.map((option) => option.budgetProfile.runRateMillions)))[0];
+    if (target) oldPlan[target.index] = replacement;
+  }
+  state.sessionDecisionIds = oldPlan;
+  assert.ok(capacity(oldPlan) < 152_532);
+  const storage = memoryStorage();
+  saveCampaign(storage, state, new Date("2026-09-01T12:00:00.000Z"));
+
+  const restored = restoreCampaign(storage, SCENARIO_V11);
+
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.ok(capacity(restored.state.sessionDecisionIds!) >= 152_532);
+    assert.notDeepEqual(restored.state.sessionDecisionIds, oldPlan);
+    assert.deepEqual(JSON.parse(storage.getItem(V3_STORAGE_KEY)!).sessionDecisionIds, restored.state.sessionDecisionIds);
   }
 });
 
