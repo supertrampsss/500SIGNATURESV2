@@ -1,6 +1,7 @@
 # Benchmark de références — Salaires, France, Territoires
 
-État : cadrage avant implémentation. Les références ci-dessous servent à
+État : cadrage complété ; lot 1 et comparaison européenne du lot 2 sont
+implémentés localement. Les références ci-dessous servent à
 définir une expérience plus lisible ; elles ne constituent pas une licence de
 reproduire les textes, visuels ou marques d'un tiers.
 
@@ -56,6 +57,10 @@ reproduire les textes, visuels ou marques d'un tiers.
 ### Lot 2 — preuves visuelles
 
 - remplacer chaque graphique par la forme de la matrice ci-dessus ;
+- la comparaison européenne est désormais rendue en deux dot plots triés
+  (dépense et prélèvements), avec la France accentuée ;
+- le ratio contesté « salariés par établissement » est renommé « taille
+  moyenne des établissements employeurs » et son dénominateur est explicite ;
 - ajouter une table accessible sous chaque graphique ;
 - afficher l'année, l'unité et le périmètre au même endroit ;
 - retirer les ornements qui ressemblent à des marqueurs décoratifs.
