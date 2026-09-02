@@ -1273,6 +1273,18 @@ test("une page éditoriale pré-rendue n'est pas repeinte par la vue territoire"
   );
 });
 
+test("la page Salaires reste une page dédiée même avec le gabarit SPA", () => {
+  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf("function appliquerModeCarte"));
+  const route = corps.indexOf('location.pathname.replace(/\\/+$/, "") === "/salaires"');
+  assert.ok(route !== -1, "le chemin Salaires doit être traité explicitement");
+  assert.match(corps.slice(route), /renduSalaires\(\)/);
+  assert.match(corps.slice(route), /dataset\.page = "editorial"/);
+  assert.match(corps.slice(route), /dataset\.vue = "salaires"/);
+  assert.match(corps.slice(route), /dataset\.salairesBranche !== "oui"/);
+  const gardeEditoriale = corps.indexOf('document.body.dataset.page === "editorial"');
+  assert.ok(route < gardeEditoriale, "le chemin Salaires doit précéder la garde éditoriale générique");
+});
+
 test("une page éditoriale garde sa recherche, pas le reste de l'amorçage", () => {
   // La garde de `basculerVue` ne suffit pas seule : `demarrer()` continue
   // ensuite vers `construireSelecteurs()`, qui écrit dans `#pilules-vue` — un

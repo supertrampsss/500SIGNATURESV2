@@ -137,7 +137,7 @@ import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
-import { brancherSalaires } from "./salaires.ts";
+import { brancherSalaires, renduSalaires } from "./salaires.ts";
 import type { CampaignState, MandateBaseline, Scenario as SimulatorScenario } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
@@ -2606,14 +2606,30 @@ function marquerOngletAnalyses(): void {
 }
 
 function basculerVue(): void {
+  // `/salaires` est une page éditoriale pré-rendue en production, mais le
+  // serveur Vite sert le gabarit SPA en développement. Dans ce cas, écrire la
+  // page ici évite que le repli générique ne la fasse passer pour
+  // TERRITOIRES (et ne laisse sa recherche visible). Le même chemin est
+  // idempotent sur le document pré-rendu : le contenu déjà écrit est conservé.
+  if (location.pathname.replace(/\/+$/, "") === "/salaires") {
+    const contenu = document.getElementById("contenu");
+    if (!document.getElementById("salaires-contenu") && contenu) {
+      contenu.innerHTML = renduSalaires();
+    }
+    document.body.dataset.page = "editorial";
+    document.body.dataset.vue = "salaires";
+    rendreNavigationPrincipale();
+    const pageSalaires = document.getElementById("salaires-contenu");
+    if (pageSalaires && pageSalaires.dataset.salairesBranche !== "oui") {
+      brancherSalaires(pageSalaires);
+      pageSalaires.dataset.salairesBranche = "oui";
+    }
+    return;
+  }
   // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
   // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
   // le thème restent branchés — c'est le reste de la page qui ne bouge pas.
   if (document.body.dataset.page === "editorial") {
-    if (location.pathname.replace(/\/+$/, "") === "/salaires") {
-      const pageSalaires = document.getElementById("salaires-contenu");
-      if (pageSalaires) brancherSalaires(pageSalaires);
-    }
     return;
   }
   const precedente = document.body.dataset.vue;
