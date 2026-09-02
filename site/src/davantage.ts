@@ -418,9 +418,8 @@ function themeLogement(indicateurs: Indicateur[], territoire: Territoire): strin
   );
 }
 
-/** Salariés par secteur et établissements par secteur disaient la même chose
- *  deux fois. Rapportés l'un à l'autre : combien de salariés pour un
- *  établissement, secteur par secteur. */
+/** Les deux séries ne sont utiles ensemble que rapportées l'une à l'autre :
+ *  la taille moyenne des établissements employeurs, secteur par secteur. */
 const SECTEURS = [
   {
     libelle: "Administration, enseignement, santé et action sociale",
@@ -461,21 +460,21 @@ function themeSecteurs(territoire: Territoire): string {
   if (!lignes.length) return "";
   const triees = [...lignes].sort((a, b) => b.ratio - a.ratio);
   const barres = barresClassees({
-    titre: "Salariés par établissement",
-    description: "Rapport entre les salariés et les établissements employeurs de chaque secteur.",
+    titre: "Taille moyenne des établissements employeurs",
+    description: "Salariés recensés divisés par établissements employeurs, secteur par secteur.",
     lignes: triees.map((ligne) => ({ libelle: ligne.libelle, valeur: ligne.ratio })),
     formater: formaterRatio,
     accent: "var(--serie-5)",
   });
   const t = triees[0];
-  const phrase = `<b>${echapper(t.libelle)}</b> compte le plus de salariés pour un établissement : ${echapper(
+  const phrase = `<b>${echapper(t.libelle)}</b> compte en moyenne ${echapper(
     formaterRatio(t.ratio),
-  )}.`;
+  )} salariés par établissement employeur.`;
   return section(
     "secteurs",
-    "Salariés par établissement, secteur par secteur",
+    "Taille moyenne des établissements employeurs",
     `<p class="davantage__affirmation">${phrase}</p>${barres}`,
-    "Source : INSEE, CLAP/Flores. Salariés pour un établissement = salariés du secteur ÷ établissements du secteur.",
+    "Source : INSEE, Flores. Calcul : salariés recensés du secteur ÷ établissements employeurs du secteur.",
   );
 }
 
