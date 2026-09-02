@@ -38,6 +38,7 @@ import type {
 } from "../src/donnees.ts";
 import { formater } from "../src/echelle.ts";
 import { renduNavigation } from "../src/navigation.ts";
+import { renduSalaires } from "../src/salaires.ts";
 import { permalien } from "../src/partage.ts";
 import { REPONSES_STATIQUES } from "../src/questions.ts";
 import { indexerSources } from "../src/registre-sources.ts";
@@ -445,6 +446,7 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
       // phrase du message principal — sous un titre qui annonce la dette, les
       // 100 €, les niches et le classement des territoires.
       ["bilan", "Bilan"],
+      ["salaires", "Salaires"],
     ],
   );
   // **Les sections se retrouvent par leur nom, jamais par leur rang.** Une
@@ -720,7 +722,7 @@ test("8 quater. Sources et méthode est pré-rendue avec sa canonique et son ima
   assert.match(html, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}/sources/carte\\.png"`));
 });
 
-test("8 quinquies. les trois documents éditoriaux déclarent l'état qui laisse Simuler navigable", async () => {
+test("8 quinquies. les documents éditoriaux déclarent l'état qui laisse Simuler navigable", async () => {
   const [analyse] = await analysesPubliees();
   assert.ok(analyse, "aucun dossier publié");
   const shell = GABARIT_REEL;
@@ -731,6 +733,7 @@ test("8 quinquies. les trois documents éditoriaux déclarent l'état qui laisse
       injecter(shell, { ...PAGE, canonique: `/analyses/${analyse.slug}/` }, SITE_ESSAI),
     ],
     ["/sources/", injecterRegistre(shell, [], [], SITE_ESSAI)],
+    ["/salaires/", injecter(shell, { ...PAGE, canonique: "/salaires/", corps: renduSalaires() }, SITE_ESSAI)],
   ] as const;
 
   for (const [chemin, html] of documents) {
@@ -804,6 +807,7 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
     ...Object.values(CHEMINS),
     "/analyses/",
     "/sources/",
+    "/salaires/",
     "/questions/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),

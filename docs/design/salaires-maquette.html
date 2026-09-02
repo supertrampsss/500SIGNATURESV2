@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maquette — Salaires</title>
+  <style>
+    :root { color-scheme: light; --navy:#0b1c34; --ink:#102039; --cream:#f7f3eb; --paper:#fffdf8; --red:#ba3b32; --gold:#c9962d; --muted:#5e7189; --line:#d8cfbe; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--navy); color:var(--ink); font-family:Inter,system-ui,sans-serif; }
+    .shell { max-width:1120px; margin:auto; background:var(--cream); min-height:100vh; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem clamp(1rem,4vw,3rem); border-bottom:1px solid #33445a; background:var(--navy); color:#fff; }
+    nav { display:flex; flex-wrap:wrap; gap:1.1rem; font-size:.9rem; font-weight:700; }
+    nav a { color:#fff; text-decoration:none; } nav a[aria-current] { color:#efc454; }
+    .page { padding:clamp(1.25rem,5vw,4rem) clamp(1rem,7vw,5rem) 4rem; }
+    .eyebrow { margin:0 0 .75rem; color:var(--red); font-size:.78rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    h1 { max-width:18ch; margin:0; font:700 clamp(2.35rem,6vw,5rem)/.98 Georgia,serif; letter-spacing:-.035em; }
+    .lede { max-width:48ch; margin:1rem 0 2rem; color:var(--muted); font-size:1.1rem; line-height:1.5; }
+    .input-row { display:flex; align-items:center; gap:.5rem; max-width:25rem; border-bottom:3px solid var(--gold); }
+    .input-row input { width:100%; border:0; outline:0; background:transparent; color:var(--ink); font:700 clamp(2.6rem,8vw,4.8rem)/1 Georgia,serif; }
+    .input-row span { font:700 1.3rem Georgia,serif; }
+    .hint { margin:.5rem 0 1.5rem; color:var(--muted); font-size:.9rem; }
+    .switcher { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:2.5rem; }
+    .switcher button { min-height:2.75rem; padding:.65rem 1rem; border:1px solid var(--line); border-radius:999px; background:var(--paper); color:var(--ink); font-weight:750; cursor:pointer; }
+    .switcher button[aria-pressed="true"] { border-color:var(--gold); background:var(--gold); }
+    .result { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:2rem; padding:1.5rem 0 2rem; border-top:3px solid var(--red); border-bottom:1px solid var(--line); }
+    .result h2 { margin:0 0 .35rem; font:700 clamp(1.55rem,3vw,2.2rem)/1.05 Georgia,serif; }
+    .total { margin:.5rem 0 1.5rem; font:700 clamp(2.6rem,7vw,5.2rem)/.95 Georgia,serif; }
+    .total small { display:block; margin-top:.5rem; color:var(--muted); font:600 1rem Inter,sans-serif; }
+    .breakdown { margin:0; }
+    .breakdown div { display:flex; justify-content:space-between; gap:1rem; padding:.7rem 0; border-top:1px solid var(--line); }
+    .breakdown dt { color:var(--muted); } .breakdown dd { margin:0; font-weight:800; font-variant-numeric:tabular-nums; }
+    .link { display:inline-block; margin-top:1rem; color:var(--ink); font-weight:800; text-underline-offset:.2em; }
+    .allocation { margin-top:2.25rem; }
+    .allocation h2 { margin:0 0 .3rem; font:700 clamp(1.6rem,3vw,2.4rem)/1.1 Georgia,serif; }
+    .allocation p { margin:.4rem 0 1rem; color:var(--muted); }
+    .allocation-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem 2rem; margin:0; padding:0; list-style:none; }
+    .allocation-list li { display:flex; justify-content:space-between; gap:1rem; padding:.75rem 0; border-top:1px solid var(--line); }
+    .allocation-list strong { white-space:nowrap; }
+    .source { margin-top:2rem; color:var(--muted); font-size:.85rem; }
+    @media (max-width:700px) {
+      header { align-items:flex-start; flex-direction:column; }
+      nav { gap:.75rem 1rem; }
+      .page { padding-top:2rem; }
+      .result { grid-template-columns:1fr; gap:1.25rem; }
+      .allocation-list { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <strong>500 signatures</strong>
+      <nav aria-label="Navigation principale">
+        <a href="#">France</a><a href="#">Territoires</a><a href="#" aria-current="page">Salaires</a><a href="#">Simulateur</a>
+      </nav>
+    </header>
+    <main class="page">
+      <p class="eyebrow">Salaires · maquette</p>
+      <h1>Quel revenu arrive sur votre compte chaque mois&nbsp;?</h1>
+      <p class="lede">Entrez votre revenu mensuel. Vous verrez ce qu’il représente avant prélèvements et comment les cotisations sont réparties.</p>
+      <label class="input-row"><input value="2 100" inputmode="decimal" aria-label="Revenu mensuel"><span>€</span></label>
+      <p class="hint">Le montant exact, ou une approximation.</p>
+      <div class="switcher" role="group" aria-label="Votre statut"><button aria-pressed="true">Salarié</button><button aria-pressed="false">Fonctionnaire</button><button aria-pressed="false">Indépendant</button><button aria-pressed="false">Retraité</button></div>
+      <section class="result" aria-labelledby="resultat">
+        <div><h2 id="resultat">Ce que votre travail représente</h2><p class="total">3 979 €<small>par mois avant prélèvements</small></p><a class="link" href="#calcul">Voir le calcul ↓</a></div>
+        <dl class="breakdown"><div><dt>Net reçu</dt><dd>2 100 €</dd></div><div><dt>Cotisations salariales</dt><dd>…</dd></div><div><dt>Impôt sur le revenu</dt><dd>…</dd></div><div><dt>Cotisations employeur</dt><dd>…</dd></div><div><dt>Coût total</dt><dd>3 979 €</dd></div></dl>
+      </section>
+      <section class="allocation" id="calcul" aria-labelledby="allocation-title"><h2 id="allocation-title">Où vont ces prélèvements&nbsp;?</h2><p>Une lecture simple des principaux risques et services financés.</p><ul class="allocation-list"><li><span>Santé</span><strong>…</strong></li><li><span>Retraite</span><strong>…</strong></li><li><span>Chômage</span><strong>…</strong></li><li><span>Famille</span><strong>…</strong></li><li><span>Dette</span><strong>…</strong></li><li><span>Autres services publics</span><strong>…</strong></li></ul></section>
+      <p class="source">Maquette uniquement · données à brancher avec les sources Urssaf, Insee et DREES.</p>
+    </main>
+  </div>
+</body>
+</html>

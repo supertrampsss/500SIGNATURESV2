@@ -168,7 +168,7 @@ test("France et Territoires partagent exactement le même chrome de navigation",
   }
   assert.match(entete, /color:\s*var\(--chrome-encre\)/);
   assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete(?:__nav|__recherche)?/);
-  assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test("la carte ne peut être active que dans la vue Territoires", () => {
@@ -716,9 +716,9 @@ test("le header Journal porte sa signature et une navigation en pilule", () => {
   assert.match(CSS, /\.entete__nav a\[aria-current="page"\][^{]*\{[^}]*background:\s*var\(--chrome-encre\)/s);
 });
 
-test("sur mobile les trois destinations restent visibles sans barre flottante basse", () => {
+test("sur mobile les quatre destinations restent visibles sans barre flottante basse", () => {
   const navigationMobile = NAVIGATION.match(/@media \(max-width:\s*39\.999rem\)[\s\S]*/)?.[0] ?? "";
-  assert.match(navigationMobile, /grid-template-columns:\s*repeat\(3/);
+  assert.match(navigationMobile, /grid-template-columns:\s*repeat\(4/);
   assert.doesNotMatch(navigationMobile, /position:\s*fixed|bottom:\s*0/);
 });
 
@@ -898,7 +898,7 @@ test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () =
 
 test("sous le pouce, la navigation ne se coupe plus", () => {
   const petit = NAVIGATION.slice(NAVIGATION.indexOf("@media (max-width: 39.999rem)"));
-  assert.match(petit, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(petit, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(petit, /\.entete__nav a\s*\{[^}]*min-height:\s*44px;/s);
   assert.doesNotMatch(petit, /position:\s*fixed|bottom:\s*0|padding-bottom:\s*calc\(var\(--haut-nav-basse\)/);
 });

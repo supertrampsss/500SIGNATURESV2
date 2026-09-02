@@ -3,12 +3,13 @@ import { test } from "node:test";
 
 import { DESTINATIONS, intercepterNavigation, renduNavigation } from "./navigation.ts";
 
-test("la navigation expose les trois destinations utiles sans lien Accueil", () => {
+test("la navigation expose les quatre destinations utiles sans lien Accueil", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Territoires" },
+      { cle: "salaires", href: "/salaires", libelle: "Salaires" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
@@ -26,6 +27,12 @@ test("Simuler est la destination courante avec ou sans barre finale", () => {
 
 test("Analyses ne figure pas dans la navigation principale", () => {
   assert.doesNotMatch(renduNavigation("/", true), /Analyses|\/analyses/);
+});
+
+test("Salaires reste un lien natif vers sa page pré-rendue", () => {
+  const html = renduNavigation("/salaires/", true);
+  assert.match(html, /<a href="\/salaires" aria-current="page">Salaires<\/a>/);
+  assert.doesNotMatch(html, /href="\/salaires"[^>]*data-vue/);
 });
 
 test("Simuler reste visible mais indisponible avant la publication des données", () => {

@@ -56,7 +56,7 @@ test("renduInsights ne peint pas une section vide", () => {
   assert.equal(renduInsights([], catalogue, { contexte: "france" }), "");
 });
 
-test("les arbitrages France sont tous visibles et regroupés dans un sommaire thématique", () => {
+test("les arbitrages France restent tous dans le document et sont regroupés par thème", () => {
   const fiscalite: Insight = { ...insight, id: "angle-fiscalite", famille: "fiscalite" };
   const travail: Insight = { ...insight, id: "angle-travail", famille: "travail" };
   const html = renduInsights([insight, fiscalite, travail], catalogue, { contexte: "france" });
@@ -73,9 +73,20 @@ test("les arbitrages France sont tous visibles et regroupés dans un sommaire th
   assert.match(html, /Fiscalité/);
   assert.match(html, /Travail et entreprises/);
   assert.equal((html.match(/class="insight insight--/g) ?? []).length, 3);
-  assert.doesNotMatch(html, /Afficher plus|Voir plus/);
+  assert.doesNotMatch(html, /Afficher plus/);
+  assert.match(html, /Les chiffres qui font débat/);
   assert.doesNotMatch(html, /Revenir aux thèmes/);
   assert.doesNotMatch(html, /insights__retour/);
+});
+
+test("une longue liste territoriale commence par trois cartes puis se déplie localement", () => {
+  const cartes = Array.from({ length: 5 }, (_, index) => ({ ...insight, id: `territoire-${index}` }));
+  const html = renduInsights(cartes, catalogue, { contexte: "territoire", nom: "Ville-test" });
+
+  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 5);
+  assert.equal((html.match(/<details class="insights__more">/g) ?? []).length, 1);
+  assert.match(html, />Voir les autres</);
+  assert.match(html, /Quelques repères pour situer ce territoire/);
 });
 
 test("une carte sans comparaison ne crée pas de paragraphe fantôme", () => {

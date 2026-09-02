@@ -72,6 +72,7 @@ import { CHEMINS } from "../src/routes.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
+import { renduSalaires } from "../src/salaires.ts";
 import type {
   BudgetEtat,
   DepensesFiscales,
@@ -533,6 +534,11 @@ const PAGE_SOURCES = {
   image: "/sources/carte.png",
 };
 
+const PAGE_SALAIRES = {
+  titre: "Salaires — Où va l'argent public",
+  description: "Comprendre l'écart entre revenu reçu, cotisations et coût total du travail.",
+};
+
 /**
  * Le chemin de la page BILAN, lu dans `routes.ts` plutôt que recopié.
  *
@@ -598,6 +604,12 @@ export function sections(shell: string): { chemin: string; nature: string; titre
       nature: "Bilan",
       titre: marque,
       phrase: PAGE_BILAN.description,
+    },
+    {
+      chemin: "salaires",
+      nature: "Salaires",
+      titre: PAGE_SALAIRES.titre,
+      phrase: PAGE_SALAIRES.description,
     },
   ];
 }
@@ -1386,6 +1398,7 @@ export function adressesPubliees(analyses: readonly Analyse[]): string[] {
     ...CHEMINS_DE_VUE,
     "/analyses/",
     "/sources/",
+    "/salaires/",
     "/questions/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
@@ -1653,6 +1666,20 @@ async function main(): Promise<void> {
   const htmlSources = injecterRegistre(shell, jeux, fiches, SITE);
   await ecrirePage(path.join(DIST, "sources"), htmlSources);
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
+
+  const htmlSalaires = injecter(
+    shell,
+    {
+      titre: PAGE_SALAIRES.titre,
+      description: PAGE_SALAIRES.description,
+      canonique: "/salaires/",
+      image: "/salaires/carte.png",
+      corps: renduSalaires(),
+    },
+    SITE,
+  );
+  await ecrirePage(path.join(DIST, "salaires"), htmlSalaires);
+  ecrites.push({ chemin: "salaires/index.html", html: htmlSalaires });
 
   // Le gabarit lui-même : c'est lui que Cloudflare sert pour la racine et pour
   // toutes les vues de l'application.

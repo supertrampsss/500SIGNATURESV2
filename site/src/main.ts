@@ -137,6 +137,7 @@ import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
+import { brancherSalaires } from "./salaires.ts";
 import type { CampaignState, MandateBaseline, Scenario as SimulatorScenario } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
@@ -149,6 +150,7 @@ import "./styles/territoire-briefing.css";
 import "./styles/dossiers-verification.css";
 import "./styles/registre-sources.css";
 import "./styles/questions.css";
+import "./styles/salaires.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -2607,7 +2609,13 @@ function basculerVue(): void {
   // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
   // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
   // le thème restent branchés — c'est le reste de la page qui ne bouge pas.
-  if (document.body.dataset.page === "editorial") return;
+  if (document.body.dataset.page === "editorial") {
+    if (location.pathname.replace(/\/+$/, "") === "/salaires") {
+      const pageSalaires = document.getElementById("salaires-contenu");
+      if (pageSalaires) brancherSalaires(pageSalaires);
+    }
+    return;
+  }
   const precedente = document.body.dataset.vue;
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` reste un alias de la vue territoire ; la carte adopte alors son

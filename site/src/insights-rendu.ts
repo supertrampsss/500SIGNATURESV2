@@ -18,6 +18,20 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3): string {
   </li>`;
 }
 
+/** Garde une première lecture courte sans retirer les cartes du document.
+ * Les cartes suivantes restent dans le DOM : elles sont simplement repliées
+ * derrière une action locale, ce qui conserve les ancres et l'accessibilité. */
+function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4): string {
+  const visibles = cartes.slice(0, 3).map((insight) => carte(insight, niveauTitre)).join("");
+  const suite = cartes.slice(3);
+  if (suite.length === 0) return `<ol class="insights__grille">${visibles}</ol>`;
+  return `<ol class="insights__grille">${visibles}</ol>
+    <details class="insights__more">
+      <summary>Voir les autres</summary>
+      <ol class="insights__grille">${suite.map((insight) => carte(insight, niveauTitre)).join("")}</ol>
+    </details>`;
+}
+
 const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
   { famille: "budget", titre: "Dette et budget" },
   { famille: "fiscalite", titre: "Fiscalité" },
@@ -48,9 +62,7 @@ function renduFranceParThemes(insights: Insight[]): string {
       <header class="insights__theme-entete">
         <h3 id="arbitrages-${famille}-titre">${echapper(titre)}</h3>
       </header>
-      <ol class="insights__grille">
-        ${cartes.map((insight) => carte(insight, 4)).join("")}
-      </ol>
+      ${cartesAvecSuite(cartes, 4)}
     </section>`).join("");
 
   return `<nav class="insights__sommaire" id="insights-france-sommaire" aria-label="Thèmes des arbitrages">
@@ -70,8 +82,8 @@ export function renduInsights(
     ? "Les arbitrages derrière les comptes"
     : `Ce que racontent les chiffres de ${options.nom ?? "ce territoire"}`;
   const introduction = estFrance
-    ? "Cent sujets qui traversent le débat public, confrontés aux séries publiées. Faites défiler ou choisissez un thème."
-    : "Fiscalité, emploi, habitat, sécurité, énergie : les séries sont croisées pour faire apparaître une trajectoire, pas seulement une valeur isolée.";
+    ? "Les chiffres qui font débat."
+    : "Quelques repères pour situer ce territoire.";
 
   return `<section class="insights insights--${options.contexte}" aria-labelledby="insights-${options.contexte}-titre">
     <header class="insights__entete">
@@ -81,7 +93,7 @@ export function renduInsights(
     </header>
     ${estFrance
       ? renduFranceParThemes(insights)
-      : `<ol class="insights__grille">${insights.map((insight) => carte(insight)).join("")}</ol>`}
+      : cartesAvecSuite(insights, 3)}
     <p class="insights__methode"><a href="/sources/">Sources et méthode</a></p>
   </section>`;
 }

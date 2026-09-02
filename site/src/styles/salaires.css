@@ -1,0 +1,32 @@
+/* Page Salaires : une lecture chiffrée courte, avec détail local. */
+.salaires { max-width: 72rem; margin: 0 auto; padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 6vw, 4rem) 4rem; }
+.salaires__eyebrow { margin: 0 0 .6rem; color: var(--accent, #b63b32); font-size: .78rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.salaires h1 { max-width: 18ch; margin: 0; font-family: var(--police-titres, Georgia, serif); font-size: clamp(2.3rem, 6vw, 5rem); line-height: .98; letter-spacing: -.035em; }
+.salaires__intro { max-width: 54ch; margin: 1rem 0 1.8rem; color: var(--texte-secondaire, #5d7188); font-size: 1.08rem; line-height: 1.45; }
+.salaires__form { margin-bottom: 2.25rem; }
+.salaires__montant { display: flex; align-items: baseline; max-width: 23rem; gap: .45rem; border-bottom: 3px solid var(--accent-or, #d0a02d); }
+.salaires__montant input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--encre, #10213b); font: 700 clamp(2.5rem, 8vw, 4.8rem)/1 var(--police-titres, Georgia, serif); font-variant-numeric: tabular-nums; }
+.salaires__montant b { font: 700 1.3rem var(--police-titres, Georgia, serif); }
+.salaires__aide { margin: .5rem 0 1.1rem; color: var(--texte-secondaire, #5d7188); font-size: .88rem; }
+.salaires__statuts { display: flex; flex-wrap: wrap; gap: .45rem; }
+.salaires__statut { min-height: 2.75rem; padding: .6rem 1rem; border: 1px solid var(--bordure, #d6ccba); border-radius: 999px; background: var(--papier, #fffdf8); color: var(--encre, #10213b); font-weight: 800; cursor: pointer; }
+.salaires__statut[aria-pressed="true"] { border-color: var(--accent-or, #d0a02d); background: var(--accent-or, #d0a02d); }
+.salaires__resultat { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(16rem, .9fr); gap: 2rem; padding: 1.35rem 0 1.5rem; border-top: 4px solid var(--accent, #b63b32); border-bottom: 1px solid var(--bordure, #d6ccba); }
+.salaires__total h2 { margin: .1rem 0 .4rem; font: 700 clamp(2.6rem, 7vw, 5rem)/.95 var(--police-titres, Georgia, serif); font-variant-numeric: tabular-nums; }
+.salaires__total p:last-child { margin: 0; color: var(--texte-secondaire, #5d7188); }
+.salaires__ventilation { margin: 0; }
+.salaires__ventilation div { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-top: 1px solid var(--bordure, #d6ccba); }
+.salaires__ventilation dt { color: var(--texte-secondaire, #5d7188); }
+.salaires__ventilation dd { margin: 0; font-weight: 850; font-variant-numeric: tabular-nums; text-align: right; }
+.salaires__detail { margin-top: 1rem; border-bottom: 1px solid var(--bordure, #d6ccba); }
+.salaires__detail summary { padding: .75rem 0; cursor: pointer; font-weight: 850; }
+.salaires__detail p { max-width: 60ch; color: var(--texte-secondaire, #5d7188); line-height: 1.45; }
+.salaires__sources a { color: var(--encre, #10213b); font-weight: 800; text-underline-offset: .18em; }
+.salaires__allocation { margin-top: 2.4rem; }
+.salaires__allocation h2 { margin: 0 0 .8rem; font-size: clamp(1.65rem, 3vw, 2.5rem); }
+.salaires__allocation ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem 2rem; margin: 0; padding: 0; list-style: none; }
+.salaires__allocation li { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-top: 1px solid var(--bordure, #d6ccba); }
+.salaires__allocation li span { color: var(--texte-secondaire, #5d7188); }
+.salaires__allocation li b { text-align: right; }
+@media (max-width: 720px) { .salaires__resultat { grid-template-columns: 1fr; gap: 1.25rem; } .salaires__allocation ul { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .salaires { padding-inline: 1rem; } .salaires__statut { flex: 1 1 calc(50% - .45rem); } .salaires__allocation li { align-items: flex-start; flex-direction: column; gap: .2rem; } .salaires__allocation li b { text-align: left; } }

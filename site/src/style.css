@@ -5112,6 +5112,27 @@ summary.pont__rangee,
   padding: 0;
   list-style: none;
 }
+.insights__more {
+  margin-top: var(--espace-3);
+  border-top: 1px solid var(--trait);
+}
+.insights__more summary {
+  display: inline-flex;
+  min-height: var(--cible);
+  align-items: center;
+  padding: var(--espace-3) 0;
+  color: var(--encre);
+  cursor: pointer;
+  font-size: var(--texte-s);
+  font-weight: 800;
+  text-underline-offset: .18em;
+}
+.insights__more summary:hover { text-decoration: underline; }
+.insights__more summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.insights__more[open] summary { margin-bottom: calc(var(--espace-2) * -1); }
 .insight {
   min-width: 0;
   padding: var(--espace-6) 0 var(--espace-7);
