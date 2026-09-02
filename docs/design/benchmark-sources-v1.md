@@ -16,7 +16,7 @@ reproduire les textes, visuels ou marques d'un tiers.
 ## Principes de hiérarchie
 
 1. Une page commence par une réponse lisible en une phrase et un chiffre.
-2. Trois preuves maximum sont visibles sans interaction supplémentaire.
+2. Les graphiques principaux sont visibles sans interaction supplémentaire.
 3. Les analyses supplémentaires sont regroupées par thème et ouvertes dans le
    même écran ; aucune succession de pages « dossier ».
 4. Une analyse n'affiche qu'une source principale. Les sources secondaires et
@@ -49,12 +49,12 @@ reproduire les textes, visuels ou marques d'un tiers.
 ### Lot 1 — structure et lisibilité
 
 - ajouter le lien de navigation Salaires et sa route dédiée ;
-- appliquer le gabarit verdict → preuves → thèmes à France ;
-- limiter Territoires à trois analyses prioritaires avant « Explorer » ;
+- appliquer le gabarit verdict → graphiques → thèmes à France ;
+- faire ressortir les analyses prioritaires de Territoires avant « Explorer » ;
 - supprimer les blocs répétitifs et les pages intermédiaires d'ouverture ;
 - vérifier 390 px, clavier et fermeture des détails au clic extérieur.
 
-### Lot 2 — preuves visuelles
+### Lot 2 — lecture graphique
 
 - remplacer chaque graphique par la forme de la matrice ci-dessus ;
 - la comparaison européenne est désormais rendue en deux dot plots triés
@@ -75,7 +75,7 @@ reproduire les textes, visuels ou marques d'un tiers.
 
 ## Critères de sortie
 
-- aucune page ne montre plus de trois messages principaux avant interaction ;
+- aucune page ne multiplie les messages principaux avant interaction ;
 - chaque graphique répond à une question et dispose d'une alternative textuelle ;
 - les données sont arrondies sans perdre l'unité ni l'année ;
 - à 390 px, pas de débordement horizontal et aucun contrôle sous 44 px ;

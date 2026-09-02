@@ -18,8 +18,8 @@ même niveau de titre.
 Ordre de lecture :
 
 1. verdict annuel : recettes, dépenses, déficit ;
-2. trois faits à retenir ;
-3. trois graphiques de preuve ;
+2. repères clés ;
+3. six graphiques pour lire les comptes ;
 4. comparaison européenne ;
 5. exploration des huit familles d'analyses.
 
@@ -76,15 +76,15 @@ BORDEAUX · 2025
 Ce qui a changé depuis 2019
 → cascade des variations
 
-La situation en trois chiffres
+Les chiffres à suivre
 → marge · dette · investissement
 
 [Explorer les analyses]
 ```
 
-La page par défaut montre au maximum trois analyses prioritaires. Les autres
-restent disponibles dans « Explorer » et sont filtrables par budget, fiscalité,
-dette, services et trajectoire.
+La page par défaut montre les analyses prioritaires. Les autres restent
+disponibles dans « Explorer » et sont filtrables par budget, fiscalité, dette,
+services et trajectoire.
 
 Le module « salariés par établissement » ne doit plus être un verdict : il est
 secondaire, avec son dénominateur, son champ et une comparaison entre communes
@@ -145,7 +145,7 @@ et [DREES — protection sociale en Europe](https://drees.solidarites-sante.gouv
 
 ## 6. Critères d'acceptation de la prochaine implémentation
 
-1. France affiche d'abord le verdict et trois preuves, puis les thèmes.
+1. France affiche d'abord le verdict, puis six graphiques et les thèmes.
 2. Territoires affiche la fiche avant les analyses longues.
 3. Salaires fonctionne avec les quatre statuts et un résultat calculé.
 4. Chaque graphique répond à une question unique et possède un tableau accessible.
@@ -162,10 +162,10 @@ Le lot sera découpé pour rester réversible et limiter le risque de quota :
   Salaires et conserver la recherche uniquement sur Territoires ;
 - nouveau module `site/src/salaires.ts` : calculs purs par statut, ventilation
   et libellés vulgarisés ; aucune dépendance à l'état du simulateur politique ;
-- `site/src/insights-rendu.ts` : rendre France par preuves puis thèmes, avec un
-  nombre limité de cartes ouvertes par défaut ;
-- `site/src/insights-territoire.ts` : marquer trois priorités et reléguer les
-  indicateurs contestables dans Explorer ;
+- `site/src/insights-rendu.ts` : rendre France par graphiques puis thèmes, avec
+  un nombre limité de cartes ouvertes par défaut ;
+- `site/src/insights-territoire.ts` : faire ressortir les priorités et reléguer
+  les indicateurs contestables dans Explorer ;
 - `site/src/styles/` : appliquer le même bandeau, les mêmes espacements et les
   mêmes règles mobile aux quatre destinations ;
 - tests : route Salaires, quatre statuts, calculs de base, clavier, largeur
