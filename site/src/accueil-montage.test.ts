@@ -187,7 +187,7 @@ test("il n'y a qu'un champ de recherche, et l'accueil vise celui-là", () => {
   assert.equal(MAIN.match(/brancherRecherche\(/g)?.length, 2); // la déclaration et l'appel
   assert.match(
     MAIN,
-    /brancherRecherche\(\$<HTMLInputElement>\("recherche"\), \$<HTMLUListElement>\("suggestions"\)\)/,
+    /const champRecherche = document\.getElementById\("recherche"\)[\s\S]*?if \(champRecherche instanceof HTMLInputElement && suggestionsRecherche instanceof HTMLUListElement\) \{[\s\S]*?brancherRecherche\(champRecherche, suggestionsRecherche\)/,
   );
 });
 
