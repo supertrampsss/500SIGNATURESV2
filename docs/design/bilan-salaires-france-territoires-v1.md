@@ -1,6 +1,6 @@
 # Maquette produit — Salaires, France et Territoires
 
-État : conception, avant implémentation.
+État : lot 1 implémenté localement et vérifié ; refonte graphique détaillée au lot 2.
 
 Objectif : rendre les comptes publics lisibles en moins de 30 secondes, puis
 permettre d'aller au détail sans imposer 100 cartes ni un texte méthodologique
@@ -171,6 +171,7 @@ Le lot sera découpé pour rester réversible et limiter le risque de quota :
 - tests : route Salaires, quatre statuts, calculs de base, clavier, largeur
   390 px et absence de recherche hors Territoires.
 
-La première livraison de code sera locale et vérifiée (tests + build) avant tout
-push. La publication restera bloquée tant que la direction visuelle n'est pas
-validée.
+Le lot 1 (page Salaires, navigation et hiérarchie des listes) est local,
+vérifié par les tests et le build, puis enregistré dans un checkpoint Git.
+La refonte des types de graphiques et la publication restent séparées pour
+laisser valider la direction visuelle et respecter le quota d'exécution.
