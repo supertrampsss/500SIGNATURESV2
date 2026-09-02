@@ -78,6 +78,18 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
 .dataviz__barre--negative { background: var(--dv-rouge); }
 .dataviz__barre--positive { background: var(--dv-bleu); }
 
+.dataviz__comparaisons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espace-7); }
+.dataviz--points figcaption strong { font: 700 var(--texte-xl) var(--serif); }
+.dataviz--points ol { margin: var(--espace-4) 0 0; padding: 0; list-style: none; }
+.dataviz__point-rang { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(6rem, 2fr) minmax(4rem, auto); align-items: center; gap: var(--espace-2); min-height: 2.25rem; border-top: 1px solid var(--bordure); }
+.dataviz__point-nom { line-height: 1.2; }
+.dataviz__point-rail { position: relative; height: .8rem; border-radius: 999px; background: color-mix(in srgb, var(--dv-nuit) 12%, var(--fond)); }
+.dataviz__point-rail > span { position: absolute; top: 50%; width: .85rem; height: .85rem; border: 2px solid var(--fond); border-radius: 50%; transform: translate(-50%, -50%); background: var(--dv-bleu); }
+.dataviz__point-rang--accent .dataviz__point-rail > span { width: 1.05rem; height: 1.05rem; background: var(--dv-rouge); }
+.dataviz__point-rang--accent .dataviz__point-nom,
+.dataviz__point-rang--accent strong { font-weight: 850; }
+.dataviz__point-rang > strong { text-align: right; font-variant-numeric: tabular-nums; }
+
 .dataviz__equilibre { stroke: var(--dv-gris); stroke-width: 1.5; stroke-dasharray: 5 5; }
 .dataviz__point circle { fill: var(--dv-gris); stroke: var(--fond); stroke-width: 2; }
 .dataviz__point text { fill: var(--texte-secondaire); font: 12px var(--sans); paint-order: stroke; stroke: var(--fond); stroke-width: 4px; }
@@ -115,6 +127,8 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
 @media (max-width: 40rem) {
   .dataviz { margin-block: var(--espace-4); }
   .dataviz--composition ul { grid-template-columns: 1fr; }
+  .dataviz__comparaisons { grid-template-columns: 1fr; gap: var(--espace-5); }
+  .dataviz__point-rang { grid-template-columns: minmax(7rem, 1fr) minmax(6rem, 1.5fr) minmax(4rem, auto); }
   .dataviz--halteres figcaption { display: block; }
   .dataviz--halteres figcaption > span { margin-top: var(--espace-2); }
   .dataviz__haltere { grid-template-columns: 1fr; gap: var(--espace-2); }

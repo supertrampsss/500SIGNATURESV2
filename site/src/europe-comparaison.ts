@@ -56,7 +56,7 @@
  */
 
 import type { Territoire } from "./donnees.ts";
-import { nuageComparatif, tableauAccessible } from "./dataviz.ts";
+import { pointsComparatifs, tableauAccessible } from "./dataviz.ts";
 import { pourcentage } from "./echelle.ts";
 import { estAgregat, nomPays } from "./pays-noms.ts";
 import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
@@ -266,22 +266,29 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
           ${combienDevant(rangPrelevements.place, rangPrelevements.sur, "prélève")}.</p>`;
   const indexDepense = colonnes.findIndex((c) => c.cle === DEPENSE);
   const indexPrelevements = colonnes.findIndex((c) => c.cle === PRELEVEMENTS);
-  const points = lignes.flatMap((ligne) => {
-    const y = ligne.cellules[indexDepense];
-    const x = ligne.cellules[indexPrelevements];
-    return x === null || y === null
-      ? []
-      : [{ id: ligne.code, libelle: ligne.nom, x, y, accent: ligne.code === "FR" }];
+  const formater = (nombre: number) => `${nombre.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
+  const pointsDepense = lignes.flatMap((ligne) => {
+    const valeur = ligne.cellules[indexDepense];
+    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });
-  const graphique = nuageComparatif({
-    titre: "La France prélève et dépense davantage que ses voisins",
-    description: "Prélèvements obligatoires et dépense publique en pourcentage du PIB.",
-    axeX: "Prélèvements obligatoires",
-    axeY: "Dépense publique",
-    points,
-    formater: (nombre) => `${nombre.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`,
-    diagonale: true,
+  const pointsPrelevements = lignes.flatMap((ligne) => {
+    const valeur = ligne.cellules[indexPrelevements];
+    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });
+  const graphique = `<div class="dataviz__comparaisons">
+    ${pointsComparatifs({
+      titre: "Dépense publique",
+      description: "Dépense publique en pourcentage du PIB, du plus élevé au plus faible.",
+      points: pointsDepense,
+      formater,
+    })}
+    ${pointsComparatifs({
+      titre: "Prélèvements obligatoires",
+      description: "Prélèvements obligatoires en pourcentage du PIB, du plus élevé au plus faible.",
+      points: pointsPrelevements,
+      formater,
+    })}
+  </div>`;
 
   return `
     <h3 class="sous-titre">La France et ses voisins</h3>

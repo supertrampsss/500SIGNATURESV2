@@ -172,6 +172,13 @@ test("la ligne de la France est marquée, sans couleur de jugement", () => {
   assert.doesNotMatch(html, /style="[^"]*(color|background)/);
 });
 
+test("la comparaison européenne utilise deux classements de points lisibles", () => {
+  const html = rendu(PAYS);
+  assert.equal((html.match(/dataviz--points/g) ?? []).length, 2);
+  assert.doesNotMatch(html, /dataviz--nuage/);
+  assert.match(html, /dataviz__comparaisons/);
+});
+
 test("la note sous la comparaison ne garde que la source", () => {
   const lu = texte(rendu(PAYS));
   assert.doesNotMatch(lu, /retraite versée par l'État compte dans la dépense/);

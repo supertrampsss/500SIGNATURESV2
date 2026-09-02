@@ -187,6 +187,38 @@ export function barresSolde(options: {
   </figure>`;
 }
 
+/** Comparaison d'un même indicateur entre pays ou territoires.
+ * Un point sur une seule échelle se lit mieux qu'un nuage à deux axes quand
+ * la question porte sur un ratio unique : les lignes sont triées, la France
+ * reste accentuée et la valeur demeure lisible à 390 px. */
+export function pointsComparatifs(options: {
+  titre: string;
+  description: string;
+  points: readonly { libelle: string; valeur: number; accent?: boolean }[];
+  formater: Formateur;
+}): string {
+  const points = options.points.filter((p) => Number.isFinite(p.valeur)).sort((a, b) => b.valeur - a.valeur);
+  if (points.length < 2) return "";
+  const valeurs = points.map((p) => p.valeur);
+  const amplitude = Math.max(...valeurs) - Math.min(...valeurs);
+  const marge = amplitude || Math.max(Math.abs(valeurs[0]!), 1) * 0.08;
+  const min = Math.min(...valeurs) - marge;
+  const max = Math.max(...valeurs) + marge;
+  const position = (valeur: number) => ((valeur - min) / (max - min || 1)) * 100;
+  const lignes = points.map((point) => {
+    const valeur = options.formater(point.valeur);
+    return `<li class="dataviz__point-rang${point.accent ? " dataviz__point-rang--accent" : ""}" aria-label="${echapper(`${point.libelle} : ${valeur}`)}">
+      <span class="dataviz__point-nom">${echapper(point.libelle)}</span>
+      <span class="dataviz__point-rail" aria-hidden="true"><span style="left:${position(point.valeur).toFixed(2)}%"></span></span>
+      <strong>${echapper(valeur)}</strong>
+    </li>`;
+  }).join("");
+  return `<figure class="dataviz dataviz--points" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+    <figcaption><strong>${echapper(options.titre)}</strong></figcaption>
+    <ol>${lignes}</ol>
+  </figure>`;
+}
+
 export function nuageComparatif(options: {
   titre: string;
   description: string;

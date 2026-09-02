@@ -8,6 +8,7 @@ import {
   graphiqueEcart,
   halteres,
   nuageComparatif,
+  pointsComparatifs,
   tableauAccessible,
 } from "./dataviz.ts";
 
@@ -130,6 +131,22 @@ test("le nuage comparatif porte ses axes, sa diagonale et ses libellés directs"
   assert.match(html, /dataviz__equilibre/);
   assert.match(html, /dataviz__point--accent/);
   assert.match(html, />France</);
+});
+
+test("les points comparatifs rendent un classement lisible sur mobile", () => {
+  const html = pointsComparatifs({
+    titre: "Dépense publique",
+    description: "Comparaison européenne.",
+    points: [
+      { libelle: "France", valeur: 57.3, accent: true },
+      { libelle: "Allemagne", valeur: 49.4 },
+    ],
+    formater: (v) => `${v} %`,
+  });
+  assert.match(html, /dataviz--points/);
+  assert.match(html, /aria-label="France : 57.3 %"/);
+  assert.match(html, /dataviz__point-rang--accent/);
+  assert.match(html, /style="left:\d+\.\d+%"/);
 });
 
 test("le tableau exact reste disponible au clavier", () => {
