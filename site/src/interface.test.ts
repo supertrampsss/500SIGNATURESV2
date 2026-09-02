@@ -1312,6 +1312,11 @@ test("une page éditoriale garde sa recherche, pas le reste de l'amorçage", () 
     idxGarde < idxSelecteurs,
     "la garde éditoriale doit précéder tout code qui suppose le shell de l'application",
   );
+  assert.match(
+    corps,
+    /const champRecherche = document\.getElementById\("recherche"\)[\s\S]*?instanceof HTMLInputElement[\s\S]*?brancherRecherche\(champRecherche, suggestionsRecherche\)/,
+    "une page éditoriale sans recherche ne doit pas faire lever l'amorçage",
+  );
 });
 
 /* --------------------------------------------------------------------------

@@ -4116,7 +4116,11 @@ async function demarrer(): Promise<void> {
   // le même index, sans état commun. Câblé ici, avant la garde éditoriale
   // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
   // pré-rendue — les deux partagent le même en-tête.
-  brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
+  const champRecherche = document.getElementById("recherche");
+  const suggestionsRecherche = document.getElementById("suggestions");
+  if (champRecherche instanceof HTMLInputElement && suggestionsRecherche instanceof HTMLUListElement) {
+    brancherRecherche(champRecherche, suggestionsRecherche);
+  }
   // Une page éditoriale n'a ni carte ni panneau : tout ce qui suit — sélecteurs,
   // blocs nationaux, MapLibre — suppose les conteneurs de la vue territoire et
   // lèverait sur un `$` renvoyant `null` avant d'avoir rien peint (défaut
