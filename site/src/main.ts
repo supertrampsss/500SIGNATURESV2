@@ -131,7 +131,7 @@ import {
   type E2eFixture,
   type E2ePhase,
 } from "./simulateur-v3/mobile-fixtures.ts";
-import { SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
+import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { SCENARIO_V11_CRISIS_RULES } from "./simulateur-v3/scenario-v11-crises.ts";
 import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
@@ -3922,11 +3922,18 @@ async function ouvrirSimulateur(): Promise<void> {
     hoteV3.hidden = false;
     if (!demonterSimulateurV3) {
       const historicalV9 = completedV9StateFromStorage(localStorage);
-      const scenario = scenarioForVersion(historicalV9 ? 9 : 11);
+      // Les fixtures E2E historiques demandent explicitement V10 ; la
+      // production reste sur le mandat courant V11 en l'absence de partie V9.
+      const e2eScenario = e2eMobileRequest();
+      const scenario = scenarioForVersion(historicalV9 ? 9 : e2eScenario ? 10 : 11);
       if (!scenario) throw new Error("Requested simulator scenario unavailable");
       demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
         baseline,
-        crisisRules: scenario.version === 9 ? SCENARIO_V9_CRISIS_RULES : SCENARIO_V11_CRISIS_RULES,
+        crisisRules: scenario.version === 9
+          ? SCENARIO_V9_CRISIS_RULES
+          : scenario.version === 10
+            ? SCENARIO_V10_CRISIS_RULES
+            : SCENARIO_V11_CRISIS_RULES,
         initialState: historicalV9 ?? e2eInitialState(scenario),
         onPhaseChange: (phase) => {
           if (phase === null || phase === "intro") delete document.body.dataset.simulateurStarted;

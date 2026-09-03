@@ -256,6 +256,8 @@ test("l'entrée en fonction annonce la mission et un seul départ", () => {
   assert.match(html, /153 milliards d&#39;euros/);
   assert.equal(occurrences(html, 'data-v3-action="start"'), 1);
   assert.match(html, /Prendre mes fonctions/);
+  assert.match(html, /À vous de choisir comment réduire le déficit/);
+  assert.doesNotMatch(html, /préserver l&#39;activité et conserver la capacité d&#39;agir/);
   assert.doesNotMatch(html, /simulateur-v3__command-bar/);
   assert.doesNotMatch(html, /data-v3-action="pause"/);
 });
@@ -336,6 +338,68 @@ test("un dossier garde une scène centrale sans répéter le tableau complet du 
   assert.match(html, /class="simulateur-v3__decision-layout"/);
   assert.doesNotMatch(html, /simulateur-v3__rail/);
   assert.doesNotMatch(html, /class="simulateur-v3__mandate-dashboard"/);
+});
+
+test("un dossier affiche les jauges de jeu sans réintroduire le tableau du mandat", () => {
+  const state = { ...createCampaign(SCENARIO_V11), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V11);
+  assert.match(html, /class="simulateur-v3__game-hud"/);
+  assert.match(html, /aria-label="Jauges du mandat"/);
+  assert.equal((html.match(/role="meter"/g) ?? []).length, 3);
+  for (const label of ["Pouvoir", "Opinion", "Marchés"]) assert.match(html, new RegExp(label));
+  assert.doesNotMatch(html, /simulateur-v3__mandate-dashboard/);
+});
+
+test("chaque scène porte sa phase pour permettre une transition de jeu cohérente", () => {
+  const state = { ...createCampaign(SCENARIO_V11), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V11);
+  assert.match(html, /class="simulateur-v3 simulateur-v3--decision"/);
+});
+
+test("les jauges signalent le dernier mouvement après un choix", () => {
+  const base = createCampaign(SCENARIO_V11);
+  const state = {
+    ...base,
+    phase: "decision" as const,
+    decisions: [{
+      decisionId: "previous",
+      optionId: "previous:apply",
+      status: "confirmed" as const,
+      confirmedAtIndex: 1,
+      impact: {
+        decisionId: "previous",
+        optionId: "previous:apply",
+        confirmedAtIndex: 1,
+        indicators: [
+          { key: "majority" as const, before: 50, after: 46, delta: -4, causalEntryIds: [] },
+          { key: "opinion" as const, before: 50, after: 53, delta: 3, causalEntryIds: [] },
+        ],
+      },
+    }],
+  };
+  const html = renderSimulatorV3(state, SCENARIO_V11);
+  assert.match(html, /class="simulateur-v3__game-delta simulateur-v3__game-delta--negative"[^>]*>-4<\/small>/);
+  assert.match(html, /class="simulateur-v3__game-delta simulateur-v3__game-delta--positive"[^>]*>\+3<\/small>/);
+  assert.doesNotMatch(html, /game-delta--neutral/);
+});
+
+test("une crise V11 conserve les jauges visibles pendant l'arbitrage", () => {
+  const base = createCampaign(SCENARIO_V11);
+  const state = {
+    ...base,
+    phase: "crisis" as const,
+    activeCrisis: {
+      ruleId: SCENARIO_V10_CRISIS_RULES[0]!.id,
+      triggeredAtDecisionCount: 4,
+      triggeredChapterIndex: 0,
+      aggravatingChoices: [],
+      triggeredByDecisionId: "previous",
+      aggravatingDecisionIds: ["previous"],
+    },
+  };
+  const html = renderSimulatorV3(state, SCENARIO_V11, { crisisRules: SCENARIO_V10_CRISIS_RULES });
+  assert.match(html, /class="simulateur-v3__game-hud"/);
+  assert.equal((html.match(/role="meter"/g) ?? []).length, 3);
 });
 
 test("aucun choix ne reçoit une illustration ou un SVG décoratif", () => {
@@ -601,6 +665,8 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   assert.match(html, /Le pays se fracture sur/);
   assert.match(html, /Pourquoi maintenant \?/);
   assert.match(html, /Décidez/);
+  assert.match(html, /simulateur-v3__crisis-option-kicker[^>]*>Tenir/);
+  assert.match(html, /simulateur-v3__crisis-option-kicker[^>]*>Céder/);
   assert.match(html, /Maintenant/);
   assert.match(html, /Ce que vous cédez/);
   assert.match(html, /simulateur-v3__crisis-budget/);

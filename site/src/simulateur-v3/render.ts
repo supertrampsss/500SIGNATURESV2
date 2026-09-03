@@ -130,7 +130,7 @@ function renderIntro(state: CampaignState, options: RenderSimulatorV3Options): s
           <p class="simulateur-v3__eyebrow">Votre mission</p>
           <h1>Reprendre le contrôle des comptes sans perdre le pays.</h1>
           <p class="simulateur-v3__mission-number">${escapeHtml(formatV3AbsoluteAmount(state.baseline.annualBalanceMillions))}</p>
-          <p class="simulateur-v3__lead">La France emprunte cette somme cette année. Vous avez cinq ans pour réduire le déficit, préserver l'activité et conserver la capacité d'agir.</p>
+          <p class="simulateur-v3__lead">La France emprunte cette somme cette année. À vous de choisir comment réduire le déficit.</p>
         </header>
         <div class="simulateur-v3__scene-body">
           <ul class="simulateur-v3__objectives" aria-label="Objectifs du mandat">
@@ -547,6 +547,29 @@ function renderEvidence(decision: Decision): string {
     </details>`;
 }
 
+function renderGameHud(state: CampaignState, scenario: Scenario): string {
+  if (scenario.version < 11) return "";
+  const gauges = [
+    { key: "majority", label: "Pouvoir", value: state.indicators.majority },
+    { key: "opinion", label: "Opinion", value: state.indicators.opinion },
+    { key: "financialCredibility", label: "Marchés", value: state.indicators.financialCredibility },
+  ];
+  return `<section class="simulateur-v3__game-hud" aria-label="Jauges du mandat">
+    ${gauges.map(({ key, label, value }) => {
+      const level = Math.max(0, Math.min(100, Math.round(value)));
+      const tone = level < 30 ? "critical" : level < 55 ? "fragile" : "stable";
+      const delta = state.decisions.at(-1)?.impact?.indicators.find((impact) => impact.key === key)?.delta;
+      const deltaMarkup = delta === undefined || delta === 0
+        ? ""
+        : `<small class="simulateur-v3__game-delta simulateur-v3__game-delta--${delta > 0 ? "positive" : "negative"}" aria-label="Variation ${delta > 0 ? "positive" : "negative"}">${delta > 0 ? "+" : ""}${delta}</small>`;
+      return `<div class="simulateur-v3__game-gauge simulateur-v3__game-gauge--${tone}">
+        <div class="simulateur-v3__game-gauge-head"><span>${escapeHtml(label)}</span><span class="simulateur-v3__game-gauge-value"><strong>${level}</strong>${deltaMarkup}</span></div>
+        <span class="simulateur-v3__game-gauge-track" role="meter" aria-label="${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${level}"><i style="--v3-game-level: ${level}%"></i></span>
+      </div>`;
+    }).join("")}
+  </section>`;
+}
+
 function renderDecision(state: CampaignState, scenario: Scenario, options: RenderSimulatorV3Options): string {
   const decision = currentDecision(state, scenario);
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
@@ -561,6 +584,7 @@ function renderDecision(state: CampaignState, scenario: Scenario, options: Rende
             <p class="simulateur-v3__context">${escapeHtml(decision.displayCopy?.context ?? compactText(decision.context))}</p>
           </header>
           <div class="simulateur-v3__scene-body">
+            ${renderGameHud(state, scenario)}
             <fieldset class="simulateur-v3__options simulateur-v3__options--${decision.options.length}">
               <legend>Choix possibles</legend>
               ${decision.options.map((option) => renderOption(decision, option, scenario, options.detailOptionId)).join("")}
@@ -993,15 +1017,16 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
           <h1>${escapeHtml(rule.title)}</h1>
         </header>
         <div class="simulateur-v3__scene-body">
+          ${renderGameHud(state, scenario)}
           <p class="simulateur-v3__crisis-cause"><strong>Pourquoi maintenant ?</strong>${escapeHtml(rule.body)}</p>
           <p class="simulateur-v3__crisis-prompt">Décidez</p>
           <div class="simulateur-v3__crisis-options">
           <button type="button" class="simulateur-v3__crisis-option" data-v3-action="resolve-crisis" data-resolution-id="hold-course">
-            <span class="simulateur-v3__crisis-option-head"><b>Maintenir les réformes</b>${crisisBudget(preservedCrisisBalance(state, scenario), "Mesures conservées : ")}</span>
+            <span class="simulateur-v3__crisis-option-head"><small class="simulateur-v3__crisis-option-kicker">Tenir</small><b>Maintenir les réformes</b>${crisisBudget(preservedCrisisBalance(state, scenario), "Mesures conservées : ")}</span>
             <span class="simulateur-v3__crisis-impact"><small><strong>Maintenant :</strong> ${escapeHtml(firstPoliticalExplanation(rule.holdCourseEffects, "La contestation continue."))}</small><small><strong>Décision :</strong> les mesures contestées restent en vigueur.</small></span>
           </button>
           ${concessions.map((concession) => `<button type="button" class="simulateur-v3__crisis-option simulateur-v3__crisis-option--concession" data-v3-action="resolve-crisis" data-resolution-id="${escapeHtml(concession.id)}">
-            <span class="simulateur-v3__crisis-option-head"><b>${escapeHtml(concession.label)}</b>${crisisBudget(concessionBalance(state, scenario, concession))}</span>
+            <span class="simulateur-v3__crisis-option-head"><small class="simulateur-v3__crisis-option-kicker">Céder</small><b>${escapeHtml(concession.label)}</b>${crisisBudget(concessionBalance(state, scenario, concession))}</span>
             <span class="simulateur-v3__crisis-impact"><small><strong>Maintenant :</strong> ${escapeHtml(firstPoliticalExplanation(concession.effects, "Le compromis réduit la tension."))}</small><small><strong>Ce que vous cédez :</strong> ${escapeHtml(selectedCrisisOption(state, scenario, concession.targetDecisionId)?.displayCopy?.shortLabel ?? selectedCrisisOption(state, scenario, concession.targetDecisionId)?.label ?? "la mesure contestée")}.</small></span>
           </button>`).join("")}
           </div>
@@ -1162,5 +1187,5 @@ export function renderSimulatorV3(
     ? `<p class="simulateur-v3__save-error" role="status">La sauvegarde locale est indisponible. La partie continue dans cet onglet.</p>`
     : "";
   const commandBar = state.phase === "intro" ? "" : renderCommandBar(state, scenario, options.canUndo);
-  return `<section class="simulateur-v3">${commandBar}${saveWarning}${accessibleContent}</section>`;
+  return `<section class="simulateur-v3 simulateur-v3--${state.phase}" data-v3-phase="${state.phase}">${commandBar}${saveWarning}${accessibleContent}</section>`;
 }

@@ -15,9 +15,9 @@ async function expectSceneActions(simulator, actionName, count) {
 }
 
 const phases = [
-  { phase: "decision", title: "Faut-il unifier l'IR, la CSG", content: "Faut-il unifier l'IR, la CSG", action: "select", count: 2 },
+  { phase: "decision", title: "Fusionner l'impôt sur le revenu et la CSG", content: "Fusionner l'impôt sur le revenu et la CSG", action: "select", count: 2 },
   { phase: "crisis", title: "La réforme fiscale cristallise", content: "Conseil de crise", action: "resolve-crisis", count: 2 },
-  { phase: "verdict", title: "Le déficit résiste", content: "72 arbitrages rendus", action: "share-verdict", count: 1 },
+  { phase: "verdict", title: "153 Md€", content: "Résultat du mandat", action: "share-verdict", count: 1 },
 ];
 
 for (const { phase, title, content, action: actionName, count } of phases) {

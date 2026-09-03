@@ -3652,10 +3652,10 @@ test("l'ouverture directe V3 n'affiche pas une fausse indisponibilité pendant l
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
-  assert.ok(brancheV3.indexOf("completedV9StateFromStorage(localStorage)") < brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 11)"));
-  assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 11)") < brancheV3.indexOf("mountSimulatorV3("));
+  assert.ok(brancheV3.indexOf("completedV9StateFromStorage(localStorage)") < brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : e2eScenario ? 10 : 11)"));
+  assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : e2eScenario ? 10 : 11)") < brancheV3.indexOf("mountSimulatorV3("));
   assert.match(brancheV3, /if \(!scenario\) throw new Error\("Requested simulator scenario unavailable"\);/);
-  assert.match(brancheV3, /crisisRules: scenario\.version === 9 \? SCENARIO_V9_CRISIS_RULES : SCENARIO_V11_CRISIS_RULES/);
+  assert.match(brancheV3, /crisisRules: scenario\.version === 9[\s\S]*?scenario\.version === 10[\s\S]*?SCENARIO_V10_CRISIS_RULES[\s\S]*?SCENARIO_V11_CRISIS_RULES/);
   assert.match(brancheV3, /initialState: historicalV9 \?\? e2eInitialState\(scenario\)/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);

@@ -42,6 +42,7 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { va
 class FakeHost implements SimulatorV3Host {
   innerHTML = "";
   scrollCalls = 0;
+  lastScrollOptions: ScrollIntoViewOptions | undefined;
   focusCalls = 0;
   lastFocusedSelector = "";
   private clickListener?: EventListener;
@@ -57,8 +58,9 @@ class FakeHost implements SimulatorV3Host {
     if (type === "keydown" && this.keydownListener === listener) this.keydownListener = undefined;
   }
 
-  scrollIntoView(): void {
+  scrollIntoView(options?: ScrollIntoViewOptions): void {
     this.scrollCalls += 1;
+    this.lastScrollOptions = options;
   }
 
   click(action: string, data: Record<string, string> = {}): void {
@@ -193,6 +195,7 @@ test("un clic sur une carte confirme le choix et ouvre directement le dossier su
   assert.equal(confirmed.phase, "decision");
   assert.equal(confirmed.pendingSelection, undefined);
   assert.equal(host.scrollCalls, avantChoix + 1);
+  assert.deepEqual(host.lastScrollOptions, { block: "nearest", inline: "nearest" });
   assert.equal(host.focusCalls, avantFocus + 1);
   assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));

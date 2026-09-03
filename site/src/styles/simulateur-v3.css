@@ -194,6 +194,21 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   place-items: start center;
   min-width: 0;
   padding: clamp(var(--espace-4), 4vw, var(--espace-7));
+  animation: v3-scene-reveal 380ms cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+@keyframes v3-scene-reveal {
+  from { opacity: 0; transform: translateY(0.65rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.simulateur-v3--decision .simulateur-v3__option {
+  animation: v3-option-reveal 360ms cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+@keyframes v3-option-reveal {
+  from { opacity: 0; transform: translateY(0.35rem); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .simulateur-v3__stage--decision,
@@ -229,6 +244,70 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   min-width: 0;
   margin-top: var(--espace-5);
 }
+
+.simulateur-v3__game-hud {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espace-3);
+  min-width: 0;
+  padding: var(--espace-3) 0 var(--espace-4);
+  border-block: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__game-gauge { min-width: 0; }
+.simulateur-v3__game-gauge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espace-2);
+  color: var(--v3-muted);
+  font-size: var(--texte-xs);
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.simulateur-v3__game-gauge-head strong {
+  color: var(--v3-ink);
+  font-family: var(--serif);
+  font-size: var(--texte-m);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.simulateur-v3__game-gauge-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+.simulateur-v3__game-delta {
+  font-size: var(--texte-xs);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  animation: v3-delta-pop 420ms cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+.simulateur-v3__game-delta--positive { color: var(--v3-green); }
+.simulateur-v3__game-delta--negative { color: var(--v3-red); }
+
+@keyframes v3-delta-pop {
+  from { opacity: 0; transform: translateY(0.2rem) scale(0.88); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.simulateur-v3__game-gauge-track {
+  display: block;
+  height: 0.3rem;
+  margin-top: var(--espace-2);
+  overflow: hidden;
+  background: #d7d0c3;
+}
+.simulateur-v3__game-gauge-track i {
+  display: block;
+  width: var(--v3-game-level);
+  height: 100%;
+  background: var(--v3-green);
+  transition: width 280ms ease, background-color 180ms ease;
+}
+.simulateur-v3__game-gauge--fragile .simulateur-v3__game-gauge-track i { background: var(--v3-gold); }
+.simulateur-v3__game-gauge--critical .simulateur-v3__game-gauge-track i { background: var(--v3-red); }
 
 .simulateur-v3__scene-actions {
   display: grid;
@@ -357,7 +436,7 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   min-width: 0;
   background: var(--v3-paper);
   border: 1px solid var(--v3-rule);
-  transition: border-color 180ms ease;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .simulateur-v3__option-select {
@@ -606,6 +685,8 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 .simulateur-v3__crisis-option { display: grid; gap: var(--espace-3); min-height: var(--cible); padding: var(--espace-4); color: var(--v3-ink); background: var(--v3-paper); border: 1px solid var(--v3-rule); border-left: 4px solid var(--v3-red); font: inherit; text-align: left; cursor: pointer; }
 .simulateur-v3__crisis-option--concession { border-left-color: var(--v3-gold); }
 .simulateur-v3__crisis-option-head { display: grid; gap: var(--espace-2); align-items: start; }
+.simulateur-v3__crisis-option-kicker { color: var(--v3-red); font-size: var(--texte-xs); font-weight: 900; letter-spacing: 0.11em; text-transform: uppercase; }
+.simulateur-v3__crisis-option--concession .simulateur-v3__crisis-option-kicker { color: #8f6817; }
 .simulateur-v3__crisis-option-head b { font-family: var(--serif); font-size: var(--texte-xl); line-height: 1.1; }
 .simulateur-v3__crisis-budget { color: var(--v3-green); font-size: var(--texte-xs); text-align: left; }
 .simulateur-v3__crisis-budget--negative { color: var(--v3-red); }
@@ -747,10 +828,13 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
 .simulateur-v3__save-error { width: min(calc(100% - 2 * var(--espace-4)), 82rem); margin: var(--espace-2) auto 0; padding: var(--espace-2) var(--espace-4); color: #ffffff; background: #6f1f1b; border-left: 4px solid var(--v3-gold); font-size: var(--texte-xs); }
 
 @media (hover: hover) {
-  .simulateur-v3__option:hover { border-color: var(--v3-red); }
+  .simulateur-v3__option:hover { border-color: var(--v3-red); box-shadow: 0 0.55rem 1.1rem rgb(13 33 60 / 0.12); transform: translateY(-2px); }
   .simulateur-v3__option-details-trigger:hover { color: var(--v3-red); }
   .simulateur-v3__crisis-option:hover { border-color: var(--v3-red); }
 }
+
+.simulateur-v3__option-select:active,
+.simulateur-v3__crisis-option:active { transform: scale(0.995); }
 
 @media (max-width: 40rem) {
   body[data-simulateur-version="3"] .vue { padding-bottom: 0; }
@@ -766,6 +850,9 @@ body[data-vue="simulateur"][data-simulateur-version="3"][data-simulateur-started
   .simulateur-v3__decision .simulateur-v3__scene-header { padding-bottom: var(--espace-4); }
   .simulateur-v3__decision .simulateur-v3__scene-body { gap: var(--espace-4); margin-top: var(--espace-4); }
   .simulateur-v3__decision h1 { font-size: clamp(1.625rem, 7.7vw, 2rem); }
+  .simulateur-v3__game-hud { gap: var(--espace-2); }
+  .simulateur-v3__game-gauge-head { font-size: 0.68rem; letter-spacing: 0.02em; }
+  .simulateur-v3__game-gauge-head strong { font-size: var(--texte-s); }
   .simulateur-v3__option-select { padding: var(--espace-3); }
   .simulateur-v3__option-label { font-size: clamp(1.25rem, 5.8vw, 1.55rem); }
   .simulateur-v3__option-summary { font-size: var(--texte-s); }

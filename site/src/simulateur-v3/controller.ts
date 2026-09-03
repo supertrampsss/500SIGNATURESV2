@@ -197,7 +197,11 @@ export function mountSimulatorV3(
       host.querySelector?.(`[data-v3-detail-trigger="${optionId}"]`)?.focus?.({ preventScroll: true });
     }
     if (!resetScene) return;
-    host.scrollIntoView?.({ block: "start" });
+    // Keep the reader's place after a choice. `start` used to yank the whole
+    // document to the top on every transition, which was especially jarring
+    // on mobile. `nearest` only moves the host when the next scene is outside
+    // the viewport.
+    host.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     host.querySelector?.(".simulateur-v3__stage h1")?.focus?.({ preventScroll: true });
   };
 
