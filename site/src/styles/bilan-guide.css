@@ -321,6 +321,9 @@ body[data-vue="bilan"] #national,
   min-width: 0;
   border-top: 1px solid var(--bilan-ligne);
 }
+/* Les règles des articles .bloc priment sur la règle native de <details>.
+   Masquer explicitement les compléments tant que le tiroir est fermé. */
+.bilan-complements:not([open]) > :not(summary) { display: none; }
 .bilan-complements > summary {
   display: flex;
   align-items: center;
