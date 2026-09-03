@@ -116,6 +116,8 @@ test("le bilan enchaîne directement le verdict et ses trois chapitres", () => {
   assert.ok(position("bloc-europe") < bilan.indexOf('href="/simulateur"'));
   assert.doesNotMatch(bilan, /<details class="bilan-details">|<summary>Comprendre le calcul<\/summary>/);
   assert.match(bilan, /<details class="bilan-complements" id="france-complements" hidden>[\s\S]*<summary>Voir aussi<\/summary>/);
+  assert.equal((bilan.match(/class="bilan-lecture__carte"/g) ?? []).length, 6);
+  assert.match(bilan, /id="france-graphiques"[\s\S]*Six graphiques pour comprendre l'écart/);
   for (const id of [
     "bloc-ouverture",
     "bloc-recettes-etat",

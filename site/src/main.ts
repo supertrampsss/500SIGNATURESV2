@@ -256,6 +256,37 @@ type Etat = {
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
+/**
+ * Monte la vue d'ensemble des six graphiques de France.
+ *
+ * Les renderers historiques restent les propriétaires des calculs et des
+ * tableaux accessibles. Ici on ne fait qu'en reprendre le visuel dans une
+ * carte compacte, sans recréer une seconde source de vérité. Les liens de la
+ * carte renvoient au bloc détaillé qui conserve le contexte éditorial.
+ */
+function afficherLectureGraphique(): void {
+  document.querySelectorAll<HTMLElement>(".bilan-lecture__carte").forEach((carte) => {
+    const sourceId = carte.dataset.lectureSource;
+    const classeVisuel = carte.dataset.lectureVisuel;
+    const slot = carte.querySelector<HTMLElement>("[data-lecture-slot]");
+    const source = sourceId ? document.getElementById(sourceId) : null;
+    const visuel = source && classeVisuel
+      ? source.querySelector<HTMLElement>(`.${classeVisuel}`)
+      : null;
+    if (!slot || !visuel) {
+      carte.hidden = true;
+      return;
+    }
+    const copie = visuel.cloneNode(true) as HTMLElement;
+    copie.removeAttribute("id");
+    copie.setAttribute("aria-hidden", "true");
+    copie.querySelectorAll("details, summary, a, button").forEach((element) => element.remove());
+    copie.querySelector("figcaption")?.remove();
+    slot.replaceChildren(copie);
+    carte.hidden = false;
+  });
+}
+
 let carte: maplibregl.Map;
 let catalogue: Indicateur[] = [];
 let jeux: Jeu[] = [];
@@ -4459,9 +4490,10 @@ async function demarrer(): Promise<void> {
     if (afficherTenable($("bloc-dette"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
+  if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
       $("national").hidden = false;
     }
+    afficherLectureGraphique();
     const analysesFrance = insightsFrance(pays.FR, catalogue, pays);
     const cadreInsightsFrance = $("insights-france");
     cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france" });
