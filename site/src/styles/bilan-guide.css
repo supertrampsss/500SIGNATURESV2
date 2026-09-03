@@ -314,6 +314,46 @@ body[data-vue="bilan"] #national,
   border-top: 1px solid var(--bilan-ligne);
 }
 
+/* Les lectures secondaires restent disponibles sans interrompre le fil
+   principal. Le contenu reprend exactement la même typographie que les blocs
+   du chapitre une fois le pli ouvert. */
+.bilan-complements {
+  min-width: 0;
+  border-top: 1px solid var(--bilan-ligne);
+}
+.bilan-complements > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  color: var(--bilan-encre);
+  font-size: var(--texte-s);
+  font-weight: 850;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+.bilan-complements > summary:focus-visible { outline: var(--focus); outline-offset: 3px; }
+.bilan-complements > .bloc {
+  margin: 0;
+  padding: var(--espace-7) 0 0;
+  color: var(--bilan-encre);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--bilan-ligne);
+  border-radius: 0;
+  box-shadow: none;
+}
+.bilan-complements > .bloc h3 {
+  margin: 0;
+  color: var(--bilan-encre);
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.bilan-complements > .bloc p { max-width: none; }
+
 .bilan-chapitre > .bloc h3 {
   margin: 0;
   color: var(--bilan-encre);

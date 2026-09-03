@@ -4450,9 +4450,11 @@ async function demarrer(): Promise<void> {
     }
     if (afficherRedistribution($("bloc-redistribution"), pays, catalogue)) {
       $("national").hidden = false;
+      $("france-complements").hidden = false;
     }
     if (afficherSecu($("bloc-secu"), pays, catalogue)) {
       $("national").hidden = false;
+      $("france-complements").hidden = false;
     }
     if (afficherTenable($("bloc-dette"), pays, catalogue)) {
       $("national").hidden = false;

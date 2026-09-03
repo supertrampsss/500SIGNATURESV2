@@ -115,6 +115,7 @@ test("le bilan enchaîne directement le verdict et ses trois chapitres", () => {
   assert.ok(position("bloc-dette") < position("bloc-europe"));
   assert.ok(position("bloc-europe") < bilan.indexOf('href="/simulateur"'));
   assert.doesNotMatch(bilan, /<details class="bilan-details">|<summary>Comprendre le calcul<\/summary>/);
+  assert.match(bilan, /<details class="bilan-complements" id="france-complements" hidden>[\s\S]*<summary>Voir aussi<\/summary>/);
   for (const id of [
     "bloc-ouverture",
     "bloc-recettes-etat",
