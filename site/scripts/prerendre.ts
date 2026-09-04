@@ -659,81 +659,6 @@ export async function ecrireCartes(
 }
 
 /* --------------------------------------------------------------------------
- * Les scénarios de référence : le budget voté, et les chiffrages que portent
- * les analyses déjà contrôlées.
- *
- * Écart de spec assumé — à consigner dans le rapport de la tâche 6 : la
- * spec §15.4 dit « le pipeline publie » ce fichier, mais §7.4 pose que les
- * analyses suivent leur flux propre et n'entrent jamais dans l'entrepôt. Les
- * deux ne peuvent pas tenir ensemble : les chiffrages viennent des analyses.
- * Le fichier est donc produit ici, au build, à partir des analyses déjà
- * contrôlées (`chargerAnalyses`, `validerLiensSimulateur`) — même flux, même
- * garantie, et l'entrepôt n'a pas à connaître un objet éditorial.
- * ----------------------------------------------------------------------- */
-
-/** Une entrée du fichier de référence — même forme que celle lue par
- *  `main.ts` (dupliquée, pas partagée : ce script ne peut pas importer
- *  `main.ts`, voir l'en-tête du fichier). */
-type EntreeReference = {
-  titre: string;
-  slug: string | null;
-  lien: string | null;
-  budget: string;
-  contrat: string;
-  exercice: string | null;
-};
-
-/** Le budget voté, tous réglages à zéro : le premier comparable qu'un
- *  lecteur trouve en ouvrant le simulateur. Ni slug ni lien — rien ne
- *  l'adosse à une analyse — et un exercice `null` : c'est le simulateur, à
- *  l'ouverture, qui sait sur quel millésime il tourne, pas ce fichier écrit
- *  une fois pour toutes au build. */
-const ENTREE_NEUTRE: EntreeReference = {
-  titre: "Budget voté",
-  slug: null,
-  lien: null,
-  budget: "",
-  contrat: "",
-  exercice: null,
-};
-
-/**
- * Le fichier de référence : l'entrée neutre, plus une entrée par analyse dont
- * `simulateur.budget` porte un réglage. Rien n'est inventé : une analyse sans
- * réglage n'engendre aucune entrée.
- *
- * L'exercice de chaque entrée reste `null` : rien dans le schéma d'une
- * analyse (docs/analyses-schema.md) ne déclare sur quel millésime son réglage
- * de simulateur a été construit — `chiffres[].observe.periode` documente les
- * chiffres cités, pas le réglage lui-même, et rien ne relie fiablement l'un à
- * l'autre. Un exercice plausible mais faux serait pire qu'un exercice
- * manquant.
- */
-function entreesReference(analyses: readonly Analyse[]): EntreeReference[] {
-  const depuisAnalyses = analyses
-    .filter((a) => a.simulateur.budget !== "")
-    .map((a) => ({
-      titre: a.titre,
-      slug: a.slug,
-      lien: `/analyses/${a.slug}/`,
-      budget: a.simulateur.budget,
-      contrat: a.simulateur.contrat,
-      exercice: null,
-    }));
-  return [ENTREE_NEUTRE, ...depuisAnalyses];
-}
-
-async function ecrireScenariosReference(analyses: readonly Analyse[]): Promise<void> {
-  const dossier = path.join(DIST, "simulateur");
-  await mkdir(dossier, { recursive: true });
-  await writeFile(
-    path.join(dossier, "scenarios-reference.json"),
-    JSON.stringify(entreesReference(analyses)),
-    "utf8",
-  );
-}
-
-/* --------------------------------------------------------------------------
  * Le gabarit : le shell construit par Vite, réutilisé pour chaque page.
  * ----------------------------------------------------------------------- */
 
@@ -1598,7 +1523,6 @@ async function main(): Promise<void> {
 
   await validerCadresPublies(racineDonnees);
   await validerLiensSimulateur(analyses, racineDonnees);
-  await ecrireScenariosReference(analyses);
   await ecrireCartes(DIST, analyses, catalogue, version, shell);
 
   // Le registre est construit une fois sur la même publication que les pages

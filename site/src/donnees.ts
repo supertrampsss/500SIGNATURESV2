@@ -329,8 +329,18 @@ export const simulateurBareme = (exercice: string) =>
 
 /** Le récapitulatif en comptabilité nationale. Un seul fichier, sans index :
  *  il porte lui-même son exercice, et il pèse quelques centaines d'octets. */
+type LigneRecapitulatif = { c: string; l: string; v: number };
+export type Recapitulatif = {
+  exercice: string;
+  titre: string;
+  cadre: string;
+  note: string;
+  lignes: LigneRecapitulatif[];
+  total: LigneRecapitulatif;
+  ecart: number;
+};
 export const recapitulatifNational = () =>
-  lire<import("./recapitulatif.ts").Recapitulatif>("simulateur/comptabilite-nationale.json");
+  lire<Recapitulatif>("simulateur/comptabilite-nationale.json");
 export const simulateurBudgetSecu = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/secu-${exercice}.json`);
 

@@ -35,8 +35,6 @@ import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { insightsFrance } from "./insights-france.ts";
 import { renduInsights } from "./insights-rendu.ts";
-import { afficherTunnel } from "./tunnel.ts";
-import { aTrouverAuDepart } from "./mission.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
@@ -44,25 +42,9 @@ import { afficherOuverture } from "./ouverture.ts";
 import { afficherRecettesEtat } from "./recettes-etat.ts";
 import { afficherTenable } from "./tenable.ts";
 import { rendu as davantageRendu } from "./davantage.ts";
-import { indexer, type Budget } from "./simulateur.ts";
-import {
-  afficherAtelier,
-  exercicesPublies,
-} from "./simulateur-rendu.ts";
-import {
-  decoder,
-  effort as effortAtelier,
-  gestes as gestesAtelier,
-  plan,
-  type Volet,
-} from "./atelier.ts";
-import { apercuScenario } from "./apercu-scenario.ts";
 import {
   offrir,
   partageAnalyse,
-  partageComparaison,
-  partageScenario,
-  permalien,
   resume,
   type Canaux,
   type Forme,
@@ -77,12 +59,6 @@ import {
   type IssueCitation,
   type Presse,
 } from "./citer.ts";
-import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
-import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
-import { comparer as comparerScenarios } from "./comparaison.ts";
-import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
-import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
-import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
   coucheEvolution,
@@ -122,7 +98,6 @@ import {
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import { intercepterNavigation, renduNavigation } from "./navigation.ts";
-import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
 import {
@@ -142,7 +117,6 @@ import type { CampaignState, MandateBaseline, Scenario as SimulatorScenario } fr
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
-import "./styles/tunnel-cabinet.css";
 import "./styles/simulateur-v3.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
@@ -210,47 +184,19 @@ type Etat = {
    *  questions) ou « tout » (la fiche entière, thème par thème). Dans l'URL
    *  comme le reste : une fiche ouverte en grand se partage telle quelle. */
   voir: "essentiel" | "tout";
-  /** Le budget réglé par le lecteur dans le simulateur, encodé
-   *  `CODE:pct,CODE:pct`. Vide tant qu'aucune ligne n'est touchée : l'URL ne
-   *  porte alors pas le paramètre du tout, comme pour `comparer`. */
+  /** Paramètres conservés pour les liens historiques du simulateur. */
   budget: string;
-  /** Le contrat signé dans le simulateur. Il part dans l'adresse avec les
-   *  réglages : un budget partagé sans sa contrainte se lit comme un exploit
-   *  alors que c'en était un sous serment. */
+  /** Paramètre historique conservé pour la compatibilité des liens partagés. */
   contrat: string;
-  /** Le nom du scénario ouvert, quand l'état affiché en est un. Vide pour un
-   *  état vif, jamais enregistré : c'est ce qui marque le scénario courant
-   *  dans la barre, et ce qui retrouve son exercice — voir `Comparable`
-   *  (scenarios-rendu.ts) — plutôt que celui de l'atelier au moment présent. */
+  /** Paramètre historique d'un scénario, conservé pour les anciens liens. */
   nom: string;
-  /** Le budget d'une seconde colonne, encodé comme `budget`. Il peut être
-   *  vide sans que la comparaison le soit : le budget voté est l'atelier tous
-   *  réglages à zéro, et un scénario que le lecteur enregistre sans avoir rien
-   *  réglé l'est aussi. C'est le CHOIX d'une face qui ouvre la comparaison —
-   *  `faceChoisie()` —, jamais un budget non vide. Un mode, pas un chemin
-   *  `/simulateur/comparer` (qui résoudrait de toute façon sur `simulateur`,
-   *  `routes.ts` ne lisant que le premier segment) : pas d'entrée de menu vers
-   *  un écran qui n'a de sens qu'à deux scénarios en main. */
+  /** Paramètre historique d'une seconde colonne de comparaison. */
   face: string;
-  /** Le nom affiché en tête de la colonne `face` : celui du scénario dont
-   *  elle vient, faute de mieux un intitulé générique. */
+  /** Nom historique de la colonne comparée. */
   faceNom: string;
-  /** L'exercice sur lequel la colonne `face` a été construite, porté par
-   *  l'adresse comme `face` et `face-nom` : sans lui, un lien partagé ouvert
-   *  chez un lecteur qui n'a pas ce scénario en local n'a aucun moyen de
-   *  savoir sur quel millésime il a été bâti — voir `colonnesComparaison`. */
+  /** Millésime historique de la colonne comparée. */
   faceExercice: string;
-  /** D'où vient la colonne `face` : `"scenario"` pour le dépôt local,
-   *  `"reference:<slug>"` pour une entrée du fichier de référence (le slug
-   *  vide désignant le budget voté, qui n'en a pas). Le menu connaît cette
-   *  origine au moment du clic ; sans elle dans l'adresse, il fallait la
-   *  redeviner à partir du seul nom, et un homonyme local emportait alors
-   *  l'exercice, le serment et le lien d'une entrée de référence — l'en-tête
-   *  annonçait un millésime et un serment que la colonne n'avait pas.
-   *
-   *  Vide pour un lien antérieur à ce paramètre : le dépôt local passe alors
-   *  en premier, faute de mieux, et c'est le seul cas où deviner reste la
-   *  moins mauvaise réponse. */
+  /** Origine historique de la colonne comparée. */
   faceSource: string;
 };
 
@@ -2341,138 +2287,17 @@ async function peindreDetail(): Promise<void> {
   await majComparateur();
 }
 
-/** Le simulateur n'est une vue du site que si au moins un budget est publié.
- *  Tant qu'aucun ne l'est, `#simulateur` n'est pas une adresse : pas d'entrée
- *  de menu, pas de section, et aucun message pour dire ce qui manque.
- *
- *  Deux budgets y vivent désormais, et ils ne se ressemblent pas : l'État vote
- *  des crédits, la Sécurité sociale arrête des charges et des produits. Ils ont
- *  donc chacun leur fichier, leur index d'exercices et leur cadrage — le seul
- *  point commun est le moteur de réglage. Ce qui n'existe nulle part, ici comme
- *  ailleurs sur le site, c'est leur somme. */
-/**
- * L'atelier : tous les budgets publics, sur une seule page.
- *
- * Le simulateur montrait un budget à la fois, choisi dans une barre de
- * pastilles — et la barre restait à l'écran à côté du budget affiché, si bien
- * que deux vues du même objet coexistaient. Il n'y a plus qu'une page : les
- * budgets s'y suivent en sections, chacun avec son propre solde, et les gestes
- * s'additionnent en un total.
- *
- * **Aucune entrée ne résume les autres.** Ni « toutes les administrations », ni
- * la Sécurité sociale consolidée à côté de ses cinq branches : les totaux ne
- * s'additionnent pas — entre le budget général et les régimes de base circulent
- * des dizaines de milliards que chacun compte de son côté. Ce qui s'additionne,
- * ce sont les écarts, et c'est le seul total que l'atelier écrit.
- */
-type VoletPublie = {
-  cle: string;
-  nom: string;
-  /** Les exercices publiés. Un fichier absent vaut « rien à montrer » : le
-   *  volet n'apparaît pas du tout. */
-  index: () => Promise<string[]>;
-  charger: (exercice: string) => Promise<Volet>;
-};
-
-// BRANCHES, DIT_LA_BRANCHE, fusionnerBranches et ECHELONS viennent de
-// simulateur-volets.ts : `scripts/prerendre.ts` les construit à l'identique,
-// pour ouvrir les mêmes volets côté pré-rendu et côté atelier interactif.
-
-function voletBudget(cle: string, nom: string, budget: Budget): Volet {
-  return { genre: "budget", cle, nom, budget, index: indexer(budget) };
-}
-
-const VOLETS_PUBLIES: VoletPublie[] = [
-  {
-    cle: "etat",
-    nom: "État",
-    index: async () => exercicesPublies(await donnees.simulateurIndex()),
-    charger: async (exercice) =>
-      voletBudget("etat", "État", await donnees.simulateurBudget(exercice)),
-  },
-  {
-    cle: "secu",
-    nom: "Sécurité sociale",
-    index: async () => exercicesPublies(await donnees.simulateurIndexSecu()),
-    charger: async (exercice: string) => {
-      const [consolide, ...branches] = await Promise.all([
-        donnees.simulateurBudgetSecu(exercice),
-        ...BRANCHES.map(([branche]) => donnees.simulateurBranche(`${branche}-${exercice}`)),
-      ]);
-      return voletBudget(
-        "secu",
-        "Sécurité sociale",
-        fusionnerBranches(
-          consolide,
-          BRANCHES.map(([cle, nom], rang) => [cle, nom, branches[rang]!] as [string, string, Budget]),
-        ),
-      );
-    },
-  },
-  {
-    cle: "bareme",
-    nom: "Impôt sur le revenu",
-    index: async () => exercicesPublies(await donnees.simulateurIndexBareme()),
-    charger: async (exercice) => {
-      const bareme = await donnees.simulateurBareme(exercice);
-      return {
-        genre: "bareme" as const,
-        cle: "bareme",
-        nom: "Impôt sur le revenu",
-        bareme,
-        // Le barème en vigueur : c'est de là qu'on part, et c'est contre lui
-        // que se mesure ce qu'on change.
-        depart: appliquerBareme(bareme, MODELES_BAREME[0]),
-        // La ligne 1101 des recettes fiscales de l'État, que ce barème calcule.
-        // Sans ce lien, les tranches et les 120 191 M€ inscrits au budget
-        // seraient deux commandes du même impôt qui s'ignorent.
-        pilote: { volet: "etat", code: "r1101" },
-      };
-    },
-  },
-  // Trois entrées, jamais une quatrième qui les résumerait : une part de ce que
-  // départements et régions dépensent est reversée aux communes.
-  ...(["commune", "departement", "region"] as const).map((echelon) => ({
-    cle: `collectivites-${echelon}`,
-    nom: ECHELONS[echelon],
-    index: async () => [(await donnees.simulateurCollectivites(echelon)).exercice],
-    charger: async (_exercice: string) =>
-      voletBudget(
-        `collectivites-${echelon}`,
-        ECHELONS[echelon],
-        await donnees.simulateurCollectivites(echelon),
-      ),
-  })),
-];
-
-/** Les volets dont l'index annonce un exercice, et leur millésime. */
-let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
-let atelierMonte = false;
-let terminerSessionImmersive: (() => void) | null = null;
+/** Le simulateur V3 est une vue autonome, montée uniquement quand son adresse
+ *  est demandée. Le reste du site ne charge aucun de ses scénarios. */
 let demonterSimulateurV3: (() => void) | null = null;
 let baselineSimulateurV3: MandateBaseline | null = null;
 let erreurBaselineSimulateurV3: string | null = null;
 let evenementsInterfaceBranches = false;
-/** Les volets réellement montés dans l'atelier : posés une seule fois, à la
- *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
- *  décoder un scénario ou construire une colonne comparée. Recharger un
- *  scénario n'est jamais un rechargement de volets — seulement un nouvel état
- *  décodé contre les mêmes volets déjà en place, voir `chargerScenario`. */
-let voletsMontes: Volet[] = [];
 
-/** Les gestes sont observés localement, une seule fois par document. Les
- *  écouteurs délégués traversent ainsi les repeintures du tunnel sans rejouer
- *  un événement au retour du BFCache. */
+/** Les gestes sont observés localement, une seule fois par document. */
 function brancherEvenementsInterface(): void {
   if (evenementsInterfaceBranches) return;
   evenementsInterfaceBranches = true;
-  let dernierDossier = 0;
-
-  document.addEventListener("simulateur:evenement", (evenement) => {
-    const detail = (evenement as CustomEvent<{ type?: string; numero?: unknown }>).detail;
-    if (detail?.type === "partie_demarre") dernierDossier = 0;
-    if (detail?.type === "decision" && typeof detail.numero === "number") dernierDossier = detail.numero;
-  });
   document.addEventListener(
     "toggle",
     (evenement) => {
@@ -2489,11 +2314,6 @@ function brancherEvenementsInterface(): void {
     },
     true,
   );
-  document.addEventListener("click", (evenement) => {
-    if ((evenement.target as HTMLElement).closest(".tunnel__quitter")) {
-      emettreInterface({ type: "simulateur_abandon", dossier: dernierDossier });
-    }
-  });
 }
 
 function versionSimulateurV3(): boolean {
@@ -2523,22 +2343,13 @@ function e2eBaseline(): MandateBaseline | undefined {
 }
 
 function vuesConnues(): readonly string[] {
-  return exercicesParVolet.length || versionSimulateurV3()
-    ? [...VUES_PAGE, "simulateur"]
-    : VUES_PAGE;
+  return [...VUES_PAGE, "simulateur"];
 }
 
 function rendreNavigationPrincipale(): void {
   const navigation = document.getElementById("navigation-principale");
   if (!navigation) return;
-  // Les dossiers et le registre sont déjà des documents complets : ils ne
-  // chargent volontairement pas le paquet budgétaire. Leur lien « Simuler »
-  // reste pourtant une porte de navigation. Les vues de l'application, elles,
-  // ne le déverrouillent qu'une fois les exercices effectivement publiés.
-  const simulateurDisponible = document.body.dataset.page === "editorial"
-    || exercicesParVolet.length > 0
-    || versionSimulateurV3();
-  navigation.innerHTML = renduNavigation(location.pathname, simulateurDisponible);
+  navigation.innerHTML = renduNavigation(location.pathname, true);
 }
 
 
@@ -2678,8 +2489,6 @@ function basculerVue(): void {
       ? "accueil"
       : "territoire";
   if (vue !== "simulateur" || !versionSimulateurV3()) {
-    terminerSessionImmersive?.();
-    terminerSessionImmersive = null;
     demonterApercuSimulateurV3();
     delete document.body.dataset.simulateurVersion;
     delete document.body.dataset.simulateurStarted;
@@ -2779,584 +2588,6 @@ function brancherTheme(): void {
     }
     peindre();
   });
-}
-
-/**
- * Les index d'exercices, et eux seuls. Quelques octets par budget, sans
- * lesquels rien ne dirait s'il y a un simulateur à proposer ; les arbres, eux,
- * attendent qu'on ouvre la vue.
- */
-async function preparerSimulateur(): Promise<void> {
-  const trouves = await Promise.all(
-    VOLETS_PUBLIES.map(async (volet) => {
-      try {
-        const exercice = (await volet.index()).sort().reverse()[0];
-        return exercice ? { volet, exercice } : null;
-      } catch {
-        // Volet non publié : il ne figure simplement pas dans l'atelier.
-        return null;
-      }
-    }),
-  );
-  exercicesParVolet = trouves.filter((x) => x !== null);
-  rendreNavigationPrincipale();
-  if (!exercicesParVolet.length) return;
-  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur") basculerVue();
-}
-
-/* --------------------------------------------------------------------------
- * Les scénarios : enregistrer, recharger, comparer.
- *
- * `scenarios.ts` connaît le cycle de vie, `comparaison.ts` l'alignement,
- * `scenarios-rendu.ts` le rendu — ce bloc ne fait que les brancher au DOM et
- * à l'adresse, comme le reste de ce fichier le fait pour chaque module.
- * ----------------------------------------------------------------------- */
-
-/**
- * Une entrée du fichier de référence produit au build (`prerendre.ts`) : le
- * budget voté, et les chiffrages que portent les analyses publiées. Même
- * forme que ce que `prerendre.ts` écrit — dupliquée, pas partagée, pour la
- * même raison que sa valeur de repli de `BASE` : ce script tourne hors
- * navigateur et ne peut pas importer `main.ts` (voir son en-tête).
- */
-type EntreeReference = {
-  titre: string;
-  slug: string | null;
-  lien: string | null;
-  budget: string;
-  contrat: string;
-  exercice: string | null;
-};
-
-/** Les scénarios de référence, chargés une fois à l'ouverture du simulateur.
- *  Vide tant qu'ils n'ont pas été chargés, ou si le fichier est absent — un
- *  fichier absent ne casse rien, même règle que partout ailleurs sur le site
- *  (`chargerAssociations`, `peindreMethode`…). */
-let referencesScenarios: EntreeReference[] = [];
-
-/** Le fichier lu est-il bien la liste attendue ? Un JSON valide mais qui n'est
- *  pas un tableau — une page d'erreur JSON servie à la place du fichier, un
- *  build partiel — passait l'affirmation de type sans broncher, puis faisait
- *  lever `.map` à CHAQUE rendu de la barre, donc à chaque geste sur l'atelier.
- *  Même contrôle que `estEnveloppe` (scenarios.ts) sur le dépôt local. */
-function estReferences(valeur: unknown): valeur is EntreeReference[] {
-  return (
-    Array.isArray(valeur) &&
-    valeur.every(
-      (e) =>
-        typeof e === "object" &&
-        e !== null &&
-        typeof (e as EntreeReference).titre === "string" &&
-        typeof (e as EntreeReference).budget === "string",
-    )
-  );
-}
-
-/** Charge `dist/simulateur/scenarios-reference.json` — un fichier du site lui-même,
- *  pas une donnée publiée par le pipeline, donc un `fetch` direct plutôt
- *  qu'un passage par `donnees.ts` (qui ne sait lire que la racine R2). */
-async function chargerReferences(): Promise<void> {
-  try {
-    const reponse = await fetch("/simulateur/scenarios-reference.json");
-    if (!reponse.ok) return;
-    const lu: unknown = await reponse.json();
-    if (estReferences(lu)) referencesScenarios = lu;
-  } catch {
-    // Fichier absent (build sans pré-rendu, ou hors production) : le
-    // simulateur reste utilisable, simplement sans comparables de référence.
-  }
-}
-
-/** Les lignes que le budget chargé portait et que la nomenclature courante ne
- *  porte plus (`transposerBudget`, scenarios.ts) — nommées par
- *  `montrerScenarios` jusqu'au prochain budget chargé ou à sa suppression.
- *
- *  `rienRepris` voyage avec elles parce que c'est un fait de la transposition :
- *  le lecteur peut, après coup, remettre ses propres curseurs à zéro sans que
- *  ça change quoi que ce soit à ce que la transposition avait su reprendre. */
-let disparuesCourantes: { lignes: string[]; rienRepris: boolean } = {
-  lignes: [],
-  rienRepris: false,
-};
-
-const CLE_SCENARIOS = "scenarios";
-
-/** Le dépôt de session : en mémoire, jamais `localStorage`. C'est sur lui
- *  qu'on retombe quand le stockage est indisponible — navigation privée
- *  stricte, où `localStorage.setItem` lève plutôt que d'être absent. */
-let contenuSession: string | null = null;
-const depotSession: Depot = {
-  lire: () => contenuSession,
-  ecrire: (c) => {
-    contenuSession = c;
-  },
-};
-
-const depotLocal: Depot = {
-  lire: () => {
-    try {
-      return localStorage.getItem(CLE_SCENARIOS);
-    } catch {
-      return null;
-    }
-  },
-  ecrire: (c) => {
-    try {
-      localStorage.setItem(CLE_SCENARIOS, c);
-    } catch {
-      // Persistance perdue, pas l'appel : `scenarios.ts` l'avale déjà (voir
-      // sa docstring), et `stockagePersistant()` a prévenu le lecteur avant
-      // même la première tentative d'écriture.
-    }
-  },
-};
-
-/**
- * `localStorage` répond-il ? Sondé une fois, comme le thème (`brancherTheme`)
- * le fait à l'écriture — sauf qu'ici l'appelant doit pouvoir LE DIRE au
- * lecteur avant d'enregistrer quoi que ce soit, ce que `scenarios.ts` seul ne
- * permet pas : il avale l'échec d'écriture sans le faire remonter. Une clé
- * dédiée, jamais celle des scénarios, pour ne rien écraser en sondant.
- */
-function stockagePersistant(): boolean {
-  try {
-    const sonde = "__sonde_stockage__";
-    localStorage.setItem(sonde, "1");
-    localStorage.removeItem(sonde);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const persistant = stockagePersistant();
-const depotScenarios: Depot = persistant ? depotLocal : depotSession;
-
-/** L'exercice d'une colonne « vive », jamais enregistrée : celui du volet
- *  État, qui donne le ton au reste de l'atelier, ou le premier exercice
- *  publié s'il manque. Un scénario enregistré, lui, garde le sien —
- *  `Comparable` (scenarios-rendu.ts) le porte depuis `Scenario.exercice`. */
-function exerciceCourant(): string | null {
-  return (
-    exercicesParVolet.find((e) => e.volet.cle === "etat")?.exercice ??
-    exercicesParVolet[0]?.exercice ??
-    null
-  );
-}
-
-/** Le scénario enregistré que l'état affiché **est** : même nom, et le même
- *  budget que celui qui est à l'écran. Le nom seul ne suffit pas — deux
- *  lecteurs appellent « Mon budget » deux budgets différents, et un lien
- *  partagé `?nom=Mon budget&budget=…` ouvert chez celui qui a l'homonyme en
- *  local ferait annoncer par la colonne l'exercice de SON scénario au-dessus
- *  du budget de l'envoyeur. `undefined` alors : ce que l'écran montre ne vient
- *  pas de ce scénario, donc rien n'en est emprunté — ni la marque « courant »
- *  dans la barre, ni le nom et l'exercice en tête de colonne.
- *
- *  Le bouton de suppression, lui, ne s'y accroche pas : il agit sur un
- *  scénario du dépôt, que l'écran en montre l'état exact ou une version
- *  retouchée. Il a sa propre condition — que ce scénario existe (voir
- *  `scenarioNomme`). */
-function scenarioCourant(): Scenario | undefined {
-  return etat.nom
-    ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom && s.budget === etat.budget)
-    : undefined;
-}
-
-/** Le scénario du dépôt que l'adresse nomme, s'il existe. Un lien partagé
- *  porte `?nom=` sans rien garantir sur le dépôt de qui l'ouvre : offrir
- *  « Supprimer « X » » pour un X que ce lecteur n'a pas, c'est offrir un
- *  geste qui n'a rien à faire. */
-function scenarioNomme(): Scenario | undefined {
-  return etat.nom ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom) : undefined;
-}
-
-/** L'exercice que l'adresse porte, dit dans la sentinelle du modèle.
- *
- *  L'adresse ne sait dire « absent » qu'avec la chaîne vide : un paramètre non
- *  écrit revient `""` de `lireUrl`. Le modèle ne le dit qu'avec `null`
- *  (`Scenario.exercice`, `Comparable.exercice`). La conversion se fait ici et
- *  nulle part ailleurs — mêler `??` et `||` dans une même expression, comme le
- *  faisait `colonnesComparaison`, c'est tenir deux sentinelles à la fois. */
-function exercicePorte(): string | null {
-  return etat.faceExercice || null;
-}
-
-/** Une colonne comparée, transposée contre les volets montés. `exercice` est
- *  `null` quand il n'y a authentiquement rien à afficher — jamais un exercice
- *  plausible mais sans rapport avec ce que la colonne a réellement réglé.
- *
- *  `transposerBudget` plutôt que `decoder` (atelier.ts) : décoder seul laisse tomber
- *  en silence les lignes que la nomenclature ne porte plus, puis l'en-tête
- *  annonce un effort et un nombre de gestes calculés sur cet état tronqué. La
- *  colonne emporte donc ce qu'elle a perdu, et le tableau le nomme sous elle.
- *
- *  `contrat` est le serment sous lequel ce budget a été bâti : la colonne le
- *  porte pour que le tableau le NOMME, jamais pour l'appliquer — `etat.contrat`
- *  est global à l'atelier, une colonne comparée ne peut pas imposer le sien.
- *  `lien` mène à l'analyse dont la colonne vient, quand elle vient d'une
- *  analyse ; `null` pour un budget du lecteur, qui n'a pas de page. */
-function colonneDepuis(
-  nom: string,
-  budget: string,
-  exercice: string | null,
-  contrat: string,
-  lien: string | null,
-): Comparable {
-  const { etat: etatColonne, disparues } = transposerBudget(budget, voletsMontes);
-  return {
-    nom,
-    etat: etatColonne,
-    effort: effortAtelier(voletsMontes, etatColonne),
-    gestes: gestesAtelier(voletsMontes, etatColonne),
-    exercice,
-    disparues,
-    contrat,
-    lien,
-  };
-}
-
-/** Les deux colonnes du mode comparaison : l'état courant (enregistré ou
- *  vif), et la colonne `face` que l'adresse porte.
- *
- *  `exerciceCourant()` n'est légitime que pour un état VIF (`nom` vide) : il
- *  décrit alors bien ce que l'atelier a sous les yeux. Dès qu'un nom est
- *  porté sans scénario local correspondant — un lien partagé ouvert ailleurs
- *  — rien ne dit sur quel exercice il a été bâti, et le proposer quand même
- *  affiche un millésime plausible mais sans rapport avec ce que l'envoyeur a
- *  réellement réglé : `null` dit l'inconnu plutôt que de le déguiser. Pour la
- *  colonne `face`, l'adresse porte l'exercice explicitement (`face-exercice`)
- *  : un lien récent le connaît, un lien antérieur à ce paramètre ne l'a pas
- *  et retombe donc, lui aussi, sur `null`.
- *
- *  Une face qui n'est pas un scénario du lecteur peut être une entrée de
- *  référence : elle apporte alors son serment et le lien de l'analyse dont
- *  elle vient. C'est `etat.faceSource` qui dit laquelle des deux — l'origine
- *  choisie dans le menu, portée par l'adresse — et non le nom, qui ne
- *  distingue pas un scénario d'une référence homonymes. Deviner à partir du
- *  nom faisait annoncer à une colonne de référence l'exercice et le serment
- *  d'un scénario local sans rapport, et lui faisait perdre le lien vers son
- *  analyse.
- *
- *  Un lien antérieur à `face-source` ne porte pas cette origine : le dépôt
- *  local passe alors en premier. C'est le seul cas où deviner reste la moins
- *  mauvaise réponse, et il se referme dès que le lecteur rechoisit sa face. */
-function colonnesComparaison(): Comparable[] {
-  const cleReference = etat.faceSource.startsWith("reference:")
-    ? etat.faceSource.slice("reference:".length)
-    : null;
-  const faceEnregistree =
-    cleReference === null && etat.faceNom
-      ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
-      : undefined;
-  const faceReference =
-    cleReference !== null
-      ? referencesScenarios.find((r) => (r.slug ?? "") === cleReference)
-      : faceEnregistree || etat.faceSource === "scenario"
-        ? undefined
-        : referencesScenarios.find((r) => r.titre === etat.faceNom);
-  const face = colonneDepuis(
-    (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
-    etat.face,
-    faceEnregistree?.exercice ?? exercicePorte(),
-    faceEnregistree?.contrat ?? faceReference?.contrat ?? "",
-    faceReference?.lien ?? null,
-  );
-  const enregistre = scenarioCourant();
-  const nomCourant = (enregistre?.nom ?? etat.nom) || "Votre budget actuel";
-  const courante = colonneDepuis(
-    // Un nom désigne une colonne, jamais deux : deux colonnes homonymes
-    // au-dessus de deux budgets différents ne se distinguent par rien à
-    // l'écran. C'est la colonne vive qui cède le nom — « Votre budget
-    // actuel » est vrai d'elle quoi qu'il arrive, alors que celui de la face
-    // lui vient du dépôt ou du fichier de référence.
-    nomCourant === face.nom && etat.budget !== etat.face ? "Votre budget actuel" : nomCourant,
-    etat.budget,
-    enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
-    // Le serment que l'atelier applique en ce moment : celui de l'adresse,
-    // pas celui de l'enregistrement, qui peut avoir été relâché depuis.
-    etat.contrat,
-    null,
-  );
-  return [courante, face];
-}
-
-/**
- * Recharge un scénario : un ré-appel d'`afficherAtelier`, jamais une
- * modification d'`atelier.ts`. `afficherAtelier` est déjà ré-entrante
- * (`montage?.abort()` à son début, `simulateur-rendu.ts`) — recharger un
- * scénario est exactement ce cas, un nouvel état décodé contre les mêmes
- * `voletsMontes` déjà en place.
- */
-function chargerScenario(nom: string): void {
-  const scenario = listerScenarios(depotScenarios).find((s) => s.nom === nom);
-  if (!scenario) return;
-  etat.nom = scenario.nom;
-  etat.budget = scenario.budget;
-  etat.contrat = scenario.contrat;
-  // Un scénario qui vient de se charger n'a plus de comparaison en cours :
-  // la garder pointerait sur un état qui n'est plus celui qu'on regarde.
-  etat.face = "";
-  etat.faceNom = "";
-  etat.faceExercice = "";
-  ecrireUrl();
-  // La nomenclature courante a pu laisser tomber des lignes depuis
-  // l'enregistrement de ce scénario : `transposer` les nomme, là où `decoder`
-  // seul les ignorerait en silence (voir sa docstring, atelier.ts).
-  const { etat: etatTranspose, disparues, rienRepris } = transposer(scenario, voletsMontes);
-  disparuesCourantes = { lignes: disparues, rienRepris };
-  afficherAtelier($("simu"), voletsMontes, {
-    etat: etatTranspose,
-    contrat: scenario.contrat || null,
-    surReglages: (encode: string, contrat: string | null) => {
-      etat.budget = encode;
-      etat.contrat = contrat ?? "";
-      ecrireUrl();
-      // Le tableau de comparaison, s'il est affiché, garde sinon l'effort et
-      // les gestes du dernier geste avant celui-ci — un lecteur peut alors
-      // comparer son réglage qui vient de changer contre une photo de ce
-      // qu'il valait avant.
-      montrerScenarios();
-    },
-  });
-  montrerScenarios();
-}
-
-/** Enregistre l'état affiché sous un nom demandé au lecteur. */
-function enregistrerScenarioCourant(): void {
-  const nom = window.prompt("Nom du scénario", etat.nom || "");
-  if (nom === null) return;
-  enregistrerScenario(depotScenarios, {
-    nom,
-    budget: etat.budget,
-    contrat: etat.contrat,
-    exercice: exerciceCourant(),
-  });
-  // `enregistrer` nettoie le nom (espaces, longueur) avant de l'écrire ; un
-  // nom vide ou fait d'espaces est refusé et ne doit pas marquer un scénario
-  // courant qui n'a pas été créé. La règle de nettoyage vient de `scenarios.ts`,
-  // jamais refaite ici : deux copies pouvaient s'écarter, et l'adresse aurait
-  // alors nommé autre chose que ce qui a été écrit.
-  const nomPropre = nomNettoye(nom);
-  if (nomPropre) {
-    etat.nom = nomPropre;
-    // Ce qui est enregistré, c'est l'état affiché : les lignes qu'un scénario
-    // chargé plus tôt avait perdues ne le décrivent plus. Sans cet oubli, la
-    // notice continuait à nommer les réglages perdus par un AUTRE scénario, et
-    // « Aucun réglage n'a pu être repris » restait affiché au-dessus des
-    // propres curseurs du lecteur. Un enregistrement refusé (nom vide) ne
-    // change rien à l'écran, donc n'efface rien.
-    disparuesCourantes = { lignes: [], rienRepris: false };
-    ecrireUrl();
-  }
-  montrerScenarios();
-}
-
-/**
- * Renomme le scénario que l'adresse nomme.
- *
- * `renommer` (scenarios.ts) refuse un nom vide et un nom déjà pris par un
- * AUTRE scénario — renommer vers un nom pris détruirait celui-là. La liste
- * rendue dit lequel des deux s'est produit : le nom d'origine y survit quand
- * le renommage a été refusé. L'adresse ne suit que sur un renommage
- * réellement fait, sans quoi elle nommerait un scénario qui n'existe plus —
- * le même soin que prend `supprimerScenarioCourant`.
- */
-function renommerScenarioCourant(): void {
-  const cible = scenarioNomme();
-  if (!cible) return;
-  const saisi = window.prompt("Nouveau nom du scénario", cible.nom);
-  if (saisi === null) return;
-  const apres = renommerScenario(depotScenarios, cible.nom, saisi);
-  const nouveau = nomNettoye(saisi);
-  if (nouveau !== null && !apres.some((s) => s.nom === cible.nom)) {
-    etat.nom = nouveau;
-    ecrireUrl();
-  }
-  montrerScenarios();
-}
-
-/**
- * Duplique le scénario que l'adresse nomme — le geste « créer mon
- * alternative » (spec §11) : partir d'un budget déjà bâti sans le perdre.
- *
- * La copie ne devient pas le scénario courant : l'écran montre toujours le
- * budget d'origine, et déplacer le nom de l'adresse sur la copie ferait
- * marquer « courant » dans la barre un scénario que le lecteur n'a pas ouvert.
- * `dupliquer` choisit lui-même le nom de la copie et garantit qu'il est libre.
- */
-function dupliquerScenarioCourant(): void {
-  const cible = scenarioNomme();
-  if (!cible) return;
-  dupliquerScenario(depotScenarios, cible.nom);
-  montrerScenarios();
-}
-
-/** Supprime le scénario que l'adresse nomme actuellement. L'adresse ne doit
- *  plus, ensuite, nommer un scénario qui n'existe plus : sans quoi la barre
- *  perdrait sa marque « courant » sans rien dire, et un lien partagé
- *  rouvrirait un nom fantôme. */
-function supprimerScenarioCourant(): void {
-  const cible = scenarioNomme();
-  if (!cible) return;
-  // Le bouton est dans la même rangée qu'« Enregistrer ce budget » et porte
-  // la même pilule : un clic à côté effaçait définitivement un scénario, sans
-  // retour possible. La question dit ce qui va se passer, elle n'avertit de
-  // rien d'autre.
-  if (!window.confirm(`Supprimer le scénario « ${cible.nom} » ?`)) return;
-  supprimerScenario(depotScenarios, cible.nom);
-  etat.nom = "";
-  // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il
-  // portait n'ont plus de scénario à décrire.
-  disparuesCourantes = { lignes: [], rienRepris: false };
-  ecrireUrl();
-  montrerScenarios();
-}
-
-/**
- * Une face a-t-elle été choisie ?
- *
- * C'est le choix qui ouvre la comparaison, jamais un budget non vide : le
- * budget voté est l'atelier tous réglages à zéro (`budget: ""`), et un
- * scénario que le lecteur enregistre sans avoir rien réglé l'est tout autant.
- * Les tenir pour « pas de comparaison » n'affichait ni tableau ni bouton de
- * fermeture, et refermait au passage la comparaison en cours.
- *
- * `faceNom` porte le fait dans tous les chemins de choix — un scénario a
- * toujours un nom non vide (`scenarios.ts` refuse les autres), une entrée de
- * référence toujours un titre. `face` compte aussi : un lien antérieur à
- * `face-nom` porte un budget de face sans nom, et c'était bien une
- * comparaison.
- */
-function faceChoisie(): boolean {
-  return etat.faceNom !== "" || etat.face !== "";
-}
-
-/**
- * La barre des scénarios, et le tableau de comparaison quand une face a été
- * choisie. Reconstruite à chaque geste sur elle (enregistrer, charger,
- * comparer, supprimer, fermer la comparaison) **et à chaque réglage de
- * l'atelier**, par `surReglages` (`ouvrirSimulateur`, plus bas).
- *
- * Ce second appel n'est pas un supplément : les boutons de partage vivent dans
- * cette barre et ne s'offrent qu'avec un atelier réglé
- * (`partageDuSimulateur`). Sans lui, ils n'apparaîtraient qu'à qui a d'abord
- * touché à un scénario — c'est-à-dire jamais sur le parcours ordinaire, où on
- * règle puis on partage. Le commentaire d'avant affirmait le contraire
- * (« jamais sur un réglage de l'atelier lui-même ») : c'était faux, et si ça
- * ne l'avait pas été, le lot entier serait resté hors d'atteinte.
- */
-function montrerScenarios(): void {
-  const cible = document.getElementById("scenarios");
-  if (!cible || !voletsMontes.length) return;
-  const scenarios = listerScenarios(depotScenarios);
-
-  const avertissement = persistant
-    ? ""
-    : `<p class="scenarios-rendu__vide">Stockage indisponible (navigation privée) : vos scénarios ne survivent pas au rechargement de la page.</p>`;
-
-  // Les trois gestes qui portent sur un scénario du dépôt — renommer,
-  // dupliquer, supprimer — ne s'offrent que quand l'adresse en nomme un qui
-  // existe : proposer « Renommer « X » » pour un X que ce lecteur n'a pas,
-  // c'est offrir un geste qui n'a rien à faire (voir `scenarioNomme`). Chacun
-  // nomme sa cible, parce que l'écran peut montrer un budget retouché depuis.
-  const nomme = scenarioNomme();
-  const actions = `<div class="scenarios-rendu__liste">
-    <button type="button" class="scenarios-rendu__scenario" id="scenario-enregistrer">Enregistrer ce budget</button>${
-      nomme
-        ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-renommer">Renommer « ${echapper(
-            nomme.nom,
-          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-dupliquer">Dupliquer « ${echapper(
-            nomme.nom,
-          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-supprimer">Supprimer « ${echapper(
-            nomme.nom,
-          )} »</button>`
-        : ""
-    }
-  </div>`;
-
-  // Les scénarios du lecteur, et ceux du fichier de référence (budget voté,
-  // chiffrages des analyses) — deux groupes distincts dans le même menu :
-  // les seconds ne viennent pas du dépôt local, `Comparer à` doit le dire.
-  // La marque « selected » se décide sur l'origine, jamais sur le libellé :
-  // un scénario du lecteur et une entrée de référence peuvent porter le même
-  // nom, et les deux options s'allumaient alors ensemble.
-  const optionsScenarios = scenarios
-    .map(
-      (s) =>
-        `<option value="scenario:${echapper(s.nom)}"${
-          etat.faceSource === "scenario" && s.nom === etat.faceNom ? " selected" : ""
-        }>${echapper(s.nom)}</option>`,
-    )
-    .join("");
-  // Le budget voté n'a pas de slug : sa clé est la chaîne vide, qu'aucune
-  // analyse ne peut porter. Une clé littérale (« neutre ») était collisionnable
-  // par une analyse au slug homonyme, qui se serait affichée sous son titre
-  // avec le budget voté dessous.
-  const optionsReferences = referencesScenarios
-    .map(
-      (r) =>
-        `<option value="reference:${echapper(r.slug ?? "")}"${
-          etat.faceSource === `reference:${r.slug ?? ""}` ? " selected" : ""
-        }>${echapper(r.titre)}</option>`,
-    )
-    .join("");
-
-  // `scenarios-rendu__vide` dit « il n'y a rien ici », cadre pointillé compris :
-  // le choix d'une face n'est pas un état vide, il ne s'affiche que quand il y
-  // a quelque chose à comparer. Sa propre classe, donc.
-  const choix = scenarios.length || referencesScenarios.length
-    ? `<p class="scenarios-rendu__choix">
-        <label for="scenario-face">Comparer à</label>
-        <select id="scenario-face" class="pilule pilule--menu">
-          <option value="">— choisir —</option>
-          ${optionsScenarios ? `<optgroup label="Vos scénarios">${optionsScenarios}</optgroup>` : ""}
-          ${optionsReferences ? `<optgroup label="Références">${optionsReferences}</optgroup>` : ""}
-        </select>${
-          faceChoisie()
-            ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-fermer-comparaison">Fermer la comparaison</button>`
-            : ""
-        }
-      </p>`
-    : "";
-
-  // Les lignes qu'un scénario chargé portait et que la nomenclature courante
-  // ne porte plus — nommées, jamais seulement comptées (voir `transposer`,
-  // scenarios.ts).
-  const disparues = renduDisparues(disparuesCourantes.lignes, disparuesCourantes.rienRepris);
-
-  const tableau = faceChoisie()
-    ? (() => {
-        const colonnes = colonnesComparaison();
-        return renduComparaison(colonnes, comparerScenarios(voletsMontes, colonnes));
-      })()
-    : "";
-
-  // Les gestes de partage n'apparaissent qu'avec ce qu'ils ont à partager : un
-  // atelier qu'on n'a pas encore réglé n'a ni écart ni silhouette, et un bouton
-  // qui ne ferait rien est pire qu'un bouton absent. Sans image ici — le build
-  // n'en écrit aucune par scénario (D-L3-b) — donc pas de lien de
-  // téléchargement qui pointerait un fichier que rien ne produit.
-  const gestes: GestePartage[] = [];
-  if (partageDuSimulateur("scenario")) {
-    gestes.push(
-      { cle: "scenario", libelle: "Partager ce budget" },
-      { cle: "forme", libelle: "Partager la forme" },
-    );
-  }
-  if (faceChoisie()) gestes.push({ cle: "comparaison", libelle: "Partager la comparaison" });
-
-  cible.innerHTML =
-    avertissement +
-    // La marque « courant » dit « c'est cela que vous regardez » : elle suit
-    // donc `scenarioCourant()`, pas le nom nu. Un curseur bougé, et l'écran
-    // ne montre plus ce scénario — le marquer encore serait le prétendre.
-    renduBarre(scenarios, scenarioCourant()?.nom ?? null) +
-    actions +
-    (gestes.length ? rendrePartage(gestes, null) : "") +
-    disparues +
-    choix +
-    tableau;
 }
 
 /* --------------------------------------------------------------------------
@@ -3466,9 +2697,7 @@ async function executerPartage(
   repli.select();
 }
 
-/** Le geste de partage : un écouteur délégué, posé une seule fois sur un
- *  conteneur qui n'est jamais remplacé — même motif que `brancherScenarios`,
- *  dont le cadre est repeint à chaque réglage. */
+/** Le geste de partage : un écouteur délégué posé une seule fois sur le cadre. */
 function brancherPartage(
   conteneur: HTMLElement,
   composer: (cle: string) => { objet: Partage; forme: Forme } | null,
@@ -3494,51 +2723,6 @@ function brancherPartage(
  * Le résumé, lui, vient d'`apercuScenario` — la seule rédaction d'un scénario
  * dans ce dépôt, celle que la fonction d'edge sert déjà aux robots. `null`
  * quand rien n'est réglé : il n'y a alors pas de scénario, donc pas de bouton.
- */
-function partageDuSimulateur(cle: string): { objet: Partage; forme: Forme } | null {
-  const lien = (parametres: Record<string, string>) =>
-    permalien(location.origin, cheminDeVue("simulateur"), parametres);
-  if (cle === "comparaison") {
-    const [gauche, droite] = colonnesComparaison();
-    return {
-      objet: partageComparaison({
-        colonnes: [gauche, droite],
-        permalien: lien({
-          budget: etat.budget,
-          contrat: etat.contrat,
-          nom: etat.nom,
-          face: etat.face,
-          "face-nom": etat.faceNom,
-          "face-exercice": etat.faceExercice,
-          "face-source": etat.faceSource,
-        }),
-      }),
-      forme: "complet",
-    };
-  }
-  const apercu = apercuScenario(voletsMontes, etat.budget, etat.nom);
-  if (!apercu) return null;
-  return {
-    objet: partageScenario({
-      apercu,
-      permalien: lien({ budget: etat.budget, contrat: etat.contrat, nom: etat.nom }),
-      // Les écarts du plan, déjà rendus le plus lourd d'abord : la silhouette
-      // n'a rien à retrier, et ce sont les mêmes `decoder`/`plan` que l'atelier.
-      ecarts: plan(voletsMontes, decoder(etat.budget, voletsMontes)).map((ligne) => ligne.delta),
-    }),
-    forme: cle === "forme" ? "compact" : "complet",
-  };
-}
-
-/**
- * Ce qu'une analyse pré-rendue donne à partager : les mots que ses propres
- * balises portent.
- *
- * Le pré-rendu les a écrites et le build les vérifie (`validerImagesAnnoncees`,
- * scripts/prerendre.ts). Les relire ici plutôt que recomposer un texte garantit
- * que le collage et la carte de lien disent la même chose — et l'image est
- * celle que le build a rasterisée pour cette analyse, donc un fichier qui
- * existe.
  */
 function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
   const balise = (propriete: string) =>
@@ -3806,77 +2990,6 @@ function brancherCitations(): void {
   });
 }
 
-/** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
- *  jamais remplacé, seul son contenu l'est à chaque `montrerScenarios()` —
- *  les poser à chaque rendu les aurait empilés, comme pour l'atelier sans son
- *  `AbortController`. */
-function brancherScenarios(): void {
-  const cible = document.getElementById("scenarios");
-  if (!cible) return;
-  // Le partage a son propre écouteur sur le même conteneur : une préoccupation,
-  // un écouteur, et aucun des deux ne se repose à chaque rendu.
-  brancherPartage(cible, partageDuSimulateur);
-  cible.addEventListener("click", (evenement) => {
-    const cibleClic = evenement.target as HTMLElement;
-    const boutonScenario = cibleClic.closest<HTMLButtonElement>("[data-nom]");
-    if (boutonScenario?.dataset.nom) return chargerScenario(boutonScenario.dataset.nom);
-    if (cibleClic.closest("#scenario-enregistrer")) return enregistrerScenarioCourant();
-    if (cibleClic.closest("#scenario-renommer")) return renommerScenarioCourant();
-    if (cibleClic.closest("#scenario-dupliquer")) return dupliquerScenarioCourant();
-    if (cibleClic.closest("#scenario-supprimer")) return supprimerScenarioCourant();
-    if (cibleClic.closest("#scenario-fermer-comparaison")) {
-      etat.face = "";
-      etat.faceNom = "";
-      etat.faceExercice = "";
-      etat.faceSource = "";
-      ecrireUrl();
-      return montrerScenarios();
-    }
-  });
-  cible.addEventListener("change", (evenement) => {
-    const champ = (evenement.target as HTMLElement).closest<HTMLSelectElement>("#scenario-face");
-    if (!champ) return;
-    // Le préfixe dit d'où vient la sélection : un scénario du dépôt local,
-    // ou une entrée du fichier de référence (voir le rendu du menu,
-    // `montrerScenarios`).
-    if (champ.value.startsWith("reference:")) {
-      const cle = champ.value.slice("reference:".length);
-      const reference = referencesScenarios.find((r) => (r.slug ?? "") === cle);
-      etat.face = reference?.budget ?? "";
-      etat.faceNom = reference?.titre ?? "";
-      etat.faceSource = reference ? `reference:${reference.slug ?? ""}` : "";
-      // Le budget voté (`slug: null`) N'EST PAS un scénario dont on ignore
-      // l'origine : c'est l'atelier tel que monté à l'instant, donc le même
-      // exercice que la colonne « vive » — `exerciceCourant()` le dit vrai,
-      // ce n'est pas un repli plausible. Une entrée issue d'une analyse, elle,
-      // ne porte aucun exercice vérifiable (voir prerendre.ts,
-      // `entreesReference`) : `null` reste honnête, jamais deviné.
-      etat.faceExercice = !reference
-        ? ""
-        : reference.slug === null
-          ? exerciceCourant() ?? ""
-          : reference.exercice ?? "";
-    } else {
-      const nom = champ.value.startsWith("scenario:") ? champ.value.slice("scenario:".length) : "";
-      const choisi = listerScenarios(depotScenarios).find((s) => s.nom === nom);
-      etat.face = choisi?.budget ?? "";
-      etat.faceNom = choisi?.nom ?? "";
-      etat.faceExercice = choisi?.exercice ?? "";
-      etat.faceSource = choisi ? "scenario" : "";
-    }
-    ecrireUrl();
-    montrerScenarios();
-  });
-}
-
-/**
- * L'atelier, monté une seule fois.
- *
- * Tous les budgets sont chargés en parallèle à la première ouverture : la page
- * les montre tous et la recherche les traverse tous, il n'y a donc rien à
- * différer. Un volet qui échoue à se charger sort de la liste plutôt que de
- * laisser une section vide au milieu de la page.
- */
 function rendreSimulateurV3Indisponible(hote: HTMLElement, message: string, retry: boolean): void {
   hote.innerHTML = `<section class="simulateur-v3"><main class="simulateur-v3__stage">
     <article class="simulateur-v3__dossier simulateur-v3__intro">
@@ -3917,15 +3030,8 @@ async function chargerBaselineSimulateurV3(): Promise<void> {
 
 async function ouvrirSimulateur(): Promise<void> {
   const hoteV3 = $<HTMLElement>("simulateur-v3");
-  const tunnel = $<HTMLElement>("tunnel");
-  const expert = $<HTMLElement>("mode-expert");
-
   if (versionSimulateurV3()) {
-    terminerSessionImmersive?.();
-    terminerSessionImmersive = null;
     document.body.dataset.simulateurVersion = "3";
-    tunnel.hidden = true;
-    expert.hidden = true;
     const baseline = e2eBaseline() ?? baselineSimulateurV3;
     if (!baseline) {
       if (erreurBaselineSimulateurV3 === null) return;
@@ -3962,111 +3068,7 @@ async function ouvrirSimulateur(): Promise<void> {
     return;
   }
 
-  demonterApercuSimulateurV3();
-  delete document.body.dataset.simulateurVersion;
-  delete document.body.dataset.simulateurStarted;
-  hoteV3.hidden = true;
-  tunnel.hidden = false;
-  if (atelierMonte || !exercicesParVolet.length) return;
-  atelierMonte = true;
-  const charges = await Promise.all(
-    exercicesParVolet.map(async ({ volet, exercice }) => {
-      try {
-        return await volet.charger(exercice);
-      } catch {
-        return null;
-      }
-    }),
-  );
-  const volets: Volet[] = charges.filter((v): v is Volet => v !== null);
-  if (!volets.length) {
-    exercicesParVolet = [];
-    rendreNavigationPrincipale();
-    atelierMonte = false;
-    return basculerVue();
-  }
-  voletsMontes = volets;
-  // Le TUNNEL est l'entrée du simulateur : sa mission est le vrai compteur —
-  // ce que `mission.ts` calcule sur les volets chargés, jamais une constante.
-  // L'atelier reste monté ENTIER juste en dessous, replié et SANS porte à
-  // l'écran — le propriétaire l'a retirée. Il ne s'ouvre plus que d'office,
-  // quand l'adresse porte un budget ou un face-à-face : un lien partagé doit
-  // ouvrir ce qu'il promettait, pas un écran de mission.
-  afficherTunnel($("tunnel"), {
-    missionEuros: aTrouverAuDepart(volets),
-    ouvrirExpert: () => {
-      terminerSessionImmersive?.();
-      terminerSessionImmersive = null;
-      const expert = $("mode-expert");
-      expert.hidden = false;
-      expert.scrollIntoView({ block: "start" });
-    },
-  });
-  // Le vrai tunnel : plein écran, le site disparaît derrière la scène — sauf
-  // quand l'adresse porte un budget ou un face-à-face, où c'est l'atelier
-  // qu'un lien partagé promettait, et le tunnel reste un cadre dans la page.
-  if (etat.budget || etat.face) $("mode-expert").hidden = false;
-  else {
-    const tunnel = $("tunnel");
-    tunnel.classList.add("tunnel--plein");
-    let demonter!: () => void;
-    demonter = demarrerSessionImmersive(tunnel, () => {
-      if (terminerSessionImmersive === demonter) terminerSessionImmersive = null;
-    });
-    terminerSessionImmersive = demonter;
-  }
-  // Le budget que l'adresse porte passe par la même porte qu'un scénario
-  // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
-  // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce
-  // que ce budget contenait. `decoder` seul aurait laissé tomber sans un mot
-  // les lignes que la nomenclature ne porte plus.
-  const ouverture = transposerBudget(etat.budget, volets);
-  disparuesCourantes = { lignes: ouverture.disparues, rienRepris: ouverture.rienRepris };
-  afficherAtelier($("simu"), volets, {
-    etat: ouverture.etat,
-    contrat: etat.contrat || null,
-    surReglages: (encode: string, contrat: string | null) => {
-      etat.budget = encode;
-      etat.contrat = contrat ?? "";
-      ecrireUrl();
-      // Sans cet appel, la colonne « courante » du tableau de comparaison
-      // gardait l'effort et les gestes du geste précédent : un lecteur
-      // comparait alors son réglage tout juste changé à une photo de ce
-      // qu'il valait avant. `montrerScenarios()` est déjà la fonction qui
-      // reconstruit ce tableau ailleurs (chargement, enregistrement,
-      // suppression) ; elle ne touche que `#scenarios`, jamais `#simu` où vit
-      // l'atelier, donc rien n'y perd le focus.
-      montrerScenarios();
-    },
-  });
-  // Le récapitulatif ne se règle pas : il dit ce que les budgets réglables ne
-  // peuvent pas dire — leur somme, dans le seul cadre qui l'autorise.
-  try {
-    afficherRecapitulatif($("simu-recapitulatif"), await donnees.recapitulatifNational());
-    // Même motif qu'à `peindreMethode` : le retour du peintre commande la
-    // visibilité de son conteneur. `.simu-recapitulatif` porte désormais le
-    // même cadre bordé, ombré que `.simu` (padding, fond, bordure, ombre) —
-    // avant cette bascule, la section restait visible sans `hidden` et
-    // peignait ce cadre vide le temps du fetch, ou en permanence si le
-    // fichier n'est pas publié.
-    $("simu-recapitulatif").hidden = false;
-  } catch {
-    // Fichier non publié : l'atelier reste entier, le cadre reste caché.
-    $("simu-recapitulatif").hidden = true;
-  }
-  // La barre des scénarios est montée après l'atelier, mais elle ne dépend
-  // pas de lui : elle lit le dépôt, jamais `#simu`. Les écouteurs ne sont
-  // posés qu'une fois — `ouvrirSimulateur` elle-même ne s'exécute qu'une
-  // fois, gardée par `atelierMonte` en tête de fonction.
-  //
-  // Le fichier de référence (budget voté, chiffrages des analyses) est chargé
-  // avant de peindre la barre : ses entrées doivent apparaître dès le premier
-  // rendu, pas surgir après coup dans le menu.
-  await chargerReferences();
-  brancherScenarios();
-  montrerScenarios();
 }
-
 function demonterApercuSimulateurV3(): void {
   demonterSimulateurV3?.();
   demonterSimulateurV3 = null;
@@ -4175,7 +3177,6 @@ async function demarrer(): Promise<void> {
   void chargerFrance();
   // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
   // la carte n'a pas à patienter pour ça.
-  void preparerSimulateur();
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   carte = new maplibregl.Map({

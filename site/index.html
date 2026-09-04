@@ -242,31 +242,6 @@
          doit mener à une section vide. -->
     <div class="vue" id="vue-simulateur" hidden>
       <section id="simulateur-v3" hidden></section>
-      <!-- Le TUNNEL : l'entrée du simulateur depuis la refonte validée sur
-           maquette — une mesure à la fois, trois tampons, quatre soutiens, un
-           verdict. Monté par `afficherTunnel` sur les mêmes volets que
-           l'atelier ; sa mission est le vrai compteur de `mission.ts`. -->
-      <section class="tunnel" id="tunnel"></section>
-      <!-- L'atelier ligne à ligne devient le MODE EXPERT : entier, monté
-           comme avant, mais replié tant qu'on ne l'appelle pas — depuis le
-           pied du tunnel, ou d'office quand l'adresse porte un budget ou un
-           face-à-face (un lien partagé doit ouvrir ce qu'il promettait). -->
-      <div id="mode-expert" hidden>
-      <!-- La barre des scénarios, et le tableau de comparaison quand
-           l'adresse porte `face` : montée par `montrerScenarios()`, avant
-           l'atelier qu'elle sert à retrouver ou à mettre en regard. -->
-      <div id="scenarios"></div>
-      <section class="simu" id="simu"></section>
-      <!-- À côté de l'atelier, jamais dedans : `afficherAtelier` possède `#simu`
-           et le repeint à chaque réglage. Le récapitulatif, lui, ne se règle
-           pas — c'est le seul cadre du site qui somme les trois budgets.
-           `hidden` par défaut : `.simu-recapitulatif` porte depuis peu le même
-           cadre bordé, ombré que `.simu`, et un cadre visible avant tout
-           rendu (ou si `recapitulatif.json` n'est pas publié) se voyait comme
-           une case vide. `ouvrirSimulateur` ne le révèle qu'après un rendu
-           réussi. -->
-      <section class="simu-recapitulatif" id="simu-recapitulatif" hidden></section>
-      </div>
     </div>
 
 

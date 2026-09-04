@@ -27,12 +27,3 @@ test("les événements d'interface passent par le document sans exprimer de choi
     else global.document = ancien;
   }
 });
-
-test("l'interface branche les quatre gestes sans transport ni persistance", () => {
-  const source = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
-  assert.match(source, /type: "navigation"/);
-  assert.match(source, /type: "territoire_recherche"/);
-  assert.match(source, /type: "preuve_ouverte"/);
-  assert.match(source, /type: "simulateur_abandon"/);
-  assert.doesNotMatch(source, /fetch\([^)]*interface:evenement|localStorage[^\n]*interface:evenement/);
-});

@@ -455,34 +455,6 @@ test("le partage n'appelle aucun tiers", () => {
   assert.ok(!partage.includes("fetch("), partage);
 });
 
-test("le simulateur n'annonce aucune image, parce qu'il n'en a aucune", () => {
-  // D-L3-b : aucun PNG n'est écrit par scénario. Un lien de téléchargement vers
-  // une adresse que le build n'écrit jamais est un aperçu cassé — exactement ce
-  // que `validerImagesAnnoncees` (scripts/prerendre.ts) fait rougir au build.
-  assert.match(MAIN, /rendrePartage\(gestes, null\)/);
-  // L'analyse, elle, annonce l'image que le pré-rendu a rasterisée pour elle.
-  assert.match(MAIN, /rendrePartage\(\[\{ cle: "analyse", libelle: "Partager cette analyse" \}\], compose\.objet\.image\)/);
-});
-
-test("l'écouteur du partage est délégué, posé une seule fois", () => {
-  // Même motif que `brancherScenarios` : `#scenarios` n'est jamais remplacé,
-  // seul son contenu l'est à chaque réglage. Un écouteur par rendu les
-  // empilerait, et le geste partirait autant de fois qu'il y a eu de réglages.
-  const brancher = MAIN.slice(
-    MAIN.indexOf("function brancherPartage("),
-    MAIN.indexOf("function partageDuSimulateur"),
-  );
-  assert.ok(brancher.includes('conteneur.addEventListener("click"'), brancher);
-  assert.match(MAIN, /brancherPartage\(cible, partageDuSimulateur\);/);
-  // Le cadre est repeint par `montrerScenarios`, qui ne pose donc aucun
-  // écouteur.
-  const montrer = MAIN.slice(
-    MAIN.indexOf("function montrerScenarios"),
-    MAIN.indexOf("type GestePartage"),
-  );
-  assert.ok(montrer.length > 500 && !montrer.includes("addEventListener"), montrer.length);
-});
-
 /* --------------------------------------------------------------------------
  * La fiche de territoire — le quatrième objet partageable (spec §13)
  * ----------------------------------------------------------------------- */
