@@ -3,6 +3,11 @@ import { test } from "node:test";
 
 import { DESTINATIONS, intercepterNavigation, renduNavigation } from "./navigation.ts";
 
+test("Mandats est une entrée native indépendante du chargement des données", () => {
+  assert.match(renduNavigation("/bilan", false), /<a href="\/mandats\/">Mandats<\/a>/);
+  assert.doesNotMatch(renduNavigation("/bilan", false), /href="\/mandats\/"[^>]*data-vue/);
+});
+
 test("la navigation expose les quatre destinations utiles sans lien Accueil", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),

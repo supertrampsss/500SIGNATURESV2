@@ -47,5 +47,5 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
     const courant = chemin === href && !estSimulateurIndisponible ? ' aria-current="page"' : "";
     const indisponible = estSimulateurIndisponible ? ' aria-disabled="true" tabindex="-1"' : "";
     return `<a href="${href}" data-vue="${cle}"${courant}${indisponible}>${libelle}</a>`;
-  }).join("");
+  }).join("") + '<a href="/mandats/">Mandats</a>';
 }
