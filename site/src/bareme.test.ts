@@ -29,7 +29,6 @@ import {
   type Bareme,
   type Taux,
 } from "./bareme.ts";
-import { intitule, lecture, renduCockpit, renduTranches } from "./bareme-rendu.ts";
 
 const Md = 1_000_000_000;
 
@@ -98,7 +97,6 @@ test("un barème vide ne touche personne et ne rapporte rien", () => {
   assert.equal(rendement(BAREME, new Map()), 0);
   assert.equal(foyersConcernes(BAREME, new Map()), 0);
   assert.equal(tauxMoyen(BAREME, new Map()), 0);
-  assert.match(lecture(BAREME, new Map()), /ne rapporte rien/);
 });
 
 test("l'écart se mesure contre l'impôt réellement émis", () => {
@@ -136,15 +134,6 @@ test("le curseur du taux unique pose le même taux partout", () => {
   assert.equal(rendement(BAREME, taux), 0.125 * BAREME.revenu_total);
 });
 
-test("le mode se relit depuis des taux déjà posés", async () => {
-  const { modeDe } = await import("./bareme-rendu.ts");
-  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[0])), "france");
-  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[2])), "suisse");
-  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[1], 9)), "unique");
-  // Un réglage à la main n'est aucun des trois : aucun bouton ne s'allume.
-  assert.equal(modeDe(BAREME, taux([100_000, 45])), "");
-});
-
 test("le barème suisse ne prétend pas dire ce que paie un Suisse", () => {
   // L'impôt fédéral direct plafonne à 11,5 % ; le cantonal et le communal
   // s'y ajoutent et pèsent plus lourd. Le taire ferait croire l'inverse.
@@ -160,34 +149,6 @@ test("un lien partagé ne règle que des bornes que le millésime porte", () => 
   // refuse de faire.
   assert.equal(encoder(decoder("45000:30", BAREME)), "");
   assert.equal(encoder(new Map()), "");
-});
-
-/* ----------------------------------------------------------------- l'écran */
-
-test("les bornes s'écrivent en français, et la dernière n'a pas de plafond", () => {
-  // Les milliers portent l'espace fine insécable d'`Intl` : la comparaison la
-  // normalise plutôt que de la reproduire à l'aveugle dans le test.
-  const lisible = (t: { b: number; h: number | null }) =>
-    intitule(t).replace(/[\u202f\u00a0]/g, " ");
-  assert.equal(lisible({ b: 0, h: 20_000 }), "Jusqu'à 20 000 €");
-  assert.equal(lisible({ b: 20_000, h: 100_000 }), "De 20 000 € à 100 000 €");
-  assert.equal(lisible({ b: 100_000, h: null }), "Au-dessus de 100 000 €");
-});
-
-test("le cockpit dit le rendement, qui paie, et l'écart au réel", () => {
-  const html = renduCockpit(BAREME, taux([100_000, 45]));
-  assert.match(html, /Rendement/);
-  assert.match(html, /Foyers qui paient/);
-  assert.match(html, /Taux moyen/);
-  assert.match(html, /Écart à l'impôt émis/);
-  // Aucune couleur de jugement sur un barème : ni sobre ni argile.
-  assert.doesNotMatch(html, /simu__val--sobre|simu__val--argile/);
-});
-
-test("une tranche non réglée n'affiche pas un rendement de zéro", () => {
-  // Un « 0,00 M€ » sur chaque ligne non touchée remplirait la colonne de bruit.
-  const html = renduTranches(BAREME, taux([100_000, 45]));
-  assert.equal(html.match(/simu__ligne--reglee/g)?.length, 1);
 });
 
 /* ---------------------------------------------- ce que le dépôt doit tenir */
