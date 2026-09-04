@@ -1,11 +1,12 @@
 import "./style.css";
 import "./world.css";
 import { decide, DOMAINS, start } from "./engine.ts";
+import { clearEntryLink, entrySession, localSession } from "./session.ts";
 import type { Ambition, Game, Mode } from "./types.ts";
 import { briefing, gameShell, selection } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY } from "./storage.ts";
-import { CARD_SIZES, challengeFromURL, challengeURL, escape, resultURL, sharedResult, shareText, socialSVG } from "./sharing.ts";
+import { CARD_SIZES, challengeURL, escape, resultURL, shareText, socialSVG } from "./sharing.ts";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -14,13 +15,29 @@ let inherited = false;
 let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
-function announce(message: string) { notice.textContent = message; }
+function announce(message: string) {
+  const activeNotice = dialog.open ? dialog.querySelector<HTMLElement>(".sheet-status") : notice;
+  notice.textContent = "";
+  if (activeNotice) activeNotice.textContent = message;
+}
+function adopt(game: Game) {
+  ({ g, shared, inherited, screen, view } = localSession(game, history));
+}
 try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) saved = decode(raw); } catch { announce("La sauvegarde locale est indisponible ou incompatible. Vous pouvez commencer une nouvelle partie."); }
-try {
-  const result = sharedResult(location.hash);
-  if (result) { g = result; shared = true; screen = "result"; }
-  else { const challenge = challengeFromURL(new URL(location.href)); if (challenge) { g = challenge; screen = "briefing"; } }
-} catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
+function openEntry() {
+  g = null; shared = false; inherited = false; screen = "select"; view = "decision";
+  try { ({ g, shared, inherited, screen, view } = entrySession(new URL(location.href))); }
+  catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
+}
+openEntry();
+window.addEventListener("hashchange", event => {
+  // Ordinary in-page anchors (including the skip link) must not reset a game.
+  if (![event.oldURL, event.newURL].some(url => new URL(url).hash.startsWith("#result="))) return;
+  if (dialog.open) dialog.close();
+  announce("");
+  openEntry();
+  render();
+});
 function render(focus = true) {
   document.body.dataset.screen = screen;
   const lightControl = document.querySelector<HTMLElement>('.header-actions [data-action="light-mode"]');
@@ -37,8 +54,12 @@ function persist() {
   try { if (!save(g, localStorage)) announce("Votre navigateur ne peut pas sauvegarder. Exportez la partie depuis le menu."); } catch { announce("Sauvegarde indisponible. Exportez votre partie depuis le menu."); }
 }
 function sheet(title: string, content: string) {
-  dialog.innerHTML = `<div class="sheet-heading"><h2>${title}</h2><button data-action="close" aria-label="Fermer">×</button></div>${content}`;
-  dialog.showModal();
+  const replacing = dialog.open;
+  dialog.innerHTML = `<div class="sheet-heading"><h2 id="sheet-title">${escape(title)}</h2><button data-action="close" aria-label="Fermer">×</button></div><p class="sheet-status status" role="status" aria-live="polite"></p>${content}`;
+  dialog.setAttribute("aria-labelledby", "sheet-title");
+  dialog.removeAttribute("aria-label");
+  if (!replacing) dialog.showModal();
+  else (dialog.querySelector<HTMLElement>("textarea") ?? dialog.querySelector<HTMLElement>("button"))?.focus();
 }
 function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -62,10 +83,19 @@ async function png(format: keyof typeof CARD_SIZES) {
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
-  if (a === "light-mode") { light = !light; try { localStorage.setItem("mandats.light", String(light)); } catch {} if (dialog.open) dialog.close(); render(false); return; }
+  if (a === "light-mode") {
+    const inDialog = dialog.contains(target), inPanel = root.contains(target);
+    light = !light;
+    try { localStorage.setItem("mandats.light", String(light)); } catch {}
+    if (dialog.open) dialog.close();
+    render(false);
+    const nextFocus = inDialog ? document.querySelector<HTMLElement>("#game-tools") : inPanel ? root.querySelector<HTMLElement>('[data-action="light-mode"]') : target;
+    nextFocus?.focus({ preventScroll: true });
+    return;
+  }
   if (a === "world-view") { inherited = !inherited; render(false); document.querySelector<HTMLElement>('[data-action="world-view"]')?.focus({ preventScroll: true }); return; }
   if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; render(false); document.querySelector<HTMLElement>(`[data-action="ambition"][data-ambition="${g.ambition}"]`)?.focus({ preventScroll: true }); return; }
-  if (a === "replay-ambition" && g) { g = start(g.mode, g.seed, target.dataset.ambition as Ambition); screen = "briefing"; shared = false; inherited = false; render(); return; }
+  if (a === "replay-ambition" && g) { g = start(g.mode, g.seed, target.dataset.ambition as Ambition); screen = "briefing"; shared = false; inherited = false; clearEntryLink(history); render(); return; }
   if (a === "area" && g) {
     const area = (inherited ? DOMAINS[g.mode].initial().areas : g.areas).find(a => a.id === target.dataset.area);
     if (!area) return;
@@ -76,13 +106,13 @@ async function action(target: HTMLElement) {
   }
   if (a === "close") { dialog.close(); return; }
   if (a === "mode") { inherited = false; g = start(target.dataset.mode as Mode); shared = false; screen = "briefing"; }
-  else if (a === "resume" && saved) { g = saved; shared = false; screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; }
-  else if (a === "begin") { screen = "play"; view = "decision"; persist(); }
+  else if (a === "resume" && saved) { adopt(saved); }
+  else if (a === "begin" && g) { adopt(g); persist(); }
   else if (a === "choose" && g) { g = decide(g, target.dataset.choice!); inherited = false; announce(""); screen = "resolution"; persist(); }
   else if (a === "next" && g) { screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; }
   else if (a === "view") { view = target.dataset.view as View; }
-  else if (a === "new") { inherited = false; screen = "select"; shared = false; history.replaceState(null, "", "/mandats/"); }
-  else if (a === "replay" && g) { inherited = false; g = start(g.mode, g.seed, g.ambition, g.version); shared = false; screen = "briefing"; history.replaceState(null, "", "/mandats/"); }
+  else if (a === "new") { inherited = false; screen = "select"; shared = false; clearEntryLink(history); }
+  else if (a === "replay" && g) { inherited = false; g = start(g.mode, g.seed, g.ambition, g.version); shared = false; screen = "briefing"; clearEntryLink(history); }
   else if (a === "helper") { sheet("Quel mandat choisir ?", "<p><strong>La ville</strong> : des écoles, des équipements et des quartiers. Les projets sont concrets, les budgets de fonctionnement et d'investissement distincts. Six tours.</p><p><strong>La France</strong> : fiscalité, services, énergie et dette, avec des effets à l'échelle de profils territoriaux fictifs. Cinq tours d'introduction.</p><p>Les deux parcours sont entièrement jouables sur téléphone, sans compte.</p>"); return; }
   else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les chiffres sont des hypothèses de scénario, jamais les comptes réels d'une ville ou une prévision sur la France.</p><p>Chaque année combine : engagements livrés, usure des services et du patrimoine, décision et événement. Le détail reste dans le journal.</p><p>La priorité choisie au départ détermine le poids des finances, services, cohésion/confiance et résilience/patrimoine. Les anciennes parties v1 conservent leurs règles. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p><button class="button" data-action="export">Exporter la sauvegarde</button><label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les illustrations" : "Activer la vue légère"}</button><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
@@ -107,7 +137,7 @@ document.addEventListener("click", event => {
 document.addEventListener("change", async event => {
   const input = event.target as HTMLInputElement;
   if (input.id !== "save-file" || !input.files?.[0]) return;
-  try { if (input.files[0].size > 2048) throw new Error("Fichier trop volumineux."); g = decode(await input.files[0].text()); shared = false; persist(); screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; dialog.close(); render(); announce("Partie importée et recalculée."); }
+  try { if (input.files[0].size > 2048) throw new Error("Fichier trop volumineux."); adopt(decode(await input.files[0].text())); dialog.close(); render(); announce("Partie importée et recalculée."); persist(); }
   catch (err) { announce(err instanceof Error ? err.message : "Import impossible."); }
 });
 render(false);

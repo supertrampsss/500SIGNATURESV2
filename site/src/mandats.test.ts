@@ -3,3 +3,4 @@ import "./mandats/engine.test.ts";
 import "./mandats/render.test.ts";
 import "./mandats/operations.test.ts";
 import "./mandats/world.test.ts";
+import "./mandats/session.test.ts";

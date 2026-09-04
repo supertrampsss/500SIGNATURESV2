@@ -1,3 +1,18 @@
+# Consolidation des parcours et de l’accessibilité
+
+Date : 4 septembre 2026, après la refonte v2 décrite plus bas.
+
+- `npm test` : **1 322 tests réussis, zéro échec**. Quatre tests supplémentaires couvrent l’adoption des défis v1/v2 et la reprise après sérialisation, l’import/rejeu depuis un résultat, la navigation entre résultats et les valeurs complètes du score dans la vue Territoire.
+- Build complet TypeScript/Vite/PNG/pré-rendu réussi. Après la protection finale des ancres, TypeScript et le bundle Vite ont été revérifiés. Aucun calcul de simulation ni score v1/v2 modifié.
+- Les URL de défi et de résultat sont consommées à la prise de contrôle locale. Le démarrage, la reprise et l’import partagent une transition qui remet également la carte sur l’état courant. L’ouverture d’un résultat dans le même onglet est traitée sans écraser la sauvegarde ; les ancres ordinaires ne réinitialisent pas la partie.
+- Contrôle navigateur sur bureau : campagne municipale terminée ; défi → décision → rechargement → reprise en année 2 ; résultat partagé → autre priorité → démarrage → rechargement → reprise. Un choix reste engagé en une seule activation.
+- Contrôle clavier : Vue légère conserve son focus dans le panneau ; depuis Ma partie, le focus retourne à ce bouton. Le dialogue utilise son titre visible comme nom accessible. Le repli de copie place le focus sur le lien sélectionnable. Après export PNG 1200 × 630, la confirmation apparaît dans la région de statut du dialogue, sans sortir de la fenêtre modale.
+- Cadre CSS 390 px, municipal : les cinq indices sont visibles et lisibles dans Territoire, dont Confiance 58 et Patrimoine 55 après réparation. Largeur utile et contenu : 375 px, sans débordement.
+- Cadre CSS 320 px, national : après élargissement de l’assiette fiscale, Confiance 44 et Patrimoine 57, avec les autres indices à jour. Largeur utile et contenu : 305 px, sans débordement. Le lien « Aller au jeu » conserve la partie et sa vue.
+- L’import est couvert par la transition et la reconstruction déterministe automatisées ; le sélecteur de fichier n’a pas été testé dans cette passe navigateur. Pas de test sur téléphone physique, Safari ou lecteur d’écran réel revendiqué. Les vérifications antérieures restent consignées ci-dessous.
+
+---
+
 # Vérification de la refonte visuelle et du modèle v2
 
 Date : 4 septembre 2026. La section v1 ci-dessous est conservée comme historique. Les chiffres de performance et scores de v1 ne décrivent pas la nouvelle version.

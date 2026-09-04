@@ -309,3 +309,12 @@ dialog .scope { font-size:12px; }
 @media(max-height:500px) and (orientation:landscape) { .game-tabs { position:static; } .strategic-panel { max-width:400px; align-self:center; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 @media(prefers-contrast:more) { :root { --muted:#e3eaeb; --line:#759aa5; } .choice,.world-control,.ambition-option { border-color:#a7c6cd; } }
+
+/* Full game indicators remain available in the phone's territory view. */
+.governance-indicators { margin:24px 0; padding:20px; border:1px solid #74989b40; border-radius:16px; background:#132f35; }
+.governance-indicators h2 { margin:0 0 8px; font-size:20px; }
+.governance-indicators p { color:#c2d1ce; font-size:14px; }
+.governance-indicators dl { display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:16px; margin:20px 0 0; }
+.governance-indicators dt { color:#c2d1ce; font-size:13px; }
+.governance-indicators dd { margin:4px 0 0; font-size:24px; font-variant-numeric:tabular-nums; }
+.governance-indicators small { color:#c2d1ce; font-size:12px; margin-left:3px; }

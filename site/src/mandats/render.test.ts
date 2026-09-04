@@ -28,3 +28,14 @@ test("each resolution and debrief has a real next action, all visible values fin
     assert.doesNotMatch(result, /undefined|NaN/);
   }
 });
+
+test("territory detail exposes every score input with current values in both modes", () => {
+  for (const mode of ["municipal", "national"] as const) {
+    const g = decide(start(mode), DOMAINS[mode].dossiers[0].choices[0].id);
+    const html = gameShell(g, "play", "territory");
+    assert.match(html, new RegExp(`<dt>Confiance</dt><dd>${Math.round(g.metrics.trust)}<small>/100`));
+    assert.match(html, new RegExp(`<dt>Patrimoine</dt><dd>${Math.round(g.metrics.assets)}<small>/100`));
+    assert.match(html, /Le pouls du mandat/);
+    assert.match(html, /pas une intention de vote/);
+  }
+});
