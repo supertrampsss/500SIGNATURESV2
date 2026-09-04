@@ -9,11 +9,23 @@ import { test } from "node:test";
 
 import * as routes from "./routes.ts";
 
-const { ALIAS, CHEMINS, cheminDeVue, vueDepuisAdresse } = routes;
+const { ALIAS, CHEMINS, adresseSimulateurCanonique, cheminDeVue, vueDepuisAdresse } = routes;
 
 test("la racine publique redirige vers la page France", () => {
   const redirects = readFileSync(new URL("../public/_redirects", import.meta.url), "utf8");
   assert.match(redirects, /^\/\s+\/bilan\s+301\s*$/m);
+  for (const [legacy, canonical] of [
+    ["accueil", "bilan"],
+    ["carte", "territoire"],
+    ["donnees", "territoire"],
+    ["reperes", "bilan"],
+    ["detail", "bilan"],
+    ["methode", "sources"],
+    ["simulateur/v2", "simulateur"],
+    ["simulateur/comparer", "simulateur"],
+  ]) {
+    assert.match(redirects, new RegExp(`^\\/${legacy}\\/?\\s+\\/${canonical}\\s+301\\s*$`, "m"));
+  }
 });
 
 test("un chemin nomme sa vue", () => {
@@ -99,4 +111,11 @@ test("le simulateur V3 est l'entrée par défaut sans casser les permaliens V2",
   assert.equal(mode?.("/simulateur", "?defi=ancien-defi"), "v2");
   assert.equal(mode?.("/simulateur", "?budget=R1%3A10"), "v2");
   assert.equal(mode?.("/simulateur/comparer", ""), "v2");
+});
+
+test("les anciens permaliens du simulateur convergent vers la seule interface publique", () => {
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=2"), "/simulateur?version=3");
+  assert.equal(adresseSimulateurCanonique("/simulateur/comparer", ""), "/simulateur?version=3");
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?contrat=sans-impot"), "/simulateur?version=3");
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=3"), null);
 });

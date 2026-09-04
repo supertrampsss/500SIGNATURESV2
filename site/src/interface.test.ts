@@ -3346,14 +3346,8 @@ test("ANALYSES n'est pas une destination de la navigation principale", () => {
   assert.match(MAIN, /renduNavigation\(location\.pathname, simulateurDisponible\)/);
 });
 
-test("l'onglet ANALYSES se marque courant, et le marquage passe avant tout", () => {
-  // `basculerVue` — qui pose `aria-current` — sort à sa première ligne sur une
-  // page éditoriale : le marquage se fait donc à part. Et EN PREMIER dans
-  // `demarrer()`, parce que tout ce qui suit peut lever sur ces pages-là.
-  assert.match(MAIN, /function marquerOngletAnalyses\(\): void \{/);
-  const debut = MAIN.slice(MAIN.indexOf("async function demarrer(): Promise<void> {"));
-  const avantTheme = debut.slice(0, debut.indexOf("brancherTheme();"));
-  assert.match(avantTheme, /marquerOngletAnalyses\(\);/, "le marquage doit ouvrir demarrer()");
+test("la navigation ne conserve pas de hook pour un ancien onglet Analyses", () => {
+  assert.doesNotMatch(MAIN, /marquerOngletAnalyses|entete__nav a\[href=\'\/analyses/);
 });
 
 test("la navigation primaire est aussi rendue sur les documents éditoriaux", () => {

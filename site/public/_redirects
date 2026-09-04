@@ -1,1 +1,19 @@
 / /bilan 301
+
+# Entrées historiques : elles ne sont plus des pages ni des onglets publics.
+/accueil /bilan 301
+/accueil/ /bilan 301
+/carte /territoire 301
+/carte/ /territoire 301
+/donnees /territoire 301
+/donnees/ /territoire 301
+/reperes /bilan 301
+/reperes/ /bilan 301
+/detail /bilan 301
+/detail/ /bilan 301
+/methode /sources 301
+/methode/ /sources 301
+/simulateur/v2 /simulateur 301
+/simulateur/v2/ /simulateur 301
+/simulateur/comparer /simulateur 301
+/simulateur/comparer/ /simulateur 301

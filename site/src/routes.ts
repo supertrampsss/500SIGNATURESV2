@@ -53,6 +53,16 @@ export function modeSimulateur(pathname: string, search: string): ModeSimulateur
 }
 
 /**
+ * Les permaliens du premier simulateur ne sont plus une expérience publique.
+ * Ils restent reconnaissables pour pouvoir les faire atterrir proprement dans
+ * la campagne actuelle, sans afficher une seconde interface concurrente.
+ */
+export function adresseSimulateurCanonique(pathname: string, search: string): string | null {
+  if (modeSimulateur(pathname, search) !== "v2") return null;
+  return `${CHEMINS.simulateur}?version=3`;
+}
+
+/**
  * Les anciens noms, et ce qu'ils ouvrent aujourd'hui.
  *
  * `carte` était une vue avant de devenir un mode de la vue territoire.

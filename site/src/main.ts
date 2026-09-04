@@ -114,7 +114,7 @@ import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { adresseTerritoire, cheminDeVue, estAccueil, modeSimulateur, vueDepuisAdresse } from "./routes.ts";
+import { adresseSimulateurCanonique, adresseTerritoire, cheminDeVue, estAccueil, modeSimulateur, vueDepuisAdresse } from "./routes.ts";
 import {
   rendu as renduAccueil,
   exemplesTerritoires,
@@ -2623,19 +2623,6 @@ async function peindreAccueil(): Promise<void> {
   accueilPeint = true;
 }
 
-/** L'onglet ANALYSES, marqué courant sur ses propres pages.
- *
- *  Elles ne passent pas par `basculerVue` — un document éditoriale en sort à
- *  la première ligne — et le marquage se fait donc ici, sur le chemin. Le lien
- *  n'a pas de `data-vue` (voir le gabarit) : c'est ce qui le fait naviguer pour
- *  de bon, et c'est aussi ce qui l'exclut de la boucle de `basculerVue`. */
-function marquerOngletAnalyses(): void {
-  if (!location.pathname.startsWith("/analyses")) return;
-  document
-    .querySelector('.entete__nav a[href="/analyses/"]')
-    ?.setAttribute("aria-current", "page");
-}
-
 function basculerVue(): void {
   // `/salaires` est une page éditoriale pré-rendue en production, mais le
   // serveur Vite sert le gabarit SPA en développement. Dans ce cas, écrire la
@@ -4092,13 +4079,11 @@ async function demarrer(): Promise<void> {
   // La fonction est rejouée par `basculerVue` pour les vues applicatives,
   // avec le même contenu et sans effet de bord.
   rendreNavigationPrincipale();
-  // ANALYSES n'est pas une vue : ses pages sont pré-rendues, et `basculerVue`
-  // — qui pose `aria-current` sur l'entrée courante — en sort à la première
-  // ligne. Le marquage se fait donc ici, et EN PREMIER : tout ce qui suit peut
-  // échouer sur une page éditoriale, et le rattrapage de `demarrer()` sort
-  // sans rien écrire sur ces pages-là. Placé plus bas, l'onglet n'était pas
-  // marqué et rien ne le disait.
-  marquerOngletAnalyses();
+  // Les liens du simulateur historique restent lisibles, mais ne doivent plus
+  // ouvrir deux interfaces différentes. On les ramène silencieusement vers
+  // la campagne V3 avant de lire l'état ou de monter une vue.
+  const adresseSimulateur = adresseSimulateurCanonique(location.pathname, location.search);
+  if (adresseSimulateur) history.replaceState(null, "", adresseSimulateur);
   brancherEvenementsInterface();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
