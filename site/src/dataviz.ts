@@ -61,7 +61,7 @@ export function graphiqueEcart(options: {
     .filter(({ i }) => i === 0 || i === points.length - 1 || i % Math.max(1, Math.ceil(points.length / 6)) === 0)
     .map(({ p, i }) => `<text class="dataviz__axe" x="${x(i).toFixed(1)}" y="286" text-anchor="middle">${echapper(p.periode)}</text>`)
     .join("");
-  return `<figure class="dataviz dataviz--ecart">
+  return `<figure class="dataviz dataviz--ecart" data-chart-system="lieflat">
     <svg viewBox="0 0 ${largeur} ${hauteur}" role="img">
       <title>${echapper(options.titre)}</title>
       <desc>${echapper(options.description)}</desc>
@@ -92,7 +92,7 @@ export function barreEmpilee(options: {
     <span class="dataviz__puce dataviz__segment--${i % 6}" aria-hidden="true"></span>
     <span>${echapper(segment.libelle)}</span><strong>${echapper(options.formater(segment.valeur))}</strong>
   </li>`).join("");
-  return `<figure class="dataviz dataviz--composition" role="img" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  return `<figure class="dataviz dataviz--composition" data-chart-system="lieflat" role="img" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
     <div class="dataviz__pile" aria-hidden="true">${barre}</div>
     <figcaption><strong>${echapper(options.titre)}</strong><ul>${legende}</ul></figcaption>
   </figure>`;
@@ -120,7 +120,7 @@ export function barresClassees(options: {
       <strong>${echapper(valeur)}</strong>
     </li>`;
   }).join("");
-  return `<figure class="dataviz dataviz--barres" aria-label="${echapper(`${options.titre}. ${options.description}`)}"${
+  return `<figure class="dataviz dataviz--barres" data-chart-system="lieflat" aria-label="${echapper(`${options.titre}. ${options.description}`)}"${
     options.accent ? ` style="--dataviz-accent:${echapper(options.accent)}"` : ""
   }>
     ${options.titreVisible === false ? "" : `<figcaption><strong>${echapper(options.titre)}</strong></figcaption>`}
@@ -157,7 +157,7 @@ export function halteres(options: {
       <span class="dataviz__valeurs"><span>${echapper(options.formater(ligne.avant))}</span><strong>${echapper(options.formater(ligne.apres))}</strong></span>
     </li>`;
   }).join("");
-  return `<figure class="dataviz dataviz--halteres" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  return `<figure class="dataviz dataviz--halteres" data-chart-system="lieflat" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
     <figcaption><strong>${echapper(options.titre)}</strong><span><i class="dataviz__borne dataviz__borne--avant"></i>${echapper(options.noms[0])}<i class="dataviz__borne dataviz__borne--apres"></i>${echapper(options.noms[1])}</span></figcaption>
     <ol>${rangs}</ol>
   </figure>`;
@@ -182,7 +182,7 @@ export function barresSolde(options: {
       <strong>${echapper(moins(options.formater(point.valeur)))}</strong>
     </li>`;
   }).join("");
-  return `<figure class="dataviz dataviz--solde${libellesLongs ? " dataviz--solde-long" : ""}" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  return `<figure class="dataviz dataviz--solde${libellesLongs ? " dataviz--solde-long" : ""}" data-chart-system="lieflat" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
     <figcaption><strong>${echapper(options.titre)}</strong></figcaption><ol>${barres}</ol>
   </figure>`;
 }
@@ -213,7 +213,7 @@ export function pointsComparatifs(options: {
       <strong>${echapper(valeur)}</strong>
     </li>`;
   }).join("");
-  return `<figure class="dataviz dataviz--points" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  return `<figure class="dataviz dataviz--points" data-chart-system="lieflat" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
     <figcaption><strong>${echapper(options.titre)}</strong></figcaption>
     <ol>${lignes}</ol>
   </figure>`;
@@ -253,7 +253,7 @@ export function nuageComparatif(options: {
     <circle r="${point.accent ? 8 : 5}"><title>${echapper(`${point.libelle}, ${options.axeX} ${options.formater(point.x)}, ${options.axeY} ${options.formater(point.y)}`)}</title></circle>
     <text x="10" y="4">${echapper(point.libelle)}</text>
   </g>`).join("");
-  return `<figure class="dataviz dataviz--nuage">
+  return `<figure class="dataviz dataviz--nuage" data-chart-system="lieflat">
     <svg viewBox="0 0 ${largeur} ${hauteur}" role="img">${enteteSvg(options.titre, options.description)}
       <line class="dataviz__axe-ligne" x1="${marges.gauche}" y1="${hauteur - marges.bas}" x2="${largeur - marges.droite}" y2="${hauteur - marges.bas}" />
       <line class="dataviz__axe-ligne" x1="${marges.gauche}" y1="${marges.haut}" x2="${marges.gauche}" y2="${hauteur - marges.bas}" />

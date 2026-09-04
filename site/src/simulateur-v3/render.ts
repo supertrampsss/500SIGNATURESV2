@@ -282,6 +282,7 @@ function meter(label: string, value: number): string {
       <span>${escapeHtml(label)}</span>
       <strong>${level}</strong>
       <span class="simulateur-v3__meter" role="meter" aria-label="${escapeHtml(label)} : ${level} sur 100" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${level}">
+        <i class="simulateur-v3__meter-tick" style="left:25%"></i><i class="simulateur-v3__meter-tick" style="left:50%"></i><i class="simulateur-v3__meter-tick" style="left:75%"></i>
         <i style="--v3-meter: ${level}%"></i>
       </span>
     </div>`;
@@ -296,9 +297,14 @@ function sparkline(values: readonly number[]): string {
     const y = 32 - ((value - minimum) / range) * 24;
     return `${Math.round(index * width)},${Math.round(y)}`;
   }).join(" ");
+  const area = `0,34 ${points} 80,34`;
   return `
     <svg class="simulateur-v3__sparkline" aria-hidden="true" viewBox="0 0 80 38" preserveAspectRatio="none">
+      <line class="simulateur-v3__sparkline-grid" x1="0" y1="10" x2="80" y2="10"></line>
+      <line class="simulateur-v3__sparkline-grid" x1="0" y1="22" x2="80" y2="22"></line>
+      <polygon class="simulateur-v3__sparkline-area" points="${area}"></polygon>
       <polyline points="${points}"></polyline>
+      <circle class="simulateur-v3__sparkline-last" cx="80" cy="${Math.round(32 - ((values.at(-1)! - minimum) / range) * 24)}" r="2.5"></circle>
     </svg>`;
 }
 
@@ -378,6 +384,10 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
       : "Solde inchangé";
   const budgetValue = isV10 ? principalBudgetProfileValue(option) : budget?.delta ?? 0;
   const budgetSignal = budgetValue === 0 ? "neutral" : budgetValue > 0 ? "positive" : "negative";
+  const maxBudget = Math.max(1, ...decision.options.map((candidate) => Math.abs(
+    scenario.version >= 10 ? principalBudgetProfileValue(candidate) : annualBalanceEffect(candidate)?.delta ?? 0,
+  )));
+  const budgetWidth = Math.min(100, Math.round((Math.abs(budgetValue) / maxBudget) * 100));
   const impactLabel = principalImpact ? compactImpactLabel(principalImpact) : "Impact non chiffré";
   const impactDescription = principalImpact ? effectLabelWithTiming(principalImpact) : impactLabel;
   const displayCopy = option.displayCopy;
@@ -407,6 +417,7 @@ function renderOption(decision: Decision, option: DecisionOption, scenario: Scen
           <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
           ${isV10 ? "" : `<span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>`}
         </span>
+        <span class="simulateur-v3__option-impact-track simulateur-v3__option-impact-track--${budgetSignal}" aria-hidden="true"><i style="width:${budgetWidth}%"></i></span>
       </button>
       ${displayCopy ? `<button type="button" class="simulateur-v3__option-details-trigger" data-v3-action="open-details" data-option-id="${escapeHtml(option.id)}" data-v3-detail-trigger="${escapeHtml(option.id)}" aria-expanded="${detailsOpen}" aria-haspopup="dialog"><span>Comprendre ce choix</span><span aria-hidden="true">›</span></button>` : ""}
     </article>`;

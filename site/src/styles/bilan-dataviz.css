@@ -150,3 +150,89 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .dataviz *, .dataviz *::before, .dataviz *::after { transition: none !important; animation: none !important; }
 }
+
+/* Lieflat Charts — traduction native des patrons Lupi/Basics.
+   Les primitives restent HTML/SVG et gardent les tableaux accessibles, mais
+   partagent désormais une même grammaire : un titre qui conclut, une piste
+   fine, une seule couleur d'accent et une valeur toujours posée à côté de sa
+   marque. Cela évite l'effet « collection de widgets » entre France,
+   territoires et comparaisons. */
+[data-chart-system="lieflat"] {
+  --lf-ink: #102039;
+  --lf-accent: #b43a31;
+  --lf-muted: #647184;
+  --lf-line: #cfc6b7;
+  --lf-soft: #eee8dd;
+  margin-block: clamp(1.25rem, 3vw, 2rem);
+}
+[data-chart-system="lieflat"] figcaption > strong,
+[data-chart-system="lieflat"] figcaption strong {
+  color: var(--lf-ink);
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+[data-chart-system="lieflat"] li { border-color: var(--lf-line); }
+[data-chart-system="lieflat"] .dataviz__barres-rail,
+[data-chart-system="lieflat"] .dataviz__point-rail {
+  height: .45rem;
+  border-radius: 999px;
+  background: var(--lf-soft);
+}
+[data-chart-system="lieflat"] .dataviz__barres-rail > span {
+  border-radius: 999px;
+  background: var(--lf-ink);
+}
+[data-chart-system="lieflat"] .dataviz__barres li:first-child .dataviz__barres-rail > span,
+[data-chart-system="lieflat"] .dataviz__point-rang--accent .dataviz__point-rail > span { background: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__point-rail > span {
+  width: .78rem;
+  height: .78rem;
+  border: 2px solid var(--fond);
+  background: var(--lf-ink);
+}
+[data-chart-system="lieflat"] .dataviz__point-rang--accent .dataviz__point-rail > span {
+  width: .98rem;
+  height: .98rem;
+}
+[data-chart-system="lieflat"] .dataviz__haltere { padding-block: .72rem; }
+[data-chart-system="lieflat"] .dataviz__liaison { height: 2px; background: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__borne--apres { background: var(--lf-accent); border-color: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__borne--avant { border-color: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__solde-rail {
+  background: linear-gradient(90deg, transparent calc(50% - .5px), var(--lf-line) calc(50% - .5px), var(--lf-line) calc(50% + .5px), transparent calc(50% + .5px));
+}
+[data-chart-system="lieflat"] .dataviz__barre--negative { background: var(--lf-accent); border-radius: 0 .25rem .25rem 0; }
+[data-chart-system="lieflat"] .dataviz__barre--positive { background: var(--lf-ink); border-radius: .25rem 0 0 .25rem; }
+[data-chart-system="lieflat"] .dataviz__segment--0 { background: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__segment--1 { background: #506987; }
+[data-chart-system="lieflat"] .dataviz__segment--2 { background: #8797aa; }
+[data-chart-system="lieflat"] .dataviz__segment--3 { background: #b7a36f; }
+[data-chart-system="lieflat"] .dataviz__segment--4 { background: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__segment--5 { background: #aeb4bc; }
+[data-chart-system="lieflat"] .dataviz__pile { min-height: 2.4rem; border: 0; border-radius: .35rem; }
+[data-chart-system="lieflat"] .dataviz__fonctions-legende { color: var(--lf-muted); }
+[data-chart-system="lieflat"] .dataviz__fonction-rail { background: linear-gradient(var(--lf-line), var(--lf-line)) center / 100% 1px no-repeat; }
+[data-chart-system="lieflat"] .dataviz__fonction-point--fr { background: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__fonction-point--1 { background: var(--fond); border-color: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__fonction-point--2 { background: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__axe,
+[data-chart-system="lieflat"] .dataviz__titre-axe { fill: var(--lf-muted); }
+[data-chart-system="lieflat"] .dataviz__axe-ligne { stroke: var(--lf-line); }
+[data-chart-system="lieflat"] .dataviz__zone { fill: color-mix(in srgb, var(--lf-accent) 12%, transparent); }
+[data-chart-system="lieflat"] .dataviz__ligne--haut { stroke: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__ligne--bas { stroke: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__etiquette--haut { fill: var(--lf-accent); }
+[data-chart-system="lieflat"] .dataviz__etiquette--bas { fill: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__equilibre { stroke: var(--lf-muted); }
+[data-chart-system="lieflat"] .dataviz__point circle { fill: var(--lf-ink); }
+[data-chart-system="lieflat"] .dataviz__point--accent circle { fill: var(--lf-accent); }
+
+@media (max-width: 40rem) {
+  [data-chart-system="lieflat"] { margin-block: 1.1rem; }
+  [data-chart-system="lieflat"] figcaption > strong,
+  [data-chart-system="lieflat"] figcaption strong { font-size: 1.12rem; }
+  [data-chart-system="lieflat"] .dataviz__barres li,
+  [data-chart-system="lieflat"] .dataviz__point-rang { min-height: 2rem; }
+}
