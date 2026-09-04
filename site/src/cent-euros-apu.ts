@@ -183,7 +183,7 @@ function ventilationLignes(france: Territoire): Feuille[] | null {
   ];
 }
 
-/** Les teintes de série, validées sur les deux fonds (voir `conjoncture.ts`) :
+/** Les teintes de série, validées sur les deux fonds (voir `style.css`) :
  *  jamais un hexadécimal inventé ici, qui casserait la séparation de la gamme. */
 const TEINTES = ["var(--serie-1)", "var(--serie-2)", "var(--serie-3)", "var(--serie-4)", "var(--serie-5)"];
 

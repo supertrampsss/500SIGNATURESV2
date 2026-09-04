@@ -99,7 +99,7 @@ const EXECUTIFS: Record<string, string> = {
  * ainsi que le reste du site les teste. Et `textContent` vers `innerHTML`
  * n'échappe pas les guillemets, alors qu'`echapper` est interpolé ici dans un
  * attribut `title="…"` : le motif est faux même si les valeurs qui y passent
- * aujourd'hui sont des millésimes. `questions.ts` et `conjoncture.ts`
+ * aujourd'hui sont des millésimes. `questions.ts`
  * échappaient déjà ainsi.
  */
 function echapper(texte: string): string {

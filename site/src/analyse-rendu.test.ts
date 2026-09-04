@@ -830,7 +830,7 @@ test("étage 1 nomme le registre même sans valeur déclarée, en défense en pr
 
 test("aucune réserve qui s'excuse dans le module lui-même", () => {
   const source = readFileSync(new URL("./analyse-rendu.ts", import.meta.url), "utf8");
-  // Les gabarits qui ont dû être retirés d'etat.ts et analyses.ts ne doivent
+  // Les gabarits qui ont dû être retirés des anciens rendus ne doivent
   // pas réapparaître ici : ce module rend des analyses, pas des mises en garde.
   assert.doesNotMatch(source, /ne disent pas/i);
   assert.doesNotMatch(source, /fiabilité est inégale/i);

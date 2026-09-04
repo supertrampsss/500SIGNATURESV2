@@ -13,7 +13,7 @@
  * 4. La preuve — le chemin du chiffre jusqu'au fichier publié, la seule
  *    provenance déclarée par l'analyse elle-même (`sources`).
  *
- * Comme `etat.ts` et `analyses.ts`, ce module ne touche pas au DOM : chaque
+ * Comme `analyses.ts`, ce module ne touche pas au DOM : chaque
  * fonction est pure, rend une chaîne, et c'est cette chaîne qui est testée.
  */
 

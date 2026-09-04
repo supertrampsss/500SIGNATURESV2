@@ -5,8 +5,7 @@
  * isolé (maquette 4.5 de la shortlist validée).
  *
  * Le bloc a porté deux autres choses, sorties parce que la maquette validée
- * ne les montre pas : la répartition « 100 € de prestations sociales »
- * (`cent-euros-secu.ts`, qui garde son rendu et ses tests sans appelant) et
+ * ne les montre pas : la répartition « 100 € de prestations sociales » et
  * un tableau de comparaison France / Allemagne / zone euro. Un chapitre porte
  * exactement les blocs de sa maquette.
  *

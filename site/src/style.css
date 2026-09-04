@@ -142,7 +142,7 @@
   /* ─────────────────────────────────────────────────────────────────────
      TEINTE DE SÉRIE — mesurée, pas choisie à l'œil
      ─────────────────────────────────────────────────────────────────────
-     La gamme catégorielle qui vit en dur dans `cent-euros.ts` — #0f1b2e,
+     La gamme catégorielle des graphiques — #0f1b2e,
      #c56a4d, #6e7d73, #b69b53, #41547a, #8b6a52, #8b93a0, #5d6d66 — n'avait
      jamais été mesurée. Passée au validateur de palette catégorielle, elle
      échoue quatre contrôles sur cinq :
@@ -1974,7 +1974,7 @@ tbody tr:hover {
 /* Le graphique de conjoncture : la pièce des décryptages. Courbes sobres,
    grille discrète, l'axe zéro marqué — l'échelle ne dramatise jamais. Les
    couleurs de série arrivent par SVG (stroke) et par --serie (légende,
-   infobulle) : une seule source par pays, définie dans conjoncture.ts. */
+   infobulle) : une seule source par pays. */
 .graphique {
   margin-top: 0.8rem;
 }

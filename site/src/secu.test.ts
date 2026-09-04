@@ -110,7 +110,7 @@ test("aucune réserve qui s'excuse sous le tableau", () => {
 test("le bloc ne porte que la maquette validée : ni comparaison de pays, ni 100 €", () => {
   // Deux moitiés ont vécu ici et la maquette validée ne les montre pas : le
   // tableau France / Allemagne / zone euro, et « 100 € de prestations
-  // sociales » (cent-euros-secu.ts, gardé sans appelant). Un chapitre porte
+  // sociales ». Un chapitre porte
   // exactement les blocs de sa maquette.
   const html = rendu(PAYS, CATALOGUE);
   assert.doesNotMatch(html, /Allemagne|Zone euro/);

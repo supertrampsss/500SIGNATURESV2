@@ -3100,8 +3100,8 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
 /**
  * L'export CSV nomme sa source à la maille exportée.
  *
- * Le module `export.ts` a la fonction et ses tests ; ce qui se vérifie ici est
- * son BRANCHEMENT. Une fonction juste qu'aucun appelant n'emploie laisse le
+ * L'export des données est vérifié ici uniquement pour son BRANCHEMENT. Une
+ * fonction juste qu'aucun appelant n'emploie laisse le
  * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
  * test vert au-dessus d'un écran faux.
  */
@@ -3274,11 +3274,8 @@ test("les huit cadres qui défilent sont atteignables au clavier", () => {
   // clavier. Le sélecteur est vérifié avant le `tabindex`, sans quoi un
   // renommage de classe rendrait ce test vert sur un gabarit disparu.
   const gabarits: [string, string][] = [
-    ["etat.ts", 'class="pont"'],
-    ["etat.ts", 'class="comparaison"'],
     ["national.ts", 'class="comparaison"'],
     ["fonctions.ts", 'class="fonctions"'],
-    ["niches.ts", 'class="niches"'],
     ["secu.ts", 'class="secu"'],
     ["exercices.ts", 'class="tableau-exercices"'],
   ];
