@@ -408,7 +408,7 @@ test("l'image, l'aperçu et le collage disent l'unité dans les mêmes mots", ()
   // bouge, puisqu'elle serait identique le jour où on l'écrit.
   //
   // Les quatre modules du partage, pas tout `src/` : les légendes de tableaux
-  // (`analyse-rendu.ts`, `scenarios-rendu.ts`, `exercices.ts`) écrivent la même
+  // (`analyse-rendu.ts`, `exercices.ts`) écrivent la même
   // phrase pour une autre raison — elles la disent SOUS un tableau, dans une
   // page qui reste là pour l'expliquer, et elles sont antérieures à ce lot.
   const recopiee = ["carte-og.ts", "apercu-scenario.ts", "partage.ts", "citer.ts"].filter((f) =>

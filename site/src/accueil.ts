@@ -15,7 +15,7 @@
  * 5. La bande de confiance — ce que le site publie, qui le produit, et où
  *    l'on va vérifier.
  *
- * Comme `analyse-rendu.ts` et `scenarios-rendu.ts`, ce module ne touche pas au
+ * Comme les autres renderers éditoriaux, ce module ne touche pas au
  * DOM : chaque fonction est pure, reçoit des données déjà résolues, rend une
  * chaîne, et c'est cette chaîne qui est testée. Aucune E/S, aucun réseau,
  * aucune horloge — y compris pour le tirage au sort du bloc 3, qui **reçoit**

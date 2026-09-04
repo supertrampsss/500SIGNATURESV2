@@ -54,7 +54,7 @@ import {
 } from "./carte-og.ts";
 import { MENTION_MILLIONS, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
-import { eurosSigne } from "./simulateur-rendu.ts";
+import { eurosSigne } from "./simulateur-format.ts";
 
 /** Une source d'essai. Les valeurs sont manifestement d'essai : `.test` est un
  *  domaine réservé qui ne résout nulle part, et rien ici ne pourrait passer

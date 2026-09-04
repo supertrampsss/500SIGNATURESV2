@@ -17,7 +17,7 @@
  */
 
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME, type Bareme } from "./bareme.ts";
-import { exercicesPublies } from "./simulateur-rendu.ts";
+import { exercicesPublies } from "./simulateur-format.ts";
 import { indexer, CODE_ELIMINATION, type Budget, type Noeud } from "./simulateur.ts";
 import type { Volet, VoletBareme } from "./atelier.ts";
 

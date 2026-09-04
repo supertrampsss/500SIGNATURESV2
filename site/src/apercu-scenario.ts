@@ -16,7 +16,7 @@
  * exactement comme l'atelier interactif les appelle ; `plan` rend déjà les
  * lignes **la plus lourde d'abord**, si bien que « les trois gestes les plus
  * lourds » est un `slice(0, 3)` et non un second tri. Les montants passent par
- * `eurosSigne` (simulateur-rendu.ts), le format que l'écran emploie pour un
+ * `eurosSigne` (simulateur-format.ts), le format partagé pour un
  * écart. Une copie de l'une de ces règles finirait par dire autre chose que la
  * page qu'on ouvre en cliquant sur l'aperçu.
  *
@@ -43,7 +43,7 @@
 
 import { decoder, effort, plan, type LigneAtelier, type Volet } from "./atelier.ts";
 import { MENTION_MILLIONS } from "./echelle.ts";
-import { eurosSigne } from "./simulateur-rendu.ts";
+import { eurosSigne } from "./simulateur-format.ts";
 import { echapper } from "./texte.ts";
 
 /** Ce qu'une carte de lien porte de texte, et ce que la fonction d'edge pose
@@ -205,7 +205,7 @@ export function apercuScenario(
   // Un transfert intégralement propagé rend l'euro exact, la virgule flottante
   // non : sous l'euro il n'y a rien, et surtout pas un « +0,00 M€ » qui ferait
   // passer une compensation exacte pour un gain. Même garde que `renduEffort`
-  // (simulateur-rendu.ts), qui l'affiche à l'écran.
+  // (simulateur-format.ts), qui formate le montant partagé.
   const brut = effort(volets, etat);
   const somme = Math.abs(brut) < 1 ? 0 : brut;
 

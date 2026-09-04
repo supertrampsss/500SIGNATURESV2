@@ -1,4 +1,4 @@
-/** Les deux coûts politiques explicités pour les dossiers de la campagne express. */
+/** Les deux coûts politiques explicités pour les dossiers de la campagne V3. */
 
 export type CoteDilemme = {
   libelle: string;
@@ -23,6 +23,7 @@ function cote(libelle: string, gagnants: string[], perdants: string[]): CoteDile
   };
 }
 
+/** Copie éditoriale historique réutilisée pour les décisions existantes de V3. */
 export const DILEMMES: Record<string, DilemmeEditorial> = {
   "flat-tax-a-20-avec-abattement-protegeant": {
     question: "Remplacer le barème de l'impôt sur le revenu par un taux unique de 20 % avec abattement ?",

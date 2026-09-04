@@ -6,7 +6,7 @@
  * permet de lire le chiffre doit donc être peint dessus : ce qu'il vaut, dans
  * quelle unité, d'où il vient et de quel millésime.
  *
- * Comme `analyse-rendu.ts` et `scenarios-rendu.ts`, chaque fonction est pure :
+ * Comme les autres renderers éditoriaux, chaque fonction est pure :
  * elle reçoit des données déjà résolues et rend une chaîne. Aucune lecture de
  * fichier, aucun `document`, aucun accès réseau — c'est la même chaîne qui est
  * peinte au build par le rasteriseur et qui est testée.
@@ -43,7 +43,7 @@
 import { LIBELLE_CRAN, type Cran } from "./analyse-rendu.ts";
 import { MENTION_MILLIONS, PALETTE, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
-import { eurosSigne } from "./simulateur-rendu.ts";
+import { eurosSigne } from "./simulateur-format.ts";
 import { echapper } from "./texte.ts";
 
 /** Le format des cartes de lien des plateformes. Jamais un autre : une image
@@ -718,7 +718,7 @@ export type DonneesScenario = {
  *  une carte qui garderait les trois premiers gestes déclarés montrerait
  *  l'ordre dans lequel l'atelier les a produits, qui n'apprend rien.
  *
- *  Les montants passent par `eurosSigne` (simulateur-rendu.ts), pas par
+ *  Les montants passent par `eurosSigne` (simulateur-format.ts), pas par
  *  `formater` : ce sont des ÉCARTS, et sur un écart le sens du geste est
  *  l'information — « 8 032 M€ » ne dit pas s'il s'ajoute ou se retranche.
  *  C'est déjà la forme que l'écran, l'aperçu du lien et le résumé collé
