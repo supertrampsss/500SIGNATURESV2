@@ -1,6 +1,7 @@
 import "./style.css";
+import "./world.css";
 import { decide, DOMAINS, start } from "./engine.ts";
-import type { Game, Mode } from "./types.ts";
+import type { Ambition, Game, Mode } from "./types.ts";
 import { briefing, gameShell, selection } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY } from "./storage.ts";
@@ -9,6 +10,9 @@ import { CARD_SIZES, challengeFromURL, challengeURL, escape, resultURL, sharedRe
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
 const notice = document.querySelector<HTMLElement>("#notice")!;
+let inherited = false;
+let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
+try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
 function announce(message: string) { notice.textContent = message; }
 try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) saved = decode(raw); } catch { announce("La sauvegarde locale est indisponible ou incompatible. Vous pouvez commencer une nouvelle partie."); }
@@ -18,8 +22,12 @@ try {
   else { const challenge = challengeFromURL(new URL(location.href)); if (challenge) { g = challenge; screen = "briefing"; } }
 } catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
 function render(focus = true) {
+  document.body.dataset.screen = screen;
+  const lightControl = document.querySelector<HTMLElement>('.header-actions [data-action="light-mode"]');
+  lightControl?.setAttribute("aria-pressed", String(light));
+  if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  root.innerHTML = screen === "select" ? selection(saved) : screen === "briefing" ? briefing(g!) : gameShell(g!, screen, view, shared);
+  root.innerHTML = screen === "select" ? selection(saved, light) : screen === "briefing" ? briefing(g!, { light }) : gameShell(g!, screen, view, shared, { light, inherited });
   document.querySelector("#game-tools")!.toggleAttribute("hidden", !g || screen === "select");
   if (focus) { root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "instant" }); }
 }
@@ -54,19 +62,31 @@ async function png(format: keyof typeof CARD_SIZES) {
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
+  if (a === "light-mode") { light = !light; try { localStorage.setItem("mandats.light", String(light)); } catch {} if (dialog.open) dialog.close(); render(false); return; }
+  if (a === "world-view") { inherited = !inherited; render(false); document.querySelector<HTMLElement>('[data-action="world-view"]')?.focus({ preventScroll: true }); return; }
+  if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; render(false); document.querySelector<HTMLElement>(`[data-action="ambition"][data-ambition="${g.ambition}"]`)?.focus({ preventScroll: true }); return; }
+  if (a === "replay-ambition" && g) { g = start(g.mode, g.seed, target.dataset.ambition as Ambition); screen = "briefing"; shared = false; inherited = false; render(); return; }
+  if (a === "area" && g) {
+    const area = (inherited ? DOMAINS[g.mode].initial().areas : g.areas).find(a => a.id === target.dataset.area);
+    if (!area) return;
+    const before = DOMAINS[g.mode].initial().areas.find(a => a.id === area.id)!;
+    const pending = g.pending.filter(p => p.effect.area === area.id);
+    sheet(area.name, `<p class="eyebrow">${inherited ? "À LA PRISE DE FONCTIONS" : "ÉTAT DU TERRITOIRE"}</p><p>${escape(area.need)}</p><div class="area-detail"><div><span>Services</span><strong>${Math.round(area.services)}/100</strong><small>Héritage : ${before.services}/100</small></div><div><span>Résilience</span><strong>${Math.round(area.resilience)}/100</strong><small>Héritage : ${before.resilience}/100</small></div></div>${!inherited && pending.length ? `<h3>À la livraison</h3><ul>${pending.map(p => `<li>Année ${p.due + 1} : ${escape(p.label)}</li>`).join("")}</ul>` : ""}<p class="scope">Territoire fictif et indices de jeu, sans valeur prédictive.</p>`);
+    return;
+  }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { g = start(target.dataset.mode as Mode); shared = false; screen = "briefing"; }
+  if (a === "mode") { inherited = false; g = start(target.dataset.mode as Mode); shared = false; screen = "briefing"; }
   else if (a === "resume" && saved) { g = saved; shared = false; screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; }
   else if (a === "begin") { screen = "play"; view = "decision"; persist(); }
-  else if (a === "choose" && g) { g = decide(g, target.dataset.choice!); screen = "resolution"; persist(); }
+  else if (a === "choose" && g) { g = decide(g, target.dataset.choice!); inherited = false; announce(""); screen = "resolution"; persist(); }
   else if (a === "next" && g) { screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; }
   else if (a === "view") { view = target.dataset.view as View; }
-  else if (a === "new") { screen = "select"; shared = false; history.replaceState(null, "", "/mandats/"); }
-  else if (a === "replay" && g) { g = start(g.mode, g.seed); shared = false; screen = "briefing"; history.replaceState(null, "", "/mandats/"); }
+  else if (a === "new") { inherited = false; screen = "select"; shared = false; history.replaceState(null, "", "/mandats/"); }
+  else if (a === "replay" && g) { inherited = false; g = start(g.mode, g.seed, g.ambition, g.version); shared = false; screen = "briefing"; history.replaceState(null, "", "/mandats/"); }
   else if (a === "helper") { sheet("Quel mandat choisir ?", "<p><strong>La ville</strong> : des écoles, des équipements et des quartiers. Les projets sont concrets, les budgets de fonctionnement et d'investissement distincts. Six tours.</p><p><strong>La France</strong> : fiscalité, services, énergie et dette, avec des effets à l'échelle de profils territoriaux fictifs. Cinq tours d'introduction.</p><p>Les deux parcours sont entièrement jouables sur téléphone, sans compte.</p>"); return; }
-  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les chiffres sont des hypothèses de scénario, jamais les comptes réels d'une ville ou une prévision sur la France.</p><p>Chaque année combine : engagements livrés, usure des services et du patrimoine, décision et événement. Le détail reste dans le journal.</p><p>Le score donne le même poids aux finances, services, cohésion et résilience/patrimoine. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
-  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p><button class="button" data-action="export">Exporter la sauvegarde</button><label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
-  else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), "mandats-sauvegarde-v1.json"); return; }
+  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les chiffres sont des hypothèses de scénario, jamais les comptes réels d'une ville ou une prévision sur la France.</p><p>Chaque année combine : engagements livrés, usure des services et du patrimoine, décision et événement. Le détail reste dans le journal.</p><p>La priorité choisie au départ détermine le poids des finances, services, cohésion/confiance et résilience/patrimoine. Les anciennes parties v1 conservent leurs règles. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
+  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p><button class="button" data-action="export">Exporter la sauvegarde</button><label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les illustrations" : "Activer la vue légère"}</button><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
+  else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { sheet("Partager votre héritage", `<p>Le résultat est anonyme. Son lien permet de reconstruire <strong>vos décisions dans le jeu</strong>. Partagez le défi seul si vous préférez garder votre parcours privé.</p><div class="share-buttons"><button class="button primary" data-action="native-share">Partager le résultat et mes choix</button><button class="button" data-action="copy-result">Copier le lien du résultat</button><button class="button" data-action="copy-challenge">Copier le défi sans mes choix</button></div><h3>Télécharger la carte de résultat</h3><p>Image générée sur votre appareil, sans envoi de données.</p><div class="format-buttons">${Object.entries(CARD_SIZES).map(([key, [w, h]]) => `<button class="button" data-action="png" data-format="${key}">${w} × ${h}</button>`).join("")}</div><p class="scope">Les aperçus de lien montrent le jeu. Le score personnel figure dans l'image téléchargeable et la page de résultat.</p>`); return; }
   else if (a === "copy-result" && g) { await copy(resultURL(g, location.origin)); return; }
   else if (a === "copy-challenge" && g) { await copy(challengeURL(g, location.origin)); return; }

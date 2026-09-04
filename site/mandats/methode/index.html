@@ -1,1 +1,149 @@
-<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Règles, sources et confidentialité de Mandats | 500 signatures</title><meta name="description" content="Les modèles municipal et national du jeu Mandats : finances, effets différés, territoires fictifs, score et sauvegarde privée."><meta name="robots" content="noindex,follow"><link rel="canonical" href="https://500signatures.fr/mandats/methode/"><link rel="stylesheet" href="/src/mandats/style.css"></head><body><header class="site-header"><a class="brand" href="/mandats/">← Revenir à Mandats</a><a href="/sources/">Les sources du site</a></header><main class="method-content"><p class="eyebrow">MÉTHODOLOGIE · VERSION 1 · 4 SEPTEMBRE 2026</p><h1>Les règles sont aussi importantes que le résultat.</h1><p>Mandats est un jeu de stratégie pédagogique. Ses deux campagnes utilisent des situations fictives et des paramètres explicites. Elles ne reproduisent pas les comptes actuels d'une collectivité ou de la France, et ne prédisent aucune situation économique, politique ou électorale.</p><h2>Six catégories, sans les confondre</h2><ul><li><strong>Donnée observée :</strong> une valeur publiée par un producteur identifié. Aucun montant du moteur v1 n'est présenté comme une observation.</li><li><strong>Indicateur dérivé :</strong> un calcul documenté à partir de données observées.</li><li><strong>Hypothèse :</strong> un coefficient retenu pour rendre le jeu compréhensible, par exemple le délai d'une rénovation.</li><li><strong>Variable de scénario :</strong> la situation fictive initiale, les événements et leur intensité.</li><li><strong>Décision :</strong> un choix effectué par le joueur.</li><li><strong>Résultat simulé :</strong> le calcul effectué par le moteur, jamais une prévision.</li></ul><h2>Gouverner une ville</h2><p>Val-sur-Rive et ses trois quartiers sont fictifs. Les montants sont en millions d'euros. Recettes initiales : 100 M€, dépenses courantes hors intérêts : 86 M€, dette : 60 M€, trésorerie : 8 M€. Les dépenses annuelles de base incluent 4 M€ d'investissement et 4 M€ de remboursement ; les subventions de base sont de 2 M€. Le taux d'intérêt fixe du scénario est de 3,5 %.</p><p><code>Épargne brute = recettes de fonctionnement − dépenses courantes − intérêts.</code></p><p><code>Épargne nette = épargne brute − remboursement du capital.</code></p><p><code>Dette finale = dette initiale + nouvel emprunt − capital remboursé.</code></p><p><code>Variation de trésorerie = épargne brute + subventions + emprunt − investissement − capital remboursé.</code></p><p>Le jeu exige que l'épargne de l'année couvre le remboursement du capital. C'est une règle simplifiée prudente, plus restrictive qu'un budget M57 complet, qui peut comporter d'autres ressources propres admissibles. L'emprunt ne peut équilibrer un fonctionnement déficitaire. Une décision incompatible est indisponible et explique le manque de financement. Si les engagements ne permettent plus aucun choix, un plan de réduction des charges devient accessible, avec dégradation des services.</p><p>La rénovation scolaire concerne les bâtiments et équipements municipaux, pas les postes d'enseignants de l'État. Les grandes compétences intercommunales ne sont pas simulées comme si le maire les contrôlait seul.</p><h2>Gouverner la France</h2><p>Le périmètre est celui des administrations publiques consolidées, désignées APU. Le jeu suppose une coordination abstraite entre administrations centrales, sécurité sociale et collectivités. Il ne fournit pas de budgets séparés par sous-secteur dans cette version. Les transferts internes ne constituent pas de recettes supplémentaires pour cet ensemble.</p><p>Le scénario initial, fictif, compte 1 490 Md€ de recettes, 1 500 Md€ de dépenses courantes hors intérêts, 40 Md€ d'investissement, 3 200 Md€ de dette et 2 800 Md€ de PIB nominal. Ces chiffres ne sont pas une photographie des comptes publics français.</p><p><code>Déficit = dépenses courantes + intérêts + investissement − recettes.</code></p><p><code>Dette finale = dette initiale + déficit + ajustement stock-flux.</code></p><p><code>PIB nominal suivant = PIB nominal × (1 + croissance réelle) × (1 + déflateur).</code></p><p>Le déflateur, 1,8 % dans ce scénario, n'est pas l'inflation des prix à la consommation. La croissance initiale de 1,2 % et ses variations sont des hypothèses. L'ajustement stock-flux vaut zéro dans la campagne v1, mais figure dans le moteur. Le taux moyen initial de la dette, 1,8 %, se rapproche chaque année de 20 % de l'écart au taux de marché hypothétique de 3,5 %. Cette approximation ne reproduit pas un portefeuille réel d'obligations.</p><h2>Conséquences, événements et territoires</h2><p>Un tour représente une année condensée. Le moteur applique dans l'ordre les livraisons attendues, l'usure annuelle (services −1, patrimoine −2), le choix du joueur, l'événement puis les comptes financiers. Les recettes et charges récurrentes persistent ; investissements, subventions et remboursements supplémentaires sont propres à l'année.</p><p>Une rénovation livrée deux tours plus tard ne produit aucun effet avant sa livraison. La canicule municipale et le choc énergétique national dépendent de la résilience déjà acquise et d'une graine de scénario. Rejouer la même graine conserve les mêmes conditions. Le journal explique les changements cumulés ; une variation n'est pas attribuable au seul dernier choix.</p><p>Les cartes sont schématiques. Les quartiers et profils territoriaux ne sont pas des délimitations administratives. Les indices services et résilience, de 0 à 100, ne sont pas des observations géographiques. Les effets des projets ciblés apparaissent dans le territoire concerné ; les effets généraux s'appliquent à l'ensemble des profils.</p><h2>Score, héritage et limites</h2><p>Quatre dimensions ont le même poids : finances, services, cohésion, résilience/patrimoine. La dernière dimension moyenne les deux indices. Les formules financières municipales valorisent une épargne nette positive et une dette modérée ; les nationales pénalisent la hausse du ratio dette/PIB par rapport à l'héritage. Les pondérations sont des choix de conception discutables, publiés dans le code, pas une mesure universelle de bonne gestion.</p><p>Les engagements de charges non livrés ajoutent une pénalité, plafonnée à cinq points par engagement. Une baisse de dette seule ne garantit pas un bon bilan. Les engagements déjà livrés restent dans les dépenses. La confiance n'est jamais un sondage ou une probabilité électorale. La v1 utilise un seul jeu de coefficients, sans intervalle statistique ; ses résultats ont une précision arithmétique, pas une certitude économique.</p><h2>Sources de référence et calibration future</h2><p>Les sources ci-dessous éclairent les règles et le futur étalonnage. Elles ne sont pas automatiquement importées dans ces campagnes fictives.</p><ul><li><a href="https://www.data.gouv.fr/datasets/comptes-des-communes-2018-2025">OFGL, comptes des communes</a> et <a href="https://www.data.gouv.fr/datasets/comptes-consolides-des-communes-2018-2025">comptes consolidés</a> : périmètres et agrégats de finances locales.</li><li><a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051731697">Code général des collectivités territoriales, L1612-4</a> : équilibre réel et couverture du remboursement.</li><li><a href="https://www.insee.fr/fr/statistiques/8997691">INSEE, comptes des administrations publiques 2025</a> : cadre national consolidé et révisions.</li><li><a href="https://www.aft.gouv.fr/fr/nos-produits">Agence France Trésor, instruments de dette</a> : refinancement et types d'obligations.</li><li><a href="https://www.insee.fr/fr/statistiques/8217537">INSEE, base permanente des équipements</a> : présence d'équipements, sans prétendre mesurer leur qualité.</li></ul><p>Chaque future donnée importée devra conserver source, producteur, licence, date de référence, date de publication, extraction, unité, périmètre comptable et géographie. Les licences sont vérifiées jeu par jeu. Un changement de données produira une nouvelle version de scénario sans modifier une partie déjà commencée.</p><h2>Confidentialité et partage</h2><p>Aucun compte, traceur d'audience, publicité ou appel à un réseau social n'est intégré dans le jeu v1. La sauvegarde utilise le stockage local du navigateur et contient mode, graine et identifiants des décisions. Elle peut être transférée manuellement par export/import. Un stockage refusé peut empêcher la reprise ; le jeu le signale.</p><p>Le partage est déclenché uniquement par le joueur. Le défi seul contient le mode et la graine. Le lien de résultat place les décisions dans le fragment de l'URL : elles ne sont pas envoyées dans la requête au serveur, mais restent accessibles à toute personne qui reçoit le lien. Le résultat n'est pas révocable une fois diffusé. Les images sont générées localement ; elles affichent toujours le caractère fictif de la simulation.</p><p>Les aperçus sociaux sont génériques. Les scores personnalisés sont visibles dans le PNG téléchargé et dans le résultat reconstruit après ouverture. La partie partagée n'écrase pas automatiquement votre sauvegarde. Aucun profil politique n'est constitué et les choix ne servent pas au ciblage publicitaire.</p><h2>Version et corrections</h2><p>Version 1, créée le 4 septembre 2026. Les paramètres sont figés dans le dépôt. Les erreurs du modèle doivent être corrigées avec une version explicite et des tests de régression. Le projet n'a pas encore fait l'objet d'une validation indépendante par des professionnels des finances publiques ni de tests utilisateurs de compréhension.</p><a class="button primary" href="/mandats/">Choisir mon mandat</a></main></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Règles, sources et confidentialité de Mandats | 500 signatures</title>
+<meta name="description" content="Les modèles municipal et national du jeu Mandats : finances, effets différés, territoires fictifs, score et sauvegarde privée.">
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://500signatures.fr/mandats/methode/">
+<link rel="stylesheet" href="/src/mandats/style.css">
+<link rel="stylesheet" href="/src/mandats/world.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="/mandats/">← Revenir à Mandats</a>
+<a href="/sources/">Les sources du site</a>
+</header>
+<main class="method-content">
+<p class="eyebrow">MÉTHODOLOGIE · VERSION 2 · 4 SEPTEMBRE 2026</p>
+<h1>Les règles sont aussi importantes que le résultat.</h1>
+<p>Mandats est un jeu de stratégie pédagogique. Ses deux campagnes utilisent des situations fictives et des paramètres explicites. Elles ne reproduisent pas les comptes actuels d'une collectivité ou de la France, et ne prédisent aucune situation économique, politique ou électorale.</p>
+<h2>Six catégories, sans les confondre</h2>
+<ul>
+<li>
+<strong>Donnée observée :</strong> une valeur publiée par un producteur identifié. Aucun montant du moteur v2 n'est présenté comme une observation.</li>
+<li>
+<strong>Indicateur dérivé :</strong> un calcul documenté à partir de données observées.</li>
+<li>
+<strong>Hypothèse :</strong> un coefficient retenu pour rendre le jeu compréhensible, par exemple le délai d'une rénovation.</li>
+<li>
+<strong>Variable de scénario :</strong> la situation fictive initiale, les événements et leur intensité.</li>
+<li>
+<strong>Décision :</strong> un choix effectué par le joueur.</li>
+<li>
+<strong>Résultat simulé :</strong> le calcul effectué par le moteur, jamais une prévision.</li>
+</ul>
+<h2>Gouverner une ville</h2>
+<p>Val-sur-Rive et ses trois quartiers sont fictifs. Les montants sont en millions d'euros. Recettes initiales : 100 M€, dépenses courantes hors intérêts : 86 M€, dette : 60 M€, trésorerie : 8 M€. Les dépenses annuelles de base incluent 4 M€ d'investissement et 4 M€ de remboursement ; les subventions de base sont de 2 M€. Le taux d'intérêt fixe du scénario est de 3,5 %.</p>
+<p>
+<code>Épargne brute = recettes de fonctionnement − dépenses courantes − intérêts.</code>
+</p>
+<p>
+<code>Épargne nette = épargne brute − remboursement du capital.</code>
+</p>
+<p>
+<code>Dette finale = dette initiale + nouvel emprunt − capital remboursé.</code>
+</p>
+<p>
+<code>Variation de trésorerie = épargne brute + subventions + emprunt − investissement − capital remboursé.</code>
+</p>
+<p>Le jeu exige que l'épargne de l'année couvre le remboursement du capital. C'est une règle simplifiée prudente, plus restrictive qu'un budget M57 complet, qui peut comporter d'autres ressources propres admissibles. L'emprunt ne peut équilibrer un fonctionnement déficitaire. Une décision incompatible est indisponible et explique le manque de financement. Si les engagements ne permettent plus aucun choix, un plan de réduction des charges devient accessible, avec dégradation des services.</p>
+<p>La rénovation scolaire concerne les bâtiments et équipements municipaux, pas les postes d'enseignants de l'État. Les grandes compétences intercommunales ne sont pas simulées comme si le maire les contrôlait seul.</p>
+<h2>Gouverner la France</h2>
+<p>Le périmètre est celui des administrations publiques consolidées, désignées APU. Le jeu suppose une coordination abstraite entre administrations centrales, sécurité sociale et collectivités. Il ne fournit pas de budgets séparés par sous-secteur dans cette version. Les transferts internes ne constituent pas de recettes supplémentaires pour cet ensemble.</p>
+<p>Le scénario initial, fictif, compte 1 490 Md€ de recettes, 1 500 Md€ de dépenses courantes hors intérêts, 40 Md€ d'investissement, 3 200 Md€ de dette et 2 800 Md€ de PIB nominal. Ces chiffres ne sont pas une photographie des comptes publics français.</p>
+<p>
+<code>Déficit = dépenses courantes + intérêts + investissement − recettes.</code>
+</p>
+<p>
+<code>Dette finale = dette initiale + déficit + ajustement stock-flux.</code>
+</p>
+<p>
+<code>PIB nominal suivant = PIB nominal × (1 + croissance réelle) × (1 + déflateur).</code>
+</p>
+<p>Le déflateur, 1,8 % dans ce scénario, n'est pas l'inflation des prix à la consommation. La croissance initiale de 1,2 % et ses variations sont des hypothèses. L'ajustement stock-flux vaut zéro dans la campagne v2, mais figure dans le moteur. Le taux moyen initial de la dette, 1,8 %, se rapproche chaque année de 20 % de l'écart au taux de marché hypothétique de 3,5 %. Cette approximation ne reproduit pas un portefeuille réel d'obligations.</p>
+<h2>Conséquences, événements et territoires</h2>
+<p>Un tour représente une année condensée. Le moteur applique dans l'ordre les livraisons attendues, l'usure annuelle (services −1, patrimoine −2), le choix du joueur, l'événement puis les comptes financiers. Les recettes et charges récurrentes persistent ; investissements, subventions et remboursements supplémentaires sont propres à l'année.</p>
+<p>Une rénovation livrée deux tours plus tard ne produit aucun effet avant sa livraison. La canicule municipale et le choc énergétique national dépendent de la résilience déjà acquise et d'une graine de scénario. Rejouer la même graine conserve les mêmes conditions. Le journal explique les changements cumulés ; une variation n'est pas attribuable au seul dernier choix.</p>
+<p>Les cartes sont schématiques. Les quartiers et profils territoriaux ne sont pas des délimitations administratives. Les indices services et résilience, de 0 à 100, ne sont pas des observations géographiques. Les effets des projets ciblés apparaissent dans le territoire concerné ; les effets généraux s'appliquent à l'ensemble des profils.</p>
+<h2>Score, priorités et limites du modèle v2</h2>
+<p>Le cap choisi avant le premier dossier change les poids du bilan, sans changer les contraintes financières. Ce choix est conservé dans la sauvegarde et les liens partagés. Comparer deux scores n'a de sens qu'à mode, version, graine et priorité identiques.</p>
+<table>
+<caption>Poids de chaque dimension dans le score sur 100</caption>
+<thead>
+<tr>
+<th>Priorité</th>
+<th>Finances</th>
+<th>Services</th>
+<th>Cohésion / confiance</th>
+<th>Résilience / patrimoine</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>Équilibre</th>
+<td>40 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+</tr>
+<tr>
+<th>Services</th>
+<td>15 %</td>
+<td>40 %</td>
+<td>35 %</td>
+<td>10 %</td>
+</tr>
+<tr>
+<th>Résilience</th>
+<td>20 %</td>
+<td>15 %</td>
+<td>15 %</td>
+<td>50 %</td>
+</tr>
+</tbody>
+</table>
+<p>Les services utilisent l'indice du jeu. La dimension sociale combine 70 % de cohésion et 30 % de confiance. La dimension résilience/patrimoine fait la moyenne de ces deux indices. La confiance est une variable de conception, sans lien avec un sondage, un vote ou une prédiction électorale.</p>
+<details>
+<summary>Formules financières et constantes de scénario</summary>
+<p>Tous les résultats sont bornés entre 0 et 100. Les coefficients sont des hypothèses de conception, pas des normes de finances publiques.</p>
+<p>
+<strong>Ville, montants en M€ :</strong> 40 + 0,6 × [52 − (dette − trésorerie)] + 1,5 × [recettes − charges courantes − dette × taux − 4]. Le point de départ de dette nette est 60 − 8 = 52 M€. La dernière expression mesure une marge annuelle après remboursement de base de 4 M€.</p>
+<p>
+<strong>National, montants en Md€ :</strong> 65 − 3 × [100 × dette/PIB − 100 × 3200/2800] − 0,25 × [charges courantes + dette × taux + 40 − recettes − 107,6]. Les 40 Md€ correspondent au socle annuel d'investissement, les 107,6 Md€ au déficit initial. La dépense d'investissement ponctuelle du dernier tour affecte la dette, mais n'est pas traitée comme une charge annuelle permanente.</p>
+</details>
+<p>Le score est la somme pondérée des quatre dimensions, moins les engagements de charges non encore livrés, puis arrondie et bornée de 0 à 100. La pénalité est plafonnée à cinq points par engagement. Les charges déjà livrées restent dans le budget. Une baisse de dette seule ne garantit pas un bon bilan.</p>
+<p>Les appréciations sont propres au scénario. En municipal, 70 points donnent « Un héritage solide », 55 « Un équilibre à consolider ». En national, 50 points donnent « Une trajectoire consolidée », 40 « Un cap à renforcer ». En dessous, le mandat est « sous tension ». Ces seuils et pondérations servent la rejouabilité et ne constituent pas une appréciation universelle de bonne gestion.</p>
+<p>La v2 rééquilibre le coût social des recettes supplémentaires et fait compter la trésorerie, la confiance et les charges futures. La canicule dépend de la résilience des Rives. Une deuxième tension énergétique en année 5 dépend de la résilience des bassins industriels : un investissement livré peut alors limiter le choc. Le journal sépare l'événement et les livraisons.</p>
+<p>Les anciennes parties v1 conservent leur moteur, leurs coefficients et leurs scores à quatre dimensions de 25 %. Un lien ancien sans numéro de version reste en v1. Les nouvelles parties sont en v2. Aucun score historique n'est recalculé selon les nouvelles règles.</p>
+<p>Le modèle utilise des coefficients explicites, sans intervalle statistique. Ses résultats ont une précision arithmétique, pas une certitude économique. Les meilleures trajectoires varient avec la priorité, mais l'équilibrage ne remplace pas des tests avec de vrais joueurs.</p>
+<h2>Illustrations, transformations et accessibilité</h2>
+<p>Les illustrations sont générées pour le jeu. Val-sur-Rive représente une ville fictive. Le relief de la France est une interprétation artistique, sans précision cartographique ni valeur de donnée. Les marqueurs nationaux désignent des profils abstraits, pas des régions administratives.</p>
+<p>Les couches de rénovation de la ville apparaissent seulement après les projets correspondants : écoles, berges et équipements du centre. Elles expriment une transformation de quartier, sans représenter chaque bâtiment ou chaque euro dépensé. Le bouton avant/maintenant restaure l'illustration héritée et les indices initiaux. Au niveau national, la comparaison porte sur les indices territoriaux, le relief reste identique.</p>
+<p>Les détails des marqueurs, la liste des territoires et le journal donnent une alternative textuelle. La vue légère retire les images en conservant toutes les décisions. Elle est accessible depuis « Ma partie » sur téléphone. Les transitions respectent la préférence de réduction des animations. Aucun rendu 3D ni vidéo n'est nécessaire.</p>
+<h2>Sources de référence et calibration future</h2>
+<p>Les sources ci-dessous éclairent les règles et le futur étalonnage. Elles ne sont pas automatiquement importées dans ces campagnes fictives.</p>
+<ul>
+<li>
+<a href="https://www.data.gouv.fr/datasets/comptes-des-communes-2018-2025">OFGL, comptes des communes</a> et <a href="https://www.data.gouv.fr/datasets/comptes-consolides-des-communes-2018-2025">comptes consolidés</a> : périmètres et agrégats de finances locales.</li>
+<li>
+<a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051731697">Code général des collectivités territoriales, L1612-4</a> : équilibre réel et couverture du remboursement.</li>
+<li>
+<a href="https://www.insee.fr/fr/statistiques/8997691">INSEE, comptes des administrations publiques 2025</a> : cadre national consolidé et révisions.</li>
+<li>
+<a href="https://www.aft.gouv.fr/fr/nos-produits">Agence France Trésor, instruments de dette</a> : refinancement et types d'obligations.</li>
+<li>
+<a href="https://www.insee.fr/fr/statistiques/8217537">INSEE, base permanente des équipements</a> : présence d'équipements, sans prétendre mesurer leur qualité.</li>
+</ul>
+<p>Chaque future donnée importée devra conserver source, producteur, licence, date de référence, date de publication, extraction, unité, périmètre comptable et géographie. Les licences sont vérifiées jeu par jeu. Un changement de données produira une nouvelle version de scénario sans modifier une partie déjà commencée.</p>
+<h2>Confidentialité et partage</h2>
+<p>Aucun compte, traceur d'audience, publicité ou appel à un réseau social n'est intégré dans le jeu v2. La sauvegarde utilise le stockage local du navigateur et contient version, priorité pour la v2, mode, graine et identifiants des décisions. Elle peut être transférée manuellement par export/import. Un stockage refusé peut empêcher la reprise ; le jeu le signale.</p>
+<p>Le partage est déclenché uniquement par le joueur. Le défi seul contient le mode, la graine, la version et la priorité pour la v2. Le lien de résultat place les décisions dans le fragment de l'URL : elles ne sont pas envoyées dans la requête au serveur, mais restent accessibles à toute personne qui reçoit le lien. Le résultat n'est pas révocable une fois diffusé. Les images sont générées localement ; elles affichent toujours le caractère fictif de la simulation.</p>
+<p>Les aperçus sociaux sont génériques. Les scores personnalisés sont visibles dans le PNG téléchargé et dans le résultat reconstruit après ouverture. La partie partagée n'écrase pas automatiquement votre sauvegarde. Aucun profil politique n'est constitué et les choix ne servent pas au ciblage publicitaire.</p>
+<h2>Version et corrections</h2>
+<p>Version 2, créée le 4 septembre 2026. Le moteur v1 est conservé pour les sauvegardes et les liens antérieurs. Les paramètres sont figés dans le dépôt. Les erreurs du modèle doivent être corrigées avec une version explicite et des tests de régression. Le projet n'a pas encore fait l'objet d'une validation indépendante par des professionnels des finances publiques ni de tests utilisateurs de compréhension.</p>
+<a class="button primary" href="/mandats/">Choisir mon mandat</a>
+</main>
+</body>
+</html>

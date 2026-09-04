@@ -1,3 +1,4 @@
+export type Ambition = "equilibre" | "services" | "resilience";
 export type Mode = "municipal" | "national";
 export type Metrics = { services: number; cohesion: number; resilience: number; trust: number; assets: number };
 export type Area = { id: string; name: string; need: string; services: number; resilience: number; x: number; y: number };
@@ -20,7 +21,7 @@ export type Ledger = { revenue: number; operating: number; interest: number; sav
 export type Pending = { due: number; label: string; effect: Effect };
 export type Turn = { year: number; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
 export type Game = {
-  version: 1; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  version: 1 | 2; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
   areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[];
 };
 export type Domain = {

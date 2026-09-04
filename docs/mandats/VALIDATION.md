@@ -1,4 +1,36 @@
-# Vérification de Mandats
+# Vérification de la refonte visuelle et du modèle v2
+
+Date : 4 septembre 2026. La section v1 ci-dessous est conservée comme historique. Les chiffres de performance et scores de v1 ne décrivent pas la nouvelle version.
+
+- `npm test` : **1 318 tests réussis, zéro échec**.
+- `npm run build` : TypeScript application/scripts/fonctions, Vite, génération PNG et pré-rendu réussis.
+- Six tests nouveaux couvrent les scores v1 exacts et leur copie fiscale, les priorités et liens v2, les livraisons visuelles, le choc énergétique tardif, trésorerie/confiance/engagements futurs et l'exploration des chemins légaux pour toutes les classes de graines d'événements.
+- Pour les trois intensités municipales et les quatre nationales, chaque priorité produit une meilleure trajectoire différente. Aucun état exploré n'est bloqué sans possibilité de redressement. Il s'agit d'une vérification de ce scénario étroit, pas d'un équilibrage AAA général.
+- Sauvegardes et anciens liens v1 : moteur original conservé, scores inchangés dans deux fixtures exactes. Nouvelles parties v2 : priorité enregistrée et incluse dans les défis, résultats et cartes.
+- Trois illustrations originales générées puis optimisées en six WebP. Ville héritée, ville rénovée à caméra constante, relief national illustratif. Aucun ajout de dépendance de production.
+- Bundle Mandats : **20,34 Ko gzip** ; CSS Mandats et méthodologie : **9,30 Ko gzip** ; HTML jeu : **1,41 Ko gzip**, hors polices et images.
+- Images 768 px : **59 832 à 77 822 octets** chacune. Images 1 536 px : **233 154 à 263 080 octets**. Les couches municipales réutilisent la même image rénovée et son cache.
+- Le gros bundle historique reste isolé et conserve son avertissement de build. Aucun LCP/INP/CLS terrain ni niveau de performance sur téléphone physique n'est revendiqué.
+
+## Observations v2
+
+Les captures [ville](captures/ville-v2.jpg) et [national](captures/national-v2.jpg) proviennent du navigateur de vérification, pas d'une maquette générée. Elles montrent le code exécuté.
+
+Parcours municipal terminé sur bureau et cadre 390 px : écoles, taux stables, îlots de fraîcheur, entretien, projet cofinancé, patrimoine final. Les écoles ne changent visuellement qu'en année 3. Les berges et le centre changent en année 4. Le bouton avant/maintenant rétablit l'image et les indices initiaux. La vue légère est activable depuis « Ma partie » sur le cadre mobile et conserve les détails territoriaux.
+
+Le parcours national Résilience est terminé sur bureau (61/100) et le parcours Services sur cadre 390 px (58/100). Ces scores sont des sorties fictives sous des priorités différentes et ne sont pas directement comparables. Le deuxième choc énergétique et l’expiration de l’aide temporaire sont visibles dans le journal. Le retour à la vue Finances ne change pas le tour ni les décisions.
+
+Les cartes nationales 1200×630 et 1080×1350 ont été rasterisées et inspectées après ajout de la priorité et des labels v2. Elles distinguent simulation, version et priorité. Les anciennes vérifications du téléchargement restent listées dans l'historique.
+
+Le cadre 320 px réserve 15 px à la barre de défilement du navigateur de bureau : largeur utile 305 px. Après suppression d’une largeur minimale héritée, l’accueil, le bilan, les décisions et les territoires ont une largeur de contenu égale à ces 305 px, sans débordement horizontal. Le cadre 390 px a 375 px utiles ; la vue Finances ne déborde pas non plus.
+
+Les animations sont désactivées par `prefers-reduced-motion`. Les marqueurs ont une cible de 44 px et un nom accessible, le clavier active les choix, les dialogues utilisent le mécanisme modal natif. Ces contrôles ne valent pas une certification WCAG ni une campagne VoiceOver/TalkBack.
+
+Les données restent fictives. La carte nationale est une illustration, les profils ne sont pas des régions administratives. Les couches de ville expriment des projets de quartier sans représenter chaque chantier. La méthode v2 publie les pondérations, formules, seuils et limites. Aucun compte, publicité, traceur ni réponse sociale n'est activé.
+
+---
+
+# Vérification initiale de Mandats v1
 
 Date : 4 septembre 2026. Portée : tranche jouable dans `500SIGNATURESV2`, pas audit de certification ni étude utilisateurs.
 

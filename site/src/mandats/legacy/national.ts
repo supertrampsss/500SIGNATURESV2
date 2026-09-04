@@ -1,5 +1,5 @@
-import type { Domain, Finance, Ledger } from "./types.ts";
-import { clamp } from "./types.ts";
+import type { Domain, Finance, Ledger } from "../types.ts";
+import { clamp } from "../types.ts";
 
 /** Consolidated APU scenario, in synthetic billions. Internal transfers excluded. */
 export function nationalBudget(f: Finance): Ledger {
@@ -17,7 +17,7 @@ export const national: Domain = {
   initial: () => ({ finance: { revenue: 1490, operating: 1500, investment: 40, debt: 3200, cash: 0, rate: .018, marketRate: .035, repayment: 0, grants: 0, gdp: 2800, growth: .012, deflator: .018, stockFlow: 0 }, metrics: { services: 57, cohesion: 52, resilience: 39, trust: 52, assets: 59 }, areas: [ { id: "metropoles", name: "Métropoles", need: "Logement et services", services: 69, resilience: 48, x: 49, y: 28 }, { id: "industrie", name: "Bassins industriels", need: "Énergie et reconversion", services: 49, resilience: 25, x: 68, y: 44 }, { id: "rural", name: "Espaces ruraux", need: "Accès aux services", services: 39, resilience: 43, x: 34, y: 55 }, { id: "littoraux", name: "Territoires littoraux", need: "Adaptation climatique", services: 55, resilience: 32, x: 53, y: 75 } ] }),
   dossiers: [
     { category: "Fiscalité", title: "Donner des moyens, à quel prix ?", story: "Les recettes ne couvrent pas les dépenses héritées. Un choix fiscal agit immédiatement sur le solde et durablement sur les ménages ou les entreprises.", advisor: "Conseil budgétaire · Les rendements sont des hypothèses fixes de scénario, pas des estimations fiscales.", choices: [
-      { id: "assiette", title: "Élargir l'assiette fiscale", description: "Réduire des exemptions dans ce scénario simplifié.", cost: "+20 Md€ de recettes par an", benefit: "Déficit réduit", sacrifice: "Confiance −8, cohésion −6", effect: { revenue: 20, trust: -8, cohesion: -6 } },
+      { id: "assiette", title: "Élargir l'assiette fiscale", description: "Réduire des exemptions dans ce scénario simplifié.", cost: "+30 Md€ de recettes par an", benefit: "Déficit réduit", sacrifice: "Confiance −6", effect: { revenue: 30, trust: -6, cohesion: 3 } },
       { id: "neutre", title: "Maintenir la fiscalité", description: "Conserver les règles et traiter la dépense ensuite.", cost: "Recettes inchangées", benefit: "Stabilité immédiate", sacrifice: "Besoin de financement inchangé", effect: { trust: 2 } },
       { id: "allegement", title: "Alléger les prélèvements", description: "Réduire la charge des contribuables, avec moins de recettes garanties.", cost: "−20 Md€ de recettes par an", benefit: "Confiance +7", sacrifice: "Dette accrue, croissance non garantie", effect: { revenue: -20, trust: 7, cohesion: 2 } },
     ] },
@@ -42,8 +42,8 @@ export const national: Domain = {
       { id: "cohesion", title: "Préserver la cohésion", description: "Pérenniser un programme d'accès aux services.", cost: "+8 Md€ de charges par an", benefit: "Cohésion +10, services +5", sacrifice: "Engagement de dépense récurrente", effect: { operating: 8, cohesion: 10, services: 5, area: "rural" } },
     ] },
   ],
-  event: (g) => g.turn === 2 ? { label: "Choc énergétique : exposition inégale", effect: { services: -4, cohesion: -(8 + g.seed % 4) * (1 - g.areas.find(a => a.id === "industrie")!.resilience / 100), growth: -.006, area: "industrie" } } : g.turn === 3 ? { label: "Reprise partielle après le choc", effect: { growth: .004, trust: 1 } } : g.turn === 4 ? { label: "Nouvelle tension énergétique : vos investissements protègent le territoire", effect: { services: -2 * (1 - g.areas.find(a => a.id === "industrie")!.resilience / 100), cohesion: -4 * (1 - g.areas.find(a => a.id === "industrie")!.resilience / 100), area: "industrie" } } : { label: "Les engagements antérieurs se poursuivent", effect: {} },
+  event: (g) => g.turn === 2 ? { label: "Choc énergétique : exposition inégale", effect: { services: -4, cohesion: -(8 + g.seed % 4) * (1 - g.metrics.resilience / 100), growth: -.006 } } : g.turn === 3 ? { label: "Reprise partielle après le choc", effect: { growth: .004, trust: 1 } } : { label: "Les engagements antérieurs se poursuivent", effect: {} },
   settle: nationalBudget,
   prepare: (f) => ({ ...f, investment: 40, grants: 0, repayment: 0, rate: f.rate + .2 * (f.marketRate - f.rate) }),
-  sustainability: (g) => clamp(65 - (g.finance.debt / g.finance.gdp * 100 - 3200 / 2800 * 100) * 3 - .25 * ((g.finance.operating + g.finance.debt * g.finance.rate + 40 - g.finance.revenue) - 107.6)),
+  sustainability: (g) => clamp(65 - (g.finance.debt / g.finance.gdp * 100 - 3200 / 2800 * 100) * 3),
 };

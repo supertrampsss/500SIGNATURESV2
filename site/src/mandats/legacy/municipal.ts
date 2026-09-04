@@ -1,5 +1,5 @@
-import type { Domain, Finance, Ledger } from "./types.ts";
-import { clamp } from "./types.ts";
+import type { Domain, Finance, Ledger } from "../types.ts";
+import { clamp } from "../types.ts";
 
 /** All financial inputs are synthetic millions, not the accounts of a real city. */
 export function municipalBudget(f: Finance): Ledger {
@@ -30,7 +30,7 @@ export const municipal: Domain = {
       { id: "reporter", title: "Reporter le chantier", description: "Conserver les moyens pour un autre besoin cette année.", cost: "Aucun chantier supplémentaire", benefit: "Préserver la trésorerie", sacrifice: "Entretien plus coûteux dans deux ans", effect: { trust: -4, assets: -5 }, delayed: { after: 2, label: "La réparation différée devient urgente : 2 M€/an de charges supplémentaires.", effect: { operating: 2, assets: -6, services: -4, area: "hauts" } } },
     ] },
     { category: "Recettes & pouvoir d'achat", title: "Qui finance la suite du mandat ?", story: "Les projets ont besoin de recettes durables. Une hausse fiscale donne de la marge, mais pèse sur les propriétaires. Une baisse est populaire, mais permanente.", advisor: "Direction financière · Les recettes choisies se prolongent jusqu'à la fin du mandat.", choices: [
-      { id: "recettes", title: "Renforcer les recettes locales", description: "Ajuster la fiscalité dans le cadre simplifié du scénario.", cost: "+4 M€ de recettes par an", benefit: "Marge d'investissement accrue", sacrifice: "Confiance −10, cohésion −7", effect: { revenue: 4, trust: -10, cohesion: -7 } },
+      { id: "recettes", title: "Renforcer les recettes locales", description: "Ajuster la fiscalité dans le cadre simplifié du scénario.", cost: "+4 M€ de recettes par an", benefit: "Marge d'investissement accrue", sacrifice: "Confiance −6, cohésion −3", effect: { revenue: 4, trust: -6, cohesion: -3 } },
       { id: "stabilite", title: "Maintenir les taux", description: "Préserver l'équilibre actuel, avec moins de projets possibles.", cost: "Recettes inchangées", benefit: "Visibilité pour les habitants", sacrifice: "Aucune marge supplémentaire", effect: { trust: 2 } },
       { id: "baisse", title: "Alléger la fiscalité", description: "Rendre du pouvoir d'achat et réduire durablement les recettes.", cost: "−3 M€ de recettes par an", benefit: "Confiance +7", sacrifice: "Moins de capacité d'autofinancement", effect: { revenue: -3, trust: 7, cohesion: 2 } },
     ] },
@@ -55,8 +55,8 @@ export const municipal: Domain = {
       { id: "solidarite", title: "Renforcer les services essentiels", description: "Pérenniser l'accompagnement et l'accueil de proximité.", cost: "+1 M€ de charges par an", benefit: "Cohésion +10, services +6", sacrifice: "Charge transmise au mandat suivant", effect: { operating: 1, cohesion: 10, services: 6, area: "hauts" } },
     ] },
   ],
-  event: (g) => g.turn === 2 ? { label: "Canicule : les services s'adaptent", effect: { services: -(7 + g.seed % 3) * (1 - g.areas.find(a => a.id === "rives")!.resilience / 100), trust: -3, area: "rives" } } : g.turn === 4 ? { label: "Usure des équipements : votre entretien compte", effect: { services: -Math.max(0, 65 - g.metrics.assets) / 6, trust: -1 } } : { label: "L'année suit son cours", effect: {} },
+  event: (g) => g.turn === 2 ? { label: "Canicule : les services s'adaptent", effect: { services: -(7 + g.seed % 3) * (1 - g.metrics.resilience / 100), trust: -3 } } : g.turn === 4 ? { label: "Usure des équipements : votre entretien compte", effect: { services: -Math.max(0, 65 - g.metrics.assets) / 6, trust: -1 } } : { label: "L'année suit son cours", effect: {} },
   settle: municipalBudget,
   prepare: (f) => ({ ...f, investment: 4, grants: 2, repayment: Math.min(4, f.debt) }),
-  sustainability: (g) => clamp(40 + .6 * (52 - (g.finance.debt - g.finance.cash)) + 1.5 * (g.finance.revenue - g.finance.operating - g.finance.debt * g.finance.rate - 4)),
+  sustainability: (g) => clamp(55 + (60 - g.finance.debt) * .65 + (g.finance.revenue - g.finance.operating - g.finance.debt * g.finance.rate - 4) * 2),
 };
