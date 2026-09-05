@@ -134,7 +134,7 @@ async function action(target: HTMLElement) {
     try {
       const city=await loadCity(target.dataset.code!,controller.signal);
       if(controller.signal.aborted || g!==current || screen!=="mandate")return;
-      g=start("municipal",current.seed,current.ambition,3,city); render(false);
+      g=start("municipal",current.seed,current.ambition,4,city); render(false);
       root.querySelector<HTMLElement>('.initial-cap-card')?.focus();
       announce(`Comptes de ${city.name} chargés. Choisissez votre cap.`);
     } catch(err) {
@@ -144,7 +144,7 @@ async function action(target: HTMLElement) {
     }
     return;
   }
-  if(a === "fictional-city" && g && screen === "mandate") {g=start("municipal",g.seed,g.ambition,3);render(false);root.querySelector<HTMLElement>('.initial-cap-card')?.focus();return;}
+  if(a === "fictional-city" && g && screen === "mandate") {g=start("municipal",g.seed,g.ambition,4);render(false);root.querySelector<HTMLElement>('.initial-cap-card')?.focus();return;}
   if (a === "choose-cap" && g && screen === "mandate") { adopt(start(g.mode,g.seed,target.dataset.ambition as Ambition,g.version,g.city)); persist(); track("onboarding_completed"); render(); return; }
   if (a === "replay-ambition" && g) { track("replay_started"); adopt(start(g.mode, g.seed, target.dataset.ambition as Ambition,g.version,g.city)); persist(); render(); return; }
   if (a === "pilot-consent") { try { setPilotConsent(localStorage,!pilotEnabled(localStorage)); announce(pilotEnabled(localStorage) ? "Journal de test activé localement. Aucun envoi et aucune décision enregistrée." : "Journal de test désactivé et effacé."); target.setAttribute("aria-pressed",String(pilotEnabled(localStorage))); } catch { announce("Le stockage local est indisponible."); } return; }
@@ -166,7 +166,7 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",3); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); }
+  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); }
   else if (a === "resume" && saved) { adopt(saved); }
   else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Décision ${g.turn} prise. ${g.turn === domainFor(g).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === domainFor(g).turns) track("game_completed"); }
   else if (a === "view") { view = target.dataset.view as View; }
@@ -242,7 +242,7 @@ document.addEventListener("keydown",event=>{
 });
 const requestedCity=new URL(location.href).searchParams.get("city");
 if(requestedCity && /^(?:\d{5}|2[AB]\d{3})$/.test(requestedCity) && screen==="select"){
- g=start("municipal",42,"equilibre",3);screen="mandate";render(false);
+ g=start("municipal",42,"equilibre",4);screen="mandate";render(false);
  const command=document.createElement("button");command.dataset.action="pick-city";command.dataset.code=requestedCity;
  void action(command).catch(error=>announce(error instanceof Error?error.message:"Commune indisponible."));
 }

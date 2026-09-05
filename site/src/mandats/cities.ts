@@ -1,4 +1,6 @@
 import type { Finance } from './types.ts';
+import { extractCityContext, validCityContext } from './city-context.ts';
+import type { CityContext } from './city-context.ts';
 
 /** No main application, map, geolocation or private resident data is loaded here. */
 const BASE = import.meta.env?.VITE_DONNEES_URL ?? 'https://pub-fc39d357004540a182a907aed4875ef5.r2.dev';
@@ -18,9 +20,10 @@ export type CityBaseline = Readonly<{
   center: Readonly<{ longitude: number; latitude: number; source: string }> | null;
   provenance: Readonly<{ producer: string; title: string; licence: string; source: string; extraction: string; snapshot: string }>;
   assumptions: readonly string[];
+  context?: CityContext;
 }>;
 type Index = { codes: string[]; noms: string[]; parents: (string | null)[]; population_municipale: (number | null)[]; millesime_geographique: number | null };
-type Territory = { nom: string; population: number | null; series: Record<string, Record<string, number | null>> };
+type Territory = { nom: string; population: number | null; series: Record<string, Record<string, number | null>>; drapeaux?: Record<string, unknown> };
 type Manifest = { jeux: { id: string; titre: string; producteur: string; licence: string; url: string; extraction: string }[] };
 const ASSUMPTIONS = Object.freeze([
   'Comptes OFGL consolidés de la commune, pas budget de toute son intercommunalité. Paris exerce aussi des compétences départementales.',
@@ -71,6 +74,7 @@ export function validateCityBaseline(input: unknown): input is CityBaseline {
     (b.populationYear !== null && (!Number.isInteger(b.populationYear) || b.populationYear < 2000 || b.populationYear > 2200)) ||
     !validCenter(b.center, b.code) || !b.observed || !b.mappedFinance || !b.provenance) return false;
   const o = b.observed;
+  if (b.context !== undefined && !validCityContext(b.context, b.year, { revenue: o?.revenue, savings: o?.savings, investment: o?.investment, debt: o?.debt })) return false;
   if (Object.keys(FIELDS).some(key => !finite(o[key as keyof Observed]) || o[key as keyof Observed] < 0) ||
     o.revenue <= 0 || o.operating < o.financialCharges ||
     Math.abs(o.revenue - o.operating - o.savings) > 0.02 || o.savings < Math.min(o.repayment, o.debt)) return false;
@@ -162,6 +166,7 @@ export async function loadCity(code: string, signal?: AbortSignal): Promise<City
     mappedFinance: Object.freeze(mapFinance(observed)), center,
     provenance: Object.freeze({ producer: source.producteur, title: source.titre, licence: source.licence, source: source.url, extraction: source.extraction, snapshot: `${BASE}/${path}` }),
     assumptions: ASSUMPTIONS,
+    context: extractCityContext(territory.series, territory.drapeaux, Number(year)),
   };
   if (!validateCityBaseline(baseline)) return fail();
   return Object.freeze(baseline);

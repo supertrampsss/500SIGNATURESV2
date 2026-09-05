@@ -74,3 +74,15 @@ Le retour utilisateur remplace l'objectif de rester sur cinq/six décisions. Voi
 - Exploration MapLibre avec bâtiments OpenFreeMap/OpenMapTiles et hauteurs parfois estimées. Le navigateur cloud a validé le repli, pas le rendu WebGL complet. Ce n’est pas un jumeau numérique relevé de Bordeaux.
 - Les programmes simulés sont suivis séparément : ils ne changent pas les bâtiments géographiques. Leur implantation réelle et le téléchargement cartographique hors ligne restent ouverts.
 - Le jeu complet, y compris les anciens formats, reste indépendant des services de données après préparation. Les onglets France/Territoires ne sont pas intégralement disponibles hors connexion.
+
+## Personnalisation communale v4, 5 septembre 2026
+
+- [x] 45 décisions par nouvelle partie : municipal 8/8/8/7/7/7, national 9/9/9/9/9. Liens des guides actualisés.
+- [x] Historique OFGL de quatre exercices maximum conservé avec la sauvegarde, sans requête pendant le mandat.
+- [x] 18 dossiers locaux sélectionnés et calibrés selon les comptes et critères OFGL, 27 situations de services explicitement fictives.
+- [x] Les propositions et leur ordre changent à recettes identiques lorsque le profil financier change.
+- [x] Anciennes parties v1/v2/v3 conservées avec leurs règles, sans migration forcée.
+- [x] Sources en bas de page, choix directs, aucune étape ou accordéon ajouté.
+- [ ] Enrichissement INSEE/BPE/Géorisques : raccordement, licences, qualité, géographie et millésimes avant utilisation dans le moteur.
+- [ ] Dossiers documentaires de communes pilotes : extraction sourcée de projets, coûts, statut (annoncé/voté/exécuté), compétence et revue humaine. Aucune publication locale détaillée inventée.
+- [ ] Diagnostic par équipement réel et attribution géographique des projets : nécessite des données attestant les besoins, pas seulement l’existence d’un bâtiment.
