@@ -9,9 +9,9 @@ test("both mandates have direct accessible choices and optional context", () => 
   for (const mode of ["municipal", "national"] as const) {
     assert.match(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
     const g = start(mode);
-    const setup = mandateSetup(g);
-    assert.equal((setup.match(/data-action="choose-cap"/g) ?? []).length, 3);
-    assert.match(setup,/Un choix pour tout le mandat/);
+    const setup = mandateSetup(start("municipal",42,"equilibre",4));
+    assert.match(setup,/id="city-query"/);
+    assert.doesNotMatch(setup,/data-action="choose-cap"|Cap du mandat/);
     assert.doesNotMatch(gameShell(g,"play","decision"),/data-action="choose-cap"|data-action="ambition"|Cap :/);
     for (const view of ["decision", "territory", "finance", "journal"] as const) {
       const rendered = gameShell(g, "play", view);
@@ -37,7 +37,7 @@ test("each choice leads to the next dossier with an optional report, then the fi
     }
     const result = gameShell(g, "result", "decision");
     assert.match(result, /data-action="share"/); assert.match(result, /data-action="replay"/);
-    assert.doesNotMatch(result, /undefined|NaN/);
+    assert.doesNotMatch(result, /undefined|NaN|replay-ambition|Rejouer avec une autre priorité/);
   }
 });
 

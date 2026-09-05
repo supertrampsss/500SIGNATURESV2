@@ -47,3 +47,9 @@ La [consigne de style OpenAI](https://developers.openai.com/api/docs/guides/late
 - Ne pas attribuer un besoin précis à une vraie ville sur la seule base de ses comptes.
 
 La relecture porte sur le sens de chaque phrase, pas sur une liste de mots interdits.
+
+## Démarrage sans choix de priorité
+
+Le choix initial entre budget, services et prévention est retiré, ainsi que le sélecteur de priorité en fin de partie. Le mode national ouvre la première question. En municipal, choisir une commune ou la ville fictive ouvre la première question et sauvegarde la partie.
+
+Les nouvelles parties utilisent le barème commun existant : finances 40 %, services 20 %, cohésion/confiance 20 %, résilience/patrimoine 20 %. Les anciennes sauvegardes et les défis partagés gardent leur pondération pour rester reproductibles. Les 45 décisions et les règles financières restent identiques.

@@ -5,7 +5,7 @@ const publicationFixture=JSON.parse(await readFile(new URL('./fixtures/editorial
 const CITY_SECOND='Faut-il ouvrir la mairie un soir ?';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(3);await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(4);}
+async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(0);if(mode==='municipal')await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(4);}
 async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
 for(const mode of ['municipal','national'])test(`${mode}: complete touch campaign, sharing and replay`,async({page},info)=>{
  test.setTimeout(120000);
@@ -16,7 +16,7 @@ for(const mode of ['municipal','national'])test(`${mode}: complete touch campaig
   await choose(page,info);
  }
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length)).toBe(45);
- await expect(page.locator('.result')).toBeVisible();await expect(page.locator('.score-number')).toContainText('/100');
+ await expect(page.locator('.result')).toBeVisible();await expect(page.locator('[data-action="replay-ambition"]')).toHaveCount(0);await expect(page.locator('.score-number')).toContainText('/100');
  await activate(page.getByRole('button',{name:'Partager mon héritage',exact:true}),info);await expect(page.getByRole('dialog')).toHaveAccessibleName('Partager votre mandat');
  const downloadEvent=page.waitForEvent('download');await activate(page.getByRole('button',{name:'1200 × 630',exact:true}),info);const download=await downloadEvent;const bytes=await readFile(await download.path());expect(bytes.subarray(1,4).toString()).toBe('PNG');expect(bytes.readUInt32BE(16)).toBe(1200);expect(bytes.readUInt32BE(20)).toBe(630);
  await activate(page.getByRole('button',{name:'Défi',exact:true}),info);await expect(page.locator('.share-preview')).toContainText('SANS VOS CHOIX');await noOverflow(page);await activate(page.getByRole('button',{name:'Fermer',exact:true}),info);
@@ -56,11 +56,11 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
  await activate(page.getByRole('link',{name:'Tester ce type d’arbitrage',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
 });
 
-test('the cap is a required initial choice and remains fixed during the mandate',async({page},info)=>{
+test('choose a city and start directly without a priority selector',async({page},info)=>{
  await page.goto(HOME);await activate(page.getByRole('button',{name:/Gouverner une ville/}),info);
- await expect(page.locator('.initial-cap-card')).toHaveCount(3);await expect(page.locator('.dossier')).toHaveCount(0);await noOverflow(page);
- await activate(page.locator('[data-action="choose-cap"][data-ambition="services"]'),info);await expect(page.locator('.dossier h1')).toBeFocused();await expect(page.locator('.initial-cap-card')).toHaveCount(0);
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).ambition)).toBe('services');
+ await expect(page.locator('.initial-cap-card')).toHaveCount(0);await expect(page.locator('#city-query')).toBeVisible();await expect(page.locator('.dossier')).toHaveCount(0);await noOverflow(page);
+ await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);await expect(page.locator('.dossier h1')).toBeFocused();await expect(page.locator('.initial-cap-card')).toHaveCount(0);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).ambition)).toBe('equilibre');
  await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('[data-action="ambition"],[data-action="choose-cap"]')).toHaveCount(0);
  await choose(page,info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);await expect(page.locator('.dossier details')).toHaveCount(0);await expect(page.locator('.page-notes')).toContainText('Le contexte en détail');
  await expect(page.locator('.pulse')).toHaveCount(0);await expect(page.locator('.mobile-mandate-context')).toBeVisible();await expect(page.locator('.choice').first()).toHaveCSS('display','flex');await expect(page.locator('.choice-outcome').first()).toHaveCSS('display','block');
@@ -93,9 +93,8 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  const cityButton=page.locator('#city-results [data-code="33063"]');
  await expect(cityButton).toBeVisible();
  await page.locator('#city-query').press('ArrowDown');await expect(cityButton).toBeFocused();await cityButton.press('Enter');
- await expect(page.locator('.city-setup-summary')).toContainText('Bordeaux');
- await expect(page.locator('.city-setup-summary')).toContainText('2025');
- await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);
+ await expect(page.locator('.mandate-setup')).toHaveCount(0);
+ await expect(page.locator('.initial-cap-card')).toHaveCount(0);
  await expect(page.locator('.dossier')).toBeVisible();
  const initial=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
  expect(initial.version).toBe(4);expect(initial.city.code).toBe('33063');expect(initial.city.name).toBe('Bordeaux');
@@ -124,4 +123,21 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  for(let decision=2;decision<45;decision++)await choose(page,info);
  await expect(page.locator('.result')).toBeVisible();
  expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).choices).toHaveLength(45);
+});
+
+
+test('failed city loading keeps the search and fictional fallback usable',async({page},info)=>{
+ await cityPublication(page);
+ await page.route('**/territoires/commune/33.json',route=>route.fulfill({status:503,body:'Unavailable'}));
+ await page.goto(HOME);await activate(page.getByRole('button',{name:/Gouverner une ville/}),info);
+ await page.getByRole('searchbox',{name:'Nom de commune ou code INSEE'}).fill('Bordeaux');
+ const cityButton=page.locator('#city-results [data-code="33063"]');
+ await expect(cityButton).toBeVisible();await activate(cityButton,info);
+ await expect(page.locator('#city-status')).not.toContainText('Chargement');
+ await expect(cityButton).toBeEnabled();await expect(page.locator('#city-query')).toBeVisible();
+ expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBeNull();
+ await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);
+ await expect(page.locator('.dossier h1')).toBeFocused();
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
+ expect(saved.choices).toEqual([]);expect(saved.city).toBeUndefined();expect(saved.ambition).toBe('equilibre');
 });

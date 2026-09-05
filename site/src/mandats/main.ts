@@ -8,7 +8,7 @@ import { prepareOffline, removeOffline, updateOffline } from "./offline.ts";
 import { cardModel, cardSVG, cardURL } from "./cards.ts";
 import type { CardKind } from "./cards.ts";
 import { clearEntryLink, entrySession, localSession } from "./session.ts";
-import type { Ambition, Game, Mode } from "./types.ts";
+import type { Game, Mode } from "./types.ts";
 import { gameShell, mandateSetup, selection } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY, MAX_SAVE_BYTES } from "./storage.ts";
@@ -107,7 +107,7 @@ async function png(format: keyof typeof CARD_SIZES) {
 function sharingSheet() {
   if (!g) return;
   const model = cardModel(g, cardKind);
-  sheet("Partager votre mandat", `<div class="card-kind-picker" role="group" aria-label="Type de carte">${([...(g.turn === domainFor(g).turns ? ["result"] : []), ...(g.turn ? ["decision"] : []), "challenge"] as CardKind[]).map(kind => `<button class="button" data-action="card-kind" data-kind="${kind}" aria-pressed="${kind === cardKind}">${({result:"Héritage",decision:"Décision",challenge:"Défi"})[kind]}</button>`).join("")}</div><p>${cardKind === "challenge" ? "Le défi contient uniquement le scénario et la priorité, sans votre parcours." : cardKind === "decision" ? "Le lien restitue les décisions antérieures pour replacer le destinataire devant ce dilemme. Votre carte décrit le choix effectué. Partagez le défi pour garder le parcours privé." : "Le lien de résultat permet de reconstruire vos décisions dans le jeu. Partagez le défi pour garder votre parcours privé."}</p><div class="share-preview">${cardSVG(g, cardKind, "landscape")}</div><div class="share-buttons"><button class="button primary" data-action="native-share">Partager ${cardKind === "decision" ? "le dilemme" : cardKind === "challenge" ? "le défi" : "le résultat"}</button><button class="button" data-action="copy-result">Copier le lien</button><button class="button" data-action="copy-description">Copier la description de l’image</button></div><h3>Télécharger la carte</h3><div class="format-buttons">${Object.entries(CARD_SIZES).map(([key,[w,h]])=>`<button class="button" data-action="png" data-format="${key}">${w} × ${h}</button>`).join("")}</div><section class="tool-section"><h3>Texte de la carte</h3><p>${escape(model.alt)}</p></section><p class="scope">Image créée sur votre appareil. Aucun envoi automatique. Les aperçus des réseaux restent génériques ; la carte téléchargée contient votre résultat.</p>`);
+  sheet("Partager votre mandat", `<div class="card-kind-picker" role="group" aria-label="Type de carte">${([...(g.turn === domainFor(g).turns ? ["result"] : []), ...(g.turn ? ["decision"] : []), "challenge"] as CardKind[]).map(kind => `<button class="button" data-action="card-kind" data-kind="${kind}" aria-pressed="${kind === cardKind}">${({result:"Héritage",decision:"Décision",challenge:"Défi"})[kind]}</button>`).join("")}</div><p>${cardKind === "challenge" ? "Le défi contient le point de départ et les règles du jeu, sans votre parcours." : cardKind === "decision" ? "Le lien restitue les décisions antérieures pour replacer le destinataire devant ce dilemme. Votre carte décrit le choix effectué. Partagez le défi pour garder le parcours privé." : "Le lien de résultat permet de reconstruire vos décisions dans le jeu. Partagez le défi pour garder votre parcours privé."}</p><div class="share-preview">${cardSVG(g, cardKind, "landscape")}</div><div class="share-buttons"><button class="button primary" data-action="native-share">Partager ${cardKind === "decision" ? "le dilemme" : cardKind === "challenge" ? "le défi" : "le résultat"}</button><button class="button" data-action="copy-result">Copier le lien</button><button class="button" data-action="copy-description">Copier la description de l’image</button></div><h3>Télécharger la carte</h3><div class="format-buttons">${Object.entries(CARD_SIZES).map(([key,[w,h]])=>`<button class="button" data-action="png" data-format="${key}">${w} × ${h}</button>`).join("")}</div><section class="tool-section"><h3>Texte de la carte</h3><p>${escape(model.alt)}</p></section><p class="scope">Image créée sur votre appareil. Aucun envoi automatique. Les aperçus des réseaux restent génériques ; la carte téléchargée contient votre résultat.</p>`);
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
@@ -127,23 +127,20 @@ async function action(target: HTMLElement) {
     const current=g;
     const status=root.querySelector<HTMLElement>("#city-status");
     if(status)status.textContent="Chargement des comptes de la commune…";
-    root.querySelectorAll<HTMLButtonElement>('.initial-cap-card').forEach(b=>b.disabled=true);
+    (target as HTMLButtonElement).disabled=true;
     try {
       const city=await loadCity(target.dataset.code!,controller.signal);
       if(controller.signal.aborted || g!==current || screen!=="mandate")return;
-      g=start("municipal",current.seed,current.ambition,4,city); render(false);
-      root.querySelector<HTMLElement>('.initial-cap-card')?.focus();
-      announce(`Comptes de ${city.name} chargés. Choisissez votre cap.`);
+      adopt(start("municipal",current.seed,"equilibre",4,city)); persist(); track("onboarding_completed"); render();
+      announce(`Comptes de ${city.name} chargés. Première décision.`,true);
     } catch(err) {
       if(controller.signal.aborted)return;
       if(status)status.textContent=err instanceof Error?err.message:"Commune indisponible.";
-      root.querySelectorAll<HTMLButtonElement>('.initial-cap-card').forEach(b=>b.disabled=false);
+      (target as HTMLButtonElement).disabled=false;
     }
     return;
   }
-  if(a === "fictional-city" && g && screen === "mandate") {g=start("municipal",g.seed,g.ambition,4);render(false);root.querySelector<HTMLElement>('.initial-cap-card')?.focus();return;}
-  if (a === "choose-cap" && g && screen === "mandate") { adopt(start(g.mode,g.seed,target.dataset.ambition as Ambition,g.version,g.city)); persist(); track("onboarding_completed"); render(); return; }
-  if (a === "replay-ambition" && g) { track("replay_started"); adopt(start(g.mode, g.seed, target.dataset.ambition as Ambition,g.version,g.city)); persist(); render(); return; }
+  if(a === "fictional-city" && g && screen === "mandate") {adopt(start("municipal",g.seed,"equilibre",4));persist();track("onboarding_completed");render();return;}
   if (a === "pilot-consent") { try { setPilotConsent(localStorage,!pilotEnabled(localStorage)); announce(pilotEnabled(localStorage) ? "Journal de test activé localement. Aucun envoi et aucune décision enregistrée." : "Journal de test désactivé et effacé."); target.setAttribute("aria-pressed",String(pilotEnabled(localStorage))); } catch { announce("Le stockage local est indisponible."); } return; }
   if (a === "pilot-export") { download(new Blob([JSON.stringify({version:1,events:readPilot(localStorage)},null,2)],{type:"application/json"}),"mandats-journal-test.json"); announce("Journal exporté sur votre appareil, sans envoi."); return; }
   if (a === "offline-prepare") { announce("Téléchargement du jeu pour jouer sans connexion…"); const result = await prepareOffline(); announce(result.update ? "Une mise à jour est prête. Utilisez Mettre à jour le jeu pour l’activer." : "Le jeu est prêt hors connexion. Votre navigateur peut libérer ce stockage ; exportez les parties importantes."); return; }
@@ -163,14 +160,14 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); }
+  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); if(g.mode === "national") {adopt(g);persist();track("onboarding_completed");} }
   else if (a === "resume" && saved) { adopt(saved); }
   else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Décision ${g.turn} prise. ${g.turn === domainFor(g).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === domainFor(g).turns) track("game_completed"); }
   else if (a === "view") { view = target.dataset.view as View; }
   else if (a === "new") { inherited = false; screen = "select"; shared = false; clearEntryLink(history); }
   else if (a === "replay" && g) { track("replay_started"); adopt(startingGame(g)); persist(); }
   else if (a === "helper") { sheet("Quel mandat choisir ?", "<p><strong>La ville</strong> : des écoles, des équipements et des quartiers. Les projets sont concrets, les budgets de fonctionnement et d'investissement distincts. 45 décisions sur six années.</p><p><strong>La France</strong> : fiscalité, services, énergie et dette, avec des effets à l'échelle de profils territoriaux fictifs. 45 décisions sur cinq années.</p><p>Les deux parcours sont entièrement jouables sur téléphone, sans compte.</p>"); return; }
-  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les communes choisies utilisent un instantané de comptes publiés. Les coûts des mesures, les zones et les effets restent des hypothèses de jeu. Val-sur-Rive et le scénario national sont fictifs.</p><p>Le mandat long comporte 45 décisions. Le plan évolue à chaque dossier, mais intérêts, dette et trésorerie sont comptabilisés une seule fois en fin d’année. Les livraisons suivent leur calendrier. Le détail reste dans le journal.</p><p>La priorité choisie au départ détermine le poids des finances, services, cohésion/confiance et résilience/patrimoine. Les anciennes parties v1 et v2 conservent leurs règles. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
+  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les communes choisies utilisent un instantané de comptes publiés. Les coûts des mesures, les zones et les effets restent des hypothèses de jeu. Val-sur-Rive et le scénario national sont fictifs.</p><p>Le mandat long comporte 45 décisions. Le plan évolue à chaque dossier, mais intérêts, dette et trésorerie sont comptabilisés une seule fois en fin d’année. Les livraisons suivent leur calendrier. Le détail reste dans le journal.</p><p>Le bilan des nouvelles parties compte les finances pour 40 %, les services pour 20 %, la cohésion et la confiance pour 20 %, puis la résilience et l’état des équipements pour 20 %. Les anciennes parties conservent leurs règles et leur pondération. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les illustrations" : "Activer la vue légère"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les comptes de la commune choisie restent dans votre sauvegarde. La recherche de nouvelles communes et leur carte 3D nécessitent une connexion.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }
@@ -214,7 +211,6 @@ document.addEventListener("input",event=>{
  if(field.id!=="city-query")return;
  if(searchTimer)clearTimeout(searchTimer);
  cityAbort?.abort();const controller=new AbortController();cityAbort=controller;
- root.querySelectorAll<HTMLButtonElement>(".initial-cap-card").forEach(b=>b.disabled=false);
  const results=root.querySelector<HTMLElement>("#city-results"),status=root.querySelector<HTMLElement>("#city-status");
  if(!results)return;
  results.replaceChildren();field.setAttribute("aria-expanded","false");
