@@ -26,12 +26,14 @@ const n = (v:number) => new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1})
 const pct = (v:number) => `${n(v*100)} %`;
 const labels = { services:'Services', cohesion:'Cohésion', resilience:'Résilience', trust:'Confiance', assets:'Patrimoine' };
 function option(title:string, description:string, effect:Effect, sacrifice:string, delayed?:Choice['delayed']):Choice {
-  const benefits = Object.entries(labels).flatMap(([key,label]) => {
-    const value = (delayed?.effect ?? effect)[key as keyof typeof labels];
+  const gains = (e:Effect) => Object.entries(labels).flatMap(([key,label]) => {
+    const value = e[key as keyof typeof labels];
     return value && value>0 ? [`${label} +${value}`] : [];
   });
-  const saving=(delayed?.effect.operating??effect.operating??0)<0;
-  return { id:'',title,description,effect,cost:'',sacrifice,benefit:benefits.slice(0,2).join(' · ') || (saving?'Marge de fonctionnement accrue':(effect.repayment??0)>0?'Dette future réduite':(effect.revenue??0)>0?'Recettes durables':'Marge préservée'),...(delayed?{delayed}: {}) };
+  const now=gains(effect), future=delayed?gains(delayed.effect):[];
+  const benefit=now.slice(0,2).join(' · ') || (future.length?`${future.slice(0,2).join(' · ')} à la livraison`:'');
+  const saving=(effect.operating??0)<0;
+  return { id:'',title,description,effect,cost:'',sacrifice,benefit:benefit || (saving?'Marge de fonctionnement accrue':(effect.repayment??0)>0?'Dette future réduite':(effect.revenue??0)>0?'Recettes durables':'Marge préservée'),...(delayed?{delayed}: {}) };
 }
 function brief(category:string,title:string,evidence:string,context:string,choices:Choice[]):Dossier {
   return {category,title,story:`${evidence} ${context}`,advisor:'Diagnostic calculé sur les comptes publiés. Seuils, enveloppes et conséquences : hypothèses de jeu. Les variations ne prouvent ni leur cause ni l’état d’un équipement.',choices};

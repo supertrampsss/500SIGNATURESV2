@@ -144,3 +144,16 @@ test('national v4 remains a full 45-decision, five-year campaign',()=>{
  assert.equal(g.history.filter(h=>h.closed).length,5);
  assert.deepEqual(decode(encode(g)),g);
 });
+
+test('temporary support shows its immediate benefit, training shows its delayed delivery',async()=>{
+ const city=profile(await bordeaux(),false);
+ const dossiers=domainFor(start('municipal',42,'equilibre',4,city)).dossiers;
+ const support=dossiers.flatMap(d=>d.choices).find(c=>c.id==='l4501')!;
+ assert.match(support.benefit,/Services \+1/);
+ assert.doesNotMatch(support.benefit,/Marge|livraison/);
+ assert.equal(support.delayed?.effect.operating,-support.effect.operating!);
+ assert.equal(support.delayed?.effect.services,-support.effect.services!);
+ const training=dossiers.flatMap(d=>d.choices).find(c=>c.id==='l4300')!;
+ assert.match(training.benefit,/Services \+2 à la livraison/);
+ assert.equal(training.effect.services,undefined);
+});
