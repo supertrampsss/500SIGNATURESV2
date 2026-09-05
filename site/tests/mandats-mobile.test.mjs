@@ -103,7 +103,7 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  const observedFields={revenue:'ofgl_recettes_fonctionnement',operating:'ofgl_depenses_fonctionnement',debt:'ofgl_encours_dette',investment:'ofgl_depenses_d_investissement_hors_remb',savings:'ofgl_epargne_brute',financialCharges:'ofgl_charges_financieres',repayment:'ofgl_remboursements_d_emprunts_hors_gad',grants:'ofgl_subventions_recues_et_participations'};
  for(const [key,id] of Object.entries(observedFields))expect(initial.city.observed[key]).toBe(publicationFixture.communes['33063'].series[id]['2025']);
  expect(initial.city.center).toEqual({longitude:-.57918,latitude:44.837789,source:'https://geo.api.gouv.fr/communes/33063?fields=centre'});
- expect(tiles).toEqual([]);await expect(page.locator('.dossier h1')).toContainText('Comment retrouver de l’argent pour agir');await expect(page.locator('.campaign-position')).toContainText('1/45');await expect(page.locator('.page-notes')).toContainText('Source locale');await noOverflow(page);
+ expect(tiles).toEqual([]);await expect(page.locator('.dossier h1')).toContainText('Comment dégager de l’argent dans le budget');await expect(page.locator('.campaign-position')).toContainText('1/45');await expect(page.locator('.page-notes')).toContainText('Source locale');await noOverflow(page);
  await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);
  await activate(page.getByRole('button',{name:'Explorer la ville en 3D',exact:true}).first(),info);
  await expect(page.locator('.mandat-city-map__status').filter({hasText:'La carte est indisponible'}).first()).toBeVisible();
