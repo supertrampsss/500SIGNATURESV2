@@ -1,3 +1,16 @@
+# Lisibilité et continuité des décisions
+
+Date : 5 septembre 2026. Ajustement demandé après la livraison mobile.
+
+- Le choix du mode ouvre directement le premier dossier. Le cap peut être changé dans un détail facultatif, avant la première décision, et se conserve au rechargement.
+- Une carte engage le choix et affiche immédiatement le dossier suivant, ou le bilan final. Les anciens écrans obligatoires de briefing et résolution sont retirés du parcours.
+- Le retour annuel tient dans un bandeau replié. Événement, comptes, effets complets et partage restent accessibles dans ce détail et dans le journal.
+- Une phrase de contexte, puis titre/coût/bénéfice/compromis sur chaque carte. Les dates de livraison utiles restent visibles. Descriptions et conseils sont disponibles à la demande. Les explications du score et les autres priorités ne concurrencent plus les actions du bilan.
+- 1 328 tests unitaires réussis après modification du parcours ; les tests navigateur existants sont adaptés au parcours direct et complétés par une vérification du cap persistant et des effets facultatifs. Leur résultat final figure dans la PR de cette livraison.
+- Inspection supervisée à 390 px : ouverture du premier dossier depuis le choix municipal, engagement d’une rénovation puis affichage direct de « Qui finance la suite du mandat ? ». Aucun coefficient, version de règle ou calcul financier modifié.
+
+---
+
 # Complétion mobile, atelier et partage
 
 Date : 5 septembre 2026. Livraison suivie dans la PR 77 ; registre courant : [TO-DO.md](TO-DO.md). Les sections suivantes restent historiques, notamment leurs anciens statuts de déploiement.
