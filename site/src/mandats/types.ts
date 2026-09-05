@@ -19,9 +19,9 @@ export type Choice = {
 export type Dossier = { category: string; title: string; story: string; advisor: string; choices: Choice[] };
 export type Ledger = { revenue: number; operating: number; interest: number; savings: number; repayment: number; investment: number; grants: number; borrowing: number; cashChange: number; deficit: number; debt: number; gdp: number };
 export type Pending = { due: number; label: string; effect: Effect };
-export type Turn = { year: number; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
+export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
 export type Game = {
-  version: 1 | 2; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  version: 1 | 2 | 3; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
   areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[];
 };
 export type Domain = {
@@ -32,3 +32,4 @@ export type Domain = {
   settle: (finance: Finance) => Ledger; sustainability: (game: Game) => number;
 };
 export const clamp = (n: number) => Math.max(0, Math.min(100, n));
+import type { CityBaseline } from "./cities.ts";

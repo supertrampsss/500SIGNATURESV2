@@ -5,9 +5,14 @@ const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
 const core = ['/mandats/', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
-for (const asset of entryAssets) {
+// Follow static dependencies recursively; optional dynamic map imports stay online-only.
+const visited = new Set<string>();
+for (let i=0; i<entryAssets.length; i++) {
+  const asset=entryAssets[i];
+  if(visited.has(asset))continue;
+  visited.add(asset);
   const source = await readFile(dist+asset,'utf8');
-  for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) core.push('/assets/'+m[1]);
+  for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
   for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);

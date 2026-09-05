@@ -965,6 +965,7 @@ async function montrerFiche(code: string): Promise<void> {
   marquerSelection(code);
   ecrireUrl();
   afficherFiche($("fiche"), {
+    code,
     niveau,
     territoire,
     // Tous les thèmes, plus seulement celui de la carte : le panneau est

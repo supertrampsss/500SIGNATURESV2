@@ -1,0 +1,40 @@
+/* Long campaigns retain the one-decision surface and disclose depth in place. */
+.campaign-position{font-size:.8rem;color:var(--muted,#aec1c7);margin:.25rem 0 .65rem;letter-spacing:.02em}
+.city-picker-inline{padding:0 0 1.4rem;margin:0 0 1.5rem;border-bottom:1px solid #78949c40}
+.city-picker-inline h2{font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 .8rem}
+.city-picker-inline label{display:block;font-size:.86rem;margin-bottom:.4rem}
+.city-picker-inline input{box-sizing:border-box;width:100%;min-height:48px;border:1px solid #8ca4ac80;border-radius:5px;padding:.8rem 1rem;background:var(--surface,#172e38);color:inherit;font:inherit}
+.city-picker-inline input:focus-visible{outline:2px solid #b1d8c2;outline-offset:3px}
+#city-results:empty{display:none}
+#city-results{display:grid;max-height:260px;overflow:auto;margin-top:.5rem;gap:.25rem}
+#city-results button{min-height:48px;width:100%;text-align:left;padding:.65rem .85rem;border:1px solid #7e98a14d;border-radius:4px;color:inherit;background:#617e891c;font:inherit}
+#city-results button:focus-visible{outline:2px solid #b1d8c2;outline-offset:-2px}
+#city-status{font-size:.85rem;margin:.65rem 0}
+.city-provenance,.journal-year,.plan-year{border-block-end:1px solid #78949c40;margin:.5rem 0}
+.city-provenance summary,.journal-year>summary,.plan-year>summary{min-height:48px;padding:.8rem 0;cursor:pointer;font-weight:600}
+.journal-year>summary span,.plan-year>summary span{font-size:.82rem;font-weight:400;float:right;margin-left:.75rem;color:#a8bcc3}
+.journal-year section{padding:1rem 0!important;margin:0!important;border-bottom:1px solid #78949c20}
+.journal-year section h2{font-size:1.2rem!important;margin:0 0 .5rem}
+.plan-year .plan-field{display:block;padding:.5rem 0}
+.plan-year select{box-sizing:border-box;width:100%;max-width:100%;min-height:48px;text-overflow:ellipsis}
+.plan-fields{display:block!important}
+.finance-status{padding:.8rem 1rem;border-left:2px solid #cfb778;background:#cfb7780d;font-size:.9rem}
+
+.city-world{min-width:0;border:1px solid var(--line,#78949c40);border-radius:6px;padding:1.25rem;background:var(--panel,#10242c)}
+.city-world-heading h2{font-family:"Barlow Semi Condensed",Arial,sans-serif;font-size:clamp(1.75rem,3vw,2.5rem);margin:.4rem 0;overflow-wrap:anywhere}
+.city-world-heading>p:last-child{font-size:.85rem;color:var(--muted,#b8c5c9);margin:.5rem 0 1rem}
+.city-world-map{min-height:350px;min-width:0;position:relative}
+.city-world-map .mandat-city-map{border-top-color:var(--line,#78949c40)}
+.city-world-map .mandat-city-map h3{display:none}
+.city-project-progress{padding-top:1rem;border-top:1px solid var(--line,#78949c40)}
+.city-project-progress label{display:block;font-size:.9rem}
+.city-project-progress strong{float:right}
+.city-project-progress progress{width:100%;height:6px;display:block;margin:.8rem 0;accent-color:#a8ded0}
+.city-project-progress p{font-size:.8rem;color:var(--muted,#b8c5c9);margin-bottom:0}
+.city-setup-summary{padding:clamp(1.25rem,4vw,2.5rem);background:var(--panel,#10242c);border:1px solid var(--line,#78949c40);border-radius:6px;align-self:start}
+.city-setup-summary h2{font-family:"Barlow Semi Condensed",Arial,sans-serif;font-size:clamp(2rem,4vw,3.5rem);margin:.75rem 0 1.5rem;overflow-wrap:anywhere}
+.city-setup-summary dl{margin:0}.city-setup-summary dl>div{padding:.85rem 0;border-top:1px solid var(--line,#78949c40)}
+.city-setup-summary dt{font-size:.85rem;color:var(--muted,#b8c5c9)}
+.city-setup-summary dd{margin:.3rem 0 0;font-size:1.4rem;font-variant-numeric:tabular-nums}
+.city-setup-summary>p:last-child{font-size:.85rem;line-height:1.6;color:var(--muted,#b8c5c9)}
+@media(max-width:700px){.city-picker-inline{padding-bottom:1rem;margin-bottom:1rem}.campaign-position{font-size:.75rem}.journal-year>summary span,.plan-year>summary span{font-size:.76rem}.city-world{padding:1rem}.city-setup-summary dl{display:grid;grid-template-columns:1fr 1fr;gap:.25rem 1rem}.city-setup-summary dl>div:first-child{grid-column:1/-1}.city-setup-summary dd{font-size:1.2rem}.city-setup-summary h2{margin-bottom:.7rem}}
