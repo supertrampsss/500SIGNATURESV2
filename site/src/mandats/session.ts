@@ -1,3 +1,4 @@
+import { dilemmaFromHash } from "./cards.ts";
 import { DOMAINS } from "./engine.ts";
 import { challengeFromURL, sharedResult } from "./sharing.ts";
 import type { Game } from "./types.ts";
@@ -22,7 +23,7 @@ export function localSession(game: Game, browserHistory: Pick<History, "replaceS
 /** Also resolves same-document result navigation; never writes a local save. */
 export function entrySession(url: URL) {
   const result = sharedResult(url.hash);
-  const challenge = result ? null : challengeFromURL(url);
+  const challenge = result ? null : (dilemmaFromHash(url.hash) ?? challengeFromURL(url));
   return {
     g: result ?? challenge,
     shared: !!result,

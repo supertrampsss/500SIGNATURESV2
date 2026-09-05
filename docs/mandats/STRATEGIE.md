@@ -2,6 +2,8 @@
 
 Dépôt : `supertrampsss/500SIGNATURESV2`. État du dossier : 4 septembre 2026. Produit : **Mandats, par 500 signatures**. Les durées, objectifs de performance et résultats commerciaux ci-dessous sont des hypothèses ou des critères de validation, sauf mention explicite d'une mesure. Les sources publiques ont été consultées ; aucune revue humaine certifiée en finances publiques ou en droit n'est revendiquée.
 
+> Statuts historiques : consulter désormais [TO-DO.md](TO-DO.md) et [VALIDATION.md](VALIDATION.md). Mandats a été publié le 5 septembre 2026 ; les tableaux ci-dessous conservent le cadrage initial.
+
 ## 1. Executive Verdict
 
 **Décision : construire une plateforme commune, avec un mandat municipal phare de six tours et une introduction nationale complète de cinq tours.** Une nouvelle entrée `/mandats/` isole le jeu du contrôleur historique sans remplacer les données, articles et services existants de 500 signatures. Deux gros jeux AAA simultanés disperseraient les efforts. Deux campagnes étroites permettent déjà de comparer des stratégies, vivre une crise, constater des effets différés et recommencer.

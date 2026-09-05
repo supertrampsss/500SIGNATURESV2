@@ -33,6 +33,19 @@ jobs:
       - run: npm install
       - run: npm test
       - run: npm run build
+      - name: Install mobile browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Mandats mobile and desktop browser tests
+        run: npm run test:mandats
+      - name: Browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandats-browser-failures
+          path: |
+            site/playwright-report-mandats/
+            site/test-results/
+          retention-days: 7
 
   database:
     # Les tests d'intégration tournaient contre un PostGIS lancé en service :
