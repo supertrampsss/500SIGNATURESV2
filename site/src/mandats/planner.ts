@@ -1,3 +1,4 @@
+import { choiceCopy } from "./novice.ts";
 import { choicesFor, decide, domainFor, calendarFor, startingGame, replayGame, score } from "./engine.ts";
 import { escape as e } from "./sharing.ts";
 import type { Game } from "./types.ts";
@@ -23,7 +24,7 @@ export function planner(reference: Game, ids: string[]) {
   const fieldList = d.dossiers.map((dossier, i) => {
     const before = p.states[i];
     const choices = before ? choicesFor(before) : dossier.choices;
-    return `<label class="plan-field"><span>Dossier ${i + 1} · ${e(dossier.category)}</span><select data-plan-year="${i}" ${!before ? "disabled" : ""}><option value="">Choisir un arbitrage</option>${choices.map(c => `<option value="${e(c.id)}" ${ids[i] === c.id ? "selected" : ""}>${e(c.title)}</option>`).join("")}</select></label>`;
+    return `<label class="plan-field"><span>Dossier ${i + 1} · ${e(dossier.category)}</span><select data-plan-year="${i}" ${!before ? "disabled" : ""}><option value="">Choisir un arbitrage</option>${choices.map(c => `<option value="${e(c.id)}" ${ids[i] === c.id ? "selected" : ""}>${e(choiceCopy(reference,dossier,c).title)}</option>`).join("")}</select></label>`;
   });
   const years = calendarFor(reference).years;
   const boundaries = reference.version >= 3 ? (reference.mode === "municipal" ? [0,8,16,24,31,38,45] : [0,9,18,27,36,45]) : Array.from({length:years+1},(_,i)=>i);

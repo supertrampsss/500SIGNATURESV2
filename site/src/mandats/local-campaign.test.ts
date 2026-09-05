@@ -157,3 +157,14 @@ test('temporary support shows its immediate benefit, training shows its delayed 
  assert.match(training.benefit,/Services \+2 à la livraison/);
  assert.equal(training.effect.services,undefined);
 });
+
+test('novice presentation covers all 18 local dossiers without turning financial data into a building diagnosis',async()=>{
+ const {dossierCopy,choiceCopy}=await import('./novice.ts');
+ const base=await bordeaux();
+ for(const city of [base,profile(base,true),profile(base,false),profile(base,true,true)]){
+  const g=start('municipal',42,'equilibre',4,city);
+  const local=domainFor(g).dossiers.filter(d=>d.choices[0].id.startsWith('l4'));
+  assert.equal(local.length,18);
+  for(const d of local){const copy=dossierCopy(g,d);assert.notEqual(copy[0],d.title);assert.ok(copy[0].length<=65);assert.ok(copy[1].length<=165);for(const c of d.choices){const text=choiceCopy(g,d,c);assert.ok(text.title&&text.outcome);assert.doesNotMatch(text.title,/tranche|enveloppe|conforter/i);}}
+ }
+});

@@ -21,7 +21,7 @@ for(const mode of ['municipal','national'] as Mode[]) test(`v3 ${mode}: 45 posit
     const calendar=calendarFor(game),html=gameShell(game,'play','decision');
     const timeline=html.match(/<ol class="mandate-timeline"[^>]*>(.*?)<\/ol>/s)?.[1]; assert.ok(timeline);
     assert.equal(count(timeline,/<li\b/g),years,'No 45-dot timeline');
-    assert.match(html,new RegExp(`class="campaign-position">${dossier}/45`));
+    assert.match(html,new RegExp(`class="campaign-position">Décision ${dossier}/45`));
     assert.match(html,new RegExp(`Année ${calendar.year}/${calendar.years}`));
     assert.equal(count(html,/data-action="choose"/g),3); assert.doesNotMatch(html,/data-action="confirm-choice"/);
     if(game.turn)assert.match(html,new RegExp(game.history.at(-1)!.closed?`Année ${game.history.at(-1)!.year} terminée`:`Décision ${game.turn} prise`));
@@ -31,7 +31,7 @@ for(const mode of ['municipal','national'] as Mode[]) test(`v3 ${mode}: 45 posit
   assert.equal(count(complete,/data-action="choose"/g),0);assert.match(complete,/Partager mon héritage/);assert.match(complete,/45\/45/);
   const journal=gameShell(game,'play','journal');
   assert.equal(count(journal,/class="journal-year"/g),years);assert.equal(count(journal,/class="journal-year" open/g),1);
-  for(const entry of game.history)assert.ok(journal.includes(escape(entry.title)),entry.title);
+  assert.equal(count(journal,/<section><h2>/g),45,'Every decision remains in the journal');
   const plan=planner(game,game.choices);
   assert.equal(count(plan,/class="plan-year"/g),years);assert.equal(count(plan,/data-plan-year=/g),45);
   assert.equal(count(plan,/class="plan-year" open/g),1,'Only the current planning year opens');
