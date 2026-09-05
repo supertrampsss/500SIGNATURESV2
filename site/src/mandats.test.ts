@@ -5,3 +5,8 @@ import "./mandats/operations.test.ts";
 import "./mandats/world.test.ts";
 import "./mandats/session.test.ts";
 import './mandats/completion.test.ts';
+import './mandats/cities.test.ts';
+import './mandats/campaign.test.ts';
+
+import './mandats/campaign-content.test.ts';
+import './mandats/campaign-ui.test.ts';

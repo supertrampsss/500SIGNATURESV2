@@ -137,3 +137,4 @@ body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-carte-t
  body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche__champ { grid-template-columns: minmax(0,1fr); gap: .25rem; }
  body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-carte-toggle { justify-self: start; }
 }
+.fiche__jouer { display:inline-flex; align-items:center; min-height:44px; padding:.5rem .8rem; margin:.35rem 0; border:1px solid currentColor; border-radius:4px; text-decoration:none; font-weight:600; }

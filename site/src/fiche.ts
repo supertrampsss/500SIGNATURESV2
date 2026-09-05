@@ -287,6 +287,7 @@ function boutonParent(
 export function afficherFiche(
   cible: HTMLElement,
   options: {
+    code?: string;
     niveau: string;
     territoire: Territoire;
     /** Le catalogue de la maille, pour décomposer les mouvements des blocs :
@@ -376,6 +377,7 @@ export function afficherFiche(
       });
   cible.innerHTML = `
     <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>
+    ${niveau==='commune' && options.code && /^(?:\d{5}|2[AB]\d{3})$/.test(options.code) ? `<a class="fiche__jouer" href="/mandats/?city=${encodeURIComponent(options.code)}">Gouverner cette ville</a>` : ''}
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
       // était soulignée en pointillé, c'est-à-dire habillée en lien, alors
