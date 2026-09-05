@@ -53,7 +53,9 @@ test('France animation pauses without changing the mandate and respects reduced 
  await expect(stage(page)).toHaveAttribute('data-animation-paused','true');
  await light.click();await expect(light).toHaveText('Vue légère');
  const resumed=await person().getAttribute('transform');await expect.poll(()=>person().getAttribute('transform')).not.toBe(resumed);
- await page.emulateMedia({reducedMotion:'reduce'});await expect(stage(page)).toHaveAttribute('data-animation-paused','true');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await expect.poll(()=>page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+ await expect(stage(page)).toHaveAttribute('data-animation-paused','true');
  await choose(page);await expect(page.locator('.campaign-position')).toContainText('Décision 3/45');
  await expect(stage(page)).toHaveAttribute('data-animation-paused','true');await noOverflow(page);
 });

@@ -143,7 +143,9 @@ export function mountScene(host: HTMLElement) {
   function isRunning() {return !disposed&&!paused&&visible&&!document.hidden&&!motion.matches}
   function tick(now:number) {
     frame=0
-    if (!isRunning()) return
+    // A media preference can change before its event is dispatched. Keep the
+    // exposed paused state correct even when this frame sees the change first.
+    if (!isRunning()) {reconcile();return}
     if (!last) last=now
     const delta=now-last
     if(delta>=1000/30) {elapsed+=Math.min(delta,100)/1000;last=now;paint(elapsed)}
