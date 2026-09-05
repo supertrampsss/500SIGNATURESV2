@@ -1,3 +1,4 @@
+import { syncNationalScene } from "./national-scene.ts";
 import { icon } from "./icons.ts";
 import "./game.css";
 import { searchCities, loadCity } from "./cities.ts";
@@ -63,6 +64,7 @@ function render(focus = true) {
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
   root.innerHTML = screen === "select" ? selection(saved, light) : screen === "mandate" ? mandateSetup(g!, {light}) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  syncNationalScene(root, g, { light, inherited });
   document.querySelector("#game-tools")!.removeAttribute("hidden");
   if(g?.city?.center){
     const city=g.city,center=g.city.center;
