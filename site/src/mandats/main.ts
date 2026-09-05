@@ -108,7 +108,7 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "world-view") { inherited = !inherited; render(false); document.querySelector<HTMLElement>('[data-action="world-view"]')?.focus({ preventScroll: true }); return; }
-  if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; adopt(g); persist(); render(false); document.querySelector<HTMLElement>(`[data-action="ambition"][data-ambition="${g.ambition}"]`)?.focus({ preventScroll: true }); return; }
+  if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; adopt(g); persist(); render(false); root.querySelector<HTMLElement>(".decision-context > summary")?.focus(); return; }
   if (a === "replay-ambition" && g) { track("replay_started"); adopt(start(g.mode, g.seed, target.dataset.ambition as Ambition)); persist(); render(); return; }
   if (a === "pilot-consent") { try { setPilotConsent(localStorage,!pilotEnabled(localStorage)); announce(pilotEnabled(localStorage) ? "Journal de test activé localement. Aucun envoi et aucune décision enregistrée." : "Journal de test désactivé et effacé."); target.setAttribute("aria-pressed",String(pilotEnabled(localStorage))); } catch { announce("Le stockage local est indisponible."); } return; }
   if (a === "pilot-export") { download(new Blob([JSON.stringify({version:1,events:readPilot(localStorage)},null,2)],{type:"application/json"}),"mandats-journal-test.json"); announce("Journal exporté sur votre appareil, sans envoi."); return; }

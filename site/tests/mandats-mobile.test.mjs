@@ -52,7 +52,7 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
 });
 
 test('optional priorities persist and turn details never block the next choice',async({page},info)=>{
- await begin(page,'municipal',info);await page.getByText('Cap : Équilibre',{exact:true}).click();await activate(page.locator('[data-action="ambition"][data-ambition="services"]'),info);
+ await begin(page,'municipal',info);await page.getByText('Cap : Équilibre',{exact:true}).click();await activate(page.locator('[data-action="ambition"][data-ambition="services"]'),info);await expect(page.locator(".decision-context > summary").first()).toBeFocused();
  await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.getByText('Cap : Services',{exact:true})).toBeVisible();
  await choose(page,info);await expect(page.locator('.dossier h1')).toContainText('Qui finance');await expect(page.locator('.turn-feedback')).not.toHaveAttribute('open','');
  await page.locator('.turn-feedback > summary').click();await expect(page.getByRole('button',{name:'Partager cette décision',exact:true})).toBeVisible();await page.locator('.turn-feedback > summary').click();await expect(page.locator('.dossier h1')).toContainText('Qui finance');
