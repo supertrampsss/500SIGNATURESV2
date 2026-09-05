@@ -37,11 +37,11 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Game and editorial mobile and desktop browser tests
         run: npm run test:mandats
-      - name: Browser failure artifacts
-        if: failure()
+      - name: Browser validation artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mandats-browser-failures
+          name: mandats-browser-validation
           path: |
             site/playwright-report-mandats/
             site/test-results/

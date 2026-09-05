@@ -14,3 +14,5 @@ import './mandats/campaign-ui.test.ts';
 import './mandats/local-campaign.test.ts';
 
 import "./mandats/novice.test.ts";
+
+import './mandats/national-scene-state.test.ts';
