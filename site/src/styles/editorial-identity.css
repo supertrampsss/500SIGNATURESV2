@@ -84,7 +84,7 @@ body[data-vue='territoire'] .bloc-lecture h3 { font-weight: 600; letter-spacing:
 }
 @media (max-width: 39.999rem) {
  .entete .bascule-theme { grid-column: 2; grid-row: 1; }
- .entete__nav { grid-row: 2; grid-template-columns: repeat(5,minmax(0,1fr)); }
+ .entete__nav { grid-row: 2; grid-template-columns: repeat(5,auto); }
  .entete__nav a { padding-inline: 2px; font-size: .875rem; }
  .entete__nom { font-size: 1.375rem; }
  .bilan-verdict { grid-template-columns: minmax(0,1fr); grid-template-areas: 'editorial' 'totem' 'equation'; gap: 1.25rem; }
