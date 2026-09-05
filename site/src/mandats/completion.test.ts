@@ -61,3 +61,22 @@ test('inspiration imports require authorization and evidence; drafts stay human-
  assert.throws(()=>reviewDraft(draft,'approved',''));
  const approved=reviewDraft(draft,'approved','Source et contexte relus.');assert.equal(eligibleForReview(draft,[approved],{paused:false,blockedAccounts:[],optedOutAccounts:[]}),false);
 });
+
+test('offline updates await the new worker and preserve an active version on failure',async()=>{
+ const {prepareOffline}=await import('./offline.ts');
+ const navigatorDescriptor=Object.getOwnPropertyDescriptor(globalThis,'navigator'),windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,'window');
+ class Worker extends EventTarget {state='installing';}
+ const worker=new Worker();let updates=0;
+ const registration={active:{},waiting:null,installing:worker,update:async()=>{updates++;}};
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{serviceWorker:{register:async()=>registration}}});
+ Object.defineProperty(globalThis,'window',{configurable:true,value:{isSecureContext:true}});
+ try{
+  let resolved=false;const preparation=prepareOffline().then(value=>{resolved=true;return value;});
+  await new Promise(resolve=>setTimeout(resolve,0));assert.equal(resolved,false);assert.equal(updates,1);
+  worker.state='installed';worker.dispatchEvent(new Event('statechange'));assert.deepEqual(await preparation,{update:true});
+  worker.state='redundant';await assert.rejects(prepareOffline(),/téléchargement/);assert.ok(registration.active);
+ }finally{
+  if(navigatorDescriptor)Object.defineProperty(globalThis,'navigator',navigatorDescriptor);else Reflect.deleteProperty(globalThis,'navigator');
+  if(windowDescriptor)Object.defineProperty(globalThis,'window',windowDescriptor);else Reflect.deleteProperty(globalThis,'window');
+ }
+});

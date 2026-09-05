@@ -42,5 +42,11 @@ test('challenge URL is consumed and clipboard failure has an accessible fallback
 test('opt-in offline preparation survives network loss',async({page,context},info)=>{
  test.skip(info.project.name!=='android-chromium','One service-worker lifecycle check is sufficient; other projects cover the game.');
  await begin(page,'municipal',info);await choose(page,info);await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);await page.getByText('Installer et jouer hors connexion',{exact:true}).click();await activate(page.getByRole('button',{name:'Préparer le jeu hors connexion',exact:true}),info);await expect(page.getByRole('dialog').getByRole('status')).toContainText('prêt hors connexion',{timeout:45000});
- await context.setOffline(true);await page.goto(HOME);await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toContainText('Qui finance');await choose(page,info);await context.setOffline(false);
+ await context.setOffline(true);await page.goto(HOME);await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toContainText('Qui finance');await choose(page,info);await activate(page.locator('[data-action="next"]'),info);await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect.poll(()=>page.locator('.mobile-territory-world img').evaluateAll(images=>images.length>0&&images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);await context.setOffline(false);
+});
+
+test('source-backed guides are readable and lead to the matching mode',async({page},info)=>{
+ await page.goto('/mandats/comprendre/');await expect(page.locator('.guide-list article')).toHaveCount(4);await noOverflow(page);
+ await page.locator('.guide-list article a').first().click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex,follow');await noOverflow(page);
+ await activate(page.getByRole('link',{name:'Tester ce type d’arbitrage',exact:true}),info);await expect(page.locator('.briefing')).toBeVisible();
 });

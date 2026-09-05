@@ -13,6 +13,7 @@ for (const asset of entryAssets) {
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);
 const precache = [...new Set(core)];
 const digest = createHash('sha256');
+digest.update(await readFile(fileURLToPath(import.meta.url)));
 for (const path of precache) digest.update(await readFile(dist+path.replace(/^\//,'')+(path.endsWith('/')?'index.html':'')));
 const version = digest.digest('hex').slice(0,16);
 const worker = `/* Game-only, opt-in offline cache. Generated from built assets. */

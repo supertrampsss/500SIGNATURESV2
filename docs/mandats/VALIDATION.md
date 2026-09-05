@@ -1,3 +1,18 @@
+# Complétion mobile, atelier et partage
+
+Date : 5 septembre 2026. Livraison suivie dans la PR 77 ; registre courant : [TO-DO.md](TO-DO.md). Les sections suivantes restent historiques, notamment leurs anciens statuts de déploiement.
+
+- Build complet réussi ; 1 327 tests sur la première révision. Le test supplémentaire de cycle de mise à jour porte la suite à 1 328 tests ; les 28 tests Mandats ciblés passent localement.
+- CI 33944522291, job site 101248092953 : 26 parcours navigateur réussis sans reprise, 4 exclusions intentionnelles du même cycle service worker sur les autres profils. Les deux campagnes, le téléchargement PNG vérifié, l’import sur contexte neuf, les fichiers invalides, la reprise, le comparateur, le mouvement réduit et le repli de copie sont exécutés sur Chromium tactile 390/320, WebKit iPhone/paysage et Chromium bureau. Le cycle hors connexion est exercé une fois sous Chromium tactile.
+- La révision finale ajoute un contrôle des illustrations légères hors connexion et un parcours des guides dans chaque profil. La CI de la tête de PR est le registre faisant foi pour ces contrôles supplémentaires.
+- Revue indépendante du code : correction de l’attente d’un worker en téléchargement et version du cache liée aussi au générateur pour protéger l’ancienne copie lors d’un échec. Aucun moteur ou coefficient v1/v2 modifié.
+- Inspection navigateur supervisée : atelier à 390 px sans débordement ; plan et comparaison côte à côte sur bureau ; dialogue de décision et formats accessibles sur téléphone. Carte décision nationale 1200 × 630 rasterisée et inspectée.
+- Bundle Mandats : environ 25 Ko gzip de JavaScript et 10 Ko gzip de CSS, hors illustrations et polices. Préparation hors connexion limitée à 13 ressources du jeu. Aucun indicateur Core Web Vitals terrain ou test sur téléphone physique revendiqué.
+- Quatre guides HTML sourcés, noindex pendant validation ; méthodologie mise à jour pour les caches, le journal local opt-in et la visibilité des liens de dilemme.
+- Restent externes : appareils physiques et lecteurs d’écran réels, compréhension par des joueurs, revue indépendante des finances, corpus X autorisé, accès aux comptes et fournisseurs. Aucune publicité, collecte distante ou publication X activée.
+
+---
+
 # Consolidation des parcours et de l’accessibilité
 
 Date : 4 septembre 2026, après la refonte v2 décrite plus bas.

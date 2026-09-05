@@ -9,8 +9,8 @@ Actualisé le 5 septembre 2026. Ce registre remplace les statuts de livraison hi
 | Mobile : première décision | Dossier prioritaire ; scène vivante dans Territoire ; cinq commandes basses ; zones sûres ; explications des priorités visibles | Implémenté dans cette livraison |
 | Mobile : import et menus | Import depuis l’accueil, champ fichier adapté aux petits écrans ; erreurs dans le dialogue ; focus explicite | Implémenté dans cette livraison |
 | Mobile : installation | Manifest, icônes, instructions iPhone/Android ; aucune obligation d’installation | Implémenté dans cette livraison |
-| Mobile : hors connexion | Téléchargement volontaire des ressources du jeu ; cache isolé ; suppression et mise à jour explicites ; sauvegarde locale conservée | Implémenté ; test de cycle hors ligne prévu dans la CI navigateur |
-| Mobile : tests des moteurs | Chromium tactile 390/320, WebKit iPhone et paysage, Chromium bureau ; parcours, import, partage, comparaison | Suite ajoutée à la CI ; résultats à consigner après exécution |
+| Mobile : hors connexion | Téléchargement volontaire des ressources du jeu ; cache isolé ; suppression et mise à jour explicites ; sauvegarde locale conservée | Cycle hors connexion réussi en CI Chromium tactile ; mise à jour couverte par test ciblé |
+| Mobile : tests des moteurs | Chromium tactile 390/320, WebKit iPhone et paysage, Chromium bureau ; parcours, import, partage, comparaison | 26 parcours réussis sur la première révision (CI 33944522291) ; contrôle de la tête finale dans PR 77 |
 | Appareils physiques | iPhone/Safari/VoiceOver, Android/TalkBack, réseau réel, autonomie et mémoire | Nécessite appareils et personnes ; aucune émulation n’est présentée comme preuve matérielle |
 | Atelier de stratégie | Plan annuel alternatif, comparaison à année identique, comptes/livraisons ; partie privée inchangée | Implémenté sur téléphone et bureau |
 | Cartes | Héritage, décision, défi ; quatre formats PNG ; description copiable ; SVG accessible et aperçu local | Implémenté |
