@@ -8,7 +8,7 @@ export function challengeURL(g: Game, origin: string): string {
   url.searchParams.set("v", String(g.version));
   if (g.version !== 1) url.searchParams.set("ambition", g.ambition ?? "equilibre");
   url.searchParams.set("mode", g.mode); url.searchParams.set("seed", String(g.seed));
-  if(g.version===3 && g.city){url.search="";url.hash="challenge="+encodeURIComponent(encode(startingGame(g)));}
+  if(g.version >= 3 && g.city){url.search="";url.hash="challenge="+encodeURIComponent(encode(startingGame(g)));}
   return url.href;
 }
 /** Fragment stays off server requests. User explicitly shares the decision history. */
@@ -27,9 +27,9 @@ export function challengeFromURL(url: URL): Game | null {
   const seed = url.searchParams.get("seed") ?? "42";
   if (!/^\d{1,4}$/.test(seed)) throw new Error("La graine du défi est invalide.");
   const version = url.searchParams.get("v") ?? "1";
-  if (version !== "1" && version !== "2" && version !== "3") throw new Error("Version de défi inconnue.");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4);
 }
 export function shareText(g: Game): string {
   const s = score(g); const d = domainFor(g);

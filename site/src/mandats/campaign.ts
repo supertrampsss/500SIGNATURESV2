@@ -1,3 +1,4 @@
+import { localDossiers } from './local-campaign.ts';
 import { longDossiers, CAMPAIGN_THREADS } from './campaign-content.ts';
 import { calendarFor } from './calendar.ts';
 import { municipal } from './municipal.ts';
@@ -33,10 +34,11 @@ export function campaignDomain(g:Game):Domain {
     return state;
   };
   const scale=g.city?initial().finance.revenue/100:1;
-  const cacheKey=`${g.mode}:${scale}`;
+  const cacheKey=g.version === 4 && g.city ? `4:${JSON.stringify(g.city)}` : `${g.mode}:${scale}`;
   let dossiers=dossierCache.get(cacheKey);
   if(!dossiers){
-  dossiers=compiled[g.mode].map(d=>({...d,choices:d.choices.map(c=>{
+  const source = g.version === 4 && g.city ? localDossiers(g.city,compiled[g.mode]) : compiled[g.mode];
+  dossiers=source.map(d=>({...d,choices:d.choices.map(c=>{
     const result={...c,effect:scaledEffect(c.effect,scale),...(c.delayed?{delayed:{...c.delayed,effect:scaledEffect(c.delayed.effect,scale)}}:{})};
     return g.city?{...result,cost:costFor(result)}:result;
   })}));
@@ -45,7 +47,7 @@ export function campaignDomain(g:Game):Domain {
   }
   const current=dossiers[g.turn];
   const thread=CAMPAIGN_THREADS[g.mode].find(t=>t.followUps.includes(g.turn));
-  if(current && thread){
+  if(current && thread && dossiers.some(d=>d.choices.some(c=>c.id===thread.launchChoice))){
     dossiers=dossiers.slice();
     dossiers[g.turn]={...current,story:`${g.choices.includes(thread.launchChoice)?thread.underway:thread.absent} ${current.story}`};
   }
@@ -66,10 +68,10 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
-  const g:Game={version:3,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};
+  const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};
   Object.assign(g,campaignDomain(g).initial());
   return g;
 }

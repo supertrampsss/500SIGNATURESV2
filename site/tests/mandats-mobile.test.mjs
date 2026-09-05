@@ -5,7 +5,7 @@ const publicationFixture=JSON.parse(await readFile(new URL('./fixtures/editorial
 const CITY_SECOND='Une mairie ouverte quand les habitants travaillent ?';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(3);await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(3);}
+async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(3);await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(4);}
 async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
 for(const mode of ['municipal','national'])test(`${mode}: complete touch campaign, sharing and replay`,async({page},info)=>{
  test.setTimeout(120000);
@@ -97,12 +97,12 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);
  await expect(page.locator('.dossier')).toBeVisible();
  const initial=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
- expect(initial.version).toBe(3);expect(initial.city.code).toBe('33063');expect(initial.city.name).toBe('Bordeaux');
+ expect(initial.version).toBe(4);expect(initial.city.code).toBe('33063');expect(initial.city.name).toBe('Bordeaux');
  expect(initial.city.publication).toBe(publicationFixture.publication);expect(initial.city.year).toBe(2025);
  const observedFields={revenue:'ofgl_recettes_fonctionnement',operating:'ofgl_depenses_fonctionnement',debt:'ofgl_encours_dette',investment:'ofgl_depenses_d_investissement_hors_remb',savings:'ofgl_epargne_brute',financialCharges:'ofgl_charges_financieres',repayment:'ofgl_remboursements_d_emprunts_hors_gad',grants:'ofgl_subventions_recues_et_participations'};
  for(const [key,id] of Object.entries(observedFields))expect(initial.city.observed[key]).toBe(publicationFixture.communes['33063'].series[id]['2025']);
  expect(initial.city.center).toEqual({longitude:-.57918,latitude:44.837789,source:'https://geo.api.gouv.fr/communes/33063?fields=centre'});
- expect(tiles).toEqual([]);await noOverflow(page);
+ expect(tiles).toEqual([]);await expect(page.locator('.dossier h1')).toContainText('Retrouver une marge');await expect(page.locator('.campaign-position')).toContainText('1/45');await expect(page.locator('.page-notes')).toContainText('Source locale');await noOverflow(page);
  await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);
  await activate(page.getByRole('button',{name:'Explorer la ville en 3D',exact:true}).first(),info);
  await expect(page.locator('.mandat-city-map__status').filter({hasText:'La carte est indisponible'}).first()).toBeVisible();
@@ -120,4 +120,7 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  const resumed=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
  expect(resumed.city).toEqual(initial.city);expect(resumed.choices).toHaveLength(1);
  await choose(page,info);await noOverflow(page);await context.setOffline(false);
+ for(let decision=2;decision<45;decision++)await choose(page,info);
+ await expect(page.locator('.result')).toBeVisible();
+ expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).choices).toHaveLength(45);
 });
