@@ -43,8 +43,8 @@ test('the living France is the national mandate, with its budget and saved decis
 test('choosing a measure keeps the question in place instead of jumping to the top',async({page},info)=>{
  test.skip(info.project.name!=='android-chromium','The reported regression is a portrait phone interaction.');
  await page.goto(FRANCE);await ready(page);
- const choice=page.locator('[data-action="choose"]').first();
- await choice.scrollIntoViewIfNeeded();
+  const choice=page.locator('[data-action="choose"]').first();
+ await page.evaluate(()=>scrollTo(0,350));
  const before=await page.evaluate(()=>scrollY);
  expect(before).toBeGreaterThan(100);
  await choice.click();
