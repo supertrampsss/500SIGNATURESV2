@@ -82,3 +82,8 @@ auxquelles le site répond réellement sont écrites en clair sur la page d'accu
 | [docs/10-api-publique.md](docs/10-api-publique.md) | Contrat des fichiers publiés : URL stables, contenu, ordres de grandeur, exemples vérifiés |
 | [docs/SETUP.md](docs/SETUP.md) | Mise en place : secrets, migrations, seed, déploiement |
 
+
+## Contribuer
+
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les commandes et les contrôles, et
+[AGENTS.md](AGENTS.md) pour les règles UX, DX et AX et les modules du projet.
