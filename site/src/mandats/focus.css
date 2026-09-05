@@ -1,0 +1,46 @@
+/* A decision surface, followed by quiet reference material. */
+.dossier>.eyebrow{display:flex;align-items:center;justify-content:space-between;margin:0 0 .9rem}
+.dossier .campaign-position{font:400 .875rem "Source Sans 3",sans-serif;letter-spacing:0;margin:0}
+.dossier h1{font-size:clamp(1.85rem,3.2vw,2.8rem);line-height:1.12;margin:0 0 1rem}
+.dossier .story{font-size:1rem;line-height:1.45;margin:0 0 1.35rem;max-width:48ch}
+.choices{gap:.65rem}
+.choice{padding:1rem 1.1rem;border-radius:12px}
+.choice-top strong{font-size:1.0625rem;line-height:1.25}
+.choice-index{font-size:.75rem;opacity:.65}
+.choice .cost{font-size:.875rem;line-height:1.35;margin-top:.55rem}
+.choice .tradeoff{font-size:.875rem;line-height:1.4;gap:.35rem;margin-top:.55rem}
+.turn-feedback{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:1rem 0 0;padding:.25rem 0;border:0;background:none;font-size:.875rem}
+.turn-feedback .turn-confirmation{display:flex;align-items:center;gap:.4rem;color:var(--muted)}
+.turn-feedback .turn-confirmation svg{width:16px;height:16px}
+.turn-feedback button{font-size:.875rem;min-height:44px;padding:.5rem 0;white-space:nowrap}
+.page-notes{margin:4rem auto 0;padding:2rem 0 0;border-top:1px solid var(--line);max-width:76rem;color:var(--muted);font-size:1rem;line-height:1.6}
+.page-notes h2{font-size:1.3rem;color:var(--text);margin:0 0 1rem}
+.page-notes h3{font-size:1rem;color:var(--text)}
+.page-notes p{max-width:76ch}
+.page-notes a{display:inline-flex;align-items:center;min-height:44px;color:var(--text)}
+.notes-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem;margin:1.5rem 0}
+.notes-options p{margin:0}.notes-options strong{color:var(--text);font-weight:600}
+.page-notes .scope{margin:0}.setup-notes{margin-top:3rem}
+.tool-section{border-top:1px solid var(--line);margin-top:1.75rem;padding-top:1rem}
+.tool-section h3{font-size:1.125rem}.tool-section p{font-size:1rem}
+.city-world-map{min-height:0}.city-world-heading h2{font-size:1.75rem}
+.city-world-heading>p:last-child{font-size:.875rem}
+.city-project-progress p{font-size:.875rem}
+.city-setup-summary>p:last-child{font-size:.875rem}
+.game-grid[data-view="decision"] .strategic-underlay{display:none}
+.mobile-mandate-context{display:flex;font-size:.875rem;padding:0 0 1rem;margin:0}
+.mobile-mandate-context strong{font-weight:400;color:var(--muted)}
+.pulse{margin-bottom:1rem}
+@media(min-width:821px){.game-grid[data-view="decision"] .strategic-panel{position:sticky;top:1.5rem;align-self:start}.game-grid[data-view="decision"] .world-heading{display:none}.game-grid[data-view="decision"] .game-content{min-width:0}.game-tabs{margin-bottom:1.5rem}.mandate-timeline{margin-top:1.5rem}}
+@media(max-width:820px){.notes-options{grid-template-columns:1fr;gap:1rem}.page-notes{margin-top:2.5rem;padding-top:1.5rem}.dossier h1{font-size:2rem}.dossier .story{margin-bottom:1rem}.choice{padding:.9rem}.choice .cost,.choice .tradeoff{margin-left:0}.choice-top{gap:.65rem}.choice .tradeoff{display:flex;flex-wrap:wrap}.choice .tradeoff>span+span:before{content:"· ";opacity:.6}.pulse{margin-top:.25rem;margin-bottom:.75rem}.city-setup-summary{order:2;margin-top:1.5rem}.mandate-setup>article{order:1}.mandate-setup{gap:0}.initial-cap-card{padding:1rem}.initial-cap-card>span>span{font-size:1rem}.city-picker-inline h2{font-size:1.35rem}.city-picker-inline{margin-bottom:1rem;padding-bottom:1rem}}
+@media(prefers-reduced-motion:reduce){.page-notes{scroll-behavior:auto}}
+.choice .choice-facts{margin-top:0;margin-left:0}
+.choice .cost{margin-left:0;margin-top:.45rem;padding:.2rem .45rem}
+.choice .tradeoff{margin-left:0;margin-top:.45rem;gap:.25rem .5rem}
+.choice .tradeoff>span{padding:0;background:none}
+.choice .tradeoff>span:first-child{padding:.1rem .4rem;background:#a7ddc30c;border-radius:4px}
+.choice .tradeoff>span+span:before{content:none}
+.game-content,.dossier{min-width:0}
+.choice .cost{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.status-quiet{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%);white-space:nowrap;border:0!important}
+@media(max-width:560px){.brand small{display:none}.brand strong{font-size:1rem}.brand{gap:8px}.site-header{gap:8px}.header-actions button{padding-inline:7px}}

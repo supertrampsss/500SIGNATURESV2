@@ -21,7 +21,8 @@ for(const mode of ['municipal','national'] as Mode[]) test(`v3 ${mode}: 45 posit
     const calendar=calendarFor(game),html=gameShell(game,'play','decision');
     const timeline=html.match(/<ol class="mandate-timeline"[^>]*>(.*?)<\/ol>/s)?.[1]; assert.ok(timeline);
     assert.equal(count(timeline,/<li\b/g),years,'No 45-dot timeline');
-    assert.match(html,new RegExp(`Dossier ${calendar.slot}/${calendar.slots} de l’année · ${dossier}/45 du mandat`));
+    assert.match(html,new RegExp(`class="campaign-position">${dossier}/45`));
+    assert.match(html,new RegExp(`Année ${calendar.year}/${calendar.years}`));
     assert.equal(count(html,/data-action="choose"/g),3); assert.doesNotMatch(html,/data-action="confirm-choice"/);
     if(game.turn)assert.match(html,new RegExp(game.history.at(-1)!.closed?`Année ${game.history.at(-1)!.year} terminée`:`Décision ${game.turn} prise`));
     game=advance(game);
