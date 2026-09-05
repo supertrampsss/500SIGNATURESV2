@@ -139,5 +139,5 @@ test('failed city loading keeps the search and fictional fallback usable',async(
  await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);
  await expect(page.locator('.dossier h1')).toBeFocused();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
- expect(saved.turn).toBe(0);expect(saved.city).toBeUndefined();expect(saved.ambition).toBe('equilibre');
+ expect(saved.choices).toEqual([]);expect(saved.city).toBeUndefined();expect(saved.ambition).toBe('equilibre');
 });
