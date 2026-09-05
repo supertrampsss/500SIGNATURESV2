@@ -43,5 +43,5 @@ export function nationalMandateHeading(game: Game): string {
 
 export function nationalCommandPulse(game: Game): string {
   const impact = nationalDecisionImpact(game);
-  return `<dl class="national-command-pulse" aria-label="État du pays dans la simulation">${impact.length ? `<div class="national-decision-impact" aria-live="polite"><dt>Effet immédiat</dt><dd>${impact.map(item => `<span data-direction="${item.direction}">${item.label}</span>`).join('')}</dd></div>` : ''}<div><dt>Dette publique</dt><dd>${number(game.finance.debt)} <small>Md€</small></dd></div><div><dt>Services publics</dt><dd>${number(game.metrics.services)}<small>/100</small></dd></div><div><dt>Confiance</dt><dd>${number(game.metrics.trust)}<small>/100</small></dd></div></dl>`;
+  return `<dl class="national-command-pulse" aria-label="État du pays dans la simulation">${impact.length ? `<div class="national-decision-impact" aria-live="polite"><dt>Effet de la mesure</dt><dd>${impact.map(item => `<span data-direction="${item.direction}">${item.label}</span>`).join('')}</dd></div>` : ''}<div><dt>Dette publique</dt><dd>${number(game.finance.debt)} <small>Md€</small></dd></div><div><dt>Services publics</dt><dd>${number(game.metrics.services)}<small>/100</small></dd></div></dl>`;
 }

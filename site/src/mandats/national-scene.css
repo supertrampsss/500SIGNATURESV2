@@ -26,7 +26,7 @@ body[data-mode="national"] .header-actions [data-action="light-mode"]{display:gr
 .national-areas button{min-height:48px;border:0;border-radius:0;background:#13232b;color:#e3e6de;font:inherit;font-size:.8125rem;padding:.75rem;text-align:left}
 .national-areas button:hover{background:#243944}
 .national-world-note{color:var(--muted);font-size:.75rem;margin:.6rem 0}
-.national-command-pulse{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem 2rem;margin:0;padding:1.25rem 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.national-command-pulse{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem 2rem;margin:0;padding:1.25rem 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .national-command-pulse dt{font-size:.6875rem;color:var(--muted);margin-bottom:.4rem}
 .national-command-pulse dd{margin:0;font-size:1.65rem;font-weight:400;line-height:1.2}
 .national-command-pulse dd small{font-size:.75rem;color:var(--muted);margin-left:.2rem}

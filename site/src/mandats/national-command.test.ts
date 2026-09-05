@@ -12,10 +12,9 @@ test('France exposes the committed measure in three short facts at most', () => 
     { label: 'Confiance −2', direction: 'down' },
   ]);
   const pulse = nationalCommandPulse(game);
-  assert.match(pulse, /Effet immédiat/);
+  assert.match(pulse, /Effet de la mesure/);
   assert.match(pulse, /Recettes \+4 Md€\/an/);
   assert.match(pulse, /Confiance −2/);
-  assert.match(pulse, /Confiance<\/dt>/);
 });
 
 test('France impact remains concise when a measure changes several systems', () => {
