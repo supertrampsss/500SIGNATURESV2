@@ -47,7 +47,7 @@ test("territory detail exposes every score input with current values in both mod
     const html = gameShell(g, "play", "territory");
     assert.match(html, new RegExp(`<dt>Confiance</dt><dd>${Math.round(g.metrics.trust)}<small>/100`));
     assert.match(html, new RegExp(`<dt>Patrimoine</dt><dd>${Math.round(g.metrics.assets)}<small>/100`));
-    assert.match(html, /Le pouls du mandat/);
+    assert.match(html, /Les indicateurs du jeu/);
     assert.match(html, /pas une intention de vote/);
   }
 });

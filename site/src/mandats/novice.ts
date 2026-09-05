@@ -21,45 +21,45 @@ function localCopy(g:Game,theme:number,stage:number):Copy {
  const p=localProfile(g.city!);
  switch(theme){
  case 0:return p.tight ? [
-  ['Comment retrouver de l’argent pour agir ?','Comment financer la suite des services ?','Comment laisser un budget moins serré ?'][stage],
-  'Le budget de départ laisse peu d’argent après les dépenses et les remboursements. Réduire les achats ou demander plus aux contribuables ?',
-  [['Réduire les achats non essentiels','Réduire les dépenses des contrats','Continuer à limiter les achats'][stage],'Augmenter les recettes fiscales','Garder le budget actuel'],
-  ['Des économies chaque année ; moins de moyens pour les équipes.','Plus d’argent pour la ville ; les contribuables paient davantage.','Pas de nouvel effort ; ce choix ne crée pas d’argent disponible.']
+  ['Comment dégager de l’argent dans le budget ?','Comment continuer à payer les services ?','Que faire pour payer les prochaines dépenses ?'][stage],
+  'Les comptes de départ laissent peu d’argent après les dépenses et les remboursements. La ville peut acheter moins ou augmenter les impôts.',
+  [['Réduire les achats non essentiels','Réduire les dépenses des contrats','Continuer à limiter les achats'][stage],'Augmenter les impôts locaux','Garder le budget actuel'],
+  ['Les agents achètent moins et doivent se passer de certaines fournitures.','Les contribuables paient davantage pour financer le budget municipal.','Les dépenses continuent sans recette supplémentaire pour les financer.']
  ] : [
-  ['Que faire de l’argent encore disponible ?','Plus d’aide aux habitants ou de meilleurs locaux ?','Que financer avant de passer la main ?'][stage],
-  'Les comptes de départ laissent de l’argent pour agir. Un service doit être payé chaque année ; des travaux se paient une fois.',
-  ['Renforcer l’aide en mairie','Améliorer les bâtiments municipaux','Garder l’argent disponible'],
-  ['Plus d’accompagnement ; une dépense à financer chaque année.','Des locaux plus pratiques ; moins d’argent pour les autres projets.','Une réserve conservée ; pas de service supplémentaire.']
+  ['Que faire de l’argent encore disponible ?','Aider les habitants ou rénover les locaux ?','Que financer avant de passer la main ?'][stage],
+  'Les comptes de départ laissent de l’argent après les dépenses et les remboursements. Vous pouvez l’utiliser ou le garder pour les imprévus.',
+  ['Ajouter de l’aide en mairie','Rénover les bâtiments municipaux','Garder l’argent disponible'],
+  ['Des agents aident les habitants à faire leurs démarches en mairie.','Les habitants utilisent des locaux rénovés. Les travaux réduisent le budget des autres projets.','Vous gardez l’argent pour les imprévus. L’accueil reste le même.']
  ];
  case 1:{const repay=p.debtPressure && g.city!.observed.debt>0;return [
-  [repay?'Rembourser la dette ou faire des travaux ?':'Quels travaux financer en plus ?', 'Quelle place donner aux nouveaux travaux ?', 'Quelle dette laisser après votre départ ?'][stage],
+  [repay?'Rembourser la dette ou faire des travaux ?':'Quels travaux financer en plus ?', 'Combien de nouveaux travaux financer ?', 'Quelle dette laisser après votre départ ?'][stage],
   repay?'La dette de départ pèse sur le budget. Rembourser davantage laisse moins d’argent pour améliorer les bâtiments.':'De nouveaux travaux améliorent les bâtiments, mais leur financement peut augmenter la dette.',
   [repay?'Rembourser davantage la dette':'Rénover des bâtiments municipaux','Faire des travaux plus limités','Ne pas ajouter de travaux'],
-  [repay?'Plus de dette remboursée ; moins d’argent disponible pour les travaux.':'Des bâtiments améliorés ; un emprunt peut être nécessaire.','Une facture plus petite ; moins de bâtiments améliorés.','Pas de nouvelle dépense ; les nouveaux projets attendent.']
+  [repay?'Vous remboursez plus de dette et gardez moins d’argent pour les travaux.':'La ville rénove ses bâtiments. Elle peut devoir emprunter pour payer les travaux.','La ville finance des travaux plus limités.','Les projets déjà prévus continuent. Les nouveaux attendent.']
  ];}
  case 2:return [
   ['Réparer les bâtiments ou attendre ?','Ajouter des travaux ou mieux entretenir ?','Quels bâtiments améliorer avant de partir ?'][stage],
-  p.investmentShare>=.2?'Des travaux occupent déjà une part importante du budget de départ. Ajouter des réparations ou finir ce qui est prévu ?':'Vous pouvez réparer davantage de bâtiments ou renforcer les petites réparations régulières.',
+  p.investmentShare>=.2?'Les comptes de départ prévoient déjà des travaux importants. Vous pouvez ajouter des réparations ou garder le programme prévu.':'Vous pouvez lancer de nouvelles réparations ou payer des agents pour entretenir les bâtiments plus souvent.',
   ['Ajouter des réparations aux bâtiments','Entretenir plus souvent les bâtiments','Finir les travaux déjà prévus'],
-  ['Les bâtiments s’améliorent ; de nouveaux travaux sont à financer.','Des réparations plus régulières ; une dépense revient chaque année.','Pas de dépense en plus ; les nouvelles réparations attendent.']
+  ['Les agents réparent davantage de bâtiments cette année.','Les agents font de petites réparations plus souvent. La ville finance ce travail chaque année.','Les travaux prévus continuent. Les nouvelles réparations attendent.']
  ];
  case 3:{const training=p.personnelShare!==null&&p.personnelShare>=.5;return [
-  ['Comment aider les agents à mieux vous accueillir ?','Comment améliorer le travail des équipes ?','Quels moyens laisser aux équipes municipales ?'][stage],
-  training?'Les salaires prennent une place importante dans les comptes de départ. Former les agents ou réorganiser leur travail ?':'Vous pouvez renforcer les équipes ou changer leur organisation pour mieux accueillir les habitants.',
-  [training?'Former les agents pendant un an':'Renforcer les équipes municipales','Ajouter un peu d’aide aux équipes','Redistribuer les tâches actuelles'],
-  [training?'Un meilleur service dans un an ; la formation est payée cette année.':'Plus de capacité de service ; des salaires à financer chaque année.','Un peu plus de service ; une dépense revient chaque année.','Le service change sans recrutement ; certains publics y perdent.']
+  ['Comment aider les agents à mieux vous accueillir ?','Comment améliorer le travail des équipes ?','Faut-il payer plus d’agents après votre départ ?'][stage],
+  training?'Les comptes de départ consacrent déjà une somme importante aux salaires. La ville peut former les agents ou revoir leur travail.':'Les agents peuvent accueillir plus d’habitants si la ville recrute. Changer leurs horaires modifie aussi le service rendu.',
+  [training?'Former les agents pendant un an':'Recruter des agents municipaux','Recruter un renfort limité','Redistribuer les tâches actuelles'],
+  [training?'Les agents répondent mieux aux demandes dans un an. La formation n’est payée que cette année.':'Les agents supplémentaires peuvent traiter plus de demandes.','Les habitants bénéficient d’un renfort plus petit, à financer chaque année.','Les agents changent leurs permanences. Certains usagers perdent leur créneau.']
  ];}
  case 4:return [
-  ['Faut-il demander plus aux contribuables ?','Comment payer les prochains services ?','Quel effort fiscal laisser pour la suite ?'][stage],
-  p.tight?'Le budget de départ est serré. Une hausse des recettes apporte de l’argent ; réduire les achats diminue les moyens des services.':'Vous pouvez augmenter les recettes fiscales, les réduire ou garder le niveau actuel.',
-  ['Augmenter les recettes fiscales',p.tight?'Réduire les achats des services':'Réduire les recettes fiscales','Garder les recettes fiscales actuelles'],
-  ['Plus d’argent pour la ville ; les contribuables paient davantage.',p.tight?'Des économies ; les services disposent de moins de moyens.':'Les contribuables paient moins ; la ville reçoit moins d’argent.','Pas de changement pour les contribuables ; aucune recette nouvelle.']
+  ['Faut-il demander plus aux contribuables ?','Comment payer les prochains services ?','Quels impôts après votre départ ?'][stage],
+  p.tight?'Les comptes de départ laissent peu d’argent disponible. Vous pouvez augmenter les impôts ou réduire les achats des services.':'Les comptes de départ permettent un choix sur les impôts : les augmenter, les baisser ou garder le niveau prévu.',
+  ['Augmenter les impôts locaux',p.tight?'Réduire les achats des services':'Réduire les impôts locaux','Garder les impôts actuels'],
+  ['Les contribuables paient davantage pour financer le budget municipal.',p.tight?'Les services achètent moins pour éviter une hausse des impôts.':'Les contribuables paient moins. La ville doit financer ses services avec moins de recettes.','Les habitants paient autant. Les nouveaux services doivent trouver un autre financement.']
  ];
- default:{const kind=p.tourist?'les périodes de forte fréquentation':p.mountain?'les contraintes de montagne':p.rural?'les distances entre les habitants et les services':'les besoins des habitants';return [
-  ['Comment rapprocher les services des habitants ?','Adapter les lieux ou ajouter une aide temporaire ?','Quelle amélioration laisser aux habitants ?'][stage],
-  `Le scénario tient compte de ${kind}. Adapter les lieux ou ajouter de l’accompagnement pendant un an ?`,
-  ['Adapter les lieux de service','Ajouter de l’aide pendant un an','Réorganiser les moyens existants'],
-  ['Des lieux plus pratiques ; les travaux doivent être financés.','Plus d’accompagnement cette année ; l’aide prend fin dans un an.','Le service est réorganisé ; certains habitants doivent changer leurs habitudes.']
+ default:{const context=p.tourist?'Le scénario prévoit plus de visiteurs à certaines périodes. Il faut pouvoir les accueillir.':p.mountain?'Le scénario prévoit des trajets difficiles en montagne pour rejoindre les services.':p.rural?'Le scénario prévoit des habitants éloignés des guichets. Il faut leur permettre de faire leurs démarches.':'Les habitants doivent pouvoir entrer dans les locaux et trouver de l’aide pour leurs démarches.';return [
+  ['Comment rapprocher les services des habitants ?','Adapter les lieux ou ajouter une aide temporaire ?','Que financer pour les prochains usagers ?'][stage],
+  context,
+  ['Aménager les locaux d’accueil','Ajouter de l’aide pendant un an','Changer les permanences actuelles'],
+  ['Les habitants entrent et circulent plus facilement dans les locaux.','Des agents aident les habitants pendant un an. Ce renfort s’arrête ensuite.','Les permanences changent. Certains habitants doivent venir à un autre moment.']
  ];}
  }
 }
