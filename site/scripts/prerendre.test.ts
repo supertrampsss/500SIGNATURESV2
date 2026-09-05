@@ -1409,9 +1409,9 @@ test("15. le bilan servi enchaîne directement le verdict et les trois chapitres
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, "le parcours du bilan n'est plus dans l'ordre de lecture");
   assert.doesNotMatch(html, /bilan-portes/);
   assert.equal((html.match(/class="bilan-chapitre"/g) ?? []).length, 3);
-  assert.doesNotMatch(html, /href="#france-entrees"/);
-  assert.doesNotMatch(html, /href="#france-sorties"/);
-  assert.doesNotMatch(html, /href="#france-dette"/);
+  assert.match(html, /href="#france-entrees"/);
+  assert.match(html, /href="#france-sorties"/);
+  assert.match(html, /href="#france-dette"/);
   assert.doesNotMatch(html, /<strong>La dette et l'Europe<\/strong>/);
   assert.doesNotMatch(html, /href="#france-europe"/);
   assert.doesNotMatch(html, /bilan-guide__nav/);

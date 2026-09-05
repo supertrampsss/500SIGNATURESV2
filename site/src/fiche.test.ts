@@ -276,20 +276,14 @@ test("la fiche s'arrête au tableau des exercices", () => {
     assert.ok(
       ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
        "fiche__essentiel", "fiche__parent", "fiche__situation",
-       "tableau-exercices"].includes(classe),
+       "tableau-exercices", "territoire-diagnostic"].includes(classe),
       `section inattendue : ${classe}`,
     );
   }
-  // La note ouvre la fiche — c'est la question qu'on vient poser. Elle n'entre
-  // pas dans l'énumération ci-dessus pour la même raison que les repères et
-  // les blocs : ce sont des modules de rendu à eux, dont les classes se
-  // vérifient dans leurs propres tests. Ce qui est vérifié ici, c'est qu'elle
-  // est bien présente et bien PREMIÈRE, avant les repères qui la soutiennent.
+  // Les quatre repères ouvrent le diagnostic, la note reste consultable sur place.
   assert.match(html, /class="note"/, "la note a quitté la fiche");
-  assert.ok(
-    html.indexOf('class="note"') < html.indexOf('class="reperes"'),
-    "les repères passent avant la note : la réponse arrive après ses justifications",
-  );
+  assert.match(html, /<details class="territoire-diagnostic"><summary>Lire la situation financière<\/summary>/);
+  assert.ok(html.indexOf('class="reperes"') < html.indexOf('class="note"'));
   // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
   // fiche ne dit jamais ce qu'elle est en train de calculer.
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);

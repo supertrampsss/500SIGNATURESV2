@@ -3,6 +3,7 @@
  * est affiché est partageable tel quel (docs/04).
  */
 
+import { brancherTheme } from "./theme.ts";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -125,6 +126,7 @@ import "./styles/dossiers-verification.css";
 import "./styles/registre-sources.css";
 import "./styles/questions.css";
 import "./styles/salaires.css";
+import "./styles/editorial-identity.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -202,38 +204,8 @@ type Etat = {
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-/**
- * Monte la vue d'ensemble des six graphiques de France.
- *
- * Les renderers historiques restent les propriétaires des calculs et des
- * tableaux accessibles. Ici on ne fait qu'en reprendre le visuel dans une
- * carte compacte, sans recréer une seconde source de vérité. Les liens de la
- * carte renvoient au bloc détaillé qui conserve le contexte éditorial.
- */
-function afficherLectureGraphique(): void {
-  document.querySelectorAll<HTMLElement>(".bilan-lecture__carte").forEach((carte) => {
-    const sourceId = carte.dataset.lectureSource;
-    const classeVisuel = carte.dataset.lectureVisuel;
-    const slot = carte.querySelector<HTMLElement>("[data-lecture-slot]");
-    const source = sourceId ? document.getElementById(sourceId) : null;
-    const visuel = source && classeVisuel
-      ? source.querySelector<HTMLElement>(`.${classeVisuel}`)
-      : null;
-    if (!slot || !visuel) {
-      carte.hidden = true;
-      return;
-    }
-    const copie = visuel.cloneNode(true) as HTMLElement;
-    copie.removeAttribute("id");
-    copie.setAttribute("aria-hidden", "true");
-    copie.querySelectorAll("details, summary, a, button").forEach((element) => element.remove());
-    copie.querySelector("figcaption")?.remove();
-    slot.replaceChildren(copie);
-    carte.hidden = false;
-  });
-}
-
 let carte: maplibregl.Map;
+let carteIndisponible = false;
 let catalogue: Indicateur[] = [];
 let jeux: Jeu[] = [];
 /** Ancres de la publication chargée : les écrans ne fabriquent aucun slug. */
@@ -620,6 +592,12 @@ async function peindreEvolution(
 }
 
 async function peindre(): Promise<void> {
+  if (!carte) {
+    await chargerIndex(etat.niveau);
+    if (etat.selection) await montrerFiche(etat.selection);
+    else afficherApercu();
+    return;
+  }
   const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
   // Noms et dénominateurs suffisent à peindre : l'index de la maille les porte
@@ -695,36 +673,10 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
   return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
 }
 
-/**
- * Tant que rien n'est sélectionné, le panneau montre **la France**.
- *
- * Il montrait jusqu'ici la dispersion de la couche affichée — médiane, quartiles
- * — c'est-à-dire une statistique sur des territoires plutôt qu'un territoire.
- * À l'ouverture du site, la bonne réponse à « où va l'argent public ? » est le
- * niveau national : dette, solde budgétaire, dépenses de l'État, comparaisons
- * européennes. On descend ensuite dans le détail en cliquant.
- *
- * Le résumé de couche qui tenait la place — minimum, médiane, quartiles,
- * total — est retiré : c'était une statistique sur des territoires, et c'est
- * ce qu'on lisait en arrivant sur le site. La maille pays est demandée dès
- * l'ouverture (`chargerFrance`) ; le temps qu'elle arrive, le panneau reste
- * vide plutôt que de montrer autre chose que la France.
- */
+/** Une entrée locale, sans présenter le budget national comme un territoire choisi. */
 function afficherApercu(): void {
-  const france = parentDe("FR", "pays");
-  const nationaux = indicateursDeLaFiche("pays");
-  if (!france || !nationaux.length) {
-    void chargerFrance();
-    return;
-  }
-  afficherFiche($("fiche"), {
-    niveau: "pays",
-    territoire: france,
-    indicateurs: nationaux,
-    comparateurs: [],
-    sources: sourcesPubliees,
-  });
-  appliquerVitesse();
+  delete document.body.dataset.territoireSelection;
+  $("fiche").innerHTML = `<section class="territoire-depart"><h2>Explorer une première fiche</h2><p>Recettes, dépenses, épargne et dette : les chiffres publiés, avec leur année et leurs sources.</p><div><button type="button" class="fiche__parent" data-code="33063" data-niveau="commune">Bordeaux</button><button type="button" class="fiche__parent" data-code="75056" data-niveau="commune">Paris</button></div></section>`;
 }
 
 /** La France du panneau d'accueil, demandée une seule fois et le plus tôt
@@ -1009,6 +961,7 @@ async function montrerFiche(code: string): Promise<void> {
   const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   etat.selection = code;
+  document.body.dataset.territoireSelection = "oui";
   marquerSelection(code);
   ecrireUrl();
   afficherFiche($("fiche"), {
@@ -2235,6 +2188,7 @@ async function peindrePalmares(): Promise<void> {
 async function peindreDetail(): Promise<void> {
   const cible = $("detail");
   const code = etat.selection;
+  if (!code && document.body.dataset.vue === "territoire") { cible.innerHTML = ""; return; }
   if (!code) {
     // L'ancien texte renvoyait « à la carte », qui n'est pas sur cette page :
     // il désignait une commande que le lecteur ne pouvait pas voir. Il nomme
@@ -2548,17 +2502,29 @@ function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
   if (!cadre) return;
 
   const poserCarte = (ouverte: boolean) => {
+    if (carteIndisponible) ouverte = false;
     cadre.hidden = !ouverte;
     appliquerModeCarte(carteActivePourVue(document.body.dataset.vue, ouverte));
   };
 
   // À partir de 60rem, la carte reste visible comme un outil de contexte.
   // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
-  suivreVisibiliteCarteParDefaut(
+  const bouton = document.getElementById("territoire-carte-toggle");
+  const suivre = suivreVisibiliteCarteParDefaut(
     window.matchMedia.bind(window),
-    poserCarte,
+    ouverte => {
+      poserCarte(ouverte);
+      if (bouton) {
+        bouton.setAttribute("aria-expanded", String(ouverte));
+        bouton.textContent = ouverte ? "Masquer la carte" : "Voir la carte";
+      }
+    },
     ouvrirCarteDemandee,
   );
+  if (bouton) {
+    bouton.removeAttribute("disabled");
+    bouton.addEventListener("click", () => suivre.choisir(cadre.hidden));
+  }
 }
 
 /**
@@ -2567,28 +2533,6 @@ function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
  * `localStorage` peut être interdit (navigation privée stricte) — le thème
  * suit alors le système, sans mémoire, plutôt que d'empêcher la page.
  */
-function brancherTheme(): void {
-  const bouton = $<HTMLButtonElement>("theme-bascule");
-  const sombreSysteme = window.matchMedia("(prefers-color-scheme: dark)");
-  const estSombre = () =>
-    document.documentElement.dataset.theme === "sombre" ||
-    (!document.documentElement.dataset.theme && sombreSysteme.matches);
-  const peindre = () => bouton.setAttribute("aria-pressed", String(estSombre()));
-  peindre();
-  // Le système change d'avis (coucher du soleil, réglage) : tant que le
-  // lecteur n'a pas tranché lui-même, la bascule le suit.
-  sombreSysteme.addEventListener("change", peindre);
-  bouton.addEventListener("click", () => {
-    const voulu = estSombre() ? "clair" : "sombre";
-    document.documentElement.dataset.theme = voulu;
-    try {
-      localStorage.setItem("theme", voulu);
-    } catch {
-      // Rien à mémoriser : le choix vaut pour cette page, et c'est déjà ça.
-    }
-    peindre();
-  });
-}
 
 /* --------------------------------------------------------------------------
  * Partager : le panneau du système, sinon le presse-papiers
@@ -3074,110 +3018,8 @@ function demonterApercuSimulateurV3(): void {
   demonterSimulateurV3 = null;
 }
 
-async function demarrer(): Promise<void> {
-  // Les documents éditoriaux pré-rendus ne passent pas par `basculerVue` :
-  // sans ce premier rendu, leur navigation mobile restait une barre vide,
-  // donc plus aucune des quatre destinations n'était atteignable au pouce.
-  // La fonction est rejouée par `basculerVue` pour les vues applicatives,
-  // avec le même contenu et sans effet de bord.
-  rendreNavigationPrincipale();
-  // Les liens du simulateur historique restent lisibles, mais ne doivent plus
-  // ouvrir deux interfaces différentes. On les ramène silencieusement vers
-  // la campagne V3 avant de lire l'état ou de monter une vue.
-  const adresseSimulateur = adresseSimulateurCanonique(location.pathname, location.search);
-  if (adresseSimulateur) history.replaceState(null, "", adresseSimulateur);
-  brancherEvenementsInterface();
-  // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
-  // page en panne doit rester lisible dans le thème du lecteur.
-  brancherTheme();
-  // Pour la même raison : une analyse est servie entière par le serveur, avec
-  // ses balises et son image déjà écrites. Son partage n'attend donc pas le
-  // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
-  brancherPartageEditorial();
-  // Et pour la même raison : l'index des analyses est servi entier, cartes
-  // comprises. Ses filtres n'attendent donc rien du réseau — un manifeste muet
-  // ne doit pas laisser sa barre repliée sur une liste qu'on voulait réduire.
-  brancherFiltresAnalyses();
-  brancherRegistreSources();
-  brancherQuestions();
-  // Et pour la même raison encore : les chiffres citables portent déjà leur
-  // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
-  // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
-  brancherCitations();
-  // Le pied de fiche, lui, attend bien les données — c'est le catalogue qui
-  // donne l'unité et la source de ses trois repères. Ses écouteurs, en
-  // revanche, sont posés dès maintenant : ils sont délégués sur `#fiche`, qui
-  // n'est jamais remplacé, et le cadre qu'ils servent apparaît avec la fiche.
-  // Et encore pour la même raison : l'appel « Chercher ma commune » de
-  // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
-  // dès le premier octet de HTML.
-  // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
-  // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
-  // territoire à détailler : lu avant d'être écrit, il levait
-  // `Cannot read properties of undefined`. La levée partait dans un `void`,
-  // donc sans rien à l'écran — un lien `#analyses` partagé s'ouvrait sur une
-  // page blanche, et seulement au chargement à froid : en naviguant depuis une
-  // autre vue du site, `etat` existait déjà et la page s'affichait.
-  // `lireUrl` ne lit que `location.search` : rien ne l'obligeait à attendre le
-  // réseau.
-  etat = lireUrl();
-  // Les liens partagés avant l'existence des chemins portent la vue dans le
-  // fragment : on les réécrit vers leur chemin, sans rechargement et sans
-  // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
-  // et reste intacte.
-  const fragmentInitial = location.hash;
-  const ouvrirCarteDemandee = carteDemandeeParFragment(fragmentInitial);
-  const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", fragmentInitial) : null;
-  if (vueDuFragment) {
-    // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
-    // efface le fragment avant qu'elle ne puisse s'y appliquer : un lien
-    history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
-  }
-  window.addEventListener("hashchange", basculerVue);
-  window.addEventListener("popstate", basculerVue);
-  basculerVue();
-  const manifeste = await donnees.initialiser();
-  // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
-  // le même index, sans état commun. Câblé ici, avant la garde éditoriale
-  // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
-  // pré-rendue — les deux partagent le même en-tête.
-  const champRecherche = document.getElementById("recherche");
-  const suggestionsRecherche = document.getElementById("suggestions");
-  if (champRecherche instanceof HTMLInputElement && suggestionsRecherche instanceof HTMLUListElement) {
-    brancherRecherche(champRecherche, suggestionsRecherche);
-  }
-  // Une page éditoriale n'a ni carte ni panneau : tout ce qui suit — sélecteurs,
-  // blocs nationaux, MapLibre — suppose les conteneurs de la vue territoire et
-  // lèverait sur un `$` renvoyant `null` avant d'avoir rien peint (défaut
-  // signalé par le rapport de la tâche 4 : `data-page="editorial"` était écrit
-  // sans qu'aucun code ne le lise). Le thème est déjà branché avant tout fetch
-  // (`brancherTheme()`), et la navigation n'est que des liens sans `data-vue`
-  // qui se rechargent — exactement le comportement voulu ici.
-  if (document.body.dataset.page === "editorial") return;
-  await chargerBaselineSimulateurV3();
-  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur" && versionSimulateurV3()) {
-    void ouvrirSimulateur();
-  }
-  jeux = manifeste.jeux;
-  catalogue = await donnees.indicateurs();
-  // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
-  // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
-  // leur origine. Leur badge et leur fiche disent d'où ils viennent.
-  catalogue = [...catalogue, ...indicateursDerives(catalogue)];
-  sourcesPubliees = indexerSources(
-    construireRegistre({ jeux, indicateurs: catalogue, analyses: ANALYSES }),
-  );
-  // L'accueil peut peindre : il compte les indicateurs publiés et nomme les
-  // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
-  resoudrePubliee();
-  construireSelecteurs();
-  brancherBriefingTerritorial(ouvrirCarteDemandee);
-  // La France du panneau d'accueil, demandée avant la carte : c'est la
-  // première chose à l'écran, elle ne doit pas attendre les tuiles.
-  void chargerFrance();
-  // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
-  // la carte n'a pas à patienter pour ça.
-
+/** La carte est une amélioration. Une panne GPU ne bloque aucun compte. */
+function initialiserCarte(): void {
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   carte = new maplibregl.Map({
     container: "carte",
@@ -3430,6 +3272,128 @@ async function demarrer(): Promise<void> {
     }
   }
 
+ }
+
+async function demarrer(): Promise<void> {
+  // Les documents éditoriaux pré-rendus ne passent pas par `basculerVue` :
+  // sans ce premier rendu, leur navigation mobile restait une barre vide,
+  // donc plus aucune des quatre destinations n'était atteignable au pouce.
+  // La fonction est rejouée par `basculerVue` pour les vues applicatives,
+  // avec le même contenu et sans effet de bord.
+  rendreNavigationPrincipale();
+  // Les liens du simulateur historique restent lisibles, mais ne doivent plus
+  // ouvrir deux interfaces différentes. On les ramène silencieusement vers
+  // la campagne V3 avant de lire l'état ou de monter une vue.
+  const adresseSimulateur = adresseSimulateurCanonique(location.pathname, location.search);
+  if (adresseSimulateur) history.replaceState(null, "", adresseSimulateur);
+  brancherEvenementsInterface();
+  // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
+  // page en panne doit rester lisible dans le thème du lecteur.
+  brancherTheme();
+  // Pour la même raison : une analyse est servie entière par le serveur, avec
+  // ses balises et son image déjà écrites. Son partage n'attend donc pas le
+  // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
+  brancherPartageEditorial();
+  // Et pour la même raison : l'index des analyses est servi entier, cartes
+  // comprises. Ses filtres n'attendent donc rien du réseau — un manifeste muet
+  // ne doit pas laisser sa barre repliée sur une liste qu'on voulait réduire.
+  brancherFiltresAnalyses();
+  brancherRegistreSources();
+  brancherQuestions();
+  // Et pour la même raison encore : les chiffres citables portent déjà leur
+  // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
+  // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
+  brancherCitations();
+  // Le pied de fiche, lui, attend bien les données — c'est le catalogue qui
+  // donne l'unité et la source de ses trois repères. Ses écouteurs, en
+  // revanche, sont posés dès maintenant : ils sont délégués sur `#fiche`, qui
+  // n'est jamais remplacé, et le cadre qu'ils servent apparaît avec la fiche.
+  // Et encore pour la même raison : l'appel « Chercher ma commune » de
+  // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
+  // dès le premier octet de HTML.
+  // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
+  // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
+  // territoire à détailler : lu avant d'être écrit, il levait
+  // `Cannot read properties of undefined`. La levée partait dans un `void`,
+  // donc sans rien à l'écran — un lien `#analyses` partagé s'ouvrait sur une
+  // page blanche, et seulement au chargement à froid : en naviguant depuis une
+  // autre vue du site, `etat` existait déjà et la page s'affichait.
+  // `lireUrl` ne lit que `location.search` : rien ne l'obligeait à attendre le
+  // réseau.
+  etat = lireUrl();
+  // Les liens partagés avant l'existence des chemins portent la vue dans le
+  // fragment : on les réécrit vers leur chemin, sans rechargement et sans
+  // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
+  // et reste intacte.
+  const fragmentInitial = location.hash;
+  const ouvrirCarteDemandee = carteDemandeeParFragment(fragmentInitial);
+  const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", fragmentInitial) : null;
+  if (vueDuFragment) {
+    // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
+    // efface le fragment avant qu'elle ne puisse s'y appliquer : un lien
+    history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
+  }
+  window.addEventListener("hashchange", basculerVue);
+  window.addEventListener("popstate", basculerVue);
+  basculerVue();
+  const manifeste = await donnees.initialiser();
+  // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
+  // le même index, sans état commun. Câblé ici, avant la garde éditoriale
+  // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
+  // pré-rendue — les deux partagent le même en-tête.
+  const champRecherche = document.getElementById("recherche");
+  const suggestionsRecherche = document.getElementById("suggestions");
+  if (champRecherche instanceof HTMLInputElement && suggestionsRecherche instanceof HTMLUListElement) {
+    brancherRecherche(champRecherche, suggestionsRecherche);
+  }
+  // Une page éditoriale n'a ni carte ni panneau : tout ce qui suit — sélecteurs,
+  // blocs nationaux, MapLibre — suppose les conteneurs de la vue territoire et
+  // lèverait sur un `$` renvoyant `null` avant d'avoir rien peint (défaut
+  // signalé par le rapport de la tâche 4 : `data-page="editorial"` était écrit
+  // sans qu'aucun code ne le lise). Le thème est déjà branché avant tout fetch
+  // (`brancherTheme()`), et la navigation n'est que des liens sans `data-vue`
+  // qui se rechargent — exactement le comportement voulu ici.
+  if (document.body.dataset.page === "editorial") return;
+  await chargerBaselineSimulateurV3();
+  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur" && versionSimulateurV3()) {
+    void ouvrirSimulateur();
+  }
+  jeux = manifeste.jeux;
+  catalogue = await donnees.indicateurs();
+  // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
+  // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
+  // leur origine. Leur badge et leur fiche disent d'où ils viennent.
+  catalogue = [...catalogue, ...indicateursDerives(catalogue)];
+  sourcesPubliees = indexerSources(
+    construireRegistre({ jeux, indicateurs: catalogue, analyses: ANALYSES }),
+  );
+  // L'accueil peut peindre : il compte les indicateurs publiés et nomme les
+  // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
+  resoudrePubliee();
+  construireSelecteurs();
+  brancherBriefingTerritorial(ouvrirCarteDemandee);
+  // La France du panneau d'accueil, demandée avant la carte : c'est la
+  // première chose à l'écran, elle ne doit pas attendre les tuiles.
+  void chargerFrance();
+  // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
+  // la carte n'a pas à patienter pour ça.
+
+  try {
+    initialiserCarte();
+  } catch {
+    carteIndisponible = true;
+    $("cadre-carte").hidden = true;
+    appliquerModeCarte(false);
+    const boutonCarte = document.getElementById("territoire-carte-toggle");
+    if (boutonCarte) {
+      boutonCarte.setAttribute("disabled", "");
+      boutonCarte.setAttribute("aria-expanded", "false");
+      boutonCarte.textContent = "Carte indisponible sur cet appareil";
+    }
+    // La recherche, les fiches et France fonctionnent sans contexte WebGL.
+    await peindre();
+  }
+
   $("panneau-fermer").addEventListener("click", fermerPanneau);
 
   brancherCommandes();
@@ -3479,7 +3443,6 @@ async function demarrer(): Promise<void> {
   if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
       $("national").hidden = false;
     }
-    afficherLectureGraphique();
     const analysesFrance = insightsFrance(pays.FR, catalogue, pays);
     const cadreInsightsFrance = $("insights-france");
     cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france" });
@@ -3668,12 +3631,15 @@ demarrer().catch((erreur: Error) => {
   // Elle s'écrit dans la vue affichée : sur l'accueil, le panneau de la carte
   // est masqué, et y écrire laisserait la racine du site entièrement blanche,
   // sans un mot sur ce qui a échoué.
-  const hote = document.body.dataset.vue === "accueil" ? $("vue-accueil") : $("fiche");
+  let hote: HTMLElement;
+  if (document.body.dataset.vue === "bilan") {
+    hote = document.createElement("div");
+    hote.className = "bilan-erreur";
+    $("vue-bilan").prepend(hote);
+  } else hote = document.body.dataset.vue === "accueil" ? $("vue-accueil") : $("fiche");
   hote.innerHTML = `<div class="etat etat--echec" role="alert">
       <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>
-      <span class="etat__quoi">Le site lit des fichiers publiés sur un serveur public :
-        c'est cette lecture qui a échoué, pas votre navigateur. Les chiffres déjà affichés,
-        s'il y en a, restent ceux du dernier chargement réussi.</span>
+      <span class="etat__quoi">Connexion aux données indisponible. Les chiffres déjà affichés restent consultables.</span>
       <span class="etat__reessayer">
         <button type="button" class="bouton-filet" onclick="location.reload()">Réessayer</button>
       </span>

@@ -1,0 +1,28 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Atelier des revenus</title><meta name="description" content="Comprendre un revenu et ses prélèvements." />    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "sombre" || t === "clair") document.documentElement.dataset.theme = t;
+      } catch (e) {
+        /* navigation privée : le thème suit alors le système, sans mémoire */
+      }
+    </script>
+</head><body>    <a class="evitement" href="#contenu">Aller au contenu</a>
+
+    <!-- L'en-tête porte la marque et les trois destinations permanentes. La
+         recherche appartient désormais à Territoires, seule vue où elle sert. -->
+    <header class="entete">
+      <a class="entete__marque" href="/bilan" aria-label="Où va l'argent public, revenir à France">
+        <span class="entete__nom">Où va l'argent public</span>
+        <span class="entete__signature">Les comptes publics, enfin lisibles</span>
+      </a>
+
+      <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>
+
+      <button type="button" class="bascule-theme" id="theme-bascule"
+              aria-pressed="false" title="Basculer entre le rendu clair et le rendu sombre">
+        <span class="visuellement-cache">Basculer le thème</span>
+        <span class="bascule-theme__icone" aria-hidden="true"></span>
+      </button>
+    </header>
+
+<main id="contenu"></main><script type="module" src="/src/salaires-page.ts"></script></body></html>

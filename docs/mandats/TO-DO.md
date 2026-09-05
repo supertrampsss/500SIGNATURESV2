@@ -38,3 +38,15 @@ Depuis `site/` : `node --experimental-strip-types scripts/mandats-intelligence.t
 Le fichier d’entrée comporte `authorized: true` et `posts: []`. Chaque publication renseigne URL de statut X, auteur, date, langue, résumé neutre, idée, thèmes autorisés, statut de vérification, sources et scores de 0 à 5. Le programme refuse les doublons, les statuts « verified » sans sources et les formats non bornés. Le rapport est un brouillon d’opportunités ; aucune idée n’est approuvée et aucune action n’est effectuée sur X. Un tableau vide produit un rapport vide, pas des thèmes inventés.
 
 Les scores et thèmes sont fournis par la relecture humaine de l’export, ils ne sont pas inférés automatiquement des opinions d’un compte. La possession d’un fichier ne suffit pas à établir un droit de réutilisation : l’opérateur doit disposer de l’autorisation et respecter les conditions de sa source. Ce programme ne cherche ni ne contourne aucun accès privé.
+
+## Onglets de données, prolongement du 5 septembre 2026
+
+- [x] Salaires : atelier autonome, quatre statuts, décomposition, coefficients explicites et validation de saisie.
+- [x] France : couverture chiffrée, navigation dans les chapitres, conservation des sources et des graphiques complets.
+- [x] Territoires : recherche compacte après sélection, quatre repères datés, diagnostic local et repli sans WebGL.
+- [x] Identité typographique partagée et navigation à cinq destinations sur mobile.
+- [ ] Calibrer un véritable moteur de paie par statut avant de présenter des estimations individuelles.
+- [ ] Découper le bundle historique France/Territoires et réduire le CSS partagé.
+- [ ] Étendre le hors connexion aux données territoriales uniquement avec sélection explicite, gestion des versions et budget de stockage.
+
+Voir `docs/design/2026-09-05-editorial-rework.md` et la CI de la pull request pour la vérification du lot.

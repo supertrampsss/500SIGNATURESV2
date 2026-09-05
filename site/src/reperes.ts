@@ -157,7 +157,7 @@ function echapper(texte: string): string {
 export function rendreReperes(liste: Repere[]): string {
   if (!liste.length) return "";
   const cases = liste
-    .map(({ role, terme, valeur, variation }) => {
+    .map(({ role, terme, valeur, variation, exercice }) => {
       // `montantLisible` rend « 417,14 millions d'euros » ou « 380,39 milliards
       // d'euros » selon la taille du montant. Le nombre porte le corps de
       // titre, l'unité rejoint la ligne du terme : « 380,39 » puis
@@ -172,7 +172,7 @@ export function rendreReperes(liste: Repere[]): string {
       // « de épargne » : l'élision se fait devant une voyelle, et « épargne »
       // est le seul terme concerné aujourd'hui. La règle vaut mieux que le cas.
       return `<div class="repere">
-        <span class="repere__role">${echapper(role)}</span>
+        <span class="repere__role">${echapper(role)}</span><span class="repere__date">${echapper(exercice)}</span>
         <span class="repere__valeur">${echapper(nombre)}</span>
         <span class="repere__terme">${echapper(`${unite} ${de(terme)}${terme}${evolution}`)}</span>
       </div>`;

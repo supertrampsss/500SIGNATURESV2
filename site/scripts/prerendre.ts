@@ -1592,7 +1592,7 @@ async function main(): Promise<void> {
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
 
   const htmlSalaires = injecter(
-    shell,
+    await readFile(path.join(DIST, "salaires/index.html"), "utf8"),
     {
       titre: PAGE_SALAIRES.titre,
       description: PAGE_SALAIRES.description,

@@ -35,7 +35,7 @@ jobs:
       - run: npm run build
       - name: Install mobile browser engines
         run: npx playwright install --with-deps chromium webkit
-      - name: Mandats mobile and desktop browser tests
+      - name: Game and editorial mobile and desktop browser tests
         run: npm run test:mandats
       - name: Browser failure artifacts
         if: failure()
