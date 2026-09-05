@@ -59,6 +59,7 @@ function render(focus = true) {
   mapCleanup?.(); mapCleanup=undefined;
   cityAbort?.abort(); cityAbort=null; if(searchTimer)clearTimeout(searchTimer);
   document.body.dataset.screen = screen;
+  document.body.dataset.view = view;
   const lightControl = document.querySelector<HTMLElement>('.header-actions [data-action="light-mode"]');
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";

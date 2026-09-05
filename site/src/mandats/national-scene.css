@@ -1,38 +1,120 @@
-/* National world: all enhancements remain outside the municipal experience. */
-.national-world { min-width: 0; position: relative; }
-.national-stage { height: 440px; position: relative; overflow: hidden; background: #102e35; border-radius: 4px; isolation: isolate; }
-.national-stage > picture { position: absolute; inset: 0; }
-.national-stage .world-image { width: 100%; height: 100%; object-fit: cover; opacity: .9; }
-.national-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; }
-.national-stage[data-state="ready"] > picture { visibility: hidden; }
-.national-scene-label { position: absolute; z-index: 2; left: 1.5rem; top: 1.25rem; pointer-events: none; color: #f2ead8; }
-.national-scene-label span { display: block; font-size: .75rem; letter-spacing: .25em; }
-.national-scene-label small { display: block; font-size: 1.1rem; margin-top: .3rem; }
-.national-model-label { position: absolute; bottom: 1rem; left: 1.5rem; z-index: 2; color: #d4dfde; font-size: .75rem; }
-.national-world-controls { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: #b8cdcb; font-size: .85rem; padding: .45rem 0; }
-.national-world-controls button { min-height: 44px; }
-.national-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #294247; border: 1px solid #294247; }
-.national-areas button { min-height: 44px; border: 0; border-radius: 0; background: #10272c; color: #e3e6de; font: inherit; font-size: .9rem; padding: .7rem; text-align: left; }
-.national-areas button:hover { background: #1e3940; }
-.national-world-note { color: #adbfbe; font-size: .75rem; margin: .6rem 0; }
-body[data-mode="national"] .world-heading { display: none; }
-@media (min-width: 821px) {
-  body[data-mode="national"] .game-grid[data-view="decision"] { grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr); gap: clamp(1.5rem, 3vw, 3rem); }
-  body[data-mode="national"] .game-grid[data-view="decision"] > .strategic-panel { grid-column: 1; grid-row: 1; margin-top: 0; }
-  body[data-mode="national"] .game-grid[data-view="decision"] > .game-content { grid-column: 2; grid-row: 1; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .national-stage { height: clamp(380px, 52vh, 620px); }
-  body[data-mode="national"] .game-grid[data-view="decision"] .strategic-underlay { margin-top: 1rem; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .dossier h1 { font-size: clamp(1.8rem, 2.5vw, 2.6rem); }
+/* One national mandate. The living scene and decisions share the same game state. */
+@font-face{font-family:"Public Sans";src:url('/polices/public-sans-latin.woff2') format('woff2');font-display:swap}
+@font-face{font-family:Spectral;src:url('/polices/spectral-500-latin.woff2') format('woff2');font-weight:500;font-display:swap}
+body[data-mode="national"]{--bg:#0c151b;--panel:#15242b;--surface:#1a2b32;--ink:#f3eee3;--muted:#bdc8cb;--accent:#d7ba8e;--gold:#edc795;--line:#7b949c40;background:#0c151b;font-family:"Public Sans",Arial,sans-serif}
+body[data-mode="national"] h1,body[data-mode="national"] h2{font-family:Spectral,Georgia,serif;font-weight:500;letter-spacing:-.025em}
+body[data-mode="national"] .world-heading{display:none}
+body[data-mode="national"] .header-actions [data-action="light-mode"]{display:grid}
+.france-mandate-context{align-items:center;border-bottom:1px solid var(--line);padding:0 0 1.1rem;margin-bottom:1.5rem}
+.france-mandate-context>span{font-family:Spectral,Georgia,serif;font-size:1.5rem;line-height:1.25;color:var(--ink)}
+.france-mandate-context small{display:block;font:400 .6875rem/1.5 "Public Sans",Arial,sans-serif;letter-spacing:.035em;color:var(--muted);margin-top:.3rem}
+.france-mandate-context>strong{font-size:.8125rem;font-weight:400;white-space:nowrap;color:#dfbd8b}
+.national-world{min-width:0;position:relative}
+.national-command-world{position:relative}
+.national-stage{height:460px;position:relative;overflow:hidden;background:#23333f;border-radius:3px;isolation:isolate}
+.national-living-scene,.national-scene-poster{position:absolute;inset:0;width:100%;height:100%}
+.national-living-scene>.winter-stage{height:100%;width:100%}
+.national-scene-poster img{width:100%;height:100%;object-fit:cover}
+.national-stage:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#07121dbb,transparent 28%,transparent 65%,#07121dd9)}
+.national-scene-label{position:absolute;z-index:2;left:1.5rem;top:1.5rem;color:#f3eee3;pointer-events:none;text-shadow:0 1px 8px #000}
+.national-scene-label span{display:block;font:500 1.4rem/1.3 Spectral,Georgia,serif}
+.national-scene-label small{display:block;font-size:.75rem;margin-top:.35rem;color:#d2d7d7}
+.national-model-label{position:absolute;z-index:2;bottom:1rem;left:1.5rem;font-size:.6875rem;color:#c4cdd0}
+.national-world-controls{display:flex;align-items:center;justify-content:space-between;gap:.5rem;color:var(--muted);font-size:.75rem;padding:.4rem 0}
+.national-world-controls button{min-height:44px;font-size:.75rem}
+.national-areas{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#758a9538;border:1px solid #758a9538}
+.national-areas button{min-height:48px;border:0;border-radius:0;background:#13232b;color:#e3e6de;font:inherit;font-size:.8125rem;padding:.75rem;text-align:left}
+.national-areas button:hover{background:#243944}
+.national-world-note{color:var(--muted);font-size:.75rem;margin:.6rem 0}
+.national-command-pulse{display:flex;gap:2rem;margin:0;padding:1.25rem 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.national-command-pulse>div{flex:1}
+.national-command-pulse dt{font-size:.6875rem;color:var(--muted);margin-bottom:.4rem}
+.national-command-pulse dd{margin:0;font-size:1.65rem;font-weight:400;line-height:1.2}
+.national-command-pulse dd small{font-size:.75rem;color:var(--muted);margin-left:.2rem}
+body[data-mode="national"] .game-grid[data-view="decision"] .national-world>:not(.national-stage){display:none}
+body[data-mode="national"] .game-tabs{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:0 0 .75rem;gap:.3rem}
+body[data-mode="national"] .game-tabs button{font-size:.6875rem;gap:.35rem;border-radius:4px}
+body[data-mode="national"] .game-tabs button[aria-current]{background:#d7ba8e12;color:#edc795}
+body[data-mode="national"] .game-tabs .ui-icon{width:17px;height:17px}
+body[data-mode="national"] .dossier{padding:0}
+body[data-mode="national"] .dossier>.eyebrow{font:400 .6875rem/1.4 "Public Sans",Arial,sans-serif;letter-spacing:.1em;color:#dfbd8b;margin-bottom:1.2rem}
+body[data-mode="national"] .dossier .campaign-position{font:400 .6875rem "Public Sans",Arial,sans-serif;letter-spacing:0}
+body[data-mode="national"] .dossier h1{font-size:clamp(1.8rem,2.8vw,2.7rem);line-height:1.13;max-width:25ch;margin-bottom:1rem}
+body[data-mode="national"] .dossier .story{font-size:.875rem;line-height:1.6;max-width:53ch;margin-bottom:1.5rem}
+body[data-mode="national"] .choices{gap:.625rem}
+body[data-mode="national"] .choice{padding:1rem 1.1rem;border-radius:6px;border-color:#8b9da04a;background:linear-gradient(120deg,#20323a99,#15242bbd);gap:.4rem}
+body[data-mode="national"] .choice-top strong{font-size:.9375rem;font-weight:600;line-height:1.35}
+body[data-mode="national"] .choice-outcome{font-size:.8125rem;line-height:1.5;color:#bdc8cb}
+body[data-mode="national"] .choice .cost{font-size:.75rem;line-height:1.4;color:#e1c494;margin-top:.1rem}
+body[data-mode="national"] .choice:hover:not(:disabled){transform:none;border-color:#c9a773;background:#263740}
+body[data-mode="national"] .choice:active:not(:disabled){transform:scale(.99)}
+body[data-mode="national"] .turn-feedback{font-size:.75rem;margin-top:.5rem}
+body[data-mode="national"] .turn-feedback button{font-size:.75rem}
+body[data-mode="national"] .mandate-timeline{margin:1.25rem 0 0;padding:0;gap:.5rem}
+body[data-mode="national"] .mandate-timeline li{margin:0;border:0;background:transparent}
+body[data-mode="national"] .mandate-timeline li span{font-size:.8125rem;background:#ffffff08;border-color:#ffffff24}
+body[data-mode="national"] .mandate-timeline li.current span{background:#d7ba8e20;border-color:#d7ba8e;color:#f3dfc3}
+body[data-mode="national"] .mandate-timeline small{font-size:.625rem;color:var(--muted)}
+@media(min-width:821px){
+ body[data-mode="national"] #mandats{max-width:1600px;padding-inline:clamp(24px,3vw,48px)}
+ body[data-mode="national"] .game-grid[data-view="decision"]{grid-template-columns:minmax(0,1.4fr) minmax(365px,1fr);gap:clamp(2rem,4vw,4rem)}
+ body[data-mode="national"] .game-grid[data-view="decision"]>.strategic-panel{grid-column:1;grid-row:1;margin:0;top:1.5rem}
+ body[data-mode="national"] .game-grid[data-view="decision"]>.game-content{grid-column:2;grid-row:1}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-stage{height:clamp(430px,58svh,760px)}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-command-pulse{position:absolute;bottom:0;left:0;right:0;padding:1.5rem;z-index:2;border:0;pointer-events:none}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-model-label{bottom:6.4rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-stage:after{background:linear-gradient(180deg,#07121dbb,transparent 28%,transparent 52%,#07121deb)}
+ body[data-mode="national"] .game-grid[data-view="decision"] .game-tabs{margin-bottom:1.75rem}
 }
-@media (max-width: 820px) {
-  body[data-mode="national"] .game-grid[data-view="decision"] > .strategic-panel { display: block; margin: 0 0 1rem; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .strategic-panel > :not(.national-world) { display: none; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .national-world > :not(.national-stage) { display: none; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .national-stage { height: 165px; }
-  .national-stage { height: 320px; }
-  .national-scene-label { top: .75rem; left: .85rem; }
-  .national-scene-label small { font-size: .9rem; }
-  .national-model-label { left: .85rem; bottom: .55rem; font-size: .65rem; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .national-scene-label { display: none; }
+@media(max-width:820px){
+ body[data-mode="national"] .site-header{padding:10px 18px}
+ body[data-mode="national"] .header-actions{gap:2px}
+ body[data-mode="national"] .header-actions button{font-size:.6875rem;padding-inline:6px}
+ body[data-mode="national"] .brand-icon{width:26px;height:26px}
+ body[data-mode="national"] .brand strong{font-size:.6875rem;letter-spacing:.08em}
+ body[data-mode="national"] .brand small{display:none}
+ body[data-mode="national"] #mandats{padding-inline:18px}
+ .france-mandate-context{margin:0;padding:0 0 .9rem;border:0}
+ .france-mandate-context>span{font-size:1.25rem}
+ .france-mandate-context small{font-size:.625rem;margin-top:.2rem}
+ .france-mandate-context>strong{font-size:.75rem}
+ body[data-mode="national"] .game-grid[data-view="decision"]>.strategic-panel{display:block;position:static;margin:0 0 1.25rem;max-width:none}
+ body[data-mode="national"] .game-grid[data-view="decision"] .strategic-panel>:not(.national-command-world){display:none}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-stage{height:clamp(160px,25svh,250px);margin-inline:-18px;border-radius:0}
+ .national-stage{height:320px}
+ .national-scene-label{left:18px;top:1rem}
+ .national-scene-label span{font-size:1rem}
+ .national-scene-label small{font-size:.6875rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-scene-label{display:none}
+ .national-model-label{left:18px;bottom:.65rem;font-size:.625rem}
+ .national-command-pulse{padding:.75rem 0;gap:1rem}
+ .national-command-pulse dt{font-size:.625rem;margin-bottom:.25rem}
+ .national-command-pulse dd{font-size:1.25rem}
+ .national-command-pulse dd small{font-size:.6875rem}
+ body[data-mode="national"] .dossier>.eyebrow{margin-bottom:.7rem;font-size:.625rem;letter-spacing:.05em}
+ body[data-mode="national"] .dossier h1{font-size:1.8rem;margin-bottom:.7rem;max-width:26ch}
+ body[data-mode="national"] .dossier .story{font-size:.8125rem;line-height:1.5;margin-bottom:1rem}
+ body[data-mode="national"] .choice{padding:.85rem .9rem}
+ body[data-mode="national"] .choice-outcome{font-size:.8125rem}
+ body[data-mode="national"] .game-tabs{position:fixed;bottom:0;left:0;right:0;background:#101d25fa;border-top:1px solid #a0acb340;border-radius:0;max-width:none;padding:5px 6px max(8px,env(safe-area-inset-bottom));gap:0;box-shadow:none}
+ body[data-mode="national"] .game-tabs button{font-size:.6875rem;min-height:48px;gap:4px}
+ body[data-mode="national"] .game-tabs .ui-icon{width:18px;height:18px}
+ body[data-mode="national"] .page-notes{font-size:.875rem}
 }
-@media (prefers-reduced-motion: reduce) { .national-world * { animation: none !important; transition: none !important; } }
+@media(max-width:360px){
+ body[data-mode="national"] .site-header{padding-inline:12px}
+ body[data-mode="national"] #mandats{padding-inline:14px}
+ body[data-mode="national"] .header-actions button{padding-inline:5px;font-size:.625rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-stage{height:145px;margin-inline:-14px}
+ body[data-mode="national"] .dossier h1{font-size:1.65rem}
+}
+@media(max-height:500px) and (min-width:700px){
+ body[data-mode="national"] .game-grid[data-view="decision"]{display:grid;grid-template-columns:minmax(0,1fr) minmax(345px,1fr);gap:1.5rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .strategic-panel{position:sticky;top:1rem;max-width:none}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-stage{height:290px;margin:0}
+ body[data-mode="national"] .game-tabs{position:static;margin-bottom:1rem;padding-bottom:.5rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-command-pulse{position:static;padding:1rem 0}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-model-label{bottom:1rem}
+ body[data-mode="national"] .dossier h1{font-size:1.8rem}
+}
+@media(prefers-reduced-motion:reduce){.national-world *{animation:none!important;transition:none!important}body[data-mode="national"] .choice{transition:none;transform:none!important}}

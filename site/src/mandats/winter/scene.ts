@@ -1,5 +1,3 @@
-import './scene.css'
-
 /** Visual values are normalized from zero to one by the simulation. */
 export interface VisualState {
   season: 'winter' | 'spring' | 'winter-return'
