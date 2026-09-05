@@ -11,8 +11,11 @@ export type NationalSceneState = {
 };
 export function nationalSceneState(game: Game, inherited = false, reducedMotion = false): NationalSceneState {
   const snapshot = inherited ? startingGame(game) : game;
-  const dossier = domainFor(game).dossiers[game.turn];
-  const area = dossier?.choices.map(c => c.delayed?.effect.area ?? c.effect.area).find(Boolean);
+  const domain = domainFor(game);
+  const lastDossier = snapshot.turn ? domain.dossiers[snapshot.turn - 1] : undefined;
+  const lastChoice = lastDossier?.choices.find(choice => choice.id === snapshot.history.at(-1)?.choice);
+  const dossier = domain.dossiers[snapshot.turn];
+  const area = lastChoice?.delayed?.effect.area ?? lastChoice?.effect.area ?? dossier?.choices.map(c => c.delayed?.effect.area ?? c.effect.area).find(Boolean);
   const focus: NationalArea | 'national' = area === 'metropoles' || area === 'industrie' || area === 'rural' || area === 'littoraux' ? area : 'national';
   // Only committed, positive investment creates building work. A budget cut is
   // not a delivered project; the shared project feed also contains legacy risks.
@@ -24,14 +27,24 @@ export function nationalSceneState(game: Game, inherited = false, reducedMotion 
   const calendar = calendarFor(snapshot);
   const planned = funded.filter(p => p.state === 'planned').length;
   const delivered = funded.filter(p => p.state === 'delivered').length;
-  const normalize = (value: number) => Math.max(0, Math.min(1, value / 100));
+  const baseline = domain.initial().metrics;
+  // A two-point change must be visible on a phone. The values remain anchored
+  // to real game indices, but use the inherited state as the visual midpoint.
+  const visualLevel = (value: number, inheritedValue: number) => Math.max(0, Math.min(1, .5 + (value - inheritedValue) / 16));
+  const lastEffects = lastChoice ? Object.values(lastChoice.effect).filter((value): value is number => typeof value === 'number') : [];
+  const positive = lastEffects.some(value => value > 0);
+  const negative = lastEffects.some(value => value < 0);
+  const tone: VisualState['tone'] = positive && negative ? 'mixed' : positive ? 'warm' : negative ? 'cool' : 'neutral';
   const visual: VisualState = {
     // Seasons only express progress through the playable year, never climate forecasts.
     season: calendar.slot <= 2 ? 'winter' : calendar.slot >= calendar.slots - 1 ? 'winter-return' : 'spring',
-    warmth: normalize(snapshot.metrics.services),
-    activity: normalize(snapshot.metrics.assets),
+    warmth: visualLevel(snapshot.metrics.services, baseline.services),
+    activity: visualLevel(snapshot.metrics.assets, baseline.assets),
     construction: planned > 0,
     renovated: delivered > 0,
+    focus,
+    tone,
+    turn: snapshot.turn,
     caption: `Décor illustratif du mandat national. Services publics : ${Math.round(snapshot.metrics.services)} sur 100. État des équipements : ${Math.round(snapshot.metrics.assets)} sur 100. ${planned} investissements en cours, ${delivered} livrés dans le jeu. Les lumières et les déplacements illustrent ces indices, sans mesurer le chauffage ni l'emploi.`,
   };
   return { turn: snapshot.turn, year: calendar.year, inherited, focus,

@@ -55,7 +55,7 @@ window.addEventListener("hashchange", event => {
   openEntry();
   render();
 });
-function render(focus = true) {
+function render(focus = true, restoreScroll?: number) {
   mapCleanup?.(); mapCleanup=undefined;
   cityAbort?.abort(); cityAbort=null; if(searchTimer)clearTimeout(searchTimer);
   document.body.dataset.screen = screen;
@@ -72,7 +72,10 @@ function render(focus = true) {
     const cleanups=[...root.querySelectorAll<HTMLElement>("[data-city-map]")].map(host=>mountCityMap(host,{code:city.code,name:city.name,center:[center.longitude,center.latitude]}));
     mapCleanup=()=>cleanups.forEach(cleanup=>cleanup());
   }
-  if (focus) { root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "instant" }); }
+  if (focus) {
+    root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+    window.scrollTo({ top: restoreScroll ?? 0, behavior: "instant" });
+  }
 }
 function persist() {
   if (!g || shared) return;
@@ -114,6 +117,7 @@ function sharingSheet() {
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
+  const actionScroll = window.scrollY;
   if (a === "light-mode") {
     const inDialog = dialog.contains(target), inPanel = root.contains(target);
     light = !light;
@@ -183,7 +187,8 @@ async function action(target: HTMLElement) {
     return;
   } else if (a === "png") { await png(target.dataset.format as keyof typeof CARD_SIZES); return; }
   else return;
-  if (dialog.open) dialog.close(); render();
+  if (dialog.open) dialog.close();
+  render(true, a === "choose" ? actionScroll : undefined);
 }
 document.addEventListener("click", event => {
   const target = (event.target as Element).closest<HTMLElement>("[data-action]");

@@ -5,6 +5,9 @@ export interface VisualState {
   activity: number
   construction: boolean
   renovated: boolean
+  focus: 'national' | 'metropoles' | 'industrie' | 'rural' | 'littoraux'
+  tone: 'neutral' | 'warm' | 'cool' | 'mixed'
+  turn: number
   caption: string
 }
 
@@ -23,9 +26,10 @@ const lerp = (a:number,b:number,t:number) => a+(b-a)*t
 export function sceneMarkup(): string {
   const id = `winter-world-${++sceneId}`
   const panes = (list:number[][],kind:string) => list.map(([x,y,w,h],i)=>`<g class="winter-window winter-window--${kind}" style="--window-delay:${i%5*70}ms"><rect class="winter-window-shade" x="${x}" y="${y}" width="${w}" height="${h}"/><rect class="winter-window-light" x="${x}" y="${y}" width="${w}" height="${h}"/><path class="winter-window-frame" d="M${x+w/2},${y}v${h}M${x},${y+h*.53}h${w}"/></g>`).join('')
-  return `<div class="winter-stage" data-scene-stage data-season="winter" data-warmth="0.5" data-activity="0.5" role="img" aria-label="Un quartier français vivant, entre logements, ateliers et canal, au fil des saisons.">
+  return `<div class="winter-stage" data-scene-stage data-season="winter" data-warmth="0.5" data-activity="0.5" data-focus="national" data-tone="neutral" data-turn="0" role="img" aria-label="Un quartier français vivant, entre logements, ateliers et canal, au fil des saisons.">
     <picture class="winter-stage-picture"><source media="(max-width: 700px)" srcset="/mandats/art/winter-quarter-small.webp"><img class="winter-stage-image" src="/mandats/art/winter-quarter.webp" alt="" width="1536" height="1024" decoding="async" fetchpriority="high" draggable="false"></picture>
     <div class="winter-season-tint" aria-hidden="true"></div>
+    <div class="winter-impact-tint" aria-hidden="true"></div>
     <svg class="winter-scene-layers" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
 
@@ -95,7 +99,8 @@ export function mountScene(host: HTMLElement) {
   const ripples = Array.from(stage.querySelectorAll<SVGPathElement>('[data-ripple]'))
   const van = stage.querySelector<SVGGElement>('[data-van]')!
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
-  let state: VisualState = {season:'winter',warmth:.5,activity:.5,construction:false,renovated:false,caption:''}
+  let state: VisualState = {season:'winter',warmth:.5,activity:.5,construction:false,renovated:false,focus:'national',tone:'neutral',turn:0,caption:''}
+  let activeTurn: number | undefined
   let paused = false, visible = true, disposed = false, frame = 0, last = 0, elapsed = 0
   const routes = [
     [340,648,615,604,762,480], [785,464,847,361,869,302], [305,699,537,648,692,551],
@@ -163,6 +168,7 @@ export function mountScene(host: HTMLElement) {
   document.addEventListener('visibilitychange',reconcile)
   motion.addEventListener('change',reconcile)
   function update(next:VisualState) {
+    const animateImpact = next.caption.length > 0 && activeTurn !== undefined && next.turn > activeTurn
     state={...next,warmth:clamp(next.warmth),activity:clamp(next.activity)}
     for(const element of new Set([host,stage!])) {
       element.dataset.season=state.season
@@ -170,10 +176,19 @@ export function mountScene(host: HTMLElement) {
       element.dataset.activity=state.activity.toFixed(3)
       element.dataset.renovated=String(state.renovated)
       element.dataset.construction=String(state.construction)
+      element.dataset.focus=state.focus
+      element.dataset.tone=state.tone
+      element.dataset.turn=String(state.turn)
     }
     stage!.style.setProperty('--home-warmth',String(state.warmth))
     stage!.style.setProperty('--factory-activity',String(state.activity))
     stage!.setAttribute('aria-label',`Un quartier français ${state.season==='spring'?'au printemps':'en hiver'}. ${state.caption}`)
+    if (animateImpact) {
+      stage!.classList.remove('winter-impacting')
+      void stage!.offsetWidth
+      stage!.classList.add('winter-impacting')
+    }
+    if (next.caption.length > 0) activeTurn=next.turn
     paint(elapsed)
   }
   update(state); reconcile()
