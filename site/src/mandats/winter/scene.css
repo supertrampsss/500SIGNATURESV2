@@ -19,7 +19,7 @@
 .winter-pedestrian{will-change:transform}
 .winter-worker,.winter-van{transition:opacity 1s ease}
 .winter-loading{opacity:var(--factory-activity);transition:opacity 1s ease}
-.winter-steam{mix-blend-mode:screen}
+
 .winter-snow{opacity:.8;transition:opacity 2.5s ease}
 .winter-water{mix-blend-mode:screen}
 .winter-spring-detail{opacity:0;transition:opacity 3s ease}
@@ -29,3 +29,9 @@
 .winter-stage[data-season=spring] .winter-spring-detail{opacity:.3}
 .winter-stage[data-season=winter-return] .winter-stage-image{filter:saturate(.88) brightness(.92)}
 @media(prefers-reduced-motion:reduce){.winter-stage *{transition:none!important}.winter-pedestrian{will-change:auto}}
+
+.winter-stage:not([data-art-ready=true]) .winter-scene-layers{opacity:0}
+.winter-delivery .winter-scaffold,.winter-delivery .winter-construction-person{animation:winter-delivery 1.3s ease both}
+.winter-stage[data-animation-paused=true] .winter-scaffold,.winter-stage[data-animation-paused=true] .winter-construction-person{animation-play-state:paused}
+@keyframes winter-delivery{0%,100%{opacity:0}20%,60%{opacity:.9}}
+@media(prefers-reduced-motion:reduce){.winter-delivery .winter-scaffold,.winter-delivery .winter-construction-person{animation:none}}

@@ -14,7 +14,6 @@ const visual = mountScene(stage);
 const panel = root.querySelector<HTMLElement>('#winter-decision')!;
 const menu = root.querySelector<HTMLDialogElement>('#winter-menu')!;
 let paused = false;
-let constructionTimer: ReturnType<typeof setTimeout> | undefined;
 let audioContext: AudioContext | undefined;
 let soundOn = false;
 let offlineUpdateReady = false;
@@ -52,18 +51,12 @@ panel.addEventListener('click', event => {
   if(button && !button.disabled) {
     const previous=state;
     state=decide(state,button.dataset.choice!);persist();render(true);chime();
-    clearTimeout(constructionTimer);
     const works=previous.turn === 1 && (button.dataset.choice==='isoler'||button.dataset.choice==='reseau');
     updateWorld();
-    if(works && !matchMedia('(prefers-reduced-motion: reduce)').matches && !paused) {
-      visual.update({...scene(state),season:'spring',construction:true,renovated:false});
-      root.querySelector('#season-label')!.textContent='LES TRAVAUX AVANCENT';
-      root.querySelector('#scene-caption')!.textContent='Les équipes interviennent avant le retour du froid.';
-      constructionTimer=setTimeout(()=>updateWorld(),1100);
-    }
+    stage.classList.toggle('winter-delivery',works && !matchMedia('(prefers-reduced-motion: reduce)').matches && !paused);
   } else if ((event.target as HTMLElement).closest('[data-replay]')) restart();
 });
-function restart() {clearTimeout(constructionTimer);state=INITIAL;persist();updateWorld();render(true);if(menu.open)menu.close();}
+function restart() {stage.classList.remove('winter-delivery');state=INITIAL;persist();updateWorld();render(true);if(menu.open)menu.close();}
 root.querySelector('#restart')!.addEventListener('click',restart);
 root.querySelector('#help-toggle')!.addEventListener('click',()=>{suspendedByMenu=true;visual.setPaused(true);menu.showModal();});
 root.querySelector('.winter-close')!.addEventListener('click',()=>menu.close());
@@ -72,6 +65,6 @@ root.querySelector('#motion-toggle')!.addEventListener('click',event=>{paused=!p
 root.querySelector('#sound-toggle')!.addEventListener('click',async event=>{const b=event.currentTarget as HTMLButtonElement;try{audioContext??=new AudioContext();await audioContext.resume();soundOn=!soundOn;b.setAttribute('aria-pressed',String(soundOn));b.textContent=soundOn?'Son activé':'Son';if(soundOn)chime();}catch{b.textContent='Son indisponible';b.disabled=true;}});
 root.querySelector('#offline')!.addEventListener('click',async event=>{const b=event.currentTarget as HTMLButtonElement,status=root.querySelector('#offline-status')!;b.disabled=true;status.textContent='Préparation…';try{if(offlineUpdateReady){await updateOffline();return;}const r=await prepareOffline();if(r.update){b.textContent='Appliquer la mise à jour';offlineUpdateReady=true;status.textContent='La nouvelle version est prête. Appliquez-la pour l’utiliser hors ligne.';}else status.textContent='Le jeu est prêt pour le mode hors connexion.';}catch{status.textContent='Préparation indisponible. Réessayez avec une connexion stable.';}finally{b.disabled=false;}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)void audioContext?.suspend();else if(soundOn)void audioContext?.resume();});
-window.addEventListener('pagehide',()=>{clearTimeout(constructionTimer);visual.setPaused(true);void audioContext?.suspend();});
+window.addEventListener('pagehide',()=>{visual.setPaused(true);void audioContext?.suspend();});
 window.addEventListener('pageshow',()=>{visual.setPaused(paused||suspendedByMenu);updateWorld();});
 updateWorld();render();

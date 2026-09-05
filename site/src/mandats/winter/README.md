@@ -7,7 +7,7 @@ Trois décisions liées, distinctes du mandat existant de 45 décisions. Aucun c
 
 Décor architectural généré pour ce projet, compressé en WebP (1536 px : 434 Ko ; 900 px : 136 Ko). Le décor est fixe. Les habitants, le véhicule, la vapeur, les flocons, les reflets, les fenêtres et les travaux sont des couches SVG animées au-dessus, dans le même repère 1536 × 1024. Aucun moteur WebGL nécessaire. Le SVG et l’image doivent utiliser le même recadrage pour rester alignés.
 
-Le confort commande les lumières des logements. L’activité commande la présence des ouvriers, les livraisons et la vapeur. Les travaux de printemps sont livrés au retour de l’hiver. Le bref passage des échafaudages est une transition visuelle ; il ne bloque pas les choix. Une décision prise pendant cette transition annule son minuteur.
+Le confort commande les lumières des logements. L’activité commande la présence des ouvriers, les livraisons et la vapeur. Les travaux de printemps sont livrés au retour de l’hiver. Le bref passage des échafaudages est une animation CSS de livraison ; il ne bloque pas les choix et ne modifie jamais l’état affiché. La saison et les travaux livrés reflètent immédiatement le modèle, sans dépendre d’un minuteur.
 
 La scène expose une description accessible. Ses animations s’arrêtent lorsque l’utilisateur le demande, préfère réduire les mouvements, masque la page ou fait défiler la scène hors écran. Un son bref est disponible sur activation explicite. Ce premier essai ne propose ni caméra libre ni quartier 3D explorable.
 

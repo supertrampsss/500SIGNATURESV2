@@ -30,8 +30,8 @@ export function sceneMarkup(): string {
     <div class="winter-season-tint" aria-hidden="true"></div>
     <svg class="winter-scene-layers" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
-        <filter id="${id}-glow" x="-150%" y="-100%" width="400%" height="300%"><feGaussianBlur stdDeviation="3.2"/></filter>
-        <filter id="${id}-steam" x="-75%" y="-75%" width="250%" height="250%"><feGaussianBlur stdDeviation="5"/></filter>
+
+        <radialGradient id="${id}-steam"><stop stop-color="#bac5ce" stop-opacity=".8"/><stop offset="1" stop-color="#bac5ce" stop-opacity="0"/></radialGradient>
         <linearGradient id="${id}-water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffc778" stop-opacity=".35"/><stop offset="1" stop-color="#ffddad" stop-opacity="0"/></linearGradient>
         <clipPath id="${id}-canal"><path d="M390 947 Q568 919 634 821 Q706 745 894 780 L1037 814 1147 793 1536 943 1536 1024 348 1024Z"/></clipPath>
         <clipPath id="${id}-home"><path d="M347 306 648 285 650 579 348 610Z"/></clipPath>
@@ -62,7 +62,7 @@ export function sceneMarkup(): string {
         <path d="m354 385 37-53m0 109 41-58m0 113 42-57m0 115 42-56M354 498l37 57M391 441l41 52M432 385l42 51" stroke="#a6a4a0" stroke-width="1.2" opacity=".8"/>
         <path d="M353 562 519 555 519 580 353 588Z" fill="#687c75" opacity=".52"/>
       </g>
-      <g class="winter-steam" filter="url(#${id}-steam)">${Array.from({length:12},(_,i)=>`<ellipse data-steam="${i}" cx="0" cy="0" rx="${13+i%3*4}" ry="${7+i%3*3}" fill="#afbac5" opacity="0"/>`).join('')}</g>
+      <g class="winter-steam">${Array.from({length:12},(_,i)=>`<ellipse data-steam="${i}" cx="0" cy="0" rx="${13+i%3*4}" ry="${7+i%3*3}" fill="url(#${id}-steam)" opacity="0"/>`).join('')}</g>
       <g class="winter-loading"><path d="M1173 548 1205 552 1204 562 1172 558Z" fill="#4d3d31"/><path d="M1175 538 1187 539 1187 551 1175 550ZM1190 540 1202 541 1202 553 1190 552Z" fill="#a38054" stroke="#5d4b38" stroke-width=".7"/><path d="M1181 539v11m15-9v11" stroke="#c3a879" stroke-width="1"/></g>
       <g data-van class="winter-van">
         <ellipse cx="0" cy="4" rx="21" ry="6" fill="#0b1721" opacity=".34"/>
@@ -87,6 +87,10 @@ export function sceneMarkup(): string {
 export function mountScene(host: HTMLElement) {
   const stage = host.matches('[data-scene-stage]') ? host : host.querySelector<HTMLElement>('[data-scene-stage]')
   if (!stage) throw new Error('Winter scene must be rendered before mounting.')
+  const plate = stage.querySelector<HTMLImageElement>('.winter-stage-image')!
+  const markArtReady = () => { stage.dataset.artReady = String(plate.complete && plate.naturalWidth > 0) }
+  plate.addEventListener('load',markArtReady)
+  markArtReady()
   const people = Array.from(stage.querySelectorAll<SVGGElement>('[data-person]'))
   const steam = Array.from(stage.querySelectorAll<SVGEllipseElement>('[data-steam]'))
   const flakes = Array.from(stage.querySelectorAll<SVGCircleElement>('[data-flake]'))
@@ -173,5 +177,5 @@ export function mountScene(host: HTMLElement) {
     paint(elapsed)
   }
   update(state); reconcile()
-  return {update,setPaused(value:boolean){paused=value;reconcile()},dispose(){disposed=true;reconcile();observer.disconnect();document.removeEventListener('visibilitychange',reconcile);motion.removeEventListener('change',reconcile)}}
+  return {update,setPaused(value:boolean){paused=value;reconcile()},dispose(){disposed=true;reconcile();observer.disconnect();plate.removeEventListener('load',markArtReady);document.removeEventListener('visibilitychange',reconcile);motion.removeEventListener('change',reconcile)}}
 }

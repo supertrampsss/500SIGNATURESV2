@@ -13,7 +13,7 @@ test('two winters: choices persist, reshape the scene and preserve the complete 
  await expect(page.locator('h1')).toBeFocused();await page.reload();
  await expect(page.locator('.winter-decision-top')).toContainText('2/3');
  await page.locator('[data-choice="isoler"]').click();
- await expect(page.locator('.winter-stage')).toHaveAttribute('data-renovated','true');
+ expect(await page.locator('.winter-stage').getAttribute('data-renovated')).toBe('true');
  await expect(page.locator('.winter-stage')).toHaveAttribute('data-season','winter-return');
  await expect(page.locator('[data-choice="foyers"]')).toBeDisabled();
  await expect(page.locator('.winter-reserve')).toContainText('6');
