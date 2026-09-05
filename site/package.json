@@ -4,11 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts",
+    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/mandats-offline.ts",
     "test": "tsc -p tsconfig.type-tests.json --noEmit && node --experimental-strip-types --test src/*.test.ts src/simulateur-v3/*.test.ts scripts/*.test.ts",
     "test:mobile390:server": "vite --mode test --host 127.0.0.1 --port 4175 --strictPort",
     "test:mobile390": "playwright test --config playwright.mobile390.config.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:mandats": "playwright test --config playwright.mandats.config.ts",
+    "test:mandats:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort"
   },
   "dependencies": {
     "maplibre-gl": "^5.9.0",
