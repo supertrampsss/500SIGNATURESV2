@@ -16,3 +16,5 @@ import './mandats/local-campaign.test.ts';
 import "./mandats/novice.test.ts";
 
 import './mandats/national-scene-state.test.ts';
+
+import './mandats/winter/model.test.ts';
