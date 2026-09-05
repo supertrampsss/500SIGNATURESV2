@@ -28,7 +28,7 @@
 .city-project-progress p{font-size:.875rem}
 .city-setup-summary>p:last-child{font-size:.875rem}
 .game-grid[data-view="decision"] .strategic-underlay{display:none}
-.mobile-mandate-context{display:flex;font-size:.875rem;padding:0 0 1rem;margin:0}
+.mobile-mandate-context{display:flex;justify-content:space-between;gap:1rem;font-size:.875rem;padding:0 0 1rem;margin:0}
 .mobile-mandate-context strong{font-weight:400;color:var(--muted)}
 .pulse{margin-bottom:1rem}
 @media(min-width:821px){.game-grid[data-view="decision"] .strategic-panel{position:sticky;top:1.5rem;align-self:start}.game-grid[data-view="decision"] .world-heading{display:none}.game-grid[data-view="decision"] .game-content{min-width:0}.game-tabs{margin-bottom:1.5rem}.mandate-timeline{margin-top:1.5rem}}
