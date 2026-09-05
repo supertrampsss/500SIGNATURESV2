@@ -8,7 +8,7 @@ const core = ['/mandats/', '/mandats/methode/', '/mandats/manifest.webmanifest',
 for (const asset of entryAssets) {
   const source = await readFile(dist+asset,'utf8');
   for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) core.push('/assets/'+m[1]);
-  for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
+  for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);
 const precache = [...new Set(core)];

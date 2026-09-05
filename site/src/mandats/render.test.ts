@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { start, decide, DOMAINS } from "./engine.ts";
-import { selection, gameShell } from "./render.ts";
+import { selection, mandateSetup, gameShell } from "./render.ts";
 test("both mandates have direct accessible choices and optional context", () => {
   const html = selection(null);
   assert.match(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
@@ -9,6 +9,10 @@ test("both mandates have direct accessible choices and optional context", () => 
   for (const mode of ["municipal", "national"] as const) {
     assert.match(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
     const g = start(mode);
+    const setup = mandateSetup(g);
+    assert.equal((setup.match(/data-action="choose-cap"/g) ?? []).length, 3);
+    assert.match(setup,/Un choix pour tout le mandat/);
+    assert.doesNotMatch(gameShell(g,"play","decision"),/data-action="choose-cap"|data-action="ambition"|Cap :/);
     for (const view of ["decision", "territory", "finance", "journal"] as const) {
       const rendered = gameShell(g, "play", view);
       assert.match(rendered, /tabindex="-1"/);
