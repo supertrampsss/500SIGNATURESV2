@@ -2,7 +2,7 @@
 const drawings = {
  decision:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>',
  territory:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2V5Zm6-2v16m6-14v16"/>',
- finance:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 5V3m8 2V3M8 14h3m3 0h2m-8 3h3"/>',
+ finance:'<path d="m3 8 9-5 9 5H3Zm2 3v6m5-6v6m4-6v6m5-6v6M3 21h18M5 18h14"/>',
  journal:'<path d="M12 5C8 2 4 3 3 4v15c4-2 7-1 9 1 2-2 5-3 9-1V4c-1-1-5-2-9 1Zm0 0v15"/>',
  plan:'<path d="M5 5h14M5 12h14M5 19h14"/><circle cx="9" cy="5" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="11" cy="19" r="2"/>',
  balance:'<path d="M12 3v17M6 21h12M4 7h16M6 7l-4 7h8L6 7Zm12 0-4 7h8l-4-7Z"/>',
