@@ -26,3 +26,12 @@ test('France impact remains concise when a measure changes several systems', () 
     'Dépenses +2 Md€/an', 'Services +2', 'Cohésion +1',
   ]);
 });
+
+test('a year-end measure keeps the delivery year of the committed decision', () => {
+  let game = start('national', 42, 'equilibre', 4);
+  for (let turn = 0; turn < 35; turn++) game = decide(game, choicesFor(game)[0].id);
+  const delayed = choicesFor(game).find(choice => choice.delayed);
+  assert.ok(delayed);
+  game = decide(game, delayed.id);
+  assert.ok(nationalDecisionImpact(game).some(item => item.label === 'Livraison prévue · année 6'));
+});

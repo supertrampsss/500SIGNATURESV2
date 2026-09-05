@@ -29,7 +29,7 @@ export function nationalDecisionImpact(game: Game): Impact[] {
     if (value) push(`${label} ${signed(value)}`, value);
   }
   if (choice.delayed && result.length < 3) {
-    const year = calendarFor(game).year + choice.delayed.after;
+    const year = (game.history.at(-1)?.year ?? calendarFor(game).year) + choice.delayed.after;
     result.push({ label: `Livraison prévue · année ${year}`, direction: 'neutral' });
   }
   return result.slice(0, 3).length ? result.slice(0, 3) : [{ label: 'Trajectoire maintenue', direction: 'neutral' }];
