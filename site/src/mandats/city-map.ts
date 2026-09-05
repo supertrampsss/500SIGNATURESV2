@@ -54,6 +54,7 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
   let map: CityMap | undefined;
   let disposed = false;
   let pending = false;
+  let stage: 'idle' | 'module' | 'renderer' | 'tiles' | 'buildings' | 'ready' = 'idle';
   let threeD = true;
   let timeout: ReturnType<typeof setTimeout> | undefined;
   let observer: ResizeObserver | undefined;
@@ -69,6 +70,12 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
     canvas.hidden = true;
     controls.hidden = true;
     controls.replaceChildren();
+  };
+  const report = (error: unknown) => {
+    // Local categorical diagnostic only, with no telemetry or raw exception text.
+    const detail = error instanceof Error ? error.message : String(error);
+    root.dataset.mapFailure = /webgl|gpu/i.test(detail) ? 'webgl-unavailable' : /content.security|csp|worker/i.test(detail) ? 'renderer-policy' : stage;
+    console.warn(`[Mandats optional city map: ${root.dataset.mapFailure}]`);
   };
   const fallback = (message: string) => {
     stopMap();
@@ -97,6 +104,8 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
       return;
     }
     pending = true;
+    delete root.dataset.mapFailure;
+    stage = 'module';
     launch.disabled = true;
     status.textContent = 'Chargement des rues et bâtiments…';
     try {
@@ -106,6 +115,7 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
       ]);
       if (disposed) return;
       canvas.hidden = false;
+      stage = 'renderer';
       map = new maplibregl.Map({
         container: canvas,
         style: 'https://tiles.openfreemap.org/styles/bright',
@@ -116,18 +126,21 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
         scrollZoom: false,
         canvasContextAttributes: { antialias: false },
       });
+      stage = 'tiles';
       const activeMap = map;
       attribution.hidden = false;
       timeout = setTimeout(() => {
         if (!disposed && map === activeMap && pending) fallback('La carte ne répond pas. Continuez votre mandat ou réessayez avec une connexion stable.');
       }, 20000);
-      activeMap.on('error', () => {
+      activeMap.on('error', event => {
+        if (!disposed && map === activeMap) report(event.error);
         if (!disposed && map === activeMap) status.textContent = 'Certaines données cartographiques sont indisponibles. Le mandat reste accessible.';
       });
       activeMap.once('load', () => {
         if (disposed || map !== activeMap) return;
         if (timeout) clearTimeout(timeout);
         try {
+          stage = 'buildings';
           const firstLabel = activeMap.getStyle().layers.find(layer => layer.type === 'symbol');
           activeMap.addSource('mandat-buildings', { type: 'vector', url: 'https://tiles.openfreemap.org/planet' });
           activeMap.addLayer({
@@ -164,6 +177,8 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
             launch.focus();
           });
           pending = false;
+          stage = 'ready';
+          delete root.dataset.mapFailure;
           launch.hidden = true;
           controls.hidden = false;
           status.textContent = 'Carte ouverte. Les hauteurs et la couverture des bâtiments varient selon les données disponibles.';
@@ -171,12 +186,16 @@ export function mountCityMap(container: HTMLElement, city: CityMapLocation, sign
           dimension.focus();
           observer = new ResizeObserver(() => activeMap.resize());
           observer.observe(canvas);
-        } catch {
+        } catch (error) {
+          report(error);
           fallback('La vue 3D est indisponible sur cet appareil. Continuez avec les informations du territoire.');
         }
       });
-    } catch {
-      if (!disposed) fallback('La carte est indisponible sur cet appareil ou cette connexion. Votre mandat reste jouable.');
+    } catch (error) {
+      if (!disposed) {
+        report(error);
+        fallback('La carte est indisponible sur cet appareil ou cette connexion. Votre mandat reste jouable.');
+      }
     }
   };
   launch.addEventListener('click', explore);

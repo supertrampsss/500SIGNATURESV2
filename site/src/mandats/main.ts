@@ -36,6 +36,7 @@ function announce(message: string) {
   if (activeNotice) activeNotice.textContent = message;
 }
 function adopt(game: Game) {
+  announce("");
   ({ g, shared, inherited, screen, view } = localSession(game, history));
   planIds = null;
 }

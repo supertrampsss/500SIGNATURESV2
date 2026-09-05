@@ -25,7 +25,7 @@ Actualisé le 5 septembre 2026. Ce registre remplace les statuts de livraison hi
 | Réponses X | Triage en pause, contrôle sources/opt-out/doublons/contexte ; revue humaine et journal | Fonctions locales livrées ; aucune API X ou publication autonome branchée |
 | Comptes, newsletter, partenariats | Positionnement, calendrier et règles documentés dans STRATEGIE.md | Accès et identité d’exploitation nécessaires ; aucun compte/contact créé sans ces éléments |
 | Consentement et publicité | Jeu sans régie ; aucune collecte facultative distante ; opt-in local du pilote, révocation et export | Activation d’une CMP/régie uniquement après fournisseur choisi et pilote validé |
-| Communes réelles et mandat long | 45 décisions réparties sur les années, ville sélectionnée et carte réactive | Priorité demandée après essai ; cadrage détaillé dans MANDAT-LONG-VILLES-REELLES.md ; non livré |
+| Communes réelles et mandat long | 45 décisions réparties sur les années, ville sélectionnée et carte réactive | Implémentation v3 dans la PR #82 ; campagne longue, instantané OFGL et exploration facultative ; validation et limites ci-dessous |
 | Communauté et scénarios créateurs | Contrats et trajectoire d'évolution documentés | Conditionnés à la validation produit et aux ressources de modération |
 
 ## Critères de passage encore réels
@@ -56,12 +56,21 @@ Voir `docs/design/2026-09-05-editorial-rework.md` et la CI de la pull request po
 
 Le retour utilisateur remplace l'objectif de rester sur cinq/six décisions. Voir [le cadrage du mandat long](MANDAT-LONG-VILLES-REELLES.md), qui distingue précisément les constats du code, les décisions produit et les fonctionnalités à construire.
 
-- [ ] Séparer les décisions des clôtures annuelles dans un moteur v3 ; préserver les versions v1/v2.
-- [ ] Écrire et équilibrer 45 dossiers par mandat, avec variantes liées aux décisions antérieures.
-- [ ] Sélectionner une vraie commune depuis l'accueil municipal ou sa fiche Territoires.
-- [ ] Rapprocher les comptes sources et figer un instantané financier par partie.
+- [x] Séparer les décisions des clôtures annuelles dans un moteur v3 ; préserver les versions v1/v2.
+- [x] Écrire et équilibrer 45 dossiers par mandat, avec variantes liées aux décisions antérieures.
+- [x] Sélectionner une vraie commune depuis l'accueil municipal ou sa fiche Territoires.
+- [x] Rapprocher les comptes sources et figer un instantané financier par partie.
 - [ ] Adapter coûts, compétences et difficultés au profil de la commune, sans données sociales fictives présentées comme observées.
 - [ ] Produire un pilote géographique 3D fidèle à Bordeaux puis une chaîne réutilisable.
 - [ ] Afficher chantiers, livraisons et effets territoriaux sur la carte, avec repli léger complet.
 - [ ] Préparer le jeu et la ville choisie hors connexion avec volume annoncé et contrôle de version.
-- [ ] Adapter le planificateur, le journal, les cartes partagées et les tests au calendrier long.
+- [x] Adapter le planificateur, le journal, les cartes partagées et les tests au calendrier long.
+
+## Vérification v3 du 5 septembre 2026
+
+- Coûts proportionnels aux recettes observées, intérêts réconciliés pour éviter le double comptage. Les compétences et la difficulté propres à chaque commune restent à enrichir.
+- 96 campagnes complètes testées ; intérêts, trésorerie et dette évoluent aux seules clôtures annuelles. Les effets différés surviennent une fois à leur année de livraison.
+- Instantané communal conservé dans la sauvegarde, l’export et les défis ; aucun appel réseau nécessaire au moteur. Le cache du jeu suit les dépendances statiques, sans embarquer la carte facultative.
+- Exploration MapLibre avec bâtiments OpenFreeMap/OpenMapTiles et hauteurs parfois estimées. Le navigateur cloud a validé le repli, pas le rendu WebGL complet. Ce n’est pas un jumeau numérique relevé de Bordeaux.
+- Les programmes simulés sont suivis séparément : ils ne changent pas les bâtiments géographiques. Leur implantation réelle et le téléchargement cartographique hors ligne restent ouverts.
+- Le jeu complet, y compris les anciens formats, reste indépendant des services de données après préparation. Les onglets France/Territoires ne sont pas intégralement disponibles hors connexion.
