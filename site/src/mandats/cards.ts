@@ -1,3 +1,4 @@
+import { choiceCopy } from "./novice.ts";
 import { choicesFor, domainFor, replayGame, calendarFor, score } from "./engine.ts";
 import { CARD_SIZES, challengeURL, escape as e, resultURL, shareText } from "./sharing.ts";
 import { decode, encode } from "./storage.ts";
@@ -10,8 +11,9 @@ export function cardModel(g: Game, kind: CardKind) {
     if (!g.turn) throw new Error('Prenez une décision avant de la partager.');
     const previous = replayGame(g,g.choices.slice(0,-1));
     const c = choicesFor(previous).find(c => c.id === g.choices.at(-1))!;
+    const text=choiceCopy(previous,domainFor(previous).dossiers[previous.turn],c);
     const url = `${new URL('/mandats/', 'https://500signatures.fr').href}#dilemma=${encodeURIComponent(encode(previous))}`;
-    return { label: `DÉCISION DE JEU · ANNÉE ${g.history.at(-1)?.year ?? g.turn}`, title: c.title, fields: [['Coût du choix', c.cost], ['Effet annoncé', c.benefit], ['Compromis', c.sacrifice], ['Délai', c.delayed ? `Livraison en année ${calendarFor(previous).year + c.delayed.after}` : 'Effet immédiat, selon les règles']], url, alt: `Décision de jeu, ${d.place}, année ${g.history.at(-1)?.year ?? g.turn}. ${c.title}. ${c.cost}. ${c.benefit}. Compromis : ${c.sacrifice}. ${c.delayed ? `Livraison en année ${calendarFor(previous).year + c.delayed.after}.` : ''} Le lien restitue les décisions antérieures pour rejouer ce dilemme. Simulation fictive v${g.version}.` };
+    return { label: `DÉCISION DE JEU · ANNÉE ${g.history.at(-1)?.year ?? g.turn}`, title: text.title, fields: [['Coût du choix', c.cost], ['Effet annoncé', c.benefit], ['Compromis', c.sacrifice], ['Délai', c.delayed ? `Livraison en année ${calendarFor(previous).year + c.delayed.after}` : 'Effet immédiat, selon les règles']], url, alt: `Décision de jeu, ${d.place}, année ${g.history.at(-1)?.year ?? g.turn}. ${text.title}. ${c.cost}. ${c.benefit}. Compromis : ${c.sacrifice}. ${c.delayed ? `Livraison en année ${calendarFor(previous).year + c.delayed.after}.` : ''} Le lien restitue les décisions antérieures pour rejouer ce dilemme. Simulation fictive v${g.version}.` };
   }
   if (kind === 'challenge') {
     return { label:'DÉFI JOUABLE · SANS VOS CHOIX', title:g.mode === 'municipal' ? `Quel avenir pour ${d.place} ?` : 'Quel cap pour le pays ?', fields: [['Votre mission', d.objectives[0]], ['Durée', d.duration], ['Priorité', g.version === 1 ? 'Équilibre, règles v1' : ambitionFor(g).label], ['Même point de départ', `Scénario ${g.seed} · ${d.turns} tours`]], url:challengeURL(g, 'https://500signatures.fr'), alt:`Défi de jeu, ${d.place}. ${d.objectives[0]}. ${d.duration}. Priorité : ${g.version === 1 ? 'Équilibre v1' : ambitionFor(g).label}. Scénario ${g.seed}, simulation fictive v${g.version}. Le lien ne contient aucune décision du joueur.` };

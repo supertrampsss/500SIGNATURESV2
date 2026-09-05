@@ -12,3 +12,5 @@ import './mandats/campaign-content.test.ts';
 import './mandats/campaign-ui.test.ts';
 
 import './mandats/local-campaign.test.ts';
+
+import "./mandats/novice.test.ts";
