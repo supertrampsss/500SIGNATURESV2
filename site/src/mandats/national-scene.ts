@@ -7,7 +7,7 @@ export function nationalScene(g: Game, opts: WorldOptions = {}): string {
   const state = nationalSceneState(g, !!opts.inherited);
   const pending = state.projects.filter(p => p.state === 'planned').length;
   const delivered = state.projects.filter(p => p.state === 'delivered').length;
-  return `<section class="national-world" aria-label="Maquette de la France, simulation"><div class="national-stage" data-national-scene data-state="fallback">${worldArt('national')}<div class="national-scene-label"><span>FRANCE</span><small>${opts.inherited ? 'Au début du mandat' : `Année ${state.year}`}</small></div><span class="national-model-label">Maquette fictive</span></div><div class="national-world-controls"><span>${pending || delivered ? `${pending} en cours · ${delivered} livrés` : 'Votre mandat commence'}</span><button class="text-button" data-action="world-view" aria-pressed="${!!opts.inherited}">${opts.inherited ? 'Voir maintenant' : 'Avant / maintenant'}</button></div><nav class="national-areas" aria-label="Profils du territoire">${state.areas.map(a => `<button data-action="area" data-area="${e(a.id)}">${e(g.areas.find(v => v.id === a.id)!.name)}</button>`).join('')}</nav><p class="national-world-note">Les bâtiments illustrent le jeu, pas des chantiers réels.</p></section>`;
+  return `<section class="national-world" aria-label="Maquette de la France, simulation"><div class="national-stage" data-national-scene data-state="fallback">${worldArt('national')}<div class="national-scene-label"><span>FRANCE</span><small>${opts.inherited ? 'Au début du mandat' : `Année ${state.year}`}</small></div><span class="national-model-label">Maquette fictive</span></div><div class="national-world-controls"><span>${pending || delivered ? `${pending} en cours · ${delivered} livrés` : state.turn === 0 ? 'Votre mandat commence' : 'Aucun nouveau projet financé'}</span><button class="text-button" data-action="world-view" aria-pressed="${!!opts.inherited}">${opts.inherited ? 'Voir maintenant' : 'Avant / maintenant'}</button></div><nav class="national-areas" aria-label="Profils du territoire">${state.areas.map(a => `<button data-action="area" data-area="${e(a.id)}">${e(g.areas.find(v => v.id === a.id)!.name)}</button>`).join('')}</nav><p class="national-world-note">Les bâtiments illustrent le jeu, pas des chantiers réels.</p></section>`;
 }
 type Controller = ReturnType<typeof import('./national-scene-renderer.ts')['createNationalRenderer']>;
 let controller: Controller | undefined;
@@ -21,7 +21,8 @@ async function mount(): Promise<void> {
   const request = ++generation;
   controller?.suspend();
   const context = current;
-  if (unavailable || !context || context.game?.mode !== 'national' || context.opts.light) return;
+  if (!context || context.game?.mode !== 'national') { controller?.dispose(); controller = undefined; return; }
+  if (unavailable || context.opts.light) return;
   const host = [...context.root.querySelectorAll<HTMLElement>('[data-national-scene]')].find(el => el.getBoundingClientRect().width > 0);
   if (!host) return;
   try {

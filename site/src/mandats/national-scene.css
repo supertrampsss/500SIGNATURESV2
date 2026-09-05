@@ -33,6 +33,6 @@ body[data-mode="national"] .world-heading { display: none; }
   .national-scene-label { top: .75rem; left: .85rem; }
   .national-scene-label small { font-size: .9rem; }
   .national-model-label { left: .85rem; bottom: .55rem; font-size: .65rem; }
-  body[data-mode="national"] .game-grid[data-view="decision"] .national-scene-label span { display: none; }
+  body[data-mode="national"] .game-grid[data-view="decision"] .national-scene-label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .national-world * { animation: none !important; transition: none !important; } }

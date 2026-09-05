@@ -30,17 +30,17 @@ export function createNationalRenderer(initialHost: HTMLElement): {
   dispose(): void;
 } {
   const renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true, powerPreference: 'low-power' });
-  renderer.setClearColor(0x102e35);
+  renderer.setClearColor(0x0b242b);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.22;
+  renderer.toneMappingExposure = .88;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const canvas = renderer.domElement;
   canvas.setAttribute('aria-hidden', 'true');
   canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;';
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x102e35, 18, 35);
+  scene.fog = new THREE.Fog(0x0b242b, 18, 35);
   const camera = new THREE.OrthographicCamera(-4, 4, 4, -4, 0.1, 65);
   const target = new THREE.Vector3(0, 0.2, 0);
   let host = initialHost;
@@ -57,14 +57,47 @@ export function createNationalRenderer(initialHost: HTMLElement): {
   const random = (): number => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
+  const textures = new Set<THREE.Texture>();
+  const grain = (ripple = false): THREE.DataTexture => {
+    const size = 256, data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const noise = random();
+      const wave = Math.sin(y * .55 + Math.sin(x * .035) * 3 + Math.sin(x * .1) * .6);
+      const broad = Math.sin(x * .075 + Math.sin(y * .055) * 2) * Math.sin(y * .042);
+      const value = Math.round(ripple ? 180 + wave * 18 + noise * 10 : 155 + broad * 24 + noise * 58);
+      const offset = (y * size + x) * 4;
+      data[offset] = value; data[offset + 1] = value; data[offset + 2] = value; data[offset + 3] = 255;
+    }
+    const texture = new THREE.DataTexture(data, size, size);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.magFilter = THREE.LinearFilter; texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.generateMipmaps = true; texture.needsUpdate = true; textures.add(texture); return texture;
+  };
+  const surfaceGrain = grain(), oceanGrain = grain(true);
+  oceanGrain.repeat.set(22, 22);
   const geometry = <T extends THREE.BufferGeometry>(value: T): T => { geometries.add(value); return value; };
   const material = (color: number, roughness = 0.87): THREE.MeshStandardMaterial => {
-    const value = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 }); materials.add(value); return value;
+    const value = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0, map: surfaceGrain, bumpMap: surfaceGrain, bumpScale: .008 }); materials.add(value); return value;
   };
   const box = geometry(new THREE.BoxGeometry(1, 1, 1));
   const cone = geometry(new THREE.ConeGeometry(1, 1, 7));
   const pyramid = geometry(new THREE.ConeGeometry(1, 1, 4));
   const cylinder = geometry(new THREE.CylinderGeometry(1, 1, 1, 10));
+  const rock = geometry(new THREE.IcosahedronGeometry(1, 2));
+  const rockVertices = rock.getAttribute('position');
+  for (let i = 0; i < rockVertices.count; i++) {
+    const x = rockVertices.getX(i), y = rockVertices.getY(i), z = rockVertices.getZ(i);
+    const ridge = .83 + .16 * Math.sin(x * 9 + z * 7) + .11 * Math.sin(y * 13 - x * 4);
+    rockVertices.setXYZ(i, x * ridge, Math.max(-.75, y * (.9 + .17 * Math.sin(z * 8))) , z * ridge);
+  }
+  rock.computeVertexNormals();
+  const crown = geometry(new THREE.IcosahedronGeometry(1, 1));
+  const fieldShapes = Array.from({ length: 3 }, (_, index) => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-.5, -.42); shape.lineTo(.35 + index * .04, -.5);
+    shape.lineTo(.5, .26 + index * .08); shape.lineTo(-.36, .5); shape.lineTo(-.5, .12); shape.closePath();
+    const field = geometry(new THREE.ShapeGeometry(shape)); field.rotateX(-Math.PI / 2); return field;
+  });
   const roof = geometry(new THREE.BufferGeometry());
   roof.setAttribute('position', new THREE.Float32BufferAttribute([
     -.5, 0, -.5, .5, 0, -.5, 0, 1, -.5, -.5, 0, .5, 0, 1, .5, .5, 0, .5,
@@ -72,13 +105,18 @@ export function createNationalRenderer(initialHost: HTMLElement): {
     .5, 0, -.5, .5, 0, .5, 0, 1, .5, .5, 0, -.5, 0, 1, .5, 0, 1, -.5,
   ], 3));
   roof.computeVertexNormals();
+  const roofUv: number[] = [], roofVertices = roof.getAttribute('position');
+  for (let i = 0; i < roofVertices.count; i++) roofUv.push(roofVertices.getX(i) + .5, roofVertices.getZ(i) + .5);
+  roof.setAttribute('uv', new THREE.Float32BufferAttribute(roofUv, 2));
   const stone = material(0xd8cdb1), paleStone = material(0xe5dbc5), slate = material(0x4f6363);
   const terracotta = material(0x966954), dark = material(0x29464a), glazing = material(0x638b8e, .37);
-  const woodland = material(0x385b49), pine = material(0x2d5146), earth = material(0x8e9270);
-  const cropColors = [0x8b9974, 0xa4aa7e, 0x768f70, 0xb0ab7e].map(c => material(c));
-  const roadMaterial = material(0xc4bda6), railMaterial = material(0x49615a), metal = material(0x81918a);
-  const snow = material(0xd9ddd2), mountain = material(0x939a8d), amber = material(0xe1b679);
-  const blue = material(0x416f7c), waterMaterial = material(0x173d44, .46);
+  const woodland = material(0x355143), pine = material(0x263f35), earth = material(0x716d56);
+  const cropColors = [0x677254, 0x7b7e5b, 0x586c50, 0x878361].map(c => material(c));
+  const roadMaterial = material(0x9f9b86), railMaterial = material(0x49615a), metal = material(0x81918a);
+  const snow = material(0xd9ddd2), mountain = material(0x858981), amber = material(0xe1b679);
+  const blue = material(0x416f7c), waterMaterial = material(0x11313a, .4);
+  waterMaterial.map = oceanGrain; waterMaterial.bumpMap = oceanGrain; waterMaterial.bumpScale = .055;
+  waterMaterial.metalness = .18;
   const batches = new Map<string, Batch>();
   const transform = new THREE.Object3D();
   const put = (key: string, geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number,
@@ -96,20 +134,41 @@ export function createNationalRenderer(initialHost: HTMLElement): {
   outline.closePath();
   const landGeometry = geometry(new THREE.ExtrudeGeometry(outline, { depth: .5, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: .045, bevelThickness: .035, curveSegments: 1 }));
   landGeometry.rotateX(-Math.PI / 2);
-  const land = new THREE.Mesh(landGeometry, [material(0x7f9579), earth]);
+  const land = new THREE.Mesh(landGeometry, [material(0x607453), earth]);
   land.castShadow = true; land.receiveShadow = true; scene.add(land);
   const water = new THREE.Mesh(geometry(new THREE.PlaneGeometry(80, 80)), waterMaterial);
-  water.rotation.x = -Math.PI / 2; water.position.y = -.09; water.receiveShadow = true; scene.add(water);
+  water.rotation.x = -Math.PI / 2; water.position.y = .30; water.receiveShadow = true; scene.add(water);
   // Fine coastal shelf gives the terrain a readable edge without luminous outlines.
-  const shelf = new THREE.Mesh(landGeometry, material(0x49716b)); shelf.scale.set(1.035, .3, 1.035); shelf.position.y = -.04; scene.add(shelf);
+  const shelf = new THREE.Mesh(landGeometry, material(0x355c56)); shelf.scale.set(1.012, .6, 1.012); shelf.position.y = .02; scene.add(shelf);
   const towns: Point[] = [[.5, -1.5], [1.8, .7], [-1.15, 1.0], [.4, 1.65], [1.95, 1.6], [-1.5, -.75], [1.95, -.9], [.7, -2.1], [-.3, -.25], [-2.4, -1.2]];
   const isTown = (x: number, z: number): boolean => towns.some(([tx, tz]) => Math.hypot(tx - x, tz - z) < .43);
-  for (let x = -2.6; x < 2.5; x += .3) for (let z = -2.3; z < 2; z += .28) {
-    if (!inside(x - .16, z - .16) || !inside(x + .16, z + .16) || isTown(x, z) || (x > 1.65 && z > .1)) continue;
-    const c = Math.floor(random() * cropColors.length);
-    put(`field-${c}`, box, cropColors[c], x, .544, z, .26, .012, .24, .025);
-    if (random() < .4) segment('hedgerow', woodland, [x - .13, z - .12], [x + .13, z - .12], .018, .563);
+  for (let x = -2.6; x < 2.5; x += .32) for (let z = -2.3; z < 2; z += .29) {
+    const px = x + (random() - .5) * .14, pz = z + (random() - .5) * .12;
+    if (!inside(px - .18, pz - .18) || !inside(px + .18, pz + .18) || isTown(px, pz) || (px > 1.65 && pz > .1) || random() < .2) continue;
+    const c = Math.floor(random() * cropColors.length), variant = Math.floor(random() * fieldShapes.length);
+    put(`field-${c}-${variant}`, fieldShapes[variant], cropColors[c], px, .543, pz,
+      .22 + random() * .13, 1, .19 + random() * .12, (random() - .5) * .45);
+    if (random() < .27) segment('hedgerow', woodland, [px - .13, pz - .12], [px + .1, pz - .13], .012, .553);
   }
+  const curve = (points: Point[], width: number, mat: THREE.Material, y: number): void => {
+    const path = new THREE.CatmullRomCurve3(points.map(([x, z]) => new THREE.Vector3(x, y, z)));
+    const samples = path.getPoints(64), vertices: number[] = [], indices: number[] = [], uvs: number[] = [];
+    samples.forEach((point, i) => {
+      const tangent = path.getTangent(i / 64); const nx = -tangent.z * width / 2, nz = tangent.x * width / 2;
+      vertices.push(point.x + nx, y, point.z + nz, point.x - nx, y, point.z - nz); uvs.push(0, i / 8, 1, i / 8);
+      if (i < 64) { const a = i * 2; indices.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    });
+    const geo = geometry(new THREE.BufferGeometry()); geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); geo.setIndex(indices); geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, mat); mesh.receiveShadow = true; scene.add(mesh);
+  };
+  const riverWater = material(0x305b61, .35), riverBank = material(0x656f54);
+  const rivers: Point[][] = [
+    [[.5, -.45], [.15, -.05], [-.6, -.1], [-1.2, -.43], [-1.94, -.40]],
+    [[.97, -1.1], [.5, -1.5], [-.05, -1.55], [-.4, -1.85], [-.85, -1.98]],
+    [[2.08, .40], [1.74, .8], [1.62, 1.15], [1.9, 1.72]],
+  ];
+  for (const river of rivers) { curve(river, .068, riverBank, .55); curve(river, .043, riverWater, .553); }
   for (const [i, town] of towns.entries()) {
     const count = i === 0 ? 49 : 20;
     for (let j = 0; j < count; j++) {
@@ -127,26 +186,32 @@ export function createNationalRenderer(initialHost: HTMLElement): {
     put('civic-roofs', roof, slate, x, .765, z, .22, .07, .15);
     put('civic-doors', box, dark, x, .6, z + .068, .025, .09, .007);
     segment('streets', roadMaterial, [x - .35, z + .12], [x + .35, z + .12], .026);
-    if (i > 0) segment('roads', roadMaterial, towns[0], town, .022);
+    if (i > 0) {
+      const start = towns[i === 1 || i === 5 || i === 7 ? 0 : i - 1];
+      const middle: Point = [(start[0] + x) / 2 + .10, (start[1] + z) / 2 - .1];
+      curve([start, middle, town], .015, roadMaterial, .562);
+    }
   }
   // Distinct strategic infrastructure, schematic rather than geolocated individual facilities.
   segment('rail', railMaterial, [.65, -1.43], [1.83, .68], .015, .589);
   for (let i = 0; i < 58; i++) {
     const t = i / 58; put('sleepers', box, dark, .65 + 1.18 * t, .587, -1.43 + 2.11 * t, .044, .006, .009, -.51);
   }
-  for (let i = 0; i < 245; i++) {
+  for (let i = 0; i < 550; i++) {
     const x = random() * 5.6 - 2.8, z = random() * 4.7 - 2.4;
     if (!inside(x, z) || isTown(x, z) || (x > 1.65 && z > .1)) continue;
     const h = .09 + random() * .15;
     put('trunks', cylinder, earth, x, .59, z, .009, .10, .009);
-    put(i % 2 ? 'trees' : 'pines', cone, i % 2 ? woodland : pine, x, .6 + h / 2, z, h * .3, h, h * .3);
+    if (i % 3) put('leaf-canopies', crown, woodland, x, .63 + h * .35, z, h * .31, h * .39, h * .29, random() * 6);
+    else put('pines', cone, pine, x, .6 + h / 2, z, h * .28, h, h * .28);
   }
-  for (let i = 0; i < 17; i++) {
-    const x = 1.9 + random() * .58, z = .18 + random() * 1.08, h = .25 + random() * .62;
-    put('alps', cone, mountain, x, .54 + h / 2, z, .20 + random() * .11, h, .23);
-    if (h > .55) put('snowcaps', cone, snow, x, .54 + h * .91, z, .073, h * .23, .065);
+  for (let i = 0; i < 30; i++) {
+    const x = 1.98 + random() * .50, z = .18 + random() * 1.18, h = .18 + random() * .47;
+    put('alpine-rock', rock, mountain, x, .57 + h * .43, z, .16 + random() * .09, h, .19 + random() * .09, random() * 6);
+    if (h > .51) put('snow-patches', rock, snow, x -.015, .57 + h * 1.05, z -.015, .052, h * .10, .045, random() * 6);
   }
-  for (let i = 0; i < 8; i++) put('pyrenees', cone, mountain, -.55 + i * .21, .69, 2.04 - i * .02, .2, .3 + random() * .15, .16);
+  for (let i = 0; i < 15; i++) put('pyrenees-rock', rock, mountain, -.55 + i * .12, .61, 2.02 - i * .018,
+    .17, .18 + random() * .13, .12, random() * 6);
   // A civic campus and hospital read as places rather than floating interface symbols.
   put('school-wing', box, paleStone, -.9, .62, .93, .24, .14, .10);
   put('school-roof', roof, terracotta, -.9, .69, .93, .26, .05, .12);
@@ -181,21 +246,21 @@ export function createNationalRenderer(initialHost: HTMLElement): {
   }
   for (let i = 0; i < 3; i++) {
     put('quays', box, roadMaterial, -2.0 - i * .105, .54, -.18, .06, .035, .32);
-    put('boats', box, paleStone, -2.04 - i * .105, .04, .08 + i * .07, .032, .03, .13);
+    put('boats', box, paleStone, -2.04 - i * .105, .325, .08 + i * .07, .032, .03, .13);
   }
-  put('corsica', cone, earth, 3.15, .06, 2.43, .15, .34, .35, .2);
+  put('corsica', rock, earth, 3.15, .38, 2.43, .13, .19, .31, .2);
   for (const batch of batches.values()) {
     const mesh = new THREE.InstancedMesh(batch.geometry, batch.material, batch.matrices.length);
     batch.matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
     mesh.instanceMatrix.needsUpdate = true; mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
   }
   batches.clear();
-  scene.add(new THREE.HemisphereLight(0xd4e4e0, 0x53644e, 2.25));
-  const sun = new THREE.DirectionalLight(0xffe2ae, 3.1); sun.position.set(-5, 10, 5); sun.castShadow = true;
+  scene.add(new THREE.HemisphereLight(0xd4e4e0, 0x35473f, .8));
+  const sun = new THREE.DirectionalLight(0xffd5a0, 3.6); sun.position.set(-6, 6, 4); sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -5; sun.shadow.camera.right = 5;
   sun.shadow.camera.top = 5; sun.shadow.camera.bottom = -5; sun.shadow.camera.near = 1; sun.shadow.camera.far = 25;
   sun.shadow.bias = -.0004; sun.shadow.normalBias = .035; scene.add(sun);
-  const fill = new THREE.DirectionalLight(0xb9d1df, 1.1); fill.position.set(4, 4, -5); scene.add(fill);
+  const fill = new THREE.DirectionalLight(0xb9d1df, .55); fill.position.set(4, 4, -5); scene.add(fill);
   const areaSurfaces = Object.entries(AREAS).map(([id, position]) => {
     const serviceMaterial = material(0xd8cdb1), parkMaterial = material(0x668364);
     const building = new THREE.Mesh(box, serviceMaterial);
@@ -221,12 +286,16 @@ export function createNationalRenderer(initialHost: HTMLElement): {
       surface.parkMaterial.color.set(0x969477).lerp(new THREE.Color(0x53795a), Math.max(0, Math.min(1, area.resilience / 100)));
     }
     // The bounded layer represents actual campaign projects, never anticipated delivery.
-    next.projects.slice(-8).forEach(project => {
+    const areaSlots = new Map<string, number>();
+    // Assign before slicing: positions stay fixed, and the last eight never share a slot.
+    const positioned = next.projects.map(project => {
+      const slot = areaSlots.get(project.area) ?? 0;
+      areaSlots.set(project.area, slot + 1);
+      return { project, slot: slot % 8 };
+    });
+    positioned.slice(-8).forEach(({ project, slot }) => {
       const p = AREAS[project.area] ?? [0, .15];
-      // Stable identifiers keep projects fixed when focus or the visible project list changes.
-      let hash = 2166136261;
-      for (const character of project.id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
-      const x = p[0] + .16 + (hash % 4) * .15, z = p[1] + .15 + (Math.floor(hash / 4) % 4) * .14;
+      const x = p[0] + .16 + (slot % 2) * .22, z = p[1] + .15 + Math.floor(slot / 2) * .17;
       const title = project.title.toLocaleLowerCase('fr');
       const kind = /école|scolair|éducati/.test(title) ? 'school'
         : /hôpital|hospital|santé|soins/.test(title) ? 'health'
@@ -325,7 +394,7 @@ export function createNationalRenderer(initialHost: HTMLElement): {
       canvas.removeEventListener('pointerup', pointerUp); canvas.removeEventListener('pointercancel', pointerUp);
       canvas.removeEventListener('webglcontextlost', contextLost); document.removeEventListener('visibilitychange', visibilityChange);
       scene.traverse(object => { if (object instanceof THREE.InstancedMesh) object.dispose(); });
-      geometries.forEach(value => value.dispose()); materials.forEach(value => value.dispose());
+      geometries.forEach(value => value.dispose()); materials.forEach(value => value.dispose()); textures.forEach(value => value.dispose());
       sun.shadow.dispose(); renderer.dispose(); canvas.remove();
     },
   };
