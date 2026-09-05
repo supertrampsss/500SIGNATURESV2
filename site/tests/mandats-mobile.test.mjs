@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 const HOME='/mandats/';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.dossier')).toBeVisible();}
+async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(3);await activate(page.locator('[data-action="choose-cap"][data-ambition="equilibre"]'),info);await expect(page.locator('.dossier')).toBeVisible();}
 async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
 for(const mode of ['municipal','national'])test(`${mode}: complete touch campaign, sharing and replay`,async({page},info)=>{
  await begin(page,mode,info);
@@ -51,9 +51,12 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
  await activate(page.getByRole('link',{name:'Tester ce type d’arbitrage',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
 });
 
-test('optional priorities persist and turn details never block the next choice',async({page},info)=>{
- await begin(page,'municipal',info);await page.getByText('Cap : Équilibre',{exact:true}).click();await activate(page.locator('[data-action="ambition"][data-ambition="services"]'),info);await expect(page.locator(".decision-context > summary").first()).toBeFocused();
- await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.getByText('Cap : Services',{exact:true})).toBeVisible();
+test('the cap is a required initial choice and remains fixed during the mandate',async({page},info)=>{
+ await page.goto(HOME);await activate(page.getByRole('button',{name:/Gouverner une ville/}),info);
+ await expect(page.locator('.initial-cap-card')).toHaveCount(3);await expect(page.locator('.dossier')).toHaveCount(0);await noOverflow(page);
+ await activate(page.locator('[data-action="choose-cap"][data-ambition="services"]'),info);await expect(page.locator('.dossier h1')).toBeFocused();await expect(page.locator('.initial-cap-card')).toHaveCount(0);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).ambition)).toBe('services');
+ await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('[data-action="ambition"],[data-action="choose-cap"]')).toHaveCount(0);
  await choose(page,info);await expect(page.locator('.dossier h1')).toContainText('Qui finance');await expect(page.locator('.turn-feedback')).not.toHaveAttribute('open','');
  await page.locator('.turn-feedback > summary').click();await expect(page.getByRole('button',{name:'Partager cette décision',exact:true})).toBeVisible();await page.locator('.turn-feedback > summary').click();await expect(page.locator('.dossier h1')).toContainText('Qui finance');
 });

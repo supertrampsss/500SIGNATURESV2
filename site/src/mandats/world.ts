@@ -1,3 +1,4 @@
+import { icon } from "./icons.ts";
 import { DOMAINS } from "./engine.ts";
 import { escape as e } from "./sharing.ts";
 import type { Game, Mode } from "./types.ts";
@@ -39,5 +40,5 @@ export function world(g: Game, opts: WorldOptions = {}): string {
 export function deliveryFeed(g: Game): string {
   const recent = projects(g).filter(p => p.recent && p.state === "delivered");
   const pending = projects(g).filter(p => p.state === "planned");
-  return `<div class="delivery-feed">${recent.map(p => `<div class="delivery delivered"><span class="delivery-symbol" aria-hidden="true">✓</span><span><small>EN SERVICE CETTE ANNÉE</small><strong>${e(p.title)}</strong></span></div>`).join("")}${pending.map(p => `<div class="delivery"><span class="delivery-symbol" aria-hidden="true">${Math.max(1, p.due - g.turn)}</span><span><small>LIVRAISON · ANNÉE ${p.due}</small><strong>${e(p.title)}</strong></span></div>`).join("")}${!recent.length && !pending.length ? '<p class="delivery-empty">Chaque décision prépare la suite du mandat.</p>' : ""}</div>`;
+  return `<div class="delivery-feed">${recent.map(p => `<div class="delivery delivered"><span class="delivery-symbol">${icon("check")}</span><span><small>EN SERVICE CETTE ANNÉE</small><strong>${e(p.title)}</strong></span></div>`).join("")}${pending.map(p => `<div class="delivery"><span class="delivery-symbol" aria-hidden="true">${Math.max(1, p.due - g.turn)}</span><span><small>LIVRAISON · ANNÉE ${p.due}</small><strong>${e(p.title)}</strong></span></div>`).join("")}${!recent.length && !pending.length ? '<p class="delivery-empty">Chaque décision prépare la suite du mandat.</p>' : ""}</div>`;
 }

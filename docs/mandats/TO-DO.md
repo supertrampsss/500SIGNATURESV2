@@ -6,7 +6,7 @@ Actualisé le 5 septembre 2026. Ce registre remplace les statuts de livraison hi
 |---|---|---|
 | Deux modes jouables | Six tours municipaux, cinq nationaux ; moteurs et règles distincts ; sauvegardes v1/v2 conservées | Livré en production, PR 76 |
 | Monde visuel | Ville héritée et rénovations livrées ; relief national ; avant/maintenant ; vue légère | Livré en production, PR 76 |
-| Mobile : première décision | Accès direct après choix du mode ; cap facultatif ; cartes allégées, effets annuels dépliables et passage immédiat au dossier suivant | Ajustement de lisibilité après PR 77 |
+| Mobile : première décision | Choix du mode, puis cap initial explicite ; cap conservé sans sélecteur dans les dossiers ; cartes lisibles, effets annuels dépliables et enchaînement direct | Cap initial et identité revus après PR 78 |
 | Mobile : import et menus | Import depuis l’accueil, champ fichier adapté aux petits écrans ; erreurs dans le dialogue ; focus explicite | Implémenté dans cette livraison |
 | Mobile : installation | Manifest, icônes, instructions iPhone/Android ; aucune obligation d’installation | Implémenté dans cette livraison |
 | Mobile : hors connexion | Téléchargement volontaire des ressources du jeu ; cache isolé ; suppression et mise à jour explicites ; sauvegarde locale conservée | Cycle hors connexion réussi en CI Chromium tactile ; mise à jour couverte par test ciblé |

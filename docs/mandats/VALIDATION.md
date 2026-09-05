@@ -1,3 +1,15 @@
+# Cap initial et identité typographique
+
+Date : 5 septembre 2026. Correction après retour utilisateur : le cap est un choix structurant, pas une option secondaire.
+
+- Après le choix ville/pays, trois cartes visibles permettent de sélectionner explicitement le cap. Leur activation ouvre le premier dossier et sauvegarde cette priorité. Aucun cap n’est présélectionné par simple ouverture de l’écran ; la sauvegarde existante n’est remplacée qu’au choix du cap.
+- Le sélecteur disparaît ensuite des dossiers. Reprendre conserve le cap déjà choisi ; rejouer le même défi conserve ses règles. Les défis partagés conservent le cap de leur lien. Les décisions continuent de s’enchaîner sans bilan intermédiaire obligatoire.
+- Barlow Semi Condensed SemiBold pour les titres, Source Sans 3 variable pour le texte et les chiffres. WOFF2 auto-hébergés, 234 628 octets, licences et sources versionnées dans public/mandats/fonts. Les anciennes polices restent disponibles pour le site principal.
+- Pictogrammes SVG cohérents pour les vues, le cap et les confirmations. Suppression des flèches décoratives des cartes, du signe raccourci clavier dans Atelier et des caractères utilisés comme icônes. Libellés accessibles conservés.
+- Les tests du parcours couvrent le choix obligatoire du cap, sa sauvegarde et son absence dans les dossiers suivants, en plus des campagnes, du partage et de la reprise existants. Les résultats de la révision finale sont consignés dans sa PR. Aucun calcul de simulation modifié.
+
+---
+
 # Lisibilité et continuité des décisions
 
 Date : 5 septembre 2026. Ajustement demandé après la livraison mobile.
