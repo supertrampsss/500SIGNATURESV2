@@ -364,3 +364,26 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
 .card-kind-picker [aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }
 .share-preview { margin:16px 0; overflow:hidden; border-radius:12px; }
 @media(min-width:1100px) { .game-grid[data-view="plan"] { grid-template-columns:1fr; } .game-grid[data-view="plan"] .strategic-panel { display:none; } .game-grid[data-view="plan"] .game-content { max-width:none; } .planner-layout { grid-template-columns:1fr 1fr; gap:48px; } }
+
+/* Decisions stay primary; context and turn reports are voluntary. */
+.decision-context { margin:12px 0; color:var(--muted); font-size:13px; }
+.decision-context summary,.score-explanation summary,.replay-priority summary { min-height:44px; padding:12px 0; cursor:pointer; }
+.decision-context p { margin:12px 0; }
+.choice-facts { margin-top:8px; }
+.tradeoff { display:flex; flex-wrap:wrap; gap:5px 9px; margin-top:8px; }
+.tradeoff > span { flex-basis:auto; padding:3px 7px; border-radius:6px; background:#071b2140; line-height:1.4; }
+.turn-feedback { margin:0 0 18px; border-bottom:1px solid var(--line); font-size:12px; color:var(--muted); }
+.turn-feedback > summary { cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:44px; padding:8px 0; flex-wrap:wrap; }
+.turn-feedback > summary small { font-size:inherit; text-decoration:underline; text-underline-offset:3px; }
+.turn-feedback .resolution { padding:16px 0; animation:none; }
+.turn-feedback .resolution h2 { font-family:Spectral,Georgia,serif; font-size:24px; }
+.turn-feedback .change-grid { margin:16px 0; }
+.score-explanation { margin:16px 0; color:var(--muted); font-size:13px; }
+@media(max-width:820px) {
+ .dossier .story { margin-bottom:12px; font-size:14px; }
+ .dossier h1 { margin-bottom:14px; }
+ .choice { padding:14px; }
+ .choice-top strong { font-size:15px; }
+ .turn-feedback { margin-bottom:12px; }
+ .tradeoff > span { flex-basis:auto; }
+}

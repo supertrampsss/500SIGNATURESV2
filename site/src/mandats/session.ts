@@ -28,7 +28,7 @@ export function entrySession(url: URL) {
     g: result ?? challenge,
     shared: !!result,
     inherited: false,
-    screen: result ? "result" as const : challenge ? "briefing" as const : "select" as const,
+    screen: result ? "result" as const : challenge ? "play" as const : "select" as const,
     view: "decision" as const,
   };
 }

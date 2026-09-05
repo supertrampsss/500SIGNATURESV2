@@ -7,7 +7,7 @@ import { cardModel, cardSVG, cardURL } from "./cards.ts";
 import type { CardKind } from "./cards.ts";
 import { clearEntryLink, entrySession, localSession } from "./session.ts";
 import type { Ambition, Game, Mode } from "./types.ts";
-import { briefing, gameShell, selection } from "./render.ts";
+import { gameShell, selection } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY } from "./storage.ts";
 import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
@@ -53,7 +53,7 @@ function render(focus = true) {
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  root.innerHTML = screen === "select" ? selection(saved, light) : screen === "briefing" ? briefing(g!, { light }) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  root.innerHTML = screen === "select" ? selection(saved, light) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
   document.querySelector("#game-tools")!.removeAttribute("hidden");
   if (focus) { root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "instant" }); }
 }
@@ -108,8 +108,8 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "world-view") { inherited = !inherited; render(false); document.querySelector<HTMLElement>('[data-action="world-view"]')?.focus({ preventScroll: true }); return; }
-  if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; render(false); document.querySelector<HTMLElement>(`[data-action="ambition"][data-ambition="${g.ambition}"]`)?.focus({ preventScroll: true }); return; }
-  if (a === "replay-ambition" && g) { track("replay_started"); g = start(g.mode, g.seed, target.dataset.ambition as Ambition); screen = "briefing"; shared = false; inherited = false; clearEntryLink(history); render(); return; }
+  if (a === "ambition" && g && g.turn === 0) { g.ambition = target.dataset.ambition as Ambition; adopt(g); persist(); render(false); document.querySelector<HTMLElement>(`[data-action="ambition"][data-ambition="${g.ambition}"]`)?.focus({ preventScroll: true }); return; }
+  if (a === "replay-ambition" && g) { track("replay_started"); adopt(start(g.mode, g.seed, target.dataset.ambition as Ambition)); persist(); render(); return; }
   if (a === "pilot-consent") { try { setPilotConsent(localStorage,!pilotEnabled(localStorage)); announce(pilotEnabled(localStorage) ? "Journal de test activé localement. Aucun envoi et aucune décision enregistrée." : "Journal de test désactivé et effacé."); target.setAttribute("aria-pressed",String(pilotEnabled(localStorage))); } catch { announce("Le stockage local est indisponible."); } return; }
   if (a === "pilot-export") { download(new Blob([JSON.stringify({version:1,events:readPilot(localStorage)},null,2)],{type:"application/json"}),"mandats-journal-test.json"); announce("Journal exporté sur votre appareil, sans envoi."); return; }
   if (a === "offline-prepare") { announce("Téléchargement du jeu pour jouer sans connexion…"); const result = await prepareOffline(); announce(result.update ? "Une mise à jour est prête. Utilisez Mettre à jour le jeu pour l’activer." : "Le jeu est prêt hors connexion. Votre navigateur peut libérer ce stockage ; exportez les parties importantes."); return; }
@@ -129,14 +129,12 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (g) track("mode_switched"); inherited = false; g = start(target.dataset.mode as Mode); shared = false; screen = "briefing"; track("mode_selected"); }
+  if (a === "mode") { if (g) track("mode_switched"); adopt(start(target.dataset.mode as Mode)); persist(); track("mode_selected"); track("onboarding_completed"); }
   else if (a === "resume" && saved) { adopt(saved); }
-  else if (a === "begin" && g) { adopt(g); persist(); track("onboarding_completed"); }
-  else if (a === "choose" && g) { g = decide(g, target.dataset.choice!); inherited = false; announce(""); screen = "resolution"; persist(); if (g.turn === 1) track("first_decision"); if (g.turn === DOMAINS[g.mode].turns) track("game_completed"); }
-  else if (a === "next" && g) { screen = g.turn === DOMAINS[g.mode].turns ? "result" : "play"; view = "decision"; }
+  else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Année ${g.turn} terminée. ${g.turn === DOMAINS[g.mode].turns ? "Votre bilan est prêt." : "Dossier suivant."}`); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === DOMAINS[g.mode].turns) track("game_completed"); }
   else if (a === "view") { view = target.dataset.view as View; }
   else if (a === "new") { inherited = false; screen = "select"; shared = false; clearEntryLink(history); }
-  else if (a === "replay" && g) { track("replay_started"); inherited = false; g = start(g.mode, g.seed, g.ambition, g.version); shared = false; screen = "briefing"; clearEntryLink(history); }
+  else if (a === "replay" && g) { track("replay_started"); adopt(start(g.mode, g.seed, g.ambition, g.version)); persist(); }
   else if (a === "helper") { sheet("Quel mandat choisir ?", "<p><strong>La ville</strong> : des écoles, des équipements et des quartiers. Les projets sont concrets, les budgets de fonctionnement et d'investissement distincts. Six tours.</p><p><strong>La France</strong> : fiscalité, services, énergie et dette, avec des effets à l'échelle de profils territoriaux fictifs. Cinq tours d'introduction.</p><p>Les deux parcours sont entièrement jouables sur téléphone, sans compte.</p>"); return; }
   else if (a === "method") { sheet("Comprendre les conséquences", `<p>Les chiffres sont des hypothèses de scénario, jamais les comptes réels d'une ville ou une prévision sur la France.</p><p>Chaque année combine : engagements livrés, usure des services et du patrimoine, décision et événement. Le détail reste dans le journal.</p><p>La priorité choisie au départ détermine le poids des finances, services, cohésion/confiance et résilience/patrimoine. Les anciennes parties v1 conservent leurs règles. La confiance est un indice de jeu, pas une intention de vote.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g ? `<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les illustrations" : "Activer la vue légère"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><details><summary>Installer et jouer hors connexion</summary><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Seuls le jeu, ses illustrations légères et ses règles sont téléchargés. Les autres données du site nécessitent une connexion.</p></details><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }

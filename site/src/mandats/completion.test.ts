@@ -21,7 +21,7 @@ test('decision links reconstruct only the prior context and retain v1/v2 rules',
  for(const mode of ['municipal','national'] as const)for(const version of [1,2] as const){
   const g=decide(start(mode,42,'services',version),DOMAINS[mode].dossiers[0].choices[0].id);
   const url=new URL(cardURL(g,'decision','https://example.org'));
-  const prior=dilemmaFromHash(url.hash)!;assert.equal(prior.turn,0);assert.equal(prior.version,version);assert.equal(prior.mode,mode);assert.equal(entrySession(url).screen,'briefing');
+  const prior=dilemmaFromHash(url.hash)!;assert.equal(prior.turn,0);assert.equal(prior.version,version);assert.equal(prior.mode,mode);assert.equal(entrySession(url).screen,'play');
   assert.equal(challengeFromURL(new URL(cardURL(g,'challenge','https://example.org')))!.turn,0);
   assert.throws(()=>dilemmaFromHash('#dilemma='+encodeURIComponent('x'.repeat(3000))));
  }
