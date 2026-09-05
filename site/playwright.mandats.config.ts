@@ -1,6 +1,6 @@
 import {defineConfig,devices} from '@playwright/test';
 export default defineConfig({
- testDir:'./tests',testMatch:['mandats-mobile.test.mjs','editorial-tabs.test.mjs'],timeout:60000,expect:{timeout:10000},fullyParallel:true,workers:2,retries:process.env.CI?1:0,
+ testDir:'./tests',testMatch:['mandats-mobile.test.mjs','editorial-tabs.test.mjs','winter.test.mjs'],timeout:60000,expect:{timeout:10000},fullyParallel:true,workers:2,retries:process.env.CI?1:0,
  reporter:[['list'],['html',{outputFolder:'playwright-report-mandats',open:'never'}]],
  use:{baseURL:'http://127.0.0.1:4180',trace:'retain-on-failure',screenshot:'only-on-failure'},
  projects:[

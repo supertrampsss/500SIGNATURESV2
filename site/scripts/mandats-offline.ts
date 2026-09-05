@@ -2,9 +2,9 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
-const html = await readFile(dist+'mandats/index.html','utf8');
+const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
-const core = ['/mandats/', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
+const core = ['/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow static dependencies recursively; optional dynamic map imports stay online-only.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {
@@ -33,8 +33,9 @@ self.addEventListener('fetch',event=>{
  if(request.method!=='GET'||url.origin!==self.location.origin)return;
  const gamePage=url.pathname==='/mandats/'||url.pathname==='/mandats/index.html';
  const methodPage=url.pathname==='/mandats/methode/'||url.pathname==='/mandats/methode/index.html';
- const key=gamePage?'/mandats/':methodPage?'/mandats/methode/':url.href;
- if(gamePage||methodPage){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(key);return cached||new Response('Le jeu doit être préparé avec une connexion avant de jouer hors ligne.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;}
+ const winterPage=url.pathname==='/mandats/france/hiver/'||url.pathname==='/mandats/france/hiver/index.html';
+ const key=winterPage?'/mandats/france/hiver/':gamePage?'/mandats/':methodPage?'/mandats/methode/':url.href;
+ if(gamePage||methodPage||winterPage){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(key);return cached||new Response('Le jeu doit être préparé avec une connexion avant de jouer hors ligne.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;}
  const lightArt=url.pathname.replace('-1536.webp','-768.webp');
  if(lightArt!==url.pathname&&URLS.has(new URL(lightArt,self.location.origin).href)){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(lightArt);return cached||Response.error();}));return;}
  if(!URLS.has(url.href))return;

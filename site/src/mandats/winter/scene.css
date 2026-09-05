@@ -1,0 +1,31 @@
+.winter-stage{--home-warmth:.5;--factory-activity:.5;position:relative;isolation:isolate;width:100%;height:100%;aspect-ratio:3/2;overflow:hidden;background:#263443;contain:layout paint}
+.winter-stage-picture,.winter-stage-image,.winter-scene-layers,.winter-season-tint,.winter-stage-atmosphere{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.winter-stage-image{display:block;object-fit:cover;object-position:center;user-select:none;transition:filter 2.5s ease;filter:saturate(.91) brightness(.96)}
+.winter-scene-layers{display:block;overflow:hidden}
+.winter-season-tint{background:linear-gradient(180deg,rgba(43,65,101,.12),transparent 55%,rgba(18,35,58,.06));mix-blend-mode:color;transition:background 2.5s ease}
+.winter-stage-atmosphere{background:radial-gradient(ellipse at 50% 42%,transparent 35%,rgba(14,24,37,.13) 100%);z-index:1}
+.winter-window-shade{fill:#18212b;opacity:calc(.82 - var(--home-warmth)*.7);transition:opacity 1.5s ease;transition-delay:var(--window-delay)}
+.winter-window-light{fill:#ffd786;opacity:calc(var(--home-warmth)*.56);mix-blend-mode:screen;transition:opacity 1.7s ease;transition-delay:var(--window-delay)}
+.winter-window-frame{stroke:#766752;stroke-width:1.25;opacity:.64}
+.winter-window--factory .winter-window-shade{opacity:calc(.84 - var(--factory-activity)*.71)}
+.winter-window--factory .winter-window-light{opacity:calc(var(--factory-activity)*.42)}
+.winter-renovation-detail{opacity:0;transition:opacity 2s ease}
+.winter-stage[data-renovated=true] .winter-renovation-detail{opacity:1}
+.winter-scaffold,.winter-construction-person{opacity:0;transition:opacity .9s ease}
+.winter-stage[data-construction=true] .winter-scaffold,.winter-stage[data-construction=true] .winter-construction-person{opacity:1}
+.winter-leg,.winter-arm{transform-box:fill-box;transform-origin:center top}
+.winter-leg-a{transform:rotate(var(--stride,0deg))}
+.winter-leg-b,.winter-arm{transform:rotate(calc(var(--stride,0deg)*-1))}
+.winter-pedestrian{will-change:transform}
+.winter-worker,.winter-van{transition:opacity 1s ease}
+.winter-loading{opacity:var(--factory-activity);transition:opacity 1s ease}
+.winter-steam{mix-blend-mode:screen}
+.winter-snow{opacity:.8;transition:opacity 2.5s ease}
+.winter-water{mix-blend-mode:screen}
+.winter-spring-detail{opacity:0;transition:opacity 3s ease}
+.winter-stage[data-season=spring] .winter-stage-image{filter:saturate(.99) brightness(1.07) sepia(.045)}
+.winter-stage[data-season=spring] .winter-season-tint{background:linear-gradient(180deg,rgba(209,167,122,.13),rgba(136,158,104,.08) 65%,transparent)}
+.winter-stage[data-season=spring] .winter-snow{opacity:0}
+.winter-stage[data-season=spring] .winter-spring-detail{opacity:.3}
+.winter-stage[data-season=winter-return] .winter-stage-image{filter:saturate(.88) brightness(.92)}
+@media(prefers-reduced-motion:reduce){.winter-stage *{transition:none!important}.winter-pedestrian{will-change:auto}}

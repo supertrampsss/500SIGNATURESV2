@@ -12,3 +12,5 @@
 
 /* Core decision text remains readable at every interaction breakpoint. */
 .story{font-size:1rem}.choice-description,.cost,.tradeoff,.mode-copy p{font-size:.875rem}.game-tabs{padding-bottom:max(5px,env(safe-area-inset-bottom))}
+
+.winter-pilot-link{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:20px;padding:20px 22px;border:1px solid #8e806947;border-radius:10px;background:#192c34;text-decoration:none}.winter-pilot-link strong{font-family:Georgia,serif;font-size:23px;font-weight:400;color:#e5c396}.winter-pilot-link span{font-size:13px;color:#c1ced0}
