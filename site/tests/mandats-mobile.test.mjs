@@ -63,6 +63,7 @@ test('the cap is a required initial choice and remains fixed during the mandate'
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).ambition)).toBe('services');
  await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('[data-action="ambition"],[data-action="choose-cap"]')).toHaveCount(0);
  await choose(page,info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);await expect(page.locator('.dossier details')).toHaveCount(0);await expect(page.locator('.page-notes')).toContainText('Le contexte en détail');
+ await expect(page.locator('.pulse')).toHaveCount(0);await expect(page.locator('.mobile-mandate-context')).toBeVisible();await expect(page.locator('.choice').first()).toHaveCSS('display','flex');await expect(page.locator('.choice-outcome').first()).toHaveCSS('display','block');
  await page.getByRole('button',{name:'Voir les effets',exact:true}).click();await expect(page.getByRole('button',{name:'Partager cette décision',exact:true})).toBeVisible();await activate(page.getByRole('button',{name:'Décider',exact:true}),info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);
 });
 

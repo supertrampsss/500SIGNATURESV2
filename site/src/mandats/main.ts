@@ -1,8 +1,5 @@
 import { icon } from "./icons.ts";
-import "./style.css";
-import "./world.css";
-import "./campaign.css";
-import "./focus.css";
+import "./game.css";
 import { searchCities, loadCity } from "./cities.ts";
 import { mountCityMap } from "./city-map.ts";
 import { decide, domainFor, startingGame, start } from "./engine.ts";
