@@ -25,7 +25,8 @@ Actualisé le 5 septembre 2026. Ce registre remplace les statuts de livraison hi
 | Réponses X | Triage en pause, contrôle sources/opt-out/doublons/contexte ; revue humaine et journal | Fonctions locales livrées ; aucune API X ou publication autonome branchée |
 | Comptes, newsletter, partenariats | Positionnement, calendrier et règles documentés dans STRATEGIE.md | Accès et identité d’exploitation nécessaires ; aucun compte/contact créé sans ces éléments |
 | Consentement et publicité | Jeu sans régie ; aucune collecte facultative distante ; opt-in local du pilote, révocation et export | Activation d’une CMP/régie uniquement après fournisseur choisi et pilote validé |
-| Communauté, multi-villes, scénarios créateurs | Contrats et trajectoire d’évolution documentés | Ne pas construire sans validation produit, ressources de modération et données |
+| Communes réelles et mandat long | 45 décisions réparties sur les années, ville sélectionnée et carte réactive | Priorité demandée après essai ; cadrage détaillé dans MANDAT-LONG-VILLES-REELLES.md ; non livré |
+| Communauté et scénarios créateurs | Contrats et trajectoire d'évolution documentés | Conditionnés à la validation produit et aux ressources de modération |
 
 ## Critères de passage encore réels
 
@@ -50,3 +51,17 @@ Les scores et thèmes sont fournis par la relecture humaine de l’export, ils n
 - [ ] Étendre le hors connexion aux données territoriales uniquement avec sélection explicite, gestion des versions et budget de stockage.
 
 Voir `docs/design/2026-09-05-editorial-rework.md` et la CI de la pull request pour la vérification du lot.
+
+## Nouvelle priorité après essai : profondeur et villes réelles
+
+Le retour utilisateur remplace l'objectif de rester sur cinq/six décisions. Voir [le cadrage du mandat long](MANDAT-LONG-VILLES-REELLES.md), qui distingue précisément les constats du code, les décisions produit et les fonctionnalités à construire.
+
+- [ ] Séparer les décisions des clôtures annuelles dans un moteur v3 ; préserver les versions v1/v2.
+- [ ] Écrire et équilibrer 45 dossiers par mandat, avec variantes liées aux décisions antérieures.
+- [ ] Sélectionner une vraie commune depuis l'accueil municipal ou sa fiche Territoires.
+- [ ] Rapprocher les comptes sources et figer un instantané financier par partie.
+- [ ] Adapter coûts, compétences et difficultés au profil de la commune, sans données sociales fictives présentées comme observées.
+- [ ] Produire un pilote géographique 3D fidèle à Bordeaux puis une chaîne réutilisable.
+- [ ] Afficher chantiers, livraisons et effets territoriaux sur la carte, avec repli léger complet.
+- [ ] Préparer le jeu et la ville choisie hors connexion avec volume annoncé et contrôle de version.
+- [ ] Adapter le planificateur, le journal, les cartes partagées et les tests au calendrier long.
