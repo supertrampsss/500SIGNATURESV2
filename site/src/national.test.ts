@@ -87,16 +87,15 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
   assert.match(guide.verdict, /Recettes − Dépenses = Solde public/);
   assert.match(guide.verdict, /class="bilan-verdict__editorial"/);
   assert.match(guide.verdict, /class="bilan-verdict__totem"/);
-  assert.match(guide.verdict, /Le verdict en un chiffre/);
+  assert.match(guide.verdict, /<h1>Les comptes<br> de la France/);
   assert.doesNotMatch(guide.verdict, /Le solde public est de/);
   assert.match(
     guide.verdict,
     /class="bilan-verdict__totem"[\s\S]*class="bilan-montant__valeur">−153<\/span>[\s\S]*class="bilan-montant__unite">milliards d'euros<\/span>/,
   );
-  assert.equal((guide.verdict.match(/class="bilan-montant"/g) ?? []).length, 4);
-  assert.equal((guide.verdict.match(/class="bilan-equation__terme(?: |")/g) ?? []).length, 3);
-  assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>−</);
-  assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>=</);
+  assert.equal((guide.verdict.match(/class="bilan-montant"/g) ?? []).length, 1);
+  assert.equal((guide.verdict.match(/class="bilan-flux__ligne"/g) ?? []).length, 2);
+  assert.match(guide.verdict, /Montants annuels, arrondis au milliard/);
   assert.match(guide.verdict, /à financer sur l'année/);
   assert.doesNotMatch(guide.verdict, /Pour 100 € encaissés/);
   assert.doesNotMatch(guide.verdict, /Le déficit représentait/);

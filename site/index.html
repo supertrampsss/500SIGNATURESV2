@@ -91,15 +91,16 @@
       <section class="territoire-recherche" aria-labelledby="territoire-recherche-titre">
         <div class="territoire-recherche__introduction">
           <p class="territoire-recherche__surtitre">Territoires</p>
-          <h2 id="territoire-recherche-titre">Comprendre mon territoire</h2>
+          <h1 id="territoire-recherche-titre">Les comptes de votre territoire.</h1>
           <p>Retrouvez les comptes de votre commune, département ou région.</p>
         </div>
         <div class="recherche territoire-recherche__champ">
           <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
           <input id="recherche" type="search" autocomplete="off" role="combobox"
                  aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
-                 placeholder="Rechercher une commune, un département ou une région" />
+                 placeholder="Nom ou code INSEE" />
           <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
+          <button type="button" id="territoire-carte-toggle" class="territoire-carte-toggle" aria-controls="cadre-carte" aria-expanded="false" disabled>Voir la carte</button>
         </div>
       </section>
       <div class="atelier" aria-label="Carte interactive">
@@ -169,34 +170,35 @@
           </div>
         </section>
 
+        <nav class="bilan-reperage" aria-label="Chapitres des comptes publics"><a href="#france-entrees">Recettes</a><a href="#france-sorties">Dépenses</a><a href="#france-dette">Dette</a><a href="#bloc-europe">Europe</a></nav>
         <section class="bilan-lecture" id="france-graphiques" aria-labelledby="france-graphiques-titre">
           <header class="bilan-lecture__tete">
             <p class="bilan-lecture__surligne">Lire les comptes</p>
-            <h2 id="france-graphiques-titre">Six graphiques pour comprendre l'écart.</h2>
+            <h2 id="france-graphiques-titre">Explorer les comptes</h2>
           </header>
           <div class="bilan-lecture__grille">
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-ouverture" data-lecture-visuel="dataviz--ecart">
-              <h3>Le déficit s'est installé</h3><p>Recettes et dépenses depuis 2000.</p><div class="bilan-lecture__visuel" data-lecture-slot="deficit"></div>
+            <article class="bilan-lecture__carte">
+              <h3>Le déficit s'est installé</h3><p>Recettes et dépenses depuis 2000.</p>
               <a href="#bloc-ouverture">Lire l'évolution</a>
             </article>
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-recettes-etat" data-lecture-visuel="dataviz--halteres">
-              <h3>Les recettes de l'État</h3><p>Ce qui a changé depuis 2017.</p><div class="bilan-lecture__visuel" data-lecture-slot="recettes"></div>
+            <article class="bilan-lecture__carte">
+              <h3>Les recettes de l'État</h3><p>Ce qui a changé depuis 2017.</p>
               <a href="#bloc-recettes-etat">Voir la composition</a>
             </article>
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-cent-euros-apu" data-lecture-visuel="dataviz--composition">
-              <h3>Où va 1 € public&nbsp;?</h3><p>La répartition des dépenses.</p><div class="bilan-lecture__visuel" data-lecture-slot="euro"></div>
+            <article class="bilan-lecture__carte">
+              <h3>Où va 1 € public&nbsp;?</h3><p>La répartition des dépenses.</p>
               <a href="#bloc-cent-euros-apu">Voir la répartition</a>
             </article>
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-fonctions" data-lecture-visuel="dataviz--fonctions">
-              <h3>À quoi sert la dépense&nbsp;?</h3><p>Les grandes fonctions publiques.</p><div class="bilan-lecture__visuel" data-lecture-slot="fonctions"></div>
+            <article class="bilan-lecture__carte">
+              <h3>À quoi sert la dépense&nbsp;?</h3><p>Les grandes fonctions publiques.</p>
               <a href="#bloc-fonctions">Comparer les fonctions</a>
             </article>
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-dette" data-lecture-visuel="graphique__dessin">
-              <h3>La dette jusqu'en 2032</h3><p>Les trajectoires possibles.</p><div class="bilan-lecture__visuel" data-lecture-slot="dette"></div>
+            <article class="bilan-lecture__carte">
+              <h3>La dette jusqu'en 2032</h3><p>Les trajectoires possibles.</p>
               <a href="#bloc-dette">Voir les scénarios</a>
             </article>
-            <article class="bilan-lecture__carte" data-lecture-source="bloc-europe" data-lecture-visuel="dataviz--points">
-              <h3>Face à l'Europe</h3><p>La France et ses voisins.</p><div class="bilan-lecture__visuel" data-lecture-slot="europe"></div>
+            <article class="bilan-lecture__carte">
+              <h3>Face à l'Europe</h3><p>La France et ses voisins.</p>
               <a href="#bloc-europe">Comparer les voisins</a>
             </article>
           </div>

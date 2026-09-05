@@ -27,6 +27,8 @@ test("le rendu est court et contient le détail local", () => {
   assert.match(html, /Voir le calcul/);
   assert.match(html, /data-statut="salarié"/);
   assert.match(html, /data-statut="retraité"/);
-  assert.match(html, /href="https:\/\/sarahknafo\.fr\/simulateur"/);
+  assert.doesNotMatch(html, /sarahknafo/);
+  assert.match(html, /hypothèses illustratives non calibrées/);
+  assert.match(html, /data-coefficients/);
   assert.doesNotMatch(html, /Quand|Sources et méthode/);
 });

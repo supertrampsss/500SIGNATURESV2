@@ -1,0 +1,139 @@
+/* Une identité partagée avec Mandats. Les données gardent leurs renderers. */
+@font-face { font-family: 'Source Sans 3'; src: url('/mandats/fonts/source-sans-3-variable.woff2') format('woff2'); font-style: normal; font-weight: 200 900; font-display: swap; }
+@font-face { font-family: 'Barlow Semi Condensed'; src: url('/mandats/fonts/barlow-semi-condensed-600.woff2') format('woff2'); font-style: normal; font-weight: 600; font-display: swap; }
+:root { --sans: 'Source Sans 3', Arial, sans-serif; --serif: 'Barlow Semi Condensed', 'Arial Narrow', Arial, sans-serif; --police-titres: var(--serif); }
+body { font-family: var(--sans); }
+.entete__nom { font-family: var(--serif); font-weight: 600; font-size: 1.55rem; letter-spacing: 0; text-transform: none; }
+.entete__signature { font-size: .875rem; font-family: var(--sans); letter-spacing: 0; }
+.entete__nav { gap: .15rem; border: 0; border-radius: 4px; }
+.entete__nav a { font-family: var(--sans); font-size: 1rem; letter-spacing: 0; font-weight: 600; border-radius: 3px; min-height: 44px; }
+:where(button,a,summary,input):focus-visible { outline: 3px solid var(--dore,#96793a); outline-offset: 3px; }
+body[data-vue='salaires'] #contenu { max-width: none; padding: 0; }
+body[data-vue='bilan'], #vue-bilan { --bilan-papier: var(--ui-papier); --bilan-fond: var(--ui-papier); --bilan-encre: var(--ui-encre); --bilan-ligne: var(--ui-trait); --bilan-accent: var(--ui-encre); --encre-douce: var(--ui-encre-douce); --papier-creuse: var(--ui-surface-creuse); }
+#vue-bilan { padding-inline: clamp(1rem,3vw,3rem); }
+body[data-vue='bilan'] #national, #vue-bilan #national { width: min(76rem,100%); margin: 2.5rem auto 4rem; background: transparent; box-shadow: none; }
+.bilan-couverture__papier { padding: 0 0 2rem; }
+.bilan-verdict { grid-template-columns: minmax(0,1.2fr) minmax(0,.8fr); grid-template-areas: 'editorial totem' 'equation equation'; align-items: center; gap: 2rem 3rem; }
+.bilan-verdict__millesime { font-size: .875rem; letter-spacing: .06em; font-weight: 600; margin-bottom: 1rem; color: var(--encre-douce); }
+.bilan-verdict h1 { margin: 0; font: 600 clamp(2.5rem,5vw,4.7rem)/1.02 var(--serif); letter-spacing: 0; }
+.bilan-verdict__constat { margin: 1.25rem 0 .75rem; max-width: 44ch; font-size: 1.125rem; line-height: 1.5; }
+.bilan-verdict__champ { margin: 0; font-size: .9375rem; color: var(--encre-douce); }
+.bilan-verdict__totem { align-self: stretch; display: flex; flex-direction: column; justify-content: center; padding: 2rem; border: 0; border-left: 1px solid var(--trait); background: transparent; }
+.bilan-verdict__totem p:first-child { margin-bottom: .75rem; font-size: .9375rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.bilan-verdict__totem .bilan-montant { margin-bottom: 1rem; font: 600 clamp(4rem,7vw,6rem)/.95 var(--serif); letter-spacing: 0; }
+.bilan-verdict__totem .bilan-montant__unite { font-size: 1.25rem; letter-spacing: 0; margin-top: .5rem; }
+.bilan-flux { grid-area: equation; margin: 0; padding: 1.5rem 1.75rem; background: #142b35; color: #f7faf9; border-radius: 6px; }
+.bilan-flux figcaption { font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; }
+.bilan-flux figcaption span { display: block; font-weight: 400; font-size: .875rem; color: #ccd8da; margin-top: .3rem; }
+.bilan-flux__ligne { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .4rem 1rem; margin-top: 1rem; font-size: 1rem; }
+.bilan-flux__ligne strong { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.bilan-flux__rail { grid-column: 1/-1; height: 9px; background: #425965; }
+.bilan-flux__barre { display: block; height: 100%; background: #7fb9bd; }
+.bilan-flux__barre--1 { background: #f0c26e; }
+.bilan-reperage { display: grid; grid-template-columns: repeat(4,1fr); border-block: 1px solid var(--trait); }
+.bilan-reperage a { display: flex; align-items: center; justify-content: center; padding: .75rem .5rem; min-height: 48px; text-decoration: none; color: var(--encre); font-size: 1rem; font-weight: 600; }
+.bilan-reperage a + a { border-left: 1px solid var(--trait); }
+.bilan-reperage a:hover { background: var(--papier-creuse); }
+.bilan-lecture { width: 100%; margin: 0; padding: 2rem 0; border: 0; }
+.bilan-lecture__tete { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.25rem; }
+.bilan-lecture__surligne { display: none; }
+.bilan-lecture__tete h2 { font: 600 2rem/1.15 var(--serif); letter-spacing: 0; }
+.bilan-lecture__grille { gap: 0; border-top: 1px solid var(--trait); }
+.bilan-lecture__carte { padding: 1.25rem; background: transparent; border: 0; border-bottom: 1px solid var(--trait); }
+.bilan-lecture__carte:nth-child(3n+2), .bilan-lecture__carte:nth-child(3n+3) { border-left: 1px solid var(--trait); }
+.bilan-lecture__carte h3 { color: var(--encre); font: 600 1.5rem/1.15 var(--serif); }
+.bilan-lecture__carte > p { font-size: 1rem; margin: .6rem 0; min-height: 0; color: var(--encre-douce); }
+.bilan-lecture__visuel:empty { display: none; }
+.bilan-lecture__carte > a { font-size: .9375rem; font-weight: 600; }
+.bilan-chapitre { padding: 2.5rem 0 0; gap: 1.5rem; }
+.bilan-chapitre__intro h2 { font: 600 clamp(2rem,3vw,3rem)/1.08 var(--serif); letter-spacing: 0; }
+.bilan-chapitre__intro > p:not(.bilan-chapitre__surligne):not(.ui-conclusion__preuve) { font-size: 1.0625rem; max-width: 70ch; margin-top: .75rem; line-height: 1.5; }
+.bilan-chapitre .ouverture__piege,.bilan-chapitre > .chapitre__pont,.bilan-chapitre > .bloc > p:not([class]) { text-align: left; hyphens: none; line-height: 1.55; max-width: 80ch; font-size: 1rem; }
+.bilan-chapitre > .bloc h3 { font-weight: 600; letter-spacing: 0; line-height: 1.15; }
+.bilan-chapitre__surligne { color: var(--encre-douce); letter-spacing: .05em; font-weight: 600; }
+.bilan-chapitre .dataviz { margin-block: 1.5rem; }
+.bilan-chapitre .dataviz__nom,.bilan-chapitre .dataviz__barres-libelle { font-size: 1rem; }
+.territoire-recherche { padding: 1.75rem 2rem; border-radius: 6px; background: #142b35; color: #f7faf9; grid-column: 1/-1; }
+.territoire-recherche__surtitre { font-size: .875rem; color: #ccd8da; font-weight: 600; letter-spacing: .06em; }
+.territoire-recherche h1 { margin: 0; color: inherit; font: 600 clamp(2rem,3.5vw,3rem)/1.08 var(--serif); letter-spacing: 0; }
+.territoire-recherche__introduction > p:last-child { font-size: 1rem; max-width: 44ch; margin-top: .75rem; }
+.territoire-recherche__champ input { font: 400 1.0625rem var(--sans); background: #f7faf9; color: #142b35; min-height: 50px; border-radius: 4px; padding: .85rem 1rem; }
+.territoire-recherche__champ #suggestions { background: var(--papier); color: var(--encre); top: 3.25rem; }
+.territoire-carte-toggle { min-height: 44px; margin-top: .5rem; padding: .5rem 0; border: 0; border-radius: 0; font: 600 1rem var(--sans); text-decoration: underline; text-underline-offset: .25em; background: transparent; color: #f7faf9; cursor: pointer; }
+.territoire-carte-toggle:disabled { opacity: .6; cursor: default; }
+body[data-vue='territoire'] #vue-territoire { max-width: 80rem; margin: 1.5rem auto 3rem; padding-inline: 1.5rem; gap: 1.5rem; }
+body[data-vue='territoire'] .fiche__titre { font: 600 clamp(2.25rem,4vw,3.5rem)/1.1 var(--serif); letter-spacing: 0; padding-top: .5rem; }
+body[data-vue='territoire'] .fiche__meta, body[data-vue='territoire'] .fiche__maire { font-size: .9375rem; line-height: 1.5; }
+body[data-vue='territoire'] .reperes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; margin-block: 1.5rem; }
+body[data-vue='territoire'] .repere { min-width: 0; padding: 1rem; background: var(--papier-creuse); border: 0; border-radius: 4px; }
+body[data-vue='territoire'] .repere__role { font-size: .9375rem; font-weight: 600; }
+body[data-vue='territoire'] .repere__valeur { font: 600 clamp(1.8rem,3vw,2.6rem)/1.1 var(--serif); margin-block: .5rem; letter-spacing: 0; overflow-wrap: anywhere; }
+body[data-vue='territoire'] .repere__terme { font-size: .875rem; line-height: 1.4; }
+.territoire-diagnostic { margin: 1rem 0 1.5rem; border-block: 1px solid var(--trait); }
+.territoire-diagnostic > summary { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; list-style: none; font-weight: 600; cursor: pointer; }
+.territoire-diagnostic > summary::after { content: 'Détails'; font-size: .875rem; font-weight: 400; color: var(--encre-douce); }
+.territoire-diagnostic[open] > summary::after { content: 'Fermer'; }
+.territoire-diagnostic > summary::-webkit-details-marker { display: none; }
+.territoire-diagnostic:not([open]) > :not(summary) { display: none; }
+body[data-vue='territoire'] .bloc-lecture p { font-size: 1rem; line-height: 1.55; text-align: left; }
+body[data-vue='territoire'] .bloc-lecture h3 { font-weight: 600; letter-spacing: 0; }
+@media (max-width: 60rem) {
+ body[data-vue='territoire'] #vue-territoire { margin-top: 1rem; padding-inline: 1rem; }
+ .territoire-recherche { grid-template-columns: minmax(0,1fr); padding: 1.25rem; gap: 1rem; }
+ .bilan-verdict { gap: 1.5rem; }
+}
+@media (max-width: 39.999rem) {
+ .entete .bascule-theme { grid-column: 2; grid-row: 1; }
+ .entete__nav { grid-row: 2; grid-template-columns: repeat(5,minmax(0,1fr)); }
+ .entete__nav a { padding-inline: 2px; font-size: .875rem; }
+ .entete__nom { font-size: 1.375rem; }
+ .bilan-verdict { grid-template-columns: minmax(0,1fr); grid-template-areas: 'editorial' 'totem' 'equation'; gap: 1.25rem; }
+ .bilan-verdict h1 br { display: none; }
+ .bilan-verdict h1 { max-width: 16ch; font-size: 2.75rem; }
+ .bilan-verdict__constat { font-size: 1.0625rem; margin: .75rem 0 .5rem; }
+ .bilan-verdict__totem { border: 0; padding: 0; }
+ .bilan-verdict__totem p:first-child { margin: 0 0 .5rem; }
+ .bilan-verdict__totem .bilan-montant { font-size: 4rem; margin-bottom: .5rem; }
+ .bilan-flux { padding: 1.25rem; }
+ .bilan-flux__ligne { grid-template-columns: 1fr; gap: .25rem; }
+ .bilan-flux__ligne strong { text-align: left; }
+ .bilan-flux__rail { margin-top: .3rem; }
+ .bilan-reperage a { font-size: .9375rem; }
+ .bilan-lecture__grille { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .bilan-lecture__carte { padding: 1rem .75rem; }
+ .bilan-lecture__carte:nth-child(n) { border-left: 0; }
+ .bilan-lecture__carte:nth-child(even) { border-left: 1px solid var(--trait); }
+ .bilan-lecture__carte h3 { font-size: 1.3125rem; }
+ .bilan-lecture__carte > p { font-size: .9375rem; }
+ .bilan-lecture__visuel { display: none; }
+ .bilan-chapitre { padding: 2rem 0 0; }
+ .bilan-chapitre .dataviz__nom { font-size: .9375rem; }
+ body[data-vue='territoire'] .fiche { padding-inline: 0; }
+ body[data-carte='oui'][data-vue='territoire'] .fiche { padding-inline: 1rem; }
+ body[data-vue='territoire'] .reperes { gap: .75rem; }
+ body[data-vue='territoire'] .repere { padding: .8rem; }
+}
+@media (prefers-reduced-motion: reduce) { .salaires *, .bilan-reperage *, .territoire-recherche * { transition: none !important; scroll-behavior: auto !important; } }
+
+#vue-bilan .dataviz { --dv-nuit: var(--encre); --dv-rouge: var(--ui-danger); }
+.bilan-erreur { max-width: 76rem; margin: 1.5rem auto; }
+
+.territoire-depart { padding: 2rem 0; }
+.territoire-depart h2 { margin: 0; font: 600 2rem/1.1 var(--serif); }
+.territoire-depart p { max-width: 50ch; font-size: 1rem; line-height: 1.5; color: var(--encre-douce); }
+.territoire-depart > div { display: flex; flex-wrap: wrap; gap: .75rem; }
+.territoire-depart .fiche__parent { min-height: 48px; padding: .65rem 1.25rem; border: 1px solid var(--trait-fort); border-radius: 4px; text-decoration: none; font: 600 1rem var(--sans); }
+.repere__date { display: block; color: var(--encre-douce); font-size: .875rem; margin-top: .25rem; }
+.territoire-recherche__champ.recherche input[type='search'] { border-radius: 4px; padding: .85rem 1rem; min-height: 50px; color: #142b35; background: #f7faf9; font-size: 1.0625rem; }
+.territoire-recherche__champ.recherche::before,.territoire-recherche__champ.recherche::after { content: none; }
+body[data-vue='territoire'] .repere__role { white-space: normal; overflow: visible; text-overflow: clip; }
+body[data-vue='territoire'] .repere__valeur { color: var(--encre); }
+
+body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche__introduction { display: none; }
+body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche { grid-template-columns: minmax(0,1fr); padding: 1rem 1.25rem; }
+body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche__champ { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 1rem; align-items: center; }
+body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-carte-toggle { margin: 0; }
+@media (max-width: 39.999rem) {
+ body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche__champ { grid-template-columns: minmax(0,1fr); gap: .25rem; }
+ body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-carte-toggle { justify-self: start; }
+}

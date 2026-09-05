@@ -375,7 +375,7 @@ export function afficherFiche(
         nom: territoire.nom,
       });
   cible.innerHTML = `
-    <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
+    <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
       // était soulignée en pointillé, c'est-à-dire habillée en lien, alors
@@ -445,7 +445,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${noteChiffree}${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
+      `<div class="fiche__essentiel">${ouvertureChiffree}${noteChiffree ? `<details class="territoire-diagnostic"><summary>Lire la situation financière</summary>${noteChiffree}</details>` : ""}${rendreBlocs(blocsDeLecture)}${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},

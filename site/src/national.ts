@@ -119,24 +119,23 @@ function renduVerdict(
     : solde > 0
       ? "excédent sur l'année"
       : "comptes à l'équilibre";
+  const maximum = Math.max(ouverture.recettes, ouverture.depenses, 1);
   return `<div class="ui-conclusion bilan-verdict">
     <div class="bilan-verdict__editorial">
       <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
-      <h2>${titre}</h2>
+      <h1>Les comptes<br> de la France.</h1>
+      <p class="bilan-verdict__constat">${titre}.</p>
+      <p class="bilan-verdict__champ">État, collectivités et Sécurité sociale réunis.</p>
     </div>
-    <aside class="bilan-verdict__totem" aria-label="Verdict en un chiffre">
-      <p>Le verdict en un chiffre</p>
+    <aside class="bilan-verdict__totem" aria-label="Solde public annuel">
+      <p>Solde public</p>
       <strong class="bilan-montant">${montantCompose(solde)}</strong>
       <p>${qualification}</p>
     </aside>
-    <div class="bilan-equation" aria-label="Recettes moins dépenses égale solde public">
-      <p class="bilan-equation__legende">Recettes − Dépenses = Solde public</p>
-      <div class="bilan-equation__terme"><span>Recettes</span><strong class="bilan-montant">${montantCompose(ouverture.recettes)}</strong></div>
-      <span class="bilan-equation__signe" aria-hidden="true">−</span>
-      <div class="bilan-equation__terme"><span>Dépenses</span><strong class="bilan-montant">${montantCompose(ouverture.depenses)}</strong></div>
-      <span class="bilan-equation__signe" aria-hidden="true">=</span>
-      <div class="bilan-equation__terme bilan-equation__terme--resultat"><span>Solde public</span><strong class="bilan-montant">${montantCompose(solde)}</strong></div>
-    </div>
+    <figure class="bilan-flux" aria-label="Recettes moins dépenses égale solde public">
+      <figcaption>Recettes − Dépenses = Solde public <span>Montants annuels, arrondis au milliard.</span></figcaption>
+      ${[["Recettes", ouverture.recettes], ["Dépenses", ouverture.depenses]].map(([label, valeur], i) => `<div class="bilan-flux__ligne"><span>${label}</span><strong>${montantLisible(Number(valeur))}</strong><div class="bilan-flux__rail" aria-hidden="true"><i class="bilan-flux__barre bilan-flux__barre--${i}" style="width:${Math.max(0,Number(valeur))/maximum*100}%"></i></div></div>`).join("")}
+    </figure>
   </div>`;
 }
 
