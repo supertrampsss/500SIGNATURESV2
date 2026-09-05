@@ -26,11 +26,15 @@ body[data-mode="national"] .header-actions [data-action="light-mode"]{display:gr
 .national-areas button{min-height:48px;border:0;border-radius:0;background:#13232b;color:#e3e6de;font:inherit;font-size:.8125rem;padding:.75rem;text-align:left}
 .national-areas button:hover{background:#243944}
 .national-world-note{color:var(--muted);font-size:.75rem;margin:.6rem 0}
-.national-command-pulse{display:flex;gap:2rem;margin:0;padding:1.25rem 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
-.national-command-pulse>div{flex:1}
+.national-command-pulse{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem 2rem;margin:0;padding:1.25rem 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .national-command-pulse dt{font-size:.6875rem;color:var(--muted);margin-bottom:.4rem}
 .national-command-pulse dd{margin:0;font-size:1.65rem;font-weight:400;line-height:1.2}
 .national-command-pulse dd small{font-size:.75rem;color:var(--muted);margin-left:.2rem}
+.national-command-pulse .national-decision-impact{grid-column:1/-1;display:flex;align-items:baseline;gap:1rem;padding-left:.75rem;border-left:2px solid var(--gold);animation:national-impact-in .45s ease both}
+.national-decision-impact dt{flex:0 0 auto;margin:0;color:var(--gold);text-transform:uppercase;letter-spacing:.08em}
+.national-decision-impact dd{display:flex;flex-wrap:wrap;gap:.25rem .9rem;font-size:.8125rem;color:var(--ink)}
+.national-decision-impact dd span+span:before{content:'·';margin-right:.9rem;color:var(--muted)}
+@keyframes national-impact-in{from{opacity:.2;transform:translateY(5px)}to{opacity:1;transform:none}}
 body[data-mode="national"] .game-grid[data-view="decision"] .national-world>:not(.national-stage){display:none}
 body[data-mode="national"] .game-tabs{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:0 0 .75rem;gap:.3rem}
 body[data-mode="national"] .game-tabs button{font-size:.6875rem;gap:.35rem;border-radius:4px}
@@ -62,7 +66,7 @@ body[data-mode="national"] .mandate-timeline small{font-size:.625rem;color:var(-
  body[data-mode="national"] .game-grid[data-view="decision"]>.game-content{grid-column:2;grid-row:1}
  body[data-mode="national"] .game-grid[data-view="decision"] .national-stage{height:clamp(430px,58svh,760px)}
  body[data-mode="national"] .game-grid[data-view="decision"] .national-command-pulse{position:absolute;bottom:0;left:0;right:0;padding:1.5rem;z-index:2;border:0;pointer-events:none}
- body[data-mode="national"] .game-grid[data-view="decision"] .national-model-label{bottom:6.4rem}
+ body[data-mode="national"] .game-grid[data-view="decision"] .national-model-label{bottom:10rem}
  body[data-mode="national"] .game-grid[data-view="decision"] .national-stage:after{background:linear-gradient(180deg,#07121dbb,transparent 28%,transparent 52%,#07121deb)}
  body[data-mode="national"] .game-grid[data-view="decision"] .game-tabs{margin-bottom:1.75rem}
 }
@@ -87,10 +91,13 @@ body[data-mode="national"] .mandate-timeline small{font-size:.625rem;color:var(-
  .national-scene-label small{font-size:.6875rem}
  body[data-mode="national"] .game-grid[data-view="decision"] .national-scene-label{display:none}
  .national-model-label{left:18px;bottom:.65rem;font-size:.625rem}
- .national-command-pulse{padding:.75rem 0;gap:1rem}
+ .national-command-pulse{padding:.75rem 0;gap:.6rem 1rem}
  .national-command-pulse dt{font-size:.625rem;margin-bottom:.25rem}
  .national-command-pulse dd{font-size:1.25rem}
  .national-command-pulse dd small{font-size:.6875rem}
+ .national-command-pulse .national-decision-impact{gap:.6rem;padding-left:.6rem}
+ .national-decision-impact dd{font-size:.6875rem;gap:.2rem .55rem}
+ .national-decision-impact dd span+span:before{margin-right:.55rem}
  body[data-mode="national"] .dossier>.eyebrow{margin-bottom:.7rem;font-size:.625rem;letter-spacing:.05em}
  body[data-mode="national"] .dossier h1{font-size:1.8rem;margin-bottom:.7rem;max-width:26ch}
  body[data-mode="national"] .dossier .story{font-size:.8125rem;line-height:1.5;margin-bottom:1rem}
@@ -117,4 +124,4 @@ body[data-mode="national"] .mandate-timeline small{font-size:.625rem;color:var(-
  body[data-mode="national"] .game-grid[data-view="decision"] .national-model-label{bottom:1rem}
  body[data-mode="national"] .dossier h1{font-size:1.8rem}
 }
-@media(prefers-reduced-motion:reduce){.national-world *{animation:none!important;transition:none!important}body[data-mode="national"] .choice{transition:none;transform:none!important}}
+@media(prefers-reduced-motion:reduce){.national-world *{animation:none!important;transition:none!important}body[data-mode="national"] .choice{transition:none;transform:none!important}.national-decision-impact{animation:none!important}}

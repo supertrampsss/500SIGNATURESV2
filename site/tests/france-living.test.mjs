@@ -17,12 +17,16 @@ test('the living France is the national mandate, with its budget and saved decis
  await expect(page.locator('.dossier h1')).toHaveText('Faut-il changer les impôts ?');
  await expect(page.locator('[data-action="choose"]')).toHaveCount(3);
  await expect(page.locator('.initial-cap-card,.winter-pilot-link,.winter-reserve')).toHaveCount(0);
+ await expect(page.getByText('Règles et sources',{exact:true})).toHaveCount(0);
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('france-first-'+info.project.name+'.png'),fullPage:true});
  await choose(page);await choose(page);
  // After the annual wear, the second decision cuts services by two points in the national model.
- await expect(stage(page)).toHaveAttribute('data-warmth','0.540');
- await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.560');
+ await expect(stage(page)).toHaveAttribute('data-warmth','0.313');
+ await expect(page.locator('.national-decision-impact')).toContainText('Services −2');
+ await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.438');
+ await expect(stage(page)).toHaveAttribute('data-focus','rural');
+ await expect(page.locator('.national-model-label')).toHaveText('Décision 3 appliquée');
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  expect(saved.mode).toBe('national');expect(saved.version).toBe(4);expect(saved.choices).toHaveLength(3);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
@@ -34,6 +38,20 @@ test('the living France is the national mandate, with its budget and saved decis
  expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY)).toEqual(saved);
  await choose(page);await expect(page.locator('.campaign-position')).toContainText('Décision 5/45');
  await noOverflow(page);
+});
+
+test('choosing a measure keeps the question in place instead of jumping to the top',async({page},info)=>{
+ test.skip(info.project.name!=='android-chromium','The reported regression is a portrait phone interaction.');
+ await page.goto(FRANCE);await ready(page);
+  const choice=page.locator('[data-action="choose"]').first();
+ await page.evaluate(()=>scrollTo(0,350));
+ const before=await page.evaluate(()=>scrollY);
+ expect(before).toBeGreaterThan(100);
+ await choice.click();
+ await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
+ const after=await page.evaluate(()=>scrollY);
+ expect(after).toBeGreaterThan(100);
+ expect(Math.abs(after-before)).toBeLessThan(80);
 });
 
 test('France animation pauses without changing the mandate and respects reduced motion',async({page},info)=>{

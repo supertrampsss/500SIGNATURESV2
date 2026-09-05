@@ -69,7 +69,7 @@ function turnFeedback(g: Game): string {
 }
 function decisionNotes(g:Game):string {
   const dossier=domainFor(g).dossiers[g.turn];
-  return `<section class="page-notes" aria-labelledby="decision-notes-title"><h2 id="decision-notes-title">Le contexte en détail</h2><p>${e(dossier.story)}</p><div class="notes-options">${choicesFor(g).map(c=>`<p><strong>${e(choiceCopy(g,dossier,c).title)}</strong><br>${e(c.cost)}<br>${e(c.description)}</p>`).join("")}</div><p>${e(dossier.advisor)}</p>${g.version === 4 && g.city ? `<p>Source locale : <a href="${e(g.city.provenance.source)}" target="_blank" rel="noopener noreferrer">${e(g.city.provenance.producer)} · comptes ${g.city.year}</a>. Publication ${e(g.city.publication)}. Les données de départ restent identiques pendant la partie.</p>` : ""}<a href="/mandats/methode/">Règles et sources</a></section>`;
+  return `<section class="page-notes" aria-labelledby="decision-notes-title"><h2 id="decision-notes-title">Le contexte en détail</h2><p>${e(dossier.story)}</p><div class="notes-options">${choicesFor(g).map(c=>`<p><strong>${e(choiceCopy(g,dossier,c).title)}</strong><br>${e(c.cost)}<br>${e(c.description)}</p>`).join("")}</div><p>${e(dossier.advisor)}</p>${g.version === 4 && g.city ? `<p>Source locale : <a href="${e(g.city.provenance.source)}" target="_blank" rel="noopener noreferrer">${e(g.city.provenance.producer)} · comptes ${g.city.year}</a>. Publication ${e(g.city.publication)}. Les données de départ restent identiques pendant la partie.</p>` : ""}</section>`;
 }
 export function result(g: Game, shared = false): string {
   const s = score(g); const d = domainFor(g);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { choicesFor, decide, start } from './engine.ts';
+import { choicesFor, decide, domainFor, start } from './engine.ts';
 import { nationalSceneState } from './national-scene-state.ts';
 import { decode, encode } from './storage.ts';
 
@@ -37,8 +37,11 @@ test('living France uses actual public-service and equipment indicators without 
   for (let i = 0; i < 45; i++) {
     const before = encode(game);
     const { visual, projects } = nationalSceneState(game);
-    assert.equal(visual.warmth, game.metrics.services / 100);
-    assert.equal(visual.activity, game.metrics.assets / 100);
+    const baseline = domainFor(game).initial().metrics;
+    const visualLevel = (value: number, inherited: number) => Math.max(0, Math.min(1, .5 + (value - inherited) / 16));
+    assert.equal(visual.warmth, visualLevel(game.metrics.services, baseline.services));
+    assert.equal(visual.activity, visualLevel(game.metrics.assets, baseline.assets));
+    assert.equal(visual.turn, game.turn);
     assert.equal(visual.construction, projects.some(p => p.state === 'planned'));
     assert.equal(visual.renovated, projects.some(p => p.state === 'delivered'));
     assert.match(visual.caption, /Décor illustratif du mandat national/);
