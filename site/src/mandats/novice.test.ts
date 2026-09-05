@@ -33,3 +33,8 @@ test('legacy campaigns keep their original meaning and recovery choices stay exp
  const recovery={...d.choices[0],id:'recovery',title:'Réduire les dépenses',description:'Moins de moyens pour les services.'};
  assert.equal(choiceCopy(g,d,recovery).outcome,recovery.description);
 });
+
+test('repayment copy does not promise lower net debt when borrowing may offset it',()=>{
+ const g=start('municipal',42,'equilibre',3);
+ for(const d of domainFor(g).dossiers)for(const c of d.choices)if(c.effect.repayment){assert.doesNotMatch(choiceCopy(g,d,c).outcome,/Moins de dette|dette baisse/);assert.match(choiceCopy(g,d,c).outcome,/remboursée/);}
+});

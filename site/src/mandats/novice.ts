@@ -35,7 +35,7 @@ function localCopy(g:Game,theme:number,stage:number):Copy {
   [repay?'Rembourser la dette ou faire des travaux ?':'Quels travaux financer en plus ?', 'Quelle place donner aux nouveaux travaux ?', 'Quelle dette laisser après votre départ ?'][stage],
   repay?'La dette de départ pèse sur le budget. Rembourser davantage laisse moins d’argent pour améliorer les bâtiments.':'De nouveaux travaux améliorent les bâtiments, mais leur financement peut augmenter la dette.',
   [repay?'Rembourser davantage la dette':'Rénover des bâtiments municipaux','Faire des travaux plus limités','Ne pas ajouter de travaux'],
-  [repay?'Moins de dette ; cet argent ne finance pas de travaux.':'Des bâtiments améliorés ; un emprunt peut être nécessaire.','Une facture plus petite ; moins de bâtiments améliorés.','Pas de nouvelle dépense ; les nouveaux projets attendent.']
+  [repay?'Plus de dette remboursée ; moins d’argent disponible pour les travaux.':'Des bâtiments améliorés ; un emprunt peut être nécessaire.','Une facture plus petite ; moins de bâtiments améliorés.','Pas de nouvelle dépense ; les nouveaux projets attendent.']
  ];}
  case 2:return [
   ['Réparer les bâtiments ou attendre ?','Ajouter des travaux ou mieux entretenir ?','Quels bâtiments améliorer avant de partir ?'][stage],
@@ -78,7 +78,7 @@ export function choiceCosts(c:Choice,mode:Game['mode']):string[] {
  add(c.effect.operating,'Coût','Économie',true);
  add(c.effect.revenue,'Recettes en plus','Recettes en moins',true);
  add(c.effect.grants,'Aide reçue','Aide perdue');
- add(c.effect.repayment,'Dette remboursée','Remboursement réduit');
+ add(c.effect.repayment,'Remboursement en plus','Remboursement réduit');
  // Temporary funding ends later; don't describe its reversal as a second new cost.
  if(c.delayed){
   const later=c.delayed.effect, now=c.effect;
