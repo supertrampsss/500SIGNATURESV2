@@ -54,7 +54,7 @@ export function sceneMarkup(): string {
         <path d="M354 304 647 284M349 371 647 346M349 446 648 419M349 518 648 491" stroke="#e9d5b4" stroke-width="2" opacity=".48"/>
         <path d="M386 309 386 601M521 299 521 590M578 294 578 586" stroke="#dfcfaf" stroke-width="2.4" opacity=".3"/>
       </g>
-      <g class="winter-renovation-detail"><path d="M349 290 416 216 529 178 642 268 648 287 490 309Z" fill="#244a59" opacity=".095"/><path d="M356 291 491 303 644 282" stroke="#b7d2d4" stroke-width="2.1" opacity=".66"/><path d="M375 268 408 228 438 219 407 266Z" fill="#233947" stroke="#9aaeb4" stroke-width="1" opacity=".8"/><path d="M389 269 423 224M380 252 422 246" stroke="#7e9eaa" stroke-width=".8" opacity=".65"/></g>
+      <g class="winter-renovation-detail"><path d="M349 290 416 216 529 178 642 268 648 287 490 309Z" fill="#244a59" opacity=".095"/><path d="M356 291 491 303 644 282" stroke="#b7d2d4" stroke-width="2.1" opacity=".66"/></g>
       <g class="winter-scaffold" clip-path="url(#${id}-home)">
         <path d="M350 308 521 301 521 603 350 615Z" fill="#778c87" opacity=".15"/>
         ${[354,391,432,474,516].map(x=>`<path d="M${x} 305V612" stroke="#a6a4a0" stroke-width="2"/>`).join('')}
@@ -113,7 +113,7 @@ export function mountScene(host: HTMLElement) {
       const stride=Math.sin(t*(worker?7:5.7)+i*1.7)
       person.setAttribute('transform',`translate(${x.toFixed(2)} ${(y-Math.abs(stride)*.36*size).toFixed(2)}) scale(${(size*(i%2?-1:1)).toFixed(3)} ${size.toFixed(3)})`)
       person.style.setProperty('--stride', `${stride*15}deg`)
-      person.style.opacity=worker ? String(clamp((state.activity-(i-6)*.11)*5)) : '1'
+      person.style.opacity=String(Math.min(1,p*18,(1-p)*18)*(worker ? clamp((state.activity-(i-6)*.11)*5) : 1))
     })
     const vp=(t*(.006+state.activity*.01)+.34)%1
     const vy=lerp(681,295,vp), vx=820+141*vp-34*vp*vp
