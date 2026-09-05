@@ -40,13 +40,13 @@ test('territory, sandbox and reduced motion keep the saved mandate intact',async
 test('challenge URL is consumed and clipboard failure has an accessible fallback',async({page},info)=>{
  await page.addInitScript(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:()=>Promise.reject(new Error('test denial'))}});});
  await page.goto(HOME+'?mode=municipal&v=2&ambition=services&seed=42');await choose(page,info);expect(new URL(page.url()).search).toBe('');
- await page.locator('.turn-feedback > summary').click();await activate(page.getByRole('button',{name:'Partager cette décision',exact:true}),info);await activate(page.getByRole('button',{name:'Copier le lien',exact:true}),info);await expect(page.getByRole('textbox',{name:'Lien à copier'})).toBeFocused();await expect(page.getByRole('textbox')).toHaveValue(/#dilemma=/);await noOverflow(page);
+ await page.getByRole('button',{name:'Voir les effets',exact:true}).click();await activate(page.getByRole('button',{name:'Partager cette décision',exact:true}),info);await activate(page.getByRole('button',{name:'Copier le lien',exact:true}),info);await expect(page.getByRole('textbox',{name:'Lien à copier'})).toBeFocused();await expect(page.getByRole('textbox')).toHaveValue(/#dilemma=/);await noOverflow(page);
  await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toContainText('Qui finance');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(2);
 });
 test('opt-in offline preparation survives network loss',async({page,context},info)=>{
  test.skip(info.project.name!=='android-chromium','One service-worker lifecycle check is sufficient; other projects cover the game.');
- await begin(page,'municipal',info);await choose(page,info);await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);await page.getByText('Installer et jouer hors connexion',{exact:true}).click();await activate(page.getByRole('button',{name:'Préparer le jeu hors connexion',exact:true}),info);await expect(page.getByRole('dialog').getByRole('status')).toContainText('prêt hors connexion',{timeout:45000});
+ await begin(page,'municipal',info);await choose(page,info);await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);await activate(page.getByRole('button',{name:'Préparer le jeu hors connexion',exact:true}),info);await expect(page.getByRole('dialog').getByRole('status')).toContainText('prêt hors connexion',{timeout:45000});
  await context.setOffline(true);await page.goto(HOME);await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);await choose(page,info);await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect.poll(()=>page.locator('.mobile-territory-world img').evaluateAll(images=>images.length>0&&images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);await context.setOffline(false);
 });
 
@@ -62,8 +62,8 @@ test('the cap is a required initial choice and remains fixed during the mandate'
  await activate(page.locator('[data-action="choose-cap"][data-ambition="services"]'),info);await expect(page.locator('.dossier h1')).toBeFocused();await expect(page.locator('.initial-cap-card')).toHaveCount(0);
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).ambition)).toBe('services');
  await page.reload();await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('[data-action="ambition"],[data-action="choose-cap"]')).toHaveCount(0);
- await choose(page,info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);await expect(page.locator('.turn-feedback')).not.toHaveAttribute('open','');
- await page.locator('.turn-feedback > summary').click();await expect(page.getByRole('button',{name:'Partager cette décision',exact:true})).toBeVisible();await page.locator('.turn-feedback > summary').click();await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);
+ await choose(page,info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);await expect(page.locator('.dossier details')).toHaveCount(0);await expect(page.locator('.page-notes')).toContainText('Le contexte en détail');
+ await page.getByRole('button',{name:'Voir les effets',exact:true}).click();await expect(page.getByRole('button',{name:'Partager cette décision',exact:true})).toBeVisible();await activate(page.getByRole('button',{name:'Décider',exact:true}),info);await expect(page.locator('.dossier h1')).toContainText(CITY_SECOND);
 });
 
 
@@ -110,7 +110,7 @@ test('real commune: observed baseline, optional map fallback and offline snapsho
  await activate(page.getByRole('button',{name:'Décider',exact:true}),info);await choose(page,info);
  expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).city).toEqual(initial.city);
  if(info.project.name==='android-chromium'){
-  await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);await page.getByText('Installer et jouer hors connexion',{exact:true}).click();
+  await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);
   await activate(page.getByRole('button',{name:'Préparer le jeu hors connexion',exact:true}),info);
   await expect(page.getByRole('dialog').getByRole('status')).toContainText('prêt hors connexion',{timeout:45000});
   await context.setOffline(true);

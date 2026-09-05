@@ -28,8 +28,9 @@ test("each choice leads to the next dossier with an optional report, then the fi
       const rendered = gameShell(g, g.turn === DOMAINS[mode].turns ? "result" : "play", "decision");
       assert.doesNotMatch(rendered, /data-action="next"/);
       if (g.turn < DOMAINS[mode].turns) {
-        assert.match(rendered, /<details class="turn-feedback">/);
-        assert.doesNotMatch(rendered, /<details class="turn-feedback" open/);
+        assert.match(rendered, /<div class="turn-feedback">/);
+        assert.doesNotMatch(rendered, /<details/);
+        assert.ok(rendered.indexOf('class="choices"') < rendered.indexOf('class="page-notes"'));
         assert.match(rendered, /data-action="choose"/);
         assert.equal((rendered.match(/<h1 /g) ?? []).length, 1);
       }
