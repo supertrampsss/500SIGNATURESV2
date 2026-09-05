@@ -26,7 +26,10 @@ export function challengeFromURL(url: URL): Game | null {
   if (!Object.hasOwn(DOMAINS, mode)) throw new Error("Ce mode n'existe pas.");
   const seed = url.searchParams.get("seed") ?? "42";
   if (!/^\d{1,4}$/.test(seed)) throw new Error("La graine du défi est invalide.");
-  const version = url.searchParams.get("v") ?? "1";
+  // A direct France entry starts the current mandate. Old seeded challenges
+  // retain their original rules when they predate explicit version tags.
+  const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
+  const version = url.searchParams.get("v") ?? (directFrance ? "4" : "1");
   if (version !== "1" && version !== "2" && version !== "3" && version !== "4") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
   return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4);

@@ -142,30 +142,30 @@ test('failed city loading keeps the search and fictional fallback usable',async(
  expect(saved.choices).toEqual([]);expect(saved.city).toBeUndefined();expect(saved.ambition).toBe('equilibre');
 });
 
-test('national scene keeps one canvas across decisions and offers an accessible territory', async ({page}, info) => {
- test.skip(info.project.name !== 'desktop-chromium' && info.project.name !== 'android-chromium', 'GPU screenshots on Chromium at both layout sizes');
+test('national scene keeps one living SVG across decisions and offers an accessible territory', async ({page}, info) => {
+ test.skip(info.project.name !== 'desktop-chromium' && info.project.name !== 'android-chromium', 'Persistent scene integration at both layout sizes');
  await begin(page,'national',info);
  const host=page.locator('[data-national-scene]:visible').first();
  await expect(host).toHaveAttribute('data-state','ready');
- await expect(page.locator('canvas')).toHaveCount(1);
- await page.locator('canvas').evaluate(canvas=>canvas.dataset.instance='original');
+ await expect(page.locator('[data-national-scene] .winter-scene-layers')).toHaveCount(1);
+ await page.locator('[data-national-scene] .winter-scene-layers').evaluate(svg=>svg.dataset.instance='original');
  await info.attach('france-start', {body:await page.screenshot(),contentType:'image/png'});
  for(let i=0;i<10;i++) await choose(page,info);
- await expect(page.locator('canvas')).toHaveAttribute('data-instance','original');
+ await expect(page.locator('[data-national-scene] .winter-scene-layers')).toHaveAttribute('data-instance','original');
  await info.attach('france-year-two', {body:await page.screenshot(),contentType:'image/png'});
  await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);
- await expect(page.locator('[data-national-scene]:visible canvas')).toHaveAttribute('data-instance','original');
+ await expect(page.locator('[data-national-scene]:visible .winter-scene-layers')).toHaveAttribute('data-instance','original');
  await expect(page.getByRole('button',{name:'Espaces ruraux',exact:true})).toBeVisible();
  await activate(page.getByRole('button',{name:'Espaces ruraux',exact:true}),info);
  await expect(page.getByRole('dialog')).toBeVisible();
  await noOverflow(page);
 });
 
-test('national WebGL failure leaves all 45 decisions playable',async({page},info)=>{
- test.skip(info.project.name!=='android-chromium','One forced GPU failure covers the shared fallback');
+test('national living scene and all 45 decisions work without WebGL',async({page},info)=>{
+ test.skip(info.project.name!=='android-chromium','The national living scene does not require a GPU renderer');
  await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return original.call(this,type,...args);};});
  await begin(page,'national',info);
- await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','fallback');
+ await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
  await expect(page.locator('[data-national-scene]:visible img')).toBeVisible();
  for(let i=0;i<45;i++) await choose(page,info);
  await expect(page.locator('.result')).toBeVisible();
