@@ -10,7 +10,7 @@ export function decode(raw: string): Game {
   const data: unknown = JSON.parse(raw);
   if (!data || typeof data !== "object") throw new Error("Sauvegarde invalide.");
   const v = data as Record<string, unknown>;
-  if ((v.version !== 1 && v.version !== 2 && v.version !== 3 && v.version !== 4) || typeof v.mode !== "string" || !Object.hasOwn(DOMAINS, v.mode) || !Array.isArray(v.choices) || !v.choices.every(x => typeof x === "string" && x.length<=64) || typeof v.seed !== "number") throw new Error("Version ou format de sauvegarde non pris en charge.");
+  if ((v.version !== 1 && v.version !== 2 && v.version !== 3 && v.version !== 4 && v.version !== 5) || typeof v.mode !== "string" || !Object.hasOwn(DOMAINS, v.mode) || !Array.isArray(v.choices) || !v.choices.every(x => typeof x === "string" && x.length<=64) || typeof v.seed !== "number") throw new Error("Version ou format de sauvegarde non pris en charge.");
   if (v.version !== 1 && !["equilibre", "services", "resilience"].includes(v.ambition as string)) throw new Error("Priorité du mandat invalide.");
   if(v.city!==undefined&&((v.version!==3&&v.version!==4)||!validateCityBaseline(v.city)))throw new Error('Instantané communal invalide.');
   return replay(v.mode as Mode, v.seed, v.choices, v.version, v.ambition as Ambition,v.city as CityBaseline|undefined);

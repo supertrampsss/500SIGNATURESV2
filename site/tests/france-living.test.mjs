@@ -14,21 +14,22 @@ test('the living France is the national mandate, with its budget and saved decis
  await page.goto(FRANCE);await ready(page);
  await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
  await expect(page.locator('.mobile-mandate-context')).toContainText('Année 1/5');
- await expect(page.locator('.dossier h1')).toHaveText('Faut-il changer les impôts ?');
+ await expect(page.locator('.dossier h1')).toHaveText('Faut-il revoir les avantages fiscaux ?');
  await expect(page.locator('[data-action="choose"]')).toHaveCount(3);
+ await expect(page.getByRole('button',{name:/Réduire les campagnes de communication/})).toContainText('Économie : ≈1 Md€/an');
  await expect(page.locator('.initial-cap-card,.winter-pilot-link,.winter-reserve')).toHaveCount(0);
  await expect(page.getByText('Règles et sources',{exact:true})).toHaveCount(0);
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('france-first-'+info.project.name+'.png'),fullPage:true});
  await choose(page);await choose(page);
- // After the annual wear, the second decision cuts services by two points in the national model.
- await expect(stage(page)).toHaveAttribute('data-warmth','0.313');
- await expect(page.locator('.national-decision-impact')).toContainText('Services −2');
- await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.438');
+ // The consultancy saving lowers equipment capacity, then rural staffing raises services.
+ await expect(stage(page)).toHaveAttribute('data-activity','0.313');
+ await expect(page.locator('.national-decision-impact')).toContainText('Équipements −1');
+ await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.563');
  await expect(stage(page)).toHaveAttribute('data-focus','rural');
  await expect(page.locator('.national-model-label')).toHaveText('Décision 3 appliquée');
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
- expect(saved.mode).toBe('national');expect(saved.version).toBe(4);expect(saved.choices).toHaveLength(3);
+ expect(saved.mode).toBe('national');expect(saved.version).toBe(5);expect(saved.choices).toHaveLength(3);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
  await page.getByRole('button',{name:'Finances',exact:true}).click();
  await expect(page.locator('.finance-panel')).toContainText('Md€');

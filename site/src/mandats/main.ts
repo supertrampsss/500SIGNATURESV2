@@ -167,7 +167,7 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); if(g.mode === "national") {adopt(g);persist();track("onboarding_completed");} }
+  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",target.dataset.mode === "national" ? 5 : 4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); if(g.mode === "national") {adopt(g);persist();track("onboarding_completed");} }
   else if (a === "resume" && saved) { adopt(saved); }
   else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Décision ${g.turn} prise. ${g.turn === domainFor(g).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === domainFor(g).turns) track("game_completed"); }
   else if (a === "view") { view = target.dataset.view as View; }

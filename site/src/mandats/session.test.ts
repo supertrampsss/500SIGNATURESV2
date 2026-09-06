@@ -7,7 +7,7 @@ import { clearEntryLink, entrySession, localSession } from "./session.ts";
 
 test("direct France entry starts the 45-decision mandate while old challenges retain their rules", () => {
   const direct = challengeFromURL(new URL("https://example.org/mandats/?mode=national"))!;
-  assert.equal(direct.version, 4);
+  assert.equal(direct.version, 5);
   assert.equal(domainFor(direct).turns, 45);
   for (const query of ["mode=national&seed=42", "mode=national&v=1", "mode=national&ambition=equilibre"]) {
     assert.equal(challengeFromURL(new URL(`https://example.org/mandats/?${query}`))!.version, 1);

@@ -388,7 +388,7 @@ const nationalBriefs: Brief[] = [
 
 const metricNames: Record<string, string> = { services: 'Services', cohesion: 'Cohésion', resilience: 'Résilience', trust: 'Confiance', assets: 'Patrimoine' };
 const money = (value: number, unit: string) => `${Math.abs(value).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} ${unit}`;
-function cost(effect: Effect, delayed: Choice['delayed'], unit: string): string {
+export function campaignCost(effect: Effect, delayed: Choice['delayed'], unit: string): string {
   const parts: string[] = [];
   if (effect.investment) parts.push(`${money(effect.investment, unit)} d’investissement`);
   if (effect.grants) parts.push(`${money(effect.grants, unit)} de subvention`);
@@ -396,6 +396,7 @@ function cost(effect: Effect, delayed: Choice['delayed'], unit: string): string 
   if (effect.operating) parts.push(`${effect.operating > 0 ? '+' : '−'}${money(effect.operating, unit)}/an de charges`);
   if (effect.revenue) parts.push(`${effect.revenue > 0 ? '+' : '−'}${money(effect.revenue, unit)}/an de recettes`);
   if (delayed?.effect.operating) parts.push(`puis ${delayed.effect.operating > 0 ? '+' : '−'}${money(delayed.effect.operating, unit)}/an de charges`);
+  if (delayed?.effect.revenue) parts.push(`puis ${delayed.effect.revenue > 0 ? '+' : '−'}${money(delayed.effect.revenue, unit)}/an de recettes dans ${delayed.after} an${delayed.after > 1 ? 's' : ''}`);
   return parts.join(' · ') || 'Aucun budget supplémentaire';
 }
 function benefit(option: Option): string {
@@ -412,7 +413,7 @@ function compile(briefs: Brief[], mode: Mode): Dossier[] {
   return briefs.map(({ options, ...brief }, index) => ({ ...brief, choices: options.map((option, rank) => ({
     id: `${prefix}${String(index + 1).padStart(2, '0')}${String.fromCharCode(97 + rank)}`,
     title: option.title, description: option.description, effect: { ...option.effect },
-    cost: cost(option.effect, option.delayed, unit), benefit: benefit(option), sacrifice: option.sacrifice,
+    cost: campaignCost(option.effect, option.delayed, unit), benefit: benefit(option), sacrifice: option.sacrifice,
     ...(option.delayed ? { delayed: { ...option.delayed, effect: { ...option.delayed.effect } } } : {}),
   })) }));
 }

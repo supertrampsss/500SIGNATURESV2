@@ -1,3 +1,4 @@
+import { nationalPolicyDossiers } from './national-policy.ts';
 import { localDossiers } from './local-campaign.ts';
 import { longDossiers, CAMPAIGN_THREADS } from './campaign-content.ts';
 import { calendarFor } from './calendar.ts';
@@ -10,6 +11,7 @@ import type { CityBaseline } from './cities.ts';
 
 const BASE = { municipal, national };
 const compiled = { municipal: longDossiers("municipal"), national: longDossiers("national") };
+const nationalV5 = nationalPolicyDossiers();
 const dossierCache = new Map<string, Domain["dossiers"]>();
 const financial = ['revenue','operating','investment','grants','repayment'] as const;
 function scaledEffect(effect:Effect, scale:number):Effect {
@@ -34,10 +36,10 @@ export function campaignDomain(g:Game):Domain {
     return state;
   };
   const scale=g.city?initial().finance.revenue/100:1;
-  const cacheKey=g.version === 4 && g.city ? `4:${JSON.stringify(g.city)}` : `${g.mode}:${scale}`;
+  const cacheKey=g.version === 4 && g.city ? `4:${JSON.stringify(g.city)}` : `${g.version}:${g.mode}:${scale}`;
   let dossiers=dossierCache.get(cacheKey);
   if(!dossiers){
-  const source = g.version === 4 && g.city ? localDossiers(g.city,compiled[g.mode]) : compiled[g.mode];
+  const source = g.version === 4 && g.city ? localDossiers(g.city,compiled[g.mode]) : g.version === 5 ? nationalV5 : compiled[g.mode];
   dossiers=source.map(d=>({...d,choices:d.choices.map(c=>{
     const result={...c,effect:scaledEffect(c.effect,scale),...(c.delayed?{delayed:{...c.delayed,effect:scaledEffect(c.delayed.effect,scale)}}:{})};
     return g.city?{...result,cost:costFor(result)}:result;
@@ -68,7 +70,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};

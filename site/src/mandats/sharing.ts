@@ -29,10 +29,10 @@ export function challengeFromURL(url: URL): Game | null {
   // A direct France entry starts the current mandate. Old seeded challenges
   // retain their original rules when they predate explicit version tags.
   const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
-  const version = url.searchParams.get("v") ?? (directFrance ? "4" : "1");
-  if (version !== "1" && version !== "2" && version !== "3" && version !== "4") throw new Error("Version de défi inconnue.");
+  const version = url.searchParams.get("v") ?? (directFrance ? "5" : "1");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5);
 }
 export function shareText(g: Game): string {
   const s = score(g); const d = domainFor(g);
