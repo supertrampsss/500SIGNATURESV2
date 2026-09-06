@@ -114,7 +114,7 @@ function transition(game:Game,choice:Choice):Game {
     messages.push(`Exercice ${cal.year} clôturé. Intérêts, dette et trésorerie comptabilisés une seule fois.`);
   }
   messages.push(choice.benefit,`Compromis : ${choice.sacrifice}.`);
-  if(choice.delayed)messages.push(`Livraison prévue en année ${cal.year+choice.delayed.after}.`);
+  if(choice.delayed)messages.push(`${choice.delayed.effect.revenue ? 'Échéance fiscale prévue' : 'Livraison prévue'} en année ${cal.year+choice.delayed.after}.`);
   g.history.push({year:cal.year,closed:cal.isYearEnd,choice:choice.id,title:choice.title,messages,event,ledger,metrics:structuredClone(g.metrics),areas:structuredClone(g.areas)});
   g.choices.push(choice.id);g.turn++;
   return g;

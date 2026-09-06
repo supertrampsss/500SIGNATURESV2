@@ -5,6 +5,7 @@ import { encode, decode } from './storage.ts';
 import { challengeURL, challengeFromURL, resultURL, sharedResult } from './sharing.ts';
 import { choiceCopy, choiceCosts } from './novice.ts';
 import { nationalPolicyDossiers } from './national-policy.ts';
+import { nationalDecisionImpact } from './national-command.ts';
 import type { Choice, Game } from './types.ts';
 
 const genuineCut = (c: Choice) => (c.effect.operating ?? 0) < 0 && (c.effect.revenue ?? 0) >= 0 && (c.effect.investment ?? 0) <= 0;
@@ -59,6 +60,10 @@ test('fiscal controls cost now and yield only after the next annual transition',
   assert.deepEqual(decode(encode(control)), control);
   const costs = choiceCosts(domainFor(initial).dossiers[9].choices[0], 'national').join(' ');
   assert.match(costs, /Coût/); assert.match(costs, /Puis recettes en plus.*dans 1 an/);
+  const immediate = decide(initial, 'n10a');
+  assert.ok(nationalDecisionImpact(immediate).some(i => i.label === 'Dépenses +0,5 Md€/an'));
+  assert.ok(nationalDecisionImpact(immediate).some(i => i.label === 'Recette prévue · année 3'));
+  assert.ok(immediate.history.at(-1)!.messages.includes('Échéance fiscale prévue en année 3.'));
 });
 
 test('the exceptional profit levy ends once, without being treated as a permanent tax', () => {
