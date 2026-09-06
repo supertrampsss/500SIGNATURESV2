@@ -82,8 +82,8 @@ const texte = (html: string) =>
 
 test("le total France est annoncé avec l'année et les points de comparaison", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, /En 2024/);
-  assert.match(html, new RegExp(`57,3${FINE}% du produit intérieur brut`));
+  assert.match(html, /2024/);
+  assert.match(html, new RegExp(`57,3${FINE}% du PIB`));
   assert.match(html, new RegExp(`Allemagne : 49,4${FINE}%`));
   assert.match(html, new RegExp(`Zone euro \\(20 pays\\) : 49,4${FINE}%`));
 });
@@ -168,7 +168,7 @@ test("un seul exercice publié retire la colonne d'évolution sans effacer le bl
 test("la note sous le tableau ne répète plus son unité et ne garde que la source", () => {
   const lu = texte(rendu(PAYS, CATALOGUE));
   assert.doesNotMatch(lu, /pourcentage du produit intérieur brut, pas des recettes/);
-  assert.match(lu, /Source : Eurostat\.$/);
+  assert.match(lu, /Même définition et même année · Eurostat$/);
 });
 
 test("chaque fonction porte une glose qui dit ce qu'elle contient", () => {

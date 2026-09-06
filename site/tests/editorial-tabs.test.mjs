@@ -68,3 +68,46 @@ test('Salaires: dark mode, reduced motion and all five navigation links remain u
  expect(boxes).toHaveLength(5);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
 });
+
+test('France and Territoires: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
+ await publication(page);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/bilan/');
+ await expect(page.locator('.bilan-lecture')).toHaveCount(0);
+ await expect(page.locator('.accounts-reading')).not.toHaveAttribute('open','');
+ await expect(page.locator('#insights-france')).toBeHidden();
+ const chart=page.locator('#bloc-ouverture .chart-time');
+ await expect(chart).toBeVisible();
+ const control=chart.getByRole('slider');
+ const last=await chart.locator('output').textContent();
+ await control.press('Home');
+ await expect(chart.locator('output')).not.toHaveText(last);
+ await expect(control).toHaveAttribute('aria-valuetext',await chart.locator('.chart-scrub__year').innerText());
+ await control.press('End');await expect(chart.locator('output')).toHaveText(last);
+ await activate(chart.locator('svg:visible'),info);
+ await expect(chart.locator('output')).not.toHaveText(last);
+ await control.press('End');await expect(chart.locator('output')).toHaveText(last);
+ await noOverflow(page);
+ await page.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png'),fullPage:true});
+ const key=page.locator('[data-waffle-key]').first();
+ await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
+ await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
+ await page.getByRole('link',{name:'Territoires',exact:true}).click();
+ await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Bordeaux');
+ await activate(page.locator('#suggestions button[data-code="33063"]'),info);
+ await expect(page.locator('.territory-charts')).toBeVisible();
+ await activate(page.locator('[data-chart-tab="dette"]'),info);
+ await expect(page.locator('[data-chart-panel="dette"]')).toBeVisible();
+ await expect(page.locator('[data-chart-panel="budget"]')).toBeHidden();
+ await page.screenshot({path:info.outputPath('territory-'+info.project.name+'.png'),fullPage:true});
+ await activate(page.locator('[data-chart-tab="budget"]'),info);await noOverflow(page);
+ const before=await page.locator('[data-chart-panel="budget"] output').textContent();
+ await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
+ await activate(page.locator('#suggestions button[data-code="75056"]'),info);
+ await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
+ await page.getByRole('button',{name:'Basculer le thème'}).click();await noOverflow(page);
+ await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(243, 244, 235)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(246, 168, 143)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(246, 168, 143)');
+ await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png'),fullPage:true});
+});

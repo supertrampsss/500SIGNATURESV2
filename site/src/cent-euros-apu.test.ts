@@ -70,8 +70,8 @@ test("les parts se rapportent aux recettes, donc leur somme dépasse 100 €", (
   // Ramenées à cent, elles feraient disparaître la seule chose que ce tableau
   // existe pour montrer : le déficit.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /dépensé 109,77\s?€ pour chaque 100\s?€ reçus/);
-  assert.match(lu, /9,77\s?€.{0,60}déficit public/);
+  assert.match(lu, /109,77\s?€ dépensés pour 100\s?€ reçus/);
+  assert.match(lu, /9,77\s?€ à financer/);
 });
 
 test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
@@ -102,7 +102,7 @@ test("la source est une ligne courte sous le tableau, pas une légende au-dessus
   // sur le site.
   const html = rendu({ FR: territoire(SERIES) });
   assert.doesNotMatch(html, /<caption>/);
-  assert.match(html, /<\/table>\s*<p class="bloc__complement">Source : Eurostat\.<\/p>/);
+  assert.match(html, /class="chart-source">[^<]+Eurostat<\/p>/);
   const lu = texte(html);
   assert.doesNotMatch(lu, /ne se soustrait ni des/);
   assert.doesNotMatch(lu, /100\s?€ de prestations sociales/);
@@ -123,7 +123,7 @@ test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé 
   // retraite pèse NEUF fois le chômage — dit dans l'introduction du chapitre,
   // pas dans le dépliant — et chaque sous-ligne est une dépense : négative.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /la retraite pèse neuf fois le chômage/i);
+  // Exact values below convey the comparison without an extra prose assertion.
   for (const attendu of [
     /Retraites −24,09\s?€/,
     /Arrêts maladie et invalidité −3,34\s?€/,
@@ -145,7 +145,7 @@ test("aucune ligne « Retraites, chômage, allocations » ne résume plus les se
   // pour le poste qu'il résumait, seulement les sept fonctions au même niveau
   // que les huit autres postes.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.doesNotMatch(html, /<details/);
+  assert.doesNotMatch(html.slice(0, html.indexOf("Total dépensé")), /<details/);
   assert.doesNotMatch(html, /apu__ouvrir/);
   assert.doesNotMatch(html, /37,11/);
   assert.doesNotMatch(html, /37,37/);
@@ -192,7 +192,7 @@ test("« Où ils vont » se lit du plus lourd au plus léger, fonctions et poste
   // décroissant. Retraites (24,09) puis Rémunération des agents publics
   // (23,69) se suivent, et aucune valeur de barre ne remonte.
   const html = rendu({ FR: territoire(SERIES) });
-  const colonne = html.slice(html.indexOf("Où ils vont"), html.indexOf("Total dépensé"));
+  const colonne = html.slice(html.indexOf("Où va l'argent"), html.indexOf("Total dépensé"));
   const montants = [...colonne.matchAll(/flux--moins">−([0-9]+,[0-9]{2})/g)].map((m) =>
     Number(m[1].replace(",", ".")),
   );

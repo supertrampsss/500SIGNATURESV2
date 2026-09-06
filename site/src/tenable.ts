@@ -29,7 +29,7 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { tableauAccessible } from "./dataviz.ts";
-import { dessiner } from "./graphique.ts";
+import { timeChart } from "./chart-studio.ts";
 import { montantLisible } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
 
@@ -180,9 +180,10 @@ export function rendu(
       points: MISSION,
     },
   ];
-  const { svg } = dessiner(series, {
-    formater: (v) => `${UNE_DECIMALE.format(v)} %`,
-    titre: "Dette publique, en pourcentage du PIB",
+  const svg = timeChart({
+    title: "Dette publique : historique et scénarios", description: "Observations et scénarios publiés distincts. Les projections ne sont pas des résultats constatés.", unit: "% du PIB",
+    series: series.map(s => ({name:s.nom, values:Object.fromEntries(s.points), dashed:'pointille' in s && s.pointille, pointsOnly:'pointsSeuls' in s && s.pointsSeuls, labels:'pointsSeuls' in s && s.pointsSeuls ? {'2030':'Plus de 130 %'} : undefined})),
+    format: v => `${UNE_DECIMALE.format(v)} %`,
   });
 
   const colonnes = ["2026", "2027", "2028", "2029", "2030", "2031", "2032"];
@@ -227,11 +228,11 @@ export function rendu(
   // est juste au-dessus, et la maquette validée pose la réponse directement
   // sous elle.
   return `
-    ${reponse}
+    <p class="chart-context">Trait plein : données publiées. Pointillés et jalons : scénarios, pas des prévisions du jeu.</p>
     <div>
       <h3 class="sous-titre">La dette, jusqu'en 2032</h3>
       ${svg}
-      ${tableauAccessible("Voir les scénarios chiffrés", tableau)}
+      ${tableauAccessible("Données, scénarios et charge de la dette", tableau + reponse)}
       <p class="bloc__complement">Sources : Commission européenne · Mission sur la transparence des finances publiques.</p>
     </div>
     ${

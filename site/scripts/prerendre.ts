@@ -23,6 +23,7 @@
 import { access, readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SEARCH_DESCRIPTIONS } from "./search-descriptions.ts";
 
 // Le message principal du site vit désormais dans `src/accueil.ts`, la page qui
 // le pose à l'écran (spec §8). Il était ici, où la carte de partage du
@@ -499,7 +500,7 @@ export function marqueDuGabarit(shell: string): string {
  * exactement le défaut que ce lot vient de corriger sur la carte du site.
  */
 const PAGE_ANALYSES = {
-  titre: "Analyses — Où va l'argent public",
+  titre: "Analyses des finances publiques | 500 signatures",
   description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
 };
 
@@ -520,11 +521,9 @@ const PAGE_ANALYSES = {
  * tableaux de la page.
  */
 const PAGE_BILAN = {
-  titre: "Bilan — Où va l'argent public",
+  titre: "Budget et dette publique en France | 500 signatures",
   description:
-    "La conjoncture, la dette publique et ses sous-secteurs, la France face à ses voisins " +
-    "européens, 100 € du budget de l'État, la dépense publique par fonction, le solde de la " +
-    "Sécurité sociale, les niches fiscales, et le classement des territoires.",
+    "Explorez les recettes, les dépenses et la dette publique en France. Graphiques historiques, comparaisons européennes et sources des chiffres.",
 };
 
 const PAGE_SOURCES = {
@@ -535,7 +534,7 @@ const PAGE_SOURCES = {
 };
 
 const PAGE_SALAIRES = {
-  titre: "Salaires — Où va l'argent public",
+  titre: "Salaire net et coût du travail | 500 signatures",
   description: "Comprendre l'écart entre revenu reçu, cotisations et coût total du travail.",
 };
 
@@ -1537,7 +1536,7 @@ async function main(): Promise<void> {
     const canonique = `/analyses/${analyse.slug}/`;
     const page: Page = {
       titre: analyse.titre,
-      description: analyse.verdict.phrase,
+      description: SEARCH_DESCRIPTIONS[canonique] ?? analyse.verdict.phrase,
       canonique,
       image: `/analyses/${analyse.slug}/carte.png`,
       // Le permalien que porteront les citations de cette page : le même que
@@ -1565,7 +1564,7 @@ async function main(): Promise<void> {
 
   const pageQuestions: Page = {
     titre: "Questions vérifiées",
-    description: "Des réponses sourcées et pré-rendues, sans appel à un modèle en direct.",
+    description: "Électricité, gaz, logement et qualité de vie : des réponses aux questions du quotidien, avec les chiffres, leurs sources et leurs limites.",
     canonique: "/questions/",
     image: "/carte.png",
     corps: renduQuestionsIndex(),
@@ -1577,7 +1576,7 @@ async function main(): Promise<void> {
     const canonique = `/questions/${reponse.slug}/`;
     const pageReponse: Page = {
       titre: reponse.question,
-      description: reponse.reponse,
+      description: SEARCH_DESCRIPTIONS[canonique] ?? reponse.reponse,
       canonique,
       image: "/carte.png",
       corps: renduReponseQuestion(reponse),

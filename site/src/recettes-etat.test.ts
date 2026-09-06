@@ -110,11 +110,11 @@ test("l'inflation de la même fenêtre cadre la hausse, et se tait sans indice",
   // +22,9 % de recettes pendant +22,6 % de prix : « elles n'ont presque pas
   // bougé » est la lecture, et elle n'est écrite qu'avec l'indice publié.
   const lu = texte(rendu({ FR: territoire(SERIES) }, CATALOGUE));
-  assert.match(lu, /pendant que les prix montaient de 22,6 %/);
+  assert.match(lu, /pour une hausse des prix de \+22,6 %/);
   const sans = { ...SERIES };
   delete sans["eurostat_prix_ensemble"];
   const luSans = texte(rendu({ FR: territoire(sans) }, CATALOGUE));
-  assert.doesNotMatch(luSans, /les prix montaient/);
+  assert.doesNotMatch(luSans, /hausse des prix/);
   assert.match(luSans, /\+22,9 %/);
 });
 
@@ -145,7 +145,7 @@ test("la TVA est expliquée en clair à côté du tableau, pas seulement notée 
   // à la Sécurité sociale et aux collectivités, le tableau ne compte que la
   // part gardée par l'État.
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
-  assert.match(html, /La TVA semble s'effondrer dans ce tableau/);
-  assert.match(html, /reversée chaque année à la Sécurité sociale et aux\s+collectivités/);
-  assert.match(html, /ne compte que la part que l'État garde pour lui/);
+  assert.match(html, /La baisse de la TVA conservée/);
+  assert.match(html, /après les transferts aux collectivités et à la Sécurité sociale/);
+  assert.match(html, /Ce que l'État conserve/);
 });

@@ -88,7 +88,7 @@ test("les porteurs restent dans la réponse, le doublon par habitant disparaît"
   assert.doesNotMatch(lu, /51 165 € par habitant/);
   assert.match(lu, /L'État 2 861 milliards d'euros/);
   assert.match(lu, /Sécurité sociale 282 milliards/);
-  assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, jusqu'en"));
+  assert.ok(html.indexOf("Qui la porte") > html.indexOf("La dette, jusqu'en"));
 });
 
 test("les voisins partagent le millésime de la France, sans tri par valeur", () => {
@@ -114,11 +114,12 @@ test("sans la dette ou sans le taux au catalogue, rien ne s'écrit", () => {
 
 test("la dette jusqu'en 2032 compare deux scénarios institutionnels sans extrapolation maison", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, /class="graphique__dessin"/);
+  assert.match(html, /class="chart-time"/);
   assert.match(html, /La dette, jusqu'en 2032/);
   assert.match(html, /Commission européenne : scénario central/);
   assert.match(html, /Mission indépendante : politique inchangée/);
-  assert.equal((html.match(/class="graphique__jalon"[^>]*fill="#b43a31"/g) ?? []).length, 2);
+  assert.equal((html.match(/<g class="chart-series chart-series--2"><circle/g) ?? []).length, 2);
+  assert.doesNotMatch(html, /<g class="chart-series chart-series--2"><path/);
   assert.match(html, /131,7/);
   assert.match(html, /plus de 130/);
   assert.match(html, /class="tenable__valeurs" tabindex="0"/);

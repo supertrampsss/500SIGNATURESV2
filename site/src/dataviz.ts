@@ -1,3 +1,4 @@
+import { timeChart } from "./chart-studio.ts";
 /** Primitives éditoriales légères pour les graphiques du BILAN France. */
 
 type Formateur = (valeur: number) => string;
@@ -27,52 +28,18 @@ export function tableauAccessible(libelle: string, tableau: string): string {
 export function graphiqueEcart(options: {
   titre: string;
   description: string;
+  unite: string;
   points: readonly { periode: string; haut: number; bas: number }[];
   noms: readonly [string, string];
   formater: Formateur;
 }): string {
-  const points = options.points.filter((p) => Number.isFinite(p.haut) && Number.isFinite(p.bas));
-  if (points.length < 2) return "";
-  const largeur = 720;
-  const hauteur = 300;
-  const marge = { x: 42, haut: 24, bas: 38 };
-  const valeurs = points.flatMap((p) => [p.haut, p.bas]);
-  const brutMin = Math.min(...valeurs);
-  const brutMax = Math.max(...valeurs);
-  const respiration = (brutMax - brutMin || Math.abs(brutMax) || 1) * 0.08;
-  const min = brutMin - respiration;
-  const max = brutMax + respiration;
-  const x = (i: number) => marge.x + (i / (points.length - 1)) * (largeur - marge.x * 2);
-  const y = (v: number) => marge.haut + ((max - v) / (max - min)) * (hauteur - marge.haut - marge.bas);
-  const chemin = (cle: "haut" | "bas") => points
-    .map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[cle]).toFixed(1)}`)
-    .join(" ");
-  const zone = [
-    ...points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.haut).toFixed(1)}`),
-    ...[...points].reverse().map((p, ri) => {
-      const i = points.length - 1 - ri;
-      return `L${x(i).toFixed(1)},${y(p.bas).toFixed(1)}`;
-    }),
-    "Z",
-  ].join(" ");
-  const dernier = points[points.length - 1]!;
-  const graduations = points
-    .map((p, i) => ({ p, i }))
-    .filter(({ i }) => i === 0 || i === points.length - 1 || i % Math.max(1, Math.ceil(points.length / 6)) === 0)
-    .map(({ p, i }) => `<text class="dataviz__axe" x="${x(i).toFixed(1)}" y="286" text-anchor="middle">${echapper(p.periode)}</text>`)
-    .join("");
-  return `<figure class="dataviz dataviz--ecart" data-chart-system="lieflat">
-    <svg viewBox="0 0 ${largeur} ${hauteur}" role="img">
-      <title>${echapper(options.titre)}</title>
-      <desc>${echapper(options.description)}</desc>
-      <path class="dataviz__zone" d="${zone}" />
-      <path class="dataviz__ligne dataviz__ligne--haut" d="${chemin("haut")}" />
-      <path class="dataviz__ligne dataviz__ligne--bas" d="${chemin("bas")}" />
-      ${graduations}
-      <text class="dataviz__etiquette dataviz__etiquette--haut" x="676" y="${(y(dernier.haut) - 8).toFixed(1)}" text-anchor="end">${echapper(options.noms[0])} ${echapper(options.formater(dernier.haut))}</text>
-      <text class="dataviz__etiquette dataviz__etiquette--bas" x="676" y="${(y(dernier.bas) + 18).toFixed(1)}" text-anchor="end">${echapper(options.noms[1])} ${echapper(options.formater(dernier.bas))}</text>
-    </svg>
-  </figure>`;
+  return `<div class="dataviz dataviz--ecart" data-chart-system="lieflat">${timeChart({
+    title: options.titre, description: options.description, unit: options.unite, gap: true,
+    series: [
+      { name: options.noms[0], values: Object.fromEntries(options.points.map(p => [p.periode, p.haut])) },
+      { name: options.noms[1], values: Object.fromEntries(options.points.map(p => [p.periode, p.bas])) },
+    ], format: options.formater,
+  })}</div>`;
 }
 
 export function barreEmpilee(options: {
@@ -88,13 +55,21 @@ export function barreEmpilee(options: {
     const part = (segment.valeur / total) * 100;
     return `<span class="dataviz__segment dataviz__segment--${i % 6}" style="width:${part.toFixed(3)}%" title="${echapper(segment.libelle)} : ${echapper(options.formater(segment.valeur))}"></span>`;
   }).join("");
-  const legende = segments.map((segment, i) => `<li>
-    <span class="dataviz__puce dataviz__segment--${i % 6}" aria-hidden="true"></span>
-    <span>${echapper(segment.libelle)}</span><strong>${echapper(options.formater(segment.valeur))}</strong>
-  </li>`).join("");
-  return `<figure class="dataviz dataviz--composition" data-chart-system="lieflat" role="img" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  let offset=0;
+  const cells=segments.map((segment,i)=>{
+    const end=offset+segment.valeur/total*100;
+    let rectangles='';
+    for(let cell=Math.floor(offset);cell<Math.min(100,Math.ceil(end));cell++){
+      const from=Math.max(offset,cell)-cell, to=Math.min(end,cell+1)-cell;
+      rectangles+=`<rect data-waffle-part="${i}" class="dataviz__segment--${i%6}" x="${cell%10*22+from*18}" y="${Math.floor(cell/10)*22}" width="${Math.max(0,to-from)*18}" height="18"/>`;
+    }
+    offset=end;return rectangles;
+  }).join('');
+  const legende=segments.map((segment,i)=>`<button type="button" class="waffle-key" data-waffle-key="${i}" aria-pressed="false"><span class="dataviz__puce dataviz__segment--${i%6}" aria-hidden="true"></span><span>${echapper(segment.libelle)}</span><strong>${echapper(options.formater(segment.valeur))}</strong></button>`).join('');
+  return `<figure class="dataviz dataviz--composition" data-chart-system="lieflat" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+    <figcaption><strong>${echapper(options.titre)}</strong></figcaption>
     <div class="dataviz__pile" aria-hidden="true">${barre}</div>
-    <figcaption><strong>${echapper(options.titre)}</strong><ul>${legende}</ul></figcaption>
+    <div class="waffle-layout"><div><svg class="waffle" viewBox="0 0 220 220" role="img" aria-label="Composition du total en 100 cases, une case pour un pour cent">${cells}</svg><p class="waffle-caption">1 case = 1 % du total</p></div><div>${legende}</div></div>
   </figure>`;
 }
 

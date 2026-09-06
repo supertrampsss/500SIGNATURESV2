@@ -191,6 +191,18 @@ test("la colonne des variations garde sa décimale sur un compte rond", () => {
   assert.match(html, /\+100,0\s*%/, html.slice(html.indexOf("<b>") - 40, html.indexOf("</b>") + 4));
 });
 
+test("la courbe communale utilise la même unité pour son axe et sa légende", () => {
+  const html = rendreExercices(exercices({
+    cites: ["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"],
+    series: SERIES,
+    catalogue: CATALOGUE,
+  }));
+  assert.match(html, /Millions d&#39;euros/);
+  assert.doesNotMatch(html, /Milliards d&#39;euros courants|200[\s\u202f]000[\s\u202f]000/);
+  assert.match(html, /<strong>369 M€/);
+  assert.match(html, /<strong>417 M€/);
+});
+
 test("aucun tiret cadratin ni demi-cadratin", () => {
   assert.doesNotMatch(
     rendreExercices(

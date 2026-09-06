@@ -205,26 +205,18 @@ export function rendu(
     <ol>${retenues.sort((a, b) => b.fr - a.fr).map(({ id, fr }) => {
       const autres = COMPARES.map(([code, nom], i) => {
         const v = valeur(code, id);
-        return v === undefined ? "" : `<i class="dataviz__fonction-point dataviz__fonction-point--${i + 1}" style="left:${(v / maximum * 100).toFixed(2)}%" title="${echapper(nom)} : ${echapper(pourcentage(v, true))}"></i>`;
+        return v === undefined ? "" : `<i class="dataviz__fonction-point dataviz__fonction-point--${i + 1}" style="left:${(v / maximum * 100).toFixed(2)}%" aria-hidden="true"></i>`;
       }).join("");
-      return `<li><span>${echapper(libelle(id))}</span><span class="dataviz__fonction-rail"><i class="dataviz__fonction-point dataviz__fonction-point--fr" style="left:${(fr / maximum * 100).toFixed(2)}%" title="France : ${echapper(pourcentage(fr, true))}"></i>${autres}</span><strong>${echapper(pourcentage(fr, true))}</strong></li>`;
+      return `<li><span>${echapper(libelle(id))}</span><span class="dataviz__fonction-rail"><i class="dataviz__fonction-point dataviz__fonction-point--fr" style="left:${(fr / maximum * 100).toFixed(2)}%" aria-hidden="true"></i>${autres}</span><strong>${echapper(pourcentage(fr, true))}</strong><span class="function-values">${COMPARES.map(([code,nom])=>`${echapper(nom)} ${valeur(code,id)===undefined ? "non publié" : echapper(pourcentage(valeur(code,id)!,true))}`).join(" · ")}</span></li>`;
     }).join("")}</ol>
   </figure>`;
 
   return `
-    <h3 class="sous-titre">À quoi ça sert</h3>
-    <p class="bloc__complement">Le tableau du dessus dit de quelle
-      <strong>nature</strong> est la dépense : des pensions, des salaires, des
-      achats. Celui-ci dit à quoi elle <strong>sert</strong> : un salaire
-      d'infirmière est de la santé, un salaire de professeur de l'enseignement,
-      et la lecture par nature les met dans la même ligne.
-      En ${echapper(annee)}, les administrations publiques françaises (État,
-      collectivités et Sécurité sociale réunis) ont dépensé <strong>${
-        echapper(pourcentage(totalFr))
-      } du produit intérieur brut</strong>${totauxCompares}.</p>
+    <h3 class="sous-titre">Santé, éducation, protection sociale…</h3>
+    <p class="chart-context">Les dépenses par fonction, en part de la richesse produite. ${echapper(annee)} · France : ${echapper(pourcentage(totalFr))} du PIB${totauxCompares}.</p>
     ${comparatif}
-    ${tableauAccessible("Voir les chiffres", tableau)}
-    <p class="bloc__complement">Source : Eurostat.</p>
+    ${tableauAccessible("Données par fonction", tableau)}
+    <p class="chart-source">Même définition et même année · Eurostat</p>
 `;
 }
 

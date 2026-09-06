@@ -45,6 +45,7 @@ test("les barres classées peuvent garder leur titre pour les lecteurs d'écran 
 test("une courbe d'écart nomme son constat et conserve les deux séries", () => {
   const html = graphiqueEcart({
     titre: "Le déficit se creuse",
+    unite: "Milliards d'euros courants",
     description: "Les dépenses restent au-dessus des recettes.",
     points: [
       { periode: "2024", haut: 120, bas: 100 },
@@ -57,8 +58,8 @@ test("une courbe d'écart nomme son constat et conserve les deux séries", () =>
   assert.match(html, /<title>Le déficit se creuse<\/title>/);
   assert.match(html, /<desc>Les dépenses restent au-dessus des recettes\.<\/desc>/);
   assert.match(html, /dataviz__zone/);
-  assert.match(html, /Dépenses 130 Md€/);
-  assert.match(html, /Recettes 105 Md€/);
+  assert.match(html, /Dépenses<\/span><strong>130 Md€/);
+  assert.match(html, /Recettes<\/span><strong>105 Md€/);
 });
 
 test("la composition encode les parts sans camembert", () => {
