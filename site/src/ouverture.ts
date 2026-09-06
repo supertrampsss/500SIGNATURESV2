@@ -216,6 +216,7 @@ ${
   </table>`;
   const graphique = graphiqueEcart({
     titre: "Les dépenses restent au-dessus des recettes",
+    unite: "Milliards d'euros courants",
     description: `Recettes et dépenses publiques de ${c.exercices[0]} à ${c.fin}, en milliards d'euros.`,
     points: c.exercices.map((periode) => ({
       periode,

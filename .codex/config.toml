@@ -1,0 +1,7 @@
+# Project defaults for a compatible local Codex client.
+# This file does not change the model or settings of an already-running Work task.
+model_reasoning_effort = "low"
+
+# Keep model-provided context and compaction limits: an override cannot expand them.
+[features.context_management]
+experimental_mode = true

@@ -28,12 +28,13 @@ export function tableauAccessible(libelle: string, tableau: string): string {
 export function graphiqueEcart(options: {
   titre: string;
   description: string;
+  unite: string;
   points: readonly { periode: string; haut: number; bas: number }[];
   noms: readonly [string, string];
   formater: Formateur;
 }): string {
   return `<div class="dataviz dataviz--ecart" data-chart-system="lieflat">${timeChart({
-    title: options.titre, description: options.description, unit: "Milliards d'euros courants", gap: true,
+    title: options.titre, description: options.description, unit: options.unite, gap: true,
     series: [
       { name: options.noms[0], values: Object.fromEntries(options.points.map(p => [p.periode, p.haut])) },
       { name: options.noms[1], values: Object.fromEntries(options.points.map(p => [p.periode, p.bas])) },

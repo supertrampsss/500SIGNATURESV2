@@ -40,3 +40,6 @@ For UI changes inspect the resulting screens as well as automated checks.
 Report what changed, what was tested, and remaining limits. Never equate unit tests
 with visual validation or a successful build with a successful production deployment.
 Use a reviewable branch/PR. Respect existing merge gates and user authorization.
+The owner requests systematic delivery: after validation, push the branch and merge
+its PR without another confirmation. Keep required checks and branch protections;
+report blockers instead of bypassing them. A later explicit hold takes precedence.

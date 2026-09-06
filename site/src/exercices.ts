@@ -273,9 +273,10 @@ export function rendreExercices(tableau: Tableau | null): string {
           ? "Les dépenses restent sous les recettes"
           : "Les dépenses dépassent les recettes",
         description: `Évolution des dépenses et des recettes de fonctionnement de ${premier} à ${dernier}.`,
-        points,
+        unite: mot.charAt(0).toUpperCase() + mot.slice(1),
+        points: points.map(point => ({ ...point, haut: point.haut / diviseur, bas: point.bas / diviseur })),
         noms: ["Dépenses", "Recettes"],
-        formater: formaterGraphique,
+        formater: valeur => formaterGraphique(valeur * diviseur),
       })
     : "";
   const mouvements = tableau.lignes

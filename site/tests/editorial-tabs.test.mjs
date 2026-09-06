@@ -106,5 +106,8 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
  await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
  await page.getByRole('button',{name:'Basculer le thème'}).click();await noOverflow(page);
+ await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(243, 244, 235)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(246, 168, 143)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(246, 168, 143)');
  await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png'),fullPage:true});
 });

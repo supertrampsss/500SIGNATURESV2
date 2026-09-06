@@ -45,6 +45,7 @@ test("les barres classées peuvent garder leur titre pour les lecteurs d'écran 
 test("une courbe d'écart nomme son constat et conserve les deux séries", () => {
   const html = graphiqueEcart({
     titre: "Le déficit se creuse",
+    unite: "Milliards d'euros courants",
     description: "Les dépenses restent au-dessus des recettes.",
     points: [
       { periode: "2024", haut: 120, bas: 100 },

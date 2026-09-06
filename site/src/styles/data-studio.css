@@ -1,18 +1,26 @@
 /* France + Territoires: original editorial chart system, native touch controls. */
-body:is([data-vue='bilan'],[data-vue='territoire']) {
+:root {
   --studio-accent: #b34029; --studio-second: #275f66; --studio-muted: #666b68;
   --studio-line: #d7d9d1; --studio-paper: #f6f5f0; --studio-ink: #202923;
+}
+body:is([data-vue='bilan'],[data-vue='territoire']) {
   background: var(--studio-paper); color: var(--studio-ink);
 }
-html[data-theme='sombre'] body:is([data-vue='bilan'],[data-vue='territoire']) {
+html[data-theme='sombre'] {
   --studio-accent: #f6a88f; --studio-second: #9dcac2; --studio-muted: #b5beb6;
   --studio-line: #43534c; --studio-paper: #17231e; --studio-ink: #f3f4eb;
+}
+@media(prefers-color-scheme:dark) {
+ html:not([data-theme='clair']) {
+  --studio-accent:#f6a88f; --studio-second:#9dcac2; --studio-muted:#b5beb6;
+  --studio-line:#43534c; --studio-paper:#17231e; --studio-ink:#f3f4eb;
+ }
 }
 body:is([data-vue='bilan'],[data-vue='territoire']) .entete {
   background: var(--studio-paper); color: var(--studio-ink); border-bottom: 1px solid var(--studio-line); box-shadow:none;
   --chrome-encre:var(--studio-ink); --chrome-accent:var(--studio-accent);
 }
-body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nom { font:600 1.2rem/1.2 var(--sans); }
+body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nom { font:600 1.2rem/1.2 var(--sans); color:var(--studio-ink); }
 body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nav a { color:var(--studio-muted); }
 body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nav a[aria-current='page'] { color:var(--studio-ink); background:transparent; border-bottom-color:var(--studio-accent); }
 body:is([data-vue='bilan'],[data-vue='territoire']) .bascule-theme { color:var(--studio-ink); border-color:var(--studio-line); }
@@ -56,6 +64,7 @@ body[data-vue='bilan'] #vue-bilan { --encre:var(--studio-ink); --encre-douce:var
 .chart-time { container-type:inline-size; min-width:0; margin:0; color:var(--studio-ink,var(--encre)); }
 .chart-time figcaption { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.3rem 1rem; margin-bottom:1.3rem; }
 .chart-time figcaption strong { font:600 1.1rem/1.3 var(--sans); }
+.chart-time figcaption strong { color:var(--studio-ink); }
 .chart-time figcaption > span { font-size:.78rem; color:var(--studio-muted); align-self:center; }
 .chart-readout { display:grid; grid-template-columns:3rem minmax(0,1fr); gap:.7rem; min-height:4rem; margin-bottom:.5rem; }
 .chart-readout > b { font:500 .85rem/1.4 var(--sans); color:var(--studio-muted); padding-top:.1rem; }
@@ -114,8 +123,8 @@ body[data-vue='bilan'] #vue-bilan { --encre:var(--studio-ink); --encre-douce:var
 .waffle-caption { font-size:.75rem; color:var(--studio-muted); }
 #vue-bilan .dataviz--composition figcaption > strong { font:600 1.1rem/1.2 var(--sans); margin:0 0 1rem; }
 #vue-bilan .dataviz--composition .dataviz__pile { min-height:5px; height:5px; border:0; margin-bottom:1.25rem; border-radius:0; }
-#vue-bilan .dataviz__segment--0 { background:#275f66; fill:#275f66; }
-#vue-bilan .dataviz__segment--1 { background:#b34029; fill:#b34029; }
+#vue-bilan .dataviz__segment--0 { background:var(--studio-second); fill:var(--studio-second); }
+#vue-bilan .dataviz__segment--1 { background:var(--studio-accent); fill:var(--studio-accent); }
 #vue-bilan .dataviz__segment--2 { background:#798b65; fill:#798b65; }
 #vue-bilan .dataviz__segment--3 { background:#b69451; fill:#b69451; }
 #vue-bilan .dataviz__segment--4 { background:#786e84; fill:#786e84; }
@@ -128,7 +137,17 @@ body[data-vue='territoire'] .territoire-recherche__introduction > p:last-child {
 body[data-vue='territoire'] .territoire-recherche__champ.recherche input[type='search'] { background:var(--studio-paper); color:var(--studio-ink); border:1px solid var(--studio-muted); border-radius:0; }
 body[data-vue='territoire'] .territoire-carte-toggle { color:var(--studio-ink); font-size:.85rem; }
 body[data-vue='territoire'][data-territoire-selection='oui'] .territoire-recherche { padding:0 0 1rem; }
-body[data-vue='territoire'] .fiche__titre { font:400 clamp(2.2rem,5vw,3.5rem)/1.1 Georgia,serif; letter-spacing:-.04em; }
+body[data-vue='territoire'] .fiche__titre { font:400 clamp(2.2rem,5vw,3.5rem)/1.1 Georgia,serif; letter-spacing:-.04em; color:var(--studio-ink); background:transparent; }
+body[data-vue='territoire'] .fiche__jouer { color:var(--studio-ink); border-color:var(--studio-line); border-radius:0; }
+body[data-vue='territoire'] .territory-reading h3,body[data-vue='territoire'] .territoire-diagnostic > summary { color:var(--studio-ink); }
+body[data-vue='territoire'] .territory-charts__source a { color:var(--studio-second); }
+/* Grid children must shrink on narrow screens, including long association names. */
+body[data-vue='territoire'] .territoire__tables { grid-template-columns:minmax(0,1fr); }
+body[data-vue='territoire'] .territoire__tables > * { min-width:0; }
+@media(max-width:40rem) {
+ body[data-vue='territoire'] .dataviz--barres li { grid-template-columns:minmax(0,1fr) auto; }
+ body[data-vue='territoire'] .dataviz__barres-rail { grid-row:2; grid-column:1/-1; }
+}
 body[data-vue='territoire'] .fiche__meta,body[data-vue='territoire'] .fiche__maire { font-size:.8rem; margin:.5rem 0; }
 body[data-vue='territoire'] .reperes { grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; border-block:1px solid var(--studio-line); margin:1.5rem 0 2rem; }
 body[data-vue='territoire'] .repere { border:0; border-radius:0; background:transparent; padding:1rem; }
