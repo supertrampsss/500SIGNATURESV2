@@ -32,3 +32,18 @@ test('territory charts use local finances and never fabricate unavailable invest
  assert.doesNotMatch(html,/data-chart-tab="investissement"/);assert.match(html,/7 M€/);assert.match(html,/1,5 M€/);
  assert.equal(territoireFinances({...city,series:{}}),'');
 });
+test('local investment excludes debt principal and small village amounts remain visible',()=>{
+ const city={nom:'Village',series:{ofgl_depenses_investissement:{2024:90000},ofgl_depenses_d_investissement_hors_remb:{2023:40000,2024:41000}}} as unknown as Territoire;
+ const html=territoireFinances(city);
+ assert.match(html,/41 k€/);assert.match(html,/40 k€/);assert.doesNotMatch(html,/90 k€|0 M€/);
+ assert.match(html,/hors remboursement du capital/);
+ const aggregateOnly=territoireFinances({...city,series:{ofgl_depenses_investissement:{2024:90000}}});
+ assert.equal(aggregateOnly,'');
+});
+test('a published lower bound stays a lower bound in year readouts',()=>{
+ const options={title:'Dette',description:'Borne publiée',unit:'% du PIB',format:(v:number)=>`${v} %`,series:[{name:'Mission',values:{2030:130},labels:{2030:'Plus de 130 %'},pointsOnly:true}]};
+ assert.match(chartReadout(options,'2030'),/>Plus de 130 %</);
+ const html=timeChart(options);
+ assert.match(html,/class="chart-series chart-series--0"><circle/);
+ assert.doesNotMatch(html,/<strong>130 %<\/strong>/);
+});

@@ -30,13 +30,15 @@ La carte existante reste fonctionnelle, facultative sur téléphone.
 
 - `chart-studio.ts` : rendu pur SVG et HTML, versions selon la largeur du conteneur.
 - `chart-controls.ts` : contrôles délégués, fonctionnels après pré-rendu ou changement de ville.
-- `territoire-finances.ts` : sélection et conversion explicite des séries OFGL en M€.
+- `territoire-finances.ts` : séries OFGL, unité adaptée à la taille du territoire
+  (€, k€, M€). L'investissement exclut les remboursements du capital de la dette.
 - `dataviz.ts` : courbe des comptes et composition en 100 cases ; valeur partielle
   d'une case conservée pour ne pas arrondir les catégories artificiellement.
 - `styles/data-studio.css` : identité et transformations France/Territoires.
 
 Les années absentes cassent les courbes. Les positions utilisent les années réelles.
 Les scénarios de dette restent identifiés et les jalons ne sont pas interpolés.
+Une borne publiée « plus de 130 % » reste une borne dans le relevé de l'année.
 Les contrôles ne réinitialisent pas le défilement et fonctionnent au clavier.
 Les animations respectent la réduction de mouvement. Le lecteur peut obtenir les
 valeurs sans hover, sans WebGL et sans bibliothèque de graphiques.

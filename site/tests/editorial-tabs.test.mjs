@@ -77,10 +77,13 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  const chart=page.locator('#bloc-ouverture .chart-time');
  await expect(chart).toBeVisible();
  const control=chart.getByRole('slider');
- const last=await chart.locator('output').innerText();
+ const last=await chart.locator('output').textContent();
  await control.press('Home');
  await expect(chart.locator('output')).not.toHaveText(last);
  await expect(control).toHaveAttribute('aria-valuetext',await chart.locator('.chart-scrub__year').innerText());
+ await control.press('End');await expect(chart.locator('output')).toHaveText(last);
+ await activate(chart.locator('svg:visible'),info);
+ await expect(chart.locator('output')).not.toHaveText(last);
  await control.press('End');await expect(chart.locator('output')).toHaveText(last);
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png'),fullPage:true});
@@ -96,7 +99,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await expect(page.locator('[data-chart-panel="budget"]')).toBeHidden();
  await page.screenshot({path:info.outputPath('territory-'+info.project.name+'.png'),fullPage:true});
  await activate(page.locator('[data-chart-tab="budget"]'),info);await noOverflow(page);
- const before=await page.locator('[data-chart-panel="budget"] output').innerText();
+ const before=await page.locator('[data-chart-panel="budget"] output').textContent();
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
  await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);

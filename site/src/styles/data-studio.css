@@ -17,7 +17,7 @@ body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nav a { color:var(-
 body:is([data-vue='bilan'],[data-vue='territoire']) .entete__nav a[aria-current='page'] { color:var(--studio-ink); background:transparent; border-bottom-color:var(--studio-accent); }
 body:is([data-vue='bilan'],[data-vue='territoire']) .bascule-theme { color:var(--studio-ink); border-color:var(--studio-line); }
 body[data-vue='bilan'] #vue-bilan { --encre:var(--studio-ink); --encre-douce:var(--studio-muted); --trait:var(--studio-line); --ui-encre:var(--studio-ink); --ui-trait:var(--studio-line); --ui-papier:var(--studio-paper); --fond:var(--studio-paper); background:var(--studio-paper); padding-inline:clamp(1rem,4vw,4rem); }
-body[data-vue='bilan'] #national { max-width:74rem; margin:2rem auto 4rem; }
+#vue-bilan #national { width:100%; max-width:74rem; margin:2rem auto 4rem; background:transparent; box-shadow:none; }
 #vue-bilan .bilan-verdict { display:grid; grid-template-areas:'editorial totem' 'equation equation'; grid-template-columns:minmax(0,1fr) minmax(12rem,.5fr); gap:1.5rem 3rem; padding:0; border:0; background:transparent; }
 #vue-bilan .bilan-verdict h1 { font:400 clamp(2.4rem,5vw,4rem)/1.04 Georgia,serif; letter-spacing:-.045em; }
 #vue-bilan .bilan-verdict h1 br { display:none; }
@@ -48,6 +48,7 @@ body[data-vue='bilan'] #national { max-width:74rem; margin:2rem auto 4rem; }
 #vue-bilan .chapitre__duo { display:block; }
 #vue-bilan h3.sous-titre { font:600 1.2rem/1.25 var(--sans); margin:.5rem 0 1rem; }
 #vue-bilan .chart-context { color:var(--studio-muted); font:400 .9rem/1.5 var(--sans); max-width:70ch; margin:0 0 1rem; }
+#vue-bilan .bilan-chapitre > .chapitre__pont { color:var(--studio-muted); font:400 .9rem/1.5 var(--sans); max-width:70ch; margin:1rem 0; padding:0; border:0; }
 #vue-bilan .chart-source { color:var(--studio-muted); font:400 .78rem/1.4 var(--sans); margin:1rem 0; }
 #vue-bilan .chart-notes { border-top:1px solid var(--studio-line); padding-top:1rem; margin-top:1.5rem; font-size:.9rem; }
 #vue-bilan .chart-notes p { max-width:75ch; line-height:1.5; }

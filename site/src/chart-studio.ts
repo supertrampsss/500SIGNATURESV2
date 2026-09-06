@@ -1,5 +1,5 @@
 /** Original SVG/HTML charts. Rendering is pure; interaction lives in chart-controls.ts. */
-export type ChartSeries = { name: string; values: Record<string, number>; dashed?: boolean; pointsOnly?: boolean };
+export type ChartSeries = { name: string; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
 export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean };
 export const escapeChart = (text: string): string => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
@@ -7,7 +7,7 @@ export function chartPeriods(series: ChartSeries[]): string[] {
   return [...new Set(series.flatMap(s => Object.keys(s.values).filter(p => Number.isFinite(s.values[p]))))].sort();
 }
 export function chartReadout(options: ChartOptions, period: string): string {
-  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => `<span class="chart-key chart-key--${i}"><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
+  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => `<span class="chart-key chart-key--${i}"><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(s.labels?.[period] ?? options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
 }
 
 export function timeChart(options: ChartOptions): string {
@@ -17,8 +17,11 @@ export function timeChart(options: ChartOptions): string {
   const min = Math.min(0, ...values);
   const max = Math.max(0, ...values);
   const range = max - min || 1;
-  const domainMin = min < 0 ? min - range * .08 : 0;
-  const domainMax = max + range * .1;
+  const magnitude = 10 ** Math.floor(Math.log10(range / 4));
+  const step = [1, 2, 5, 10].find(n => n * magnitude >= range / 4)! * magnitude;
+  const domainMin = Math.floor(min / step) * step;
+  const domainMax = Math.max(domainMin + step, Math.ceil(max / step) * step);
+  const ticks = Array.from({length: Math.round((domainMax - domainMin) / step) + 1}, (_, i) => domainMin + i * step);
   // Annual periods use actual year spacing. Missing years break a line, never fabricate a trajectory.
   const annual = periods.every(p => /^\d{4}$/.test(p));
   const fraction = (i: number) => periods.length < 2 ? .5 : annual
@@ -29,9 +32,8 @@ export function timeChart(options: ChartOptions): string {
     const left = 44, right = 12, top = 15, bottom = 30;
     const x = (i: number) => left + fraction(i) * (width - left - right);
     const y = (v: number) => top + (domainMax - v) / (domainMax - domainMin) * (height - top - bottom);
-    const grid = [0, 1, 2, 3].map(i => {
-      const v = domainMin + (domainMax - domainMin) * i / 3;
-      return `<g><line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}"/><text x="${left-7}" y="${y(v)+4}" text-anchor="end">${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0,notation:'compact'}).format(v)}</text></g>`;
+    const grid = ticks.map(v => {
+      return `<g><line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}"/><text x="${left-7}" y="${y(v)+4}" text-anchor="end">${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:Math.min(6,Math.max(0,-Math.floor(Math.log10(step))))}).format(v)}</text></g>`;
     }).join('');
     const labels = [...new Set([0, Math.floor((periods.length-1)/2), periods.length-1])].map(i => `<text x="${x(i)}" y="${height-5}" text-anchor="${i===0?'start':i===periods.length-1?'end':'middle'}">${escapeChart(periods[i])}</text>`).join('');
     const gap = options.gap && options.series.length === 2 ? periods.slice(1).map((p,i) => {

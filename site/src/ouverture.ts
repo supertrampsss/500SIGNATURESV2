@@ -251,10 +251,8 @@ export function pont(pays: Record<string, Territoire>): string {
   const c = chiffres(france);
   const etat = france?.series[ETAT]?.[c?.fin ?? ""];
   if (!c || etat === undefined) return "";
-  return `Sur ${montantLisible(c.recettes)} encaissés par l'ensemble des administrations
-    publiques, le budget de l'État en encaisse <strong>${montantLisible(etat)}</strong> en
-    propre. Le reste est encaissé directement par la Sécurité sociale (les cotisations sur les
-    salaires), les collectivités (impôts locaux) et les autres organismes publics.`;
+  return `L'État conserve <strong>${montantLisible(etat)}</strong> sur les ${montantLisible(c.recettes)}
+    de recettes publiques. Le reste revient à la Sécurité sociale, aux collectivités et aux autres organismes publics.`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint. Le pont est rempli ici :

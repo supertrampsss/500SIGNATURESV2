@@ -182,7 +182,7 @@ export function rendu(
   ];
   const svg = timeChart({
     title: "Dette publique : historique et scénarios", description: "Observations et scénarios publiés distincts. Les projections ne sont pas des résultats constatés.", unit: "% du PIB",
-    series: series.map(s => ({name:s.nom, values:Object.fromEntries(s.points), dashed:'pointille' in s && s.pointille, pointsOnly:'pointsSeuls' in s && s.pointsSeuls})),
+    series: series.map(s => ({name:s.nom, values:Object.fromEntries(s.points), dashed:'pointille' in s && s.pointille, pointsOnly:'pointsSeuls' in s && s.pointsSeuls, labels:'pointsSeuls' in s && s.pointsSeuls ? {'2030':'Plus de 130 %'} : undefined})),
     format: v => `${UNE_DECIMALE.format(v)} %`,
   });
 
