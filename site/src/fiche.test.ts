@@ -276,7 +276,7 @@ test("la fiche s'arrête au tableau des exercices", () => {
     assert.ok(
       ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
        "fiche__essentiel", "fiche__parent", "fiche__situation",
-       "tableau-exercices", "territoire-diagnostic"].includes(classe),
+       "tableau-exercices", "territoire-diagnostic", "territory-reading", "territory-charts", "chart-time", "chart-plot", "chart-readout", "chart-scrub", "chart-grid", "chart-cursor"].includes(classe),
       `section inattendue : ${classe}`,
     );
   }

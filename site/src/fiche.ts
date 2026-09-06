@@ -1,3 +1,4 @@
+import { territoireFinances } from "./territoire-finances.ts";
 /**
  * Fiche territoire. Règle du produit (docs/04) : un chiffre ne s'affiche jamais
  * seul. Il porte son unité, son millésime, son dénominateur quand c'est un
@@ -447,7 +448,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${noteChiffree ? `<details class="territoire-diagnostic"><summary>Lire la situation financière</summary>${noteChiffree}</details>` : ""}${rendreBlocs(blocsDeLecture)}${rendreExercices(
+      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<details class="territoire-diagnostic"><summary>Lire la situation financière</summary>${noteChiffree}</details>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},

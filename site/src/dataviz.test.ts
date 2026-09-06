@@ -57,8 +57,8 @@ test("une courbe d'écart nomme son constat et conserve les deux séries", () =>
   assert.match(html, /<title>Le déficit se creuse<\/title>/);
   assert.match(html, /<desc>Les dépenses restent au-dessus des recettes\.<\/desc>/);
   assert.match(html, /dataviz__zone/);
-  assert.match(html, /Dépenses 130 Md€/);
-  assert.match(html, /Recettes 105 Md€/);
+  assert.match(html, /Dépenses<\/span><strong>130 Md€/);
+  assert.match(html, /Recettes<\/span><strong>105 Md€/);
 });
 
 test("la composition encode les parts sans camembert", () => {

@@ -53,7 +53,7 @@
 import type { Territoire } from "./donnees.ts";
 import { montantLisible } from "./echelle.ts";
 import { dessiner } from "./graphique.ts";
-import { barreEmpilee } from "./dataviz.ts";
+import { barreEmpilee, tableauAccessible } from "./dataviz.ts";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -342,28 +342,18 @@ export function rendu(pays: Record<string, Territoire>): string {
   // comme la maquette validée. Pas de titre de bloc : la question du chapitre,
   // juste au-dessus, le porte déjà.
   return `
-    <div class="chapitre__duo">
-      <div>
-        <p class="bloc__complement">Toutes les administrations publiques réunies
-          (l'État, les collectivités, la Sécurité sociale et les organismes qu'ils
-          financent) ont encaissé <strong>${montantLisible(total)}</strong> en
-          ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
-          100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
-          empruntés : c'est le déficit public. Le premier poste, retraites, chômage et
-          allocations, en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
-          neuf fois le chômage</strong>.</p>
-        ${recettesGraphique}
-        <div class="ui-visually-hidden">${recettesTable}
-        <p class="bloc__complement">Source : Eurostat.</p></div>
-      </div>
-      <div>
-        <h3 class="sous-titre">Où ils vont</h3>
+    <h3 class="sous-titre">Pour 100 € de recettes publiques</h3>
+    <p class="chart-context">${echapper(exercice)} : ${pour100(depense)} dépensés pour 100 € reçus${solde < 0 ? `, soit ${pour100(Math.abs(solde))} à financer` : ''}.</p>
+    <div class="accounts-composition">
+      ${recettesGraphique}
+      <figure class="spending-bars"><figcaption>Où va l'argent</figcaption>
         ${feuilles.map((f) => rang(f.libelle, f.valeur, { creux: f.creux })).join("")}
         ${rang("Total dépensé", depense, { total: true })}
-        ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}
-        ${historique(france)}
-      </div>
-    </div>`;
+      </figure>
+    </div>
+    <p class="chart-source">Ensemble des administrations publiques · ${montantLisible(total)} de recettes · Eurostat</p>
+    ${tableauAccessible("Données et historique des dépenses", recettesTable + historique(france))}
+  `;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

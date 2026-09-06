@@ -230,30 +230,12 @@ export function rendu(
   // déjà — « D'où vient l'argent de l'État ? » suivi d'un second titre disait
   // deux fois la même chose.
   return `
-    <div class="chapitre__duo">
-      <div>
-        <p class="bloc__complement">Depuis ${echapper(debut)}, les recettes de l'État ont augmenté
-          de <strong>${echapper(variation(total.avant, total.apres))}</strong>${
-            inflation
-              ? ` pendant que les prix montaient de <strong>${echapper(
-                  inflation.replace("+", ""),
-                )}</strong> : une fois l'inflation retirée, elles n'ont presque pas bougé`
-              : ""
-          }.</p>
-        <p class="bloc__complement">La TVA semble s'effondrer dans ce tableau&nbsp;: elle n'a
-          pas baissé. Ce que la taxe rapporte continue d'augmenter, mais une part croissante
-          en est <strong>reversée chaque année à la Sécurité sociale et aux
-          collectivités</strong>, pour compenser des cotisations et des impôts locaux
-          supprimés. Le tableau ne compte que la part que l'État garde pour lui. C'est
-          cette part-là qui diminue.</p>
-      </div>
-      <div>
-        ${graphique}
-        ${tableauAccessible("Voir les chiffres", tableau)}
-        <p class="bloc__complement">Milliards d'euros, exercices réellement exécutés.
-          Source : situation mensuelle budgétaire de l'État.</p>
-      </div>
-    </div>`;
+    <h3 class="sous-titre">Les recettes de l'État</h3>
+    <p class="chart-context">Ce que l'État conserve, après les transferts aux collectivités et à la Sécurité sociale.</p>
+    ${graphique}
+    <p class="chart-source">Milliards d'euros · ${echapper(debut)} et ${echapper(fin)} · Budget exécuté de l'État</p>
+    ${tableauAccessible("Données et transferts de TVA", tableau + `<div class="chart-notes"><p>Depuis ${echapper(debut)}, les recettes ont augmenté de ${echapper(variation(total.avant,total.apres))}${inflation ? `, pour une hausse des prix de ${echapper(inflation)}` : ''}.</p><p>La baisse de la TVA conservée par l'État ne signifie pas que la taxe rapporte moins : une part est transférée aux autres administrations.</p></div>`)}
+    `;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

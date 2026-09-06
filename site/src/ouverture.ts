@@ -230,17 +230,10 @@ ${
   // les phrases dans une colonne, le tableau dans l'autre. Sous 56 rem, la
   // grille retombe en pile et l'ordre de lecture reste le même.
   return `
-    <div class="chapitre__duo">
-      <div>
-        ${piege}
-      </div>
-      <div>
-        ${graphique}
-        ${tableauAccessible("Voir les chiffres", tableau)}
-      </div>
-    </div>
-    <p class="ouverture__source">Milliards d'euros courants, exercices ${echapper(c.exercices[0]!)} à
-      ${echapper(c.fin)}. Source&nbsp;: Eurostat.</p>`;
+    ${graphique}
+    <p class="chart-source">Milliards d'euros courants · ${echapper(c.exercices[0]!)} à ${echapper(c.fin)} · Eurostat</p>
+    ${tableauAccessible("Données et lecture des comptes", tableau + `<div class="chart-notes">${piege}</div>`)}
+  `;
 }
 
 /**

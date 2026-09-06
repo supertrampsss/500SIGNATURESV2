@@ -292,9 +292,9 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
 
   return `
     <h3 class="sous-titre">La France et ses voisins</h3>
-    ${phrase}
+    <p class="chart-context">Même année, même définition : les comparaisons en % du PIB.</p>
     ${graphique}
-    ${tableauAccessible("Voir les chiffres", tableau)}
+    ${tableauAccessible("Données et périmètre européen", tableau + phrase)}
     <p class="bloc__complement">${sourcesEurope(indexSources)}</p>`;
 }
 
