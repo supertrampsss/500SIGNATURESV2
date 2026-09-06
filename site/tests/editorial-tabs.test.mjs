@@ -74,6 +74,8 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/bilan/');
  await expect(page.locator('.bilan-lecture')).toHaveCount(0);
+ await expect(page.locator('.accounts-reading')).not.toHaveAttribute('open','');
+ await expect(page.locator('#insights-france')).toBeHidden();
  const chart=page.locator('#bloc-ouverture .chart-time');
  await expect(chart).toBeVisible();
  const control=chart.getByRole('slider');

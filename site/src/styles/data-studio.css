@@ -104,6 +104,8 @@ body[data-vue='bilan'] #vue-bilan { --encre:var(--studio-ink); --encre-douce:var
 #vue-bilan .dataviz--points figcaption strong { font:600 1.1rem/1.2 var(--sans); }
 #vue-bilan .bilan-action { background:transparent; border-top:1px solid var(--studio-line); padding:2rem 0; }
 #vue-bilan .bilan-action h2 { font:400 2rem/1.1 Georgia,serif; }
+#vue-bilan .accounts-reading { border-top:1px solid var(--studio-line); margin:1rem 0; }
+#vue-bilan .accounts-reading > summary { padding:1rem 0; min-height:48px; cursor:pointer; font:500 1rem/1.4 var(--sans); }
 .waffle-layout { display:grid; gap:1.5rem; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); align-items:center; }
 .dataviz .waffle { width:100%; max-width:260px; margin-inline:auto; }
 .waffle rect { transition:opacity 180ms ease; }
