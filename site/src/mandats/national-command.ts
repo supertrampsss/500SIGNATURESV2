@@ -2,7 +2,7 @@ import { calendarFor, domainFor } from './engine.ts';
 import type { Effect, Game } from './types.ts';
 
 const number = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
-const signed = (value: number) => `${value > 0 ? '+' : '−'}${number(Math.abs(value))}`;
+const signed = (value: number) => `${value > 0 ? '+' : '−'}${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(Math.abs(value))}`;
 
 type Impact = { label: string; direction: 'up' | 'down' | 'neutral' };
 const metricLabels: [keyof Pick<Effect, 'services' | 'cohesion' | 'resilience' | 'trust' | 'assets'>, string][] = [
@@ -30,7 +30,8 @@ export function nationalDecisionImpact(game: Game): Impact[] {
   }
   if (choice.delayed && result.length < 3) {
     const year = (game.history.at(-1)?.year ?? calendarFor(game).year) + choice.delayed.after;
-    result.push({ label: `Livraison prévue · année ${year}`, direction: 'neutral' });
+    const event = choice.delayed.effect.revenue ? (choice.delayed.effect.revenue > 0 ? 'Recette prévue' : 'Fin de recette') : 'Livraison prévue';
+    result.push({ label: `${event} · année ${year}`, direction: 'neutral' });
   }
   return result.slice(0, 3).length ? result.slice(0, 3) : [{ label: 'Trajectoire maintenue', direction: 'neutral' }];
 }

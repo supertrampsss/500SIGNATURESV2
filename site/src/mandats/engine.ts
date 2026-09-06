@@ -19,11 +19,12 @@ export function choicesFor(g: Game): Choice[] {
   const choices = DOMAINS[g.mode].dossiers[g.turn]?.choices ?? [];
   return choices.length && choices.every(c => !preview(g, c.id).game) ? [...choices, RECOVERY] : choices;
 }
-export function start(mode: Mode, seed = 42, ambition: Ambition = "equilibre", version: 1 | 2 | 3 | 4 = 2, city?:CityBaseline): Game {
+export function start(mode: Mode, seed = 42, ambition: Ambition = "equilibre", version: 1 | 2 | 3 | 4 | 5 = 2, city?:CityBaseline): Game {
   if (version === 1) return legacy.start(mode, seed);
+  if (version === 5 && (mode !== "national" || city)) throw new Error("La version 5 concerne uniquement le mandat national.");
   if (!["equilibre", "services", "resilience"].includes(ambition)) throw new Error("Priorité invalide.");
   if (!Object.hasOwn(DOMAINS, mode) || !Number.isInteger(seed) || seed < 0 || seed > 9999) throw new Error("Scénario invalide.");
-  if(version >= 3)return startCampaign(mode,seed,ambition,city,version as 3 | 4);
+  if(version >= 3)return startCampaign(mode,seed,ambition,city,version as 3 | 4 | 5);
   return { version: 2, ambition, mode, seed, turn: 0, ...DOMAINS[mode].initial(), pending: [], history: [], choices: [] };
 }
 function apply(g: Game, e: Effect) {
@@ -77,7 +78,7 @@ export function score(g: Game) {
   const ordered = Object.entries(dimensions).sort((a, b) => b[1] - a[1]);
   return { total, dimensions, terminalPenalty, strength: labels[ordered[0][0]], weakness: labels[ordered.at(-1)![0]], legacy: g.mode === "national" ? (total >= 50 ? "Une trajectoire consolidée" : total >= 40 ? "Un cap à renforcer" : "Un mandat sous tension") : (total >= 70 ? "Un héritage solide" : total >= 55 ? "Un équilibre à consolider" : "Un mandat sous tension") };
 }
-export function replay(mode: Mode, seed: number, ids: string[], version: 1 | 2 | 3 | 4 = 2, ambition: Ambition = "equilibre", city?:CityBaseline): Game {
+export function replay(mode: Mode, seed: number, ids: string[], version: 1 | 2 | 3 | 4 | 5 = 2, ambition: Ambition = "equilibre", city?:CityBaseline): Game {
   if (!Object.hasOwn(DOMAINS, mode) || !Array.isArray(ids) || ids.length > (version >= 3?45:DOMAINS[mode].turns)) throw new Error("Journal trop long.");
   return ids.reduce((g, id) => decide(g, id), start(mode, seed, ambition, version,city));
 }

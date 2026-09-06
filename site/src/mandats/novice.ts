@@ -6,6 +6,7 @@ type Copy = (typeof MUNICIPAL_COPY)[number];
 
 /** Presentation is independent from the frozen rules used to replay saves. */
 export function dossierCopy(g: Game, dossier: Dossier): Copy {
+  if (g.version === 5) return [dossier.title, dossier.story, dossier.choices.map(c => c.title) as [string,string,string], dossier.choices.map(c => c.sacrifice) as [string,string,string]];
   const id = dossier.choices[0]?.id ?? '';
   const local = /^l4([0-5])([0-2])0$/.exec(id);
   if (g.version === 4 && g.city && local) return localCopy(g, Number(local[1]), Number(local[2]));
@@ -82,6 +83,7 @@ export function choiceCosts(c:Choice,mode:Game['mode']):string[] {
  // Temporary funding ends later; don't describe its reversal as a second new cost.
  if(c.delayed){
   const later=c.delayed.effect, now=c.effect;
+  if(later.revenue) result.push(`${later.revenue > 0 ? 'Puis recettes en plus' : 'Puis recettes en moins'} : ≈${shortMoney(later.revenue,mode)}/an dans ${c.delayed.after} an${c.delayed.after > 1 ? 's' : ''}`);
   if(later.operating && !(now.operating && Math.abs(now.operating+later.operating)<1e-8)) result.push(`${later.operating>0?'Puis coût':'Puis économie'} : ≈${shortMoney(later.operating,mode)}/an dans ${c.delayed.after} an${c.delayed.after>1?'s':''}`);
  }
  if(c.delayed && c.effect.operating && Math.abs(c.effect.operating+(c.delayed.effect.operating??0))<1e-8) return result.map(s=>s.replace('/an',c.delayed!.after===1?' cette année':` pendant ${c.delayed!.after} ans`));
