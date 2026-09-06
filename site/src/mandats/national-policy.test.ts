@@ -5,6 +5,8 @@ import { encode, decode } from './storage.ts';
 import { challengeURL, challengeFromURL, resultURL, sharedResult } from './sharing.ts';
 import { choiceCopy, choiceCosts } from './novice.ts';
 import { nationalPolicyDossiers } from './national-policy.ts';
+import { cardModel } from './cards.ts';
+import { gameShell } from './render.ts';
 import { nationalDecisionImpact } from './national-command.ts';
 import type { Choice, Game } from './types.ts';
 
@@ -64,12 +66,18 @@ test('fiscal controls cost now and yield only after the next annual transition',
   assert.ok(nationalDecisionImpact(immediate).some(i => i.label === 'Dépenses +0,5 Md€/an'));
   assert.ok(nationalDecisionImpact(immediate).some(i => i.label === 'Recette prévue · année 3'));
   assert.ok(immediate.history.at(-1)!.messages.includes('Échéance fiscale prévue en année 3.'));
+  assert.match(JSON.stringify(cardModel(immediate, 'decision')), /Recette supplémentaire en année 3/);
+  assert.doesNotMatch(JSON.stringify(cardModel(immediate, 'decision')), /Livraison/);
+  assert.match(gameShell(immediate, 'play', 'journal'), /Prochaines échéances/);
+  assert.doesNotMatch(gameShell(immediate, 'play', 'journal'), /Engagements à livrer/);
 });
 
 test('the exceptional profit levy ends once, without being treated as a permanent tax', () => {
   const initial = reach(25);
   let taxed = decide(initial, 'n26b'), comparison = decide(initial, 'n26c');
   assert.equal(taxed.finance.revenue - comparison.finance.revenue, 3);
+  assert.match(JSON.stringify(cardModel(taxed, 'decision')), /Fin de la recette temporaire en année 4/);
+  assert.doesNotMatch(JSON.stringify(cardModel(taxed, 'decision')), /Livraison/);
   while (taxed.turn < 28) { taxed = next(taxed); comparison = next(comparison); }
   assert.equal(taxed.finance.revenue, comparison.finance.revenue);
   while (taxed.turn < 37) { taxed = next(taxed); comparison = next(comparison); }
