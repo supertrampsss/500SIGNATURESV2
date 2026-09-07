@@ -1,35 +1,42 @@
-import type { Indicateur } from "./donnees.ts";
+import { timeChart } from "./chart-studio.ts";
+import type { Indicateur, Territoire } from "./donnees.ts";
 import type { FamilleInsight, Insight } from "./insights.ts";
 import { echapper } from "./texte.ts";
 
 type OptionsRendu = {
   contexte: "france" | "territoire";
   nom?: string;
+  series?: Territoire["series"];
 };
 
-function carte(insight: Insight, niveauTitre: 3 | 4 = 3): string {
+function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[] = [], series: Territoire["series"] = {}): string {
+  const id = insight.preuves.find(p => Object.keys(series[p.indicateur] ?? {}).length > 1)?.indicateur;
+  const indicateur = catalogue.find(i => i.id === id);
+  const values = id ? series[id] : undefined;
+  const maximum = values ? Math.max(...Object.values(values).filter(Number.isFinite).map(Math.abs)) : 0;
+  const euro = indicateur?.unite === "EUR";
+  const scale = euro && maximum >= 1e9 ? 1e9 : euro && maximum >= 1e6 ? 1e6 : 1;
+  const unit = euro ? scale === 1e9 ? "Md€" : scale === 1e6 ? "M€" : "€" : indicateur?.unite ?? "";
+  const chart = values && indicateur ? timeChart({title:indicateur.libelle,description:"Évolution des observations publiées.",unit,series:[{name:indicateur.libelle,values:Object.fromEntries(Object.entries(values).map(([year,value])=>[year,value/scale]))}],format:value=>`${new Intl.NumberFormat("fr-FR",{maximumSignificantDigits:4}).format(value)} ${unit}`}) : "";
   return `<li class="insight insight--${insight.famille}">
     <article>
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>
       <h${niveauTitre}>${echapper(insight.titre)}</h${niveauTitre}>
       <p class="insight__analyse">${echapper(insight.texte)}</p>
+      ${chart}
       ${insight.comparaison ? `<p class="insight__comparaison">${echapper(insight.comparaison)}</p>` : ""}
     </article>
   </li>`;
 }
 
-/** Garde une première lecture courte sans retirer les cartes du document.
- * Les cartes suivantes restent dans le DOM : elles sont simplement repliées
- * derrière une action locale, ce qui conserve les ancres et l'accessibilité. */
-function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4): string {
-  const visibles = cartes.slice(0, 3).map((insight) => carte(insight, niveauTitre)).join("");
-  const suite = cartes.slice(3);
-  if (suite.length === 0) return `<ol class="insights__grille">${visibles}</ol>`;
-  return `<ol class="insights__grille">${visibles}</ol>
-    <details class="insights__more">
-      <summary>Voir les autres</summary>
-      <ol class="insights__grille">${suite.map((insight) => carte(insight, niveauTitre)).join("")}</ol>
-    </details>`;
+/** Toutes les analyses restent visibles. */
+function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4, catalogue: Indicateur[], series?: Territoire["series"]): string {
+  const shown=new Set<string>();
+  return `<ol class="insights__grille">${cartes.map(insight=>{
+    const id=shown.size<2 ? insight.preuves.find(p=>!shown.has(p.indicateur)&&Object.keys(series?.[p.indicateur]??{}).length>1)?.indicateur : undefined;
+    if(id)shown.add(id);
+    return carte(insight,niveauTitre,catalogue,id ? {[id]:series![id]} : {});
+  }).join("")}</ol>`;
 }
 
 const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
@@ -43,7 +50,7 @@ const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
   { famille: "environnement", titre: "Énergie et environnement" },
 ];
 
-function renduFranceParThemes(insights: Insight[]): string {
+function renduFranceParThemes(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
   const themes = THEMES_FRANCE
     .map((theme) => ({ ...theme, insights: insights.filter(({ famille }) => famille === theme.famille) }))
     .filter(({ insights: cartes }) => cartes.length > 0);
@@ -62,7 +69,7 @@ function renduFranceParThemes(insights: Insight[]): string {
       <header class="insights__theme-entete">
         <h3 id="arbitrages-${famille}-titre">${echapper(titre)}</h3>
       </header>
-      ${cartesAvecSuite(cartes, 4)}
+      ${cartesAvecSuite(cartes, 4, catalogue, series)}
     </section>`).join("");
 
   return `<nav class="insights__sommaire" id="insights-france-sommaire" aria-label="Thèmes des arbitrages">
@@ -73,7 +80,7 @@ function renduFranceParThemes(insights: Insight[]): string {
 
 export function renduInsights(
   insights: Insight[],
-  _catalogue: Indicateur[],
+  catalogue: Indicateur[],
   options: OptionsRendu,
 ): string {
   if (insights.length === 0) return "";
@@ -92,8 +99,8 @@ export function renduInsights(
       <p>${echapper(introduction)}</p>
     </header>
     ${estFrance
-      ? renduFranceParThemes(insights)
-      : cartesAvecSuite(insights, 3)}
+      ? renduFranceParThemes(insights, catalogue, options.series)
+      : cartesAvecSuite(insights, 3, catalogue, options.series)}
     <p class="insights__methode"><a href="/sources/">Sources et méthode</a></p>
   </section>`;
 }

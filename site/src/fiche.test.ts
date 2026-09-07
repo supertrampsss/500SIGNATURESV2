@@ -216,7 +216,7 @@ test("la fiche territoriale relie chaque maille à son registre exact", () => {
     });
     assert.ok(url, `source ${niveau} absente du registre`);
     assert.match(cible.innerHTML, new RegExp(`href="${url}"`));
-    assert.match(cible.innerHTML, /Comprendre le calcul/);
+    assert.match(cible.innerHTML, /Sources et méthode/);
   }
 });
 /**
@@ -282,7 +282,7 @@ test("la fiche s'arrête au tableau des exercices", () => {
   }
   // Les quatre repères ouvrent le diagnostic, la note reste consultable sur place.
   assert.match(html, /class="note"/, "la note a quitté la fiche");
-  assert.match(html, /<details class="territoire-diagnostic"><summary>Lire la situation financière<\/summary>/);
+  assert.match(html, /<section class="territoire-diagnostic" aria-label="Situation financière">/);
   assert.ok(html.indexOf('class="reperes"') < html.indexOf('class="note"'));
   // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
   // fiche ne dit jamais ce qu'elle est en train de calculer.

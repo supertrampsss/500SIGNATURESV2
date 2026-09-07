@@ -1,3 +1,4 @@
+import { civicScene } from "./civic-scene.ts";
 /**
  * Bloc national : dette publique française et comparaison européenne.
  *
@@ -127,6 +128,7 @@ function renduVerdict(
       <p class="bilan-verdict__constat">${titre}.</p>
       <p class="bilan-verdict__champ">État, collectivités et Sécurité sociale réunis.</p>
     </div>
+    ${civicScene()}
     <aside class="bilan-verdict__totem" aria-label="Solde public annuel">
       <p>Solde public</p>
       <strong class="bilan-montant">${montantCompose(solde)}</strong>

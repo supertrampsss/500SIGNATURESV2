@@ -25,9 +25,9 @@ test("France est la destination courante sur le chemin historique du bilan", () 
   assert.match(renduNavigation("/bilan", true), /href="\/bilan"[^>]*aria-current="page"/);
 });
 
-test("Simuler est la destination courante avec ou sans barre finale", () => {
-  assert.match(renduNavigation("/simulateur", true), /href="\/simulateur"[^>]*aria-current="page"/);
-  assert.match(renduNavigation("/simulateur/", true), /href="\/simulateur"[^>]*aria-current="page"/);
+test("Mandats est la destination courante avec ou sans barre finale", () => {
+  assert.match(renduNavigation("/mandats", true), /href="\/mandats\/"[^>]*aria-current="page"/);
+  assert.match(renduNavigation("/mandats/", true), /href="\/mandats\/"[^>]*aria-current="page"/);
 });
 
 test("Analyses ne figure pas dans la navigation principale", () => {
@@ -40,18 +40,13 @@ test("Salaires reste un lien natif vers sa page pré-rendue", () => {
   assert.doesNotMatch(html, /href="\/salaires"[^>]*data-vue/);
 });
 
-test("Simuler reste visible mais indisponible avant la publication des données", () => {
-  const html = renduNavigation("/", false);
-  assert.match(html, /href="\/simulateur"[^>]*data-vue="simuler"[^>]*aria-disabled="true"/);
-});
-
-test("Simuler disponible reste un lien natif, atteignable au clic comme au clavier", () => {
-  const html = renduNavigation("/analyses/", true);
-  // Un vrai <a href> garde son comportement natif : clic souris et touche
-  // Entrée déclenchent le même évènement de navigation. Aucun tabindex négatif
-  // ou aria-disabled ne doit donc le sortir de la tabulation.
-  assert.match(html, /<a href="\/simulateur" data-vue="simuler">Simuler<\/a>/);
-  assert.doesNotMatch(html, /href="\/simulateur"[^>]*(?:aria-disabled|tabindex)/);
+test("le menu partagé contient quatre destinations, sans l'ancien simulateur", () => {
+  for (const disponible of [true, false]) {
+    const html = renduNavigation("/bilan", disponible);
+    assert.equal((html.match(/<a /g) ?? []).length, 4);
+    assert.doesNotMatch(html, /href="\/simulateur"/);
+    assert.match(html, /href="\/mandats\/"/);
+  }
 });
 
 test("un clic sur une destination indisponible est annulé avant la navigation", () => {

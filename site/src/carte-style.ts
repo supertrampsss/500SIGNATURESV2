@@ -18,9 +18,9 @@ export function largeurLisere(couche: string): unknown {
 
 /** Style analytique autonome : la donnée locale, aucune tuile ni étiquette
  * tierce. Les noms sont posés une seule fois par la couche HTML du site. */
-export function styleCarte(urlTuiles: string): StyleSpecification {
+export function styleCarte(urlTuiles: string, sombre = false): StyleSpecification {
   const layers: LayerSpecification[] = [
-    { id: "fond", type: "background", paint: { "background-color": "#f6f1e7" } },
+    { id: "fond", type: "background", paint: { "background-color": sombre ? "#0c2029" : "#f6f3eb" } },
   ];
   for (const couche of Object.values(COUCHES)) {
     layers.push(
@@ -30,7 +30,7 @@ export function styleCarte(urlTuiles: string): StyleSpecification {
         source: "territoires",
         "source-layer": couche,
         paint: {
-          "fill-color": "#d9d9d9",
+          "fill-color": sombre ? "#31505a" : "#ccd5d0",
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "survol"], false],
@@ -45,7 +45,7 @@ export function styleCarte(urlTuiles: string): StyleSpecification {
         source: "territoires",
         "source-layer": couche,
         paint: {
-          "line-color": "#fffdf7",
+          "line-color": sombre ? "#142e38" : "#fffdf7",
           "line-width": largeurLisere(couche) as never,
         },
       },
@@ -56,7 +56,7 @@ export function styleCarte(urlTuiles: string): StyleSpecification {
         "source-layer": couche,
         filter: ["==", ["get", "code"], ""] as FilterSpecification,
         paint: {
-          "line-color": "#0f1b2e",
+          "line-color": sombre ? "#efcc83" : "#806021",
           "line-width": 3,
           "line-opacity": 1,
         },

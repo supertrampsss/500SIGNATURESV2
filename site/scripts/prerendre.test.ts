@@ -742,7 +742,7 @@ test("8 quinquies. les documents éditoriaux déclarent l'état qui laisse Simul
     // Le nav est monté par le paquet après lecture de data-page : la sortie
     // reflète le lien clavier/souris réellement attendu pour chaque document.
     const navigation = renduNavigation(chemin, true);
-    assert.match(navigation, /<a href="\/simulateur" data-vue="simuler">Simuler<\/a>/);
+    assert.match(navigation, /<a href="\/mandats\/">Mandats<\/a>/);
     assert.doesNotMatch(navigation, /href="\/simulateur"[^>]*aria-disabled/);
   }
 });
@@ -1105,7 +1105,8 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // servi, et les cinq chemins de vues. Son titre et sa description valent donc
   // pour toutes — « carte des finances locales » décrivait la carte, qui a
   // quitté la racine pour `/territoire`.
-  assert.equal(titreDuGabarit(GABARIT_REEL), marqueDuGabarit(GABARIT_REEL));
+  assert.equal(titreDuGabarit(GABARIT_REEL), "Où va l'argent public");
+  assert.equal(marqueDuGabarit(GABARIT_REEL), "500signatures.");
   // Et sa description est le message du site, arrêté à la conception (spec §8).
   // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui
   // tient les deux rédactions accordées.
@@ -1116,7 +1117,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // et son titre peint était « carte des finances locales ».
   const siteCarte = sections(GABARIT_REEL).find((s) => s.chemin === "");
   assert.ok(siteCarte, "le gabarit n'a plus de carte de section");
-  assert.equal(siteCarte.titre, marqueDuGabarit(GABARIT_REEL));
+  assert.equal(siteCarte.titre, titreDuGabarit(GABARIT_REEL));
   assert.equal(siteCarte.phrase, MESSAGE_PRINCIPAL);
   for (const mot of [siteCarte.titre, siteCarte.phrase, titreDuGabarit(GABARIT_REEL)]) {
     assert.ok(!/carte des finances locales/i.test(mot), `« ${mot} » nomme une vue que / n'ouvre plus`);
@@ -1422,7 +1423,7 @@ test("15. le bilan servi enchaîne directement le verdict et les trois chapitres
     return index;
   };
   assert.ok(position("bloc-dette") < position("bloc-europe"));
-  assert.ok(position("bloc-europe") < html.indexOf('href="/simulateur"'));
+  assert.ok(position("bloc-europe") < html.indexOf('class="mandats-invitation"'));
   assert.doesNotMatch(html, /id="france-verdict"[\s\S]*?class="ui-conclusion bilan-verdict"[\s\S]*?Pour 100 € encaissés/);
   assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion[^"]*"[\s\S]*?D'où vient l'argent/);
 });
@@ -1431,7 +1432,7 @@ test("15 bis. le pré-rendu ne réintroduit aucun doublon du verdict", () => {
   assert.doesNotMatch(GABARIT_REEL, /id="bilan-synthese"|id="bilan-reperes"/);
   const html = REPERES_ESSAI();
   assert.doesNotMatch(html, /id="bilan-synthese"|id="bilan-reperes"/);
-  assert.match(html, /<a class="bilan-guide__cta" href="\/simulateur">Passer au simulateur<\/a>/);
+  assert.match(html, /<a href="\/mandats\/\?mode=national">Prendre les décisions<\/a>/);
   const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
   assert.doesNotMatch(source, /syntheseOuverture|reperesOuverture/);
 });

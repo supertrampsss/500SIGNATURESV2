@@ -6,6 +6,7 @@ import './styles/fondations.css';
 import './styles/navigation.css';
 import './styles/salaires.css';
 import './styles/editorial-identity.css';
+import './styles/shared-design.css';
 
 const contenu = document.getElementById('contenu');
 if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();

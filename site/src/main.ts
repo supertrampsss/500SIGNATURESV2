@@ -91,7 +91,7 @@ import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { adresseSimulateurCanonique, adresseTerritoire, cheminDeVue, estAccueil, modeSimulateur, vueDepuisAdresse } from "./routes.ts";
+import { adresseSimulateurCanonique, adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import {
   rendu as renduAccueil,
   exemplesTerritoires,
@@ -100,25 +100,11 @@ import {
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { emettreInterface } from "./evenements-interface.ts";
-import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
-import {
-  MOBILE_E2E_BASELINE,
-  stateForE2ePhase,
-  type E2eFixture,
-  type E2ePhase,
-} from "./simulateur-v3/mobile-fixtures.ts";
-import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
-import { SCENARIO_V11_CRISIS_RULES } from "./simulateur-v3/scenario-v11-crises.ts";
-import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
-import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
-import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import { brancherSalaires, renduSalaires } from "./salaires.ts";
-import type { CampaignState, MandateBaseline, Scenario as SimulatorScenario } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
-import "./styles/simulateur-v3.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";
@@ -128,6 +114,7 @@ import "./styles/questions.css";
 import "./styles/salaires.css";
 import "./styles/editorial-identity.css";
 import "./styles/data-studio.css";
+import "./styles/shared-design.css";
 import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
 
@@ -209,6 +196,16 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 
 let carte: maplibregl.Map;
 let carteIndisponible = false;
+window.addEventListener("themechange", () => {
+ if (!carte?.isStyleLoaded()) return;
+ const dark=document.documentElement.dataset.theme !== "clair";
+ carte.setPaintProperty("fond","background-color",dark ? "#0c2029" : "#f6f3eb");
+ for (const couche of Object.values(COUCHES)) {
+   carte.setPaintProperty(`contour-${couche}`,"line-color",dark ? "#142e38" : "#fffdf7");
+   carte.setPaintProperty(`selection-${couche}`,"line-color",dark ? "#efcc83" : "#806021");
+ }
+});
+
 let catalogue: Indicateur[] = [];
 let jeux: Jeu[] = [];
 /** Ancres de la publication chargée : les écrans ne fabriquent aucun slug. */
@@ -679,7 +676,7 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
 /** Une entrée locale, sans présenter le budget national comme un territoire choisi. */
 function afficherApercu(): void {
   delete document.body.dataset.territoireSelection;
-  $("fiche").innerHTML = `<section class="territoire-depart"><h2>Explorer une première fiche</h2><p>Recettes, dépenses, épargne et dette : les chiffres publiés, avec leur année et leurs sources.</p><div><button type="button" class="fiche__parent" data-code="33063" data-niveau="commune">Bordeaux</button><button type="button" class="fiche__parent" data-code="75056" data-niveau="commune">Paris</button></div></section>`;
+  $("fiche").innerHTML = `<div class="territoire-depart" aria-label="Suggestions de villes"><button type="button" class="fiche__parent" data-code="33063" data-niveau="commune">Bordeaux</button><button type="button" class="fiche__parent" data-code="75056" data-niveau="commune">Paris</button></div>`;
 }
 
 /** La France du panneau d'accueil, demandée une seule fois et le plus tôt
@@ -1922,9 +1919,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
       ? trouves
           .map(
             (e) =>
-              `<li><button type="button" data-code="${e.c}" data-niveau="${e.l}">${e.n} <span>${
-                NIVEAUX_RECHERCHABLES[e.l]
-              }</span></button></li>`,
+              `<li><button type="button" data-code="${e.c}" data-niveau="${e.l}">${e.n}</button></li>`,
           )
           .join("")
       : `<li class="suggestions__vide">Aucun territoire ne porte ce nom.</li>`;
@@ -2244,12 +2239,6 @@ async function peindreDetail(): Promise<void> {
   // `etat.comparaison`, que l'adresse porte déjà.
   await majComparateur();
 }
-
-/** Le simulateur V3 est une vue autonome, montée uniquement quand son adresse
- *  est demandée. Le reste du site ne charge aucun de ses scénarios. */
-let demonterSimulateurV3: (() => void) | null = null;
-let baselineSimulateurV3: MandateBaseline | null = null;
-let erreurBaselineSimulateurV3: string | null = null;
 let evenementsInterfaceBranches = false;
 
 /** Les gestes sont observés localement, une seule fois par document. */
@@ -2274,34 +2263,8 @@ function brancherEvenementsInterface(): void {
   );
 }
 
-function versionSimulateurV3(): boolean {
-  return modeSimulateur(location.pathname, location.search) === "v3";
-}
-
-function e2eMobileRequest(): { phase: E2ePhase; fixture: E2eFixture } | undefined {
-  if (import.meta.env.MODE !== "test") return undefined;
-  const search = new URLSearchParams(location.search);
-  const value = search.get("e2e-phase");
-  const phases: readonly E2ePhase[] = ["decision", "crisis", "verdict"];
-  const phase = phases.find((candidate) => candidate === value);
-  const fixture = search.get("e2e-fixture");
-  if (!phase || (fixture !== null && fixture !== "epr2") || (fixture === "epr2" && phase !== "decision")) return undefined;
-  return { phase, fixture: fixture ?? "default" };
-}
-
-function e2eInitialState(scenario: SimulatorScenario): CampaignState | undefined {
-  const request = e2eMobileRequest();
-  return request && scenario.version === 10
-    ? stateForE2ePhase(request.phase, scenario, request.fixture)
-    : undefined;
-}
-
-function e2eBaseline(): MandateBaseline | undefined {
-  return e2eMobileRequest() ? MOBILE_E2E_BASELINE : undefined;
-}
-
 function vuesConnues(): readonly string[] {
-  return [...VUES_PAGE, "simulateur"];
+  return VUES_PAGE;
 }
 
 function rendreNavigationPrincipale(): void {
@@ -2446,11 +2409,6 @@ function basculerVue(): void {
     : estAccueil(location.pathname, location.hash)
       ? "accueil"
       : "territoire";
-  if (vue !== "simulateur" || !versionSimulateurV3()) {
-    demonterApercuSimulateurV3();
-    delete document.body.dataset.simulateurVersion;
-    delete document.body.dataset.simulateurStarted;
-  }
   document.body.dataset.vue = vue;
   rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
@@ -2469,13 +2427,6 @@ function basculerVue(): void {
   }
   // BILAN ne porte plus que les cinq chapitres et le pied de sources.
   $("vue-bilan").hidden = vue !== "bilan";
-  $("vue-simulateur").hidden = vue !== "simulateur";
-  if (vue === "simulateur" && (
-    !versionSimulateurV3()
-    || e2eBaseline() !== undefined
-    || baselineSimulateurV3 !== null
-    || erreurBaselineSimulateurV3 !== null
-  )) void ouvrirSimulateur();
   // Remonter en haut n'a de sens qu'en changeant de vue. Sur une page déjà
   // affichée, un `hashchange` vise une ancre interne — le sommaire des Repères
   // vise `#bloc-etat` — et remonter annulerait le défilement du navigateur
@@ -2938,96 +2889,12 @@ function brancherCitations(): void {
   });
 }
 
-function rendreSimulateurV3Indisponible(hote: HTMLElement, message: string, retry: boolean): void {
-  hote.innerHTML = `<section class="simulateur-v3"><main class="simulateur-v3__stage">
-    <article class="simulateur-v3__dossier simulateur-v3__intro">
-      <header class="simulateur-v3__scene-header">
-        <p class="simulateur-v3__eyebrow">Données du mandat</p>
-        <h1>Le simulateur est temporairement indisponible.</h1>
-        <p class="simulateur-v3__lead" role="alert">${echapper(message)}</p>
-      </header>
-      <footer class="simulateur-v3__scene-actions">
-        <button type="button" class="simulateur-v3__primary" disabled>Commencer le mandat</button>
-        ${retry ? `<button type="button" class="simulateur-v3__secondary" onclick="location.reload()">Réessayer</button>` : ""}
-        <a class="simulateur-v3__secondary" href="/bilan">Retourner à France</a>
-      </footer>
-    </article>
-  </main></section>`;
-}
-
-async function chargerBaselineSimulateurV3(): Promise<void> {
-  try {
-    const pays = await donnees.territoires("pays", "tous");
-    const france = pays.FR;
-    if (!france) throw new Error("La série nationale française est absente de la publication.");
-    const baseline = buildMandateBaseline({
-      gdp: france.series.eurostat_pib_montant ?? {},
-      debtToGdp: france.series.insee_dette_apu_part_pib ?? {},
-      balance: france.series.insee_apu_solde ?? {},
-      interest: france.series.eurostat_apu_interets ?? {},
-      dataVersion: donnees.version(),
-    });
-    if (!baseline) throw new Error("Les séries nationales publiées ne partagent aucune année complète avec une dette au quatrième trimestre et un PIB précédent.");
-    baselineSimulateurV3 = baseline;
-    erreurBaselineSimulateurV3 = null;
-  } catch (error) {
-    baselineSimulateurV3 = null;
-    erreurBaselineSimulateurV3 = error instanceof Error ? error.message : "Les données nationales publiées sont illisibles.";
-  }
-}
-
-async function ouvrirSimulateur(): Promise<void> {
-  const hoteV3 = $<HTMLElement>("simulateur-v3");
-  if (versionSimulateurV3()) {
-    document.body.dataset.simulateurVersion = "3";
-    const baseline = e2eBaseline() ?? baselineSimulateurV3;
-    if (!baseline) {
-      if (erreurBaselineSimulateurV3 === null) return;
-      hoteV3.hidden = false;
-      rendreSimulateurV3Indisponible(
-        hoteV3,
-        erreurBaselineSimulateurV3 ?? "Chargement des données nationales publiées.",
-        erreurBaselineSimulateurV3 !== null,
-      );
-      return;
-    }
-    hoteV3.hidden = false;
-    if (!demonterSimulateurV3) {
-      const historicalV9 = completedV9StateFromStorage(localStorage);
-      // Les fixtures E2E historiques demandent explicitement V10 ; la
-      // production reste sur le mandat courant V11 en l'absence de partie V9.
-      const e2eScenario = e2eMobileRequest();
-      const scenario = scenarioForVersion(historicalV9 ? 9 : e2eScenario ? 10 : 11);
-      if (!scenario) throw new Error("Requested simulator scenario unavailable");
-      demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
-        baseline,
-        crisisRules: scenario.version === 9
-          ? SCENARIO_V9_CRISIS_RULES
-          : scenario.version === 10
-            ? SCENARIO_V10_CRISIS_RULES
-            : SCENARIO_V11_CRISIS_RULES,
-        initialState: historicalV9 ?? e2eInitialState(scenario),
-        onPhaseChange: (phase) => {
-          if (phase === null || phase === "intro") delete document.body.dataset.simulateurStarted;
-          else document.body.dataset.simulateurStarted = "true";
-        },
-      });
-    }
-    return;
-  }
-
-}
-function demonterApercuSimulateurV3(): void {
-  demonterSimulateurV3?.();
-  demonterSimulateurV3 = null;
-}
-
 /** La carte est une amélioration. Une panne GPU ne bloque aucun compte. */
 function initialiserCarte(): void {
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   carte = new maplibregl.Map({
     container: "carte",
-    style: styleCarte(donnees.urlTuiles()),
+    style: styleCarte(donnees.urlTuiles(), document.documentElement.dataset.theme !== "clair"),
     bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
     fitBoundsOptions: { padding: paddingCarte() },
     // Rabattue par défaut : MapLibre l'affiche dépliée, et la ligne de crédits
@@ -3289,7 +3156,7 @@ async function demarrer(): Promise<void> {
   // ouvrir deux interfaces différentes. On les ramène silencieusement vers
   // la campagne V3 avant de lire l'état ou de monter une vue.
   const adresseSimulateur = adresseSimulateurCanonique(location.pathname, location.search);
-  if (adresseSimulateur) history.replaceState(null, "", adresseSimulateur);
+  if (adresseSimulateur) { location.replace(adresseSimulateur); return; }
   brancherEvenementsInterface();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
@@ -3358,10 +3225,6 @@ async function demarrer(): Promise<void> {
   // (`brancherTheme()`), et la navigation n'est que des liens sans `data-vue`
   // qui se rechargent — exactement le comportement voulu ici.
   if (document.body.dataset.page === "editorial") return;
-  await chargerBaselineSimulateurV3();
-  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur" && versionSimulateurV3()) {
-    void ouvrirSimulateur();
-  }
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
   // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
@@ -3449,7 +3312,7 @@ async function demarrer(): Promise<void> {
     }
     const analysesFrance = insightsFrance(pays.FR, catalogue, pays);
     const cadreInsightsFrance = $("insights-france");
-    cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france" });
+    cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france", series: pays.FR.series });
     cadreInsightsFrance.hidden = analysesFrance.length === 0;
     if (analysesFrance.length > 0) {
       $("national").hidden = false;
@@ -3621,12 +3484,6 @@ demarrer().catch((erreur: Error) => {
   // `null` — la panne se doublait d'une levée dans son propre rattrapage.
   if (document.body.dataset.page === "editorial") return;
   const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
-  if (document.body.dataset.vue === "simulateur" && versionSimulateurV3()) {
-    const hoteSimulateur = $<HTMLElement>("simulateur-v3");
-    hoteSimulateur.hidden = false;
-    rendreSimulateurV3Indisponible(hoteSimulateur, detail, true);
-    return;
-  }
   // Un `div`, pas un `p` : `<details>` est du contenu de flux, et un paragraphe
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le
   // paragraphe avant le pli et le jetait — le détail technique, seul élément

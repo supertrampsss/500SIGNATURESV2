@@ -1,6 +1,20 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
 export default defineConfig({
+  // Vite extracts shared CSS before entry CSS. The approved theme must remain
+  // last in every generated document, just as it is in the source imports.
+  plugins: [{
+    name: "shared-design-last",
+    transformIndexHtml: {
+      order: "post",
+      handler(html) {
+        const links = [...html.matchAll(/<link\b[^>]*href="[^\"]*\/shared-design-[^\"]+\.css"[^>]*>/g)].map(match => match[0]);
+        if (!links.length) return html;
+        for (const link of links) html = html.replace(link, "");
+        return html.replace("</head>", `${links.join("\n")}\n</head>`);
+      },
+    },
+  }],
   server: { host: "0.0.0.0", allowedHosts: ["terminal.local"] },
   build: { rollupOptions: { input: {
     salaires: fileURLToPath(new URL("./salaires/index.html", import.meta.url)),

@@ -341,7 +341,7 @@ export function afficherFiche(
         .find((id): id is string => Boolean(id))
     : undefined;
   const lienPreuve = idSource
-    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Comprendre le calcul</a></p>`
+    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Sources et méthode</a></p>`
     : "";
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
@@ -375,6 +375,7 @@ export function afficherFiche(
     : renduInsights(insightsTerritoire(territoire, options.indicateurs), options.indicateurs, {
         contexte: "territoire",
         nom: territoire.nom,
+        series: territoire.series,
       });
   cible.innerHTML = `
     <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>
@@ -448,7 +449,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<details class="territoire-diagnostic"><summary>Lire la situation financière</summary>${noteChiffree}</details>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
+      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<section class="territoire-diagnostic" aria-label="Situation financière">${noteChiffree}</section>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},

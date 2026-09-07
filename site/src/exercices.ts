@@ -1,3 +1,4 @@
+import { timeChart } from "./chart-studio.ts";
 /**
  * Le tableau des exercices, sous le dernier bloc.
  *
@@ -34,7 +35,7 @@
  */
 
 import type { Indicateur } from "./donnees.ts";
-import { barresSolde, graphiqueEcart, tableauAccessible } from "./dataviz.ts";
+import { graphiqueEcart } from "./dataviz.ts";
 import { moins } from "./echelle.ts";
 import { accentuer } from "./traductions.ts";
 
@@ -279,23 +280,13 @@ export function rendreExercices(tableau: Tableau | null): string {
         formater: valeur => formaterGraphique(valeur * diviseur),
       })
     : "";
-  const mouvements = tableau.lignes
-    .filter((ligne) => !["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"].includes(ligne.id))
-    .flatMap((ligne) => ligne.evolution ? [{ periode: ligne.libelle, valeur: ligne.evolution.ecart }] : [])
-    .sort((a, b) => Math.abs(b.valeur) - Math.abs(a.valeur))
-    .slice(0, 7);
-  const variations = mouvements.length
-    ? barresSolde({
-        titre: `Ce qui a le plus bougé depuis ${premier}`,
-        description: `Écart entre le premier et le dernier exercice publié, en ${mot}.`,
-        points: mouvements,
-        formater: formaterGraphique,
-      })
-    : "";
+  const variations = tableau.lignes
+    .filter(ligne => !["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"].includes(ligne.id))
+    .map(ligne => timeChart({title:ligne.libelle,description:`Montants publiés de ${premier} à ${dernier}.`,unit:mot,format:value=>formaterGraphique(value*diviseur),series:[{name:ligne.libelle,values:Object.fromEntries(tableau.exercices.flatMap((year,i)=>ligne.valeurs[i]===null?[]:[[String(year),ligne.valeurs[i]!/diviseur]]))}]})).join("");
   return `<section class="bloc-lecture bloc-lecture--tableau">
     <h3>Évolution</h3>
     ${tendance}
     ${variations}
-    ${tableauAccessible("Voir les montants exacts", `<div class="tableau-exercices" tabindex="0">${tableExacte}</div>`)}
+    <div class="tableau-exercices" tabindex="0">${tableExacte}</div>
   </section>`;
 }

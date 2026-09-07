@@ -114,8 +114,8 @@ test("le simulateur V3 est l'entrée par défaut sans casser les permaliens V2",
 });
 
 test("les anciens permaliens du simulateur convergent vers la seule interface publique", () => {
-  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=2"), "/simulateur?version=3");
-  assert.equal(adresseSimulateurCanonique("/simulateur/comparer", ""), "/simulateur?version=3");
-  assert.equal(adresseSimulateurCanonique("/simulateur", "?contrat=sans-impot"), "/simulateur?version=3");
-  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=3"), null);
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=2"), "/mandats/");
+  assert.equal(adresseSimulateurCanonique("/simulateur/comparer", ""), "/mandats/");
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?contrat=sans-impot"), "/mandats/");
+  assert.equal(adresseSimulateurCanonique("/simulateur", "?version=3"), "/mandats/");
 });

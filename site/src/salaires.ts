@@ -1,3 +1,4 @@
+import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 
 export const STATUTS = ["salarié", "fonctionnaire", "indépendant", "retraité"] as const;
@@ -89,7 +90,54 @@ function coefficients(statut: Statut): string {
   return `Cotisations liées au revenu : × ${taux.cotisationsSalariales.toLocaleString("fr-FR")}. Impôt : × ${taux.impot.toLocaleString("fr-FR")}. ${statut === "indépendant" ? "Autres cotisations" : "Cotisations employeur"} : × ${taux.cotisationsEmployeur.toLocaleString("fr-FR")}.`;
 }
 
-export function renduSalaires(net = 2100, statut: Statut = "salarié"): string {
+const MISSIONS = [
+ ["protection_sociale","Retraites et prestations sociales","Pensions, chômage, famille, pauvreté et aides au logement"],
+ ["sante","Santé","Soins, hôpitaux et médicaments"],
+ ["enseignement","Éducation","Écoles, collèges, lycées et universités"],
+ ["services_generaux","Administration et intérêts de la dette","Services généraux des administrations publiques"],
+ ["affaires_economiques","Économie et transports","Transports, agriculture, énergie et aides aux entreprises"],
+ ["ordre_securite","Sécurité et justice","Police, justice, pompiers et prisons"],
+ ["defense","Défense","Forces armées et équipements"],
+ ["culture","Culture, sport et loisirs","Équipements et activités collectives"],
+ ["logement","Logement et équipements collectifs","Aménagement et équipements des territoires"],
+ ["environnement","Environnement","Déchets, eaux usées et protection de la nature"],
+] as const;
+const PRESTATIONS = [
+ ["vieillesse","Retraites"],["survivants","Pensions de réversion"],["maladie_invalidite","Arrêts maladie et invalidité"],["chomage","Chômage"],["famille","Famille et enfants"],["exclusion","RSA et autres minima sociaux"],["logement","Aides au logement"],
+] as const;
+const TRANSACTIONS = [
+ ["remunerations","Rémunération des agents publics"],["transferts_nature","Soins et services remboursés"],["consommations","Achats de biens et de services"],["investissement","Investissement public"],["transferts_courants","Transferts courants"],["interets","Intérêts de la dette"],["subventions","Subventions aux entreprises"],["transferts_capital","Transferts en capital"],
+] as const;
+function repartitionDetaillee(series:Territoire["series"]) {
+ const ids=[...PRESTATIONS.map(([id])=>"eurostat_apu_prestations_"+id),...TRANSACTIONS.map(([id])=>"eurostat_apu_"+id),"eurostat_apu_prestations","eurostat_apu_depenses"];
+ const year=Object.keys(series.eurostat_apu_depenses??{}).sort().reverse().find(y=>ids.every(id=>Number.isFinite(series[id]?.[y])&&series[id][y]>=0));
+ if(!year)return null;
+ const total=series.eurostat_apu_depenses[year],parent=series.eurostat_apu_prestations[year];
+ const benefits=PRESTATIONS.map(([id,label])=>({label,description:"Prestations versées",amount:series["eurostat_apu_prestations_"+id][year]}));
+ const transactions=TRANSACTIONS.map(([id,label])=>({label,description:"Dépenses des administrations publiques",amount:series["eurostat_apu_"+id][year]}));
+ const benefitRest=parent-benefits.reduce((sum,m)=>sum+m.amount,0);
+ const rest=total-parent-transactions.reduce((sum,m)=>sum+m.amount,0);
+ if(total<=0||benefitRest<0||rest<0)return null;
+ return {year,basis:"Eurostat, comptes des administrations publiques et prestations par fonction",missions:[...benefits,...transactions,{label:"Autres prestations",description:"Prestations non ventilées dans les catégories ci-dessus",amount:benefitRest},{label:"Autres dépenses",description:"Solde des dépenses publiées",amount:rest}].sort((a,b)=>b.amount-a.amount).map(m=>({label:m.label,description:m.description,share:m.amount/total}))};
+}
+export function repartitionCollective(series: Territoire["series"] = {}) {
+ const detailed=repartitionDetaillee(series);if(detailed)return detailed;
+ const ids=MISSIONS.map(([id])=>"eurostat_fonction_"+id);
+ const year=Object.keys(series[ids[0]]??{}).sort().reverse().find(y=>ids.every(id=>Number.isFinite(series[id]?.[y])&&series[id][y]>=0));
+ if(!year)return null;
+ const total=ids.reduce((sum,id)=>sum+series[id][year],0);
+ const official=series.eurostat_depenses_publiques_pib?.[year];
+ if(total<=0||!Number.isFinite(official)||Math.abs(total-official)>.5)return null;
+ return {year,basis:"Eurostat, dépenses des administrations publiques par fonction (COFOG)",missions:MISSIONS.map(([id,label,description])=>({label,description,share:series["eurostat_fonction_"+id][year]/total}))};
+}
+function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
+ const data=repartitionCollective(series);
+ if(!data)return `<section class="salaires__allocation"><h2>Ce que financent les prélèvements</h2><p>Retraites, santé, chômage, éducation et services publics.</p><a href="/bilan/#bloc-fonctions">Consulter la répartition publiée des dépenses publiques</a></section>`;
+ const total=calcul.coutTotal-calcul.net;
+ return `<section class="salaires__allocation"><header><p class="salaires__eyebrow">Ce que finance l'effort collectif</p><h2>Où vont vos prélèvements ?</h2><p>Vos <strong data-allocation-total>${formaterSalaire(total)}</strong> de prélèvements estimés, répartis selon la structure des dépenses publiques de ${data.year}.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterSalaire(total*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join("")}</ol><p class="salaires__sources">Répartition indicative : elle applique une moyenne nationale à votre estimation, sans retracer l'affectation de vos cotisations. ${data.basis}, ${data.year}. <a href="/bilan/#bloc-fonctions">Données et évolution</a> · <a href="/sources/">Sources et méthode</a></p></section>`;
+}
+
+export function renduSalaires(net = 2100, statut: Statut = "salarié", series: Territoire["series"] = {}): string {
   const calcul = calculerSalaire(net, statut);
   return `<section class="salaires" id="salaires-contenu">
     <header class="salaires__entree"><p class="salaires__eyebrow">Salaires & revenus</p>
@@ -98,20 +146,20 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié"): string {
     <div class="salaires__atelier">
     <form class="salaires__form" id="salaires-form">
       <div class="salaires__statuts" role="group" aria-label="Votre statut">${STATUTS.map(option => `<button type="button" class="salaires__statut" data-statut="${option}" aria-pressed="${option === statut}">${libelleStatut(option)}</button>`).join("")}</div>
-      <label for="salaires-net" class="salaires__label">Votre revenu net mensuel</label>
+      <label for="salaires-net" class="salaires__label">Votre net mensuel après impôt</label>
       <div class="salaires__montant"><input id="salaires-net" name="net" inputmode="decimal" autocomplete="off" maxlength="14" value="${echapper(formaterSalaire(net).replace(" €", ""))}" aria-describedby="salaires-aide salaires-erreur"><span aria-hidden="true">€</span><small>/ mois</small></div>
       <p class="salaires__aide" id="salaires-aide">Le montant qui arrive sur votre compte.</p>
       <p id="salaires-erreur" class="salaires__erreur" role="status" hidden></p>
-      <div class="salaires__reserve"><strong>Une illustration, pas votre fiche de paie.</strong></div>
+      <p class="salaires__reserve">Estimation selon votre statut.</p>
     </form>
     <section class="salaires__resultat" aria-labelledby="salaires-resultat-label" data-salaires-statut="${statut}">
-      <div class="salaires__total"><p id="salaires-resultat-label">Montant total illustratif</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
+      <div class="salaires__total"><p id="salaires-resultat-label">Coût total estimé</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
       <div class="salaires__barre" aria-hidden="true">${LIGNES.map(([cle],i)=>`<span class="salaires__segment salaires__segment--${i}" data-segment="${cle}" style="width:${calcul.coutTotal ? calcul[cle]/calcul.coutTotal*100 : 0}%"></span>`).join("")}</div>
       <dl class="salaires__ventilation">${LIGNES.map(([cle,label],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i><span data-label="${cle}">${libelleLigne(cle,statut,label)}</span></dt><dd data-salaires="${cle}">${formaterSalaire(calcul[cle])}</dd></div>`).join("")}</dl>
       <p class="visuellement-cache" id="salaires-annonce" role="status"></p>
     </section></div>
-    <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses illustratives non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
-    <section class="salaires__allocation"><header><p class="salaires__eyebrow">La contrepartie collective</p><h2>Des protections,<br> des services, des droits.</h2><p>Quelques missions financées collectivement. Cette liste ne ventile pas vos prélèvements personnels.</p></header><ul><li><span>Santé</span><b>Soins et protection</b></li><li><span>Retraite</span><b>Pensions et droits futurs</b></li><li><span>Chômage</span><b>Assurance en cas de perte d'emploi</b></li><li><span>Famille & services publics</span><b>Prestations et services collectifs</b></li></ul></section>
+    <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
+    ${allocation(calcul,series)}
   </section>`;
 }
 
@@ -131,6 +179,10 @@ export function brancherSalaires(root: HTMLElement): void {
     erreur.textContent = montant === null ? "Saisissez un montant de 0 à 1 000 000 €, avec deux décimales au maximum. Le résultat précédent est conservé." : "";
     if (montant === null) return;
     const calcul = calculerSalaire(montant, selection);
+    const collective = calcul.coutTotal-calcul.net;
+    const totalCollective=root.querySelector<HTMLElement>("[data-allocation-total]");
+    if(totalCollective)totalCollective.textContent=formaterSalaire(collective);
+    for(const element of root.querySelectorAll<HTMLElement>("[data-allocation-share]"))element.textContent=formaterSalaire(collective*Number(element.dataset.allocationShare));
     resultat.dataset.salairesStatut = selection;
     resultat.querySelector("h2")!.textContent = formaterSalaire(calcul.coutTotal);
     resultat.querySelector(".salaires__total p:last-child")!.textContent = `par mois · ${selection}`;
@@ -141,7 +193,7 @@ export function brancherSalaires(root: HTMLElement): void {
     }
     root.querySelector<HTMLElement>("[data-coefficients]")!.textContent = coefficients(selection);
     clearTimeout(annonce);
-    annonce = setTimeout(() => { root.querySelector<HTMLElement>("#salaires-annonce")!.textContent = `Montant total illustratif : ${formaterSalaire(calcul.coutTotal)} par mois.`; }, 400);
+    annonce = setTimeout(() => { root.querySelector<HTMLElement>("#salaires-annonce")!.textContent = `Coût total estimé : ${formaterSalaire(calcul.coutTotal)} par mois.`; }, 400);
   };
   formulaire.addEventListener("submit", event => event.preventDefault());
   formulaire.addEventListener("input", afficher);
