@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { timeChart, chartPeriods, chartReadout } from './chart-studio.ts';
+import { courbesEurope } from './insights-europe.ts';
 import { territoireFinances } from './territoire-finances.ts';
 import type { Territoire } from './donnees.ts';
 
@@ -66,4 +67,17 @@ test('European curves retain their legend colors and draw France last', () => {
  const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
  assert.ok(svg.indexOf('chart-series--0') > svg.indexOf('chart-series--26'));
  assert.match(svg, /data-emphasized="true"/);
+});
+
+
+test('European comparison starts with four countries and retains the others behind a toggle', () => {
+ const data = {'2024': 30, '2025': 31};
+ const countries = Object.fromEntries(['FR','DE','ES','IT','BE','MT'].map(code => [code, {series:{eurostat_gini:data}} as Territoire]));
+ const series = courbesEurope(data, countries, 'eurostat_gini');
+ assert.deepEqual(series.filter(s=>!s.secondary).map(s=>s.name), ['France','Allemagne','Espagne','Italie']);
+ const html = timeChart({title:'Gini',description:'',unit:'indice',series,format});
+ assert.match(html, /data-countries="limited"/);
+ assert.match(html, /aria-expanded="false">Voir tous les pays/);
+ assert.match(html, /chart-series--2" data-country-secondary/);
+ assert.match(chartReadout({title:'',description:'',unit:'',series,format}, '2024'), /data-country-secondary/);
 });
