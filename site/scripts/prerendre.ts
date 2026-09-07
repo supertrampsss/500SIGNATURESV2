@@ -1015,6 +1015,9 @@ export function injecterReperes(
   for (const [id, corps] of ouvrants) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
+  html = ouvrants.some(([id, corps]) => (id === "bloc-redistribution" || id === "bloc-secu") && corps !== "")
+    ? deplierCadre(html, "france-complements")
+    : replierCadre(html, "france-complements");
   const analysesFrance = renduInsights(insightsFrance(pays.FR, catalogue, pays), catalogue, {
     contexte: "france",
     series: pays.FR.series,

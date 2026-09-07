@@ -1,4 +1,4 @@
-import { timeChart } from "./chart-studio.ts";
+import { insightChart } from "./insight-chart.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import type { FamilleInsight, Insight } from "./insights.ts";
 import { echapper } from "./texte.ts";
@@ -10,14 +10,7 @@ type OptionsRendu = {
 };
 
 function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[] = [], series: Territoire["series"] = {}): string {
-  const id = insight.preuves.find(p => Object.keys(series[p.indicateur] ?? {}).length > 1)?.indicateur;
-  const indicateur = catalogue.find(i => i.id === id);
-  const values = id ? series[id] : undefined;
-  const maximum = values ? Math.max(...Object.values(values).filter(Number.isFinite).map(Math.abs)) : 0;
-  const euro = indicateur?.unite === "EUR";
-  const scale = euro && maximum >= 1e9 ? 1e9 : euro && maximum >= 1e6 ? 1e6 : 1;
-  const unit = euro ? scale === 1e9 ? "Md€" : scale === 1e6 ? "M€" : "€" : indicateur?.unite ?? "";
-  const chart = values && indicateur ? timeChart({title:indicateur.libelle,description:"Évolution des observations publiées.",unit,series:[{name:indicateur.libelle,values:Object.fromEntries(Object.entries(values).map(([year,value])=>[year,value/scale]))}],format:value=>`${new Intl.NumberFormat("fr-FR",{maximumSignificantDigits:4}).format(value)} ${unit}`}) : "";
+  const chart = insightChart(insight,catalogue,series);
   return `<li class="insight insight--${insight.famille}">
     <article${chart ? ' data-expand-card' : ""}>
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>

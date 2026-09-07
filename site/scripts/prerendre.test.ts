@@ -1514,6 +1514,13 @@ test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", ()
   assert.ok(texteDuMain(html).includes("la charge de la dette va augmenter"));
 });
 
+test("la protection sociale disparaît sans données et revient avec la Sécu", () => {
+  const sansSecu = CATALOGUE_REPERES.filter((i) => !i.id.startsWith("eurostat_secu_"));
+  const vide = injecterReperes(GABARIT_REEL, PAYS_ESSAI, sansSecu, NICHES_ESSAI, BUDGET_ESSAI);
+  assert.match(vide, /id="france-complements"[^>]*\bhidden\b/);
+  assert.doesNotMatch(REPERES_ESSAI(), /id="france-complements"[^>]*\bhidden\b/);
+});
+
 test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repères", () => {
   // Trois cadres retirés, trois échecs — les mêmes défauts muets que
   // `injecterMethode` ferme, sur les cadres de cette page-ci.

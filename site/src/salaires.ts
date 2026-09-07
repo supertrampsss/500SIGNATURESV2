@@ -148,7 +148,7 @@ function evolutionAllocation(series:Territoire["series"]):string {
  const latest=history.at(-1)!;
  const data=Object.fromEntries(latest.missions.map(m=>[m.label,Object.fromEntries(history.flatMap(h=>{const entry=h.missions.find(v=>v.label===m.label);return entry?[[h.year,entry.share*100]]:[];}))]));
  const first=latest.missions[0].label;
- return `<section class="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><div data-salary-history-chart>${graphiqueRepartition(first,data[first])}</div><p class="salaires__sources">${latest.basis}. Même périmètre d’une année à l’autre. Les années manquantes ne sont pas interpolées.</p></section>`;
+ return `<section class="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><div data-salary-history-chart>${graphiqueRepartition(first,data[first])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
 }
 
 function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
@@ -179,9 +179,10 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié", series: T
       <dl class="salaires__ventilation">${LIGNES.map(([cle,label],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i><span data-label="${cle}">${libelleLigne(cle,statut,label)}</span></dt><dd data-salaires="${cle}">${formaterSalaire(calcul[cle])}</dd></div>`).join("")}</dl>
       <p class="visuellement-cache" id="salaires-annonce" role="status"></p>
     </section></div>
-    <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
+
     ${allocation(calcul,series)}
     ${evolutionAllocation(series)}
+    <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
   </section>`;
 }
 

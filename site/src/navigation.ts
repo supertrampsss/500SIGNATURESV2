@@ -10,7 +10,7 @@ export type Destination = {
 export const DESTINATIONS: readonly Destination[] = [
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Territoires" },
-  { cle: "salaires", href: "/salaires", libelle: "Salaires", native: true },
+  { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];
 
@@ -40,7 +40,7 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
   return DESTINATIONS.filter(({ cle }) => cle !== "simuler").map(({ cle, href, libelle }) => {
     const destination = DESTINATIONS.find((candidate) => candidate.cle === cle)!;
     if (destination.native) {
-      const courant = chemin === href ? ' aria-current="page"' : "";
+      const courant = chemin === normaliserChemin(href) ? ' aria-current="page"' : "";
       return `<a href="${href}"${courant}>${libelle}</a>`;
     }
     const estSimulateurIndisponible = cle === "simuler" && !simulateurDisponible;

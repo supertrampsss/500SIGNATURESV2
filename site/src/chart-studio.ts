@@ -1,6 +1,6 @@
 /** Original SVG/HTML charts. Rendering is pure; interaction lives in chart-controls.ts. */
 export type ChartSeries = { name: string; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
-export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean };
+export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean; periodLabel?: string };
 export const escapeChart = (text: string): string => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
 export function chartPeriods(series: ChartSeries[]): string[] {
@@ -24,8 +24,13 @@ export function timeChart(options: ChartOptions): string {
   const ticks = Array.from({length: Math.round((domainMax - domainMin) / step) + 1}, (_, i) => domainMin + i * step);
   // Annual periods use actual year spacing. Missing years break a line, never fabricate a trajectory.
   const annual = periods.every(p => /^\d{4}$/.test(p));
-  const fraction = (i: number) => periods.length < 2 ? .5 : annual
-    ? (Number(periods[i]) - Number(periods[0])) / (Number(periods.at(-1)) - Number(periods[0]))
+  const quarterly = periods.every(p => /^\d{4}-Q[1-4]$/.test(p));
+  const monthly = periods.every(p => /^\d{4}-(0[1-9]|1[0-2])$/.test(p));
+  const coordinate = (p:string) => annual ? Number(p) : quarterly ? Number(p.slice(0,4))*4+Number(p.at(-1))-1 : monthly ? Number(p.slice(0,4))*12+Number(p.slice(5))-1 : periods.indexOf(p);
+  const dated = annual || quarterly || monthly;
+  const periodLabel = options.periodLabel ?? (annual ? 'Année' : 'Période');
+  const fraction = (i: number) => periods.length < 2 ? .5 : dated
+    ? (coordinate(periods[i]) - coordinate(periods[0])) / (coordinate(periods.at(-1)!) - coordinate(periods[0]))
     : i / (periods.length - 1);
   const draw = (width: number) => {
     const height = width < 500 ? 240 : 280;
@@ -47,7 +52,7 @@ export function timeChart(options: ChartOptions): string {
       let previous = -2;
       const path = periods.map((p,i) => {
         if (!Number.isFinite(s.values[p])) return '';
-        const continuous = previous===i-1 && (!annual || Number(p)-Number(periods[previous])===1);
+        const continuous = previous===i-1 && (!dated || coordinate(p)-coordinate(periods[previous])===1);
         previous=i;
         return `${continuous?'L':'M'}${x(i)},${y(s.values[p])}`;
       }).join(' ');
@@ -61,6 +66,6 @@ export function timeChart(options: ChartOptions): string {
     <figcaption><strong>${escapeChart(options.title)}</strong><span>${escapeChart(options.unit)}</span></figcaption>
     <output class="chart-readout" aria-live="polite" aria-atomic="true">${readouts.at(-1)}</output>
     <div class="chart-plot">${draw(360)}${draw(720)}</div>
-    ${periods.length>1?`<label class="chart-scrub"><span>Année</span><input type="range" min="0" max="${periods.length-1}" value="${periods.length-1}" step="1" aria-label="Année du graphique : ${escapeChart(options.title)}" aria-valuetext="${escapeChart(periods.at(-1)!)}"/><span class="chart-scrub__year">${escapeChart(periods.at(-1)!)}</span></label>`:''}
+    ${periods.length>1?`<label class="chart-scrub"><span>${escapeChart(periodLabel)}</span><input type="range" min="0" max="${periods.length-1}" value="${periods.length-1}" step="1" aria-label="${escapeChart(periodLabel)} du graphique : ${escapeChart(options.title)}" aria-valuetext="${escapeChart(periods.at(-1)!)}"/><span class="chart-scrub__year">${escapeChart(periods.at(-1)!)}</span></label>`:''}
   </figure>`;
 }

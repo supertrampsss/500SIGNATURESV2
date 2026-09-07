@@ -43,7 +43,7 @@
  */
 
 import { valeurLisible } from "./analyses.ts";
-import { barresClassees, halteres, tableauAccessible } from "./dataviz.ts";
+import { barreEmpilee, barresClassees, halteres, tableauAccessible } from "./dataviz.ts";
 import type { Indicateur, SubventionsCommune, Territoire } from "./donnees.ts";
 import { pourcentage } from "./echelle.ts";
 import { variation } from "./ouverture.ts";
@@ -159,7 +159,7 @@ function themeGenerique(
   const pourcentages = lignes.filter((l) => l.unite === "percent");
   const autres = lignes.filter((l) => !["count", "EUR", "percent"].includes(l.unite));
   const corps = [
-    barresMagnitude(comptes, accent),
+    id === "tourisme" ? cartesChiffres(comptes) : barresMagnitude(comptes, accent),
     cartesChiffres([...monetaires, ...autres]),
     pourcentages
       .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)}.</p>`)
@@ -267,7 +267,7 @@ const THEMES_GENERIQUES = [
     source: "Source : INSEE, fréquentation et capacité touristique.",
     phrase: (lignes: Ligne[]) => {
       const t = tete(lignes, "count");
-      return t ? `<b>${echapper(t.libelle)}</b> est la première capacité d'accueil : ${echapper(t.texte)}.` : "";
+      return t ? "Les capacités d’accueil du territoire." : "";
     },
   },
 ];
@@ -403,7 +403,7 @@ function themeLogement(indicateurs: Indicateur[], territoire: Territoire): strin
   if (principales && secondaires && principales.exercice === secondaires.exercice) {
     const total = principales.brut + secondaires.brut;
     const part = total > 0 ? (secondaires.brut / total) * 100 : 0;
-    phrase = `${echapper(pourcentage(part))} des logements sont des résidences secondaires (${echapper(
+    phrase = `${echapper(pourcentage(part))} des résidences principales et secondaires sont des résidences secondaires (${echapper(
       secondaires.texte,
     )} sur ${echapper(valeurLisible(total, "count"))}).`;
   } else {
@@ -414,7 +414,7 @@ function themeLogement(indicateurs: Indicateur[], territoire: Territoire): strin
     "logement",
     "Logement",
     `<p class="davantage__affirmation">${phrase}</p>${cartesChiffres(lignes)}`,
-    "Source : INSEE (logements), répertoire des bailleurs (social), DVF/LOVAC (loyers). 9 des 14 indicateurs publiés ne sont pas repris ici.",
+    "Source : INSEE (logements), répertoire des bailleurs (social), DVF/LOVAC (loyers).",
   );
 }
 
@@ -445,37 +445,15 @@ function formaterRatio(valeur: number): string {
 }
 
 function themeSecteurs(territoire: Territoire): string {
-  const lignes = SECTEURS.map(({ libelle, salaries, etablissements }) => {
-    const sSal = territoire.series[salaries];
-    const sEtab = territoire.series[etablissements];
-    if (!sSal || !sEtab) return null;
-    const periodes = Object.keys(sSal)
-      .filter((p) => typeof sSal[p] === "number" && typeof sEtab[p] === "number" && (sEtab[p] as number) > 0)
-      .sort();
-    if (!periodes.length) return null;
-    const exercice = periodes[periodes.length - 1];
-    const ratio = (sSal[exercice] as number) / (sEtab[exercice] as number);
-    return { libelle, exercice, ratio };
-  }).filter((l): l is { libelle: string; exercice: string; ratio: number } => l !== null);
-  if (!lignes.length) return "";
-  const triees = [...lignes].sort((a, b) => b.ratio - a.ratio);
-  const barres = barresClassees({
-    titre: "Taille moyenne des établissements employeurs",
-    description: "Salariés recensés divisés par établissements employeurs, secteur par secteur.",
-    lignes: triees.map((ligne) => ({ libelle: ligne.libelle, valeur: ligne.ratio })),
-    formater: formaterRatio,
-    accent: "var(--serie-5)",
-  });
-  const t = triees[0];
-  const phrase = `<b>${echapper(t.libelle)}</b> compte en moyenne ${echapper(
-    formaterRatio(t.ratio),
-  )} salariés par établissement employeur.`;
-  return section(
-    "secteurs",
-    "Taille moyenne des établissements employeurs",
-    `<p class="davantage__affirmation">${phrase}</p>${barres}`,
-    "Source : INSEE, Flores. Calcul : salariés recensés du secteur ÷ établissements employeurs du secteur.",
-  );
+  const available = SECTEURS.filter(s => territoire.series[s.salaries]);
+  if (!available.length) return "";
+  const year = Object.keys(territoire.series[available[0].salaries]).sort().reverse().find(y => available.every(s => Number.isFinite(territoire.series[s.salaries]?.[y]) && territoire.series[s.salaries][y] >= 0));
+  if (!year) return "";
+  const rows = available.map(s => ({libelle:s.libelle,valeur:territoire.series[s.salaries][year]})).sort((a,b)=>b.valeur-a.valeur);
+  const total = rows.reduce((sum,r)=>sum+r.valeur,0);
+  if (!total) return "";
+  const chart = barreEmpilee({titre:"Quels secteurs concentrent les emplois ?",description:`Répartition des emplois salariés par secteur.`,segments:rows.map(r=>({...r,valeur:100*r.valeur/total})),formater:v=>`${formaterRatio(v)} %`});
+  return section("secteurs", "Les emplois par secteur", `<p class="davantage__affirmation"><b>${echapper(rows[0].libelle)}</b> représente ${formaterRatio(100*rows[0].valeur/total)} % des emplois salariés des secteurs disponibles.</p>${chart}`, `Source : INSEE, Flores, ${year}. Emplois au lieu de travail, secteurs disponibles.`);
 }
 
 const EXERCICE_REFERENCE = "2019";
@@ -601,12 +579,13 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
  *  l'association. Un regroupement qui peut faire lire une mission comme
  *  sous-dotée alors que l'argent est ailleurs dans le même tableau est
  *  retiré plutôt que corrigé au cas par cas. */
-/** Millions d'euros, toujours deux décimales. */
-function millionsDeuxDecimales(valeur: number): string {
+/** Millions d'euros, une décimale dans toute la liste. */
+function millionsUneDecimale(valeur: number): string {
+  if (valeur > 0 && valeur < 50_000) return "< 0,1 M€";
   return `${new Intl.NumberFormat("fr-FR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(valeur / 1e6)} M€`;
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(valeur / 1e6)} M€`;
 }
 
 /** Combien d'associations s'affichent directement, sans dépli. */
@@ -628,26 +607,16 @@ function themeVieAssociative(
     const total = beneficiaires.reduce((s, b) => s + b.montant, 0);
     const phrase =
       beneficiaires.length === 1
-        ? `Une association subventionnée par l'État à ${echapper(nom)}.`
-        : `${beneficiaires.length} associations subventionnées par l'État à ${echapper(nom)}, pour ${echapper(
-            millionsDeuxDecimales(total),
+        ? `Une association recevant des subventions nationales à ${echapper(nom)}.`
+        : `${beneficiaires.length} associations recevant des subventions nationales à ${echapper(nom)}, pour ${echapper(
+            millionsUneDecimale(total),
           )} au total.`;
-    // La plus dotée d'abord (donnees.ts) : les quinze premières s'affichent
-    // directement, le reste se déplie.
-    //
-    // Les montants se lisent dans l'unité du total (« 1,96 M€ ») : en euros
-    // bruts, « 1 276 550 € » demandait une conversion de tête à côté d'un
-    // total en millions. Sous 10 000 €, deux décimales de million
-    // arrondiraient à « 0,01 M€ » ou « 0,00 M€ » — le chiffre n'apprendrait
-    // plus rien (la faute exacte que le revenu par foyer a déjà coûtée) : ces
-    // lignes-là, qui vivent dans le dépli, restent à l'euro.
-    const montantAssoc = (montant: number) =>
-      montant >= 10_000 ? millionsDeuxDecimales(montant) : euros(montant);
+    const montantAssoc = millionsUneDecimale;
     const ligneAssoc = (b: (typeof beneficiaires)[number]) =>
       `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
         montantAssoc(b.montant),
       )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`;
-    const liste = `<div class="davantage__associations">${beneficiaires.map(ligneAssoc).join("")}</div>`;
+    const liste = `<div class="davantage__associations">${[...beneficiaires].sort((a,b)=>b.montant-a.montant).slice(0,10).map(ligneAssoc).join("")}</div>${beneficiaires.length > 10 ? `<details class="associations-suite"><summary>Voir plus (${beneficiaires.length - 10})</summary><div class="davantage__associations">${[...beneficiaires].sort((a,b)=>b.montant-a.montant).slice(10).map(ligneAssoc).join("")}</div></details>` : ""}`;
     return section(
       "vie-associative",
       "Vie associative",
@@ -665,7 +634,7 @@ function themeVieAssociative(
   const cartes = [montant, compte]
     .filter((l): l is Ligne => Boolean(l))
     .map((l) => ({
-      texte: l.id === "etat_subventions_associations" ? millionsDeuxDecimales(l.brut) : l.texte,
+      texte: l.id === "etat_subventions_associations" ? millionsUneDecimale(l.brut) : l.texte,
       libelle: l.libelle,
       exercice: l.exercice,
     }));
