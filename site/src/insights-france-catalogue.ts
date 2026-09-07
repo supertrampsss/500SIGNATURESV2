@@ -88,7 +88,7 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("salaire-net-moyen", "insee_salaire_net_eqtp_mensuel", "EUR", "travail", "Salaires · la moyenne nationale", "Salaire net mensuel moyen", "La moyenne est supérieure à la médiane et ne décrit pas les temps partiels."),
 
   // Inégalités et société — 10
-  t("gini-trajectoire", "insee_gini", "ratio", "services", "Inégalités · le mouvement après redistribution", "Indice de Gini après redistribution", "Une variation faible de l'indice peut masquer des mouvements importants aux extrêmes."),
+  t("gini-trajectoire", "eurostat_gini", "indice", "services", "Inégalités · le mouvement après redistribution", "Indice de Gini après redistribution", "Une variation faible de l'indice peut masquer des mouvements importants aux extrêmes."),
   t("rapport-interdecile", "insee_rapport_interdecile", "ratio", "services", "Inégalités · l'écart entre les seuils", "Rapport entre le neuvième et le premier décile", reserveSocial),
   t("pauvrete-seuil-50", "insee_taux_pauvrete_50", "percent", "services", "Pauvreté · le seuil le plus sévère", "Taux de pauvreté au seuil de 50 %", "Le seuil est relatif au niveau de vie médian et évolue avec lui."),
   t("intensite-pauvrete", "insee_intensite_pauvrete_60", "percent", "services", "Pauvreté · à quelle distance du seuil", "Intensité de la pauvreté", "L'intensité mesure l'écart médian au seuil parmi les personnes pauvres."),
