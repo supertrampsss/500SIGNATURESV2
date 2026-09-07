@@ -201,3 +201,20 @@ test("une trajectoire Eurostat reçoit la comparaison des voisins au même exerc
   assert.match(resultat?.comparaison ?? "", /Allemagne 42,4/);
   assert.match(resultat?.comparaison ?? "", /Italie 41,8/);
 });
+
+test("Gini compare uniquement les pays UE avec la même série harmonisée", () => {
+  const recette = RECETTES_TENDANCES.find(r => r.id === "gini-trajectoire")!;
+  const country = (values: Record<string, number>) => ({series: {eurostat_gini: values}} as Territoire);
+  const result = creerInsightTendance(recette, {
+    eurostat_gini: {"2017": 29, "2025": 30}, insee_gini: {"2025": .31},
+  }, [indicateur("eurostat_gini", "indice")], {
+    DE: country({"2017": 31, "2019": 32, "2026": 33}),
+    MT: country({"2025": 28}), UK: country({"2025": 35}),
+    EU27_2020: country({"2025": 30}), BE: country({"2025": NaN}),
+  });
+  assert.deepEqual(result?.graphique?.series.map(s => s.name), ["France", "Allemagne", "Malte"]);
+  assert.deepEqual(result?.graphique?.series[0].values, {"2017": 29, "2025": 30});
+  assert.deepEqual(result?.graphique?.series[1].values, {"2017": 31, "2019": 32});
+  assert.equal(result?.graphique?.series[0].emphasized, true);
+  assert.equal(result?.preuves[0].indicateur, "eurostat_gini");
+});
