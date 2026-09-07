@@ -200,7 +200,7 @@ export function rendu(
   </table>`;
   const maximum = Math.max(...retenues.flatMap(({ id, fr }) => [fr, ...COMPARES.map(([code]) => valeur(code, id) ?? 0)]));
   const comparatif = `<figure class="dataviz dataviz--fonctions" data-chart-system="lieflat" aria-label="Comparaison des dépenses publiques par fonction">
-    <figcaption><strong>La France comparée à ses voisins</strong><span>En % du PIB</span></figcaption>
+    <figcaption><strong>Dépenses par fonction</strong><span>En % du PIB</span></figcaption>
     <div class="dataviz__fonctions-legende"><span>● France</span>${COMPARES.map(([, nom], i) => `<span>${i === 0 ? "○" : "◆"} ${echapper(nom)}</span>`).join("")}</div>
     <ol>${retenues.sort((a, b) => b.fr - a.fr).map(({ id, fr }) => {
       const autres = COMPARES.map(([code, nom], i) => {

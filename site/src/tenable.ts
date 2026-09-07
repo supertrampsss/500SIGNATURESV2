@@ -78,16 +78,10 @@ export function finsAnnee(serie: Record<string, number>): [string, number][] {
   return points;
 }
 
-/** Trajectoire centrale du Debt Sustainability Monitor 2025 de la Commission
- * européenne. Les points 2026-2032 sont repris tels quels, jamais recalculés. */
-const COMMISSION: [string, number][] = [
-  ["2026", 118.1], ["2027", 120.0], ["2028", 122.2], ["2029", 124.2],
-  ["2030", 126.5], ["2031", 129.1], ["2032", 131.7],
-];
-
-/** La mission indépendante publiée en juillet 2026 ne donne que deux bornes :
- * 118 % en 2026 et plus de 130 % en 2030. Aucun point intermédiaire n'est inventé. */
-const MISSION: [string, number][] = [["2026", 118], ["2030", 130]];
+/** Rapport de la mission indépendante, juillet 2026, tableau 5, page 15.
+ * Valeurs publiées du scénario à politique inchangée, sans interpolation. */
+export const PROJECTION_DETTE = {"2026":118.4,"2027":121.4,"2028":124.2,"2029":127.3,"2030":130.5};
+export const SOURCE_PROJECTION = "https://www.budget.gouv.fr/files/files/plf/PLF%202027/904%20%20Rapport%20%20Mission%20sur%20la%20transparence%20des%20finances%20publiques.pdf#page=20";
 
 /** Le bloc, ou la chaîne vide tant que la dette et le taux ne sont pas
  *  publiés — la réponse cite les deux, et une réponse à moitié sourcée ne
@@ -159,49 +153,18 @@ export function rendu(
           : ""
       }${sousSecteurs ? ` Qui la porte : ${sousSecteurs}.` : ""}</p>`;
 
-  // ── La dette, en courbe, avec deux scénarios publiés ───────────────────
-  const publiee = Object.entries(serie(DETTE_PIB))
-    .filter(([an]) => an >= REFERENCE && an <= "2025")
-    .sort(([a], [b]) => a.localeCompare(b)) as [string, number][];
-  const series = [
-    ...(publiee.length
-      ? [{ nom: "Dette publiée", couleur: "#0f1b2e", accent: true, points: publiee }]
-      : []),
-    {
-      nom: "Commission européenne : scénario central",
-      couleur: "#2a68c4",
-      pointille: true,
-      points: COMMISSION,
-    },
-    {
-      nom: "Mission indépendante : politique inchangée (> 130 % en 2030)",
-      couleur: "#b43a31",
-      pointsSeuls: true,
-      points: MISSION,
-    },
-  ];
+  const publiee = Object.fromEntries(Object.entries(serie(DETTE_PIB))
+    .filter(([an,v]) => /^\d{4}$/.test(an) && Number.isFinite(v)).sort(([a],[b])=>a.localeCompare(b)));
+  const dernierObserve=Object.keys(publiee).at(-1)??"";
+  const projections=Object.fromEntries(Object.entries(PROJECTION_DETTE).filter(([year])=>year>dernierObserve));
   const svg = timeChart({
-    title: "Dette publique : historique et scénarios", description: "Observations et scénarios publiés distincts. Les projections ne sont pas des résultats constatés.", unit: "% du PIB",
-    series: series.map(s => ({name:s.nom, values:Object.fromEntries(s.points), dashed:'pointille' in s && s.pointille, pointsOnly:'pointsSeuls' in s && s.pointsSeuls, labels:'pointsSeuls' in s && s.pointsSeuls ? {'2030':'Plus de 130 %'} : undefined})),
-    format: v => `${UNE_DECIMALE.format(v)} %`,
+    title:"Dette publique : ce qui est observé, ce qui est projeté",
+    description:"Dette des administrations publiques rapportée au PIB. Projection à politique inchangée publiée en juillet 2026.",
+    unit:"% du PIB",zeroBaseline:false,hideMissing:true,
+    series:[{name:"Dette observée · Eurostat",values:publiee},{name:"À politique inchangée · juillet 2026",values:projections,dashed:true}],
+    format:v=>`${UNE_DECIMALE.format(v)} %`,
   });
-
-  const colonnes = ["2026", "2027", "2028", "2029", "2030", "2031", "2032"];
-  const cellule = (v: number | undefined) =>
-    v === undefined ? "" : `${UNE_DECIMALE.format(v)}&nbsp;%`;
-  const valeursCommission = Object.fromEntries(COMMISSION);
-  const tableau = `<div class="tenable__valeurs" tabindex="0"><table class="comparaison">
-    <thead><tr><th scope="col">Scénario</th>${colonnes
-      .map((an) => `<th scope="col">${an}</th>`)
-      .join("")}</tr></thead>
-    <tbody>
-      <tr><th scope="row">Commission européenne : scénario central</th>${colonnes
-        .map((an) => `<td>${cellule(valeursCommission[an])}</td>`).join("")}</tr>
-      <tr><th scope="row">Mission indépendante : politique inchangée</th>
-        <td>118,0&nbsp;%</td><td></td><td></td><td></td><td>plus de 130&nbsp;%</td><td></td><td></td>
-      </tr>
-    </tbody>
-  </table></div>`;
+  const tableau = `<table class="comparaison"><caption>Projection à politique inchangée · rapport de juillet 2026</caption><thead><tr>${Object.keys(projections).map(y=>`<th scope="col">${y}</th>`).join("")}</tr></thead><tbody><tr>${Object.values(projections).map(v=>`<td>${UNE_DECIMALE.format(v)} %</td>`).join("")}</tr></tbody></table>`;
 
   // ── Les voisins ────────────────────────────────────────────────────────
   const dernierePart = (code: string): [string, number] | null => {
@@ -228,12 +191,12 @@ export function rendu(
   // est juste au-dessus, et la maquette validée pose la réponse directement
   // sous elle.
   return `
-    <p class="chart-context">Trait plein : données publiées. Pointillés et jalons : scénarios, pas des prévisions du jeu.</p>
+    <p class="chart-context">Trait plein : données observées. Pointillés : projection à politique inchangée, publiée en juillet 2026.</p>
     <div>
-      <h3 class="sous-titre">La dette, jusqu'en 2032</h3>
+      <h3 class="sous-titre">La trajectoire de la dette</h3>
       ${svg}
       ${tableauAccessible("Données, scénarios et charge de la dette", tableau + reponse)}
-      <p class="bloc__complement">Sources : Commission européenne · Mission sur la transparence des finances publiques.</p>
+      <p class="bloc__complement"><a href="${SOURCE_PROJECTION}">Source de la projection : mission sur la transparence des finances publiques, juillet 2026, tableau 5, p. 15.</a></p>
     </div>
     ${
       voisins

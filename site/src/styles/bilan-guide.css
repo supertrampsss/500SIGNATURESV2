@@ -397,7 +397,7 @@ body[data-vue="bilan"] #national,
 }
 /* Les règles des articles .bloc priment sur la règle native de <details>.
    Masquer explicitement les compléments tant que le tiroir est fermé. */
-.bilan-complements:not([open]) > :not(summary) { display: none; }
+details.bilan-complements:not([open]) > :not(summary) { display: none; }
 .bilan-complements > summary {
   display: flex;
   align-items: center;

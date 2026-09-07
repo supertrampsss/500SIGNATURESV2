@@ -109,5 +109,5 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(245, 240, 223)');
  await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(133, 207, 175)');
  await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(133, 207, 175)');
- await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png'),fullPage:true});
+ await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png')});
 });

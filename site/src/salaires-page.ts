@@ -1,3 +1,4 @@
+import { bindChartControls } from "./chart-controls.ts";
 import { brancherSalaires, renduSalaires } from './salaires.ts';
 import { renduNavigation } from './navigation.ts';
 import { brancherTheme } from './theme.ts';
@@ -16,3 +17,5 @@ if (navigation) navigation.innerHTML = renduNavigation('/salaires', true).replac
 const salaires = document.getElementById('salaires-contenu');
 if (salaires) brancherSalaires(salaires);
 brancherTheme();
+
+bindChartControls(document);

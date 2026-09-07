@@ -21,7 +21,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { barresSolde, tableauAccessible } from "./dataviz.ts";
+import { barresSolde } from "./dataviz.ts";
 import { moins, montantLisible, pourcentage } from "./echelle.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
@@ -117,7 +117,8 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
       <strong>${echapper(pourcentage(depensesFr))}</strong> du PIB et encaissé
       <strong>${echapper(pourcentage(recettesFr))}</strong> du PIB${enEuros}.</p>
     ${graphique}
-    ${tableauAccessible("Voir les chiffres", tableau)}
+    <div class="visuellement-cache">${tableau}</div>
+
     <p class="bloc__complement">Source : Eurostat.</p>
 `;
 }

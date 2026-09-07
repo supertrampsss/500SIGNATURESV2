@@ -61,3 +61,14 @@ test('les retraites et le chômage sont séparés sans compter deux fois les pre
  series.eurostat_apu_prestations['2024']=6;
  assert.equal(repartitionCollective(series),null);
 });
+
+test('l’historique ne mélange pas des exercices incomplets ou des bases différentes',async()=>{
+ const {historiqueRepartition}=await import('./salaires.ts');
+ const ids=['protection_sociale','sante','enseignement','services_generaux','affaires_economiques','ordre_securite','defense','culture','logement','environnement'];
+ const series:Record<string,Record<string,number>>=Object.fromEntries(ids.map((id,i)=>['eurostat_fonction_'+id,{'2000':i+1,'2001':i+1,'2002':i+1}]));
+ series.eurostat_depenses_publiques_pib={'2000':55,'2001':55,'2002':55};delete series.eurostat_fonction_sante['2001'];
+ const history=historiqueRepartition(series);
+ assert.deepEqual(history.map(h=>h.year),['2000','2002']);
+ for(const h of history)assert.ok(Math.abs(h.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
+ const html=renduSalaires(2100,'salarié',series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);
+});

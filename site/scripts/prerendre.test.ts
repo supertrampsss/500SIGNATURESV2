@@ -1459,8 +1459,8 @@ test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
 
   // La trajectoire institutionnelle, et non une extrapolation nominale maison,
   // doit être réellement pré-rendue avec le bloc.
-  assert.ok(html.includes("131,7"), "le point 2032 de la Commission européenne n'est pas servi");
-  assert.ok(html.includes("Mission indépendante"), "la seconde trajectoire publiée n'est pas servie");
+  assert.ok(html.includes("130,5"), "le point 2030 de la mission indépendante n'est pas servi");
+  assert.ok(html.includes("tableau 5, p. 15"), "la source précise de la projection n'est pas servie");
 
   // Le seuil suit la mesure : 1 051 signes sur ce fixture, qui n'alimente que
   // deux des six blocs. Il a encore baissé après le 19 août — « qui la

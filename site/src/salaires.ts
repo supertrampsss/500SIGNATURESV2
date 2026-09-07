@@ -1,3 +1,4 @@
+import { timeChart } from "./chart-studio.ts";
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 
@@ -130,6 +131,26 @@ export function repartitionCollective(series: Territoire["series"] = {}) {
  if(total<=0||!Number.isFinite(official)||Math.abs(total-official)>.5)return null;
  return {year,basis:"Eurostat, dépenses des administrations publiques par fonction (COFOG)",missions:MISSIONS.map(([id,label,description])=>({label,description,share:series["eurostat_fonction_"+id][year]/total}))};
 }
+export function historiqueRepartition(series:Territoire["series"]) {
+ const latest=repartitionCollective(series);if(!latest)return [];
+ const years=[...new Set(Object.values(series).flatMap(s=>Object.keys(s)))].filter(y=>/^\d{4}$/.test(y)).sort();
+ return years.flatMap(year=>{
+   const exact=Object.fromEntries(Object.entries(series).map(([id,values])=>[id,Number.isFinite(values[year])?{[year]:values[year]}:{}]));
+   const data=repartitionCollective(exact);
+   return data?.year===year && data.basis===latest.basis ? [data] : [];
+ });
+}
+function graphiqueRepartition(label:string,values:Record<string,number>) {
+ return timeChart({title:label,description:"Part de ce poste dans les dépenses publiques, à périmètre comparable.",unit:"% des dépenses publiques",series:[{name:label,values}],format:v=>`${v.toLocaleString("fr-FR",{maximumFractionDigits:1})} %`});
+}
+function evolutionAllocation(series:Territoire["series"]):string {
+ const history=historiqueRepartition(series);if(history.length<2)return "";
+ const latest=history.at(-1)!;
+ const data=Object.fromEntries(latest.missions.map(m=>[m.label,Object.fromEntries(history.flatMap(h=>{const entry=h.missions.find(v=>v.label===m.label);return entry?[[h.year,entry.share*100]]:[];}))]));
+ const first=latest.missions[0].label;
+ return `<section class="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><div data-salary-history-chart>${graphiqueRepartition(first,data[first])}</div><p class="salaires__sources">${latest.basis}. Même périmètre d’une année à l’autre. Les années manquantes ne sont pas interpolées.</p></section>`;
+}
+
 function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
  const data=repartitionCollective(series);
  if(!data)return `<section class="salaires__allocation"><h2>Ce que financent les prélèvements</h2><p>Retraites, santé, chômage, éducation et services publics.</p><a href="/bilan/#bloc-fonctions">Consulter la répartition publiée des dépenses publiques</a></section>`;
@@ -160,6 +181,7 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié", series: T
     </section></div>
     <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
     ${allocation(calcul,series)}
+    ${evolutionAllocation(series)}
   </section>`;
 }
 
@@ -169,6 +191,12 @@ export function brancherSalaires(root: HTMLElement): void {
   const champ = root.querySelector<HTMLInputElement>("#salaires-net");
   const erreur = root.querySelector<HTMLElement>("#salaires-erreur");
   if (!formulaire || !resultat || !champ || !erreur) return;
+  const history=root.querySelector<HTMLElement>('[data-salary-history]');
+  history?.querySelector('select')?.addEventListener('change',event=>{
+    const label=(event.target as HTMLSelectElement).value;
+    const data=JSON.parse(history.dataset.salaryHistory!);
+    history.querySelector('[data-salary-history-chart]')!.innerHTML=graphiqueRepartition(label,data[label]);
+  });
   let selection = statutValide(resultat.dataset.salairesStatut ?? null);
   let annonce: ReturnType<typeof setTimeout>;
   const afficher = () => {
