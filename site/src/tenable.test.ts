@@ -95,8 +95,9 @@ test("les voisins partagent le millésime de la France, sans tri par valeur", ()
   const html = rendu(PAYS, CATALOGUE);
   // L'ordre est celui de la déclaration (France, Italie, Allemagne présents) :
   // un tri par valeur ferait un classement.
-  assert.ok(html.indexOf("France") < html.indexOf("Italie"));
-  assert.ok(html.indexOf("Italie") < html.indexOf("Allemagne"));
+  const ranks = html.slice(html.indexOf('class="tenable__rang'));
+  assert.ok(ranks.indexOf("France") < ranks.indexOf("Italie"));
+  assert.ok(ranks.indexOf("Italie") < ranks.indexOf("Allemagne"));
   assert.match(texte(html), /France 115,6 %/);
   assert.match(texte(html), /Allemagne 63,5 %/);
 });
