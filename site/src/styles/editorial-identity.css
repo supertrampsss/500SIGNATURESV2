@@ -74,7 +74,7 @@ body[data-vue='territoire'] .repere__terme { font-size: .875rem; line-height: 1.
 .territoire-diagnostic > summary::after { content: 'Détails'; font-size: .875rem; font-weight: 400; color: var(--encre-douce); }
 .territoire-diagnostic[open] > summary::after { content: 'Fermer'; }
 .territoire-diagnostic > summary::-webkit-details-marker { display: none; }
-.territoire-diagnostic:not([open]) > :not(summary) { display: none; }
+details.territoire-diagnostic:not([open]) > :not(summary) { display: none; }
 body[data-vue='territoire'] .bloc-lecture p { font-size: 1rem; line-height: 1.55; text-align: left; }
 body[data-vue='territoire'] .bloc-lecture h3 { font-weight: 600; letter-spacing: 0; }
 @media (max-width: 60rem) {

@@ -198,3 +198,7 @@ html body .salaires__total>p { color:var(--design-muted); }
  :root:root:root { --design-bg:white;--design-panel:white;--design-ink:black;--design-muted:#333;--design-line:#aaa;--design-gold:#543d12;--design-green:#145438;--design-red:#8b301c; }
  .bascule-theme,.mandats-invitation { display:none; }
 }
+
+@media(max-width:360px) {
+ html body .site-header { padding-block:8px;gap:8px; }
+}

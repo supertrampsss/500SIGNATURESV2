@@ -88,7 +88,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await expect(chart.locator('output')).not.toHaveText(last);
  await control.press('End');await expect(chart.locator('output')).toHaveText(last);
  await noOverflow(page);
- await page.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png'),fullPage:true});
+ await chart.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png')});
  const key=page.locator('[data-waffle-key]').first();
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
@@ -99,7 +99,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await activate(page.locator('[data-chart-tab="dette"]'),info);
  await expect(page.locator('[data-chart-panel="dette"]')).toBeVisible();
  await expect(page.locator('[data-chart-panel="budget"]')).toBeHidden();
- await page.screenshot({path:info.outputPath('territory-'+info.project.name+'.png'),fullPage:true});
+ await page.locator('.territory-charts').screenshot({path:info.outputPath('territory-'+info.project.name+'.png')});
  await activate(page.locator('[data-chart-tab="budget"]'),info);await noOverflow(page);
  const before=await page.locator('[data-chart-panel="budget"] output').textContent();
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
