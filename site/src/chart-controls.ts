@@ -18,6 +18,25 @@ export function bindChartControls(root: Document): void {
   }
   root.addEventListener('input',event=>{if(event.target instanceof HTMLInputElement && event.target.closest('.chart-time'))update(event.target);});
   root.addEventListener('click',event=>{
+    if(event.target instanceof Element) {
+      const card=event.target.closest<HTMLElement>('[data-expand-card]');
+      const interactive=event.target.closest('a,input,select,button');
+      if(card && (!interactive || interactive.hasAttribute('data-expand-analysis')) && !card.closest('dialog')) {
+        const opener=card.querySelector<HTMLButtonElement>('[data-expand-analysis]')!;
+        const dialog=root.createElement('dialog');
+        dialog.className='analysis-dialog';
+        dialog.setAttribute('aria-label',opener.textContent??'Analyse détaillée');
+        const close=root.createElement('button');close.type='button';close.className='analysis-dialog__close';close.textContent='Fermer';
+        const copy=card.cloneNode(true) as HTMLElement;
+        copy.removeAttribute('data-expand-card');
+        copy.querySelector('[data-expand-analysis]')?.replaceWith(root.createTextNode(opener.textContent??''));
+        dialog.append(close,copy);root.body.append(dialog);
+        close.addEventListener('click',()=>dialog.close());
+        dialog.addEventListener('close',()=>{dialog.remove();opener.focus({preventScroll:true});});
+        dialog.showModal();return;
+      }
+    }
+
     if(!(event.target instanceof Element))return;
     const tab=event.target.closest<HTMLButtonElement>('[data-chart-tab]');
     if(tab){

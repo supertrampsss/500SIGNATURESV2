@@ -96,3 +96,11 @@ test("une carte sans comparaison ne crée pas de paragraphe fantôme", () => {
 
   assert.doesNotMatch(html, /insight__comparaison/);
 });
+
+test("chaque analyse avec historique possède son graphique et son agrandissement",()=>{
+ const cards=Array.from({length:5},(_,i)=>({...insight,id:`history-${i}`}));
+ const html=renduInsights(cards,catalogue,{contexte:"france",series:{test:{"2024":10,"2025":12.5}}});
+ assert.equal((html.match(/class="chart-time"/g)??[]).length,5);
+ assert.equal((html.match(/data-expand-analysis /g)??[]).length,5);
+ assert.doesNotMatch(html,/Chapitre 04/);
+});

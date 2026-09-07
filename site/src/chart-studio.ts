@@ -1,20 +1,20 @@
 /** Original SVG/HTML charts. Rendering is pure; interaction lives in chart-controls.ts. */
 export type ChartSeries = { name: string; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
-export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean };
+export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean };
 export const escapeChart = (text: string): string => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
 export function chartPeriods(series: ChartSeries[]): string[] {
   return [...new Set(series.flatMap(s => Object.keys(s.values).filter(p => Number.isFinite(s.values[p]))))].sort();
 }
 export function chartReadout(options: ChartOptions, period: string): string {
-  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => `<span class="chart-key chart-key--${i}"><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(s.labels?.[period] ?? options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
+  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => options.hideMissing && !Number.isFinite(s.values[period]) ? '' : `<span class="chart-key chart-key--${i}"><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(s.labels?.[period] ?? options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
 }
 
 export function timeChart(options: ChartOptions): string {
   const periods = chartPeriods(options.series);
   if (!periods.length) return '<p class="chart-empty">Aucune série publiée pour cet indicateur.</p>';
   const values = options.series.flatMap(s => Object.values(s.values).filter(Number.isFinite));
-  const min = Math.min(0, ...values);
+  const min = options.zeroBaseline === false ? Math.min(...values) : Math.min(0, ...values);
   const max = Math.max(0, ...values);
   const range = max - min || 1;
   const magnitude = 10 ** Math.floor(Math.log10(range / 4));

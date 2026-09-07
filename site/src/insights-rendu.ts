@@ -19,9 +19,9 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[]
   const unit = euro ? scale === 1e9 ? "Md€" : scale === 1e6 ? "M€" : "€" : indicateur?.unite ?? "";
   const chart = values && indicateur ? timeChart({title:indicateur.libelle,description:"Évolution des observations publiées.",unit,series:[{name:indicateur.libelle,values:Object.fromEntries(Object.entries(values).map(([year,value])=>[year,value/scale]))}],format:value=>`${new Intl.NumberFormat("fr-FR",{maximumSignificantDigits:4}).format(value)} ${unit}`}) : "";
   return `<li class="insight insight--${insight.famille}">
-    <article>
+    <article${chart ? ' data-expand-card' : ""}>
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>
-      <h${niveauTitre}>${echapper(insight.titre)}</h${niveauTitre}>
+      <h${niveauTitre}>${chart ? `<button type="button" data-expand-analysis aria-label="Agrandir : ${echapper(insight.titre)}">${echapper(insight.titre)}</button>` : echapper(insight.titre)}</h${niveauTitre}>
       <p class="insight__analyse">${echapper(insight.texte)}</p>
       ${chart}
       ${insight.comparaison ? `<p class="insight__comparaison">${echapper(insight.comparaison)}</p>` : ""}
@@ -31,12 +31,7 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[]
 
 /** Toutes les analyses restent visibles. */
 function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4, catalogue: Indicateur[], series?: Territoire["series"]): string {
-  const shown=new Set<string>();
-  return `<ol class="insights__grille">${cartes.map(insight=>{
-    const id=shown.size<2 ? insight.preuves.find(p=>!shown.has(p.indicateur)&&Object.keys(series?.[p.indicateur]??{}).length>1)?.indicateur : undefined;
-    if(id)shown.add(id);
-    return carte(insight,niveauTitre,catalogue,id ? {[id]:series![id]} : {});
-  }).join("")}</ol>`;
+  return `<ol class="insights__grille">${cartes.map(insight => carte(insight,niveauTitre,catalogue,series)).join("")}</ol>`;
 }
 
 const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
@@ -94,7 +89,7 @@ export function renduInsights(
 
   return `<section class="insights insights--${options.contexte}" aria-labelledby="insights-${options.contexte}-titre">
     <header class="insights__entete">
-      ${estFrance ? '<p class="insights__chapitre">Chapitre 04</p>' : '<p class="insights__chapitre">L’analyse</p>'}
+      ${estFrance ? '' : '<p class="insights__chapitre">L’analyse</p>'}
       <h2 id="insights-${options.contexte}-titre">${echapper(titre)}</h2>
       <p>${echapper(introduction)}</p>
     </header>

@@ -95,7 +95,7 @@
         </div>
         <div class="recherche territoire-recherche__champ">
           <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
-          <input id="recherche" type="search" autocomplete="off" role="combobox"
+          <span class="territoire-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span><input id="recherche" type="search" autocomplete="off" role="combobox"
                  aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
                  placeholder="Rechercher un territoire…" />
           <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
@@ -180,18 +180,19 @@
         <section class="bilan-chapitre" id="france-sorties">
           <div id="conclusion-france-sorties"></div>
           <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-          <article class="bloc bloc--large" id="bloc-fonctions"></article>
-          <details class="bilan-complements" id="france-complements" hidden>
-            <summary>Voir aussi</summary>
+                    <section class="bilan-complements" id="france-complements">
             <article class="bloc bloc--large" id="bloc-redistribution"></article>
             <article class="bloc bloc--large" id="bloc-secu"></article>
-          </details>
+          </section>
         </section>
 
         <section class="bilan-chapitre" id="france-dette">
           <div id="conclusion-france-dette"></div>
           <article class="bloc bloc--large" id="bloc-dette"></article>
+        </section>
+        <section class="bilan-chapitre europe-unifiee" aria-label="La France et ses voisins">
           <article class="bloc bloc--large" id="bloc-europe"></article>
+          <article class="bloc bloc--large" id="bloc-fonctions"></article>
         </section>
 
         <section class="accounts-reading" aria-label="Analyses par thème">

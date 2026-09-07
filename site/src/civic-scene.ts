@@ -8,6 +8,6 @@ export function civicScene(): string {
       <a class="civic-scene__building" href="#arbitrages-generation" aria-label="Retraites et générations">${icon("finance")}<span>Retraites</span></a>
       <a class="civic-scene__building" href="#arbitrages-travail" aria-label="Travail et entreprises">${icon("journal")}<span>Travail</span></a>
       <div class="civic-scene__orb" aria-hidden="true"></div>
-    </div><p>Un pays. Des choix.</p>
+    </div>
   </div>`;
 }

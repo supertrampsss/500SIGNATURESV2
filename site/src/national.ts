@@ -77,7 +77,6 @@ function introduction(
   source: string,
 ): string {
   return `<div class="ui-conclusion bilan-chapitre__intro" data-numero="${numero}">
-    <p class="bilan-chapitre__surligne">Chapitre ${numero}</p>
     <h2>${titre}</h2>
     <p>${analyse}</p>
     ${source}

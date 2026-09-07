@@ -123,3 +123,9 @@ test("sans données françaises ou sans indicateur publié, le bloc ne s'affiche
   const sansSolde = { FR: territoire({ [DEPENSES]: { "2024": 26.5 } }) };
   assert.equal(rendu(sansSolde, CATALOGUE), "");
 });
+
+test("le tableau accessible masqué ne crée aucun arrêt invisible au clavier",()=>{
+ const html=rendu(PAYS,CATALOGUE);
+ assert.match(html,/<div class="visuellement-cache"><table class="secu">/);
+ assert.doesNotMatch(html,/tabindex|Voir les chiffres/);
+});
