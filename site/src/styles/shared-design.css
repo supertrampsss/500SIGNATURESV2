@@ -302,6 +302,3 @@ html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--4 { background:#9b8
 html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--5 { background:#8e9695;fill:#8e9695; }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail { background:var(--design-track); }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail>span { background:var(--design-green); }
-
-[data-country-scope][data-countries="limited"] [data-country-secondary] { display:none; }
-html body .country-toggle { display:block;padding:10px 0;margin:12px 0;border:0;background:transparent;color:var(--design-gold);font:600 1rem/1.4 var(--sans);cursor:pointer;min-height:44px; }
