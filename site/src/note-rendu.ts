@@ -191,7 +191,7 @@ export function phraseExecutif(
   if (Number.isNaN(priseDeFonction.getTime())) return "";
   // Un exercice est entièrement couvert s'il commence après la prise de
   // fonction : l'année de la prise de fonction est toujours à cheval.
-  const premier = String(priseDeFonction.getFullYear() + 1);
+  const premier = String(priseDeFonction.getUTCFullYear() + 1);
   const couverts = exercices.filter((e) => e >= premier);
   if (!couverts.length) return "";
   const etendue =
@@ -214,7 +214,7 @@ export function phraseExecutif(
  */
 function periode(depuis: string, jusqu?: string | null): string {
   const debut = new Date(depuis);
-  const mois = (d: Date) => d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const mois = (d: Date) => d.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
   if (jusqu) {
     const fin = new Date(jusqu);
     if (!Number.isNaN(fin.getTime()) && fin > debut) {
