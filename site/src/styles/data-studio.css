@@ -219,5 +219,5 @@ body[data-vue='territoire'] .territory-reading p { font-size:.9rem; }
 .chart-time--many .chart-readout__values { max-height: 9rem; overflow-y: auto; }
 .chart-time--many .chart-series path { stroke-width: 1.4; opacity: .65; }
 .chart-time--many .chart-series circle { r: 1.5; }
-.chart-time--many .chart-series[data-emphasized] path { stroke-width: 3.5; opacity: 1; }
-.chart-time--many .chart-series[data-emphasized] circle { r: 3; }
+.chart-time .chart-series[data-emphasized] path { stroke-width: 3.5; opacity: 1; }
+.chart-time .chart-series[data-emphasized] circle { r: 3; }
