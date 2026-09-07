@@ -22,7 +22,7 @@ export type Ledger = { revenue: number; operating: number; interest: number; sav
 export type Pending = { due: number; label: string; effect: Effect };
 export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
 export type Game = {
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
   areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[];
 };
 export type Domain = {

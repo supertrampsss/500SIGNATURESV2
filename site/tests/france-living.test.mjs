@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 const HOME='/mandats/';
-const FRANCE=HOME+'?mode=national';
+const FRANCE=HOME+'?mode=national&v=7';
 const KEY='500signatures.mandats.v1';
 const stage=page=>page.locator('[data-national-scene]:visible .winter-stage');
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
