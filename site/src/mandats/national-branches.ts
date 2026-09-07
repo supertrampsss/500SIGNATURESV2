@@ -45,7 +45,7 @@ const stories = [
 const roots = REFORMS.map((r,index) => dossier(r.category, r.question, stories[index],
   [
     choice(r.id+'a', r.cut, { operating: -r.saving, services: -2, cohesion: -2, trust: -1, society: social(r.group,r.id === "r01" ? -15 : -6) }, r.sacrifice),
-    choice(r.id+'b', r.tax, { revenue: r.yield, trust: -2, society: social(r.group,-3) }, r.taxSacrifice),
+    choice(r.id+'b', r.tax, { revenue: r.yield, trust: -2, society: r.taxSociety }, r.taxSacrifice),
     choice(r.id+'c', 'Renforcer '+localServices[index], { operating: 2, services: 2, cohesion: 1, society: social(r.group,4) }, 'Les bénéficiaires sont mieux protégés. Le déficit augmente de 2 Md€/an.'),
   ]));
 // A proposal does not instantaneously change existing law or yield a claimed 9 Md€.

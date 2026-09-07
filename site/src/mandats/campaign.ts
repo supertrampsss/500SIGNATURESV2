@@ -118,12 +118,15 @@ function transition(game:Game,choice:Choice):Game {
     apply(g,shock.effect);event=shock.label;
     if(g.version >= 7) {
       const social=socialYearEnd(g);
-      apply(g,{operating:social.operating,revenue:social.revenue,trust:social.trust});
+      apply(g,{trust:social.trust});
       messages.push(...social.messages);
       if(social.messages.length)event+=' · Conséquences sociales';
     }
   }
-  const ledger=d.settle(g.finance);
+  // Social costs belong to this annual budget, never to the structural run rate.
+  // Recompute on every plan so recovery removes them and repeated years do not stack.
+  const social=g.version >= 7 ? socialYearEnd(g) : {operating:0,revenue:0};
+  const ledger=d.settle({...g.finance,operating:g.finance.operating+social.operating,revenue:g.finance.revenue+social.revenue});
   if(cal.isYearEnd){
     g.finance.debt=ledger.debt;g.finance.cash+=ledger.cashChange;g.finance.gdp=ledger.gdp;
     if(g.finance.cash < -1e-8)throw new Error('Financement incomplet.');

@@ -3,6 +3,8 @@ import { cardModel } from './cards.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { start, choicesFor, decide, domainFor, score } from './engine.ts';
+import { REFORMS } from './national-reforms.ts';
+import { socialYearEnd } from './national-society.ts';
 import { NATIONAL_CATALOGUE } from './national-branches.ts';
 import { annualDeficit } from './national-deficit.ts';
 import { encode, decode } from './storage.ts';
@@ -94,4 +96,35 @@ test('all seventy dossiers are reachable and replay remains deterministic across
   assert.deepEqual(decode(encode(g)),g);
  }
  assert.equal(visited.size,70);
+});
+
+test('tax incidence follows contributors and does not penalise protected beneficiaries',()=>{
+ let g=begin();
+ for(const r of REFORMS){
+  const before=structuredClone(g.society!), taxed=next(g,1);
+  for(const key of Object.keys(before) as (keyof typeof before)[])
+   close(taxed.society![key],Math.max(0,Math.min(100,before[key]+(r.taxSociety[key]??0))));
+  if(r.id==='r05')assert.equal(taxed.society!.vulnerable,before.vulnerable);
+  if(r.id==='r11')assert.equal(taxed.society!.publicStaff,before.publicStaff);
+  g=next(taxed,2);
+ }
+});
+test('annual social penalties neither compound nor survive a recovery',()=>{
+ let g=begin(), affectedClosures=0;
+ while(g.turn<45){
+  g=next(g);
+  const penalty=socialYearEnd(g), ledger=g.history.at(-1)!.ledger;
+  close(ledger.operating-g.finance.operating,penalty.operating);
+  close(ledger.revenue-g.finance.revenue,penalty.revenue);
+  if(g.turn%9===0 && penalty.operating)affectedClosures++;
+ }
+ assert.ok(affectedClosures>=2);
+ // A focused threshold fixture: one compensation lifts material conditions from 33 to 38.
+ let recovery=begin();while(recovery.turn<40)recovery=next(recovery,2);
+ recovery.society!.vulnerable=33;
+ assert.equal(socialYearEnd(recovery).operating,2);
+ recovery=next(recovery,2);
+ assert.equal(recovery.society!.vulnerable,38);
+ assert.equal(socialYearEnd(recovery).operating,0);
+ close(recovery.history.at(-1)!.ledger.operating,recovery.finance.operating);
 });

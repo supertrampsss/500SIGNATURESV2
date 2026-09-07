@@ -50,17 +50,17 @@ Les identifiants de choix déterminent le parcours historique. Les choix des bra
 fermées sont refusés au jeu et à l'import. Le calcul n'utilise aucun cache partagé par
 simple numéro de tour pour le parcours v7. Les sauvegardes v1 à v6 conservent leurs règles.
 
-Six indices de conditions matérielles (sur 100) suivent les actifs, retraités,
-ménages modestes, entreprises, nouveaux résidents et agents publics. Ils ne sont
+Sept indices de conditions matérielles (sur 100) suivent les actifs, retraités,
+ménages modestes, entreprises, nouveaux résidents, agents publics et ménages aisés. Ils ne sont
 ni des sondages, ni des estimations démographiques. Ils représentent une simplification
 des revenus, de l'accès aux services et des moyens d'activité. Les catégories peuvent
 se recouper : leurs indices ne sont pas additionnés comme des populations.
 
-Les choix les modifient directement ou après délai. La précarité, les perturbations
+Les choix les modifient directement ou après délai. Chaque prélèvement possède sa propre répartition entre contribuables, indépendante du groupe bénéficiaire de la réforme. La précarité, les perturbations
 du travail et l'activité fragilisée ont des effets annuels supplémentaires sur les
 charges, les recettes ou la confiance lorsqu'un seuil est franchi. Les cinq derniers
 dossiers dépendent des indices. Les conséquences budgétaires existent même si le
-joueur ne choisit pas de compensation.
+joueur ne choisit pas de compensation. Ils sont recalculés dans le budget annuel, sans s’incorporer aux charges ou recettes structurelles : ils ne se cumulent pas d’année en année et disparaissent lors du retour au-dessus des seuils.
 
 La dette et ses intérêts continuent d'être comptabilisés une fois par an. Au début de
 chaque nouvelle année, les recettes suivent (1 + croissance réelle) × (1 + déflateur)
@@ -82,7 +82,7 @@ rejeu, sauvegardes, atelier alternatif et conséquences sociales récurrentes.
 
 Trois stratégies testées jusqu'au bout pour les douze graines couvrant les combinaisons
 des crises annuelles (modulos 3 et 4) atteignent un déficit inférieur ou égal à zéro.
-Pour la graine 42 : coupes -6,19 Md€, recettes -67,60 Md€, combinaison -30,13 Md€.
+Pour la graine 42 : coupes -12,42 Md€, recettes -67,60 Md€, combinaison -36,22 Md€.
 Les résultats sociaux diffèrent fortement. La stratégie de soutien sans recettes
 supplémentaires termine à +244,49 Md€. Le score financier ne résume pas le bilan social.
 

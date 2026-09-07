@@ -1,6 +1,6 @@
 export type Ambition = "equilibre" | "services" | "resilience";
 export type Mode = "municipal" | "national";
-export type Society = Record<'workers' | 'pensioners' | 'vulnerable' | 'businesses' | 'newcomers' | 'publicStaff', number>;
+export type Society = Record<'workers' | 'pensioners' | 'vulnerable' | 'businesses' | 'newcomers' | 'publicStaff' | 'affluent', number>;
 export type Metrics = { services: number; cohesion: number; resilience: number; trust: number; assets: number };
 export type Area = { id: string; name: string; need: string; services: number; resilience: number; x: number; y: number };
 export type Finance = {

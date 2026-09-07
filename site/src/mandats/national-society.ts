@@ -3,10 +3,10 @@ import type { Game, Society } from './types.ts';
 
 export const SOCIETY_LABELS: Record<keyof Society, string> = {
   workers: 'Actifs', pensioners: 'Retraités', vulnerable: 'Ménages modestes',
-  businesses: 'Entreprises', newcomers: 'Nouveaux résidents', publicStaff: 'Agents publics',
+  businesses: 'Entreprises', newcomers: 'Nouveaux résidents', publicStaff: 'Agents publics', affluent: 'Ménages aisés',
 };
 export const initialSociety = (): Society => ({
-  workers: 65, pensioners: 65, vulnerable: 60, businesses: 65, newcomers: 60, publicStaff: 65,
+  workers: 65, pensioners: 65, vulnerable: 60, businesses: 65, newcomers: 60, publicStaff: 65, affluent: 65,
 });
 
 /** Indices of material conditions in a fictional scenario, never opinion polls. */
