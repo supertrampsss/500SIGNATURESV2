@@ -169,7 +169,7 @@ export function barresSolde(options: {
 export function pointsComparatifs(options: {
   titre: string;
   description: string;
-  points: readonly { libelle: string; valeur: number; accent?: boolean }[];
+  points: readonly { libelle: string; valeur: number; accent?: boolean; secondary?: boolean }[];
   formater: Formateur;
 }): string {
   const points = options.points.filter((p) => Number.isFinite(p.valeur)).sort((a, b) => b.valeur - a.valeur);
@@ -182,7 +182,7 @@ export function pointsComparatifs(options: {
   const position = (valeur: number) => ((valeur - min) / (max - min || 1)) * 100;
   const lignes = points.map((point) => {
     const valeur = options.formater(point.valeur);
-    return `<li class="dataviz__point-rang${point.accent ? " dataviz__point-rang--accent" : ""}" aria-label="${echapper(`${point.libelle} : ${valeur}`)}">
+    return `<li class="dataviz__point-rang${point.accent ? " dataviz__point-rang--accent" : ""}"${point.secondary ? ' data-country-secondary' : ''} aria-label="${echapper(`${point.libelle} : ${valeur}`)}">
       <span class="dataviz__point-nom">${echapper(point.libelle)}</span>
       <span class="dataviz__point-rail" aria-hidden="true"><span style="left:${position(point.valeur).toFixed(2)}%"></span></span>
       <strong>${echapper(valeur)}</strong>
