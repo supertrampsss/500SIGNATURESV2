@@ -1,161 +1,313 @@
-# 500signatures : décisions produit et modèle économique
+# 500signatures : produit et financement publicitaire
 
-Document de travail du 7 septembre 2026. Les prix, volumes, temps et seuils ci-dessous
-sont des hypothèses proposées, pas des données commerciales observées. Ce document
-remplace les anciennes priorités économiques de `docs/mandats/STRATEGIE.md`.
+Décision du propriétaire, 7 septembre 2026 : **la publicité est le modèle économique
+central du site**. L'accès à la lecture, aux outils et au jeu reste gratuit.
+Ce document remplace les anciennes priorités économiques de
+`docs/mandats/STRATEGIE.md` et la proposition d'ateliers payants.
 
-## Décision
+Les volumes, tarifs et coûts ci-dessous sont des **hypothèses de travail**.
+Aucun export d'audience, compte de régie validé, revenu ou contrat publicitaire
+n'est disponible dans le dépôt. « Central » désigne un scénario de calcul, pas une
+prévision statistique ni un RPM constaté sur 500signatures.
 
-Construire un produit public gratuit qui fait comprendre les arbitrages et donne
-envie de revenir. Valider d'abord un atelier payant pour les organismes de formation,
-les associations et les équipes éditoriales. Transformer ensuite une demande
-récurrente prouvée en prestation standardisée, puis éventuellement en abonnement.
+## Décisions UX, DX et AX conservées
 
-La publicité est un complément éventuel. Le volume de trafic et les revenus réels
-ne sont pas disponibles dans ce dépôt : aucune prévision de revenu publicitaire ni
-valorisation du site ne peut être présentée comme établie.
+| Décision | Effet utilisateur | Effet développeur et agent |
+|---|---|---|
+| France, Allemagne, Espagne et Italie seulement, données comparables | Courbes lisibles et cohérentes avec le texte | Liste partagée `PAYS_VISIBLES` |
+| France en évidence dès quatre courbes | Série de référence repérable | Style indépendant du nombre de voisins |
+| Dates et années fiscales en UTC | Source identique quel que soit le lecteur | Tests reproductibles dans plusieurs fuseaux |
+| `check:local` distinct du pré-rendu complet | Corrections plus fiables | Contrôle local explicite, mêmes contrôles complets en CI |
+| Une règle publicitaire et un calcul documentés | Densité limitée, scores et chiffres indépendants des annonceurs | Routes autorisées, plafonds et hypothèses testables |
 
-## Décisions UX, DX et AX
+La campagne nationale conserve ses 45 décisions sur cinq ans, le clic direct,
+la position de lecture et les sauvegardes. Le cadre externe Europe et le bouton
+d'ajout des pays restent supprimés.
 
-| Décision | Effet utilisateur | Effet développeur et agent | Vérification |
+## Où : des emplacements précis, peu nombreux
+
+**Démarrage : une annonce maximum par page éditoriale admissible.**
+Après validation, deux au maximum sur les pages longues, avec au moins deux
+hauteurs d'écran de contenu entre elles. Salaires reste limité à une seule.
+Le premier écran présente toujours le site et une réponse utile.
+
+| Parcours actuel | Emplacement initial | Extension éventuelle | Zone protégée |
 |---|---|---|---|
-| Quatre pays comparés : France, Allemagne, Espagne, Italie | Comparaison lisible, identique dans le texte et les courbes | Une liste partagée, aucune sélection cachée à reconstituer | Tests des pays, dates et unités |
-| France en évidence même avec quatre courbes | Repérage immédiat de la série de référence | Style porté par la série, indépendant du nombre de voisins | Attribut de série testé, revue visuelle à effectuer |
-| Dates et années fiscales déterministes en UTC | Même source et même mandat affichés quel que soit le lecteur | Fin des échecs de tests selon le fuseau de la machine | Tests existants rejoués dans plusieurs fuseaux |
-| Validation locale distincte du pré-rendu avec données | Corrections plus faciles à vérifier avant intégration | Commande locale explicite, aucun téléchargement de production pour compiler le client | `npm run check:local` |
-| Documentation du socle actuel | Moins de reprises fondées sur d'anciennes décisions | Entrée unique dans README, AGENTS et CONTRIBUTING | Liens et commandes contrôlés |
-| Coûts complets dans le modèle économique | Monétisation compatible avec un accès public utile | Calcul reproductible, hypothèses modifiables, aucune facturation implicite | `npm run business:case` et tests du calcul |
+| France, `/bilan` | Après le chapitre Recettes complet, `#france-entrees` | Après le chapitre Europe complet, `.europe-unifiee`, avant les analyses thématiques | En-tête, conclusion, sommaire, intérieur des courbes, légendes et sources |
+| Salaires, `/salaires/` | Après l'explication complète de la répartition, `.salaires__allocation` | Aucune | Saisie, statut, résultat et détail du calcul |
+| Dossier, `/analyses/<slug>/` | Après la première démonstration complète : texte, graphique, légende et source | Après le corps éditorial, avant les blocs méthode et sources, si la longueur le permet | Titre, réponse en 30 secondes, graphique et commandes |
+| Mandats, anciens simulateurs et résultats | Aucun | Aucune | Partie, bilan, partage et reprise |
+| Territoires | Aucun au lancement | Réexamen après mesure du parcours | Carte, recherche, fiche et comparateur |
+| Accueil, index, réponses courtes, méthode, sources | Aucun au lancement | Réexamen éditorial, jamais automatique | Accès aux références et aux fonctionnalités |
 
-La campagne nationale conserve ses 45 décisions sur cinq ans, le clic direct et les
-sauvegardes. Les comparaisons ne doivent pas fusionner définitions nationales et
-séries harmonisées. Le cadre externe Europe et le bouton d'ajout des pays restent
-supprimés. Aucune modification commerciale ne change un score ou un chiffre observé.
+Les dossiers courts n'ont pas de deuxième emplacement. Un repère absent ou une
+page trop courte supprime l'opportunité publicitaire, sans inventer un bloc de
+contenu. Un retour depuis Mandats peut mener vers France ou un dossier utile :
+cette vraie lecture peut être monétisée, sans écran publicitaire intermédiaire.
 
-## Ce qui est vendu
+Ces choix privilégient la lecture répétée et la confiance, nécessaires à la valeur
+de l'audience. Aucun annonceur ne finance une conclusion, une position politique,
+un score du jeu ou la modification d'une donnée.
 
-| Public | Valeur offerte | Première offre | À différer |
-|---|---|---|---|
-| Citoyen | Comprendre, comparer, jouer et citer les sources | Accès gratuit au produit existant | Abonnement grand public sans valeur supplémentaire démontrée |
-| Organisme de formation, association | Faire travailler un groupe sur les arbitrages publics | Atelier animé, cadrage, support et débrief | Comptes élèves, suivi individuel, plateforme de formation complète |
-| Rédaction, organisation | Expliquer une question précise avec une restitution réutilisable | Dossier adapté sur le socle existant, périmètre fermé | API commerciale, marque blanche complète, développements spécifiques illimités |
+## Quand et comment : règles d'affichage
 
-Le client paie le travail de préparation, la pédagogie, l'adaptation et le service.
-Le simple accès aux mêmes données publiques ne constitue pas la valeur payante.
-Le premier segment à tester est l'organisme de formation disposant d'un budget
-d'animation ; le dossier éditorial reste une seconde offre, ouverte sur demande.
+- **Dans le flux uniquement** : pas de plein écran, fenêtre surgissante, bandeau
+  collant, vidéo automatique, son, compte à rebours ou publicité récompensée.
+- Libellé visible **« Publicité »**. Pour une vente directe : **« Publicité · Nom
+  de l'annonceur »**. La création reste distincte des cartes de données et des
+  boutons du site, sans se déguiser en recommandation éditoriale.
+- Proposition initiale : bannière horizontale statique, environ **320 × 100 px
+  sur mobile**, **728 × 90 px sur ordinateur**, dans un conteneur adapté. Si le
+  format ne rentre pas, utiliser un format réellement pris en charge ou supprimer
+  l'emplacement ; ne pas comprimer ni rogner une annonce de régie. Une création
+  directe peut être une ligne de texte, un logo et un lien, avec dimensions stables.
+- Chargement asynchrone lorsque le lecteur approche à **300 px** de l'emplacement.
+  Pas de chargement publicitaire global au démarrage du jeu. La première annonce
+  ne précède pas le contenu utile et reste sous le premier écran.
+- **Un chargement par emplacement et par navigation réelle**. Pas de
+  rafraîchissement minuté, ni au changement de salaire, d'année, de pays, d'ancre,
+  de thème visuel ou de décision du jeu. Aucun identifiant persistant n'est
+  nécessaire pour cette règle de rendu.
+- Réserver les dimensions avant une requête autorisée. Ne pas insérer ou retirer
+  une annonce au-dessus de la position de lecture. Si un accord arrive en cours
+  de lecture, attendre une future zone sous l'écran ou la prochaine navigation.
+  Sans campagne ou sans autorisation, aucun grand cadre vide initial. En cas
+  d'absence de remplissage, ne pas replier une zone déjà visible sous le doigt.
+- Chaque espace vendu directement **remplace** un espace de régie. Il n'ajoute
+  ni troisième bloc ni deuxième couche. Une campagne expirée disparaît au prochain
+  rendu ; les créations commerciales ne font pas partie du cache hors connexion.
 
-## Périmètre du pilote
+La réservation d'espace répond au risque de décalage de mise en page décrit par
+[web.dev](https://web.dev/articles/optimize-cls?hl=fr). La séparation des commandes
+et des annonces évite les clics accidentels visés par les
+[règles de placement AdSense](https://support.google.com/adsense/answer/1346295?hl=en).
 
-**Atelier proposé : 1 200 € HT**, prix de test interne. Cadrage court, séance de
-90 minutes à distance, utilisation de la campagne existante, support d'animation
-et débrief collectif. Une organisation, une séance, un interlocuteur. Le devis
-borne le public et la préparation ; déplacement et développement spécifique sont
-exclus de cette hypothèse. La durée de séance n'est pas une promesse de finir la
-campagne : le nombre de décisions est adapté au temps disponible.
+## Quoi vendre, à qui, par quel canal
 
-**Dossier proposé : 2 400 € HT**, prix de test interne. Une question, données déjà
-disponibles, jusqu'à trois graphiques et une note de restitution, un aller-retour
-de corrections. Un connecteur, un hébergement client ou une enquête originale ne
-sont pas inclus. La réutilisation est précisée selon les sources concernées.
+**Deux canaux, tous deux publicitaires :**
 
-Ces offres ne sont pas commercialisées par le site dans cette version. Aucun
-paiement, formulaire de contact fictif, nouvel abonnement ou prospection automatique
-n'est activé. Avant le premier devis : identifier le fournisseur qui facture,
-le canal de contact, la disponibilité et le livrable exact. Un changement de ces
-éléments doit mettre à jour le calcul et le devis, sans changer le moteur du jeu.
+1. **Régie au lancement**, avec AdSense comme premier candidat à tester, sous réserve
+   d'acceptation du site. Blocs manuels uniquement ; placements automatiques,
+   ancres, vignettes et autres formats superposés désactivés. Une seule régie au
+   départ, sans empilement de prestataires. Comparer ensuite le revenu net réel et
+   les performances avant d'en changer.
+2. **Vente directe d'espaces**, pour augmenter la valeur du même inventaire :
+   éditeurs de livres, presse, formations, événements culturels ou pédagogiques,
+   outils de données et de travail. Les noms de secteurs sont des cibles de
+   prospection, pas des partenaires acquis. Commencer avec un annonceur par
+   campagne, une création statique et un périmètre éditorial défini.
 
-## Économie du pilote
+Exclure de la charte commerciale la propagande de partis ou de candidats, les paris,
+les placements spéculatifs, les promesses financières trompeuses et les créations
+qui imitent une alerte ou un service public. C'est un choix éditorial pour ce site.
+Ne pas cibler à partir des arbitrages du joueur, du salaire saisi, de ses scores ou
+d'une opinion politique supposée. Aucun de ces éléments n'est envoyé à une régie.
 
-Tous les montants sont HT et avant impôt. Hypothèse de valorisation du temps :
-60 €/heure. Ce n'est ni une charge salariale observée ni une rémunération garantie.
-La prospection inclut une quote-part des échanges qui ne se concluent pas.
+**Offre directe à tester : 25 € HT pour 1 000 impressions livrées**, soit **500 € HT
+pour 20 000 impressions**, sur environ quatre semaines si l'inventaire le permet.
+Ce prix est une hypothèse commerciale, pas un prix de marché constaté.
+Le contrat précise les pages, les dates, la création et la définition d'impression.
+Ne promettre un volume qu'après mesure sur ces emplacements. En cas de sous-livraison,
+facturer le réalisé ou convenir d'un prolongement ; ne pas doubler les annonces.
 
-| Hypothèse unitaire | Atelier | Dossier |
-|---|---:|---:|
-| Prix proposé | 1 200 € | 2 400 € |
-| Préparation, réalisation et suivi | 6 h | 12 h |
-| Prospection et échanges commerciaux | 3 h | 5 h |
-| Coût du temps valorisé | 540 € | 1 020 € |
-| Débours directs | 30 € | 90 € |
-| Frais proportionnels, hypothèse de 2 % | 24 € | 48 € |
-| Contribution après ces coûts | 606 € | 1 242 € |
-| Marge contributive | 50,5 % | 51,75 % |
-| Prix plancher pour 40 % de marge | 982,76 € | 1 913,79 € |
+Une campagne statique servie par le site sans pixel ni suivi permet une expérience
+plus simple. Le comptage et la facturation restent à instrumenter et à vérifier :
+un téléchargement de fichier HTML ne prouve pas qu'une annonce a été vue. Si la
+mesure nécessaire exige des traceurs, recueillir l'accord correspondant. À défaut,
+vendre une période de présence avec rapport d'audience agrégé explicitement estimé,
+sans prétendre facturer des impressions mesurées.
 
-Coûts fixes mensuels proposés : 150 € de débours et 40 heures de maintenance,
-données, rédaction et administration, soit 2 550 € au total. Le développement initial,
-la fiscalité et le besoin en fonds de roulement ne sont pas inclus. Les frais de
-paiement réels dépendront du canal retenu ; le taux proposé n'est pas un tarif fournisseur.
+## Consentement sans pression
 
-| Scénario mensuel hypothétique | CA | Contribution | Coûts fixes | Résultat économique | Temps total |
-|---|---:|---:|---:|---:|---:|
-| Aucune vente | 0 € | 0 € | 2 550 € | -2 550 € | 40 h |
-| Un atelier | 1 200 € | 606 € | 2 550 € | -1 944 € | 49 h |
-| Trois ateliers et un dossier | 6 000 € | 3 060 € | 2 550 € | 510 € | 84 h |
-| Quatre ateliers et deux dossiers | 9 600 € | 4 908 € | 2 550 € | 2 358 € | 110 h |
+AdSense et publicité « non personnalisée » ne signifient pas absence de traceurs.
+La [CNIL, question 34](https://www.cnil.fr/fr/cookies-et-autres-traceurs/regles/cookies/FAQ)
+distingue l'affichage contextuel de ses outils de mesure, de limitation de fréquence
+et de lutte contre la fraude, qui peuvent nécessiter un consentement.
 
-Avec seulement des ateliers, cinq ventes mensuelles couvrent les coûts retenus.
-Ce seuil dépend de toutes les hypothèses ; ce n'est pas un objectif de ventes acquis.
-Le temps étant déjà valorisé, le résultat n'est pas assimilable au revenu personnel
-disponible. Aucun abonnement récurrent ne figure dans ces scénarios.
+Pour le lancement programmatique retenu : gestion du consentement avant tout
+chargement publicitaire soumis à accord, choix « Accepter », « Refuser » et
+« Personnaliser » d'accès équivalent, retrait accessible et absence de demandes
+répétées de page en page. Le refus conserve tout le contenu et le jeu accessibles.
+La CMP de Google est un candidat pour éviter de développer un faux bandeau maison.
 
-Formules : contribution = prix × (1 - frais) - débours - coût horaire × heures
-de réalisation et d'acquisition. Prix plancher = coûts unitaires hors frais /
-(1 - frais - marge cible). Équilibre = arrondi supérieur des coûts fixes /
-contribution unitaire positive. Une contribution négative n'a pas d'équilibre fini.
+Vérifier la configuration selon les régions effectivement servies.
+[Google impose une CMP certifiée intégrée au TCF pour la publicité personnalisée
+dans l'EEE, au Royaume-Uni et en Suisse](https://support.google.com/adsense/answer/13554116?hl=fr).
+Cette certification ne constitue pas une validation juridique globale.
+Le présent choix produit est plus simple à contrôler : pas de requête programmatique
+sans accord, indépendamment des variantes de diffusion proposées par la régie.
+La publicité directe sans suivi est un chemin distinct à examiner selon sa
+réalisation effective, pas un moyen de contourner un refus.
 
-Recalcul depuis `site/` : `npm run business:case`. Les hypothèses vivent dans
-`scripts/business-case.ts` et le calcul dans `scripts/business-model.ts`.
-Les tests couvrent aussi l'absence de ventes, les offres déficitaires et les
-hypothèses invalides. Remplacer les temps proposés par les temps réellement relevés
-avant de décider d'augmenter la capacité.
+## Combien : calculer les impressions, puis les euros
 
-## Validation commerciale
+Les revenus dépendent notamment du trafic, de sa provenance, des thèmes et des
+placements ; [Google ne donne pas de rendement garanti](https://support.google.com/adsense/answer/9902?hl=en-GB).
+Les taux suivants sont des **hypothèses de sensibilité**, sans attribution à Google
+ni à un benchmark du marché français.
 
-Plan proposé sur six semaines, à démarrer quand le contact et la disponibilité sont
-définis. Aucun entretien ni contrat n'est présumé réalisé.
+**Pages vues** = vraies lectures du site, y compris celles sans publicité, hors
+robots et trafic interne autant que la mesure le permet. Une décision, un filtre
+ou un déplacement sur la carte ne devient pas une page vue.
 
-| Étape | Action utile | Preuve attendue | Décision suivante |
-|---|---|---|---|
-| Semaines 1 et 2 | Échanger avec cinq acheteurs potentiels du même segment | Problème récurrent, acheteur identifié, budget et calendrier discutés | Reformuler l'offre si le problème n'est pas reconnu |
-| Semaines 3 et 4 | Proposer un pilote borné aux contacts qualifiés | Un pilote payé, temps commercial et prix accepté relevés | Livrer manuellement sur le produit existant |
-| Semaines 5 et 6 | Réaliser et débriefer le pilote | Temps complet, marge, utilité comprise, demande de réachat ou recommandation | Standardiser ce qui se répète |
-| Après trois pilotes payés | Comparer les besoins réellement communs | Deux clients demandent le même service récurrent | Étudier un abonnement limité à cette demande |
+Formule programmatique :
 
-Seuils proposés : marge contributive d'au moins 40 % après temps commercial,
-préparation dans le temps prévu et usage compréhensible sans correction du moteur.
-Si l'offre dépasse durablement ces temps, réduire le périmètre ou revoir le prix.
-Si aucun prospect n'identifie de budget, changer de segment avant de construire
-un espace client. Une demande de modification partisane du score est refusée.
+```text
+espaces atteints = pages vues × part éditoriale × emplacements moyens × taux d'approche
+impressions payées = (espaces atteints - impressions directes) × éligibilité × remplissage
+revenu régie = impressions payées / 1 000 × RPM net des impressions
+revenu direct = impressions directes / 1 000 × CPM direct
+revenu total = revenu régie + revenu direct
+```
 
-Le suivi commercial peut commencer par un registre manuel de rendez-vous, devis,
-ventes, temps et réachat. Il n'exige aucun suivi des décisions personnelles de jeu.
-Ne pas déduire des visites du site une intention d'achat ou une opinion politique.
+Le taux d'approche est la part des emplacements dont le lecteur atteint la zone de
+chargement. Ce n'est pas la visibilité publicitaire « Active View ». Le taux
+d'éligibilité est la part restante techniquement et contractuellement monétisable
+par la régie : accord, blocage et autres restrictions. Le remplissage ne s'applique
+qu'aux demandes éligibles. Les valeurs peuvent produire des nombres d'impressions
+fractionnaires : ce sont des espérances de calcul, pas des compteurs facturés.
 
-## Publicité et financement complémentaire
+Le **RPM net des impressions** est le revenu éditeur par 1 000 impressions payées.
+Le **RPM de toutes les pages du site** rapporte le revenu aux pages avec et sans
+publicité. Ne pas les confondre avec le RPM des seules pages comptabilisées par une
+régie : [définition du RPM](https://support.google.com/adsense/answer/190515?hl=fr).
+Le RPM net retenu inclut déjà les frais de régie ; ne pas lui retirer une seconde
+fois la [part des intermédiaires AdSense](https://support.google.com/adsense/answer/180195?hl=fr).
+Le consentement, le blocage et le remplissage ne sont pas remultipliés après un
+RPM de page déjà mesuré sur le même périmètre.
 
-Le jeu, les résultats et la méthode essentielle restent sans publicité. Un éventuel
-partenariat éditorial est identifié, indépendant des scores et borné à une page
-éligible. Les règles existantes de `site/src/mandats/operations.ts` restent en place,
-avec publicité et mesure d'audience désactivées par défaut.
+### Scénarios avec une ou deux annonces, moyenne de 1,5
 
-Le financement volontaire peut être complémentaire si la structure et les moyens
-d'encaissement sont prêts. Ni dons, ni publicité, ni abonnement ne sont intégrés
-au revenu attendu du pilote. L'indépendance éditoriale est aussi un actif économique.
+Hypothèses communes : 70 % des pages dans les parcours éditoriaux admissibles,
+1,5 emplacement moyen sur ces pages après extension. Ce mélange reste à mesurer.
+Les 30 % restants ne génèrent pas d'inventaire publicitaire dans ce modèle.
 
-## Repères externes, consultés le 7 septembre 2026
+| Hypothèse | Prudent | Central | Favorable |
+|---|---:|---:|---:|
+| Emplacements approchés | 60 % | 75 % | 85 % |
+| Éligibilité programmatique | 50 % | 70 % | 80 % |
+| Remplissage après éligibilité | 75 % | 90 % | 95 % |
+| RPM net de 1 000 impressions payées | 2 € | 4 € | 6 € |
+| RPM résultant de toutes les pages du site | 0,47 € | 1,98 € | 4,07 € |
 
-- [Datawrapper, offres et prix](https://www.datawrapper.de/pricing) combine un accès
-  gratuit avec des fonctions et services professionnels payants. Cela appuie la
-  séparation entre usage public et service professionnel, pas nos prix ni une
-  preuve de demande pour 500signatures.
-- [Our World in Data, financement](https://ourworldindata.org/funding) décrit un
-  financement par subventions et soutiens. Ce modèle montre une autre manière de
-  financer la gratuité, sans démontrer qu'elle serait suffisante ici.
-- [CNIL, mesure d'audience](https://www.cnil.fr/fr/cookies-solutions-pour-les-outils-de-mesure-daudience)
-  expose les conditions propres aux solutions concernées. Le présent plan ne
-  suppose pas qu'un outil serait automatiquement exempté de consentement.
+**Revenu mensuel de régie, après sa commission, avant les coûts propres et les
+impôts, hors vente directe :**
 
-La recommandation commerciale est une décision de conception fondée sur le produit
-existant et ces repères. Elle doit être validée par les premiers clients, pas par
-une extrapolation de leurs tarifs, de leurs audiences ou de leurs revenus.
+| Pages vues mensuelles, tout le site | Prudent | Central | Favorable |
+|---|---:|---:|---:|
+| 10 000 | 5 € | 20 € | 41 € |
+| 100 000 | 47 € | 198 € | 407 € |
+| 500 000 | 236 € | 992 € | 2 035 € |
+| 1 000 000 | 473 € | 1 985 € | 4 070 € |
+
+Arrondis à l'euro, calcul sans arrondi intermédiaire. Ces scénarios ne constituent
+ni un plancher ni un plafond : sans audience, remplissage, accord ou acceptation
+par une régie, le revenu peut être nul.
+
+**Au lancement avec une seule annonce**, le scénario central donne 132 € par mois
+pour 100 000 pages vues, soit les deux tiers du scénario à 1,5 emplacement, à
+audience et taux inchangés. L'extension ne doit pas être présumée autorisée par le
+seul besoin de revenu.
+
+### Exemple de vente directe sans double comptage
+
+Pour 100 000 pages mensuelles dans le scénario central étendu :
+
+| Élément | Calcul | Revenu |
+|---|---|---:|
+| Espaces approchés | 100 000 × 70 % × 1,5 × 75 % | 78 750 opportunités |
+| Campagne directe supposée vendue et livrée | 20 000 × 25 € / 1 000 | 500 € |
+| Régie sur le reliquat | 58 750 × 70 % × 90 % × 4 € / 1 000 | 148,05 € |
+| Total mensuel | Direct + reliquat régie | **648,05 €** |
+
+Le total n'est pas 500 € + 198,45 €, puisque la campagne remplace des impressions
+de régie. Il suppose un acheteur réel et 20 000 impressions effectivement livrées
+selon le contrat, dans les emplacements prévus. Une campagne unique de quatre
+semaines ne prouve aucun revenu récurrent.
+
+### Ce qui reste après les coûts
+
+Budget de travail proposé : **150 €/mois** d'hébergement, données, outils et frais
+administratifs, plus **40 h** de rédaction/maintenance et **4 h** d'exploitation
+publicitaire à **60 €/h**, soit **2 790 €/mois** de coût économique.
+Ce temps valorisé n'est pas une charge salariale observée. Ajouter 4 h par campagne
+directe dans l'exemple, pour la prospection, la création et le suivi : **3 030 €**.
+Remplacer ces hypothèses par les factures et temps relevés ; le développement
+initial, la fiscalité et le décalage d'encaissement ne sont pas inclus.
+
+| Cas mensuel hypothétique | Revenu | Solde après 150 € de débours | Résultat après temps valorisé |
+|---|---:|---:|---:|
+| 100 000 pages, régie centrale étendue | 198,45 € | 48,45 € | -2 591,55 € |
+| 100 000 pages, une campagne directe + reliquat régie | 648,05 € | 498,05 € | -2 381,95 € |
+| 1 000 000 pages, régie centrale étendue | 1 984,50 € | 1 834,50 € | -805,50 € |
+
+Dans le scénario central étendu, environ **76 000 pages/mois** couvrent seulement
+les 150 € de débours et **1,41 million** couvrent le coût économique retenu, sans
+vente directe. Le résultat économique n'est pas le salaire disponible.
+
+La publicité automatique finance d'abord une partie de l'exploitation. La vente
+directe et une audience récurrente permettent de viser davantage sans augmenter
+la densité. Acheter du trafic au-dessus du revenu net marginal par visite
+détruirait cette économie. À titre d'hypothèse, deux vraies pages par visite à
+1,98 € de RPM ne rapportent qu'environ **0,004 € par visite** avant coûts propres :
+priorité à la recherche naturelle, aux liens utiles, à la qualité et au retour
+des lecteurs, sans objectifs de clics publicitaires.
+
+## Quand lancer et quoi mesurer
+
+| Étape | Action | Décision fondée sur les résultats |
+|---|---|---|
+| Préparation | Obtenir les vues mensuelles par route, mobile/ordinateur et pays ; vérifier les accès à la régie, l'identité de paiement et les mentions du site | Remplacer les hypothèses d'audience, choisir un premier emplacement ayant du contenu réel |
+| Pilote | Une annonce sur France, puis Salaires et dossiers admissibles ; consentement et retrait testés ; placements automatiques désactivés | Vérifier revenu net, erreurs, lisibilité et interaction sur téléphone |
+| Après 28 jours complets | Comparer les mêmes routes et appareils à une période comparable, en signalant saisonnalité et changements éditoriaux | Éviter toute conclusion causale tirée d'un simple avant/après |
+| Extension | Tester uniquement le deuxième emplacement des longues pages, avec un groupe comparable si le volume le permet | Garder l'ajout si la contribution augmente sans dégrader les parcours |
+| Vente directe | Présenter un dossier annonceur avec audience mesurée, emplacements, format, charte et rapport exemple | Vendre un volume soutenable, vérifier le taux de renouvellement et tout le temps commercial |
+
+Tableau de bord utile : pages admissibles, espaces approchés, demandes autorisées,
+remplissage, impressions payées, revenu net, RPM des impressions et de toutes les
+pages, retours des lecteurs, accès aux sources, démarrages de parties et erreurs.
+La visibilité publicitaire, lorsqu'elle est mesurée, est un indicateur séparé.
+Ne transmettre ni salaires ni décisions pour mesurer ces parcours. Une instrumentation
+nouvelle doit respecter son propre régime de consentement ; les compteurs de code
+ou les tests locaux ne remplacent pas les données d'audience.
+
+Seuils produit proposés pour le pilote : CLS au 75e percentile ≤ 0,1 et pas de
+hausse supérieure à 0,02 liée aux annonces ; pas de ralentissement manifeste des
+commandes ; alerte si la lecture ou les démarrages de parties reculent de plus de
+5 % sur un échantillon comparable. Ce sont des garde-fous de gestion, pas une
+preuve statistique automatique. Avec trop peu de trafic, conserver une annonce.
+En cas de gêne, désactiver l'emplacement concerné et vérifier la cause.
+
+## État du code et chemin d'activation
+
+**Livré dans cette modification :**
+
+- Les corrections UX/DX/AX décrites plus haut.
+- `site/src/advertising-policy.ts` : liste des vrais parcours, un emplacement
+  proposé par défaut, plafond de deux en extension, refus des routes inconnues.
+- `site/src/mandats/operations.ts` réutilise cette règle pour l'éligibilité
+  programmatique et conserve publicité/mesure désactivées par défaut.
+- `site/scripts/business-model.ts` et `business-case.ts` : calcul pur des revenus,
+  dilution, inventaire remplacé, coûts et équilibre. Recalcul : depuis `site/`,
+  **`npm run business:case`**.
+- Tests de la politique, du consentement logique, du plafond, de l'absence de
+  revenu, du double comptage, des taux invalides et des coûts.
+
+**Pas encore une diffusion publicitaire active.** Le module est un contrat
+exécutable, pas un chargeur de régie : ses identifiants d'emplacements ne posent
+pas encore de blocs dans les pages. Le rendu, le branchement CMP, la révocation,
+la mesure et les campagnes doivent être intégrés avec une configuration réelle.
+
+Prochaine tranche de mise en service : identifiants validés de l'éditeur et de
+ses blocs, CMP choisie, texte de confidentialité et `ads.txt` fourni par la régie.
+Puis un unique adaptateur de rendu doit appliquer la politique partagée et les
+repères de la table ; aucune intégration au moteur ou aux sauvegardes.
+La campagne directe nécessite une création, une destination, des dates et un
+contrat réels. Aucun faux annonceur, identifiant publicitaire inventé, contact
+fictif, paiement ni prospection automatique n'est ajouté.
+
+Vérifier avant diffusion : consentement refusé/accordé/retiré, changement de route,
+absence de remplissage, format étroit, erreur de régie et mode hors connexion.
+La désactivation de la configuration doit supprimer les requêtes et conserver le
+site utilisable. La politique seule ne prouve ni l'absence de requêtes d'un futur
+SDK ni la qualité visuelle d'une annonce réelle.

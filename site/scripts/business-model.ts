@@ -1,63 +1,56 @@
-/** Internal planning only. These calculations do not set public prices or collect money. */
-export type Offer = {
-  id: string;
-  price: number;
-  deliveryHours: number;
-  acquisitionHours: number;
-  cashCost: number;
-  feeRate: number;
-};
-export type BusinessCase = {
-  hourlyCost: number;
-  fixedCashCost: number;
+import { MAX_AD_SLOTS_PER_PAGE } from '../src/advertising-policy.ts';
+
+/** Internal sensitivity model, not measured audience, ad serving or a revenue promise. */
+export type AdvertisingCase = {
+  monthlyPageViews: number;
+  editorialShare: number;
+  slotsPerEditorialPage: number;
+  slotReachRate: number;
+  programmaticEligibilityRate: number;
+  fillRate: number;
+  /** Publisher revenue per 1,000 paid impressions, already net of network fees. */
+  netImpressionRpm: number;
+  /** Direct inventory replaces programmatic inventory. Never count both on the same slot. */
+  directImpressions: number;
+  directNetCpm: number;
+  directSalesHours: number;
+  monthlyCashCost: number;
   editorialHours: number;
-  offers: Array<Offer & { quantity: number }>;
+  adOperationsHours: number;
+  hourlyCost: number;
 };
 
 function nonNegative(value: number, label: string): void {
-  if (!Number.isFinite(value) || value < 0) throw new Error(`${label}: finite non-negative value required`);
+  if (!Number.isFinite(value) || value < 0) throw new Error(label + ': finite non-negative value required');
 }
 
-export function offerEconomics(offer: Offer, hourlyCost: number) {
-  for (const [key, value] of Object.entries(offer)) {
-    if (key !== 'id') nonNegative(value as number, key);
+export function evaluateBusinessCase(input: AdvertisingCase) {
+  for (const [key, value] of Object.entries(input)) nonNegative(value, key);
+  for (const key of ['editorialShare', 'slotReachRate', 'programmaticEligibilityRate', 'fillRate'] as const) {
+    if (input[key] > 1) throw new Error(key + ': rate must be at most 1');
   }
-  nonNegative(hourlyCost, 'hourlyCost');
-  if (offer.feeRate >= 1) throw new Error('feeRate must be below 1');
-  const hours = offer.deliveryHours + offer.acquisitionHours;
-  const labour = hours * hourlyCost;
-  const cash = offer.cashCost + offer.price * offer.feeRate;
-  const contribution = offer.price - cash - labour;
-  return { hours, labour, cash, contribution, margin: offer.price > 0 ? contribution / offer.price : null };
-}
-
-export function minimumPrice(offer: Offer, hourlyCost: number, targetMargin: number): number {
-  nonNegative(targetMargin, 'targetMargin');
-  const costs = offerEconomics(offer, hourlyCost);
-  const denominator = 1 - offer.feeRate - targetMargin;
-  if (denominator <= 0) throw new Error('target margin and fees leave no room for delivery costs');
-  return (costs.labour + offer.cashCost) / denominator;
-}
-
-export function evaluateBusinessCase(input: BusinessCase) {
-  nonNegative(input.fixedCashCost, 'fixedCashCost');
-  nonNegative(input.editorialHours, 'editorialHours');
-  nonNegative(input.hourlyCost, 'hourlyCost');
-  const ids = new Set<string>();
-  const lines = input.offers.map(offer => {
-    if (!offer.id || ids.has(offer.id)) throw new Error('offer ids must be unique and non-empty');
-    ids.add(offer.id);
-    if (!Number.isSafeInteger(offer.quantity) || offer.quantity < 0) throw new Error('quantity must be a non-negative integer');
-    return { ...offer, ...offerEconomics(offer, input.hourlyCost) };
-  });
-  const revenue = lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
-  const contribution = lines.reduce((sum, line) => sum + line.contribution * line.quantity, 0);
-  const deliveryAndSalesHours = lines.reduce((sum, line) => sum + line.hours * line.quantity, 0);
-  const fixedCost = input.fixedCashCost + input.editorialHours * input.hourlyCost;
+  if (input.slotsPerEditorialPage > MAX_AD_SLOTS_PER_PAGE) throw new Error('ad density exceeds the product contract');
+  const editorialPageViews = input.monthlyPageViews * input.editorialShare;
+  const reachedSlots = editorialPageViews * input.slotsPerEditorialPage * input.slotReachRate;
+  if (input.directImpressions > reachedSlots) throw new Error('direct inventory exceeds reached slots');
+  const programmaticImpressions = (reachedSlots - input.directImpressions)
+    * input.programmaticEligibilityRate * input.fillRate;
+  const programmaticRevenue = programmaticImpressions * input.netImpressionRpm / 1000;
+  const directRevenue = input.directImpressions * input.directNetCpm / 1000;
+  const revenue = programmaticRevenue + directRevenue;
+  const hours = input.editorialHours + input.adOperationsHours + input.directSalesHours;
+  const economicCost = input.monthlyCashCost + hours * input.hourlyCost;
+  const programmaticRevenuePerPage = input.editorialShare * input.slotsPerEditorialPage
+    * input.slotReachRate * input.programmaticEligibilityRate * input.fillRate * input.netImpressionRpm / 1000;
+  const baselineCost = input.monthlyCashCost + (input.editorialHours + input.adOperationsHours) * input.hourlyCost;
   return {
-    revenue, contribution, fixedCost, result: contribution - fixedCost,
-    hours: deliveryAndSalesHours + input.editorialHours,
-    breakEvenByOffer: Object.fromEntries(lines.map(line => [line.id,
-      line.contribution > 0 ? Math.ceil(fixedCost / line.contribution) : null])),
+    editorialPageViews, reachedSlots, programmaticImpressions,
+    programmaticRevenue, directRevenue, revenue,
+    sitePageRpm: input.monthlyPageViews > 0 ? revenue / input.monthlyPageViews * 1000 : null,
+    hours, cashSurplus: revenue - input.monthlyCashCost,
+    economicCost, economicResult: revenue - economicCost,
+    // Separate baseline thresholds, with no direct sales assumed at any traffic level.
+    programmaticOnlyBreakEvenPageViews: programmaticRevenuePerPage > 0 ? Math.ceil(baselineCost / programmaticRevenuePerPage) : null,
+    programmaticOnlyCashBreakEvenPageViews: programmaticRevenuePerPage > 0 ? Math.ceil(input.monthlyCashCost / programmaticRevenuePerPage) : null,
   };
 }

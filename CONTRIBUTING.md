@@ -71,9 +71,13 @@ Historical plans in `docs/` explain previous decisions; current user instruction
 
 Use [the current decision record](docs/product-business-decisions.md) for the
 product constraints and commercial hypotheses. `npm run business:case` recalculates
-the proposed economics; its prices, volumes and costs are assumptions, not sales.
-For a business change, state who pays, what extra value is delivered, the work and
-acquisition cost, and the evidence needed before building a recurring product.
+advertising economics; audience, RPMs, direct sales and costs are assumptions until
+measured. Use `src/advertising-policy.ts` for actual eligible routes and density.
+For a business change, state the placement and format, reached inventory, consent
+and fill assumptions, net publisher RPM and operating/sales costs. Direct ads
+replace programmatic inventory. Never monetize game decisions as page views.
+The policy is not an SDK adapter: actual serving needs configured ad units, consent
+handling and verification of network behavior, empty slots and layout stability.
 
 Dates displayed from source timestamps use UTC; calendar dates and covered fiscal
 years must not change with the server or reader's timezone. Verify date changes

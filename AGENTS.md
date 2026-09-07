@@ -22,11 +22,17 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 ## Business decisions
 
 [Current product and business decisions](docs/product-business-decisions.md) is the
-current reference; earlier strategy documents are historical context. Keep public
-reading and core gameplay free. Validate paid workshops first, then repeatable
-organisation services. Label prices, volumes and costs as proposed assumptions
-until supported by actual evidence. Include delivery, acquisition and editorial
-time in economics. Commercial modules must not change scores or observed data.
+current reference; earlier strategy documents are historical context. Advertising
+is the owner's chosen business model; keep public reading and gameplay free.
+Use `site/src/advertising-policy.ts`: one editorial placement initially, at most
+two on long pages after validation, none in gameplay, results or essential sources.
+Prefer manual in-flow placements and direct sponsorship replacing existing slots.
+No sticky ads, interstitials, automatic refresh or targeting based on game decisions
+or salary inputs. Do not infer SDK consent from a non-personalized ad label.
+Label audience, rates, sales and costs as assumptions until measured. Include
+eligibility, fill, reached inventory, direct sales effort and editorial costs;
+never double-count inventory or deduct network fees twice. Commercial modules
+must not change scores or observed data. Do not restore paid-workshop priorities.
 
 ## Find the right code
 

@@ -1,34 +1,56 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateBusinessCase, minimumPrice, offerEconomics, type Offer } from './business-model.ts';
+import { evaluateBusinessCase, type AdvertisingCase } from './business-model.ts';
 
-const workshop: Offer = {id:'atelier', price:1200, deliveryHours:6, acquisitionHours:3, cashCost:30, feeRate:.02};
-const dossier: Offer = {id:'dossier', price:2400, deliveryHours:12, acquisitionHours:5, cashCost:90, feeRate:.02};
+const baseline: AdvertisingCase = {
+  monthlyPageViews: 100_000, editorialShare: .7, slotsPerEditorialPage: 1.5,
+  slotReachRate: .75, programmaticEligibilityRate: .7, fillRate: .9, netImpressionRpm: 4,
+  directImpressions: 0, directNetCpm: 0, directSalesHours: 0,
+  monthlyCashCost: 150, editorialHours: 40, adOperationsHours: 4, hourlyCost: 60,
+};
+const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < .000001, actual + ' != ' + expected);
 
-test('the business case includes sales time, delivery, editorial work and fees once', () => {
-  const result = evaluateBusinessCase({hourlyCost:60, fixedCashCost:150, editorialHours:40,
-    offers:[{...workshop,quantity:3},{...dossier,quantity:1}]});
-  assert.deepEqual(result, {revenue:6000, contribution:3060, fixedCost:2550, result:510,
-    hours:84, breakEvenByOffer:{atelier:5,dossier:3}});
-  assert.equal(offerEconomics(workshop,60).contribution,606);
+test('revenue discounts non-editorial views, unreached slots, consent/adblock and unfilled requests once', () => {
+  const result = evaluateBusinessCase(baseline);
+  close(result.reachedSlots, 78_750);
+  close(result.programmaticImpressions, 49_612.5);
+  close(result.revenue, 198.45);
+  close(result.sitePageRpm!, 1.9845);
+  close(result.cashSurplus, 48.45);
+  close(result.economicResult, -2591.55);
+  const threshold = result.programmaticOnlyBreakEvenPageViews!;
+  assert.ok(evaluateBusinessCase({ ...baseline, monthlyPageViews: threshold }).economicResult >= 0);
+  assert.ok(evaluateBusinessCase({ ...baseline, monthlyPageViews: threshold - 1 }).economicResult < 0);
 });
 
-test('zero sales preserve fixed costs and unprofitable offers have no finite break-even', () => {
-  const result = evaluateBusinessCase({hourlyCost:60,fixedCashCost:150,editorialHours:40,offers:[{...workshop,price:100,quantity:0}]});
-  assert.equal(result.result,-2550);
-  assert.equal(result.breakEvenByOffer.atelier,null);
-  assert.equal(offerEconomics({...workshop,price:0},60).margin,null);
+test('direct sponsorship replaces inventory and includes its sales time instead of adding a second revenue on it', () => {
+  const result = evaluateBusinessCase({ ...baseline, directImpressions: 20_000, directNetCpm: 25, directSalesHours: 4 });
+  close(result.programmaticRevenue, 148.05);
+  close(result.directRevenue, 500);
+  close(result.revenue, 648.05);
+  close(result.economicCost, 3030);
+  close(result.economicResult, -2381.95);
+  const directOnly = evaluateBusinessCase({ ...baseline, directImpressions: 78_750, directNetCpm: 25 });
+  close(directOnly.programmaticRevenue, 0);
 });
 
-test('a price floor achieves the requested margin including transaction fees', () => {
-  const floor = minimumPrice(workshop,60,.4);
-  assert.ok(Math.abs(floor - 982.7586206896552) < .000001);
-  assert.ok(Math.abs(offerEconomics({...workshop,price:floor},60).margin! - .4) < .000001);
+test('no audience or eligible inventory means no programmatic income but costs remain', () => {
+  const empty = evaluateBusinessCase({ ...baseline, monthlyPageViews: 0 });
+  assert.equal(empty.sitePageRpm, null);
+  close(empty.revenue, 0);
+  close(empty.economicResult, -2790);
+  for (const key of ['editorialShare', 'slotsPerEditorialPage', 'slotReachRate', 'programmaticEligibilityRate', 'fillRate', 'netImpressionRpm'] as const) {
+    const result = evaluateBusinessCase({ ...baseline, [key]: 0 });
+    close(result.revenue, 0);
+    assert.equal(result.programmaticOnlyBreakEvenPageViews, null);
+  }
 });
 
-test('invalid assumptions cannot produce plausible forecasts', () => {
-  for (const value of [NaN,Infinity,-1]) assert.throws(()=>offerEconomics({...workshop,deliveryHours:value},60));
-  assert.throws(()=>minimumPrice(workshop,60,.99));
-  assert.throws(()=>evaluateBusinessCase({hourlyCost:60,fixedCashCost:0,editorialHours:0,offers:[{...workshop,quantity:.5}]}));
-  assert.throws(()=>evaluateBusinessCase({hourlyCost:60,fixedCashCost:0,editorialHours:0,offers:[{...workshop,quantity:1},{...workshop,quantity:1}]}));
+test('invalid rates, oversold inventory and density cannot produce plausible forecasts', () => {
+  for (const value of [NaN, Infinity, -1]) assert.throws(() => evaluateBusinessCase({ ...baseline, netImpressionRpm: value }));
+  for (const key of ['editorialShare', 'slotReachRate', 'programmaticEligibilityRate', 'fillRate'] as const) {
+    assert.throws(() => evaluateBusinessCase({ ...baseline, [key]: 1.01 }));
+  }
+  assert.throws(() => evaluateBusinessCase({ ...baseline, slotsPerEditorialPage: 3 }));
+  assert.throws(() => evaluateBusinessCase({ ...baseline, directImpressions: 78_751 }));
 });

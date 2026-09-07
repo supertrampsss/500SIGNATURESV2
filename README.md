@@ -48,12 +48,14 @@ réinstaller cette ancienne architecture sur la base d'un plan historique.
 
 [Décisions produit et modèle économique](docs/product-business-decisions.md) est
 le document de travail courant. Il distingue l'existant, les hypothèses et les
-conditions de lancement. L'accès public reste gratuit ; la première offre à
-valider est un atelier animé pour une organisation. Aucune recette n'est présumée.
+conditions de lancement. L'accès public reste gratuit et la publicité finance
+le site : placements discrets dans les contenus et vente directe d'espaces.
+Le jeu reste sans interruption publicitaire. Aucune recette n'est présumée.
 
-`npm run business:case`, depuis `site/`, recalcule les hypothèses, la marge après
-valorisation du temps et les volumes d'équilibre. Ce script interne ne fixe aucun
-prix public et ne crée aucun paiement.
+`npm run business:case`, depuis `site/`, recalcule les revenus selon l'audience,
+les impressions réellement monétisables, les ventes directes et les coûts.
+La politique partagée est dans `site/src/advertising-policy.ts`. Ces calculs
+et règles ne chargent aucune régie et ne créent aucun paiement.
 
 ## Références
 
@@ -61,6 +63,6 @@ prix public et ne crée aucun paiement.
 |---|---|
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Commandes et niveau de vérification attendu |
 | [Contrat des fichiers publiés](docs/10-api-publique.md) | Données accessibles et structure des publications |
-| [Décisions produit et économie](docs/product-business-decisions.md) | Priorités, offre pilote, calculs et critères de décision |
+| [Décisions produit et économie](docs/product-business-decisions.md) | Emplacements, formats, revenus publicitaires et critères de lancement |
 | [Stratégie Mandats](docs/mandats/STRATEGIE.md) | Contexte de conception historique, certains choix ont évolué |
 | [Plans et spécifications](docs/superpowers/) | Historique des changements, pas une nouvelle liste de fonctionnalités à livrer |

@@ -1,22 +1,25 @@
-import { evaluateBusinessCase, minimumPrice, offerEconomics, type Offer } from './business-model.ts';
+import { evaluateBusinessCase, type AdvertisingCase } from './business-model.ts';
 
-// Hypothèses de travail proposées, pas des ventes, des coûts ou des prix observés.
-const offers: Offer[] = [
-  { id: 'atelier', price: 1200, deliveryHours: 6, acquisitionHours: 3, cashCost: 30, feeRate: .02 },
-  { id: 'dossier', price: 2400, deliveryHours: 12, acquisitionHours: 5, cashCost: 90, feeRate: .02 },
-];
-const hourlyCost = 60, fixedCashCost = 150, editorialHours = 40;
+// Hypothèses de sensibilité, pas des benchmarks de marché ni des résultats observés.
+const baseline: AdvertisingCase = {
+  monthlyPageViews: 100_000, editorialShare: .7, slotsPerEditorialPage: 1.5,
+  slotReachRate: .75, programmaticEligibilityRate: .7, fillRate: .9, netImpressionRpm: 4,
+  directImpressions: 0, directNetCpm: 0, directSalesHours: 0,
+  monthlyCashCost: 150, editorialHours: 40, adOperationsHours: 4, hourlyCost: 60,
+};
 const scenarios = [
-  { name: 'Aucune vente', quantities: [0, 0] },
-  { name: 'Premier atelier', quantities: [1, 0] },
-  { name: 'Trois ateliers et un dossier', quantities: [3, 1] },
-  { name: 'Quatre ateliers et deux dossiers', quantities: [4, 2] },
+  { name: 'Prudent', assumptions: { slotReachRate: .6, programmaticEligibilityRate: .5, fillRate: .75, netImpressionRpm: 2 } },
+  { name: 'Central', assumptions: {} },
+  { name: 'Favorable', assumptions: { slotReachRate: .85, programmaticEligibilityRate: .8, fillRate: .95, netImpressionRpm: 6 } },
 ];
 console.log(JSON.stringify({
-  status: 'Hypothèses proposées. Aucun revenu observé. Montants HT avant impôt.',
-  assumptions: { hourlyCost, fixedCashCost, editorialHours, targetMargin: .4 },
-  offers: offers.map(offer => ({...offer, ...offerEconomics(offer, hourlyCost), priceFloor: minimumPrice(offer, hourlyCost, .4)})),
-  scenarios: scenarios.map(s => ({ name: s.name, ...evaluateBusinessCase({
-    hourlyCost, fixedCashCost, editorialHours, offers: offers.map((offer, i) => ({...offer, quantity: s.quantities[i]})),
-  }) })),
+  status: 'Hypothèses mensuelles en euros hors taxes, avant coûts propres et impôts. Aucune audience ni recette mesurée.',
+  baseline,
+  scenarios: scenarios.map(s => ({ name: s.name, assumptions: { ...baseline, ...s.assumptions },
+    volumes: [10_000, 100_000, 500_000, 1_000_000].map(monthlyPageViews => ({ monthlyPageViews,
+      ...evaluateBusinessCase({ ...baseline, ...s.assumptions, monthlyPageViews }),
+    })),
+  })),
+  pilotOneSlot: evaluateBusinessCase({ ...baseline, slotsPerEditorialPage: 1 }),
+  directCampaignExample: evaluateBusinessCase({ ...baseline, directImpressions: 20_000, directNetCpm: 25, directSalesHours: 4 }),
 }, null, 2));
