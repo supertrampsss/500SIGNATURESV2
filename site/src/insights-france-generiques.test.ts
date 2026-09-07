@@ -212,7 +212,7 @@ test("Gini compare uniquement les pays UE avec la même série harmonisée", () 
     MT: country({"2025": 28}), UK: country({"2025": 35}),
     EU27_2020: country({"2025": 30}), BE: country({"2025": NaN}),
   });
-  assert.deepEqual(result?.graphique?.series.map(s => s.name), ["France", "Allemagne", "Malte"]);
+  assert.deepEqual(result?.graphique?.series.map(s => s.name), ["France", "Allemagne"]);
   assert.deepEqual(result?.graphique?.series[0].values, {"2017": 29, "2025": 30});
   assert.deepEqual(result?.graphique?.series[1].values, {"2017": 31, "2019": 32});
   assert.equal(result?.graphique?.series[0].emphasized, true);

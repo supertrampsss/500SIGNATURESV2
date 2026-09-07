@@ -1,3 +1,4 @@
+import { PAYS_VISIBLES } from "./insights-europe.ts";
 /**
  * La France et ses voisins : la seule comparaison que tout le monde convoque.
  *
@@ -267,11 +268,11 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
   const indexDepense = colonnes.findIndex((c) => c.cle === DEPENSE);
   const indexPrelevements = colonnes.findIndex((c) => c.cle === PRELEVEMENTS);
   const formater = (nombre: number) => `${nombre.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
-  const pointsDepense = lignes.flatMap((ligne) => {
+  const pointsDepense = lignes.filter(ligne => PAYS_VISIBLES.includes(ligne.code)).flatMap((ligne) => {
     const valeur = ligne.cellules[indexDepense];
     return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });
-  const pointsPrelevements = lignes.flatMap((ligne) => {
+  const pointsPrelevements = lignes.filter(ligne => PAYS_VISIBLES.includes(ligne.code)).flatMap((ligne) => {
     const valeur = ligne.cellules[indexPrelevements];
     return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });

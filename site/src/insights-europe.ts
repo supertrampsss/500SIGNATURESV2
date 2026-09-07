@@ -31,7 +31,7 @@ export function comparaisonVoisins(
 }
 
 
-const PAYS_UE = ["FR", "DE", "AT", "BE", "BG", "CY", "HR", "DK", "ES", "EE", "FI", "EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "CZ", "RO", "SK", "SI", "SE"];
+export const PAYS_VISIBLES = ["FR", "DE", "ES", "IT"];
 
 /** Same Eurostat indicator, frequency and observation window for every country. */
 export function courbesEurope(
@@ -47,7 +47,7 @@ export function courbesEurope(
   const from = debut ?? periods[0], to = fin ?? periods.at(-1)!;
   const frequency = (p: string) => /^\d{4}$/.test(p) ? "annual" : /^\d{4}-Q[1-4]$/.test(p) ? "quarterly" : /^\d{4}-\d{2}$/.test(p) ? "monthly" : "other";
   const frequencies = new Set(periods.map(frequency));
-  return PAYS_UE.flatMap((code, index) => {
+  return PAYS_VISIBLES.flatMap((code, index) => {
     const source = code === "FR" ? france : pays?.[code]?.series[indicateur];
     const values = Object.fromEntries(Object.entries(source ?? {}).filter(([p,v]) =>
       Number.isFinite(v) && p >= from && p <= to && frequencies.has(frequency(p))));

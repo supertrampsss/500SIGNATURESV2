@@ -215,3 +215,12 @@ test("moins de trois pays comparables n'est pas une comparaison", () => {
   const deux = { FR: PAYS["FR"]!, DE: PAYS["DE"]! };
   assert.equal(rendu(deux), "");
 });
+
+
+test("les comparaisons graphiques se limitent à quatre pays sans bouton", () => {
+ const html = rendu(PAYS);
+ const rows = [...html.matchAll(/<li class="dataviz__point-rang[^>]*>.*?<\/li>/gs)].map(m=>m[0]);
+ assert.ok(rows.length > 0 && rows.length <= 8);
+ for (const row of rows) assert.match(row, /France|Allemagne|Espagne|Italie/);
+ assert.doesNotMatch(html, /Voir tous les pays|data-country-toggle/);
+});

@@ -38,11 +38,11 @@ test("une comparaison trop partielle n'est pas affichée", () => {
 test("les courbes européennes respectent fenêtre, fréquence, absences et couleurs stables", () => {
   const france = {"2024-Q1": 4, "2024-Q2": 5};
   const pays = {DE: {...territoire("DE"), series: {eurostat_test: {"2024": 99, "2024-Q1": 7, "2025-Q1": 8}}},
-    MT: {...territoire("MT"), series: {eurostat_test: {"2024-Q2": 6}}}};
+    IT: {...territoire("IT"), series: {eurostat_test: {"2024-Q2": 6}}}};
   const curves = courbesEurope(france, pays, "eurostat_test");
-  assert.deepEqual(curves.map(s => s.name), ["France", "Allemagne", "Malte"]);
+  assert.deepEqual(curves.map(s => s.name), ["France", "Allemagne", "Italie"]);
   assert.deepEqual(curves[1].values, {"2024-Q1": 7});
-  assert.equal(curves[2].color, courbesEurope(france, {MT:pays.MT}, "eurostat_test")[1].color);
+  assert.equal(curves[2].color, courbesEurope(france, {IT:pays.IT}, "eurostat_test")[1].color);
   assert.deepEqual(courbesEurope(france, pays, "insee_test"), []);
 });
 
