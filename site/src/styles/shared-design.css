@@ -278,3 +278,27 @@ html body[data-vue='territoire']:not([data-territoire-selection='oui']) #panneau
 @media(max-width:700px) {
  html body .analysis-dialog { width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:20px; }
 }
+
+/* Editorial spacing and continuous light surfaces. */
+html body #france-complements { padding:clamp(20px,4vw,56px);margin-top:48px;border-radius:20px; }
+html body #france-complements>.bloc { padding:0; }
+html body .redistribution-intro { max-width:760px;margin-bottom:36px; }
+html body #bloc-secu { margin-top:48px;padding-top:32px;border-top:1px solid var(--design-line); }
+html body .associations-suite summary { padding:16px 0;cursor:pointer;color:var(--design-gold); }
+html[data-theme='clair'] body:has(#mandats) :is(.choice,.game-tabs,.strategic-panel,.mandate-timeline,.national-command,.national-command__summary,.national-command__society,.finance-panel,.plan-panel) { background:var(--design-bg); }
+html[data-theme='clair'] body:has(#mandats) :is(.choice:hover,.choice:focus-visible,.game-tabs button[aria-current]) { background:var(--design-selected); }
+
+html body .redistribution-intro h2 { font:600 clamp(1.8rem,3vw,2.6rem)/1.15 'Barlow Semi Condensed',Arial,sans-serif;margin:12px 0 18px; }
+html[data-theme='clair'] body:has(#mandats) :is(.pulse,.mode-card,.resume,.resolution-event,.national-areas button) { background:var(--design-bg);color:var(--design-ink);border-color:var(--design-line); }
+html[data-theme='clair'] body:has(#mandats) .national-areas button:hover { background:var(--design-selected); }
+html body .dataviz { --dv-nuit:var(--design-ink);--dv-bleu:var(--design-green);--dv-rouge:var(--design-red);--dv-or:var(--design-gold);--dv-gris:var(--design-muted); }
+html body .dataviz figcaption strong { color:var(--design-ink); }
+html body .dataviz--composition .dataviz__pile { min-height:5px;height:5px;border:0;margin-bottom:1.25rem;border-radius:0; }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--0 { background:var(--design-green);fill:var(--design-green); }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--1 { background:var(--design-gold);fill:var(--design-gold); }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--2 { background:#798b65;fill:#798b65; }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--3 { background:#b69451;fill:#b69451; }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--4 { background:#9b89ab;fill:#9b89ab; }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--5 { background:#8e9695;fill:#8e9695; }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail { background:var(--design-track); }
+html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail>span { background:var(--design-green); }

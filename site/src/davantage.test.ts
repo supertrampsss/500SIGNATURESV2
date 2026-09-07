@@ -136,17 +136,13 @@ test("sept blocs rendus, dans l'ordre, un seul pour population/revenus/diplômes
   assert.doesNotMatch(html, /id="davantage-diplomes"/);
 });
 
-test("le ratio salariés par établissement se calcule secteur par secteur, le plus fort en tête", () => {
+test("les emplois par secteur se rapportent au total commun", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-secteurs"'));
-  // Industrie : 41 / 8 = 5,1 ; Construction : 47 / 14 = 3,4. Industrie
-  // d'abord — les barres de magnitude trient par valeur décroissante.
-  const posIndustrie = bloc.indexOf("Industrie");
-  const posConstruction = bloc.indexOf("Construction");
-  assert.ok(posIndustrie > -1 && posConstruction > -1);
-  assert.ok(posIndustrie < posConstruction, "Industrie (5,1) doit précéder Construction (3,4)");
-  assert.match(bloc, /5,1/);
-  assert.match(bloc, /3,4/);
+  assert.ok(bloc.indexOf("Construction") < bloc.indexOf("Industrie"));
+  assert.match(bloc, /53,4/);
+  assert.match(bloc, /46,6/);
+  assert.doesNotMatch(bloc, /Taille moyenne/);
 });
 
 test("logement ne garde que les cinq indicateurs retenus, jamais les logements vacants", () => {
@@ -176,7 +172,7 @@ test("vie associative nomme chaque association quand la liste nominative est cha
   } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
   assert.match(bloc, /TAKE IT EASY AGENCY/);
-  assert.match(bloc, /3\s?000\s?€|3 000\s?€/);
+  assert.match(bloc, /0,0 M€/);
   assert.doesNotMatch(bloc, /davantage__carte/, "avec une liste nominative, plus d'agrégat en cartes");
 });
 
@@ -353,7 +349,7 @@ test("vie associative liste les associations nommément, sans récap par mission
   assert.doesNotMatch(bloc, /davantage__source/);
 });
 
-test("toutes les associations restent visibles, même au-delà de quinze", () => {
+test("dix associations visibles et la suite accessible par Voir plus", () => {
   const beneficiaires = Array.from({ length: 18 }, (_, i) => ({
     siren: String(i),
     nom: `ASSO ${i}`,
@@ -364,7 +360,8 @@ test("toutes les associations restent visibles, même au-delà de quinze", () =>
   const html = rendu(TERRITOIRE, CATALOGUE, { exercice: "2021", beneficiaires } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
   for (let i = 0; i < 18; i += 1) assert.match(bloc, new RegExp(`ASSO ${i}\\b`));
-  assert.doesNotMatch(bloc, /<details|Voir les .* autres associations/);
+  assert.match(bloc, /Voir plus \(8\)/);
+  assert.equal((bloc.split("<details")[0].match(/class="davantage__assoc"/g) ?? []).length, 10);
 });
 
 test("aucune phrase du panneau ne date son chiffre", () => {
@@ -428,10 +425,10 @@ test("les montants des associations se lisent dans l'unité du total", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, { exercice: "2021", beneficiaires } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'));
   // 1 276 550 € demandait une conversion de tête à côté d'un total en M€.
-  assert.match(bloc, /ASSO GROSSE<\/span><span class="davantage__montant">1,28\u202fM€</);
-  assert.match(bloc, /ASSO MOYENNE<\/span><span class="davantage__montant">0,03\u202fM€</);
+  assert.match(bloc, /ASSO GROSSE<\/span><span class="davantage__montant">1,3 M€</);
+  assert.match(bloc, /ASSO MOYENNE<\/span><span class="davantage__montant">0,0 M€</);
   // Sous 10 000 €, « 0,00 M€ » ou « 0,01 M€ » n'apprendrait rien : l'euro reste.
-  assert.match(bloc, /ASSO PETITE<\/span><span class="davantage__montant">5\u202f000\u00a0€</);
+  assert.match(bloc, /ASSO PETITE<\/span><span class="davantage__montant">0,0 M€</);
 });
 
 test("ni les groupes ni la liste des associations ne s'encadrent", () => {

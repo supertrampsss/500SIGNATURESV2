@@ -1303,8 +1303,8 @@ function ouvrirLaMesure(id: string): void {
  * gestionnaire de la recherche faisait déjà ce repeint ; ces deux tableaux-ci
  * l'avaient oublié.
  */
-async function ouvrirDepuisTableau(code: string, niveau: string | null): Promise<void> {
-  await ouvrirTerritoire(code, niveau);
+async function ouvrirDepuisTableau(code: string, niveau: string | null, nom?: string): Promise<void> {
+  await ouvrirTerritoire(code, niveau, nom);
   if (document.body.dataset.vue === "territoire") {
     await peindreDetail();
     void peindrePalmares();
@@ -1712,7 +1712,7 @@ function brancherCommandes(): void {
     // suit si le territoire visé n'est pas de celle qui est peinte.
     const parent = (evenement.target as HTMLElement).closest<HTMLElement>(".fiche__parent");
     if (parent?.dataset.code) {
-      void ouvrirTerritoire(
+      void ouvrirDepuisTableau(
         parent.dataset.code,
         parent.dataset.niveau ?? null,
         parent.textContent?.trim(),

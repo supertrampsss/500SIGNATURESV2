@@ -149,6 +149,7 @@ function insightRattrapagePologne(series: Series, pays?: Record<string, Territoi
   const gain = ratioFin - ratioDebut;
   return {
     id: "rattrapage-pologne",
+    graphique: {titre:"Niveau polonais rapporté au niveau français",unite:"% du niveau français",series:[{name:"Pologne / France",values:Object.fromEntries(periodes.filter(p=>series[id][p]>0).map(p=>[p,pologne![p]/series[id][p]*100]))}]},
     famille: "travail",
     surtitre: "Europe · le rattrapage économique",
     titre: `Le niveau polonais atteint ${entier.format(ratioFin)} % du niveau français`,

@@ -47,3 +47,10 @@ test('a published lower bound stays a lower bound in year readouts',()=>{
  assert.match(html,/class="chart-series chart-series--0"><circle/);
  assert.doesNotMatch(html,/<strong>130 %<\/strong>/);
 });
+test('quarterly and monthly observations keep their actual spacing',()=>{
+ for(const values of [{'2020-Q1':10,'2020-Q2':12,'2021-Q2':14},{'2020-01':10,'2020-02':12,'2020-06':14}]) {
+  const html=timeChart({title:'Série',description:'',unit:'',series:[{name:'Série',values}],format});
+  assert.match(html,/data-chart-fractions="\[0,0.2,1\]"/);
+  assert.match(html,/>Période<\/span>/);
+ }
+});

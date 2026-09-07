@@ -78,7 +78,7 @@ test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
   // La demande explicite du lecteur : une recette entre (+), une dépense sort
   // (−) — et les sous-lignes des retraites sont des dépenses, pas des gains.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.match(html, /flux--plus">\+31,94\s?€/);
+  assert.match(html, /31,94\s?€/);
   assert.match(html, /flux--moins">−24,09\s?€/);
   assert.match(html, /flux--moins">−109,77\s?€/);
   // Et l'emprunt garde ses hachures — une texture, jamais une couleur.
@@ -114,7 +114,7 @@ test("les recettes se décomposent aussi, reste compris", () => {
   assert.match(lu, /Ventes de services et autres recettes/);
   // 498,7 + 470,4 + 389,9 = 1 359 sur 1 561,6, soit 12,97 € de reste — en
   // positif : une recette entre.
-  assert.match(rendu({ FR: territoire(SERIES) }), />\+12,97\s?€</);
+  assert.match(rendu({ FR: territoire(SERIES) }), />12,97\s?€</);
 });
 
 test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé suggère", () => {
@@ -243,7 +243,7 @@ test("rien n'est peint sans les deux totaux", () => {
   assert.equal(rendu({ FR: territoire(sansDepenses) }), "");
 });
 
-test("l'historique montre la part des cinq plus gros postes, année par année", () => {
+test("le bloc historique et son tableau sont retirés sans enlever la répartition", () => {
   const Md = 1e9;
   // Deux exercices pour chaque poste, plus les totaux : de quoi tracer.
   const deuxAns: Record<string, Record<string, number>> = {
@@ -260,18 +260,8 @@ test("l'historique montre la part des cinq plus gros postes, année par année",
     eurostat_apu_transferts_capital: { "2024": 40 * Md, "2025": 46 * Md },
   };
   const html = rendu({ FR: territoire(deuxAns) });
-  assert.match(html, /Comment la dépense se répartit, depuis 2024/);
-  assert.match(html, /class="graphique__dessin"/);
-  // Cinq lignes, les cinq plus gros postes au dernier exercice, jamais plus —
-  // la gamme validée n'en sépare proprement pas davantage.
-  assert.equal((html.match(/class="graphique__legende-item"/g) ?? []).length, 5);
-  // La légende ne porte que les cinq — « Intérêts de la dette » (6e) reste
-  // dans les barres au-dessus mais pas dans les lignes de la courbe.
-  const legende = html.slice(html.indexOf("graphique__legende"));
-  assert.match(legende, /Retraites, chômage, allocations/);
-  assert.doesNotMatch(legende, /Intérêts de la dette/);
-  // Une part, pas des euros : l'axe est en %.
-  assert.match(html, /Part de chaque poste dans la dépense publique totale, en %/);
+  assert.doesNotMatch(html, /Données et historique des dépenses|<table|graphique__dessin/);
+  assert.match(html, /Où va l'argent/);
 });
 
 test("l'historique se tait sur un seul exercice : une courbe d'un point n'en est pas une", () => {

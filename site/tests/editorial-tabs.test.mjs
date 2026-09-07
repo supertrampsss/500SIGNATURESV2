@@ -54,7 +54,8 @@ test('Territoires: search and financial detail work without WebGL',async({page},
  await publication(page);
  await page.addInitScript(()=>{const getContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return getContext.call(this,type,...args);};});
  await page.goto('/territoire');await expect(page.locator('#territoire-carte-toggle')).toHaveText('Carte indisponible sur cet appareil');
- await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Bordeaux');await activate(page.locator('#suggestions button[data-code="33063"]'),info);
+ await activate(page.locator('.territoire-depart button[data-code="33063"]'),info);
+ await expect(page.locator('#detail .davantage')).toBeVisible();
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
  await expect(page.locator('.territoire-diagnostic')).toBeVisible();await expect(page.locator('.territoire-diagnostic > summary')).toHaveCount(0);await expect(page.locator('#fiche .note')).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);

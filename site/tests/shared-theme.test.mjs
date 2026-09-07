@@ -9,6 +9,7 @@ test('the compact theme control persists through every primary destination and a
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
  await page.goto('/mandats/?mode=national');
  await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
+ expect(await page.locator('.game-tabs').evaluate(el=>getComputedStyle(el).backgroundColor===getComputedStyle(document.body).backgroundColor)).toBe(true);
  await page.locator('[data-action="choose"]').first().click();
  await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
  await page.getByRole('button',{name:'Activer le mode sombre',exact:true}).click();
@@ -43,6 +44,9 @@ test('editorial histories expand, redistribution stays visible and Europe is gro
  await expect(page.getByText('Un pays. Des choix.',{exact:true})).toHaveCount(0);
  await expect(page.locator('#france-complements')).toBeVisible();
  await expect(page.locator('#bloc-redistribution')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Ce que la redistribution change',exact:true})).toBeVisible();
+ await expect(page.getByText('Données et historique des dépenses',{exact:true})).toHaveCount(0);
+ expect(await page.locator('#france-complements').evaluate(el=>parseFloat(getComputedStyle(el).paddingLeft))).toBeGreaterThanOrEqual(20);
  await expect(page.locator('.europe-unifiee #bloc-europe')).toHaveCount(1);
  await expect(page.locator('.europe-unifiee #bloc-fonctions')).toHaveCount(1);
  await expect(page.getByText('La France comparée à ses voisins',{exact:true})).toHaveCount(0);
@@ -52,6 +56,7 @@ test('editorial histories expand, redistribution stays visible and Europe is gro
  await page.getByRole('dialog').getByRole('button',{name:'Fermer',exact:true}).click();
  await expect(expand).toBeFocused();
  await page.goto('/salaires/');
+ expect(await page.locator('.salaires__detail').evaluate(el=>el.previousElementSibling.classList.contains('salary-history'))).toBe(true);
  const select=page.locator('#salary-history-choice');await expect(select).toBeVisible();
  await select.selectOption({index:1});
  await expect(page.locator('[data-salary-history-chart] figcaption')).toContainText(await select.locator('option:checked').textContent());
