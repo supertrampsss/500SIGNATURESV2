@@ -74,6 +74,7 @@ function turnFeedback(g: Game): string {
   return `<div class="turn-feedback"><span class="turn-confirmation">${icon("check")} ${g.version >= 3 && !last.closed ? `Décision ${g.turn} prise` : `Année ${last.year} terminée`}</span><button class="text-button" data-action="view" data-view="journal">Voir les effets</button></div>`;
 }
 function decisionNotes(g:Game):string {
+  if (g.mode === "national") return "";
   const dossier=domainFor(g).dossiers[g.turn];
   return `<section class="page-notes" aria-labelledby="decision-notes-title"><h2 id="decision-notes-title">Le contexte en détail</h2><p>${e(dossier.story)}</p><div class="notes-options">${choicesFor(g).map(c=>`<p><strong>${e(choiceCopy(g,dossier,c).title)}</strong><br>${e(c.cost)}<br>${e(c.description)}</p>`).join("")}</div><p>${e(dossier.advisor)}</p>${g.version === 4 && g.city ? `<p>Source locale : <a href="${e(g.city.provenance.source)}" target="_blank" rel="noopener noreferrer">${e(g.city.provenance.producer)} · comptes ${g.city.year}</a>. Publication ${e(g.city.publication)}. Les données de départ restent identiques pendant la partie.</p>` : ""}</section>`;
 }

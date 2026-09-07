@@ -448,7 +448,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<details class="territoire-diagnostic"><summary>Lire la situation financière</summary>${noteChiffree}</details>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
+      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<section class="territoire-diagnostic" aria-label="Situation financière">${noteChiffree}</section>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},

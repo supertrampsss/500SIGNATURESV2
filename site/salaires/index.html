@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Atelier des revenus</title><meta name="description" content="Comprendre un revenu et ses prélèvements." />    <script>
       try {
         var t = localStorage.getItem("theme");
-        if (t === "sombre" || t === "clair") document.documentElement.dataset.theme = t;
+        document.documentElement.dataset.theme = t === "clair" ? "clair" : "sombre";
       } catch (e) {
         /* navigation privée : le thème suit alors le système, sans mémoire */
       }
@@ -12,8 +12,8 @@
          recherche appartient désormais à Territoires, seule vue où elle sert. -->
     <header class="entete">
       <a class="entete__marque" href="/bilan" aria-label="Où va l'argent public, revenir à France">
-        <span class="entete__nom">Où va l'argent public</span>
-        <span class="entete__signature">Les comptes publics, enfin lisibles</span>
+        <span class="entete__nom">500signatures.</span>
+        <span class="entete__signature">Où va l'argent public</span>
       </a>
 
       <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>

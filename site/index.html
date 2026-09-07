@@ -28,7 +28,7 @@
     <script>
       try {
         var t = localStorage.getItem("theme");
-        if (t === "sombre" || t === "clair") document.documentElement.dataset.theme = t;
+        document.documentElement.dataset.theme = t === "clair" ? "clair" : "sombre";
       } catch (e) {
         /* navigation privée : le thème suit alors le système, sans mémoire */
       }
@@ -48,8 +48,8 @@
          recherche appartient désormais à Territoires, seule vue où elle sert. -->
     <header class="entete">
       <a class="entete__marque" href="/bilan" aria-label="Où va l'argent public, revenir à France">
-        <span class="entete__nom">Où va l'argent public</span>
-        <span class="entete__signature">Les comptes publics, enfin lisibles</span>
+        <span class="entete__nom">500signatures.</span>
+        <span class="entete__signature">Où va l'argent public</span>
       </a>
 
       <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>
@@ -92,13 +92,12 @@
         <div class="territoire-recherche__introduction">
           <p class="territoire-recherche__surtitre">Territoires</p>
           <h1 id="territoire-recherche-titre">Les comptes de votre territoire.</h1>
-          <p>Retrouvez les comptes de votre commune, département ou région.</p>
         </div>
         <div class="recherche territoire-recherche__champ">
           <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
           <input id="recherche" type="search" autocomplete="off" role="combobox"
                  aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
-                 placeholder="Nom ou code INSEE" />
+                 placeholder="Rechercher un territoire…" />
           <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
           <button type="button" id="territoire-carte-toggle" class="territoire-carte-toggle" aria-controls="cadre-carte" aria-expanded="false" disabled>Voir la carte</button>
         </div>
@@ -156,7 +155,7 @@
       <section class="territoire__tables">
         <div id="detail"></div>
         <section class="comparateur" id="comparateur" hidden></section>
-        <div id="palmares"></div>
+
       </section>
 
     </div>
@@ -195,16 +194,12 @@
           <article class="bloc bloc--large" id="bloc-europe"></article>
         </section>
 
-        <details class="accounts-reading">
-          <summary>Analyses par thème</summary>
+        <section class="accounts-reading" aria-label="Analyses par thème">
           <div id="insights-france"></div>
-        </details>
-
-        <section class="bilan-action">
-          <h2>À vous de choisir</h2>
-          <p>Explorez les effets de vos priorités sur le budget public.</p>
-          <a class="bilan-guide__cta" href="/simulateur">Passer au simulateur</a>
         </section>
+        <section class="mandats-invitation" aria-labelledby="mandats-invitation-title"><div><p class="design-eyebrow">À vous de décider</p><h2 id="mandats-invitation-title">Et si vous teniez les comptes ?</h2><p>Un mandat. Vos arbitrages. Leurs conséquences.</p></div><a href="/mandats/?mode=national">Prendre les décisions</a></section>
+
+
       </section>
 
     </div>

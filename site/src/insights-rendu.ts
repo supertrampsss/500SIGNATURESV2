@@ -22,14 +22,7 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3): string {
  * Les cartes suivantes restent dans le DOM : elles sont simplement repliées
  * derrière une action locale, ce qui conserve les ancres et l'accessibilité. */
 function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4): string {
-  const visibles = cartes.slice(0, 3).map((insight) => carte(insight, niveauTitre)).join("");
-  const suite = cartes.slice(3);
-  if (suite.length === 0) return `<ol class="insights__grille">${visibles}</ol>`;
-  return `<ol class="insights__grille">${visibles}</ol>
-    <details class="insights__more">
-      <summary>Voir les autres</summary>
-      <ol class="insights__grille">${suite.map((insight) => carte(insight, niveauTitre)).join("")}</ol>
-    </details>`;
+  return `<ol class="insights__grille">${cartes.map((insight) => carte(insight, niveauTitre)).join("")}</ol>`;
 }
 
 const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [

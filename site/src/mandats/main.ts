@@ -1,6 +1,9 @@
 import { syncNationalScene } from "./national-scene.ts";
 import { icon } from "./icons.ts";
 import "./game.css";
+import "../styles/shared-design.css";
+import { brancherTheme } from "../theme.ts";
+brancherTheme();
 import { searchCities, loadCity } from "./cities.ts";
 import { mountCityMap } from "./city-map.ts";
 import { decide, domainFor, startingGame, start } from "./engine.ts";

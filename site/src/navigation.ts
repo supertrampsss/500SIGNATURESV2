@@ -37,7 +37,7 @@ export function intercepterNavigation(clic: MouseEvent): Destination | null {
 /** Rend la seule navigation primaire du site, indépendamment du document. */
 export function renduNavigation(pathname: string, simulateurDisponible: boolean): string {
   const chemin = normaliserChemin(pathname);
-  return DESTINATIONS.map(({ cle, href, libelle }) => {
+  return DESTINATIONS.filter(({ cle }) => cle !== "simuler").map(({ cle, href, libelle }) => {
     const destination = DESTINATIONS.find((candidate) => candidate.cle === cle)!;
     if (destination.native) {
       const courant = chemin === href ? ' aria-current="page"' : "";
@@ -47,5 +47,5 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
     const courant = chemin === href && !estSimulateurIndisponible ? ' aria-current="page"' : "";
     const indisponible = estSimulateurIndisponible ? ' aria-disabled="true" tabindex="-1"' : "";
     return `<a href="${href}" data-vue="${cle}"${courant}${indisponible}>${libelle}</a>`;
-  }).join("") + '<a href="/mandats/">Mandats</a>';
+  }).join("") + `<a href="/mandats/"${chemin === "/mandats" ? ' aria-current="page"' : ""}>Mandats</a>`;
 }

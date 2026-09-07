@@ -98,14 +98,14 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié"): string {
     <div class="salaires__atelier">
     <form class="salaires__form" id="salaires-form">
       <div class="salaires__statuts" role="group" aria-label="Votre statut">${STATUTS.map(option => `<button type="button" class="salaires__statut" data-statut="${option}" aria-pressed="${option === statut}">${libelleStatut(option)}</button>`).join("")}</div>
-      <label for="salaires-net" class="salaires__label">Votre revenu net mensuel</label>
+      <label for="salaires-net" class="salaires__label">Votre net mensuel après impôt</label>
       <div class="salaires__montant"><input id="salaires-net" name="net" inputmode="decimal" autocomplete="off" maxlength="14" value="${echapper(formaterSalaire(net).replace(" €", ""))}" aria-describedby="salaires-aide salaires-erreur"><span aria-hidden="true">€</span><small>/ mois</small></div>
       <p class="salaires__aide" id="salaires-aide">Le montant qui arrive sur votre compte.</p>
       <p id="salaires-erreur" class="salaires__erreur" role="status" hidden></p>
-      <div class="salaires__reserve"><strong>Une illustration, pas votre fiche de paie.</strong></div>
+      <p class="salaires__reserve">Estimation selon votre statut.</p>
     </form>
     <section class="salaires__resultat" aria-labelledby="salaires-resultat-label" data-salaires-statut="${statut}">
-      <div class="salaires__total"><p id="salaires-resultat-label">Montant total illustratif</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
+      <div class="salaires__total"><p id="salaires-resultat-label">Coût total estimé</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
       <div class="salaires__barre" aria-hidden="true">${LIGNES.map(([cle],i)=>`<span class="salaires__segment salaires__segment--${i}" data-segment="${cle}" style="width:${calcul.coutTotal ? calcul[cle]/calcul.coutTotal*100 : 0}%"></span>`).join("")}</div>
       <dl class="salaires__ventilation">${LIGNES.map(([cle,label],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i><span data-label="${cle}">${libelleLigne(cle,statut,label)}</span></dt><dd data-salaires="${cle}">${formaterSalaire(calcul[cle])}</dd></div>`).join("")}</dl>
       <p class="visuellement-cache" id="salaires-annonce" role="status"></p>
@@ -141,7 +141,7 @@ export function brancherSalaires(root: HTMLElement): void {
     }
     root.querySelector<HTMLElement>("[data-coefficients]")!.textContent = coefficients(selection);
     clearTimeout(annonce);
-    annonce = setTimeout(() => { root.querySelector<HTMLElement>("#salaires-annonce")!.textContent = `Montant total illustratif : ${formaterSalaire(calcul.coutTotal)} par mois.`; }, 400);
+    annonce = setTimeout(() => { root.querySelector<HTMLElement>("#salaires-annonce")!.textContent = `Coût total estimé : ${formaterSalaire(calcul.coutTotal)} par mois.`; }, 400);
   };
   formulaire.addEventListener("submit", event => event.preventDefault());
   formulaire.addEventListener("input", afficher);

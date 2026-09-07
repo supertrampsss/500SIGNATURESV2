@@ -282,7 +282,7 @@ test("la fiche s'arrête au tableau des exercices", () => {
   }
   // Les quatre repères ouvrent le diagnostic, la note reste consultable sur place.
   assert.match(html, /class="note"/, "la note a quitté la fiche");
-  assert.match(html, /<details class="territoire-diagnostic"><summary>Lire la situation financière<\/summary>/);
+  assert.match(html, /<section class="territoire-diagnostic" aria-label="Situation financière">/);
   assert.ok(html.indexOf('class="reperes"') < html.indexOf('class="note"'));
   // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
   // fiche ne dit jamais ce qu'elle est en train de calculer.

@@ -66,8 +66,9 @@ test('France animation pauses without changing the mandate and respects reduced 
  const person=()=>stage(page).locator('[data-person="0"]');
  const first=await person().getAttribute('transform');
  await expect.poll(()=>person().getAttribute('transform')).not.toBe(first);
- const light=page.locator('.header-actions [data-action="light-mode"]');
- await light.click();await expect(light).toHaveText('Vue illustrée');
+ await page.getByRole('button',{name:'Ma partie',exact:true}).click();
+ const light=page.locator('#details [data-action="light-mode"]');
+ await light.click();await expect(page.getByRole('dialog')).not.toBeVisible();
  await expect(stage(page)).toHaveAttribute('data-animation-paused','true');
  const paused=await person().getAttribute('transform');
  await page.getByRole('button',{name:'Ma partie',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();
@@ -75,7 +76,7 @@ test('France animation pauses without changing the mandate and respects reduced 
  expect(await person().getAttribute('transform')).toBe(paused);
  await choose(page);await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
  await expect(stage(page)).toHaveAttribute('data-animation-paused','true');
- await light.click();await expect(light).toHaveText('Vue légère');
+ await page.getByRole('button',{name:'Ma partie',exact:true}).click();await light.click();await expect(page.getByRole('dialog')).not.toBeVisible();
  const resumed=await person().getAttribute('transform');await expect.poll(()=>person().getAttribute('transform')).not.toBe(resumed);
  await page.emulateMedia({reducedMotion:'reduce'});
  await expect.poll(()=>page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);

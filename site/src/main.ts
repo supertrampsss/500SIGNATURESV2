@@ -128,6 +128,7 @@ import "./styles/questions.css";
 import "./styles/salaires.css";
 import "./styles/editorial-identity.css";
 import "./styles/data-studio.css";
+import "./styles/shared-design.css";
 import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
 

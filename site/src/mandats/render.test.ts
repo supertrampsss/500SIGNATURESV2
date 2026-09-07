@@ -7,7 +7,8 @@ test("both mandates have direct accessible choices and optional context", () => 
   assert.match(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
   assert.match(html, /Gouverner une ville/); assert.match(html, /Gouverner la France/);
   for (const mode of ["municipal", "national"] as const) {
-    assert.match(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
+    if (mode === "national") assert.doesNotMatch(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
+    else assert.match(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
     const g = start(mode);
     const setup = mandateSetup(start("municipal",42,"equilibre",4));
     assert.match(setup,/id="city-query"/);
@@ -30,7 +31,8 @@ test("each choice leads to the next dossier with an optional report, then the fi
       if (g.turn < DOMAINS[mode].turns) {
         assert.match(rendered, /<div class="turn-feedback">/);
         assert.doesNotMatch(rendered, /<details/);
-        assert.ok(rendered.indexOf('class="choices"') < rendered.indexOf('class="page-notes"'));
+        if (mode === "municipal") assert.ok(rendered.indexOf('class="choices"') < rendered.indexOf('class="page-notes"'));
+        else assert.doesNotMatch(rendered, /Le contexte en détail/);
         assert.match(rendered, /data-action="choose"/);
         assert.equal((rendered.match(/<h1 /g) ?? []).length, 1);
       }

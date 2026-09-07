@@ -56,17 +56,17 @@ test('Territoires: search and financial detail work without WebGL',async({page},
  await page.goto('/territoire');await expect(page.locator('#territoire-carte-toggle')).toHaveText('Carte indisponible sur cet appareil');
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Bordeaux');await activate(page.locator('#suggestions button[data-code="33063"]'),info);
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
- await expect(page.locator('.territoire-diagnostic')).not.toHaveAttribute('open','');await activate(page.locator('.territoire-diagnostic > summary'),info);await expect(page.locator('#fiche .note')).toBeVisible();await noOverflow(page);
+ await expect(page.locator('.territoire-diagnostic')).toBeVisible();await expect(page.locator('.territoire-diagnostic > summary')).toHaveCount(0);await expect(page.locator('#fiche .note')).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
 
-test('Salaires: dark mode, reduced motion and all five navigation links remain usable',async({page},info)=>{
+test('Salaires: dark mode, reduced motion and all four navigation links remain usable',async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
- await activate(page.getByRole('button',{name:'Basculer le thème'}),info);await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');await noOverflow(page);
+ await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await noOverflow(page);
  const boxes=await page.locator('#navigation-principale a').evaluateAll(links=>links.map(a=>{const b=a.getBoundingClientRect();return {height:b.height,left:b.left,right:b.right,visible:!!a.getClientRects().length};}));
- expect(boxes).toHaveLength(5);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
- await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
+ expect(boxes).toHaveLength(4);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
+ await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
 });
 
 test('France and Territoires: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
@@ -75,7 +75,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await page.goto('/bilan/');
  await expect(page.locator('.bilan-lecture')).toHaveCount(0);
  await expect(page.locator('.accounts-reading')).not.toHaveAttribute('open','');
- await expect(page.locator('#insights-france')).toBeHidden();
+ await expect(page.locator('#insights-france')).toBeVisible();
  const chart=page.locator('#bloc-ouverture .chart-time');
  await expect(chart).toBeVisible();
  const control=chart.getByRole('slider');
@@ -105,9 +105,9 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
  await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
- await page.getByRole('button',{name:'Basculer le thème'}).click();await noOverflow(page);
- await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(243, 244, 235)');
- await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(246, 168, 143)');
- await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(246, 168, 143)');
+ await page.getByRole('button',{name:'Activer le mode clair'}).click();await page.getByRole('button',{name:'Activer le mode sombre'}).click();await noOverflow(page);
+ await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(245, 240, 223)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(133, 207, 175)');
+ await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(133, 207, 175)');
  await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png'),fullPage:true});
 });
