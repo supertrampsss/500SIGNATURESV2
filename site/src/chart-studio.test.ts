@@ -70,14 +70,11 @@ test('European curves retain their legend colors and draw France last', () => {
 });
 
 
-test('European comparison starts with four countries and retains the others behind a toggle', () => {
+test('European charts show only four countries without an expansion button', () => {
  const data = {'2024': 30, '2025': 31};
  const countries = Object.fromEntries(['FR','DE','ES','IT','BE','MT'].map(code => [code, {series:{eurostat_gini:data}} as Territoire]));
  const series = courbesEurope(data, countries, 'eurostat_gini');
- assert.deepEqual(series.filter(s=>!s.secondary).map(s=>s.name), ['France','Allemagne','Espagne','Italie']);
+ assert.deepEqual(series.map(s=>s.name), ['France','Allemagne','Espagne','Italie']);
  const html = timeChart({title:'Gini',description:'',unit:'indice',series,format});
- assert.match(html, /data-countries="limited"/);
- assert.match(html, /aria-expanded="false">Voir tous les pays/);
- assert.match(html, /chart-series--2" data-country-secondary/);
- assert.match(chartReadout({title:'',description:'',unit:'',series,format}, '2024'), /data-country-secondary/);
+ assert.doesNotMatch(html, /Voir tous les pays|data-country-toggle|Belgique|Malte/);
 });
