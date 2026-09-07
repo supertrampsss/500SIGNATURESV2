@@ -217,13 +217,10 @@ test("moins de trois pays comparables n'est pas une comparaison", () => {
 });
 
 
-test("les voisins secondaires restent disponibles sans encombrer la comparaison initiale", () => {
+test("les comparaisons graphiques se limitent à quatre pays sans bouton", () => {
  const html = rendu(PAYS);
- assert.match(html, /data-countries="limited"/);
- assert.match(html, /data-country-toggle aria-expanded="false">Voir tous les pays/);
  const rows = [...html.matchAll(/<li class="dataviz__point-rang[^>]*>.*?<\/li>/gs)].map(m=>m[0]);
- for (const row of rows) {
-   if (/France|Allemagne|Espagne|Italie/.test(row)) assert.doesNotMatch(row, /data-country-secondary/);
-   else assert.match(row, /data-country-secondary/);
- }
+ assert.ok(rows.length > 0 && rows.length <= 8);
+ for (const row of rows) assert.match(row, /France|Allemagne|Espagne|Italie/);
+ assert.doesNotMatch(html, /Voir tous les pays|data-country-toggle/);
 });
