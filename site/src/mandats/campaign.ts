@@ -1,3 +1,4 @@
+import { annualDeficit, deficitBaseline, INITIAL_DEFICIT } from './national-deficit.ts';
 import { nationalPolicyDossiers } from './national-policy.ts';
 import { localDossiers } from './local-campaign.ts';
 import { longDossiers, CAMPAIGN_THREADS } from './campaign-content.ts';
@@ -29,6 +30,7 @@ function costFor(c:Choice):string {
 export function campaignDomain(g:Game):Domain {
   const base=BASE[g.mode], initial=()=>{
     const state=base.initial();
+    if (g.version >= 6 && g.mode === "national") state.finance = deficitBaseline(state.finance);
     if(g.city) {
       state.finance=financeForCity(g.city);
       state.areas=state.areas.map((a,i)=>({...a,name:['Zone de proximité','Zone d’équipements','Zone résidentielle'][i],need:'Zone de jeu hypothétique, sans diagnostic local observé'}));
@@ -39,7 +41,7 @@ export function campaignDomain(g:Game):Domain {
   const cacheKey=g.version === 4 && g.city ? `4:${JSON.stringify(g.city)}` : `${g.version}:${g.mode}:${scale}`;
   let dossiers=dossierCache.get(cacheKey);
   if(!dossiers){
-  const source = g.version === 4 && g.city ? localDossiers(g.city,compiled[g.mode]) : g.version === 5 ? nationalV5 : compiled[g.mode];
+  const source = g.version === 4 && g.city ? localDossiers(g.city,compiled[g.mode]) : g.version >= 5 ? nationalV5 : compiled[g.mode];
   dossiers=source.map(d=>({...d,choices:d.choices.map(c=>{
     const result={...c,effect:scaledEffect(c.effect,scale),...(c.delayed?{delayed:{...c.delayed,effect:scaledEffect(c.delayed.effect,scale)}}:{})};
     return g.city?{...result,cost:costFor(result)}:result;
@@ -56,21 +58,22 @@ export function campaignDomain(g:Game):Domain {
   return {...base,turns:45,duration:`45 décisions · ${g.mode==='municipal'?6:5} années`,place:g.city?.name??base.place,
     intro:g.city?`Vous prenez les commandes de ${g.city.name}, à partir des comptes publiés de ${g.city.year}. Les décisions et leurs effets constituent une simulation.`:base.intro,
     scope:g.city?'Comptes de départ observés ; coûts, zones, indicateurs et conséquences hypothétiques. Aucun diagnostic des habitants ni prévision électorale.':base.scope,
+    ...(g.version >= 6 ? { objectives: ["Réduire le déficit annuel jusqu’à l’équilibre", "Préserver les services et la cohésion", "Préparer les crises futures"] } : {}),
     initial,dossiers,
     prepare:(f:Finance)=>{
       const inherited=initial().finance;
-      return {...f,investment:inherited.investment,grants:inherited.grants,repayment:Math.min(inherited.repayment,f.debt),...(g.mode==='national'?{rate:f.rate+.2*(f.marketRate-f.rate)}:{})};
+      return {...f,investment:inherited.investment,grants:inherited.grants,repayment:Math.min(inherited.repayment,f.debt),...(g.mode==='national'?{rate:g.version >= 6 && g.turn === 0 ? f.rate : f.rate+.2*(f.marketRate-f.rate)}:{})};
     },
     sustainability:(current:Game)=>{
       const initialFinance=initial().finance;
-      if(g.mode==='national')return base.sustainability(current);
+      if(g.mode==='national')return g.version >= 6 ? clamp(50 + 50 * (INITIAL_DEFICIT - annualDeficit(current)) / INITIAL_DEFICIT) : base.sustainability(current);
       const ratio=(f:Finance)=>(f.debt-f.cash)/Math.max(1e-6,f.revenue);
       const margin=(f:Finance)=>(f.revenue-f.operating-f.debt*f.rate)/Math.max(1e-6,f.revenue);
       return clamp(60+35*(ratio(initialFinance)-ratio(current.finance))+100*(margin(current.finance)-margin(initialFinance)));
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};

@@ -6,7 +6,7 @@ type Copy = (typeof MUNICIPAL_COPY)[number];
 
 /** Presentation is independent from the frozen rules used to replay saves. */
 export function dossierCopy(g: Game, dossier: Dossier): Copy {
-  if (g.version === 5) return [dossier.title, dossier.story, dossier.choices.map(c => c.title) as [string,string,string], dossier.choices.map(c => c.sacrifice) as [string,string,string]];
+  if (g.version >= 5) return [dossier.title, dossier.story, dossier.choices.map(c => c.title) as [string,string,string], dossier.choices.map(c => c.sacrifice) as [string,string,string]];
   const id = dossier.choices[0]?.id ?? '';
   const local = /^l4([0-5])([0-2])0$/.exec(id);
   if (g.version === 4 && g.city && local) return localCopy(g, Number(local[1]), Number(local[2]));

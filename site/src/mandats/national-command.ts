@@ -1,5 +1,6 @@
 import { calendarFor, domainFor } from './engine.ts';
 import type { Effect, Game } from './types.ts';
+import { annualDeficit } from './national-deficit.ts';
 
 const number = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
 const signed = (value: number) => `${value > 0 ? '+' : '−'}${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(Math.abs(value))}`;
@@ -20,9 +21,14 @@ export function nationalDecisionImpact(game: Game): Impact[] {
     label,
     direction: value === 0 ? 'neutral' : (value > 0) === positiveWhenHigher ? 'up' : 'down',
   });
-  if (choice.effect.revenue) push(`Recettes ${signed(choice.effect.revenue)} Md€/an`, choice.effect.revenue);
-  if (choice.effect.operating) push(`Dépenses ${signed(choice.effect.operating)} Md€/an`, choice.effect.operating, false);
-  if (choice.effect.investment) push(`Investissement ${signed(choice.effect.investment)} Md€`, choice.effect.investment);
+  if (game.version >= 6) {
+    const delta = (choice.effect.operating ?? 0) + (choice.effect.investment ?? 0) - (choice.effect.revenue ?? 0);
+    if (delta) push(`Déficit ${signed(delta)} Md€ cette année`, delta, false);
+  } else {
+    if (choice.effect.revenue) push(`Recettes ${signed(choice.effect.revenue)} Md€/an`, choice.effect.revenue);
+    if (choice.effect.operating) push(`Dépenses ${signed(choice.effect.operating)} Md€/an`, choice.effect.operating, false);
+    if (choice.effect.investment) push(`Investissement ${signed(choice.effect.investment)} Md€`, choice.effect.investment);
+  }
   if (choice.effect.repayment) push(`Remboursement ${signed(choice.effect.repayment)} Md€`, choice.effect.repayment);
   for (const [key, label] of metricLabels) {
     const value = choice.effect[key];
@@ -44,5 +50,10 @@ export function nationalMandateHeading(game: Game): string {
 
 export function nationalCommandPulse(game: Game): string {
   const impact = nationalDecisionImpact(game);
-  return `<dl class="national-command-pulse" aria-label="État du pays dans la simulation">${impact.length ? `<div class="national-decision-impact" aria-live="polite"><dt>Effet de la mesure</dt><dd>${impact.map(item => `<span data-direction="${item.direction}">${item.label}</span>`).join('')}</dd></div>` : ''}<div><dt>Dette publique</dt><dd>${number(game.finance.debt)} <small>Md€</small></dd></div><div><dt>Services publics</dt><dd>${number(game.metrics.services)}<small>/100</small></dd></div></dl>`;
+  const deficit = annualDeficit(game);
+  const initial = domainFor(game).settle(domainFor(game).initial().finance).deficit;
+  const last = game.history.at(-1);
+  const year = last?.year ?? 1;
+  const amount = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(Math.abs(deficit));
+  return `<dl class="national-command-pulse" aria-label="État du pays dans la simulation">${impact.length ? `<div class="national-decision-impact" aria-live="polite"><dt>Effet de la mesure</dt><dd>${impact.map(item => `<span data-direction="${item.direction}">${item.label}</span>`).join('')}</dd></div>` : ''}${game.version >= 6 ? `<div class="national-deficit" aria-live="polite"><dt>${deficit < -.000001 ? 'Excédent annuel' : 'Déficit annuel'}</dt><dd>${amount} <small>Md€</small><small class="deficit-context">Année ${year}${last?.closed ? ' clôturée' : ' · budget prévu'}</small><small class="deficit-context">Départ : ${number(initial)} Md€ · Objectif : 0</small></dd></div>` : `<div><dt>Dette publique</dt><dd>${number(game.finance.debt)} <small>Md€</small></dd></div>`}<div><dt>Services publics</dt><dd>${number(game.metrics.services)}<small>/100</small></dd></div></dl>`;
 }
