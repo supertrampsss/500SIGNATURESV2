@@ -14,7 +14,7 @@ test("la navigation expose les quatre destinations utiles sans lien Accueil", ()
     [
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Territoires" },
-      { cle: "salaires", href: "/salaires", libelle: "Salaires" },
+      { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
@@ -36,8 +36,8 @@ test("Analyses ne figure pas dans la navigation principale", () => {
 
 test("Salaires reste un lien natif vers sa page pré-rendue", () => {
   const html = renduNavigation("/salaires/", true);
-  assert.match(html, /<a href="\/salaires" aria-current="page">Salaires<\/a>/);
-  assert.doesNotMatch(html, /href="\/salaires"[^>]*data-vue/);
+  assert.match(html, /<a href="\/salaires\/" aria-current="page">Salaires<\/a>/);
+  assert.doesNotMatch(html, /href="\/salaires\/"[^>]*data-vue/);
 });
 
 test("le menu partagé contient quatre destinations, sans l'ancien simulateur", () => {

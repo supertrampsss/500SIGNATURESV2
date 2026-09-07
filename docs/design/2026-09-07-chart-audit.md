@@ -23,6 +23,7 @@ L'audit couvre les rendus partagés de France, Territoires, Salaires et Mandats,
 | Raccourcis de villes | Fiche seule, détails non repeints | Bordeaux et les liens de parenté chargent aussi les analyses complémentaires, comme la recherche. |
 | Associations | Liste intégrale et formats variables | Dix bénéficiaires les plus financés, puis « Voir plus ». Tous les montants en M€, une décimale. |
 | Associations, provenance | Risque de confondre État et ville bénéficiaire | « Subventions nationales à Bordeaux » dans la liste nominative. La commune reste nommée Commune dans sa fiche. |
+| Salaires, navigation | Adresse sans slash susceptible de servir le repli sans données | Lien canonique vers /salaires/ et redirection de l’ancienne entrée. |
 | Salaires | Calcul détaillé interrompt le parcours | « Voir le calcul » après la répartition et son évolution, en bas de page. Suppression du commentaire sur l'interpolation. |
 | Mandats, clair | Bandeaux, progression et choix blancs | Fond commun, bordures discrètes, sélection contrastée. Les commandes territoriales du bilan suivent aussi le thème. |
 | Graphiques, sombre | Titres et couleurs hérités du thème clair | Couleurs de texte et de séries raccordées aux variables du thème. |

@@ -23,6 +23,7 @@ test('the compact theme control persists through every primary destination and a
    await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
    await expect(page.locator('h1:visible').first()).toHaveCSS('color','rgb(245, 240, 223)');
    await expect(page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link')).toHaveCount(4);
+   if(name==='Salaires') await expect(page.locator('.salary-history')).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  }
  await page.screenshot({path:info.outputPath('shared-theme-'+info.project.name+'.png'),fullPage:true});
