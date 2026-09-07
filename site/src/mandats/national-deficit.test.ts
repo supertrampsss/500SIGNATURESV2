@@ -4,7 +4,7 @@ import { start, decide, choicesFor, domainFor } from './engine.ts';
 import { annualDeficit } from './national-deficit.ts';
 import { nationalBudget } from './national.ts';
 import { nationalCommandPulse, nationalDecisionImpact } from './national-command.ts';
-import { finance, result } from './render.ts';
+import { finance, result, pulse } from './render.ts';
 import { encode, decode } from './storage.ts';
 import { challengeURL, challengeFromURL, resultURL, sharedResult } from './sharing.ts';
 const close = (a:number,b:number) => assert.ok(Math.abs(a-b)<1e-8, `${a} != ${b}`);
@@ -58,4 +58,14 @@ test('v5 retains its historical deficit and first-year interest rule',()=>{
  const played=cut(initial());
  assert.deepEqual(decode(encode(old)),old); assert.deepEqual(decode(encode(played)),played);
  assert.throws(()=>start('municipal',42,'equilibre',6),/national/);
+});
+
+test('legacy national games retain their debt presentation and historical objective',()=>{
+ for(const version of [1,2,3,4,5] as const){
+  const g=start('national',42,'equilibre',version);
+  assert.match(nationalCommandPulse(g),/Dette publique/);
+  assert.doesNotMatch(nationalCommandPulse(g),/Objectif : 0|Déficit annuel/);
+  assert.match(pulse(g),/Dette \/ PIB/);
+  assert.doesNotMatch(result(g),/deficit-result|Équilibre atteint/);
+ }
 });

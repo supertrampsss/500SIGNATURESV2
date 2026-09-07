@@ -22,9 +22,9 @@ avec une économie cumulée sur cinq ans. En v6, la dimension finances du score 
 pondérations restent inchangées.
 
 Les versions 1 à 5, sauvegardes et défis compris, conservent leurs calculs et leur
-déficit initial historique. Seules les nouvelles parties nationales choisissent v6.
+déficit initial historique et leur affichage orienté dette. Seules les nouvelles parties nationales choisissent v6.
 Les 45 propositions d’économie et la diversité fiscale de v5 sont conservées.
 
-Validation : 1 390 tests unitaires, typage et build ; inspection du compteur sur
+Validation : 1 391 tests unitaires, typage et build ; inspection du compteur sur
 ordinateur et dans des cadres de 390 et 320 px, avant et après décision. Les suites
 Chromium/WebKit sont exécutées par la CI, les exécutables locaux étant absents.
