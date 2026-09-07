@@ -13,9 +13,20 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
+- France comparisons use France, Germany, Spain and Italy only when comparable data exist.
+  Reuse `PAYS_VISIBLES`; do not restore an all-countries control or an outer Europe frame.
 - Keep essential controls accessible without hover; respect reduced motion.
 - Preserve saved games, deep links and offline use. Do not clear storage to hide a bug.
 - No advertising in gameplay. Do not activate social publishing or tracking as a side effect.
+
+## Business decisions
+
+[Current product and business decisions](docs/product-business-decisions.md) is the
+current reference; earlier strategy documents are historical context. Keep public
+reading and core gameplay free. Validate paid workshops first, then repeatable
+organisation services. Label prices, volumes and costs as proposed assumptions
+until supported by actual evidence. Include delivery, acquisition and editorial
+time in economics. Commercial modules must not change scores or observed data.
 
 ## Find the right code
 
