@@ -54,3 +54,16 @@ test('quarterly and monthly observations keep their actual spacing',()=>{
   assert.match(html,/>Période<\/span>/);
  }
 });
+
+test('European curves retain their legend colors and draw France last', () => {
+ const series = Array.from({length: 27}, (_, i) => ({
+  name: i === 0 ? 'France' : `Pays ${i}`, values: {'2024': 25 + i / 10},
+  color: i === 0 ? '#1763c6' : '#666666', emphasized: i === 0,
+ }));
+ const html = timeChart({title: 'Gini', description: '', unit: 'indice', series, format});
+ assert.match(html, /chart-time--many/);
+ assert.match(html, /chart-key--0" style="color:#1763c6"/);
+ const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
+ assert.ok(svg.indexOf('chart-series--0') > svg.indexOf('chart-series--26'));
+ assert.match(svg, /data-emphasized="true"/);
+});

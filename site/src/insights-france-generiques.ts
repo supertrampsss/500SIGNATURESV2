@@ -7,9 +7,12 @@ import {
   type RecetteTendance,
 } from "./insights-france-catalogue.ts";
 import { periodeCommune, type Insight, type PreuveInsight } from "./insights.ts";
+import { nomPays } from "./pays-noms.ts";
 import { comparaisonVoisins } from "./insights-europe.ts";
 
 type Series = Territoire["series"];
+const PAYS_UE = ["FR", "DE", "AT", "BE", "BG", "CY", "HR", "DK", "ES", "EE", "FI", "EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "CZ", "RO", "SK", "SI", "SE"];
+
 type Point = { periode: string; valeur: number };
 
 const nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
@@ -61,6 +64,18 @@ export function creerInsightTendance(
     surtitre: recette.surtitre,
     titre: `${recette.sujet} : ${amplitude}`,
     texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false, recette.indicateur)} à ${formater(arrivee.valeur, recette.unite, false, recette.indicateur)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
+    graphique: recette.indicateur === "eurostat_gini" ? {
+      titre: "Indice de Gini après redistribution · Union européenne",
+      unite: "indice (0 à 100)",
+      series: PAYS_UE.flatMap((code, index) => {
+        const values = Object.fromEntries(points(code === "FR" ? series.eurostat_gini : pays?.[code]?.series.eurostat_gini)
+          .filter(({ periode }) => periode >= depart.periode && periode <= arrivee.periode)
+          .map(({ periode, valeur }) => [periode, valeur]));
+        return Object.keys(values).length ? [{ name: nomPays(code), values,
+          color: code === "FR" ? "#1763c6" : `hsl(${(index * 137.508) % 360} 48% 43%)`,
+          emphasized: code === "FR" }] : [];
+      }),
+    } : undefined,
     reserve: recette.reserve,
     comparaison: recette.indicateur.startsWith("eurostat_")
       ? comparaisonVoisins(pays, recette.indicateur, arrivee.periode, recette.unite)
