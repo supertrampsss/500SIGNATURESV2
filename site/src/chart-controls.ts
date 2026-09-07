@@ -19,6 +19,16 @@ export function bindChartControls(root: Document): void {
   root.addEventListener('input',event=>{if(event.target instanceof HTMLInputElement && event.target.closest('.chart-time'))update(event.target);});
   root.addEventListener('click',event=>{
     if(event.target instanceof Element) {
+      const toggle = event.target.closest<HTMLButtonElement>('[data-country-toggle]');
+      if (toggle) {
+        const scope = toggle.closest<HTMLElement>('[data-country-scope]');
+        if (!scope) return;
+        const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+        scope.dataset.countries = expanded ? 'all' : 'limited';
+        toggle.setAttribute('aria-expanded', String(expanded));
+        toggle.textContent = expanded ? 'Réduire la liste' : 'Voir tous les pays';
+        return;
+      }
       const card=event.target.closest<HTMLElement>('[data-expand-card]');
       const interactive=event.target.closest('a,input,select,button');
       if(card && (!interactive || interactive.hasAttribute('data-expand-analysis')) && !card.closest('dialog')) {
