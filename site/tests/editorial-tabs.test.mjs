@@ -4,19 +4,22 @@ const fixture=JSON.parse(await readFile(new URL('./fixtures/editorial-publicatio
 const numeric=text=>Number(text.replace(/[^0-9]/g,''));
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function publication(page){
+async function publication(page,{demographie=false}={}){
+ const indicateurs=demographie?[...fixture.indicateurs,{id:'insee_population_municipale',libelle:'Population municipale',unite:'count',theme:'population',niveaux:['commune'],sommable:true,jeu:'insee-population',periodes:['2023']}]:fixture.indicateurs;
+ const communes=structuredClone(fixture.communes);
+ if(demographie)communes['33063'].series.insee_population_municipale={'2023':267991};
  await page.route('https://pub-fc39d357004540a182a907aed4875ef5.r2.dev/**',async route=>{
   const path=new URL(route.request().url()).pathname;
   let body;
   if(path==='/data/derniere.json') body={version:fixture.publication};
   else if(path==='/geo/derniere.json') body={cle:'geo/test.pmtiles',version:'test'};
   else if(path.endsWith('/manifeste.json')) body={version:fixture.publication,jeux:fixture.jeux};
-  else if(path.endsWith('/indicateurs.json')) body=fixture.indicateurs;
+  else if(path.endsWith('/indicateurs.json')) body=indicateurs;
   else if(path.endsWith('/recherche.json')) body=fixture.recherche;
   else if(path.endsWith('/territoires/pays/tous.json')) body=fixture.pays;
   else if(path.endsWith('/territoires/region/tous.json')) body=fixture.regions;
   else if(path.endsWith('/territoires/departement/tous.json')) body=fixture.departements;
-  else if(/\/territoires\/commune\/(33|75)\.json$/.test(path)) body=fixture.communes;
+  else if(/\/territoires\/commune\/(33|75)\.json$/.test(path)) body=communes;
   else if(/\/territoires\/(commune|region|departement)\/index\.json$/.test(path)) body=fixture['index_'+path.split('/').at(-2)];
   else if(path.endsWith('/comparaisons.json')) body={criteres:[],groupes:{}};
   if(body) await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
@@ -51,11 +54,12 @@ test('France: published accounts survive a network failure and chapters stay on 
 });
 
 test('Territoires: search and financial detail work without WebGL',async({page},info)=>{
- await publication(page);
+ await publication(page,{demographie:true});
  await page.addInitScript(()=>{const getContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return getContext.call(this,type,...args);};});
  await page.goto('/territoire');await expect(page.locator('#territoire-carte-toggle')).toHaveText('Carte indisponible sur cet appareil');
  await activate(page.locator('.territoire-depart button[data-code="33063"]'),info);
- await expect(page.locator('#detail .davantage')).toBeVisible();
+ await expect(page.locator('#detail #davantage-population')).toBeVisible();
+ await expect(page.locator('#detail #davantage-population')).toContainText(/267\s991/);
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
  await expect(page.locator('.territoire-diagnostic')).toBeVisible();await expect(page.locator('.territoire-diagnostic > summary')).toHaveCount(0);await expect(page.locator('#fiche .note')).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
