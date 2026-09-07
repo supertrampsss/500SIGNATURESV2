@@ -106,11 +106,11 @@ test("l'unité est dans la légende, à l'échelle du tableau entier", () => {
   assert.doesNotMatch(corps, /M€|millions|milliards/);
   assert.match(html, /<caption>Montants en millions d'euros\./);
   assert.match(html, /class="dataviz dataviz--ecart"/);
-  assert.match(html, /class="dataviz dataviz--solde(?: [^"]+)?"/);
-  assert.match(html, /<details class="dataviz__donnees">/);
+  assert.match(html, /class="chart-time"/);
+  assert.doesNotMatch(html, /<details class="dataviz__donnees">/);
 });
 
-test("le tableau exact est replié derrière les graphiques", () => {
+test("les évolutions et le tableau sont directement visibles", () => {
   const html = rendreExercices(
     exercices({
       cites: [
@@ -123,8 +123,8 @@ test("le tableau exact est replié derrière les graphiques", () => {
     }),
   );
   assert.match(html, /Les dépenses restent sous les recettes/);
-  assert.match(html, /Ce qui a le plus bougé depuis 2019/);
-  assert.match(html, /<summary>Voir les montants exacts<\/summary>/);
+  assert.match(html, /data-chart-periods=/);
+  assert.doesNotMatch(html, /Voir les montants exacts/);
   assert.equal((html.match(/<table>/g) ?? []).length, 1);
 });
 

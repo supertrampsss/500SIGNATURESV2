@@ -216,7 +216,7 @@ test("la fiche territoriale relie chaque maille à son registre exact", () => {
     });
     assert.ok(url, `source ${niveau} absente du registre`);
     assert.match(cible.innerHTML, new RegExp(`href="${url}"`));
-    assert.match(cible.innerHTML, /Comprendre le calcul/);
+    assert.match(cible.innerHTML, /Sources et méthode/);
   }
 });
 /**

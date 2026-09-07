@@ -36,7 +36,7 @@ test('the living France is the national mandate, with its budget and saved decis
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  expect(saved.mode).toBe('national');expect(saved.version).toBe(7);expect(saved.choices).toHaveLength(3);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
- await page.getByRole('button',{name:'Finances',exact:true}).click();
+ await page.getByRole('button',{name:'Bilan',exact:true}).click();
  await expect(page.locator('.finance-panel')).toContainText('Md€');
  await expect(page.locator('.finance-panel')).toContainText('Dette');await noOverflow(page);
  await page.goto(HOME);await page.getByRole('button',{name:'Reprendre',exact:true}).click();
@@ -116,13 +116,13 @@ test('an alternative pension choice changes the available continuation without c
  await expect(page.locator('.dossier h1')).toHaveText('Faut-il compenser les retraités touchés par la baisse ?');
  await choose(page);
  const saved=await page.evaluate(key=>localStorage.getItem(key),KEY);
- await page.getByRole('button',{name:'Atelier',exact:true}).click();
+ await page.getByRole('button',{name:'Ma partie',exact:true}).click();await page.getByRole('button',{name:'Comparer une autre stratégie',exact:true}).click();
  await page.locator('[data-plan-year="0"]').selectOption('r01b');
  await expect(page.locator('[data-plan-year="1"] option[value="r01-othera"]')).toHaveCount(1);
  await expect(page.locator('[data-plan-year="1"] option[value="r01-cuta"]')).toHaveCount(0);
  await page.locator('[data-plan-year="1"]').selectOption('r01-otherb');
  expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(saved);
- await page.getByRole('button',{name:'Territoire',exact:true}).click();
+ await page.getByRole('button',{name:'Bilan',exact:true}).click();
  await expect(page.locator('.society-panel')).toContainText('Retraités');
  await expect(page.locator('.society-panel')).toContainText('48');
  await noOverflow(page);

@@ -27,7 +27,7 @@ test('ten national decisions apply once, keep the next question readable and pre
  }
  expect(new Set(titles).size).toBe(10);
  const saved=await page.evaluate(k=>localStorage.getItem(k),KEY);
- await page.getByRole('button',{name:'Finances',exact:true}).click();await expect(page.locator('.finance-panel')).toBeVisible();
+ await page.getByRole('button',{name:'Bilan',exact:true}).click();await expect(page.locator('.finance-panel')).toBeVisible();
  await page.getByRole('button',{name:'Décider',exact:true}).click();
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe(saved);
  await expect(page.locator('.campaign-position')).toContainText('11/45');

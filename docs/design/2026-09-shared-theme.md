@@ -24,11 +24,13 @@ Captures du site exécuté, et non du prototype :
 
 - [France, ordinateur](france-desktop.png)
 - [Graphique France et Salaire, formats mobiles, sombre](mobile-charts-sombre.png)
-- [Vote et fiche Bordeaux, formats mobiles, clair](mobile-clair.png)
+- [France et vote, formats mobiles, clair](mobile-clair.png)
 
-Validation locale : 1 405 tests unitaires et compilation/prérendu réussis.
+Validation du premier lot : 1 405 tests unitaires et compilation/prérendu réussis.
 Contrôle navigateur : France, Bordeaux, Salaire et plusieurs votes nationaux,
 en clair et sombre, ordinateur et cadres mobiles de 390 et 320 pixels.
 Le WebGL du navigateur de contrôle est indisponible : le repli territorial est
 fonctionnel. La suite Chromium/WebKit reste un gate CI avant fusion, les binaires
 du navigateur de test n'étant pas téléchargeables dans l'environnement local.
+
+Complément : [corrections des tests utilisateurs](2026-09-feedback-follow-through.md).

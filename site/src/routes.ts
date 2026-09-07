@@ -57,9 +57,8 @@ export function modeSimulateur(pathname: string, search: string): ModeSimulateur
  * Ils restent reconnaissables pour pouvoir les faire atterrir proprement dans
  * la campagne actuelle, sans afficher une seconde interface concurrente.
  */
-export function adresseSimulateurCanonique(pathname: string, search: string): string | null {
-  if (modeSimulateur(pathname, search) !== "v2") return null;
-  return `${CHEMINS.simulateur}?version=3`;
+export function adresseSimulateurCanonique(pathname: string, _search: string): string | null {
+  return /^\/simulateur(?:\/|$)/.test(pathname) ? "/mandats/" : null;
 }
 
 /**

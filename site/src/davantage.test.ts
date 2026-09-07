@@ -353,7 +353,7 @@ test("vie associative liste les associations nommément, sans récap par mission
   assert.doesNotMatch(bloc, /davantage__source/);
 });
 
-test("au-delà de 15 associations, le reste se déplie plutôt que de s'afficher d'un bloc", () => {
+test("toutes les associations restent visibles, même au-delà de quinze", () => {
   const beneficiaires = Array.from({ length: 18 }, (_, i) => ({
     siren: String(i),
     nom: `ASSO ${i}`,
@@ -363,18 +363,8 @@ test("au-delà de 15 associations, le reste se déplie plutôt que de s'afficher
   }));
   const html = rendu(TERRITOIRE, CATALOGUE, { exercice: "2021", beneficiaires } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
-  const avantPli = bloc.slice(0, bloc.indexOf("<details"));
-  // Les quinze mieux dotées (déjà triées, la plus dotée d'abord) sont
-  // visibles sans geste.
-  for (let i = 0; i < 15; i += 1) assert.match(avantPli, new RegExp(`ASSO ${i}\\b`));
-  assert.doesNotMatch(avantPli, /ASSO 15\b/);
-  // Le pli porte les trois restantes, fermé par défaut.
-  assert.match(bloc, /<details class="davantage__pli">/);
-  assert.doesNotMatch(bloc, /<details class="davantage__pli" open/);
-  assert.match(bloc, /Voir les 3 autres associations/);
-  const dansLePli = bloc.slice(bloc.indexOf("<details"));
-  assert.match(dansLePli, /ASSO 15\b/);
-  assert.match(dansLePli, /ASSO 17\b/);
+  for (let i = 0; i < 18; i += 1) assert.match(bloc, new RegExp(`ASSO ${i}\\b`));
+  assert.doesNotMatch(bloc, /<details|Voir les .* autres associations/);
 });
 
 test("aucune phrase du panneau ne date son chiffre", () => {

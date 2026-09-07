@@ -341,7 +341,7 @@ export function afficherFiche(
         .find((id): id is string => Boolean(id))
     : undefined;
   const lienPreuve = idSource
-    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Comprendre le calcul</a></p>`
+    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Sources et méthode</a></p>`
     : "";
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
@@ -375,6 +375,7 @@ export function afficherFiche(
     : renduInsights(insightsTerritoire(territoire, options.indicateurs), options.indicateurs, {
         contexte: "territoire",
         nom: territoire.nom,
+        series: territoire.series,
       });
   cible.innerHTML = `
     <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>

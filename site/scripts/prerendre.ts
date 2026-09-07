@@ -1017,6 +1017,7 @@ export function injecterReperes(
   }
   const analysesFrance = renduInsights(insightsFrance(pays.FR, catalogue, pays), catalogue, {
     contexte: "france",
+    series: pays.FR.series,
   });
   html = analysesFrance
     ? remplirCadre(html, "insights-france", analysesFrance)
@@ -1597,7 +1598,7 @@ async function main(): Promise<void> {
       description: PAGE_SALAIRES.description,
       canonique: "/salaires/",
       image: "/salaires/carte.png",
-      corps: renduSalaires(),
+      corps: renduSalaires(2100,"salarié",pays.FR.series),
     },
     SITE,
   );

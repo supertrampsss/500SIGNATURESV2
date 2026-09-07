@@ -64,12 +64,12 @@ test('v3 observed city, actual-map hosts and snapshot challenges work without ne
   const city=await loadCity('33063'),initial=start('municipal',61,'services',3,city),setup=mandateSetup(initial);
   assert.match(setup,/Bordeaux/);assert.match(setup,/Recettes de fonctionnement observées/);assert.match(setup,/COMPTES 2025/);
   for(const id of ['city-query','city-results'])assert.match(setup,new RegExp(`id="${id}"`));
-  assert.match(setup,/data-action="fictional-city"/);assert.doesNotMatch(setup,/Val-sur-Rive|city-inherited|campaign-city-model/);
+  assert.match(setup,/data-action="fictional-city"/);assert.doesNotMatch(setup,/city-inherited|campaign-city-model/);
   const scenery=world(initial);
   assert.equal(count(scenery,/data-city-map="33063"/g),1);assert.match(scenery,/COMPTES OBSERVÉS · 2025/);assert.match(scenery,/<progress/);
   assert.doesNotMatch(scenery,/city-model|building-height|world-pin|<img|<picture/);
   const area=territory(initial);assert.equal(count(area,/data-city-map="33063"/g),1);assert.doesNotMatch(area,/id="city-map-host"/);
-  assert.match(area,/pas un diagnostic observé des quartiers réels/);
+  assert.match(area,/Les effets de vos choix sur les quartiers du mandat/);
   const noCenter=structuredClone(initial);noCenter.city={...city,center:null};
   assert.doesNotMatch(world(noCenter),/data-city-map=/);assert.match(world(noCenter),/Coordonnées cartographiques indisponibles/);
   globalThis.fetch=(async()=>{throw new Error('Offline: no network allowed');}) as typeof fetch;

@@ -26,3 +26,12 @@ test('the compact theme control persists through every primary destination and a
  }
  await page.screenshot({path:info.outputPath('shared-theme-'+info.project.name+'.png'),fullPage:true});
 });
+
+test('retired simulator URLs lead to Mandats while old browser data is preserved',async({page},info)=>{
+ test.skip(info.project.name!=='desktop-chromium','One redirect compatibility check.');
+ await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
+ await page.goto('/simulateur/comparer?version=2&budget=france');
+ await expect(page).toHaveURL(/\/mandats\/$/);
+ await expect(page.getByRole('heading',{name:'Choisissez votre mandat.',exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>localStorage.getItem('simulator-legacy-preservation'))).toBe('old-save');
+});

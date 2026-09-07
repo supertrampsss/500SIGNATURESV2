@@ -610,7 +610,7 @@ function millionsDeuxDecimales(valeur: number): string {
 }
 
 /** Combien d'associations s'affichent directement, sans dépli. */
-const ASSOCIATIONS_VISIBLES = 15;
+
 
 function themeVieAssociative(
   indicateurs: Indicateur[],
@@ -647,18 +647,11 @@ function themeVieAssociative(
       `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
         montantAssoc(b.montant),
       )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`;
-    const visibles = beneficiaires.slice(0, ASSOCIATIONS_VISIBLES);
-    const reste = beneficiaires.slice(ASSOCIATIONS_VISIBLES);
-    const liste = `<div class="davantage__associations">${visibles.map(ligneAssoc).join("")}</div>`;
-    const pli = reste.length
-      ? `<details class="davantage__pli"><summary>Voir ${
-          reste.length === 1 ? "l'autre association" : `les ${reste.length} autres associations`
-        }</summary><div class="davantage__associations">${reste.map(ligneAssoc).join("")}</div></details>`
-      : "";
+    const liste = `<div class="davantage__associations">${beneficiaires.map(ligneAssoc).join("")}</div>`;
     return section(
       "vie-associative",
       "Vie associative",
-      `<p class="davantage__affirmation">${phrase}</p>${liste}${pli}`,
+      `<p class="davantage__affirmation">${phrase}</p>${liste}`,
       "",
     );
   }

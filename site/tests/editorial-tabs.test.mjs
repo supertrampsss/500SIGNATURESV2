@@ -34,7 +34,7 @@ test('Salaires: direct calculation, four statuses, validation and native navigat
   await expect(page.locator('[data-salaires-statut]')).toHaveAttribute('data-salaires-statut',statut);await noOverflow(page);
  }
  await page.locator('#salaires-net').fill('abc');await expect(page.locator('#salaires-net')).toHaveAttribute('aria-invalid','true');await expect(page.locator('#salaires-erreur')).toBeVisible();expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(3396);
- await page.locator('#salaires-net').fill('0');expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(0);await expect(page.locator('#salaires-erreur')).toBeHidden();
+ expect(await page.locator('[data-allocation-share]').count()).toBeGreaterThanOrEqual(10);await page.locator('#salaires-net').fill('0');expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(0);await expect(page.locator('#salaires-erreur')).toBeHidden();for(const amount of await page.locator('[data-allocation-share]').allTextContents())expect(numeric(amount)).toBe(0);
  await activate(page.locator('.salaires__detail > summary'),info);await expect(page.locator('[data-coefficients]')).toBeVisible();await noOverflow(page);
  expect(remote).toEqual([]);await expect(page.locator('canvas')).toHaveCount(0);
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page).toHaveURL(/\/bilan\/?$/);

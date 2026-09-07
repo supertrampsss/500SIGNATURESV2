@@ -199,6 +199,40 @@ html body .salaires__total>p { color:var(--design-muted); }
  .bascule-theme,.mandats-invitation { display:none; }
 }
 
+/* Follow-through from the first user tests. */
+html body .game-tabs { grid-template-columns:repeat(3,minmax(0,1fr)); }
+html body .mandate-review { display:grid;gap:32px; }
+html body .selection-rules { max-width:900px;margin:40px auto;padding:24px;border:1px solid var(--design-line);border-radius:16px;background:var(--design-panel); }
+.selection-rules ol { padding-left:24px;display:grid;gap:16px; }
+html body .territoire-depart { display:flex;gap:10px;flex-wrap:wrap; }
+html body .bloc-lecture--tableau>.chart-time { margin:24px 0;padding:20px;border:1px solid var(--design-line);border-radius:14px; }
+
+html body[data-screen="play"] .site-header .header-actions { display:none; }
+
+html body .salary-missions { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+html body .salary-missions li { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:22px;border:1px solid var(--design-line);border-radius:14px;background:var(--design-panel); }
+.salary-missions h3 { margin:0;font:600 1.4rem/1.2 'Barlow Semi Condensed',Arial,sans-serif; }
+.salary-missions p { color:var(--design-muted);margin:8px 0; }
+.salary-missions strong { color:var(--design-gold);font-size:1.5rem; }
+.salary-mission-bar { grid-column:1/-1;height:6px;border-radius:4px;background:linear-gradient(to right,var(--design-gold) var(--share),var(--design-track) var(--share)); }
+html body .insight .chart-time { margin:22px 0; }
+@media(max-width:700px) { html body .salary-missions { grid-template-columns:minmax(0,1fr); } }
+
 @media(max-width:360px) {
  html body .site-header { padding-block:8px;gap:8px; }
 }
+
+html body #cadre-carte { border:1px solid var(--design-line);border-radius:18px;overflow:hidden;margin:20px 0; }
+html body .surcouche,html body .carte-barre { background:var(--design-panel);color:var(--design-ink);border-color:var(--design-line);box-shadow:0 12px 35px #0002; }
+html body .decision-source { color:var(--design-muted);font-size:.8rem;margin-top:16px; }
+
+html[data-theme="clair"] body:has(#mandats) .button.primary,
+html[data-theme="clair"] body .button.primary { color:var(--design-bg); }
+html body .salaires__allocation { display:block; }
+html body .salaires__allocation>header { max-width:65ch;margin-bottom:24px; }
+@media(min-width:1050px) { html body .salary-missions { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+
+html body[data-mode="national"] .pulse { grid-template-columns:minmax(0,1fr) auto; }
+html body .mobile-decision-feedback:empty { display:none; }
+html body #vue-bilan .insights__theme { scroll-margin-top:110px; }
+@media(max-width:700px) { html body #vue-bilan .insights__theme { scroll-margin-top:165px; } }
