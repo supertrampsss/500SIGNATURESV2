@@ -125,3 +125,5 @@ body[data-mode="national"] .mandate-timeline small{font-size:.625rem;color:var(-
  body[data-mode="national"] .dossier h1{font-size:1.8rem}
 }
 @media(prefers-reduced-motion:reduce){.national-world *{animation:none!important;transition:none!important}body[data-mode="national"] .choice{transition:none;transform:none!important}.national-decision-impact{animation:none!important}}
+
+.national-command-pulse dd .deficit-context{display:block;margin:.35rem 0 0;line-height:1.35}

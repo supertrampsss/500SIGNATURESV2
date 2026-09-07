@@ -21,7 +21,11 @@ test('the living France is the national mandate, with its budget and saved decis
  await expect(page.getByText('Règles et sources',{exact:true})).toHaveCount(0);
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('france-first-'+info.project.name+'.png'),fullPage:true});
- await choose(page);await choose(page);
+ await expect(page.locator('.national-deficit')).toContainText('153');
+ await choose(page);
+ await expect(page.locator('.national-deficit')).toContainText('149');
+ await expect(page.locator('.national-decision-impact')).toContainText('Déficit −4 Md€');
+ await choose(page);
  // The consultancy saving lowers equipment capacity, then rural staffing raises services.
  await expect(stage(page)).toHaveAttribute('data-activity','0.313');
  await expect(page.locator('.national-decision-impact')).toContainText('Équipements −1');
@@ -29,7 +33,7 @@ test('the living France is the national mandate, with its budget and saved decis
  await expect(stage(page)).toHaveAttribute('data-focus','rural');
  await expect(page.locator('.national-model-label')).toHaveText('Décision 3 appliquée');
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
- expect(saved.mode).toBe('national');expect(saved.version).toBe(5);expect(saved.choices).toHaveLength(3);
+ expect(saved.mode).toBe('national');expect(saved.version).toBe(6);expect(saved.choices).toHaveLength(3);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
  await page.getByRole('button',{name:'Finances',exact:true}).click();
  await expect(page.locator('.finance-panel')).toContainText('Md€');
