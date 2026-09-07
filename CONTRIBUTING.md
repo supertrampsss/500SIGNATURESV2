@@ -13,6 +13,18 @@ npm ci
 npm run dev
 ```
 
+Fast local validation after dependency installation (no production-data download):
+
+```sh
+npm run check:local
+```
+
+This runs all unit tests, checks application/scripts/edge types and builds the client.
+It is useful in a restricted environment and is not a substitute for the full build,
+editorial prerender, offline asset generation or required browser checks.
+Use `npm run check:types` for a type-only diagnosis and `npm run build:client` for
+client compilation. No command activates advertising, analytics or payments.
+
 Production build and unit validation:
 
 ```sh
@@ -54,3 +66,15 @@ Do not rename or rewrite unrelated modules merely for uniformity.
 [AGENTS.md](AGENTS.md) contains current product constraints and the code map.
 [Setup](docs/SETUP.md) covers infrastructure and configuration.
 Historical plans in `docs/` explain previous decisions; current user instructions take priority.
+
+## Current product and business decisions
+
+Use [the current decision record](docs/product-business-decisions.md) for the
+product constraints and commercial hypotheses. `npm run business:case` recalculates
+the proposed economics; its prices, volumes and costs are assumptions, not sales.
+For a business change, state who pays, what extra value is delivered, the work and
+acquisition cost, and the evidence needed before building a recurring product.
+
+Dates displayed from source timestamps use UTC; calendar dates and covered fiscal
+years must not change with the server or reader's timezone. Verify date changes
+with the existing rendering tests in UTC and America/Los_Angeles.
