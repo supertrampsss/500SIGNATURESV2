@@ -1,3 +1,4 @@
+import { courbesEurope } from "./insights-europe.ts";
 /**
  * « Est-ce tenable ? » — le chapitre qui répond à sa propre question.
  *
@@ -161,7 +162,7 @@ export function rendu(
     title:"Dette publique : ce qui est observé, ce qui est projeté",
     description:"Dette des administrations publiques rapportée au PIB. Projection à politique inchangée publiée en juillet 2026.",
     unit:"% du PIB",zeroBaseline:false,hideMissing:true,
-    series:[{name:"Dette observée · Eurostat",values:publiee},{name:"À politique inchangée · juillet 2026",values:projections,dashed:true}],
+    series:[...courbesEurope(publiee,pays,DETTE_PIB),{name:"France · À politique inchangée · juillet 2026",values:projections,dashed:true,color:"#1763c6",emphasized:true}],
     format:v=>`${UNE_DECIMALE.format(v)} %`,
   });
   const tableau = `<table class="comparaison"><caption>Projection à politique inchangée · rapport de juillet 2026</caption><thead><tr>${Object.keys(projections).map(y=>`<th scope="col">${y}</th>`).join("")}</tr></thead><tbody><tr>${Object.values(projections).map(v=>`<td>${UNE_DECIMALE.format(v)} %</td>`).join("")}</tr></tbody></table>`;
