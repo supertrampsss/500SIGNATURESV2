@@ -1,3 +1,4 @@
+import { nationalAgendaDossiers } from './national-agenda.ts';
 import { nationalBranchDossiers } from './national-branches.ts';
 import { initialSociety, applySociety, socialYearEnd } from './national-society.ts';
 import { annualDeficit, deficitBaseline, INITIAL_DEFICIT } from './national-deficit.ts';
@@ -52,7 +53,8 @@ export function campaignDomain(g:Game):Domain {
   if(dossierCache.size>=32)dossierCache.delete(dossierCache.keys().next().value!);
   dossierCache.set(cacheKey,dossiers);
   }
-  if (g.version >= 7) dossiers = nationalBranchDossiers(g);
+  if (g.version >= 8) dossiers = nationalAgendaDossiers(g);
+  else if (g.version >= 7) dossiers = nationalBranchDossiers(g);
   const current=dossiers[g.turn];
   const thread=CAMPAIGN_THREADS[g.mode].find(t=>t.followUps.includes(g.turn));
   if(g.version < 7 && current && thread && dossiers.some(d=>d.choices.some(c=>c.id===thread.launchChoice))){
@@ -79,7 +81,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};

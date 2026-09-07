@@ -1,6 +1,6 @@
 import { SOCIETY_LABELS } from './national-society.ts';
 import { annualDeficit, DEFICIT_SOURCE } from './national-deficit.ts';
-import { nationalMandateHeading, nationalCommandPulse } from "./national-command.ts";
+import { nationalMandateHeading, nationalCommandPulse, nationalDecisionImpact } from "./national-command.ts";
 import { nationalScene } from "./national-scene.ts";
 import { dossierCopy, choiceCopy, choiceCosts } from "./novice.ts";
 import { icon } from "./icons.ts";
@@ -39,7 +39,7 @@ export function mandateSetup(g: Game, opts: WorldOptions = {}): string {
 }
 function decision(g: Game): string {
   const d = domainFor(g), dossier = d.dossiers[g.turn], copy=dossierCopy(g,dossier);
-  return `<article class="dossier">${eyebrow(`${g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">Décision ${g.turn + 1}/${d.turns}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p><div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), text=choiceCopy(g,dossier,c); return `<button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}><span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span><span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>`; }).join("")}</div></article>`;
+  return `<article class="dossier">${g.mode === "national" ? `<div class="mobile-decision-feedback" role="status">${nationalDecisionImpact(g).slice(0,2).map(item=>`<span>${e(item.label.replace(" cette année", ""))}</span>`).join("")}</div>` : ""}${eyebrow(`${g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">Décision ${g.turn + 1}/${d.turns}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p><div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), text=choiceCopy(g,dossier,c); return `<button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}><span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span><span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>`; }).join("")}</div></article>`;
 }
 export function finance(g: Game): string {
   const d = domainFor(g); const last = g.history.at(-1); const l = last?.ledger; const provisional = g.version >= 3 && last && !last.closed;

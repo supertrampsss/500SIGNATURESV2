@@ -167,7 +167,7 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",target.dataset.mode === "national" ? 7 : 4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); if(g.mode === "national") {adopt(g);persist();track("onboarding_completed");} }
+  if (a === "mode") { if (g) track("mode_switched"); g = start(target.dataset.mode as Mode,42,"equilibre",target.dataset.mode === "national" ? 8 : 4); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); if(g.mode === "national") {adopt(g);persist();track("onboarding_completed");} }
   else if (a === "resume" && saved) { adopt(saved); }
   else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Décision ${g.turn} prise. ${g.turn === domainFor(g).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === domainFor(g).turns) track("game_completed"); }
   else if (a === "view") { view = target.dataset.view as View; }
@@ -189,6 +189,10 @@ async function action(target: HTMLElement) {
   else return;
   if (dialog.open) dialog.close();
   render(true, a === "choose" ? actionScroll : undefined);
+  if(a === "choose" && g?.mode === "national" && g.version >= 8 && matchMedia("(max-width:820px) and (min-height:501px)").matches) {
+    const question=root.querySelector<HTMLElement>(".dossier");
+    if(question && question.getBoundingClientRect().top < 0) window.scrollTo({top:window.scrollY+question.getBoundingClientRect().top-12,behavior:"instant"});
+  }
 }
 document.addEventListener("click", event => {
   const target = (event.target as Element).closest<HTMLElement>("[data-action]");
