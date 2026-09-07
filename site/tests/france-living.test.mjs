@@ -14,26 +14,27 @@ test('the living France is the national mandate, with its budget and saved decis
  await page.goto(FRANCE);await ready(page);
  await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
  await expect(page.locator('.mobile-mandate-context')).toContainText('Année 1/5');
- await expect(page.locator('.dossier h1')).toHaveText('Faut-il revoir les avantages fiscaux ?');
+ await expect(page.locator('.dossier h1')).toHaveText('Faut-il réduire les pensions pour diminuer le déficit ?');
  await expect(page.locator('[data-action="choose"]')).toHaveCount(3);
- await expect(page.getByRole('button',{name:/Réduire les campagnes de communication/})).toContainText('Économie : ≈1 Md€/an');
+ await expect(page.getByRole('button',{name:/Réduire les pensions hors petites retraites/})).toContainText('Économie : ≈15 Md€/an');
  await expect(page.locator('.initial-cap-card,.winter-pilot-link,.winter-reserve')).toHaveCount(0);
  await expect(page.getByText('Règles et sources',{exact:true})).toHaveCount(0);
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('france-first-'+info.project.name+'.png'),fullPage:true});
  await expect(page.locator('.national-deficit')).toContainText('153');
  await choose(page);
- await expect(page.locator('.national-deficit')).toContainText('149');
- await expect(page.locator('.national-decision-impact')).toContainText('Déficit −4 Md€');
+ await expect(page.locator('.national-deficit')).toContainText('138');
+ await expect(page.locator('.national-decision-impact')).toContainText('Déficit −15 Md€');
+ await expect(page.locator('.dossier h1')).toHaveText('Faut-il compenser les retraités touchés par la baisse ?');
  await choose(page);
- // The consultancy saving lowers equipment capacity, then rural staffing raises services.
- await expect(stage(page)).toHaveAttribute('data-activity','0.313');
- await expect(page.locator('.national-decision-impact')).toContainText('Équipements −1');
- await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.563');
- await expect(stage(page)).toHaveAttribute('data-focus','rural');
+ // The pension reform opens its own consequence dossier, then staffing is a distinct reform.
+ await expect(stage(page)).toHaveAttribute('data-activity','0.375');
+ await expect(page.locator('.national-decision-impact')).toContainText('Retraités −2');
+ await choose(page);await expect(stage(page)).toHaveAttribute('data-warmth','0.188');
+ await expect(stage(page)).toHaveAttribute('data-focus','national');
  await expect(page.locator('.national-model-label')).toHaveText('Décision 3 appliquée');
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
- expect(saved.mode).toBe('national');expect(saved.version).toBe(6);expect(saved.choices).toHaveLength(3);
+ expect(saved.mode).toBe('national');expect(saved.version).toBe(7);expect(saved.choices).toHaveLength(3);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
  await page.getByRole('button',{name:'Finances',exact:true}).click();
  await expect(page.locator('.finance-panel')).toContainText('Md€');
@@ -106,4 +107,22 @@ test('the former winter link opens the complete France game',async({page},info)=
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  expect(saved.mode).toBe('national');expect(saved.choices).toHaveLength(1);
  expect(await page.evaluate(()=>localStorage.getItem('mandats.winter.v1'))).toBeNull();
+});
+
+test('an alternative pension choice changes the available continuation without changing the saved mandate',async({page})=>{
+ await page.goto(FRANCE);await ready(page);
+ await choose(page);
+ await expect(page.locator('.dossier h1')).toHaveText('Faut-il compenser les retraités touchés par la baisse ?');
+ await choose(page);
+ const saved=await page.evaluate(key=>localStorage.getItem(key),KEY);
+ await page.getByRole('button',{name:'Atelier',exact:true}).click();
+ await page.locator('[data-plan-year="0"]').selectOption('r01b');
+ await expect(page.locator('[data-plan-year="1"] option[value="r01-othera"]')).toHaveCount(1);
+ await expect(page.locator('[data-plan-year="1"] option[value="r01-cuta"]')).toHaveCount(0);
+ await page.locator('[data-plan-year="1"]').selectOption('r01-otherb');
+ expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(saved);
+ await page.getByRole('button',{name:'Territoire',exact:true}).click();
+ await expect(page.locator('.society-panel')).toContainText('Retraités');
+ await expect(page.locator('.society-panel')).toContainText('48');
+ await noOverflow(page);
 });

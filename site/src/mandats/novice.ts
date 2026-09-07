@@ -75,7 +75,7 @@ export function shortMoney(value:number,mode:Game['mode']):string {
 export function choiceCosts(c:Choice,mode:Game['mode']):string[] {
  const result:string[]=[];
  const add=(value:number|undefined,positive:string,negative:string,annual=false)=>{if(value) result.push(`${value>0?positive:negative} : ≈${shortMoney(value,mode)}${annual?'/an':''}`);};
- add(c.effect.investment,'Travaux','Travaux évités');
+ add(c.effect.investment,c.physicalProject === false ? 'Préparation' : 'Travaux','Travaux évités');
  add(c.effect.operating,'Coût','Économie',true);
  add(c.effect.revenue,'Recettes en plus','Recettes en moins',true);
  add(c.effect.grants,'Aide reçue','Aide perdue');

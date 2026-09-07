@@ -5,7 +5,7 @@ const publicationFixture=JSON.parse(await readFile(new URL('./fixtures/editorial
 const CITY_SECOND='Faut-il ouvrir la mairie un soir ?';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(0);if(mode==='municipal')await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(mode==='national'?6:4);}
+async function begin(page,mode,info){await page.goto(HOME);await activate(page.getByRole('button',{name:mode==='municipal'?/Gouverner une ville/:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(0);if(mode==='municipal')await activate(page.getByRole('button',{name:'Jouer avec la ville fictive',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(mode==='national'?7:4);}
 async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
 for(const mode of ['municipal','national'])test(`${mode}: complete touch campaign, sharing and replay`,async({page},info)=>{
  test.setTimeout(120000);
@@ -32,9 +32,9 @@ test('fresh-device import, invalid files, export and resume',async({page,browser
 });
 test('territory, sandbox and reduced motion keep the saved mandate intact',async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await begin(page,'national',info);await choose(page,info);
- await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect(page.locator('.governance-indicators')).toContainText('Confiance');await expect(page.locator('.governance-indicators')).toContainText('Patrimoine');await noOverflow(page);
+ await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect(page.getByRole('region',{name:'Les indicateurs du jeu',exact:true})).toContainText('Confiance');await expect(page.getByRole('region',{name:'Les indicateurs du jeu',exact:true})).toContainText('Patrimoine');await noOverflow(page);
  const saved=await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'));
- await activate(page.getByRole('button',{name:'Atelier',exact:true}),info);await page.locator('[data-plan-year="0"]').selectOption('n01b');await expect(page.locator('.planner')).toBeVisible();expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(saved);await noOverflow(page);
+ await activate(page.getByRole('button',{name:'Atelier',exact:true}),info);await page.locator('[data-plan-year="0"]').selectOption('r01b');await expect(page.locator('.planner')).toBeVisible();expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(saved);await noOverflow(page);
  await activate(page.getByRole('button',{name:'Décider',exact:true}),info);const motion=await page.locator('.choice').first().evaluate(el=>getComputedStyle(el).transitionDuration);expect(motion).toBe('0s');
 });
 test('challenge URL is consumed and clipboard failure has an accessible fallback',async({page},info)=>{

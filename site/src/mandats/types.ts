@@ -1,5 +1,6 @@
 export type Ambition = "equilibre" | "services" | "resilience";
 export type Mode = "municipal" | "national";
+export type Society = Record<'workers' | 'pensioners' | 'vulnerable' | 'businesses' | 'newcomers' | 'publicStaff' | 'affluent', number>;
 export type Metrics = { services: number; cohesion: number; resilience: number; trust: number; assets: number };
 export type Area = { id: string; name: string; need: string; services: number; resilience: number; x: number; y: number };
 export type Finance = {
@@ -10,18 +11,18 @@ export type Finance = {
 export type Effect = {
   revenue?: number; operating?: number; investment?: number; grants?: number; repayment?: number;
   services?: number; cohesion?: number; resilience?: number; trust?: number; assets?: number;
-  growth?: number; area?: string;
+  growth?: number; area?: string; society?: Partial<Society>;
 };
 export type Choice = {
   id: string; title: string; description: string; cost: string; benefit: string; sacrifice: string;
-  effect: Effect; delayed?: { after: number; label: string; effect: Effect };
+  effect: Effect; physicalProject?: false; delayed?: { after: number; label: string; effect: Effect };
 };
 export type Dossier = { category: string; title: string; story: string; advisor: string; choices: Choice[] };
 export type Ledger = { revenue: number; operating: number; interest: number; savings: number; repayment: number; investment: number; grants: number; borrowing: number; cashChange: number; deficit: number; debt: number; gdp: number };
 export type Pending = { due: number; label: string; effect: Effect };
 export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
 export type Game = {
-  version: 1 | 2 | 3 | 4 | 5 | 6; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
   areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[];
 };
 export type Domain = {
