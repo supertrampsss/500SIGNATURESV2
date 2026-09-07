@@ -32,7 +32,7 @@ test('fresh-device import, invalid files, export and resume',async({page,browser
 });
 test('territory, sandbox and reduced motion keep the saved mandate intact',async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await begin(page,'national',info);await choose(page,info);
- await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect(page.locator('.governance-indicators')).toContainText('Confiance');await expect(page.locator('.governance-indicators')).toContainText('Patrimoine');await noOverflow(page);
+ await activate(page.getByRole('button',{name:'Territoire',exact:true}),info);await expect(page.getByRole('region',{name:'Les indicateurs du jeu',exact:true})).toContainText('Confiance');await expect(page.getByRole('region',{name:'Les indicateurs du jeu',exact:true})).toContainText('Patrimoine');await noOverflow(page);
  const saved=await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'));
  await activate(page.getByRole('button',{name:'Atelier',exact:true}),info);await page.locator('[data-plan-year="0"]').selectOption('r01b');await expect(page.locator('.planner')).toBeVisible();expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(saved);await noOverflow(page);
  await activate(page.getByRole('button',{name:'Décider',exact:true}),info);const motion=await page.locator('.choice').first().evaluate(el=>getComputedStyle(el).transitionDuration);expect(motion).toBe('0s');
