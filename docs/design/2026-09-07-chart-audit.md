@@ -21,7 +21,7 @@ L'audit couvre les rendus partagés de France, Territoires, Salaires et Mandats,
 | Territoires, tourisme | Hôtels et emplacements comparés en longueur | Chiffres séparés, sans classement entre unités différentes. |
 | Territoires, logement | Ratio résidences secondaires sur principales + secondaires appelé part de tous les logements | Dénominateur nommé exactement. |
 | Raccourcis de villes | Fiche seule, détails non repeints | Bordeaux et les liens de parenté chargent aussi les analyses complémentaires, comme la recherche. |
-| Associations | Liste intégrale et formats variables | Dix bénéficiaires les plus financés, puis « Voir plus ». Tous les montants en M€, une décimale. |
+| Associations | Liste intégrale et formats variables | Dix bénéficiaires les plus financés, puis « Voir plus ». Tous les montants en M€, une décimale ; « < 0,1 M€ » pour les montants positifs arrondis à zéro. |
 | Associations, provenance | Risque de confondre État et ville bénéficiaire | « Subventions nationales à Bordeaux » dans la liste nominative. La commune reste nommée Commune dans sa fiche. |
 | Salaires, navigation | Adresse sans slash susceptible de servir le repli sans données | Lien canonique vers /salaires/ et redirection de l’ancienne entrée. |
 | Salaires | Calcul détaillé interrompt le parcours | « Voir le calcul » après la répartition et son évolution, en bas de page. Suppression du commentaire sur l'interpolation. |

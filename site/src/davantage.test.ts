@@ -172,7 +172,7 @@ test("vie associative nomme chaque association quand la liste nominative est cha
   } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
   assert.match(bloc, /TAKE IT EASY AGENCY/);
-  assert.match(bloc, /0,0 M€/);
+  assert.match(bloc, /&lt; 0,1 M€/);
   assert.doesNotMatch(bloc, /davantage__carte/, "avec une liste nominative, plus d'agrégat en cartes");
 });
 
@@ -426,9 +426,9 @@ test("les montants des associations se lisent dans l'unité du total", () => {
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'));
   // 1 276 550 € demandait une conversion de tête à côté d'un total en M€.
   assert.match(bloc, /ASSO GROSSE<\/span><span class="davantage__montant">1,3 M€</);
-  assert.match(bloc, /ASSO MOYENNE<\/span><span class="davantage__montant">0,0 M€</);
-  // Sous 10 000 €, « 0,00 M€ » ou « 0,01 M€ » n'apprendrait rien : l'euro reste.
-  assert.match(bloc, /ASSO PETITE<\/span><span class="davantage__montant">0,0 M€</);
+  assert.match(bloc, /ASSO MOYENNE<\/span><span class="davantage__montant">&lt; 0,1 M€</);
+  // Les petits montants restent non nuls, avec une décimale en M€.
+  assert.match(bloc, /ASSO PETITE<\/span><span class="davantage__montant">&lt; 0,1 M€</);
 });
 
 test("ni les groupes ni la liste des associations ne s'encadrent", () => {

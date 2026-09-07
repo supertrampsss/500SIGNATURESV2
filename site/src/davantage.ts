@@ -581,10 +581,11 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
  *  retiré plutôt que corrigé au cas par cas. */
 /** Millions d'euros, une décimale dans toute la liste. */
 function millionsUneDecimale(valeur: number): string {
+  if (valeur > 0 && valeur < 50_000) return "< 0,1 M€";
   return `${new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
-  }).format(valeur / 1e6)} M€`;
+  }).format(valeur / 1e6)} M€`;
 }
 
 /** Combien d'associations s'affichent directement, sans dépli. */
@@ -608,9 +609,9 @@ function themeVieAssociative(
       beneficiaires.length === 1
         ? `Une association recevant des subventions nationales à ${echapper(nom)}.`
         : `${beneficiaires.length} associations recevant des subventions nationales à ${echapper(nom)}, pour ${echapper(
-            `${formaterRatio(total / 1e6)} M€`,
+            millionsUneDecimale(total),
           )} au total.`;
-    const montantAssoc = (montant: number) => `${formaterRatio(montant / 1e6)} M€`;
+    const montantAssoc = millionsUneDecimale;
     const ligneAssoc = (b: (typeof beneficiaires)[number]) =>
       `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
         montantAssoc(b.montant),
