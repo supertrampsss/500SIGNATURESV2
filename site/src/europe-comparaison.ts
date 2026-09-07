@@ -268,15 +268,15 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
   const indexDepense = colonnes.findIndex((c) => c.cle === DEPENSE);
   const indexPrelevements = colonnes.findIndex((c) => c.cle === PRELEVEMENTS);
   const formater = (nombre: number) => `${nombre.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
-  const pointsDepense = lignes.flatMap((ligne) => {
+  const pointsDepense = lignes.filter(ligne => PAYS_VISIBLES.includes(ligne.code)).flatMap((ligne) => {
     const valeur = ligne.cellules[indexDepense];
-    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR", secondary: !PAYS_VISIBLES.includes(ligne.code) }];
+    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });
-  const pointsPrelevements = lignes.flatMap((ligne) => {
+  const pointsPrelevements = lignes.filter(ligne => PAYS_VISIBLES.includes(ligne.code)).flatMap((ligne) => {
     const valeur = ligne.cellules[indexPrelevements];
-    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR", secondary: !PAYS_VISIBLES.includes(ligne.code) }];
+    return valeur === null ? [] : [{ libelle: ligne.nom, valeur, accent: ligne.code === "FR" }];
   });
-  const graphique = `<div class="dataviz__comparaisons" data-country-scope data-countries="limited">
+  const graphique = `<div class="dataviz__comparaisons">
     ${pointsComparatifs({
       titre: "Dépense publique",
       description: "Dépense publique en pourcentage du PIB, du plus élevé au plus faible.",
@@ -289,7 +289,6 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
       points: pointsPrelevements,
       formater,
     })}
-    ${[...pointsDepense,...pointsPrelevements].some(p=>p.secondary)?'<button type="button" class="country-toggle" data-country-toggle aria-expanded="false">Voir tous les pays</button>':''}
   </div>`;
 
   return `
