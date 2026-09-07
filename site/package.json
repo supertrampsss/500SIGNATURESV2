@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "test:mandats": "playwright test --config playwright.mandats.config.ts",
     "test:mandats:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort",
-    "check": "npm test && npm run build"
+    "check": "npm test && npm run build",
+    "check:types": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json",
+    "build:client": "npm run check:types && vite build",
+    "check:local": "npm test && npm run build:client",
+    "business:case": "node --experimental-strip-types scripts/business-case.ts"
   },
   "dependencies": {
     "maplibre-gl": "^5.9.0",

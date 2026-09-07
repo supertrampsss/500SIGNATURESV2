@@ -13,6 +13,18 @@ npm ci
 npm run dev
 ```
 
+Fast local validation after dependency installation (no production-data download):
+
+```sh
+npm run check:local
+```
+
+This runs all unit tests, checks application/scripts/edge types and builds the client.
+It is useful in a restricted environment and is not a substitute for the full build,
+editorial prerender, offline asset generation or required browser checks.
+Use `npm run check:types` for a type-only diagnosis and `npm run build:client` for
+client compilation. No command activates advertising, analytics or payments.
+
 Production build and unit validation:
 
 ```sh
@@ -54,3 +66,19 @@ Do not rename or rewrite unrelated modules merely for uniformity.
 [AGENTS.md](AGENTS.md) contains current product constraints and the code map.
 [Setup](docs/SETUP.md) covers infrastructure and configuration.
 Historical plans in `docs/` explain previous decisions; current user instructions take priority.
+
+## Current product and business decisions
+
+Use [the current decision record](docs/product-business-decisions.md) for the
+product constraints and commercial hypotheses. `npm run business:case` recalculates
+advertising economics; audience, RPMs, direct sales and costs are assumptions until
+measured. Use `src/advertising-policy.ts` for actual eligible routes and density.
+For a business change, state the placement and format, reached inventory, consent
+and fill assumptions, net publisher RPM and operating/sales costs. Direct ads
+replace programmatic inventory. Never monetize game decisions as page views.
+The policy is not an SDK adapter: actual serving needs configured ad units, consent
+handling and verification of network behavior, empty slots and layout stability.
+
+Dates displayed from source timestamps use UTC; calendar dates and covered fiscal
+years must not change with the server or reader's timezone. Verify date changes
+with the existing rendering tests in UTC and America/Los_Angeles.

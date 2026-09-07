@@ -13,9 +13,26 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
+- France comparisons use France, Germany, Spain and Italy only when comparable data exist.
+  Reuse `PAYS_VISIBLES`; do not restore an all-countries control or an outer Europe frame.
 - Keep essential controls accessible without hover; respect reduced motion.
 - Preserve saved games, deep links and offline use. Do not clear storage to hide a bug.
 - No advertising in gameplay. Do not activate social publishing or tracking as a side effect.
+
+## Business decisions
+
+[Current product and business decisions](docs/product-business-decisions.md) is the
+current reference; earlier strategy documents are historical context. Advertising
+is the owner's chosen business model; keep public reading and gameplay free.
+Use `site/src/advertising-policy.ts`: one editorial placement initially, at most
+two on long pages after validation, none in gameplay, results or essential sources.
+Prefer manual in-flow placements and direct sponsorship replacing existing slots.
+No sticky ads, interstitials, automatic refresh or targeting based on game decisions
+or salary inputs. Do not infer SDK consent from a non-personalized ad label.
+Label audience, rates, sales and costs as assumptions until measured. Include
+eligibility, fill, reached inventory, direct sales effort and editorial costs;
+never double-count inventory or deduct network fees twice. Commercial modules
+must not change scores or observed data. Do not restore paid-workshop priorities.
 
 ## Find the right code
 

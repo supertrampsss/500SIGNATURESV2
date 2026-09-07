@@ -169,7 +169,7 @@ function parProducteur(jeux: readonly Jeu[]): { producteur: string; jeux: Jeu[] 
  *  que la date brute du manifeste. */
 function dateExtraction(iso: string): string {
   const quand = new Date(iso);
-  return Number.isNaN(quand.getTime()) ? echapper(iso) : quand.toLocaleDateString("fr-FR");
+  return Number.isNaN(quand.getTime()) ? echapper(iso) : quand.toLocaleDateString("fr-FR", { timeZone: "UTC" });
 }
 
 /** « 1 producteur », « 27 producteurs » — le pluriel régulier de l'intro. Le
@@ -274,7 +274,7 @@ function normaliserRecherche(texte: string): string {
 
 function dateRegistre(iso: string): string {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? echapper(iso) : date.toLocaleDateString("fr-FR");
+  return Number.isNaN(date.getTime()) ? echapper(iso) : date.toLocaleDateString("fr-FR", { timeZone: "UTC" });
 }
 
 function ligneRegistre(libelle: string, valeur: string | undefined): string {

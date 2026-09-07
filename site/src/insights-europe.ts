@@ -5,10 +5,11 @@ import type { Territoire } from "./donnees.ts";
 import { formater } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
 
-/** Quatre grands voisins continentaux : assez pour situer la France sans
+/** Trois grands voisins continentaux : assez pour situer la France sans
  * transformer chaque carte en tableau. Un pays sans la valeur du même
  * exercice disparaît ; aucune donnée ancienne n'est recyclée. */
-const VOISINS = ["DE", "BE", "ES", "IT"] as const;
+export const PAYS_VISIBLES = ["FR", "DE", "ES", "IT"] as const;
+const VOISINS = PAYS_VISIBLES.filter(code => code !== "FR");
 
 export function comparaisonVoisins(
   pays: Record<string, Territoire> | undefined,
@@ -30,8 +31,6 @@ export function comparaisonVoisins(
   return `Voisins européens : ${valeurs.join(" · ")}.`;
 }
 
-
-export const PAYS_VISIBLES = ["FR", "DE", "ES", "IT"];
 
 /** Same Eurostat indicator, frequency and observation window for every country. */
 export function courbesEurope(
@@ -75,7 +74,7 @@ export function avecCourbesEurope(insight: Insight, france: Territoire["series"]
   const unit = rawUnit === "EUR" ? scale === 1e9 ? "Md€" : scale === 1e6 ? "M€" : "€"
     : rawUnit === "percent" ? "%" : rawUnit === "annees" ? "ans" : rawUnit === "ratio" ? "ratio" : rawUnit;
   return {...insight, graphique: {
-    titre: `${ids.length === 1 ? indicators[0]!.libelle : insight.surtitre} · Union européenne`,
+    titre: `${ids.length === 1 ? indicators[0]!.libelle : insight.surtitre} · France et ses voisins`,
     unite: unit,
     series: curves.map(s => ({...s, values: Object.fromEntries(Object.entries(s.values).map(([p,v]) => [p,v/scale]))})),
   }};

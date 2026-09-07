@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { adAllowed, DEFAULT_CONSENT, triage, validateProvenance } from "./operations.ts";
 test("game and essential methodology remain ad-free even with full consent", () => {
   for (const path of ["/mandats/", "/mandats/methode/", "/simulateur", "/resultats/abc/"]) assert.equal(adAllowed(path, { analytics: true, advertising: true }, true), false);
-  assert.equal(adAllowed("/comprendre/dette/", DEFAULT_CONSENT, true), false);
-  assert.equal(adAllowed("/comprendre/dette/", { analytics: false, advertising: true }, true), true);
+  assert.equal(adAllowed("/bilan", DEFAULT_CONSENT, true), false);
+  assert.equal(adAllowed("/bilan", { analytics: false, advertising: true }, true), true);
 });
 test("listening is paused by default, sensitive cases rejected, safe cases reviewed", () => {
   const c = { id: "1", accountId: "a", threadId: "t", sourceIds: ["approved-1"], relevance: 3, question: 2, answerability: 3, usefulness: 2, sensitive: false, crisis: false, partisan: false, optedOut: false };

@@ -1,12 +1,11 @@
 /** Inactive launch boundaries. No network, credentials, analytics SDK or publishing method. */
+import { programmaticAdAllowed } from '../advertising-policy.ts';
 export type Consent = { analytics: boolean; advertising: boolean };
 export const DEFAULT_CONSENT: Consent = { analytics: false, advertising: false };
 export const ANALYTICS_EVENTS = ["mode_selected", "onboarding_completed", "first_decision", "game_completed", "replay_started", "mode_switched", "share_initiated"] as const;
 export function analyticsAllowed(consent: Consent): boolean { return consent.analytics === true; }
 export function adAllowed(path: string, consent: Consent, experiment: boolean): boolean {
-  if (!experiment || !consent.advertising) return false;
-  // Explicit future editorial allowlist. Anything else, including Mandats and methodology, is protected.
-  return /^\/comprendre\/[a-z0-9-]+\/$/.test(path) || /^\/rapports\/[a-z0-9-]+\/$/.test(path);
+  return programmaticAdAllowed(path, consent.advertising, experiment);
 }
 export type ListeningCandidate = { id: string; accountId: string; threadId: string; sourceIds: string[]; relevance: number; question: number; answerability: number; usefulness: number; sensitive: boolean; crisis: boolean; partisan: boolean; optedOut: boolean };
 export type DraftDecision = { state: "discard" | "human-review"; reason: string };

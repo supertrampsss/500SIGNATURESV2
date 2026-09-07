@@ -1,89 +1,68 @@
-# 500signaturesv2 — la référence publique des données économiques, sociales, territoriales et budgétaires françaises
+# 500signatures
 
-Plateforme web centrée sur une **carte interactive de la France**, complétée d'une
-couche européenne, qui rend la donnée publique **accessible, compréhensible,
-cartographiable, comparable, vérifiable, reproductible, contextualisée et historisée**.
+[500signatures.fr](https://500signatures.fr) permet de comprendre les comptes publics,
+comparer les territoires et éprouver ses arbitrages dans le jeu Mandats.
 
-L'utilisateur doit pouvoir répondre à des questions comme : où vont mes impôts ?
-combien l'État dépense-t-il pour la santé ou la défense ? ma commune est-elle mieux
-gérée que les communes comparables ? comment la France se compare-t-elle à
-l'Allemagne ? quel est l'écart entre budget voté et exécuté ?
+## Parcours actuels
 
-**Positionnement de fiabilité** : rigueur, neutralité politique, transparence sur les
-limites. Jamais de corrélation présentée comme causalité, jamais de donnée budgétée
-présentée comme exécutée. Le produit doit résister à une vérification par un
-journaliste, un économiste, un élu, un citoyen ou la Cour des comptes.
+| Parcours | Utilité | Code principal |
+|---|---|---|
+| France | Lire les finances publiques et comparer des séries harmonisées | `site/src/insights-france.ts`, `site/src/insights-europe.ts` |
+| Territoires | Rechercher une commune et comprendre ses indicateurs | `site/src/main.ts`, `site/src/territoire-finances.ts` |
+| Salaires | Comprendre les prélèvements et la dépense collective | `site/src/salaires.ts` |
+| Mandats | Prendre 45 décisions sur cinq ans, priorité au mode national | `site/src/mandats/` |
 
-## Stack
+Les comptes observés, les calculs et les hypothèses de jeu ont des statuts différents.
+Les sources et leurs limites font partie de la lecture. Les comparaisons visibles
+sur les courbes France se limitent à France, Allemagne, Espagne et Italie lorsque
+les données existent au même périmètre. Aucun bouton pour ajouter les autres pays.
 
-- Frontend / Edge : Cloudflare Pages, Workers, Queues, Cron Triggers, R2
-- Base de données : Supabase PostgreSQL + PostGIS
-- Cartographie : MapLibre GL JS + tuiles vectorielles PMTiles
-- Ingestion lourde : Python ; connecteurs edge et application : TypeScript
-- Orchestration IA : Claude (FABLE5 pour planifier/observer, Opus 5 pour les
-  transformations complexes) — **aucun chiffre publié sans contrôle déterministe
-  et validation humaine**
+## Travailler sur le projet
 
-## État du projet
+Lire [AGENTS.md](AGENTS.md), puis [CONTRIBUTING.md](CONTRIBUTING.md).
+Depuis `site/`, avec Node 22 ou plus récent :
 
-**En ligne** : <https://500signatures.fr>. Le socle est en production :
-ingestion, contrôles, publication, carte — et s'enrichit source par source.
+```sh
+npm ci
+npm run dev
+```
 
-Au 1er août 2026 : **37 indicateurs** issus de **19 jeux de données** de six
-producteurs (INSEE, Eurostat, DGFiP / Direction du Budget, OFGL, IGN, Etalab),
-soit **1,07 million d'observations** sur 36 349 territoires.
+Après installation, `npm run check:local` vérifie les tests, les types et la
+compilation du client sans télécharger les données de production. Ce contrôle
+ne remplace pas le pré-rendu complet ni les tests navigateur requis par la CI.
+`npm run check` reste le contrôle complet avec données publiées.
 
-| Domaine | Ce qu'on peut lire |
+## Architecture en service
+
+- Interface : TypeScript, Vite, HTML/CSS, MapLibre GL JS et PMTiles.
+- Ingestion et normalisation : Python et DuckDB (`pipeline/`).
+- Publication : fichiers de données dans R2 et site pré-rendu sur Cloudflare Pages.
+- Fonctions de partage : `site/functions/`. Le déploiement part de `site/`.
+- Validation et publication : `.github/workflows/ci.yml` et `deploy.yml`.
+
+Les premiers documents décrivent une architecture Supabase/PostgreSQL antérieure.
+Pour une modification, le code courant et les workflows font référence ; ne pas
+réinstaller cette ancienne architecture sur la base d'un plan historique.
+
+## Produit et économie
+
+[Décisions produit et modèle économique](docs/product-business-decisions.md) est
+le document de travail courant. Il distingue l'existant, les hypothèses et les
+conditions de lancement. L'accès public reste gratuit et la publicité finance
+le site : placements discrets dans les contenus et vente directe d'espaces.
+Le jeu reste sans interruption publicitaire. Aucune recette n'est présumée.
+
+`npm run business:case`, depuis `site/`, recalcule les revenus selon l'audience,
+les impressions réellement monétisables, les ventes directes et les coûts.
+La politique partagée est dans `site/src/advertising-policy.ts`. Ces calculs
+et règles ne chargent aucune régie et ne créent aucun paiement.
+
+## Références
+
+| Document | Usage |
 |---|---|
-| Budget de l'État (15) | Recettes, dépenses par titre, prélèvements sur recettes et solde, aux trois moments du même exercice — voté, rectifié, exécuté — de 2013 à 2025. Le pont recettes → dépenses → solde est vérifié à l'euro par un contrôle bloquant |
-| Dette publique (6) | Encours Maastricht par sous-secteur : État, organismes centraux, collectivités, Sécurité sociale |
-| Finances locales (6) | Recettes et dépenses de fonctionnement, investissement, épargne brute, encours de dette — communes, intercommunalités, départements, régions |
-| Europe (4) | Dette, déficit, chômage et PIB par habitant sur les définitions harmonisées d'Eurostat |
-| Territoires (6) | Population municipale, niveau de vie médian, taux de pauvreté, dotations de l'État, chômage localisé, établissements actifs |
-
-**Ce que le produit refuse de faire.** Il ne prétend pas suivre un euro d'impôt
-jusqu'à une dépense : cette traçabilité n'existe pas dans les comptes publics.
-Il montre un **pont explicable** entre ce qui est encaissé et ce qui est dépensé,
-et le dit là où on pourrait croire le contraire. Il ne compare pas deux
-territoires, deux pays ni deux années sans contrôler la définition, le périmètre,
-la période et l'unité — une série qui enjambe une fusion de communes le signale.
-Ce qui ne passe pas un contrôle bloquant n'est pas publié.
-
-**Vérifiabilité.** Chaque chiffre porte son producteur, sa licence, la date
-d'extraction réellement utilisée, sa définition publique et technique, et sa
-formule. Les instantanés bruts sont archivés et immuables. L'état de fraîcheur de
-chaque source, ce que les contrôles ont relevé et le journal des corrections sont
-publics. Les fichiers publiés sont documentés et réutilisables sans clé
-([docs/10](docs/10-api-publique.md)).
-
-**Limites connues, assumées.** La ventilation du budget de l'État par mission et
-programme n'est pas atteignable depuis les sources ouvertes actuelles
-(docs/08) : le projet de loi de finances n'est pas la loi votée, et l'exécution
-par mission s'arrête à l'exercice 2013. L'historique communal commence à 2022 —
-les exercices antérieurs ont été retirés pour tenir dans les 500 Mo du plan
-gratuit, et se rechargent en une commande depuis les instantanés (D6bis). Le
-moteur de questions en langage naturel (docs/05) reste en phase 3 : les questions
-auxquelles le site répond réellement sont écrites en clair sur la page d'accueil.
-
-## Documentation
-
-| Document | Contenu |
-|---|---|
-| [docs/00-resume-executif.md](docs/00-resume-executif.md) | Résumé exécutif ; principes et limites de la promesse « de l'impôt à l'euro dépensé » |
-| [docs/01-registre-sources.md](docs/01-registre-sources.md) | **Livrable 1** — Registre complet des sources FR/UE, priorisation P0/P1/P2/P3/EXCLU |
-| [docs/02-modele-donnees.md](docs/02-modele-donnees.md) | **Livrable 2** — Modèle canonique PostgreSQL/PostGIS (Supabase) |
-| [docs/03-architecture.md](docs/03-architecture.md) | **Livrable 3** — Architecture technique : collecte, transformation, stockage, exposition API, orchestration, observabilité, sécurité |
-| [docs/04-carte-ux.md](docs/04-carte-ux.md) | **Livrable 4** — UX et carte interactive |
-| [docs/05-moteur-questions.md](docs/05-moteur-questions.md) | **Livrable 5** — Moteur de questions en langage naturel, strictement sourcé |
-| [docs/06-qualite-methodologie.md](docs/06-qualite-methodologie.md) | **Livrable 6** — Charte de qualité, méthodologie, badges, traçabilité |
-| [docs/07-roadmap.md](docs/07-roadmap.md) | **Livrable 7** — Roadmap MVP / Phase 2 / Phase 3 |
-| [docs/08-backlog.md](docs/08-backlog.md) | **Livrable 8** — Backlog GitHub priorisé, premiers tickets |
-| [docs/09-risques-decisions.md](docs/09-risques-decisions.md) | Risques juridiques, techniques, méthodologiques, réputationnels ; décisions à prendre avant de coder |
-| [docs/10-api-publique.md](docs/10-api-publique.md) | Contrat des fichiers publiés : URL stables, contenu, ordres de grandeur, exemples vérifiés |
-| [docs/SETUP.md](docs/SETUP.md) | Mise en place : secrets, migrations, seed, déploiement |
-
-
-## Contribuer
-
-Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les commandes et les contrôles, et
-[AGENTS.md](AGENTS.md) pour les règles UX, DX et AX et les modules du projet.
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Commandes et niveau de vérification attendu |
+| [Contrat des fichiers publiés](docs/10-api-publique.md) | Données accessibles et structure des publications |
+| [Décisions produit et économie](docs/product-business-decisions.md) | Emplacements, formats, revenus publicitaires et critères de lancement |
+| [Stratégie Mandats](docs/mandats/STRATEGIE.md) | Contexte de conception historique, certains choix ont évolué |
+| [Plans et spécifications](docs/superpowers/) | Historique des changements, pas une nouvelle liste de fonctionnalités à livrer |
