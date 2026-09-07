@@ -31,6 +31,8 @@ export function comparaisonVoisins(
 }
 
 
+export const PAYS_VISIBLES = ["FR", "DE", "ES", "IT"];
+
 const PAYS_UE = ["FR", "DE", "AT", "BE", "BG", "CY", "HR", "DK", "ES", "EE", "FI", "EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "CZ", "RO", "SK", "SI", "SE"];
 
 /** Same Eurostat indicator, frequency and observation window for every country. */
@@ -53,7 +55,7 @@ export function courbesEurope(
       Number.isFinite(v) && p >= from && p <= to && frequencies.has(frequency(p))));
     return Object.keys(values).length ? [{name: nomPays(code), values,
       color: code === "FR" ? "#1763c6" : `hsl(${(index * 137.508) % 360} 48% 43%)`,
-      emphasized: code === "FR"}] : [];
+      emphasized: code === "FR", secondary: !PAYS_VISIBLES.includes(code)}] : [];
   });
 }
 
