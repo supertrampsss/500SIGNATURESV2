@@ -62,7 +62,7 @@ export function creerInsightTendance(
     titre: `${recette.sujet} : ${amplitude}`,
     texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false, recette.indicateur)} à ${formater(arrivee.valeur, recette.unite, false, recette.indicateur)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
     graphique: recette.indicateur === "eurostat_gini" ? {
-      titre: "Indice de Gini après redistribution · Union européenne",
+      titre: "Indice de Gini après redistribution · France et ses voisins",
       unite: "indice (0 à 100)",
       series: courbesEurope(series.eurostat_gini, pays, "eurostat_gini", depart.periode, arrivee.periode),
     } : undefined,
