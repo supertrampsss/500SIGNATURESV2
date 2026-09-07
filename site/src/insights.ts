@@ -28,7 +28,7 @@ export type Insight = {
   /** Publications officielles absentes de l'entrepôt et listées sur /sources/. */
   sourceIds?: string[];
   preuves: PreuveInsight[];
-  graphique?: { titre: string; unite: string; series: Array<{name:string;values:Record<string,number>}> };
+  graphique?: { titre: string; unite: string; series: Array<{name:string;values:Record<string,number>;color?:string;emphasized?:boolean}> };
 };
 
 export type PointSerie = {
