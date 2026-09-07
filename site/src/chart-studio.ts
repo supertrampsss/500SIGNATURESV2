@@ -1,5 +1,5 @@
 /** Original SVG/HTML charts. Rendering is pure; interaction lives in chart-controls.ts. */
-export type ChartSeries = { name: string; color?: string; emphasized?: boolean; secondary?: boolean; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
+export type ChartSeries = { name: string; color?: string; emphasized?: boolean; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
 export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean; periodLabel?: string };
 export const escapeChart = (text: string): string => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
@@ -7,7 +7,7 @@ export function chartPeriods(series: ChartSeries[]): string[] {
   return [...new Set(series.flatMap(s => Object.keys(s.values).filter(p => Number.isFinite(s.values[p]))))].sort();
 }
 export function chartReadout(options: ChartOptions, period: string): string {
-  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => options.hideMissing && !Number.isFinite(s.values[period]) ? '' : `<span class="chart-key chart-key--${i}"${s.secondary ? ' data-country-secondary' : ''}${s.color ? ` style="color:${escapeChart(s.color)}"` : ''}><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(s.labels?.[period] ?? options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
+  return `<b>${escapeChart(period)}</b><span class="chart-readout__values">${options.series.map((s, i) => options.hideMissing && !Number.isFinite(s.values[period]) ? '' : `<span class="chart-key chart-key--${i}"${s.color ? ` style="color:${escapeChart(s.color)}"` : ''}><span>${escapeChart(s.name)}</span><strong>${Number.isFinite(s.values[period]) ? escapeChart(s.labels?.[period] ?? options.format(s.values[period])) : 'Non publié'}</strong></span>`).join('')}</span>`;
 }
 
 export function timeChart(options: ChartOptions): string {
@@ -57,16 +57,15 @@ export function timeChart(options: ChartOptions): string {
         return `${continuous?'L':'M'}${x(i)},${y(s.values[p])}`;
       }).join(' ');
       const dots=periods.map((p,i) => Number.isFinite(s.values[p]) ? `<circle cx="${x(i)}" cy="${y(s.values[p])}" r="${s.pointsOnly?4:2.5}"/>` : '').join('');
-      return `<g class="chart-series chart-series--${index}"${s.secondary ? ' data-country-secondary' : ''}${s.color ? ` style="color:${escapeChart(s.color)}"` : ''}${s.emphasized ? ' data-emphasized="true"' : ''}>${s.pointsOnly?'':`<path d="${path}" ${s.dashed?'stroke-dasharray="6 5"':''}/>`}${dots}</g>`;
+      return `<g class="chart-series chart-series--${index}"${s.color ? ` style="color:${escapeChart(s.color)}"` : ''}${s.emphasized ? ' data-emphasized="true"' : ''}>${s.pointsOnly?'':`<path d="${path}" ${s.dashed?'stroke-dasharray="6 5"':''}/>`}${dots}</g>`;
     }).join('');
     return `<svg class="chart-svg chart-svg--${width<500?'phone':'wide'}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeChart(options.title+'. '+options.description)}"><title>${escapeChart(options.title)}</title><desc>${escapeChart(options.description)}</desc><g class="chart-grid">${grid}${labels}</g>${gap}${curves}<line class="chart-cursor" x1="${x(periods.length-1)}" x2="${x(periods.length-1)}" y1="${top}" y2="${height-bottom}" data-chart-left="${left}" data-chart-right="${width-right}"/></svg>`;
   };
   const readouts = periods.map(p=>chartReadout(options,p));
-  return `<figure class="chart-time${options.series.length > 6 ? ' chart-time--many' : ''}" ${options.series.some(s=>s.secondary)?'data-country-scope data-countries="limited" ':''}data-chart-periods="${escapeChart(JSON.stringify(periods))}" data-chart-fractions="${escapeChart(JSON.stringify(periods.map((_,i)=>fraction(i))))}" data-chart-readouts="${escapeChart(JSON.stringify(readouts))}">
+  return `<figure class="chart-time${options.series.length > 6 ? ' chart-time--many' : ''}" data-chart-periods="${escapeChart(JSON.stringify(periods))}" data-chart-fractions="${escapeChart(JSON.stringify(periods.map((_,i)=>fraction(i))))}" data-chart-readouts="${escapeChart(JSON.stringify(readouts))}">
     <figcaption><strong>${escapeChart(options.title)}</strong><span>${escapeChart(options.unit)}</span></figcaption>
     <output class="chart-readout" aria-live="polite" aria-atomic="true">${readouts.at(-1)}</output>
     <div class="chart-plot">${draw(360)}${draw(720)}</div>
     ${periods.length>1?`<label class="chart-scrub"><span>${escapeChart(periodLabel)}</span><input type="range" min="0" max="${periods.length-1}" value="${periods.length-1}" step="1" aria-label="${escapeChart(periodLabel)} du graphique : ${escapeChart(options.title)}" aria-valuetext="${escapeChart(periods.at(-1)!)}"/><span class="chart-scrub__year">${escapeChart(periods.at(-1)!)}</span></label>`:''}
-    ${options.series.some(s=>s.secondary)?'<button type="button" class="country-toggle" data-country-toggle aria-expanded="false">Voir tous les pays</button>':''}
   </figure>`;
 }
