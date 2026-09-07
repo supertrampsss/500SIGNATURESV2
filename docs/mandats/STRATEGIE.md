@@ -1,3 +1,5 @@
+> Contexte historique : pour les décisions produit et le modèle économique actuels, lire [le document du 7 septembre 2026](../product-business-decisions.md). Les anciennes priorités et simulations ci-dessous ne sont pas des résultats observés.
+
 # Mandats · dossier de conception et de livraison
 
 Dépôt : `supertrampsss/500SIGNATURESV2`. État du dossier : 4 septembre 2026. Produit : **Mandats, par 500 signatures**. Les durées, objectifs de performance et résultats commerciaux ci-dessous sont des hypothèses ou des critères de validation, sauf mention explicite d'une mesure. Les sources publiques ont été consultées ; aucune revue humaine certifiée en finances publiques ou en droit n'est revendiquée.
