@@ -1,3 +1,4 @@
+import { SOCIETY_LABELS } from './national-society.ts';
 import { calendarFor, domainFor } from './engine.ts';
 import type { Effect, Game } from './types.ts';
 import { annualDeficit } from './national-deficit.ts';
@@ -29,6 +30,10 @@ export function nationalDecisionImpact(game: Game): Impact[] {
     if (choice.effect.operating) push(`Dépenses ${signed(choice.effect.operating)} Md€/an`, choice.effect.operating, false);
     if (choice.effect.investment) push(`Investissement ${signed(choice.effect.investment)} Md€`, choice.effect.investment);
   }
+  if (game.version >= 7 && choice.effect.society) {
+    const most = Object.entries(choice.effect.society).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+    if (most) push(`${SOCIETY_LABELS[most[0] as keyof typeof SOCIETY_LABELS]} ${signed(most[1])}`,most[1]);
+  }
   if (choice.effect.repayment) push(`Remboursement ${signed(choice.effect.repayment)} Md€`, choice.effect.repayment);
   for (const [key, label] of metricLabels) {
     const value = choice.effect[key];
@@ -36,7 +41,7 @@ export function nationalDecisionImpact(game: Game): Impact[] {
   }
   if (choice.delayed && result.length < 3) {
     const year = (game.history.at(-1)?.year ?? calendarFor(game).year) + choice.delayed.after;
-    const event = choice.delayed.effect.revenue ? (choice.delayed.effect.revenue > 0 ? 'Recette prévue' : 'Fin de recette') : 'Livraison prévue';
+    const event = choice.delayed.effect.revenue ? (choice.delayed.effect.revenue > 0 ? 'Recette prévue' : 'Fin de recette') : game.version >= 7 && !choice.effect.investment ? 'Mise en œuvre prévue' : 'Livraison prévue';
     result.push({ label: `${event} · année ${year}`, direction: 'neutral' });
   }
   return result.slice(0, 3).length ? result.slice(0, 3) : [{ label: 'Trajectoire maintenue', direction: 'neutral' }];
@@ -45,7 +50,7 @@ export function nationalDecisionImpact(game: Game): Impact[] {
 /** National scope stays visible while the scene illustrates everyday consequences. */
 export function nationalMandateHeading(game: Game): string {
   const calendar = calendarFor(game);
-  return `<div class="mobile-mandate-context france-mandate-context"><span>Gouverner la France<small>Simulation · ${domainFor(game).turns} décisions</small></span><strong>Année ${calendar.year}/${calendar.years}</strong></div>`;
+  return `<div class="mobile-mandate-context france-mandate-context"><span>Gouverner la France<small>Simulation · ${domainFor(game).turns} décisions${game.version >= 7 ? " · parcours selon vos choix" : ""}</small></span><strong>Année ${calendar.year}/${calendar.years}</strong></div>`;
 }
 
 export function nationalCommandPulse(game: Game): string {

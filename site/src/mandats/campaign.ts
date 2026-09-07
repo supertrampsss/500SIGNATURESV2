@@ -1,3 +1,5 @@
+import { nationalBranchDossiers } from './national-branches.ts';
+import { initialSociety, applySociety, socialYearEnd } from './national-society.ts';
 import { annualDeficit, deficitBaseline, INITIAL_DEFICIT } from './national-deficit.ts';
 import { nationalPolicyDossiers } from './national-policy.ts';
 import { localDossiers } from './local-campaign.ts';
@@ -31,6 +33,7 @@ export function campaignDomain(g:Game):Domain {
   const base=BASE[g.mode], initial=()=>{
     const state=base.initial();
     if (g.version >= 6 && g.mode === "national") state.finance = deficitBaseline(state.finance);
+    if (g.version >= 7) state.society = initialSociety();
     if(g.city) {
       state.finance=financeForCity(g.city);
       state.areas=state.areas.map((a,i)=>({...a,name:['Zone de proximité','Zone d’équipements','Zone résidentielle'][i],need:'Zone de jeu hypothétique, sans diagnostic local observé'}));
@@ -49,9 +52,10 @@ export function campaignDomain(g:Game):Domain {
   if(dossierCache.size>=32)dossierCache.delete(dossierCache.keys().next().value!);
   dossierCache.set(cacheKey,dossiers);
   }
+  if (g.version >= 7) dossiers = nationalBranchDossiers(g);
   const current=dossiers[g.turn];
   const thread=CAMPAIGN_THREADS[g.mode].find(t=>t.followUps.includes(g.turn));
-  if(current && thread && dossiers.some(d=>d.choices.some(c=>c.id===thread.launchChoice))){
+  if(g.version < 7 && current && thread && dossiers.some(d=>d.choices.some(c=>c.id===thread.launchChoice))){
     dossiers=dossiers.slice();
     dossiers[g.turn]={...current,story:`${g.choices.includes(thread.launchChoice)?thread.underway:thread.absent} ${current.story}`};
   }
@@ -62,6 +66,8 @@ export function campaignDomain(g:Game):Domain {
     initial,dossiers,
     prepare:(f:Finance)=>{
       const inherited=initial().finance;
+      // Fixed v7 automatic stabilisers: nominal activity drives revenues; prices drive operating costs.
+      if(g.version >= 7 && g.turn > 0) f={...f,revenue:f.revenue*(1+f.growth)*(1+f.deflator),operating:f.operating*(1+f.deflator)};
       return {...f,investment:inherited.investment,grants:inherited.grants,repayment:Math.min(inherited.repayment,f.debt),...(g.mode==='national'?{rate:g.version >= 6 && g.turn === 0 ? f.rate : f.rate+.2*(f.marketRate-f.rate)}:{})};
     },
     sustainability:(current:Game)=>{
@@ -73,7 +79,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};
@@ -81,6 +87,7 @@ export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:City
   return g;
 }
 function apply(g:Game,e:Effect) {
+  applySociety(g,e.society);
   for(const key of [...financial,'growth'] as const)g.finance[key]+=e[key]??0;
   for(const key of ['services','cohesion','resilience','trust','assets'] as const)g.metrics[key]=clamp(g.metrics[key]+(e[key]??0));
   for(const a of g.areas)if(!e.area||a.id===e.area){a.services=clamp(a.services+(e.services??0));a.resilience=clamp(a.resilience+(e.resilience??0));}
@@ -109,6 +116,12 @@ function transition(game:Game,choice:Choice):Game {
     // The original annual event schedule is retained, with annual rather than decision time.
     const shock=BASE[g.mode].event({...g,turn:cal.year-1});
     apply(g,shock.effect);event=shock.label;
+    if(g.version >= 7) {
+      const social=socialYearEnd(g);
+      apply(g,{operating:social.operating,revenue:social.revenue,trust:social.trust});
+      messages.push(...social.messages);
+      if(social.messages.length)event+=' · Conséquences sociales';
+    }
   }
   const ledger=d.settle(g.finance);
   if(cal.isYearEnd){
@@ -117,7 +130,7 @@ function transition(game:Game,choice:Choice):Game {
     messages.push(`Exercice ${cal.year} clôturé. Intérêts, dette et trésorerie comptabilisés une seule fois.`);
   }
   messages.push(choice.benefit,`Compromis : ${choice.sacrifice}.`);
-  if(choice.delayed)messages.push(`${choice.delayed.effect.revenue ? 'Échéance fiscale prévue' : 'Livraison prévue'} en année ${cal.year+choice.delayed.after}.`);
+  if(choice.delayed)messages.push(`${choice.delayed.effect.revenue ? 'Échéance fiscale prévue' : g.version >= 7 && !choice.effect.investment ? 'Mise en œuvre prévue' : 'Livraison prévue'} en année ${cal.year+choice.delayed.after}.`);
   g.history.push({year:cal.year,closed:cal.isYearEnd,choice:choice.id,title:choice.title,messages,event,ledger,metrics:structuredClone(g.metrics),areas:structuredClone(g.areas)});
   g.choices.push(choice.id);g.turn++;
   return g;

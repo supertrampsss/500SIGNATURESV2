@@ -12,7 +12,7 @@ const AREA_POINTS: Record<Mode, { x: number; y: number }[]> = {
 export function projects(g: Game): Project[] {
   return g.choices.flatMap((id, index) => {
     const c = domainFor(g).dossiers[index]?.choices.find(c => c.id === id);
-    if (!c || (!(c.effect.investment ?? 0) && id !== "reporter")) return [];
+    if (!c || c.physicalProject === false || (!(c.effect.investment ?? 0) && id !== "reporter")) return [];
     const started = g.version >= 3 ? g.history[index].year : index + 1;
     const due = started + (c.delayed?.after ?? 0);
     const completed = g.version >= 3 ? calendarFor(g).completedYears : g.turn;

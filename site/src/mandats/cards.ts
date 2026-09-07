@@ -12,7 +12,7 @@ export function cardModel(g: Game, kind: CardKind) {
     const previous = replayGame(g,g.choices.slice(0,-1));
     const c = choicesFor(previous).find(c => c.id === g.choices.at(-1))!;
     const text=choiceCopy(previous,domainFor(previous).dossiers[previous.turn],c);
-    const deadline = c.delayed ? `${c.delayed.effect.revenue ? (c.delayed.effect.revenue > 0 ? 'Recette supplémentaire' : 'Fin de la recette temporaire') : 'Livraison'} en année ${calendarFor(previous).year + c.delayed.after}` : 'Effet immédiat, selon les règles';
+    const deadline = c.delayed ? `${c.delayed.effect.revenue ? (c.delayed.effect.revenue > 0 ? 'Recette supplémentaire' : 'Fin de la recette temporaire') : g.version >= 7 && !c.effect.investment ? 'Mise en œuvre' : 'Livraison'} en année ${calendarFor(previous).year + c.delayed.after}` : 'Effet immédiat, selon les règles';
     const url = `${new URL('/mandats/', 'https://500signatures.fr').href}#dilemma=${encodeURIComponent(encode(previous))}`;
     return { label: `DÉCISION DE JEU · ANNÉE ${g.history.at(-1)?.year ?? g.turn}`, title: text.title, fields: [['Coût du choix', c.cost], ['Effet annoncé', c.benefit], ['Compromis', c.sacrifice], ['Délai', deadline]], url, alt: `Décision de jeu, ${d.place}, année ${g.history.at(-1)?.year ?? g.turn}. ${text.title}. ${c.cost}. ${c.benefit}. Compromis : ${c.sacrifice}. ${c.delayed ? `${deadline}.` : ''} Le lien restitue les décisions antérieures pour rejouer ce dilemme. Simulation fictive v${g.version}.` };
   }
