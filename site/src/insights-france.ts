@@ -1,7 +1,7 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { insightsFranceDebat } from "./insights-france-debat.ts";
 import { insightsFranceGeneriques } from "./insights-france-generiques.ts";
-import { comparaisonVoisins } from "./insights-europe.ts";
+import { comparaisonVoisins, avecCourbesEurope } from "./insights-europe.ts";
 import {
   derniere,
   ecartRelatif,
@@ -544,5 +544,6 @@ export function insightsFrance(
     insightDensiteCarcerale(france.series),
     ...insightsFranceDebat(france.series, catalogue, pays),
     ...insightsFranceGeneriques(france.series, catalogue, pays),
-  ].filter((insight): insight is Insight => insight !== null);
+  ].filter((insight): insight is Insight => insight !== null)
+    .map(insight => avecCourbesEurope(insight, france.series, catalogue, pays));
 }
