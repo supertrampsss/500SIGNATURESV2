@@ -276,17 +276,26 @@ test("la fiche s'arrête au tableau des exercices", () => {
     assert.ok(
       ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
        "fiche__essentiel", "fiche__parent", "fiche__situation",
-       "tableau-exercices", "territoire-diagnostic", "territory-reading", "territory-charts", "chart-time", "chart-plot", "chart-readout", "chart-scrub", "chart-grid", "chart-cursor"].includes(classe),
+       "tableau-exercices", "territory-reading", "territory-charts", "chart-time", "chart-plot", "chart-readout", "chart-scrub", "chart-grid", "chart-cursor"].includes(classe),
       `section inattendue : ${classe}`,
     );
   }
-  // Les quatre repères ouvrent le diagnostic, la note reste consultable sur place.
-  assert.match(html, /class="note"/, "la note a quitté la fiche");
-  assert.match(html, /<section class="territoire-diagnostic" aria-label="Situation financière">/);
-  assert.ok(html.indexOf('class="reperes"') < html.indexOf('class="note"'));
+  // Le tableau « Gestion financière » a été retiré de la fiche : les repères,
+  // les graphiques et le classement suffisent à lire la situation sans ajouter
+  // une seconde table comptable.
+  assert.doesNotMatch(html, /Gestion financière/);
+  assert.doesNotMatch(html, /class="note"/);
   // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
   // fiche ne dit jamais ce qu'elle est en train de calculer.
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
+});
+
+test("la suite des données reprend l'alignement de la fiche", () => {
+  const css = fs.readFileSync(new URL("./style.css", import.meta.url), "utf8");
+  // Le détail des thèmes se trouvait ancré à droite avec la largeur de
+  // l'ancien panneau, alors que le classement au-dessus occupait la colonne
+  // éditoriale. Il doit suivre toute la largeur utile du conteneur.
+  assert.match(css, /#detail \{\s*justify-self: stretch;\s*width: 100%;\s*max-width: none;/);
 });
 
 test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {
