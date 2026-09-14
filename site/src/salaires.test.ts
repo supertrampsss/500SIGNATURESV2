@@ -70,5 +70,6 @@ test('l’historique ne mélange pas des exercices incomplets ou des bases diff�
  const history=historiqueRepartition(series);
  assert.deepEqual(history.map(h=>h.year),['2000','2002']);
  for(const h of history)assert.ok(Math.abs(h.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
- const html=renduSalaires(2100,'salarié',series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);
+ const html=renduSalaires(2100,'salarié',series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);assert.match(html,/id="salary-history"/);assert.match(html,/data-salary-history-share/);assert.match(html,/Les principaux postes de dépense/);
+ assert.ok((html.match(/chart-key chart-key--/g)??[]).length>=4);
 });

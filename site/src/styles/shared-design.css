@@ -51,6 +51,7 @@ html body .entete,html body .site-header {
   display:grid; grid-template-columns:minmax(180px,1fr) auto 44px; align-items:center; gap:24px;
 }
 html body .entete__nom,html body .brand strong { font:600 1.5rem/1.1 'Source Sans 3',Arial,sans-serif; letter-spacing:-.055em; color:var(--design-ink); text-transform:none; }
+html body .entete__marque { justify-self:start; width:max-content; max-width:100%; display:inline-flex; align-items:center; }
 html body .entete__signature,html body .brand small { display:none; }
 html body .brand { display:block; text-decoration:none; }
 html body .brand-icon { display:none; }
@@ -104,6 +105,9 @@ html body .insights .insight { list-style:none;background:var(--design-panel);bo
 html body .insights .insight h3,html body .insights .insight h4 { font:600 1.5rem/1.2 'Barlow Semi Condensed',Arial,sans-serif;color:var(--design-ink);letter-spacing:0; }
 html body .insight__surtitre { color:var(--design-gold);font-size:.8rem; }
 html body .insight__analyse,html body .insight__comparaison { color:var(--design-muted);font-size:1rem;line-height:1.55; }
+html body .insight__share { margin-top:16px;min-height:44px;padding:8px 14px;border:1px solid var(--design-line);border-radius:8px;background:transparent;color:var(--design-ink);font-size:.875rem; }
+html body .insight__share:hover,html body .insight__share:focus-visible { border-color:var(--design-gold);color:var(--design-gold); }
+html body .insight__share-status { margin-left:10px;color:var(--design-muted);font-size:.8rem; }
 html body .insights__theme { margin-top:32px; }
 html body .insights__theme-entete { background:transparent;border:0; }
 html body .insights__sommaire a { color:var(--design-ink);background:var(--design-panel);border-color:var(--design-line); }

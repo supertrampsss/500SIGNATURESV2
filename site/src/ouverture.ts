@@ -38,7 +38,7 @@
  */
 
 import type { Territoire } from "./donnees.ts";
-import { graphiqueEcart, tableauAccessible } from "./dataviz.ts";
+import { graphiqueEcart } from "./dataviz.ts";
 import { montantLisible } from "./echelle.ts";
 
 // L'exercice de référence des écarts. Déclaré ici pour qu'il se voie et se
@@ -70,11 +70,6 @@ const EUROS = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 export function variation(avant: number, apres: number): string {
   const taux = (apres / avant - 1) * 100;
   return `${taux >= 0 ? "+" : "−"}${PART.format(Math.abs(taux))} %`;
-}
-
-/** Un montant en milliards, signé selon le sens du flux. */
-function milliards(valeur: number, signe: "+" | "−" | ""): string {
-  return `${signe}${EUROS.format(Math.abs(valeur) / 1e9)}`;
 }
 
 export type Ouverture = {
@@ -150,70 +145,6 @@ export function rendu(pays: Record<string, Territoire>): string {
   if (!c) return "";
   const r = france!.series[RECETTES];
   const d = france!.series[DEPENSES];
-
-  // Le piège du dénominateur, écrit seulement quand l'inflation retirée est
-  // calculable : sans indice des prix, la phrase se tairait plutôt que de
-  // comparer des euros courants en les appelant constants.
-  // La phrase du décrochage des recettes n'est écrite que tant qu'elle est
-  // vraie dans les séries : le jour où les recettes suivront la richesse,
-  // elle disparaîtra au lieu de mentir.
-  const recettesDecrochent =
-    c.reelRecettes !== null &&
-    c.reelPib !== null &&
-    c.reelDepenses !== null &&
-    c.reelRecettes < c.reelPib &&
-    c.reelRecettes < c.reelDepenses;
-  const piege =
-    c.reelDepenses !== null && c.reelRecettes !== null && c.reelPib !== null
-      ? `<p class="ouverture__piege">On lit souvent que la dépense publique a baissé, parce que
-          sa part de la richesse produite est passée de
-          <strong>${PART.format(c.partDepensesDebut)} %</strong> à
-          <strong>${PART.format(c.partDepenses)} %</strong>.
-          <strong>C'est le ratio qui a baissé, pas la dépense</strong>&nbsp;: une fois
-          l'inflation retirée, elle a augmenté de
-          <strong>${echapper(`${c.reelDepenses >= 0 ? "+" : "−"}${PART.format(Math.abs(c.reelDepenses))}`)} %</strong>
-          depuis ${echapper(c.debut)}, presque au rythme de la richesse
-          (${echapper(`${c.reelPib >= 0 ? "+" : "−"}${PART.format(Math.abs(c.reelPib))}`)} %).
-${
-            recettesDecrochent
-              ? `
-          Ce qui a décroché, ce sont les recettes&nbsp;:
-          <strong>${echapper(`${c.reelRecettes >= 0 ? "+" : "−"}${PART.format(Math.abs(c.reelRecettes))}`)} %</strong>
-          seulement.`
-              : ""
-          }</p>`
-      : "";
-
-  const colonnes = c.exercices
-    .map((an) => `<th scope="col">${echapper(an)}</th>`)
-    .join("");
-  // La variation du premier au dernier exercice publié, par `variation()` — la
-  // même que la colonne du chapitre suivant. Une série de montants ne dit pas
-  // ce qui a bougé : l'œil compare mal 1 244 à 1 562, et c'est la seule
-  // question qu'on pose à une série.
-  const evolutionDe = (s: Record<string, number>): string =>
-    s[c.debut] === undefined || s[c.fin] === undefined || s[c.debut] === 0
-      ? ""
-      : echapper(variation(s[c.debut], s[c.fin]));
-  const ligne = (nom: string, cellule: (an: string) => string, evolution: string) =>
-    `<tr><th scope="row">${echapper(nom)}</th>${c.exercices
-      .map((an) => `<td>${cellule(an)}</td>`)
-      .join("")}<td class="evolution">${evolution}</td></tr>`;
-
-  const tableau = `<table class="comparaison ouverture__evolution" tabindex="0">
-    <thead><tr><th scope="col"></th>${colonnes}<th scope="col" class="evolution">${echapper(
-      `${c.debut}\u2009→\u2009${c.fin}`,
-    )}</th></tr></thead>
-    <tbody>
-      ${ligne("Recettes", (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`, evolutionDe(r))}
-      ${ligne("Dépenses", (an) => `<span class="flux--moins">${milliards(d[an], "−")}</span>`, evolutionDe(d))}
-      ${ligne(
-        "Emprunté",
-        (an) => `<strong>${milliards(d[an] - r[an], "−")}</strong>`,
-        evolutionDe(Object.fromEntries(c.exercices.concat(c.debut, c.fin).map((an) => [an, d[an] - r[an]]))),
-      )}
-    </tbody>
-  </table>`;
   const graphique = graphiqueEcart({
     titre: "Les dépenses restent au-dessus des recettes",
     unite: "Milliards d'euros courants",
@@ -233,7 +164,7 @@ ${
   return `
     ${graphique}
     <p class="chart-source">Milliards d'euros courants · ${echapper(c.exercices[0]!)} à ${echapper(c.fin)} · Eurostat</p>
-    ${tableauAccessible("Données et lecture des comptes", tableau + `<div class="chart-notes">${piege}</div>`)}
+
   `;
 }
 

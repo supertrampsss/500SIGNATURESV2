@@ -40,6 +40,16 @@
 .salaires__detail summary::-webkit-details-marker { display: none; }
 .salaires__detail p { max-width: 75ch; color: var(--encre-douce); line-height: 1.55; }
 .salaires__sources a { color: var(--encre); text-underline-offset: .2em; }
+.salary-history { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--trait); }
+.salary-history h2 { margin: 0 0 .7rem; font: 600 clamp(1.8rem,3vw,2.7rem)/1.1 var(--serif); }
+.salary-history > p { max-width: 70ch; color: var(--encre-douce); line-height: 1.5; }
+.salary-history__controls { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1rem; margin: 1.5rem 0 1rem; }
+.salary-history__controls label { display: grid; gap: .35rem; font-weight: 600; }
+.salary-history__controls select { min-height: 44px; min-width: min(100%, 22rem); border: 1px solid var(--trait-fort); border-radius: 4px; padding: .55rem .75rem; background: var(--papier); color: var(--encre); font: inherit; }
+.salary-history__share { min-height: 44px; border: 1px solid var(--encre); border-radius: 4px; padding: .55rem .9rem; background: transparent; color: var(--encre); font: 600 .95rem var(--sans); cursor: pointer; }
+.salary-history__share:hover, .salary-history__share:focus-visible { background: var(--encre); color: var(--papier); }
+.salary-history__share-status { min-height: 1.4em; color: var(--encre-douce); font-size: .875rem; align-self: center; }
+.salary-history [data-salary-history-chart] .chart-time { margin-top: 1rem; }
 .salaires__allocation { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
 .salaires__allocation h2 { margin: 0; font: 600 clamp(1.8rem,3vw,2.7rem)/1.1 var(--serif); }
 .salaires__allocation header > p:last-child { max-width: 37ch; color: var(--encre-douce); font-size: 1rem; line-height: 1.5; }
@@ -57,4 +67,7 @@
  .salaires__reserve p { font-size: .9375rem; }
  .salaires__total h2 { font-size: 3.5rem; }
  .salaires__allocation { gap: 1rem; }
+ .salary-history__controls { align-items: stretch; }
+ .salary-history__controls label, .salary-history__controls select, .salary-history__share { width: 100%; }
+ .salary-history__share-status { align-self: auto; }
 }
