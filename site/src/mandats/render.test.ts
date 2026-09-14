@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { start, decide, DOMAINS } from "./engine.ts";
 import { selection, mandateSetup, gameShell } from "./render.ts";
-test("both mandates have direct accessible choices and optional context", () => {
+test("the public mandate entry offers the national campaign with direct choices", () => {
   const html = selection(null);
-  assert.match(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
-  assert.match(html, /Gouverner une ville/); assert.match(html, /Gouverner la France/);
-  for (const mode of ["municipal", "national"] as const) {
+  assert.doesNotMatch(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
+  assert.doesNotMatch(html, /Gouverner une ville|Choisir ma ville/); assert.match(html, /Gouverner la France/);
+  for (const mode of ["national"] as const) {
     assert.doesNotMatch(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
     const g = start(mode);
-    const setup = mandateSetup(start("municipal",42,"equilibre",4));
-    assert.match(setup,/id="city-query"/);
-    assert.doesNotMatch(setup,/data-action="choose-cap"|Cap du mandat/);
+    const setup = mandateSetup(start("national",42,"equilibre",8));
+    assert.doesNotMatch(setup,/city-query|fictional-city|Quelle ville/);
+    assert.match(setup,/Gouverner la France/);
     assert.doesNotMatch(gameShell(g,"play","decision"),/data-action="choose-cap"|data-action="ambition"|Cap :/);
     for (const view of ["decision", "territory", "finance", "journal"] as const) {
       const rendered = gameShell(g, "play", view);

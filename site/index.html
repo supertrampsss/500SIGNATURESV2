@@ -99,53 +99,18 @@
                  aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
                  placeholder="Rechercher un territoire…" />
           <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
-          <button type="button" id="territoire-carte-toggle" class="territoire-carte-toggle" aria-controls="cadre-carte" aria-expanded="false" disabled>Voir la carte</button>
         </div>
       </section>
-      <div class="atelier" aria-label="Carte interactive">
-        <div id="cadre-carte" hidden>
-        <!-- La carte et ses surcouches dans un même cadre : légende, barre de
-             commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
-             cadre, elles s'ancraient sur l'atelier entier et la barre des
-             commandes venait se poser sur le texte de la fiche. -->
-        <div class="atelier__carte">
-          <div id="carte" role="application" aria-label="Carte des territoires français"></div>
-
-          <section class="legende surcouche surcouche--legende" id="legende"
-                   aria-label="Légende de la carte" hidden>
-            <p class="legende__titre" id="legende-titre"></p>
-            <ol class="legende__echelle" id="legende-echelle"></ol>
-            <p class="legende__bornes" id="legende-bornes"></p>
-          </section>
-
-          <div class="etiquettes" id="etiquettes" aria-hidden="true"></div>
-
-          <div class="carte-barre">
-            <div class="pilules pilules--vues" id="pilules-vue" role="group" aria-label="Territoire cadré"></div>
-          </div>
-
-          <div class="infobulle" id="infobulle" hidden></div>
-        </div>
-        </div>
-
-        <aside class="panneau surcouche" id="panneau" aria-label="Fiche du territoire">
-          <!-- Poignée du tiroir mobile : on la fait glisser pour agrandir la
-               fiche jusqu'au plein écran, on la touche pour basculer. Sans elle,
-               la fiche restait coincée dans un tiers d'écran sous une carte
-               qu'on ne regardait plus. -->
-          <button type="button" class="panneau__poignee" id="panneau-poignee"
-                  aria-label="Agrandir ou réduire le panneau"></button>
-          <button type="button" class="panneau__fermer" id="panneau-fermer" aria-label="Fermer le panneau">×</button>
+      <aside class="panneau panneau--territoire" id="panneau" aria-label="Fiche du territoire">
           <div class="panneau__contenu" id="volet-territoire">
             <div class="fiche" id="fiche" aria-live="polite">
               <p class="etat etat--vide">
                 <span class="etat__titre">Aucun territoire choisi</span>
-                <span class="etat__quoi">Cherchez une commune, un département ou une région dans le champ en haut de page. La France s'affiche en attendant.</span>
+                <span class="etat__quoi">Cherchez une commune, un département ou une région dans le champ en haut de page.</span>
               </p>
             </div>
           </div>
         </aside>
-      </div>
 
       <!-- La suite analytique, la comparaison, puis seulement les territoires
            semblables. Le classement de la couche

@@ -246,7 +246,7 @@ html body .analysis-dialog__close { display:block;position:sticky;top:0;margin-l
 html body .analysis-dialog h3,html body .analysis-dialog h4 { font:600 clamp(1.6rem,4vw,2.5rem)/1.15 'Barlow Semi Condensed',sans-serif; }
 html body .salary-history { margin-top:40px;padding:24px;border:1px solid var(--design-line);border-radius:18px;background:var(--design-panel); }
 html body .salary-history select { display:block;max-width:100%;width:100%;padding:12px;margin:8px 0 24px;border:1px solid var(--design-line);border-radius:12px;background:var(--design-inset);color:var(--design-ink);font:inherit; }
-html body .europe-unifiee { border:0;border-radius:0;padding:0; }
+html body .europe-unifiee { border:1px solid var(--design-line);border-radius:18px;padding:24px; }
 html body .europe-unifiee .bloc { border:0; }
 html body[data-vue='territoire'] .territoire-recherche { grid-template-columns:1fr;gap:24px;padding:24px 0 0;border:0; }
 html body[data-vue='territoire'] .territoire-recherche__champ { position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:8px;background:var(--design-panel);border:1px solid var(--design-line);border-radius:20px;box-shadow:0 10px 35px rgb(0 0 0 / .04); }
@@ -277,6 +277,44 @@ html body[data-vue='territoire']:not([data-territoire-selection='oui']) #panneau
 }
 @media(max-width:700px) {
  html body .analysis-dialog { width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:20px; }
+}
+
+/* The territory map was retired. Keep the search, detail sheet and analyses
+   in one readable column, with the same editorial gutters as France. */
+html body[data-vue='territoire'] #vue-territoire {
+ display:block;
+ width:min(1120px,calc(100% - 64px));
+ max-width:none;
+ margin:32px auto 64px;
+ padding:0;
+}
+html body[data-vue='territoire'] .panneau--territoire {
+ position:static;
+ width:100%;
+ max-height:none;
+ overflow:visible;
+ background:transparent;
+ border:0;
+ box-shadow:none;
+}
+html body[data-vue='territoire'] .territoire__tables { margin-top:24px; }
+@media(min-width:821px) {
+ html body #vue-bilan #national {
+   width:min(1280px,calc(100% - 64px));
+   max-width:1280px;
+ }
+}
+@media(max-width:700px) {
+ html body[data-vue='territoire'] #vue-territoire {
+   width:calc(100% - 40px);
+   margin:20px auto 48px;
+ }
+ html body #vue-bilan #national {
+   width:100%;
+   max-width:none;
+   margin-left:0;
+   margin-right:0;
+ }
 }
 
 /* Editorial spacing and continuous light surfaces. */

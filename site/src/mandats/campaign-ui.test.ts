@@ -48,7 +48,7 @@ test('v3 accounts distinguish in-year forecasts from annual settlements',()=>{
   game=advance(game);assert.match(finance(game),/Prévision de l’année 2/);
   assert.equal(count(gameShell(game,'play','journal'),/class="journal-year"/g),2);
 });
-test('v3 observed city, actual-map hosts and snapshot challenges work without network replay',async t=>{
+test('observed city data remains available to the data layer while the public mandate UI stays national',async t=>{
   const fixture=JSON.parse(readFileSync(new URL('../../tests/fixtures/editorial-publication.json',import.meta.url),'utf8'));
   const original=globalThis.fetch;
   globalThis.fetch=(async(input:string|URL|Request)=>{
@@ -61,10 +61,8 @@ test('v3 observed city, actual-map hosts and snapshot challenges work without ne
     throw new Error(`Unexpected request ${url}`);
   }) as typeof fetch;
   t.after(()=>{globalThis.fetch=original;});
-  const city=await loadCity('33063'),initial=start('municipal',61,'services',3,city),setup=mandateSetup(initial);
-  assert.match(setup,/Bordeaux/);assert.match(setup,/Recettes de fonctionnement observées/);assert.match(setup,/COMPTES 2025/);
-  for(const id of ['city-query','city-results'])assert.match(setup,new RegExp(`id="${id}"`));
-  assert.match(setup,/data-action="fictional-city"/);assert.doesNotMatch(setup,/city-inherited|campaign-city-model/);
+  const city=await loadCity('33063'),initial=start('municipal',61,'services',3,city),setup=mandateSetup(start('national',61,'equilibre',8));
+  assert.doesNotMatch(setup,/Bordeaux|city-query|city-results|fictional-city|MANDAT MUNICIPAL/);assert.match(setup,/Gouverner la France/);
   const scenery=world(initial);
   assert.equal(count(scenery,/data-city-map="33063"/g),1);assert.match(scenery,/COMPTES OBSERVÉS · 2025/);assert.match(scenery,/<progress/);
   assert.doesNotMatch(scenery,/city-model|building-height|world-pin|<img|<picture/);
@@ -78,6 +76,6 @@ test('v3 observed city, actual-map hosts and snapshot challenges work without ne
   assert.equal(link.search,'','Snapshot remains in fragment');assert.match(link.hash,/^#challenge=/);
   assert.deepEqual(challengeFromURL(link),initial,'Challenge preserves observed baseline but drops previous choices');
   assert.deepEqual(startingGame(played),initial);assert.deepEqual(replayGame(played,played.choices),played);
-  assert.deepEqual(projectPlan(played,played.choices).game,played);assert.match(selection(played),/Bordeaux/);
+  assert.deepEqual(projectPlan(played,played.choices).game,played);assert.doesNotMatch(selection(played),/data-mode="municipal"/);
   assert.doesNotMatch(readFileSync(new URL('./campaign.css',import.meta.url),'utf8'),/city-model-grid|city-model-block|building-height|rotateX/);
 });
