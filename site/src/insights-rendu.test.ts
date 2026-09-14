@@ -49,6 +49,8 @@ test("renduInsights rend l'analyse et la comparaison, jamais la réserve", () =>
   assert.doesNotMatch(html, /À garder en tête/);
   assert.doesNotMatch(html, /Vérifier les chiffres/);
   assert.doesNotMatch(html, /insight__preuves/);
+  assert.match(html, /id="insight-angle-test"/);
+  assert.match(html, /data-insight-share/);
   assert.match(html, /href="\/sources\/"/);
 });
 

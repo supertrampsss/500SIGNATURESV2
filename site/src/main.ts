@@ -641,6 +641,15 @@ async function peindre(): Promise<void> {
  *  département qui ne disait que la différence de taille. */
 const DENOMINATEURS = new Set(["ofgl_population_reference"]);
 
+// Un échantillon volontairement large pour le premier écran : métropoles,
+// villes moyennes et petites préfectures. Les boutons ne sont posés que si la
+// publication les connaît, afin de ne jamais proposer une fiche vide.
+const VILLES_SUGGEREES = [
+  "75056", "13055", "69123", "31555", "06088", "44109", "34172", "33063",
+  "59350", "67482", "35238", "38185", "49007", "25056", "14047", "21231",
+  "87085", "81004", "64024", "29232", "17300", "84007", "46042", "12145",
+];
+
 /** Les territoires d'une maille, indexés par « maille:code ».
  *
  *  Le code seul ne désigne pas un territoire : quatorze départements portent un
@@ -671,6 +680,18 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
 function afficherApercu(): void {
   delete document.body.dataset.territoireSelection;
   $("fiche").innerHTML = `<div class="territoire-depart" aria-label="Suggestions de villes"><button type="button" class="fiche__parent" data-code="33063" data-niveau="commune">Bordeaux</button><button type="button" class="fiche__parent" data-code="75056" data-niveau="commune">Paris</button></div>`;
+}
+
+async function enrichirSuggestionsVilles(): Promise<void> {
+  const fiche = $("fiche");
+  if (!fiche || etat?.selection) return;
+  const index = await donnees.indexRecherche().catch(() => []);
+  const communes = new Map(index.filter((entree) => entree.l === "commune").map((entree) => [entree.c, entree]));
+  const choix = VILLES_SUGGEREES.map((code) => communes.get(code)).filter((entree): entree is NonNullable<typeof entree> => !!entree);
+  if (choix.length < 3 || etat?.selection) return;
+  fiche.innerHTML = `<div class="territoire-depart" aria-label="Suggestions de villes">${choix
+    .map((entree) => `<button type="button" class="fiche__parent" data-code="${echapper(entree.c)}" data-niveau="commune">${echapper(entree.n)}</button>`)
+    .join("")}</div>`;
 }
 
 /** La France du panneau d'accueil, demandée une seule fois et le plus tôt
@@ -2626,6 +2647,41 @@ function brancherPartageEditorial(): void {
   brancherPartage(article, partageDeLaPage);
 }
 
+/** Les cartes France ont leur propre permalien, sans panneau qui alourdirait
+ * la lecture. Le lien pointe l'ancre de la carte et fonctionne aussi quand le
+ * navigateur ne propose pas de partage natif. */
+function brancherPartageAnalysesFrance(): void {
+  const conteneur = document.getElementById("insights-france");
+  if (!conteneur || conteneur.dataset.partageBranche === "oui") return;
+  conteneur.dataset.partageBranche = "oui";
+  conteneur.addEventListener("click", async (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-insight-share]");
+    if (!bouton) return;
+    const article = bouton.closest<HTMLElement>("article[id^='insight-']");
+    if (!article) return;
+    const lien = new URL("/bilan", location.origin);
+    lien.hash = article.id;
+    const titre = article.querySelector<HTMLElement>("h3,h4")?.textContent?.trim() || "Analyse des comptes de la France";
+    const texte = article.querySelector<HTMLElement>(".insight__analyse")?.textContent?.trim() || "";
+    const statut = article.querySelector<HTMLElement>(".insight__share-status");
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: titre, text: texte, url: lien.href });
+        if (statut) statut.textContent = "Lien prêt à partager.";
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(lien.href);
+        if (statut) statut.textContent = "Lien copié.";
+      } else if (statut) {
+        statut.textContent = lien.href;
+      }
+    } catch (erreur) {
+      if ((erreur as DOMException)?.name !== "AbortError" && statut) {
+        statut.textContent = "Le lien n'a pas pu être copié.";
+      }
+    }
+  });
+}
+
 /**
  * Les filtres de l'index des analyses (spec §9.1).
  *
@@ -3171,6 +3227,7 @@ async function demarrer(): Promise<void> {
   window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
+  void enrichirSuggestionsVilles();
   // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
   // le même index, sans état commun. Câblé ici, avant la garde éditoriale
   // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
@@ -3266,6 +3323,10 @@ async function demarrer(): Promise<void> {
     const cadreInsightsFrance = $("insights-france");
     cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france", series: pays.FR.series });
     cadreInsightsFrance.hidden = analysesFrance.length === 0;
+    brancherPartageAnalysesFrance();
+    if (location.hash.startsWith("#insight-")) {
+      requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "start" }));
+    }
     if (analysesFrance.length > 0) {
       $("national").hidden = false;
     }

@@ -143,7 +143,7 @@ test("une longue série nationale privilégie 2017 comme point de comparaison", 
   assert.match(resultat.texte, /entre 2017 et 2025/);
 });
 
-test("le générateur produit les 71 cartes quand chaque série est compatible", () => {
+test("le générateur retire les cartes de promesse budgétaire", () => {
   const series: Territoire["series"] = {};
   const catalogue: Indicateur[] = [];
 
@@ -159,13 +159,10 @@ test("le générateur produit les 71 cartes quand chaque série est compatible",
 
   const resultat = insightsFranceGeneriques(series, catalogue);
 
-  assert.equal(resultat.length, 71);
-  assert.equal(new Set(resultat.map(({ id }) => id)).size, 71);
+  assert.equal(resultat.length, RECETTES_TENDANCES.length);
+  assert.equal(new Set(resultat.map(({ id }) => id)).size, RECETTES_TENDANCES.length);
   assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
-  assert.equal(
-    resultat.filter(({ id }) => id.startsWith("mission-")).every(({ reserve }) => reserve === ""),
-    true,
-  );
+  assert.equal(resultat.some(({ surtitre }) => surtitre === "Budget · la promesse face à l'exécution"), false);
 });
 
 test("une trajectoire Eurostat reçoit la comparaison des voisins au même exercice", () => {

@@ -47,8 +47,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { halteres, tableauAccessible } from "./dataviz.ts";
-import { variation } from "./ouverture.ts";
+import { halteres } from "./dataviz.ts";
 
 const REFERENCE = "2017";
 
@@ -70,11 +69,6 @@ function echapper(texte: string): string {
 const MILLIARDS = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
 });
-
-/** Un montant en milliards, signé + : une recette entre. */
-function plus(valeur: number): string {
-  return `+${MILLIARDS.format(valeur / 1e9)}`;
-}
 
 type Ligne = {
   libelle: string;
@@ -171,15 +165,7 @@ export function rendu(
     return "";
   const donnees = lignes(pays["FR"]);
   if (!donnees) return "";
-  const { debut, fin, total } = donnees;
-
-  // Les prix sur la même fenêtre, pour dire si les recettes ont bougé en
-  // vrai. La phrase se tait sans l'indice plutôt que de comparer du courant.
-  const prix = pays["FR"]?.series["eurostat_prix_ensemble"] ?? {};
-  const inflation =
-    prix[debut] !== undefined && prix[fin] !== undefined
-      ? variation(prix[debut], prix[fin])
-      : null;
+  const { debut, fin } = donnees;
 
   // La taille suit le rang : le plus gros montant au plus gros corps. Cinq
   // rangs, cinq crans, écrits en classe et non en style — la feuille garde la
@@ -189,29 +175,6 @@ export function rendu(
   // rattaché au chiffre qu'elle explique. Elle tient maintenant dans la
   // colonne Variation elle-même, à la place du pourcentage qu'elle remplace —
   // une ligne, jusqu'au bout.
-  const rangees = donnees.lignes
-    .map(
-      (l, rang) => `<tr class="recettes__rang recettes__rang--${rang}">
-        <th scope="row">${echapper(l.libelle)}</th>
-        <td class="flux--plus">${plus(l.avant)}</td>
-        <td class="flux--plus">${plus(l.apres)}</td>
-        <td>${
-          l.note
-            ? `<span class="recettes__note">${echapper(l.note)}</span>`
-            : echapper(variation(l.avant, l.apres))
-        }</td>
-      </tr>`,
-    )
-    .join("");
-  const tableau = `<table class="comparaison recettes" tabindex="0">
-    <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
-      <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
-    <tbody>${rangees}</tbody>
-    <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
-      <td class="flux--plus">${plus(total.avant)}</td>
-      <td class="flux--plus">${plus(total.apres)}</td>
-      <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
-  </table>`;
   const graphique = halteres({
     titre: "Ce que l'État encaisse a changé de composition",
     description: `Recettes nettes de l'État en ${debut} et ${fin}, en milliards d'euros.`,
@@ -234,7 +197,6 @@ export function rendu(
     <p class="chart-context">Ce que l'État conserve, après les transferts aux collectivités et à la Sécurité sociale.</p>
     ${graphique}
     <p class="chart-source">Milliards d'euros · ${echapper(debut)} et ${echapper(fin)} · Budget exécuté de l'État</p>
-    ${tableauAccessible("Données et transferts de TVA", tableau + `<div class="chart-notes"><p>Depuis ${echapper(debut)}, les recettes ont augmenté de ${echapper(variation(total.avant,total.apres))}${inflation ? `, pour une hausse des prix de ${echapper(inflation)}` : ''}.</p><p>La baisse de la TVA conservée par l'État ne signifie pas que la taxe rapporte moins : une part est transférée aux autres administrations.</p></div>`)}
     `;
 }
 

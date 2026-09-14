@@ -12,12 +12,14 @@ type OptionsRendu = {
 function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[] = [], series: Territoire["series"] = {}): string {
   const chart = insightChart(insight,catalogue,series);
   return `<li class="insight insight--${insight.famille}">
-    <article${chart ? ' data-expand-card' : ""}>
+    <article id="insight-${echapper(insight.id)}"${chart ? ' data-expand-card' : ""}>
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>
       <h${niveauTitre}>${chart ? `<button type="button" data-expand-analysis aria-label="Agrandir : ${echapper(insight.titre)}">${echapper(insight.titre)}</button>` : echapper(insight.titre)}</h${niveauTitre}>
       <p class="insight__analyse">${echapper(insight.texte)}</p>
       ${chart}
       ${insight.comparaison ? `<p class="insight__comparaison">${echapper(insight.comparaison)}</p>` : ""}
+      <button type="button" class="insight__share" data-insight-share aria-label="Partager : ${echapper(insight.titre)}">Partager le lien</button>
+      <span class="insight__share-status" role="status" aria-live="polite"></span>
     </article>
   </li>`;
 }

@@ -30,7 +30,7 @@ const france = (series: Territoire["series"]): Territoire => ({
   series,
 });
 
-test("insightsFrance produit les angles composés puis les missions disponibles", () => {
+test("insightsFrance produit les angles composés sans cartes de promesse budgétaire", () => {
   const series = {
     depense_fiscale_totale: { "2025": 100 },
     depense_fiscale_impot_revenu: { "2025": 40 },
@@ -120,10 +120,9 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
       "surtaxe-exceptionnelle-prolongee",
       "rattrapage-pologne",
       "sncf-financement-public",
-      "mission-defense",
-      "mission-culture",
     ],
   );
+  assert.equal(resultat.some(({ surtitre }) => surtitre === "Budget · la promesse face à l'exécution"), false);
   assert.equal(resultat[1].preuves[0].periode, "2024");
   assert.match(resultat[1].titre, /Défense/);
   assert.match(resultat[3].titre, /40/);

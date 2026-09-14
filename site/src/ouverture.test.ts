@@ -52,7 +52,7 @@ const texte = (html: string) =>
   html.replace(/<[^>]+>/g, " ").replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
       .replace(/\s+/g, " ").trim();
 
-test("la base des écarts est 2017 quand elle est publiée, et elle est nommée", () => {
+test("la base des écarts reste 2017 dans les données", () => {
   // Le choix de la base n'est pas neutre : mesuré sur les séries réelles, la
   // part de la dépense monte depuis 1995, monte depuis 2019, recule depuis
   // 2017. **Le signe s'inverse.** Une base tue ou choisie pour sa conclusion
@@ -60,21 +60,14 @@ test("la base des écarts est 2017 quand elle est publiée, et elle est nommée"
   const c = chiffres(territoire(SERIES));
   assert.ok(c);
   assert.equal(c.debut, "2017");
-  const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /depuis 2017/);
+  assert.equal(c.debut, "2017");
 });
 
-test("le piège du dénominateur est écrit : le ratio baisse, la dépense monte", () => {
-  // « De 57,7 % à 57,3 % » se lit comme une baisse. C'en est une du ratio,
-  // pas de la dépense : +5,8 % une fois l'inflation retirée. La phrase donne
-  // LES DEUX BOUTS du ratio et la hausse réelle — jamais l'un sans l'autre.
+test("le détail historique est retiré du chapitre d'ouverture", () => {
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /est passée de 57,7 % à 57,3 %/);
-  assert.match(lu, /C'est le ratio qui a baissé, pas la dépense/);
-  assert.match(lu, /elle a augmenté de \+5,8 %/);
-  assert.match(lu, /au rythme de la richesse \(\+6,4 %\)/);
-  // Et le décrochage des recettes, vrai sur ces séries : +2,3 % seulement.
-  assert.match(lu, /les recettes : \+2,3 % seulement/);
+  assert.doesNotMatch(lu, /Données et lecture des comptes/);
+  assert.doesNotMatch(lu, /ouverture__evolution/);
+  assert.match(lu, /Les dépenses restent au-dessus des recettes/);
 });
 
 test("sans indice des prix, aucun chiffre « inflation retirée » ne s'écrit", () => {
@@ -90,21 +83,11 @@ test("sans indice des prix, aucun chiffre « inflation retirée » ne s'écrit",
   assert.doesNotMatch(lu, /ratio qui a baissé/);
 });
 
-test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
-  // La demande explicite du lecteur : une recette entre (+), une dépense sort
-  // (−). Dans la phrase ET dans chaque colonne du tableau.
+test("le graphique d'ouverture reste la preuve visible", () => {
   const html = rendu({ FR: territoire(SERIES) });
-  assert.match(html, /flux--plus">\+/);
-  assert.match(html, /flux--moins">−/);
-  const lu = texte(html);
-  // Les montants d'ensemble restent dans le verdict : le chapitre ne les
-  // répète donc pas en prose avant son tableau historique.
-  assert.doesNotMatch(lu, /encaissé \+1 561,63/);
-  // Le tableau d'évolution garde tous les exercices publiés. Recettes +,
-  // dépenses −, emprunt −.
-  assert.match(lu, /Recettes \+1 244 \+1 288 \+1 326 \+1 456 \+1 562/);
-  assert.match(lu, /Dépenses −1 321 −1 346 −1 491 −1 608 −1 714/);
-  assert.match(lu, /Emprunté −77 −58 −165 −152 −153/);
+  assert.match(html, /chart-time/);
+  assert.doesNotMatch(html, /flux--plus/);
+  assert.doesNotMatch(html, /flux--moins/);
 });
 
 test("le tableau d'évolution donne ses deux bouts, du début à la fin", () => {

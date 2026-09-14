@@ -209,8 +209,8 @@ function insightRedistribution(series: Series): Insight | null {
     famille: "budget",
     surtitre: "Redistribution · avant / après",
     titre: `Impôts et prestations réduisent l'inégalité de ${pourcentage(reduction)}`,
-    texte: `En ${periode}, l'indice de Gini passe de ${ratio.format(avant)} avant redistribution à ${ratio.format(apres)} après redistribution. Plus l'indice est proche de zéro, plus les niveaux de vie sont égaux.`,
-    reserve: "L'indice résume toute la distribution des niveaux de vie ; il ne décrit pas chaque ménage.",
+    texte: `En ${periode}, le Gini passe de ${ratio.format(avant)} avant redistribution à ${ratio.format(apres)} après redistribution. Plus il est proche de zéro, plus les niveaux de vie sont égaux.`,
+    reserve: "Le Gini résume toute la distribution des niveaux de vie ; il ne décrit pas chaque ménage.",
     preuves: [
       preuve(avantId, periode, avant, "Avant redistribution"),
       preuve(apresId, periode, apres, "Après redistribution"),

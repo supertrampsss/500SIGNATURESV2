@@ -140,15 +140,18 @@ export function historiqueRepartition(series:Territoire["series"]) {
    return data?.year===year && data.basis===latest.basis ? [data] : [];
  });
 }
-function graphiqueRepartition(label:string,values:Record<string,number>) {
- return timeChart({title:label,description:"Part de ce poste dans les dépenses publiques, à périmètre comparable.",unit:"% des dépenses publiques",series:[{name:label,values}],format:v=>`${v.toLocaleString("fr-FR",{maximumFractionDigits:1})} %`});
+function graphiqueRepartition(postes:Array<{label:string;values:Record<string,number>}>) {
+ const titre=postes.length===1 ? postes[0].label : "Les principaux postes de dépense";
+ return timeChart({title:titre,description:"Part de 100 € de dépenses publiques consacrée à chaque poste, à périmètre comparable.",unit:"Part des dépenses publiques",series:postes.map(({label,values})=>({name:label,values})),format:v=>`${v.toLocaleString("fr-FR",{maximumFractionDigits:1})} €`});
 }
 function evolutionAllocation(series:Territoire["series"]):string {
  const history=historiqueRepartition(series);if(history.length<2)return "";
  const latest=history.at(-1)!;
  const data=Object.fromEntries(latest.missions.map(m=>[m.label,Object.fromEntries(history.flatMap(h=>{const entry=h.missions.find(v=>v.label===m.label);return entry?[[h.year,entry.share*100]]:[];}))]));
- const first=latest.missions[0].label;
- return `<section class="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><div data-salary-history-chart>${graphiqueRepartition(first,data[first])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
+ const principaux=latest.missions.slice().sort((a,b)=>b.share-a.share).slice(0,4);
+ const selection=principaux[0]?.label ?? latest.missions[0].label;
+ const seriesPrincipales=principaux.map(m=>({label:m.label,values:data[m.label]}));
+ return `<section class="salary-history" id="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><div class="salary-history__controls"><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><button type="button" class="salary-history__share" data-salary-history-share>Partager le graphique</button><span class="salary-history__share-status" role="status" aria-live="polite"></span></div><div data-salary-history-chart>${graphiqueRepartition(seriesPrincipales.length ? seriesPrincipales : [{label:selection,values:data[selection]}])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
 }
 
 function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
@@ -193,10 +196,34 @@ export function brancherSalaires(root: HTMLElement): void {
   const erreur = root.querySelector<HTMLElement>("#salaires-erreur");
   if (!formulaire || !resultat || !champ || !erreur) return;
   const history=root.querySelector<HTMLElement>('[data-salary-history]');
-  history?.querySelector('select')?.addEventListener('change',event=>{
-    const label=(event.target as HTMLSelectElement).value;
+  const choixPoste=history?.querySelector<HTMLSelectElement>('select');
+  const afficherPoste=(label:string)=>{
+    if(!history)return;
     const data=JSON.parse(history.dataset.salaryHistory!);
-    history.querySelector('[data-salary-history-chart]')!.innerHTML=graphiqueRepartition(label,data[label]);
+    history.querySelector('[data-salary-history-chart]')!.innerHTML=graphiqueRepartition([{label,values:data[label]}]);
+  };
+  if (choixPoste && typeof window !== "undefined") {
+    const partage=new URLSearchParams(window.location.search).get("poste");
+    if (partage && Array.from(choixPoste.options).some(option=>option.value===partage)) {
+      choixPoste.value=partage;
+      afficherPoste(partage);
+    }
+  }
+  choixPoste?.addEventListener('change',event=>{
+    const label=(event.target as HTMLSelectElement).value;
+    afficherPoste(label);
+  });
+  history?.querySelector<HTMLButtonElement>('[data-salary-history-share]')?.addEventListener('click',async()=>{
+    const url=new URL('/salaires/',window.location.origin);url.hash='salary-history';
+    const label=choixPoste?.value;
+    if(label)url.searchParams.set('poste',label);
+    const status=history.querySelector<HTMLElement>('.salary-history__share-status');
+    try {
+      if (typeof navigator.share === 'function') { await navigator.share({title:'Comment la répartition a changé',url:url.href}); }
+      else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.href); }
+      else throw new Error('clipboard unavailable');
+      if(status)status.textContent='Lien copié.';
+    } catch { if(status)status.textContent=`Lien : ${url.href}`; }
   });
   let selection = statutValide(resultat.dataset.salairesStatut ?? null);
   let annonce: ReturnType<typeof setTimeout>;

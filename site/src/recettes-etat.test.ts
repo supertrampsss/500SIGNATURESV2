@@ -41,15 +41,11 @@ const texte = (html: string) =>
   html.replace(/<[^>]+>/g, " ").replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
       .replace(/\s+/g, " ").trim();
 
-test("chaque évolution donne ses deux bouts : 2017, 2025, puis la variation", () => {
-  // « +30 % depuis 2017 » sans le montant de 2017 ne se vérifie pas — c'est
-  // le reproche du lecteur sur la maquette, et la raison d'être du module.
+test("le graphique de recettes conserve les deux millésimes", () => {
   const lu = texte(rendu({ FR: territoire(SERIES) }, CATALOGUE));
-  assert.match(lu, /2017 2025 Variation/);
-  assert.match(lu, /Impôt sur le revenu \+73 \+95 \+30,1 %/);
-  assert.match(lu, /Impôt sur les sociétés \+36 \+60 \+67,8 %/);
-  assert.match(lu, /Taxe sur les produits énergétiques \(TICPE\) \+10 \+16 \+61,2 %/);
-  assert.match(lu, /Total encaissé par l'État \+310 \+380 \+22,9 %/);
+  assert.match(lu, /2017 2025/);
+  assert.doesNotMatch(lu, /Variation/);
+  assert.doesNotMatch(lu, /Données et transferts de TVA/);
 });
 
 test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace", () => {
@@ -69,12 +65,11 @@ test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace"
 
 test("les recettes s'écrivent en positif, du plus gros au plus petit", () => {
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
-  assert.match(html, /flux--plus">\+98/);
+  assert.match(html, /\+98 Md€/);
   assert.doesNotMatch(texte(html), /−9[48],/);
-  // Le tri suit le dernier exercice, et la hiérarchie typographique le suit :
-  // le rang 0 est la TVA.
-  const rangs = [...html.matchAll(/recettes__rang--(\d)/g)].map((m) => Number(m[1]));
-  assert.deepEqual(rangs, [0, 1, 2, 3, 4, 5]);
+  // Le graphique rend les recettes sans tableau de classement redondant.
+  assert.match(html, /class="dataviz dataviz--halteres/);
+  assert.doesNotMatch(html, /recettes__rang--/);
   assert.ok(html.indexOf("Taxe sur la valeur ajoutée") < html.indexOf("Impôt sur le revenu"));
 });
 
@@ -106,16 +101,10 @@ test("le total est la série publiée, jamais la somme des lignes", () => {
   assert.equal(ticpe.apres, 16.2767 * Md);
 });
 
-test("l'inflation de la même fenêtre cadre la hausse, et se tait sans indice", () => {
-  // +22,9 % de recettes pendant +22,6 % de prix : « elles n'ont presque pas
-  // bougé » est la lecture, et elle n'est écrite qu'avec l'indice publié.
+test("les notes de tableau sont retirées", () => {
   const lu = texte(rendu({ FR: territoire(SERIES) }, CATALOGUE));
-  assert.match(lu, /pour une hausse des prix de \+22,6 %/);
-  const sans = { ...SERIES };
-  delete sans["eurostat_prix_ensemble"];
-  const luSans = texte(rendu({ FR: territoire(sans) }, CATALOGUE));
-  assert.doesNotMatch(luSans, /hausse des prix/);
-  assert.match(luSans, /\+22,9 %/);
+  assert.doesNotMatch(lu, /pour une hausse des prix/);
+  assert.doesNotMatch(lu, /La baisse de la TVA conservée/);
 });
 
 test("la base retombe sur le premier exercice commun quand 2017 manque", () => {
@@ -138,14 +127,8 @@ test("rien ne s'écrit sans le catalogue ou sans deux exercices", () => {
   assert.equal(rendu({ FR: territoire(seul) }, CATALOGUE), "");
 });
 
-test("la TVA est expliquée en clair à côté du tableau, pas seulement notée dans la cellule", () => {
-  // « Part reversée en hausse » seul laissait le lecteur avec sa question —
-  // « la TVA sert à financer autre chose ? ». Le mécanisme est écrit en
-  // toutes lettres : la taxe ne baisse pas, une part croissante est reversée
-  // à la Sécurité sociale et aux collectivités, le tableau ne compte que la
-  // part gardée par l'État.
+test("la TVA reste lisible directement sur le graphique", () => {
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
-  assert.match(html, /La baisse de la TVA conservée/);
   assert.match(html, /après les transferts aux collectivités et à la Sécurité sociale/);
   assert.match(html, /Ce que l'État conserve/);
 });

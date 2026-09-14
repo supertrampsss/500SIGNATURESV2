@@ -77,18 +77,18 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
 
   // Travail, entreprises et prix — 13
   t("chomage-trajectoire", "eurostat_chomage", "percent", "travail", "Emploi · le chômage harmonisé", "Taux de chômage", reserveMacro),
-  t("creations-entreprises-indice", "eurostat_creations_entreprises_indice", "indice", "travail", "Entreprises · le flux de créations", "Indice des créations d'entreprises", "L'indice ne mesure ni la taille ni la survie des entreprises créées."),
-  t("defaillances-entreprises-indice", "eurostat_defaillances", "indice", "travail", "Entreprises · les cessations judiciaires", "Indice des défaillances d'entreprises", "Une défaillance judiciaire n'est pas synonyme de disparition définitive de l'activité."),
+  t("creations-entreprises-indice", "eurostat_creations_entreprises_indice", "indice", "travail", "Entreprises · le flux de créations", "Créations d'entreprises", "La série est un indice : elle ne mesure ni la taille ni la survie des entreprises créées."),
+  t("defaillances-entreprises-indice", "eurostat_defaillances", "indice", "travail", "Entreprises · les cessations judiciaires", "Défaillances d'entreprises", "La série est un indice : une défaillance judiciaire n'est pas synonyme de disparition définitive de l'activité."),
   t("croissance-pib", "eurostat_croissance_pib", "percent", "travail", "Économie · la croissance réelle", "Croissance du PIB sur un an", "Une variation trimestrielle sur un an reste sensible au point de comparaison."),
   t("inflation-harmonisee", "eurostat_inflation_ipch", "percent", "travail", "Prix · l'inflation européenne", "Inflation harmonisée", "Le taux moyen ne reflète pas le panier de consommation de chaque ménage."),
   t("investissement-entreprises", "eurostat_investissement_entreprises_pib", "percent", "travail", "Entreprises · l'investissement productif", "Investissement des entreprises dans le PIB", reserveMacro),
   t("marge-entreprises", "eurostat_marge_entreprises", "percent", "travail", "Entreprises · le partage de la valeur", "Taux de marge des entreprises", "Le taux de marge n'est ni le bénéfice net ni le revenu des actionnaires."),
-  t("production-industrielle", "eurostat_production_industrielle", "indice", "travail", "Industrie · le décrochage ou le rebond", "Production industrielle", "L'indice agrège des branches industrielles dont les trajectoires diffèrent."),
+  t("production-industrielle", "eurostat_production_industrielle", "indice", "travail", "Industrie · le décrochage ou le rebond", "Production industrielle", "La série est un indice qui agrège des branches industrielles dont les trajectoires diffèrent."),
   t("epargne-menages", "eurostat_taux_epargne_menages", "percent", "travail", "Ménages · l'argent non consommé", "Taux d'épargne des ménages", "Une forte épargne moyenne peut coexister avec des ménages sans capacité d'épargne."),
   t("salaire-net-moyen", "insee_salaire_net_eqtp_mensuel", "EUR", "travail", "Salaires · la moyenne nationale", "Salaire net mensuel moyen", "La moyenne est supérieure à la médiane et ne décrit pas les temps partiels."),
 
   // Inégalités et société — 10
-  t("gini-trajectoire", "eurostat_gini", "indice", "services", "Inégalités · le mouvement après redistribution", "Indice de Gini après redistribution", "Une variation faible de l'indice peut masquer des mouvements importants aux extrêmes."),
+  t("gini-trajectoire", "eurostat_gini", "indice", "services", "Inégalités · le mouvement après redistribution", "Gini après redistribution", "Une variation faible du Gini peut masquer des mouvements importants aux extrêmes."),
   t("rapport-interdecile", "insee_rapport_interdecile", "ratio", "services", "Inégalités · l'écart entre les seuils", "Rapport entre le neuvième et le premier décile", reserveSocial),
   t("pauvrete-seuil-50", "insee_taux_pauvrete_50", "percent", "services", "Pauvreté · le seuil le plus sévère", "Taux de pauvreté au seuil de 50 %", "Le seuil est relatif au niveau de vie médian et évolue avec lui."),
   t("intensite-pauvrete", "insee_intensite_pauvrete_60", "percent", "services", "Pauvreté · à quelle distance du seuil", "Intensité de la pauvreté", "L'intensité mesure l'écart médian au seuil parmi les personnes pauvres."),

@@ -1,12 +1,10 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { formater } from "./echelle.ts";
 import {
-  RECETTES_MISSIONS,
   RECETTES_TENDANCES,
-  type RecetteMission,
   type RecetteTendance,
 } from "./insights-france-catalogue.ts";
-import { periodeCommune, type Insight, type PreuveInsight } from "./insights.ts";
+import { type Insight, type PreuveInsight } from "./insights.ts";
 import { comparaisonVoisins, courbesEurope } from "./insights-europe.ts";
 
 type Series = Territoire["series"];
@@ -62,8 +60,8 @@ export function creerInsightTendance(
     titre: `${recette.sujet} : ${amplitude}`,
     texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false, recette.indicateur)} à ${formater(arrivee.valeur, recette.unite, false, recette.indicateur)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
     graphique: recette.indicateur === "eurostat_gini" ? {
-      titre: "Indice de Gini après redistribution · France et ses voisins",
-      unite: "indice (0 à 100)",
+      titre: "Gini après redistribution · France et ses voisins",
+      unite: "0 à 100",
       series: courbesEurope(series.eurostat_gini, pays, "eurostat_gini", depart.periode, arrivee.periode),
     } : undefined,
     reserve: recette.reserve,
@@ -77,34 +75,6 @@ export function creerInsightTendance(
   };
 }
 
-function creerInsightMission(
-  recette: RecetteMission,
-  series: Series,
-  catalogue: Indicateur[],
-): Insight | null {
-  if (!uniteValide(catalogue, recette.vote, "EUR") || !uniteValide(catalogue, recette.consomme, "EUR")) return null;
-  const periode = periodeCommune([series[recette.vote], series[recette.consomme]]);
-  if (!periode) return null;
-  const vote = series[recette.vote][periode];
-  const consomme = series[recette.consomme][periode];
-  if (!(vote > 0) || !Number.isFinite(consomme)) return null;
-  const ecart = ((consomme - vote) / vote) * 100;
-  const position = ecart >= 0 ? "au-dessus" : "au-dessous";
-
-  return {
-    id: recette.id,
-    famille: recette.famille,
-    surtitre: "Budget · la promesse face à l'exécution",
-    titre: `${recette.sujet} : ${nombre.format(Math.abs(ecart))} % ${position} du vote`,
-    texte: `En ${periode}, ${formater(consomme, "EUR", false)} ont été consommés sur ${formater(vote, "EUR", false)} votés, soit un écart de ${nombreSigne.format(ecart)} %.`,
-    reserve: recette.reserve,
-    preuves: [
-      { indicateur: recette.vote, periode, valeur: vote, libelle: "Crédits votés" },
-      { indicateur: recette.consomme, periode, valeur: consomme, libelle: "Crédits consommés" },
-    ],
-  };
-}
-
 export function insightsFranceGeneriques(
   series: Series,
   catalogue: Indicateur[],
@@ -112,6 +82,5 @@ export function insightsFranceGeneriques(
 ): Insight[] {
   return [
     ...RECETTES_TENDANCES.map((recette) => creerInsightTendance(recette, series, catalogue, pays)),
-    ...RECETTES_MISSIONS.map((recette) => creerInsightMission(recette, series, catalogue)),
   ].filter((insight): insight is Insight => insight !== null);
 }
