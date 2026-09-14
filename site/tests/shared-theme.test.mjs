@@ -63,3 +63,28 @@ test('editorial histories expand, redistribution stays visible and Europe is gro
  await expect(page.locator('[data-salary-history-chart] figcaption')).toContainText(await select.locator('option:checked').textContent());
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
 });
+
+test('France keeps the approved backgrounds and readable inner margins in both themes',async({page},info)=>{
+ await page.goto('/bilan/');
+ await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
+ for(const [theme,background,toggle] of [
+  ['sombre','rgb(12, 32, 41)','Activer le mode clair'],
+  ['clair','rgb(246, 243, 235)','Activer le mode sombre']
+ ]){
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  await expect(page.locator('body')).toHaveCSS('background-color',background);
+  await expect(page.locator('.entete')).toHaveCSS('background-color',background);
+  const margins=await page.locator('#national').evaluate(panel=>{
+   const p=panel.getBoundingClientRect();
+   return Array.from(panel.querySelectorAll('#bloc-ouverture,#bloc-recettes-etat,#france-dette,#insights-france')).map(el=>{
+    const r=el.getBoundingClientRect();return {left:r.left-p.left,right:p.right-r.right};
+   });
+  });
+  expect(margins.length).toBe(4);
+  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(19);expect(margin.right).toBeGreaterThanOrEqual(19);}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
+  await page.locator('#bloc-recettes-etat').scrollIntoViewIfNeeded();
+  await page.screenshot({path:info.outputPath('france-margins-'+theme+'.png')});
+  await page.getByRole('button',{name:toggle,exact:true}).click();
+ }
+});
