@@ -72,6 +72,10 @@ test('France keeps the approved backgrounds and readable inner margins in both t
   ['clair','rgb(246, 243, 235)','Activer le mode sombre']
  ]){
   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  await expect(page.getByRole('img',{name:'500 SIGNATURES',exact:true})).toBeVisible();
+  const logo=page.locator('.brand-e img:visible');
+  await expect(logo).toHaveCount(1);
+  expect(await logo.evaluate(img=>img.complete && img.naturalWidth>0)).toBe(true);
   await expect(page.locator('body')).toHaveCSS('background-color',background);
   await expect(page.locator('.entete')).toHaveCSS('background-color',background);
   const margins=await page.locator('#national').evaluate(panel=>{

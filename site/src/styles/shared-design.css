@@ -340,3 +340,13 @@ html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--4 { background:#9b8
 html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--5 { background:#8e9695;fill:#8e9695; }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail { background:var(--design-track); }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail>span { background:var(--design-green); }
+
+/* Approved concept E: four bars, serif numeral, stacked wordmark. */
+html body .brand-e { display:block;width:67px;height:88px;flex-shrink:0; }
+html body .brand-e img { display:block;width:100%;height:100%;object-fit:contain; }
+html body .brand-e .brand-e__light { display:none; }
+html[data-theme='clair'] body .brand-e .brand-e__light { display:block; }
+html[data-theme='clair'] body .brand-e .brand-e__dark { display:none; }
+@media(max-width:700px) {
+ html body .brand-e { width:55px;height:72px; }
+}

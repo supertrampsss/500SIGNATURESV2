@@ -485,7 +485,8 @@ export function descriptionDuGabarit(shell: string): string {
  */
 export function marqueDuGabarit(shell: string): string {
   const marque = (
-    shell.match(/<a class="entete__marque"[^>]*>[\s\S]*?<span class="entete__nom">([\s\S]*?)<\/span>/)?.[1]
+    shell.match(/<a[^>]*data-brand-name="([^"<>]+)"[^>]*>/)?.[1]
+    ?? shell.match(/<a class="entete__marque"[^>]*>[\s\S]*?<span class="entete__nom">([\s\S]*?)<\/span>/)?.[1]
     ?? shell.match(/<div class="entete__marque">[\s\S]*?<h1>([\s\S]*?)<\/h1>/)?.[1]
   )?.trim();
   if (!marque) throw new Error("Le gabarit ne porte pas de marque : une carte de section n'a rien à peindre.");

@@ -1106,7 +1106,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // pour toutes — « carte des finances locales » décrivait la carte, qui a
   // quitté la racine pour `/territoire`.
   assert.equal(titreDuGabarit(GABARIT_REEL), "Où va l'argent public");
-  assert.equal(marqueDuGabarit(GABARIT_REEL), "500signatures.");
+  assert.equal(marqueDuGabarit(GABARIT_REEL), "500 SIGNATURES");
   // Et sa description est le message du site, arrêté à la conception (spec §8).
   // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui
   // tient les deux rédactions accordées.
