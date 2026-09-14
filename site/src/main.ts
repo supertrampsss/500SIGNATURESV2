@@ -27,11 +27,6 @@ import {
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
-import {
-  carteActivePourVue,
-  carteDemandeeParFragment,
-  suivreVisibiliteCarteParDefaut,
-} from "./carte-territoriale.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { insightsFrance } from "./insights-france.ts";
@@ -195,7 +190,6 @@ type Etat = {
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let carte: maplibregl.Map;
-let carteIndisponible = false;
 window.addEventListener("themechange", () => {
  if (!carte?.isStyleLoaded()) return;
  const dark=document.documentElement.dataset.theme !== "clair";
@@ -1384,7 +1378,8 @@ async function ouvrirTerritoire(
  */
 function tiroirRedimensionnable(): void {
   const panneau = $("panneau");
-  const poignee = $("panneau-poignee");
+  const poignee = document.getElementById("panneau-poignee");
+  if (!poignee) return;
   const arrets = () => {
     const h = window.innerHeight;
     return [Math.round(h * 0.38), Math.round(h * 0.62), Math.round(h - 48)];
@@ -1467,7 +1462,9 @@ function tiroirRedimensionnable(): void {
  * encore l'état précédent.
  */
 function majEtatTiroir(visee?: number): void {
-  const panneau = $("panneau");
+  const panneau = document.getElementById("panneau");
+  const poignee = document.getElementById("panneau-poignee");
+  if (!panneau || !poignee) return;
   const repos = window.innerHeight * 0.38;
   const fige = parseFloat(panneau.style.getPropertyValue("--tiroir"));
   const haut =
@@ -1681,7 +1678,7 @@ function brancherCommandes(): void {
   // Le cadrage est devenu un menu : c'est un `change`, plus un clic sur une
   // pastille. Le menu se reconstruit seul à chaque rendu, sans réécrire son
   // propre HTML sous le doigt du lecteur.
-  $("pilules-vue").addEventListener("change", (evenement) => {
+  document.getElementById("pilules-vue")?.addEventListener("change", (evenement) => {
     const menu = evenement.target as HTMLSelectElement;
     if (menu.id !== "cadrage") return;
     etat.vue = menu.value;
@@ -2413,7 +2410,7 @@ function basculerVue(): void {
   rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
-  appliquerModeCarte(carteActivePourVue(vue, !$("cadre-carte").hidden));
+  appliquerModeCarte(false);
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
@@ -2447,39 +2444,6 @@ function appliquerModeCarte(ouverte: boolean): void {
   if (ouverte) document.body.dataset.carte = "oui";
   else delete document.body.dataset.carte;
   if (ouverte && !avant) requestAnimationFrame(() => carte?.resize());
-}
-
-/** La carte est secondaire sur téléphone, mais pas supprimée : son instance
- * MapLibre reste celle qui a été créée au démarrage, et ne demande qu'un
- * redimensionnement après sa révélation. */
-function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
-  const cadre = document.getElementById("cadre-carte");
-  if (!cadre) return;
-
-  const poserCarte = (ouverte: boolean) => {
-    if (carteIndisponible) ouverte = false;
-    cadre.hidden = !ouverte;
-    appliquerModeCarte(carteActivePourVue(document.body.dataset.vue, ouverte));
-  };
-
-  // À partir de 60rem, la carte reste visible comme un outil de contexte.
-  // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
-  const bouton = document.getElementById("territoire-carte-toggle");
-  const suivre = suivreVisibiliteCarteParDefaut(
-    window.matchMedia.bind(window),
-    ouverte => {
-      poserCarte(ouverte);
-      if (bouton) {
-        bouton.setAttribute("aria-expanded", String(ouverte));
-        bouton.textContent = ouverte ? "Masquer la carte" : "Voir la carte";
-      }
-    },
-    ouvrirCarteDemandee,
-  );
-  if (bouton) {
-    bouton.removeAttribute("disabled");
-    bouton.addEventListener("click", () => suivre.choisir(cadre.hidden));
-  }
 }
 
 /**
@@ -3197,7 +3161,6 @@ async function demarrer(): Promise<void> {
   // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
   // et reste intacte.
   const fragmentInitial = location.hash;
-  const ouvrirCarteDemandee = carteDemandeeParFragment(fragmentInitial);
   const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", fragmentInitial) : null;
   if (vueDuFragment) {
     // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
@@ -3238,30 +3201,19 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  brancherBriefingTerritorial(ouvrirCarteDemandee);
+  // La carte territoriale a été retirée de l'interface. Les fiches, la
+  // recherche et les analyses restent disponibles dans la vue Territoires.
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();
   // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
   // la carte n'a pas à patienter pour ça.
 
-  try {
-    initialiserCarte();
-  } catch {
-    carteIndisponible = true;
-    $("cadre-carte").hidden = true;
-    appliquerModeCarte(false);
-    const boutonCarte = document.getElementById("territoire-carte-toggle");
-    if (boutonCarte) {
-      boutonCarte.setAttribute("disabled", "");
-      boutonCarte.setAttribute("aria-expanded", "false");
-      boutonCarte.textContent = "Carte indisponible sur cet appareil";
-    }
-    // La recherche, les fiches et France fonctionnent sans contexte WebGL.
-    await peindre();
-  }
-
-  $("panneau-fermer").addEventListener("click", fermerPanneau);
+  await peindre();
+  // Keep the legacy map helpers available to the data-layer tests without
+  // mounting a map in the product UI.
+  void initialiserCarte;
+  void fermerPanneau;
 
   brancherCommandes();
 
