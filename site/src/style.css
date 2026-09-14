@@ -6643,21 +6643,22 @@ body[data-carte="oui"] .legende {
   max-width: 78rem;
   margin: 0 auto;
 }
-/* « Sa place parmi les autres » et « Les communes semblables » (#palmares),
-   puis la suite du panneau (#detail) : ils continuent la colonne étroite du
-   panneau de la fiche, pas sa pleine largeur. Sans ce réglage, la page
-   passait d'une colonne de 662 px à côté de la carte à un bloc de 1216 px de
-   large au défilement suivant — le même geste de lecture changeant
-   brutalement de forme. */
-#palmares,
-#detail {
+/* Le palmarès reste dans la colonne de lecture. La suite des données (#detail)
+   reprend en revanche toute la largeur utile : elle se trouvait repoussée à
+   droite, sous « Sa place parmi les autres », ce qui donnait l'impression que
+   le contenu était décalé. */
+#palmares {
   justify-self: end;
   width: var(--panneau-largeur);
   max-width: 100%;
 }
+#detail {
+  justify-self: stretch;
+  width: 100%;
+  max-width: none;
+}
 @media (max-width: 60rem) {
-  #palmares,
-  #detail {
+  #palmares {
     justify-self: stretch;
     width: auto;
   }

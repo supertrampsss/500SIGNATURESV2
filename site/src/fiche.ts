@@ -6,8 +6,6 @@ import { territoireFinances } from "./territoire-finances.ts";
  */
 
 import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
-import { note } from "./note.ts";
-import { rendreNote } from "./note-rendu.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
 import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -351,25 +349,6 @@ export function afficherFiche(
   // blocs partent de là et disent ce qu'un nombre posé ne dit pas : d'où vient
   // le mouvement.
   const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
-  // La note ouvre la fiche : « est-ce que ma commune est bien gérée » est la
-  // question qu'on vient poser, et elle était nulle part sur cette page. Elle
-  // ne s'affiche que là où les trois séries de l'OFGL existent — la France n'a
-  // pas de compte administratif, et `note()` rend `null` plutôt que de noter
-  // un territoire sur des séries qu'il ne porte pas.
-  // **C'est le PRÉDÉCESSEUR qu'on nomme sous le tableau**, quand il existe :
-  // la note se lit sur 2019-2025, et le maire entré en fonction en mars 2026
-  // n'a aucun de ces exercices derrière lui. Là où aucun prédécesseur n'est
-  // publié — départements et régions, dont la mandature court toujours —,
-  // c'est l'exécutif en exercice, qui couvre bien une partie des exercices.
-  const auxComptes = territoire.maire_precedent ?? territoire.maire;
-  const noteChiffree = rendreNote(
-    note(territoire.series ?? {}, niveau),
-    territoire.series ?? {},
-    auxComptes,
-    EXECUTIFS[niveau] ?? "",
-    // La fin du mandat du prédécesseur : l'arrivée de celui en exercice.
-    territoire.maire_precedent ? territoire.maire?.depuis : null,
-  );
   const analysesCroisees = niveau === "pays"
     ? ""
     : renduInsights(insightsTerritoire(territoire, options.indicateurs), options.indicateurs, {
@@ -449,7 +428,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}${noteChiffree ? `<section class="territoire-diagnostic" aria-label="Situation financière">${noteChiffree}</section>` : ""}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
+      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},
