@@ -1,0 +1,36 @@
+name: France visual review
+on:
+  pull_request:
+    paths:
+      - 'site/src/styles/shared-design.css'
+      - 'site/public/brand/**'
+      - 'site/index.html'
+      - 'site/tests/shared-theme.test.mjs'
+      - '.github/workflows/design-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  france-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:mandats -- --grep 'France keeps the approved'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: france-visual-review
+          path: |
+            site/test-results/
+            site/playwright-report-mandats/
+          retention-days: 7

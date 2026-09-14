@@ -30,7 +30,7 @@
   --bg:var(--design-bg); --panel:var(--design-panel); --ink:var(--design-ink); --muted:var(--design-muted);
   --line:var(--design-line); --gold:var(--design-gold); --danger:var(--design-red);
 }
-html body { background:var(--design-bg); color:var(--design-ink); }
+html body,html body[data-vue] { background:var(--design-bg); color:var(--design-ink); }
 html body[data-mode] { --bg:var(--design-bg);--panel:var(--design-panel);--surface:var(--design-inset);--ink:var(--design-ink);--muted:var(--design-muted);--accent:var(--design-gold);--gold:var(--design-gold);--line:var(--design-line);background:var(--design-bg);font-family:'Source Sans 3',Arial,sans-serif; }
 html body[data-mode] h1,html body[data-mode] h2,html body[data-mode] .france-mandate-context>span { font-family:'Barlow Semi Condensed',Arial,sans-serif; }
 html body[data-mode] .choice-outcome { color:var(--design-muted); }
@@ -67,7 +67,13 @@ html body[data-mode] .site-header .brand strong { font:600 1.5rem/1.1 'Source Sa
 html body .site-header .header-actions { display:flex; padding:0; margin-top:-14px; }
 .design-eyebrow { color:var(--design-gold); font-size:.8rem;letter-spacing:.12em;text-transform:uppercase; }
 html body #vue-bilan { --bilan-papier:var(--design-panel);--bilan-fond:var(--design-bg);--bilan-encre:var(--design-ink);--bilan-ligne:var(--design-line);--bilan-accent:var(--design-red);--encre-douce:var(--design-muted);--papier-creuse:var(--design-inset);--trait-fort:var(--design-muted);background:var(--design-bg); }
-html body #vue-bilan #national { max-width:1120px; margin:32px auto 64px; }
+html body #vue-bilan #national {
+ box-sizing:border-box;
+ width:100%;
+ max-width:1280px;
+ margin:32px auto 64px;
+ padding-inline:clamp(20px,4vw,56px);
+}
 html body #vue-bilan .bilan-verdict { grid-template-columns:1fr 1fr;grid-template-areas:'editorial scene' 'totem equation';gap:0; }
 html body #vue-bilan .bilan-verdict h1 { font:600 clamp(2.8rem,6vw,4.5rem)/1.02 'Barlow Semi Condensed',Arial,sans-serif;letter-spacing:-.02em;max-width:12ch; }
 html body #vue-bilan .bilan-verdict h1 br { display:initial; }
@@ -298,12 +304,6 @@ html body[data-vue='territoire'] .panneau--territoire {
  box-shadow:none;
 }
 html body[data-vue='territoire'] .territoire__tables { margin-top:24px; }
-@media(min-width:821px) {
- html body #vue-bilan #national {
-   width:min(1280px,calc(100% - 64px));
-   max-width:1280px;
- }
-}
 @media(max-width:700px) {
  html body[data-vue='territoire'] #vue-territoire {
    width:calc(100% - 40px);
@@ -340,3 +340,13 @@ html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--4 { background:#9b8
 html body :is(#vue-bilan,#vue-territoire) .dataviz__segment--5 { background:#8e9695;fill:#8e9695; }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail { background:var(--design-track); }
 html body :is(#vue-bilan,#vue-territoire) .dataviz__barres-rail>span { background:var(--design-green); }
+
+/* Approved concept E: four bars, serif numeral, stacked wordmark. */
+html body .brand-e { display:block;width:67px;height:88px;flex-shrink:0; }
+html body .brand-e img { display:block;width:100%;height:100%;object-fit:contain; }
+html body .brand-e .brand-e__light { display:none; }
+html[data-theme='clair'] body .brand-e .brand-e__light { display:block; }
+html[data-theme='clair'] body .brand-e .brand-e__dark { display:none; }
+@media(max-width:700px) {
+ html body .brand-e { width:55px;height:72px; }
+}
