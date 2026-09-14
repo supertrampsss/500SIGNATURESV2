@@ -35,6 +35,9 @@ jobs:
     # vraie, plutôt qu'un commentaire.
     env:
       SITE_URL: https://500signatures.fr
+      # Variable publique du dépôt, créée après l'acceptation AdSense.
+      # Sans cette variable, aucun script publicitaire ni ads.txt n'est publié.
+      ADSENSE_PUBLISHER_ID: ${{ vars.ADSENSE_PUBLISHER_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

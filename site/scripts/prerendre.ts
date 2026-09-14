@@ -74,6 +74,7 @@ import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
 import { renduSalaires } from "../src/salaires.ts";
+import { contenuAdsTxt, injecterAdsense, identifiantAdsense } from "./adsense.ts";
 import type {
   BudgetEtat,
   DepensesFiscales,
@@ -1520,7 +1521,11 @@ export async function validerIndexation(racine: string, site: string): Promise<v
 }
 
 async function main(): Promise<void> {
-  const shell = await readFile(path.join(DIST, "index.html"), "utf8");
+  const shell = injecterAdsense(
+    await readFile(path.join(DIST, "index.html"), "utf8"),
+    process.env.ADSENSE_PUBLISHER_ID,
+  );
+  const adsenseId = identifiantAdsense(process.env.ADSENSE_PUBLISHER_ID);
   const analyses = await chargerAnalyses();
   const { catalogue, version, racineDonnees, jeux, producteurs, regions, pays, niches, budget } =
     await chargerPublication();
@@ -1596,7 +1601,10 @@ async function main(): Promise<void> {
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
 
   const htmlSalaires = injecter(
-    await readFile(path.join(DIST, "salaires/index.html"), "utf8"),
+    injecterAdsense(
+      await readFile(path.join(DIST, "salaires/index.html"), "utf8"),
+      adsenseId ?? undefined,
+    ),
     {
       titre: PAGE_SALAIRES.titre,
       description: PAGE_SALAIRES.description,
@@ -1676,6 +1684,8 @@ async function main(): Promise<void> {
   // build vient d'écrire, et le contrôle relit les fichiers, pas la liste.
   const adresses = adressesPubliees(analyses);
   await ecrireIndexation(DIST, SITE, adresses);
+  const adsTxt = contenuAdsTxt(adsenseId ?? undefined);
+  if (adsTxt) await writeFile(path.join(DIST, "ads.txt"), adsTxt, "utf8");
   await validerIndexation(DIST, SITE);
 
   console.log(
