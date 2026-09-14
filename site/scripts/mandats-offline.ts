@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
-const core = ['/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
+const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
+const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow static dependencies recursively; optional dynamic map imports stay online-only.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {
