@@ -227,68 +227,56 @@
         "id": "annonce-et-cadre",
         "titre": "Les 90 milliards sont une enveloppe de prêt",
         "paragraphes": [
-          "L'Union européenne emprunte sur les marchés de capitaux, puis met les fonds à la disposition de l'Ukraine. Le budget européen apporte le cadre et la garantie de l'opération.",
-          "Le chiffre de 90 milliards désigne le montant prévu pour 2026 et 2027. Il ne s'agit ni d'un don versé en une seule fois ni du total de toute l'aide européenne depuis le début de la guerre."
-        ],
-        "visualisationIds": [
-          "versements-repere"
+          "L’Union européenne emprunte sur les marchés de capitaux puis met les fonds à la disposition de l’Ukraine. Le budget européen apporte le cadre et la garantie de l’opération.",
+          "Le chiffre de 90 milliards désigne le montant prévu pour 2026 et 2027. Il ne s’agit ni d’un don versé en une seule fois ni du total de toute l’aide européenne depuis le début de la guerre."
         ]
       },
       {
         "id": "financement",
         "titre": "Qui emprunte et qui reçoit ?",
         "paragraphes": [
-          "L'emprunteur au niveau des marchés est l'Union européenne. L'Ukraine reçoit les fonds sous forme de prêt selon les besoins et les règles du dispositif.",
-          "La contribution de chaque État membre ne se lit donc pas comme une facture nationale de 90 milliards. Le risque et la garantie passent par le budget de l'Union.",
-          "Les analyses du Parlement européen et de l’OSW décrivent un emprunt commun garanti par la capacité budgétaire de l’Union, avec des modalités particulières pour les États qui ne participent pas au dispositif. Cela confirme que le montant européen n’est pas une simple addition de chèques nationaux."
+          "L’emprunteur sur les marchés est l’Union européenne. L’Ukraine reçoit les fonds sous forme de prêt, selon ses besoins et les règles du dispositif.",
+          "Les analyses du Parlement européen et de l’OSW décrivent un emprunt commun garanti par la capacité budgétaire de l’Union, avec des modalités particulières pour les États qui ne participent pas au dispositif."
         ]
       },
       {
         "id": "usages",
         "titre": "À quoi servent les 90 milliards ?",
         "paragraphes": [
-          "Environ 60 milliards sont prévus pour les besoins de défense, notamment les capacités industrielles et l'acquisition de matériel. Environ 30 milliards servent au soutien macroéconomique et au fonctionnement du budget ukrainien.",
-          "Cette ventilation est indicative. Les versements peuvent être progressifs et répondre à des besoins distincts de l'enveloppe totale."
-        ],
-        "visualisationIds": [
-          "enveloppe-versements"
+          "Environ 60 milliards sont prévus pour les besoins de défense, notamment les capacités industrielles et l’acquisition de matériel. Environ 30 milliards servent au soutien macroéconomique et au fonctionnement du budget ukrainien.",
+          "La ventilation est indicative. Les versements peuvent être progressifs et répondre à des besoins distincts de l’enveloppe totale."
         ]
       },
       {
         "id": "versements",
         "titre": "Combien a déjà été versé ?",
         "paragraphes": [
-          "Au 19 septembre 2026, le Conseil indique 11,6 milliards d'euros déjà versés dans le cadre du prêt. Ce montant est un point d'étape et fait partie des 90 milliards : il ne faut pas l'ajouter au total.",
-          "La Commission avait annoncé un premier versement macrofinancier de 3,2 milliards d'euros en juin. Le cumul communiqué par le Conseil comprend aussi des versements liés à la défense, dont le montant se précise avec les nouvelles décisions."
-        ],
-        "visualisationIds": [
-          "versements-repere"
+          "Au 19 septembre 2026, le Conseil indique 11,6 milliards d’euros déjà versés dans le cadre du prêt. Ce montant fait partie des 90 milliards.",
+          "La Commission avait annoncé un premier versement macrofinancier de 3,2 milliards d’euros en juin. Le cumul communiqué par le Conseil comprend aussi des versements liés à la défense."
         ]
       },
       {
         "id": "remboursement",
         "titre": "Le principal et les intérêts suivent deux logiques",
         "paragraphes": [
-          "L'Ukraine devra rembourser le prêt selon les règles du dispositif. Le budget de l'Union prend en charge les intérêts, c'est-à-dire le coût du financement sur les marchés.",
-          "Le dispositif prévoit un remboursement lié aux réparations dues par la Russie, sous réserve du droit applicable et des décisions qui permettront de les mobiliser. Le coût pour l'Europe ne se résume donc pas au mot « prêt ».",
-          "L’OSW souligne que le remboursement dépend du mécanisme lié aux réparations et qu’une partie du risque reste portée par le budget européen tant que ces réparations ne sont pas disponibles. C’est une analyse du risque juridique et financier, pas un montant supplémentaire à ajouter aux 90 milliards."
+          "L’Ukraine devra rembourser le prêt selon les règles du dispositif. Le budget de l’Union prend en charge les intérêts, c’est-à-dire le coût du financement sur les marchés.",
+          "Le remboursement du principal est lié aux réparations dues par la Russie, sous réserve du droit applicable et des décisions qui permettront de les mobiliser. Tant que ces réparations ne sont pas disponibles, le risque reste lié au budget européen."
         ]
       },
       {
         "id": "conditions",
         "titre": "Les versements sont soumis à des conditions",
         "paragraphes": [
-          "Les décaissements dépendent des besoins de financement et du respect des engagements associés au prêt. Le cadre mentionne notamment l'État de droit et la lutte contre la corruption.",
-          "Ces conditions expliquent pourquoi une enveloppe votée ne devient pas automatiquement une somme versée. Les paiements suivent les étapes et les contrôles du dispositif.",
-          "Une tribune critique publiée par The Malta Independent met en avant l’incertitude sur le remboursement et la nécessité d’un contrôle démocratique. Cette source exprime une position argumentée, non un fait établi ; elle est utile pour présenter le débat, mais les chiffres du dossier restent ceux des textes européens."
+          "Les décaissements dépendent des besoins de financement et du respect des engagements associés au prêt. Le cadre mentionne notamment l’État de droit et la lutte contre la corruption.",
+          "Une tribune critique publiée par The Malta Independent met en avant l’incertitude sur le remboursement et le contrôle démocratique. Ces réserves font partie du débat autour du dispositif."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Ce que le chiffre signifie vraiment",
+        "titre": "Un prêt européen versé progressivement",
         "paragraphes": [
-          "Les 90 milliards sont le montant total prévu pour un prêt européen en 2026 et 2027. L'Union lève les fonds, l'Ukraine les reçoit progressivement et le budget européen prend en charge les intérêts.",
-          "La question complète est donc : qui emprunte, pour quels besoins, combien a déjà été versé, quelles conditions s'appliquent et quel coût reste à la charge du budget européen ?"
+          "Les 90 milliards sont le montant total prévu pour un prêt européen en 2026 et 2027. L’Union lève les fonds, l’Ukraine les reçoit progressivement et le budget européen prend en charge les intérêts.",
+          "Le montant doit donc être lu avec ses usages, ses versements, ses conditions et le mécanisme prévu pour le remboursement."
         ]
       }
     ],

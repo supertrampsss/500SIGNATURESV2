@@ -164,47 +164,43 @@
     "sections": [
       {
         "id": "ce-que-mesure-le-taux",
-        "titre": "Ce que mesure le taux de prélèvements",
+        "titre": "Ce que recouvrent les prélèvements",
         "paragraphes": [
-          "Le taux rapporte les impôts et les cotisations sociales nettes au PIB. Le dénominateur est la richesse produite sur le territoire ; le numérateur regroupe des recettes publiques selon les comptes nationaux.",
-          "Ce n'est ni le pourcentage de son salaire payé par chaque personne, ni la totalité de ce qu'un ménage dépense pour se loger, se soigner ou se protéger. La définition commune est indispensable avant toute comparaison."
+          "Dans la comparaison retenue, le taux rapporte les impôts et les cotisations sociales nettes au PIB. Il mesure la part de la richesse produite qui passe par les recettes publiques.",
+          "Ce taux ne correspond ni à la part de son salaire payée par chaque personne, ni à l’ensemble des dépenses d’un ménage pour se loger, se soigner ou se protéger."
         ]
       },
       {
         "id": "comparaison",
-        "titre": "La France se situe au-dessus de la moyenne de l’Union",
+        "titre": "France, Danemark et Union européenne",
         "paragraphes": [
-          "Dans la série présentée ici pour 2024, la France atteint 45,2 % du PIB, contre 40,2 % pour l'Union européenne. Le Danemark est légèrement au-dessus, à 45,4 %.",
-          "La phrase « championne du monde » va donc au-delà de ce que mesure la donnée : la comparaison est européenne et dépend de la définition, de l'année et des révisions statistiques.",
-          "Une autre publication de l’OCDE donne pour 2024 un taux de 43,5 % pour la France et 45,2 % pour le Danemark. Cette différence avec la série Eurostat retenue ici ne permet pas de conclure à une erreur : les organismes peuvent appliquer des conventions, des révisions et des périmètres différents. La source et la définition doivent toujours accompagner le pourcentage."
-        ],
-        "visualisationIds": [
-          "comparaison-prelevements"
+          "En 2024, la France atteint 45,2 % du PIB dans la série Eurostat utilisée ici, contre 40,2 % pour l’Union européenne. Le Danemark est légèrement au-dessus, à 45,4 %.",
+          "La France figure donc parmi les pays européens où les prélèvements sont les plus élevés. Cela ne suffit pas pour en faire la « championne du monde » : la comparaison présentée est européenne.",
+          "L’OCDE publie de son côté 43,5 % pour la France et 45,2 % pour le Danemark en 2024. L’écart vient des conventions et des révisions propres à chaque série ; les chiffres doivent rester attachés à leur source."
         ]
       },
       {
         "id": "des-financements-differents",
         "titre": "Un même taux peut financer des protections différentes",
         "paragraphes": [
-          "Deux pays peuvent afficher des taux proches tout en organisant différemment leur santé, leurs retraites, leur chômage ou leur éducation. Une part plus importante financée par l'impôt ou les cotisations peut correspondre à une part moindre laissée aux paiements directs.",
-          "Le taux renseigne sur le financement collectif. Il ne dit pas à lui seul combien coûte un service, quelle est sa qualité ou quelle protection reçoit chaque ménage.",
-          "Le Conseil des prélèvements obligatoires rappelle que le débat ne porte pas seulement sur le niveau total, mais aussi sur la composition des recettes et leurs effets. Le même taux peut être obtenu avec davantage de cotisations, d’impôts ou de taxes indirectes ; les effets sur les ménages et les entreprises ne sont alors pas les mêmes."
+          "Deux pays peuvent afficher des taux proches tout en organisant différemment leur santé, leurs retraites, leur chômage ou leur éducation. Une protection financée collectivement peut laisser moins de dépenses directes aux ménages.",
+          "Le Conseil des prélèvements obligatoires met aussi en avant la composition des recettes. Impôts, cotisations et taxes indirectes n’ont pas les mêmes effets sur les ménages et les entreprises."
         ]
       },
       {
         "id": "ce-que-la-comparaison-ne-dit-pas",
-        "titre": "Un classement ne résume pas la vie économique",
+        "titre": "Le taux ne mesure pas ce que reçoit chaque ménage",
         "paragraphes": [
-          "Les prélèvements doivent être lus avec le revenu disponible, les transferts sociaux, les dépenses privées et les services reçus. Ils ne se comparent pas directement à un taux d'imposition individuel.",
-          "Le PIB lui-même peut évoluer différemment d'un pays à l'autre. Une variation du taux peut donc venir des recettes, de la richesse produite ou des deux."
+          "Le niveau de vie, les transferts sociaux, les dépenses privées et les services reçus complètent la lecture du taux. Ils permettent de voir ce que le financement collectif apporte en retour.",
+          "Le PIB peut évoluer différemment d’un pays à l’autre. Une variation du taux peut donc venir des recettes, de la richesse produite ou des deux."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Une France très élevée dans le périmètre mesuré",
+        "titre": "Une France très élevée dans la comparaison européenne",
         "paragraphes": [
-          "La France se situe parmi les pays européens où les prélèvements rapportés au PIB sont les plus élevés dans la comparaison retenue. Elle n'est pas pour autant « la championne du monde » au sens d'une comparaison mondiale complète.",
-          "Pour juger les effets de ce financement, il faut poursuivre la lecture jusqu'aux services, aux prestations et aux dépenses privées qu'il remplace ou complète."
+          "La France se situe parmi les pays européens où les prélèvements rapportés au PIB sont les plus élevés dans la série retenue. Le chiffre ne constitue pas un classement mondial complet.",
+          "Pour comprendre ce niveau, il faut regarder les prestations et les services qu’il finance, ainsi que les dépenses privées qu’il remplace ou complète."
         ]
       }
     ],
