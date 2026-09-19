@@ -49,6 +49,12 @@
       },
       "registre": "fait_comptable",
       "lecture": "Les crédits consommés : ce que la mission a effectivement dépensé."
+    },
+    {
+      "dit": "environ 2,2 milliards d’euros",
+      "valeur": 2177398176.91,
+      "registre": "interpretation",
+      "lecture": "Écart calculé entre les crédits consommés et les crédits votés de la mission Défense en 2025 : 62 123 736 749,91 moins 59 946 338 573 euros."
     }
   ],
   "hypotheses": [
