@@ -320,9 +320,17 @@ dialog .scope { font-size:12px; }
     display:flex;
     flex-direction:column;
     min-height:0;
+    align-items:stretch;
     padding:5px;
   }
-  .mode-art,.mode-card.national .mode-art {
+  .mandate-selection .mode-card.national {
+    min-height:0;
+    align-items:stretch;
+  }
+  .mode-art,.mode-card.national .mode-art,
+  .mandate-selection .mode-card.national .mode-art {
+    position:relative;
+    inset:auto;
     width:100%;
     height:148px;
     aspect-ratio:auto;
