@@ -2,7 +2,7 @@
 import {validerDossierAnalyse, type DossierAnalyse, type DossierAnalyseValide, type SourceAnalyse, type VisualisationAnalyse} from "./analyse-contrat.ts";
 import {graphiqueAnalyse} from "./analyse-graphiques.ts";
 import type {Indicateur} from "./donnees.ts";
-import {formaterValeurAnalyse, libelleUniteAnalyse} from "./echelle.ts";
+import {libelleUniteAnalyse, valeurEtUniteAnalyse} from "./echelle.ts";
 import type {IndexSources} from "./registre-sources.ts";
 import {aplatir} from "./simulateur.ts";
 import {libelleTheme} from "./themes.ts";
@@ -255,7 +255,7 @@ function dateFrancaise(dateIso: string): string {
 function figureDossier(v: VisualisationAnalyse, contrat: DossierAnalyseValide): string {
   const graphique = graphiqueAnalyse(v, contrat);
   const valeurs = (v.preuveIds ?? []).map(id => contrat.preuveParId.get(id)!);
-  const tableau = !graphique && valeurs.length ? `<div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="${echapper(v.titre)}"><table class="analyse-longue__tableau"><caption>${echapper(v.titre)}</caption><thead><tr><th scope="col">Indicateur</th><th scope="col">Période</th><th scope="col">Valeur</th></tr></thead><tbody>${valeurs.map(p => `<tr><th scope="row">${echapper(p.libelle)}</th><td>${echapper(p.period)}</td><td>${echapper(formaterValeurAnalyse(p.value,p.unit))} ${echapper(libelleUniteAnalyse(p.unit))}</td></tr>`).join("")}</tbody></table></div>` : "";
+  const tableau = !graphique && valeurs.length ? `<div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="${echapper(v.titre)}"><table class="analyse-longue__tableau"><caption>${echapper(v.titre)}</caption><thead><tr><th scope="col">Indicateur</th><th scope="col">Période</th><th scope="col">Valeur</th></tr></thead><tbody>${valeurs.map(p => `<tr><th scope="row">${echapper(p.libelle)}</th><td>${echapper(p.period)}</td><td>${echapper(valeurEtUniteAnalyse(p.value,p.unit))}</td></tr>`).join("")}</tbody></table></div>` : "";
   const unites = [...new Set((v.seriesIds ?? []).map(id => contrat.serieParId.get(id)!.unit))];
   return `<figure class="analyse-longue__figure" id="figure-${echapper(v.id)}"><figcaption><h3>${echapper(v.titre)}</h3><p>${echapper(v.resume)}</p>${unites.length ? `<p class="analyse-longue__unite-figure">${unites.map(u => echapper(libelleUniteAnalyse(u))).join(" · ")}</p>` : ""}</figcaption>${graphique || tableau}</figure>`;
 }
@@ -488,3 +488,4 @@ export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): strin
     <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>
   </section>`;
 }
+

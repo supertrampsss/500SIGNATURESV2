@@ -481,6 +481,33 @@ export function formaterValeurAnalyse(valeur: number, unite: string): string {
   }
 }
 
+/**
+ * Rend une valeur éditoriale avec son unité exactement une fois.
+ *
+ * Plusieurs unités sont déjà écrites dans la valeur (39 %, 120 GWh,
+ * 0,4023 €/kWh). Les autres sont des nombres nus auxquels le libellé long
+ * doit être ajouté (266 milliards d’euros, 1,8 % du PIB, 7,2 score de 0 à
+ * 10). Cette distinction évite les sorties absurdes comme « 39 %
+ * pourcentage ».
+ */
+export function valeurEtUniteAnalyse(valeur: number, unite: string): string {
+  const valeurFormatee = formaterValeurAnalyse(valeur, unite);
+  const libelleSeul = new Set([
+    "billion_EUR",
+    "million_EUR",
+    "percent_GDP",
+    "index_2015_100",
+    "index_2025_100",
+    "score_0_10",
+    "count",
+    "indice",
+    "ratio",
+  ]);
+  return libelleSeul.has(unite)
+    ? `${valeurFormatee} ${libelleUniteAnalyse(unite)}`
+    : valeurFormatee;
+}
+
 function formaterNombre(
   valeur: number,
   unite: string,
@@ -625,3 +652,4 @@ function formaterNombre(
   }
   return millions(valeur);
 }
+
