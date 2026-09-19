@@ -106,7 +106,7 @@
   "simulateur": {
     "budget": "",
     "contrat": "",
-    "lecture": "Ce dossier met en perspective une annonce diplomatique et ses enjeux."
+    "lecture": "L’annonce diplomatique doit encore être distinguée de l’accord signé et entré en vigueur."
   },
   "mises_a_jour": [
     {
@@ -163,7 +163,7 @@
       {
         "id": "part-glace",
         "type": "bar",
-        "titre": "La glace couvre l’essentiel de l’île",
+        "titre": "La glace couvre la majeure partie de l’île",
         "resume": "La faible part de territoire libre de glace limite les zones habitables, les infrastructures et les projets miniers.",
         "preuveIds": [
           "glace-groenland",
@@ -212,7 +212,7 @@
         "paragraphes": [
           "Le Groenland se trouve entre l’Amérique du Nord, l’Europe et le pôle Nord. Sa position permet de surveiller les mouvements dans l’Arctique et dans l’Atlantique Nord. Le passage maritime entre le Groenland, l’Islande et le Royaume-Uni est particulièrement suivi : des sous-marins et des navires russes doivent le traverser pour rejoindre l’Atlantique.",
           "Les États-Unis disposent déjà de la base spatiale de Pituffik, qui sert à l’alerte contre les missiles et à la surveillance de l’espace. Un accord peut donc organiser une présence et une coopération plus importantes. Mais les analyses du Council on Foreign Relations rappellent qu’une prise de contrôle du territoire n’est pas nécessaire pour utiliser ces capacités : les États-Unis disposent déjà de droits militaires étendus dans le cadre de l’accord de défense de 1951.",
-          "Cette question concerne aussi l’Organisation du traité de l’Atlantique Nord (OTAN), l’alliance militaire dont le Danemark et les États-Unis sont membres. La surveillance de l’Arctique protège les liaisons entre l’Amérique du Nord et l’Europe. Elle demande des moyens, mais aussi une coordination entre alliés."
+          "Cette question concerne aussi l’Organisation du traité de l’Atlantique Nord (OTAN), l’alliance militaire dont le Danemark et les États-Unis sont membres. La surveillance de l’Arctique protège les liaisons entre l’Amérique du Nord et l’Europe. Elle demande des moyens et une coordination entre alliés."
         ],
         "visualisationIds": [
           "part-glace"
@@ -224,15 +224,15 @@
         "paragraphes": [
           "Pour les trois gouvernements, le premier bénéfice possible est de clarifier qui coopère et dans quel cadre. Des moyens supplémentaires de surveillance, de secours, de communication ou de protection des infrastructures pourraient améliorer la sécurité d’une région immense, où les distances et les conditions météo rendent chaque intervention difficile.",
           "Pour le Danemark et ses alliés, une coopération mieux organisée peut réduire les zones grises autour de la défense de l’Arctique. Pour le Groenland, elle peut aussi apporter des investissements et des emplois si les projets répondent à ses priorités et si les décisions sont prises avec ses autorités. Ces bénéfices sont possibles, pas garantis par la seule annonce.",
-          "L’annonce insiste sur la souveraineté du Royaume du Danemark et sur le droit des Groenlandais à décider de leur avenir. Cette formulation est essentielle : elle fixe une limite politique aux discussions sur la sécurité et les ressources."
+          "L’annonce insiste sur la souveraineté du Royaume du Danemark et sur le droit des Groenlandais à décider de leur avenir. Cette précision fixe une limite politique aux discussions sur la sécurité et les ressources."
         ]
       },
       {
         "id": "ressources-et-economie",
         "titre": "Les ressources attirent les grandes puissances, mais l’exploitation est difficile",
         "paragraphes": [
-          "Le Groenland possède des ressources minérales qui intéressent l’Europe et les États-Unis, notamment pour les technologies numériques, l’énergie et la défense. L’Union européenne a déjà engagé un partenariat avec le Groenland sur les matières premières, les câbles sous-marins, l’énergie et la formation. Le gouvernement groenlandais cherche lui aussi à développer des projets, tout en parlant de chaînes de valeur durables et de partenariats internationaux.",
-          "Cela ne signifie pas que le Groenland deviendra rapidement une grande source de minerais. Le froid, les distances, le manque de routes, de ports et d’énergie, ainsi que les coûts de transport rendent les projets difficiles. Des analyses du Center for Strategic and International Studies et de l’Associated Press soulignent aussi que plusieurs gisements restent au stade de l’exploration et que leur rentabilité n’est pas acquise.",
+          "Le Groenland possède des ressources minérales qui intéressent l’Europe et les États-Unis pour les technologies numériques, l’énergie et la défense. L’Union européenne a déjà engagé un partenariat avec le Groenland sur les matières premières, les câbles sous-marins, l’énergie et la formation. Le gouvernement groenlandais cherche lui aussi à développer des projets, tout en parlant de chaînes de valeur durables et de partenariats internationaux.",
+          "Le Groenland ne deviendra pas rapidement une grande source de minerais sur la seule base de ces annonces. Le froid, les distances, le manque de routes, de ports et d’énergie, ainsi que les coûts de transport rendent les projets difficiles. Des analyses du Center for Strategic and International Studies et de l’Associated Press indiquent que plusieurs gisements restent au stade de l’exploration et que leur rentabilité n’est pas acquise.",
           "Le risque est donc de présenter une richesse potentielle comme une richesse déjà disponible. Pour les Groenlandais, la question porte autant sur les emplois, les recettes et les infrastructures que sur les effets sur l’environnement, la pêche et l’autonomie politique."
         ]
       },

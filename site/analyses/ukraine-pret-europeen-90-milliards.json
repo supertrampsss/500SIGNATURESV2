@@ -54,7 +54,7 @@
   "hypotheses": [
     "La ventilation entre soutien budgétaire et défense est indicative.",
     "Les 90 milliards ne constituent ni un don déjà intégralement versé, ni le total historique de l’aide européenne.",
-    "Le calendrier et le coût final du financement dépendent notamment des décaissements, des taux et du remboursement."
+    "Le calendrier et le coût final du financement dépendent des décaissements, des taux et du remboursement."
   ],
   "effets_indirects": [],
   "sources": [
@@ -188,21 +188,21 @@
         "id": "conditions",
         "titre": "Des versements soumis à des conditions",
         "paragraphes": [
-          "Les versements dépendent des besoins de financement de l’Ukraine et du respect des engagements associés au prêt. Les conditions portent notamment sur l’état de droit et la lutte contre la corruption."
+          "Les versements dépendent des besoins de financement de l’Ukraine et du respect des engagements associés au prêt. Les conditions portent sur l’état de droit et la lutte contre la corruption."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Ce que ce chiffre signifie vraiment",
         "paragraphes": [
-          "Les 90 milliards sont le montant total prévu pour le prêt en 2026 et 2027. L’Union européenne lève les fonds, l’Ukraine les reçoit progressivement, et le budget européen prend en charge les intérêts. La bonne question n’est donc pas seulement « combien ? », mais aussi « qui emprunte, pour quels besoins, et à quel coût pour le budget européen ? »."
+          "Les 90 milliards sont le montant total prévu pour le prêt en 2026 et 2027. L’Union européenne lève les fonds, l’Ukraine les reçoit progressivement et le budget européen prend en charge les intérêts. Le montant doit donc être lu avec trois précisions : qui emprunte, pour quels besoins et à quel coût pour le budget européen."
         ]
       }
     ],
     "limitations": [
       "La ventilation entre soutien budgétaire et défense est indicative.",
       "Les 90 milliards ne constituent ni un don déjà intégralement versé, ni le total historique de l’aide européenne.",
-      "Le calendrier et le coût final du financement dépendent notamment des décaissements, des taux et du remboursement."
+      "Le calendrier et le coût final du financement dépendent des décaissements, des taux et du remboursement."
     ]
   }
 }

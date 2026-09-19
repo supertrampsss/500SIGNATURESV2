@@ -668,12 +668,20 @@ export async function ecrireCartes(
  * ----------------------------------------------------------------------- */
 
 /** Ce qu'il faut d'une page pour composer sa carte de lien. */
+export type ArticleSEO = {
+  datePublished: string;
+  dateModified?: string;
+  section?: string;
+  keywords?: readonly string[];
+};
+
 type Partageable = {
   titre: string;
   description: string;
   canonique: string;
   /** Le chemin, dans le site, de l'image de partage de cette page. */
   image: string;
+  article?: ArticleSEO;
 };
 
 type Page = Partageable & { corps: string };
@@ -691,6 +699,49 @@ type Page = Partageable & { corps: string };
  */
 function adresseCanonique(page: Partageable, site: string): string {
   return `${site}${page.canonique}`;
+}
+
+/**
+ * Ajoute la marque aux titres de résultats sans toucher au titre visible du
+ * dossier. Les titres courts restent entièrement lisibles ; les plus longs
+ * sont raccourcis au dernier mot complet avant l'ellipse.
+ */
+export function titreSEO(titre: string): string {
+  const suffixe = " | 500 signatures";
+  if (titre.endsWith(suffixe)) return titre;
+  const limite = 65;
+  if (titre.length + suffixe.length <= limite) return `${titre}${suffixe}`;
+  const place = Math.max(1, limite - suffixe.length - 1);
+  const tronque = titre.slice(0, place).replace(/\s+\S*$/, "").trim();
+  return `${tronque}…${suffixe}`;
+}
+
+function jsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
+function schemaArticle(page: Partageable, site: string): string {
+  if (!page.article) return "";
+  const image = `${site}${page.image}`;
+  const donnees = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: page.titre,
+    description: page.description,
+    inLanguage: "fr-FR",
+    mainEntityOfPage: { "@type": "WebPage", "@id": adresseCanonique(page, site) },
+    image: [image],
+    datePublished: page.article.datePublished,
+    dateModified: page.article.dateModified ?? page.article.datePublished,
+    author: { "@type": "Organization", name: "500 signatures", url: site },
+    publisher: { "@type": "Organization", name: "500 signatures", url: site },
+    ...(page.article.section ? { articleSection: page.article.section } : {}),
+    ...(page.article.keywords?.length ? { keywords: page.article.keywords.join(", ") } : {}),
+  };
+  return `  <script type="application/ld+json">${jsonLd(donnees)}</script>\n`;
 }
 
 /**
@@ -723,13 +774,19 @@ function balisesPartage(page: Partageable, site: string): string {
   ];
   return (
     og.map(([nom, valeur]) => `  <meta property="${nom}" content="${echapper(valeur)}" />\n`).join("") +
+    (page.article
+      ? `  <meta property="article:published_time" content="${echapper(page.article.datePublished)}" />\n` +
+        `  <meta property="article:modified_time" content="${echapper(page.article.dateModified ?? page.article.datePublished)}" />\n` +
+        (page.article.section ? `  <meta property="article:section" content="${echapper(page.article.section)}" />\n` : "")
+      : "") +
     // La carte large : c'est le format des images de partage du site, 1200 × 630
     // (carte-og.ts). En `summary`, X rognerait la carte au carré, sur le titre.
     `  <meta name="twitter:card" content="summary_large_image" />\n` +
     `  <meta name="twitter:title" content="${echapper(page.titre)}" />\n` +
     `  <meta name="twitter:description" content="${echapper(page.description)}" />\n` +
     `  <meta name="twitter:image" content="${echapper(image)}" />\n` +
-    `  <meta name="twitter:image:alt" content="${echapper(`${page.titre} — 500signatures`)}" />\n`
+    `  <meta name="twitter:image:alt" content="${echapper(`${page.titre} — 500signatures`)}" />\n` +
+    schemaArticle(page, site)
   );
 }
 
@@ -1564,10 +1621,16 @@ async function main(): Promise<void> {
   for (const analyse of analyses) {
     const canonique = `/analyses/${analyse.slug}/`;
     const page: Page = {
-      titre: analyse.titre,
+      titre: titreSEO(analyse.titre),
       description: SEARCH_DESCRIPTIONS[canonique] ?? analyse.verdict.phrase,
       canonique,
       image: `/analyses/${analyse.slug}/carte.png`,
+      article: {
+        datePublished: analyse.publie_le,
+        dateModified: analyse.mises_a_jour.at(-1)?.date ?? analyse.publie_le,
+        section: analyse.type,
+        keywords: analyse.themes,
+      },
       // Le permalien que porteront les citations de cette page : le même que
       // `og:url`, composé par `permalien()` plutôt que recollé à la main — la
       // règle du dépôt pour toute adresse qui sort du site.
