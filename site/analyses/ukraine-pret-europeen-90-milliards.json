@@ -1,6 +1,6 @@
 {
   "slug": "ukraine-pret-europeen-90-milliards",
-  "titre": "Ukraine : que financent les 90 milliards européens ?",
+  "titre": "90 milliards pour l’Ukraine : qui emprunte et qui paie ?",
   "type": "decryptage",
   "publie_le": "2026-09-19",
   "themes": [
@@ -12,7 +12,7 @@
   ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "Ukraine : que financent les 90 milliards européens ?",
+    "texte": "90 milliards pour l’Ukraine : qui emprunte et qui paie ?",
     "auteur": null,
     "date": null,
     "source": {
@@ -23,7 +23,7 @@
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Le prêt prévoit 90 milliards d’euros sur deux ans : 60 milliards pour la défense et 30 milliards pour le soutien macroéconomique, selon une répartition indicative. L’enveloppe autorisée et les versements effectifs sont deux montants distincts."
+    "phrase": "Le prêt prévoit 90 milliards d’euros sur deux ans : 60 milliards pour la défense et 30 milliards pour le soutien du budget ukrainien. Cette répartition est indicative. Les 90 milliards désignent l’enveloppe totale ; les versements correspondent à ce qui a déjà été débloqué."
   },
   "chiffres": [
     {
@@ -90,9 +90,10 @@
   ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "L’Union européenne prévoit un prêt de 90 milliards d’euros à l’Ukraine pour 2026 et 2027. Il doit soutenir les dépenses de l’État ukrainien et ses besoins militaires. Son financement, les versements et la prise en charge des intérêts déterminent la portée de cet engagement.",
+    "chapo": "Les 90 milliards d’euros annoncés pour l’Ukraine sont un prêt, pas une somme déjà versée. Pour comprendre ce que ce chiffre recouvre, il faut distinguer trois choses : l’argent emprunté par l’Union européenne, les montants prêtés à l’Ukraine et les intérêts pris en charge par le budget européen.",
     "sommaire": [
       "financement",
+      "usages",
       "versements",
       "remboursement",
       "conditions",
@@ -143,8 +144,8 @@
       {
         "id": "enveloppe-versements",
         "type": "bar",
-        "titre": "L’enveloppe et son exécution",
-        "resume": "Les parts défense et budget composent le total. Les versements sont un état d’avancement, à ne pas ajouter à l’enveloppe.",
+        "titre": "La répartition prévue du prêt",
+        "resume": "Les 90 milliards sont répartis entre la défense et le soutien du budget ukrainien. Les versements sont effectués progressivement.",
         "preuveIds": [
           "pret-defense",
           "pret-budget"
@@ -154,9 +155,16 @@
     "sections": [
       {
         "id": "financement",
-        "titre": "Qui emprunte ?",
+        "titre": "L’Union européenne emprunte l’argent",
         "paragraphes": [
-          "L’Union européenne lève les fonds sur les marchés. Le prêt est couvert par la marge disponible du budget européen. Ce montant ne correspond donc pas à une dépense de la France seule."
+          "L’Union européenne emprunte sur les marchés, puis prête cet argent à l’Ukraine. Les 90 milliards ne sont donc pas une dépense de la France seule. Le budget européen sert de garantie à l’opération."
+        ]
+      },
+      {
+        "id": "usages",
+        "titre": "À quoi servent les 90 milliards ?",
+        "paragraphes": [
+          "Pour 2026 et 2027, environ 60 milliards sont prévus pour la défense et environ 30 milliards pour le soutien du budget ukrainien. Ce sont les deux grandes utilisations prévues de l’enveloppe."
         ],
         "visualisationIds": [
           "enveloppe-versements"
@@ -166,28 +174,28 @@
         "id": "versements",
         "titre": "Combien a déjà été versé ?",
         "paragraphes": [
-          "La page de suivi du Conseil consultée le 19 septembre 2026 indique 11,6 milliards d’euros versés au titre de ce prêt. Ce cumul doit être daté : il évolue au fil des décaissements."
+          "Au 19 septembre 2026, le Conseil indique que 11,6 milliards d’euros ont déjà été versés. C’est un point d’étape : ce montant pourra augmenter. Il fait partie des 90 milliards prévus ; il ne faut donc pas l’ajouter à l’enveloppe totale."
         ]
       },
       {
         "id": "remboursement",
-        "titre": "Qui paie les intérêts ?",
+        "titre": "Le budget européen paie les intérêts",
         "paragraphes": [
-          "Le budget de l’UE prend en charge les intérêts. Le remboursement du principal par l’Ukraine est lié aux réparations dues par la Russie. Cette architecture ne permet pas de présenter le financement comme sans coût pour le budget européen."
+          "L’Ukraine remboursera l’argent emprunté selon les règles prévues par le dispositif. Les intérêts, c’est-à-dire le coût de l’emprunt, sont pris en charge par le budget de l’Union européenne. Le prêt a donc un coût pour l’Europe, même s’il ne s’agit pas d’un don de 90 milliards versé immédiatement."
         ]
       },
       {
         "id": "conditions",
-        "titre": "À quelles conditions ?",
+        "titre": "Des versements soumis à des conditions",
         "paragraphes": [
-          "Les versements dépendent des besoins de financement ukrainiens et sont assortis de conditions, notamment sur l’état de droit et la lutte contre la corruption."
+          "Les versements dépendent des besoins de financement de l’Ukraine et du respect des engagements associés au prêt. Les conditions portent notamment sur l’état de droit et la lutte contre la corruption."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Un engagement sur plusieurs années",
+        "titre": "Ce que ce chiffre signifie vraiment",
         "paragraphes": [
-          "Les 90 milliards représentent l’enveloppe du prêt. Les versements ont lieu progressivement et sous conditions. Le budget européen prend en charge les intérêts ; le remboursement du principal est lié aux réparations dues par la Russie."
+          "Les 90 milliards sont le montant total prévu pour le prêt en 2026 et 2027. L’Union européenne lève les fonds, l’Ukraine les reçoit progressivement, et le budget européen prend en charge les intérêts. La bonne question n’est donc pas seulement « combien ? », mais aussi « qui emprunte, pour quels besoins, et à quel coût pour le budget européen ? »."
         ]
       }
     ],
