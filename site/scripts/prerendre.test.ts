@@ -70,6 +70,7 @@ import {
   injecter,
   descriptionDuGabarit,
   titreDuGabarit,
+  titreSEO,
   validerImagesAnnoncees,
 } from "./prerendre.ts";
 
@@ -391,6 +392,32 @@ test("4. les balises de partage portent des adresses absolues", () => {
   const canonique = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
   assert.equal(canonique, balise("og:url", "property"));
   assert.equal(canonique, "https://exemple.test/analyses/essai/");
+});
+
+test("4 bis. un dossier expose un titre de recherche court et un Article JSON-LD", () => {
+  const titre = titreSEO("Pourquoi la France exporte de l’électricité alors que les factures restent élevées");
+  assert.ok(titre.length <= 65, `titre trop long : ${titre.length}`);
+  assert.match(titre, /500 signatures$/);
+  const html = injecter(
+    GABARIT,
+    {
+      ...PAGE,
+      titre,
+      article: {
+        datePublished: "2026-08-30",
+        dateModified: "2026-09-19",
+        section: "decryptage",
+        keywords: ["energie", "europe"],
+      },
+    },
+    "https://exemple.test",
+  );
+  assert.match(html, /property="article:published_time" content="2026-08-30"/);
+  assert.match(html, /property="article:modified_time" content="2026-09-19"/);
+  assert.match(html, /<script type="application\/ld\+json">/);
+  assert.match(html, /"@type":"Article"/);
+  assert.match(html, /"datePublished":"2026-08-30"/);
+  assert.match(html, /"keywords":"energie, europe"/);
 });
 
 test("5. l'adresse du site est un paramètre, et elle doit être absolue", () => {

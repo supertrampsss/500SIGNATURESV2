@@ -24,7 +24,7 @@
   "verdict": {
     "cran": "hors_perimetre",
     "confusion": "indicateur_partiel",
-    "phrase": "L'Insee publie une satisfaction moyenne déclarée sur une échelle de 0 à 10, pas un indice total de « qualité de vie ». Pour la France métropolitaine, elle vaut 7,3 en 2010, descend notamment à 6,8 en 2021 puis atteint 7,2 en 2024. Ces trois repères ne décrivent pas une baisse continue, et les ruptures de série ou de méthode autour de 2020 et 2022 imposent de la prudence."
+    "phrase": "L'Insee publie une satisfaction moyenne déclarée sur une échelle de 0 à 10, pas un indice total de « qualité de vie ». Pour la France métropolitaine, elle vaut 7,3 en 2010, atteint 6,8 en 2021 puis 7,2 en 2024. Ces trois repères ne décrivent pas une baisse continue, et les ruptures de série ou de méthode autour de 2020 et 2022 imposent de la prudence."
   },
   "chiffres": [
     {
