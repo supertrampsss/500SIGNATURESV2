@@ -108,7 +108,9 @@ test('France: published accounts survive a network failure and chapters stay on 
 test('Villes: search and financial detail work without a map',async({page},info)=>{
  await publication(page,{demographie:true});
  await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de votre territoire.');
- await activate(page.locator('.territoire-depart button[data-code="33063"]'),info);
+ await expect(page.locator(".territoire-depart")).toHaveCount(0);
+ await page.getByRole("combobox",{name:"Rechercher un territoire"}).fill("Bordeaux");
+ await page.locator('#suggestions button[data-code="33063"]').click();
  await expect(page.locator('#detail #davantage-population')).toBeVisible();
  await expect(page.locator('#detail #davantage-population')).toContainText(/267\s991/);
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);

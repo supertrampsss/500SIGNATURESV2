@@ -60,3 +60,14 @@ Use a reviewable branch/PR. Respect existing merge gates and user authorization.
 The owner requests systematic delivery: after validation, push the branch and merge
 its PR without another confirmation. Keep required checks and branch protections;
 report blockers instead of bypassing them. A later explicit hold takes precedence.
+
+## Editorial voice (owner feedback, 19 September 2026)
+
+- Speak as the project with French « nous » / « on », not a personal « je ».
+- Lead social posts with a concrete, strong question or stake, including the
+  presidential election horizon when relevant. Mention Analyses alongside the tools.
+- Explain methods and scope positively and precisely. Avoid wording that belittles
+  the product, such as « le modèle est simplifié, ce n’est pas une fiche de paie ».
+  Preserve necessary factual qualifications, dates, units and sources.
+- Keep the Villes landing page neutral: no preselected city or suggested-city buttons.
+- Apply Humanizer principles: natural French, no stock slogans or invented claims.
