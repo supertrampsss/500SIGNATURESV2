@@ -1011,7 +1011,7 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   // les trois appels à l'action. Sans JavaScript, sans réseau, sans rien.
   const texte = texteDuMain(html);
   assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
-  for (const appel of ["Lire le verdict", "Commencer un mandat", "Chercher ma commune"]) {
+  for (const appel of ["Lire le dossier", "Commencer un mandat", "Chercher ma commune"]) {
     assert.ok(texte.includes(appel), appel);
   }
   // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.
