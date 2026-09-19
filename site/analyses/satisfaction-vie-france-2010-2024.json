@@ -70,6 +70,18 @@
       "titre": "OCDE : Comment va la vie ? 2024, version abrégée",
       "url": "https://www.oecd-ilibrary.org/fr/publications/comment-va-la-vie-2024-version-abregee_bc0cfa41-fr.html",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "unedic-chomage-2025",
+      "titre": "Unédic : baromètre, l’épreuve du chômage (juin 2025)",
+      "url": "https://www.unedic.org/publications/barometre-unedic-l-epreuve-du-chomage",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "cepremap-bien-etre-2024",
+      "titre": "CEPREMAP : le bien-être des Français en décembre 2024 (janvier 2025)",
+      "url": "https://www.cepremap.fr/2025/01/note-de-lobservatoire-du-bien-etre-n2025-02-le-bien-etre-des-francais-decembre-2024/",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -81,11 +93,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "Insee SRCV, DS_SRCV_SATISFACTION, 2010-2024",
   "dossier": {
-    "chapo": "Comment les personnes vivant en France jugent-elles leur vie ? L’Insee leur demande d’attribuer une note de 0 à 10. Cet indicateur suit un ressenti déclaré et complète les données sur les revenus, la santé, le logement ou l’emploi. Il ne constitue pas à lui seul un indice de qualité de vie.",
+    "chapo": "La satisfaction dans la vie atteint 7,2 sur 10 en 2024 en France, après un creux à 6,8 en 2021. Derrière ce redressement, les écarts sociaux restent marqués : en 2023, les 20 % les plus aisés donnent une note moyenne de 7,8, contre 6,6 pour les 20 % les moins aisés. Les ressources, la santé et les relations sociales participent à la façon dont chacun juge sa vie.",
     "series": [
       {
         "id": "satisfaction",
@@ -187,8 +203,8 @@
       {
         "id": "table-satisfaction",
         "type": "snapshot_table",
-        "titre": "Trois repères de satisfaction dans la vie",
-        "resume": "Ces trois observations ne sont pas reliées par une courbe : les années intermédiaires ne sont pas représentées ici.",
+        "titre": "La satisfaction en 2010, 2021 et 2024",
+        "resume": "Une note moyenne de 7,3, puis 6,8 et 7,2 sur 10. L’enquête a été refondue en 2020 et sa pondération modifiée en 2022.",
         "preuveIds": [
           "preuve-2010",
           "preuve-2021",
@@ -210,50 +226,50 @@
     "sections": [
       {
         "id": "indicateur",
-        "titre": "Une note subjective de 0 à 10",
+        "titre": "Une évaluation de la vie menée au quotidien",
         "paragraphes": [
-          "Les personnes de 16 ans ou plus notent la vie qu’elles mènent actuellement sur une échelle de 0 à 10 dans l’enquête SRCV.",
-          "Cette note complète les indicateurs de revenus, de santé, de logement et d’emploi. Elle ne les remplace pas."
+          "Dans l’enquête Statistiques sur les ressources et conditions de vie (SRCV), les personnes de 16 ans ou plus notent la vie qu’elles mènent actuellement sur une échelle de 0 à 10.",
+          "La réponse exprime leur appréciation personnelle. Deux personnes ayant des revenus proches peuvent attribuer des notes différentes selon leur santé, leurs relations, leur logement ou leurs attentes."
         ]
       },
       {
         "id": "evolution",
         "titre": "Un creux en 2021, puis un redressement",
         "paragraphes": [
-          "La note moyenne vaut 7,3 en 2010, descend à 6,8 en 2021 puis remonte à 7,2 en 2024. Le niveau de 2024 est proche de celui de 2010.",
-          "Ces trois repères montrent un creux en 2021 et un redressement ensuite. Ils ne permettent pas d’inventer les années intermédiaires."
+          "La note moyenne vaut 7,3 en 2010, descend à 6,8 en 2021 puis remonte à 7,2 en 2024. Le redressement entre 2021 et 2024 atteint 0,4 point, et le niveau final se rapproche de celui de 2010.",
+          "Le recul observé en 2021 intervient pendant la crise sanitaire. La comparaison sur longue période comprend aussi la refonte de l’enquête en 2020 et une légère rupture liée à la pondération en 2022. L’écart final de 0,1 point avec 2010 reste faible."
         ]
       },
       {
         "id": "inegalites",
-        "titre": "Une moyenne nationale masque des écarts",
+        "titre": "1,2 point d’écart entre les plus aisés et les moins aisés",
         "paragraphes": [
           "En 2023, la note moyenne atteint 7,8 parmi les 20 % les plus aisés et 6,6 parmi les 20 % les moins aisés. La moyenne d’ensemble est de 7,2.",
-          "Le niveau de vie n’explique pas chaque réponse, mais cet écart montre que l’expérience de la vie diffère selon les groupes."
+          "L’écart de 1,2 point entre ces groupes montre une satisfaction socialement différenciée. Les ressources donnent des possibilités différentes pour se loger, faire face aux dépenses et aux imprévus ; elles s’articulent avec d’autres dimensions de la vie, notamment la santé et les relations sociales."
         ]
       },
       {
         "id": "ruptures",
-        "titre": "L’enquête a changé en cours de période",
+        "titre": "L’emploi et les inquiétudes matérielles pèsent sur le quotidien",
         "paragraphes": [
-          "L’enquête SRCV a été refondue en 2020. Une nouvelle pondération du module de bien-être a ensuite créé une légère rupture en 2022.",
-          "Une différence d’un dixième peut donc refléter une variation réelle, un changement de méthode ou les deux."
+          "Le baromètre publié par l’Unédic en juin 2025 décrit les difficultés financières et relationnelles vécues pendant le chômage, ainsi que le poids de la stigmatisation. L’indemnisation atténue la dégradation financière, tandis que la perte d’emploi touche également la place occupée dans la vie sociale.",
+          "Dans son enquête trimestrielle de décembre 2024, l’Observatoire du bien-être du CEPREMAP relève un retour des inquiétudes matérielles et des préoccupations pour l’avenir après l’embellie de septembre. Ces observations éclairent les tensions du quotidien à un rythme plus rapproché que l’enquête annuelle SRCV."
         ]
       },
       {
         "id": "ce-que-la-moyenne-ne-dit-pas",
-        "titre": "Le bien-être ne se résume pas à une note",
+        "titre": "La santé et les relations sociales participent au bien-être",
         "paragraphes": [
-          "La satisfaction déclarée évolue avec la santé, les relations, les ressources, l’emploi, les événements collectifs et les attentes personnelles.",
-          "L’OCDE croise cette note avec les revenus, l’emploi, la santé, les relations sociales et la sécurité. Les moyennes peuvent masquer une dégradation pour certains groupes."
+          "La satisfaction déclarée évolue avec la santé, les relations, les ressources, l’emploi, les événements collectifs et les attentes personnelles. Une amélioration matérielle peut s’accompagner de difficultés dans une autre dimension de la vie.",
+          "L’OCDE étudie conjointement les revenus, l’emploi, la santé, les relations sociales et la sécurité. Une moyenne nationale stable peut ainsi recouvrir une amélioration pour certains groupes et une dégradation pour d’autres."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Un ressenti qui se redresse après 2021",
+        "titre": "Un redressement après 2021 et des écarts sociaux marqués",
         "paragraphes": [
-          "Les données disponibles ne montrent pas une baisse continue de la satisfaction : la note passe de 7,3 en 2010 à 6,8 en 2021 puis 7,2 en 2024.",
-          "Cette note reste un indicateur subjectif, sensible aux contextes et inégalement réparti."
+          "La satisfaction moyenne remonte de 6,8 à 7,2 sur 10 entre 2021 et 2024. Le redressement après la crise sanitaire ramène la note près du niveau de 2010, qui était de 7,3.",
+          "Les écarts entre niveaux de vie restent importants : en 2023, les plus aisés donnent une note moyenne supérieure de 1,2 point à celle des moins aisés. Le redressement national coexiste donc avec des expériences très différentes, liées aux ressources et aux conditions de vie."
         ]
       }
     ],

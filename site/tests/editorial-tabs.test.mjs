@@ -1,5 +1,9 @@
 import {test,expect} from '@playwright/test';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
+
+const dossiers = await Promise.all((await readdir(new URL('../analyses/', import.meta.url)))
+ .filter(name => name.endsWith('.json'))
+ .map(async name => JSON.parse(await readFile(new URL('../analyses/' + name, import.meta.url), 'utf8'))));
 
 test('Analyses : recherche, filtres, lecture et sources en fin de dossier', async ({page}, info) => {
  await page.goto('/analyses/');
@@ -20,7 +24,8 @@ test('Analyses : recherche, filtres, lecture et sources en fin de dossier', asyn
  await expect(page.locator('.analyse-chart svg:visible')).toBeVisible();
  await expect(page.locator('#navigation-principale a[href="/analyses/"]')).toHaveAttribute('aria-current','page');
  await expect(page.locator('.analyse-rendu a[href^="http"]:not(#sources a):not(.partage a)')).toHaveCount(0);
- await expect(page.locator('#sources a[href^="http"]')).toHaveCount(2);
+ const gaz = dossiers.find(dossier => dossier.slug === 'prix-gaz-menages-2022-2025');
+ await expect(page.locator('#sources a[href^="http"]')).toHaveCount(new Set(gaz.sources.map(source => source.url)).size);
  await expect(page.locator('.analyse-rendu details')).toHaveCount(0);
  await expect(page.locator('.dossier-date')).toBeVisible();
  await noOverflow(page);
@@ -29,11 +34,13 @@ test('Analyses : recherche, filtres, lecture et sources en fin de dossier', asyn
  await page.screenshot({path:info.outputPath('analyses-dark-'+info.project.name+'.png')});
 });
 
-test('Analyses : nouveaux dossiers et dossier historique sans débordement', async({page},info)=>{
- for(const slug of ['defense-europe-depenses-2024','ukraine-pret-europeen-90-milliards','groenland-accord-securite-europe','defense-credits-votes-consommes-2025']) {
-  await page.goto('/analyses/'+slug+'/');
+test('Analyses : tous les dossiers et leurs sources sans débordement', async({page},info)=>{
+ for(const dossier of dossiers) {
+  await page.goto('/analyses/'+dossier.slug+'/');
   await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.locator('h1')).toHaveText(dossier.titre);
   await expect(page.locator('#sources')).toHaveCount(1);
+  await expect(page.locator('#sources a[href^="http"]')).toHaveCount(new Set(dossier.sources.map(source => source.url)).size);
   await expect(page.locator('.analyse-rendu details')).toHaveCount(0);
   await expect(page.locator('.analyse-rendu a[href^="http"]:not(#sources a):not(.partage a)')).toHaveCount(0);
   await noOverflow(page);

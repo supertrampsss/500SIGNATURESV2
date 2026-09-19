@@ -92,11 +92,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Les dépenses publiques de défense de l’Union européenne atteignent 266 milliards d’euros en 2024. Elles ont augmenté depuis 2020, mais le montant total ne dit pas encore quelles capacités ont été construites. Pour lire cette hausse, il faut préciser le périmètre, suivre la composition des dépenses et distinguer les comptes exécutés des annonces futures.",
+    "chapo": "Les dépenses publiques de défense de l’Union européenne atteignent 266 milliards d’euros en 2024, contre 176 milliards en 2020. Cette hausse finance les personnels, les achats et les investissements militaires. Pour renforcer les armées, elle doit se traduire par des équipements livrés, des stocks disponibles et des personnels formés, dans une industrie soumise à des délais de production.",
     "series": [
       {
         "id": "defense-ue",
@@ -246,8 +250,8 @@
       {
         "id": "perimetres-defense",
         "type": "snapshot_table",
-        "titre": "Deux montants, deux périmètres",
-        "resume": "Eurostat et l’Agence européenne de défense ne comptent pas exactement la même chose. La différence doit être expliquée, pas masquée.",
+        "titre": "Eurostat et l’Agence européenne de défense",
+        "resume": "En 2024 : 266 milliards d’euros dans les comptes publics par fonction, 343 milliards dans les données de l’Agence européenne de défense. Les champs et les règles de comptabilisation diffèrent.",
         "preuveIds": [
           "defense-total",
           "defense-eda-total"
@@ -257,18 +261,18 @@
     "sections": [
       {
         "id": "ce-que-mesure-cofog",
-        "titre": "L’effort européen de défense",
+        "titre": "Réarmer face à la guerre en Ukraine",
         "paragraphes": [
-          "En 2024, les administrations publiques de l’Union européenne ont consacré 266 milliards d’euros à la fonction « défense » de leurs comptes. Ce total comprend les dépenses des États membres regroupées selon leur fonction.",
-          "Les montants sont en euros courants : ils reflètent à la fois les sommes engagées et l’évolution des prix. Ils ne comprennent pas toutes les annonces politiques ni tous les contrats militaires signés."
+          "L’invasion de l’Ukraine par la Russie a replacé la préparation à un conflit majeur au cœur des politiques de défense européennes. L’analyse publiée par Intereconomics en 2024 souligne les besoins en équipements et les difficultés d’une production organisée entre de nombreux États et industriels.",
+          "Les administrations de l’Union consacrent 266 milliards d’euros à la défense en 2024 selon les comptes publics d’Eurostat, encore provisoires. Cet effort finance les personnels, le fonctionnement et le renouvellement des matériels. La montée en puissance demande aussi aux industriels d’investir pour répondre aux commandes."
         ]
       },
       {
         "id": "progression",
         "titre": "Quatre années de hausse",
         "paragraphes": [
-          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis 266 milliards en 2024. La dernière année ajoute 34 milliards, soit près de 15 %.",
-          "Cette hausse peut venir de volumes plus importants, de prix plus élevés ou des deux. Elle ne produit pas automatiquement une hausse équivalente des capacités militaires."
+          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis 266 milliards en 2024. La dernière année ajoute 34 milliards, soit près de 15 %. Sur quatre ans, la hausse atteint 90 milliards.",
+          "Une partie des crédits supplémentaires peut absorber des hausses de prix ; une autre peut financer davantage d’équipements, de maintenance ou de personnels. La progression des moyens disponibles dépend donc des quantités achetées et des coûts de production."
         ]
       },
       {
@@ -276,39 +280,39 @@
         "titre": "Salaires, achats et investissement",
         "paragraphes": [
           "En 2024, les rémunérations représentent 39 % des dépenses de défense, les achats de biens et services 28,2 % et l’investissement 23,4 %.",
-          "Ces trois blocs décrivent la structure des dépenses. Ils ne disent pas quels matériels ont été livrés, quels stocks sont disponibles ni combien de personnels sont formés."
+          "Le renforcement des armées mobilise ces trois postes ensemble : des personnels pour utiliser les matériels, des achats pour les faire fonctionner et les entretenir, et des investissements pour renouveler les équipements. Une nouvelle livraison crée aussi des besoins de formation et de maintenance dans les années suivantes."
         ]
       },
       {
         "id": "france-et-europe",
         "titre": "La France au-dessus de la moyenne européenne",
         "paragraphes": [
-          "Rapportées au PIB, les dépenses de défense représentent 1,8 % en France et 1,5 % pour l’ensemble de l’Union européenne en 2024, selon la même définition.",
-          "Ce ratio place les dépenses dans la taille de chaque économie. Il ne remplace pas l’examen des forces, des équipements, des stocks et des engagements opérationnels."
+          "Rapportées au PIB, les dépenses publiques de défense représentent 1,8 % en France et 1,5 % pour l’ensemble de l’Union européenne en 2024 selon Eurostat.",
+          "La France consacre donc une part plus élevée de sa richesse produite à la défense que la moyenne européenne. Les moyens militaires financés dépendent ensuite de la taille de l’économie, des équipements entretenus et des missions confiées aux forces."
         ]
       },
       {
         "id": "deux-comptes-differents",
-        "titre": "266 ou 343 milliards : deux comptes",
+        "titre": "Des comptes publics aux budgets de défense nationaux",
         "paragraphes": [
-          "Eurostat compte 266 milliards dans les comptes publics. L’Agence européenne de défense publie 343 milliards avec un périmètre différent. Ces deux chiffres ne mesurent donc pas exactement le même panier.",
-          "Les analyses de l’OFCE et d’Intereconomics soulignent une autre difficulté : une hausse des budgets ne suffit pas si l’industrie, les achats communs, les stocks et les délais de livraison ne suivent pas."
+          "Eurostat publie 266 milliards d’euros selon la classification fonctionnelle des comptes publics. L’Agence européenne de défense atteint 343 milliards à partir des données de défense des États membres. Les champs couverts et les règles de comptabilisation diffèrent entre ces deux publications.",
+          "L’OFCE souligne les tensions sur les capacités de production et les difficultés de financement des entreprises de défense. Intereconomics insiste sur la fragmentation européenne et la coordination des achats. Des commandes plus importantes peuvent soutenir la production, à condition que les industriels puissent investir et que les États coordonnent leurs besoins."
         ]
       },
       {
         "id": "ce-qui-reste-a-mesurer",
-        "titre": "Le budget ne livre pas encore les capacités",
+        "titre": "Produire, livrer et entretenir les équipements",
         "paragraphes": [
-          "Le renforcement militaire se juge aussi aux livraisons, aux délais industriels, aux personnels formés, à la disponibilité des équipements et aux coopérations entre pays.",
-          "Les décisions budgétaires annoncées après 2024 appartiennent à un autre calendrier. Elles ne doivent pas être ajoutées aux dépenses exécutées en 2024."
+          "Entre une commande et sa mise en service, les industriels doivent produire les matériels, les armées former les personnels et organiser la maintenance. Les coopérations entre pays peuvent regrouper les achats ; elles demandent aussi de coordonner les besoins et les calendriers.",
+          "Les décisions budgétaires postérieures à 2024 engagent les exercices suivants. Leur effet militaire se déploiera au rythme des commandes, des livraisons et de la mise en service des équipements."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Des budgets en hausse, des capacités à construire",
         "paragraphes": [
-          "La hausse européenne est réelle dans les comptes : 266 milliards d’euros en 2024 contre 176 milliards en 2020. Elle doit être rapprochée de la composition des dépenses et de leur périmètre.",
-          "Le montant devient un indicateur de capacité lorsqu’il permet effectivement de produire, livrer et maintenir les moyens militaires."
+          "L’Union européenne a accru ses dépenses publiques de défense de 90 milliards d’euros entre 2020 et 2024, pour atteindre 266 milliards. Les rémunérations restent le premier bloc, devant les achats de biens et services et l’investissement.",
+          "Cette hausse peut renforcer les forces si les équipements arrivent à temps, si les stocks sont reconstitués et si les personnels peuvent utiliser et entretenir les matériels. L’industrie, la formation et la coopération entre États déterminent ainsi la portée militaire de l’effort financier."
         ]
       }
     ],

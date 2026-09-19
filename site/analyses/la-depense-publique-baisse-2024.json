@@ -1,6 +1,6 @@
 {
   "slug": "la-depense-publique-baisse-2024",
-  "titre": "Dépense publique : comment lire les montants et la part de la richesse produite",
+  "titre": "Dépense publique : davantage d’euros, une part du PIB en recul",
   "type": "decryptage",
   "publie_le": "2026-08-22",
   "themes": [
@@ -99,6 +99,18 @@
       "titre": "Cour des comptes : rapport public annuel 2024, finances publiques",
       "url": "https://www.ccomptes.fr/sites/default/files/2024-03/RPA-2024-volume-1-reduit.pdf",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ifrap-deficit-2025",
+      "titre": "Fondation iFRAP : Moins de déficit en 2025, merci les impôts supplémentaires (juin 2026)",
+      "url": "https://www.ifrap.org/budget-et-fiscalite/moins-de-deficit-en-2025-merci-les-impots-supplementaires",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ofce-finances-2025",
+      "titre": "OFCE : finances publiques, prévision d’octobre 2025",
+      "url": "https://www.ofce.fr/prev/prev2509/france/fipu.html",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -110,18 +122,22 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les dépenses publiques, celles de l'État, de la Sécurité sociale et des collectivités locales, financent les services, les investissements et les prestations. On peut les mesurer en euros ou les rapporter à la richesse produite. Ces deux lectures répondent à des questions différentes et peuvent évoluer dans des sens opposés.",
+    "chapo": "La dépense publique représente 57,3 % du PIB en 2024, contre 58,6 % en 2013. En euros courants, elle atteint 1 714,1 milliards en 2025, contre 1 242,4 milliards en 2013. Les administrations financent des prestations, des services et des investissements dont le coût évolue avec les prix, la population et les besoins collectifs.",
     "chronologie": {
-      "titre": "Deux périodes servent de repères",
+      "titre": "L’évolution de la dépense publique depuis 2013",
       "sourceId": "source-1",
       "etapes": [
         {
           "date": "2013",
-          "texte": "La dépense publique représente 58,6 % du PIB et atteint 1 242,4 milliards d’euros dans les comptes retenus."
+          "texte": "La dépense publique représente 58,6 % du PIB et atteint 1 242,4 milliards d’euros."
         },
         {
           "date": "2024",
@@ -181,7 +197,7 @@
         "id": "ratios",
         "type": "bar",
         "titre": "Le poids des dépenses dans la richesse produite",
-        "resume": "France, en pourcentage du PIB. Les deux observations sont datées et ne sont pas un montant en euros.",
+        "resume": "France : 58,6 % du PIB en 2013 et 57,3 % en 2024, soit un recul de 1,3 point.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -200,8 +216,8 @@
       {
         "id": "lecture-ratio",
         "type": "snapshot_table",
-        "titre": "Un ratio peut baisser quand le montant augmente",
-        "resume": "Les quatre repères montrent pourquoi il faut lire séparément le numérateur et le dénominateur.",
+        "titre": "La part du PIB et les sommes dépensées",
+        "resume": "Part du PIB en 2013 et 2024 ; dépenses en euros courants en 2013 et 2025. La progression du PIB en valeur peut réduire le ratio malgré une hausse de la dépense.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2",
@@ -213,50 +229,51 @@
     "sections": [
       {
         "id": "deux-lectures",
-        "titre": "Deux évolutions peuvent être vraies en même temps",
+        "titre": "Une part du PIB plus faible, des dépenses en euros plus élevées",
         "paragraphes": [
-          "La dépense publique passe de 1 242,4 milliards d’euros en 2013 à 1 714,1 milliards en 2025, tandis que sa part dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024.",
-          "Les montants augmentent en euros courants ; le ratio baisse parce que le PIB a progressé plus vite sur la période retenue."
+          "La part de la dépense publique dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024, soit un recul de 1,3 point. Sur cette période, la richesse produite en valeur a donc progressé plus vite que la dépense publique.",
+          "Le montant publié pour 2025 atteint 1 714,1 milliards d’euros, contre 1 242,4 milliards en 2013. Cette hausse en euros courants intègre à la fois les évolutions des services et prestations financés et celles de leurs prix."
         ]
       },
       {
         "id": "ratio",
-        "titre": "La part du PIB recule entre 2013 et 2024",
+        "titre": "La part du PIB recule de 1,3 point entre 2013 et 2024",
         "paragraphes": [
-          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Le poids relatif des administrations diminue dans les comptes retenus.",
-          "Cette baisse ne signifie pas que les administrations ont dépensé moins d’euros."
+          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Entre ces deux dates, les dépenses publiques augmentent moins vite que le PIB en valeur.",
+          "Lorsque le PIB progresse plus vite que la dépense, ce ratio diminue même si les sommes dépensées augmentent. La croissance en volume et la hausse des prix contribuent toutes deux à l’évolution du PIB en valeur."
         ]
       },
       {
         "id": "montant",
-        "titre": "Les sommes dépensées augmentent sur les repères disponibles",
+        "titre": "471,7 milliards d’euros supplémentaires entre 2013 et 2025",
         "paragraphes": [
-          "Les dépenses atteignent 1 714,1 milliards d’euros en 2025 contre 1 242,4 milliards en 2013. Ces montants sont exprimés en euros courants.",
-          "Les années ne sont pas les mêmes que celles du ratio : 2024 pour la part du PIB et 2025 pour le montant."
+          "Les dépenses atteignent 1 714,1 milliards d’euros en 2025 contre 1 242,4 milliards en 2013, soit 471,7 milliards supplémentaires en euros courants.",
+          "Les sommes financent les rémunérations, les achats, les investissements et les transferts des administrations publiques. Lorsque leurs coûts augmentent, les administrations doivent dégager davantage de moyens pour maintenir les mêmes prestations et services."
         ]
       },
       {
         "id": "prix-et-besoins",
-        "titre": "Les euros courants ne disent pas tout du service rendu",
+        "titre": "Les prix et les besoins collectifs font évoluer la dépense",
         "paragraphes": [
-          "Une dépense plus élevée peut financer davantage de services, des prix plus élevés, des salaires revalorisés ou des besoins nouveaux. La population et les règles de prise en charge peuvent aussi changer.",
-          "La Cour des comptes souligne que le ratio peut diminuer lorsque le PIB progresse plus vite que la dépense et lorsque les dispositifs exceptionnels de crise s’éteignent. Hors mesures exceptionnelles, la dépense rapportée au PIB peut au contraire augmenter."
+          "Une dépense plus élevée peut financer davantage de services, des prix plus élevés, des salaires revalorisés ou des besoins nouveaux. Une population plus nombreuse ou plus âgée modifie aussi la demande de prestations et de services, à règles de prise en charge inchangées.",
+          "La Cour des comptes souligne le rôle de l’extinction des dispositifs exceptionnels de crise dans la baisse de certains ratios. Le retrait de ces aides réduit la dépense totale, tandis que les dépenses ordinaires peuvent continuer à progresser, y compris en part du PIB."
         ]
       },
       {
         "id": "perimetre",
-        "titre": "Un ensemble qui dépasse le seul budget de l’État",
+        "titre": "L’État, la Sécurité sociale et les collectivités locales",
         "paragraphes": [
-          "Les comptes regroupent l’État, les organismes de Sécurité sociale et les collectivités locales. Ils décrivent donc l’ensemble des administrations publiques.",
-          "Les crises sanitaire et énergétique, l’inflation et les soutiens temporaires modifient fortement les montants d’une année à l’autre."
+          "Les comptes regroupent l’État, les organismes de Sécurité sociale et les collectivités locales. Ils couvrent ainsi des dépenses aussi différentes que les pensions, les soins, l’enseignement et les investissements locaux.",
+          "Les crises sanitaire et énergétique ont également suscité des soutiens temporaires. Leur création puis leur retrait, ainsi que l’inflation, modifient les montants d’une année à l’autre et peuvent éloigner leur évolution de celle des dépenses ordinaires.",
+          "Le désaccord porte aussi sur la manière de réduire le déficit. La fondation iFRAP préconise de contenir les dépenses plutôt que de recourir à des impôts supplémentaires. L’OFCE souligne de son côté qu’une restriction budgétaire freine l’activité et les recettes, tandis que la hausse des intérêts complique le redressement. Le rythme et la composition des économies déterminent donc à la fois leur rendement budgétaire et leurs effets économiques."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "La réponse dépend de l’unité choisie",
+        "titre": "La dépense progresse en euros, son poids relatif recule sur la période",
         "paragraphes": [
-          "La part des dépenses publiques dans le PIB recule de 58,6 % à 57,3 % entre 2013 et 2024, tandis que les montants publiés augmentent entre 2013 et 2025.",
-          "La phrase « la dépense publique baisse » n’a donc pas le même sens selon que l’on parle d’euros ou de part du PIB."
+          "La part des dépenses publiques dans le PIB recule de 58,6 % à 57,3 % entre 2013 et 2024. Les montants atteignent ensuite 1 714,1 milliards d’euros en 2025, soit 471,7 milliards de plus qu’en 2013 en euros courants.",
+          "Les prix, les besoins collectifs et les dispositifs exceptionnels font évoluer ces dépenses. Leur financement dépend de la capacité des recettes à suivre : une baisse de la part du PIB peut coexister avec des besoins de financement croissants lorsque les recettes progressent moins vite que les dépenses."
         ]
       }
     ],

@@ -80,11 +80,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Réécriture des introductions, développements, légendes et conclusions en analyse directe ; données et références conservées."
     }
   ],
   "verifie_contre": "Insee BDM, séries 001765036 et 001764363",
   "dossier": {
-    "chapo": "À chaque rentrée, les familles doivent acheter ou remplacer une partie du matériel scolaire. L’Insee suit l’évolution des prix dans un panier défini, mais cette série ne donne pas le budget total d’une rentrée. Entre 1990 et 2025, on peut comparer ce sous-panier à l’ensemble des prix à la consommation.",
+    "chapo": "Les prix des « autres fournitures scolaires et de bureau » suivies par l’Insee ont augmenté entre 1990 et 2025, moins vite que l’ensemble des prix à la consommation. Pour les familles, la dépense de rentrée dépend aussi de la liste demandée, des quantités et du matériel réutilisé. En 2025, les enquêtes d’UFC-Que Choisir et de Familles de France éclairent ces deux dimensions : le prix des articles et le coût d’un panier d’entrée en 6e.",
     "series": [
       {
         "id": "fournitures",
@@ -182,7 +186,7 @@
         "id": "evolution-indices",
         "type": "line",
         "titre": "Deux indices, base 100 en 2015",
-        "resume": "Le sous-panier des fournitures progresse entre 1990 et 2025, mais moins que l'indice d'ensemble sur les repères affichés.",
+        "resume": "De 1990 à 2025, environ +75 % pour le sous-panier de fournitures et +92 % pour l’ensemble des prix. La valeur 2025 des fournitures est provisoire.",
         "seriesIds": [
           "fournitures",
           "ipc-ensemble"
@@ -191,8 +195,8 @@
       {
         "id": "table-prix",
         "type": "snapshot_table",
-        "titre": "Les repères de prix disponibles",
-        "resume": "Les valeurs de 1990 et 2025 sont comparées sans inventer les années intermédiaires.",
+        "titre": "Les niveaux de prix en 1990 et en 2025",
+        "resume": "En base 100 en 2015, les fournitures passent de 64,70 à 113,02 et l’indice d’ensemble de 62,10 à 119,37.",
         "preuveIds": [
           "preuve-1990",
           "preuve-2025",
@@ -204,50 +208,50 @@
     "sections": [
       {
         "id": "ce-que-mesure-indice",
-        "titre": "Le panier suivi par l’Insee",
+        "titre": "Les prix d’un panier de fournitures et de bureau",
         "paragraphes": [
-          "La série 001765036 porte sur les « autres fournitures scolaires et de bureau ». Elle suit les prix d’un panier statistique défini, avec une base 100 en 2015.",
-          "Elle ne donne pas le montant moyen payé par une famille et ne représente pas nécessairement toute la liste demandée par une école."
+          "La série 001765036 de l’Insee suit les prix des « autres fournitures scolaires et de bureau », avec une base 100 en 2015. Un indice de 113,02 en 2025 correspond à un niveau de prix environ 13 % plus élevé que celui de 2015.",
+          "La dépense d’une famille se forme ensuite avec les articles et les quantités effectivement achetés. Une liste plus longue, un changement de niveau scolaire ou le remplacement de matériel peut augmenter le budget même lorsque les prix varient peu."
         ]
       },
       {
         "id": "evolution",
-        "titre": "Une hausse depuis 1990, moins forte que l’indice d’ensemble",
+        "titre": "Une hausse moins forte que l’ensemble des prix depuis 1990",
         "paragraphes": [
-          "L’indice des fournitures passe de 64,70 en 1990 à 100 en 2015 puis 113,02 en 2025. Le niveau moyen du panier est ainsi environ 13 % supérieur à celui de 2015.",
-          "Sur les mêmes repères, l’indice d’ensemble passe de 62,10 à 119,37. Les fournitures ont donc progressé moins vite que l’ensemble des prix sur la période observée."
+          "L’indice des fournitures passe de 64,70 en 1990 à 100 en 2015 puis 113,02 en 2025. Entre les deux extrémités, la hausse atteint environ 75 % ; depuis 2015, elle est d’environ 13 %.",
+          "Sur les mêmes repères de 1990 et 2025, l’indice d’ensemble passe de 62,10 à 119,37, soit environ 92 % de hausse. Les prix des fournitures ont donc progressé moins vite que ceux de l’ensemble du panier de consommation sur cette longue période. La valeur 2025 des fournitures est provisoire."
         ]
       },
       {
         "id": "comparaison",
-        "titre": "Le prix d’une rentrée dépend des achats",
+        "titre": "Les quantités et les achats annexes pèsent sur la rentrée",
         "paragraphes": [
-          "Un indice mesure une évolution relative. La dépense en euros dépend des quantités, du prix de chaque article, des promotions et du moment de l’achat.",
-          "Les vêtements, le transport, le numérique, la cantine et les activités peuvent aussi compter dans une rentrée, mais ils ne sont pas compris dans ce sous-panier."
+          "Le coût des fournitures dépend du prix de chaque article, des quantités, des promotions et du moment de l’achat. Réutiliser du matériel réduit le nombre d’articles à acheter ; une liste plus exigeante peut au contraire accroître la dépense.",
+          "Les vêtements, le transport, le numérique, la cantine et les activités s’ajoutent au budget de rentrée de certaines familles. Ils relèvent d’autres postes de consommation que les fournitures scolaires et de bureau suivies ici."
         ]
       },
       {
         "id": "budget-reel",
-        "titre": "Les familles n’achètent pas toutes la même liste",
+        "titre": "Deux enquêtes sur les achats de 2025",
         "paragraphes": [
           "Le budget varie selon le niveau scolaire, la liste demandée, le réemploi du matériel, l’achat neuf ou d’occasion et les promotions.",
-          "UFC-Que Choisir observe une hausse moyenne de 2 % sur 118 fournitures entre juillet 2024 et juillet 2025. Familles de France estime de son côté le panier moyen d’une entrée en 6e à 211,10 euros, en baisse de 5,53 % sur un an. Les articles, les quantités et les dates d’achat ne sont pas les mêmes."
+          "UFC-Que Choisir observe une hausse moyenne de 2 % sur 118 fournitures entre juillet 2024 et juillet 2025. Familles de France estime de son côté le panier moyen d’une entrée en 6e à 211,10 euros, en baisse de 5,53 % sur un an. Les articles, les quantités et les dates d’achat diffèrent entre ces enquêtes : un panier de rentrée peut baisser alors que les prix d’un autre ensemble d’articles augmentent."
         ]
       },
       {
         "id": "attention-aux-annees",
-        "titre": "Les dernières valeurs peuvent évoluer",
+        "titre": "Les listes et le réemploi déterminent les besoins d’achat",
         "paragraphes": [
-          "La valeur 2025 des fournitures est provisoire. L’Insee peut la réviser lorsque les données annuelles sont consolidées.",
-          "Un indice de prix, une liste-type et un panier réellement acheté peuvent donc produire des résultats différents, même lorsqu’ils concernent la même rentrée."
+          "Une famille qui conserve une partie des fournitures de l’année précédente concentre ses achats sur les articles manquants ou usés. À l’inverse, une entrée au collège peut imposer de nouvelles fournitures et déplacer le budget vers d’autres produits.",
+          "Les promotions et le choix des points de vente modifient également le coût de la liste. Ces écarts de composition et de conditions d’achat expliquent pourquoi les familles peuvent connaître des évolutions différentes à la même rentrée."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Le prix du matériel et le budget de rentrée",
+        "titre": "Une hausse des prix à long terme, des dépenses variables selon les familles",
         "paragraphes": [
-          "Les prix du sous-panier de fournitures ont progressé entre 1990 et 2025, mais moins que l’indice d’ensemble sur les repères présentés.",
-          "Le coût d’une rentrée dépend ensuite des quantités, des choix et de la liste effectivement achetée."
+          "Depuis 1990, les prix du sous-panier de fournitures ont augmenté d’environ 75 %, contre environ 92 % pour l’indice d’ensemble, sur les valeurs de 2025 disponibles. Leur progression a donc été plus lente que celle de l’ensemble des prix à la consommation.",
+          "Pour une famille, la dépense se joue aussi dans la liste scolaire, le réemploi et les quantités. Les observations de 2025 illustrent cette diversité : UFC-Que Choisir relève une hausse des prix de son ensemble d’articles, tandis que Familles de France mesure une baisse du coût de son panier d’entrée en 6e."
         ]
       }
     ],
