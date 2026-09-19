@@ -60,8 +60,8 @@ export function reserves(entrees: Entree[]): string[] {
     );
   }
   notes.push(
-    "Un écart de dépenses n'est pas un écart de gestion : l'intercommunalité, la" +
-      " géographie et les compétences exercées expliquent l'essentiel des différences.",
+    "Un écart de dépenses ne mesure pas à lui seul la gestion : l'intercommunalité," +
+      " la géographie et les compétences exercées changent le périmètre comparé.",
   );
   notes.push(
     "Le dénominateur d'un montant par habitant est la population permanente. Une" +

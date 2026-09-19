@@ -91,7 +91,7 @@ test("les compétences hors norme sont signalées", () => {
 
 test("l'écart de dépenses n'est jamais présenté comme un écart de gestion", () => {
   const html = rendu([PESSAC, BORDEAUX], INDICATEURS, "2024", true);
-  assert.match(html, /n&#39;est pas un écart de gestion/);
+  assert.match(html, /ne mesure pas à lui seul la gestion/);
   assert.match(html, /intercommunalité/);
 });
 
