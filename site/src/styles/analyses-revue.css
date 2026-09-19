@@ -18,7 +18,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) {
   --fond: #14201d;
   --papier: #14201d;
   --papier-creuse: #24342d;
-  --encre: #edf0e7;
+  --encre: #f5f0df;
   --encre-douce: #b8c4b6;
   --trait: #4b6052;
   --accent: #ef9d7d;
