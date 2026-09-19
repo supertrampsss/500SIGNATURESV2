@@ -93,11 +93,11 @@ test("les porteurs restent dans la réponse, le doublon par habitant disparaît"
 
 test("les voisins partagent le millésime de la France, sans tri par valeur", () => {
   const html = rendu(PAYS, CATALOGUE);
-  // L'ordre est celui de la déclaration (France, Italie, Allemagne présents) :
+  // L'ordre est celui de la déclaration (France, Allemagne, Italie présents) :
   // un tri par valeur ferait un classement.
   const ranks = html.slice(html.indexOf('class="tenable__rang'));
-  assert.ok(ranks.indexOf("France") < ranks.indexOf("Italie"));
-  assert.ok(ranks.indexOf("Italie") < ranks.indexOf("Allemagne"));
+  assert.ok(ranks.indexOf("France") < ranks.indexOf("Allemagne"));
+  assert.ok(ranks.indexOf("Allemagne") < ranks.indexOf("Italie"));
   assert.match(texte(html), /France 115,6 %/);
   assert.match(texte(html), /Allemagne 63,5 %/);
 });
@@ -120,4 +120,18 @@ test("la projection reprend le tableau 5 de juillet 2026, sans prolongement en 2
   assert.match(html,/stroke-dasharray="6 5"/);
   assert.match(html,/tableau 5, p. 15/);
   assert.doesNotMatch(html,/2032|131,7|plus de 130/);
+});
+
+
+test("la comparaison principale de dette respecte les quatre pays approuves", () => {
+  const pays = structuredClone(PAYS);
+  for (const [code, value] of [["ES", 100.7], ["EA20", 87.8], ["PL", 59.7]] as const) {
+    pays[code] = { nom: "", parent: null, population: null, drapeaux: {}, series: { eurostat_dette_pib: { "2025": value } } };
+  }
+  const html = rendu(pays, CATALOGUE);
+  const ranks = html.slice(html.indexOf('class="tenable__rang'));
+  const names = [...ranks.matchAll(/class="apu__nom">([^<]+)<\/span>/g)].map(match => match[1]);
+  assert.deepEqual(names, ["France", "Allemagne", "Espagne", "Italie"]);
+  assert.match(texte(ranks), /Espagne 100,7 %/);
+  assert.doesNotMatch(ranks, /87,8|59,7/);
 });
