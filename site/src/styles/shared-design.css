@@ -174,7 +174,7 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
  html body .entete__nav,html body .site-navigation { grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;gap:12px;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scrollbar-width:none;white-space:nowrap; }
  html body .entete__nav::-webkit-scrollbar,html body .site-navigation::-webkit-scrollbar { display:none; }
  html body .entete__nav a,html body .site-navigation a { flex:0 0 auto;font-size:.8rem; }
- html body .bascule-theme { grid-column:3;grid-row:1;width:36px;height:36px;min-width:36px; }
+ html body .bascule-theme,html body .entete .bascule-theme { grid-column:3;grid-row:1;width:36px;height:36px;min-width:36px; }
  html body .site-header .header-actions { grid-row:3;margin-top:0; }
  html body[data-vue="bilan"] #vue-bilan #national > nav.bilan-reperage { display:none; }
  html body #vue-bilan { padding-inline:20px; }
