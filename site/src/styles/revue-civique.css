@@ -116,6 +116,15 @@ html body[data-vue="bilan"] #vue-bilan .bilan-flux__barre--1 { background:#a8442
 html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { border-top:1px solid var(--trait); padding-top:26px; }
 html body[data-vue="bilan"] #vue-bilan .bilan-chapitre h2,html body[data-vue="bilan"] #vue-bilan .insights-france h2 { font-family:var(--serif); letter-spacing:-.035em; }
 html body[data-vue="bilan"] #vue-bilan .bilan-complements { background:var(--papier-creuse); }
+
+/* The Europe comparison belongs to the continuous page surface. Its wrapper
+   used to look like a separate card and made the section rule sit too close
+   to the heading. Keep the chapter rhythm, remove the frame, and give rules
+   the same breathing room as the other editorial sections. */
+html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { padding-top:clamp(2.75rem,5vw,4.5rem); }
+html body[data-vue="bilan"] #vue-bilan .europe-unifiee { border:0; border-radius:0; padding-left:0; padding-right:0; }
+html body[data-vue="bilan"] #vue-bilan .europe-unifiee > .bloc { padding-left:0; padding-right:0; }
+html body[data-vue="bilan"] #vue-bilan #bloc-secu { margin-top:48px; padding-top:40px; }
 body[data-vue="salaires"] .salaires { max-width:1180px; margin:auto; padding:0 28px; border-top:0; }
 body[data-vue="salaires"] .salaires__entree { padding:58px 0 30px; }
 body[data-vue="salaires"] .salaires__entree h1 { font:500 clamp(3rem,6vw,5.5rem)/1.02 var(--serif); letter-spacing:-.05em; }
