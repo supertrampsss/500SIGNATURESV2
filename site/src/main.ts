@@ -645,15 +645,6 @@ async function peindre(): Promise<void> {
  *  département qui ne disait que la différence de taille. */
 const DENOMINATEURS = new Set(["ofgl_population_reference"]);
 
-// Un échantillon volontairement large pour le premier écran : métropoles,
-// villes moyennes et petites préfectures. Les boutons ne sont posés que si la
-// publication les connaît, afin de ne jamais proposer une fiche vide.
-const VILLES_SUGGEREES = [
-  "75056", "13055", "69123", "31555", "06088", "44109", "34172", "33063",
-  "59350", "67482", "35238", "38185", "49007", "25056", "14047", "21231",
-  "87085", "81004", "64024", "29232", "17300", "84007", "46042", "12145",
-];
-
 /** Les territoires d'une maille, indexés par « maille:code ».
  *
  *  Le code seul ne désigne pas un territoire : quatorze départements portent un
@@ -683,19 +674,7 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
 /** Une entrée locale, sans présenter le budget national comme un territoire choisi. */
 function afficherApercu(): void {
   delete document.body.dataset.territoireSelection;
-  $("fiche").innerHTML = `<div class="territoire-depart" aria-label="Suggestions de villes"><button type="button" class="fiche__parent" data-code="33063" data-niveau="commune">Bordeaux</button><button type="button" class="fiche__parent" data-code="75056" data-niveau="commune">Paris</button></div>`;
-}
-
-async function enrichirSuggestionsVilles(): Promise<void> {
-  const fiche = $("fiche");
-  if (!fiche || etat?.selection) return;
-  const index = await donnees.indexRecherche().catch(() => []);
-  const communes = new Map(index.filter((entree) => entree.l === "commune").map((entree) => [entree.c, entree]));
-  const choix = VILLES_SUGGEREES.map((code) => communes.get(code)).filter((entree): entree is NonNullable<typeof entree> => !!entree);
-  if (choix.length < 3 || etat?.selection) return;
-  fiche.innerHTML = `<div class="territoire-depart" aria-label="Suggestions de villes">${choix
-    .map((entree) => `<button type="button" class="fiche__parent" data-code="${echapper(entree.c)}" data-niveau="commune">${echapper(entree.n)}</button>`)
-    .join("")}</div>`;
+  $("fiche").replaceChildren();
 }
 
 /** La France du panneau d'accueil, demandée une seule fois et le plus tôt
@@ -3271,7 +3250,6 @@ async function demarrer(): Promise<void> {
   window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
-  void enrichirSuggestionsVilles();
   // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
   // le même index, sans état commun. Câblé ici, avant la garde éditoriale
   // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
