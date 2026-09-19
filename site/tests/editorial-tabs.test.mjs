@@ -56,19 +56,19 @@ test('France: published accounts survive a network failure and chapters stay on 
 test('Territoires: search and financial detail work without WebGL',async({page},info)=>{
  await publication(page,{demographie:true});
  await page.addInitScript(()=>{const getContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return getContext.call(this,type,...args);};});
- await page.goto('/territoire');await expect(page.locator('#territoire-carte-toggle')).toHaveText('Carte indisponible sur cet appareil');
+ await page.goto('/territoire');await expect(page.locator('#carte-etat')).toContainText(/pas disponible sur cet appareil/ );await expect(page.locator('#cadre-carte')).toHaveAttribute('data-carte-indisponible','oui');
  await activate(page.locator('.territoire-depart button[data-code="33063"]'),info);
  await expect(page.locator('#detail #davantage-population')).toBeVisible();
  await expect(page.locator('#detail #davantage-population')).toContainText(/267\s991/);
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
- await expect(page.locator('.territoire-diagnostic')).toBeVisible();await expect(page.locator('.territoire-diagnostic > summary')).toHaveCount(0);await expect(page.locator('#fiche .note')).toBeVisible();await noOverflow(page);
+ await expect(page.locator('.territory-charts')).toBeVisible();await expect(page.locator('#detail')).toContainText('Population');await expect(page.locator('#fiche').getByRole('link',{name:'Sources',exact:true})).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
 
 test('Salaires: dark mode, reduced motion and all four navigation links remain usable',async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
- await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await noOverflow(page);
+ await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await activate(page.getByRole('button',{name:'Activer le mode sombre'}),info);await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await noOverflow(page);
  const boxes=await page.locator('#navigation-principale a').evaluateAll(links=>links.map(a=>{const b=a.getBoundingClientRect();return {height:b.height,left:b.left,right:b.right,visible:!!a.getClientRects().length};}));
  expect(boxes).toHaveLength(4);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
@@ -110,7 +110,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
  await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
- await page.getByRole('button',{name:'Activer le mode clair'}).click();await page.getByRole('button',{name:'Activer le mode sombre'}).click();await noOverflow(page);
+ if(await page.locator('html').getAttribute('data-theme')==='sombre')await page.getByRole('button',{name:'Activer le mode clair'}).click();await page.getByRole('button',{name:'Activer le mode sombre'}).click();await noOverflow(page);
  await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(245, 240, 223)');
  await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(133, 207, 175)');
  await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(133, 207, 175)');

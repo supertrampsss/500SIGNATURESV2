@@ -72,16 +72,7 @@ const UNION = "EU27_2020";
 
 /** Les pays de la table. L'ordre écrit ici ne sert qu'à choisir QUI figure :
  *  le rendu trie ensuite sur la dépense. Un code absent des données saute. */
-const TABLE = [
-  UNION,
-  "EA20",
-  "FR",
-  "DE",
-  "BE",
-  "LU",
-  "ES",
-  "IT",
-];
+const TABLE = PAYS_VISIBLES;
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -222,7 +213,7 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
   })
     .filter((l): l is NonNullable<typeof l> => l !== null)
     .sort((a, b) => b.tri - a.tri);
-  if (lignes.length < 3) return "";
+  if (lignes.length < 2) return "";
 
   const rangees = lignes
     .map(
@@ -278,13 +269,13 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
   });
   const graphique = `<div class="dataviz__comparaisons">
     ${pointsComparatifs({
-      titre: "Dépense publique",
+      titre: `Dépense publique · ${colonneDepense.exercice}`,
       description: "Dépense publique en pourcentage du PIB, du plus élevé au plus faible.",
       points: pointsDepense,
       formater,
     })}
     ${pointsComparatifs({
-      titre: "Prélèvements obligatoires",
+      titre: `Prélèvements obligatoires · ${colonnePrelevements.exercice}`,
       description: "Prélèvements obligatoires en pourcentage du PIB, du plus élevé au plus faible.",
       points: pointsPrelevements,
       formater,
@@ -295,7 +286,7 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
     <h3 class="sous-titre">La France et ses voisins</h3>
     <p class="chart-context">Même année, même définition : les comparaisons en % du PIB.</p>
     ${graphique}
-    ${tableauAccessible("Données et périmètre européen", tableau + phrase)}
+    ${tableauAccessible("Données des quatre pays et sources", tableau + phrase)}
     <p class="bloc__complement">${sourcesEurope(indexSources)}</p>`;
 }
 

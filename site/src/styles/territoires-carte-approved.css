@@ -1,0 +1,119 @@
+/* Carte territoriale réelle : le rendu reste contenu dans la vue Territoires. */
+.vue--territoire {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.65fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.vue--territoire > .territoire-recherche,
+.vue--territoire > .territoire-carte,
+.vue--territoire > .territoire__tables {
+  grid-column: 1 / -1;
+}
+
+.territoire-carte {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 1rem;
+  background: var(--design-panel, #fff);
+}
+
+.territoire-carte__entete {
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  padding: 1rem 1.25rem .75rem;
+}
+
+.territoire-carte__surtitre {
+  margin: 0;
+  color: var(--design-accent, #a84429);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.territoire-carte h2 {
+  margin: 0;
+  font-family: var(--serif, Georgia, serif);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+}
+
+.territoire-carte__etat {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--design-muted, #52635f);
+  font-size: .82rem;
+  text-align: right;
+}
+
+.territoire-carte__surface {
+  min-height: clamp(22rem, 48vw, 37rem);
+  background: var(--design-inset, #e7eadf);
+}
+
+.territoire-carte[data-carte-indisponible="oui"] .territoire-carte__surface {
+  display: grid;
+  min-height: 7rem;
+  place-items: center;
+  background: var(--design-inset, #e7eadf);
+}
+
+.territoire-carte[data-carte-indisponible="oui"] .territoire-carte__surface::after {
+  max-width: 34rem;
+  padding: 1rem;
+  color: var(--design-ink, #203b34);
+  content: "La carte interactive est indisponible. Utilisez la recherche pour ouvrir une fiche détaillée.";
+  font-size: .95rem;
+  text-align: center;
+}
+
+@media (max-width: 60rem) {
+  .vue--territoire {
+    display: block;
+  }
+
+  .territoire-carte {
+    margin: 1rem 0;
+  }
+
+  .territoire-carte__surface {
+    min-height: 20rem;
+  }
+
+  .territoire-carte__entete {
+    display: block;
+  }
+
+  .territoire-carte__etat {
+    margin-top: .35rem;
+    text-align: left;
+  }
+
+  .panneau--territoire {
+    margin-top: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .territoire-carte * {
+    scroll-behavior: auto;
+  }
+}
+/* The map is embedded in the editorial flow, independent of the old fullscreen mode. */
+html body[data-vue="territoire"] #cadre-carte { display:block; position:relative; width:100%; }
+html body[data-vue="territoire"] .territoire-carte-stage { position:relative; min-width:0; }
+html body[data-vue="territoire"] #carte { display:block; position:relative; inset:auto; width:100%; height:clamp(22rem,48vw,37rem); }
+html body[data-vue="territoire"] #etiquettes { display:block; position:absolute; inset:0; pointer-events:none; }
+html body[data-vue="territoire"] #infobulle:not([hidden]) { display:block; position:absolute; top:0; left:0; }
+html body[data-vue="territoire"] #legende:not([hidden]) { display:block; position:relative; inset:auto; margin:0; width:auto; max-width:none; padding:12px 20px; }
+html body[data-vue="territoire"] #cadre-carte[data-carte-indisponible="oui"] #carte { display:grid; height:auto; min-height:7rem; }
+@media(max-width:600px) { html body[data-vue="territoire"] #carte { height:22rem; } }
+html body[data-vue="territoire"] #legende-titre { margin:0 0 8px; font-size:13px; }
+html body[data-vue="territoire"] #legende-echelle { display:flex; list-style:none; padding:0; margin:0; height:10px; overflow:hidden; }
+html body[data-vue="territoire"] #legende-echelle li { display:block; flex:1; height:10px; margin:0; border:0; border-radius:0; }
+html body[data-vue="territoire"] #legende-bornes { display:flex; justify-content:space-between; gap:12px; padding-top:8px; font-size:12px; }
+html body[data-vue="territoire"] .fiche__titre { scroll-margin-top:100px; }

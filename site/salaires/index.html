@@ -4,7 +4,7 @@
 <script>
       try {
         var t = localStorage.getItem("theme");
-        document.documentElement.dataset.theme = t === "clair" ? "clair" : "sombre";
+        document.documentElement.dataset.theme = t === "sombre" ? "sombre" : "clair";
       } catch (e) {
         /* navigation privée : le thème suit alors le système, sans mémoire */
       }

@@ -46,6 +46,7 @@ import type { Indicateur, Territoire } from "./donnees.ts";
 import { tableauAccessible } from "./dataviz.ts";
 import { pourcentage } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
+import { PAYS_VISIBLES } from "./insights-europe.ts";
 
 export const FONCTIONS = [
   "eurostat_fonction_protection_sociale",
@@ -92,10 +93,7 @@ const TOLERANCE = 0.5;
    porte tous les quarante-huit : la publication nomme un pays par son code
    (`normalize/europe.py` écrit `name = code`), et trois modules du site
    recopiaient chacun sa petite table de traduction. */
-const COMPARES: [string, string][] = [
-  ["DE", nomPays("DE")],
-  ["EA20", nomPays("EA20")],
-];
+const COMPARES: [string, string][] = PAYS_VISIBLES.filter(code => code !== "FR").map(code => [code, nomPays(code)]);
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -162,6 +160,7 @@ export function rendu(
   if (retenues.length < FONCTIONS.length) return "";
   if (Math.abs(retenues.reduce((s, l) => s + l.fr, 0) - totalFr) > TOLERANCE) return "";
 
+  const compares = COMPARES.filter(([code]) => FONCTIONS.some(id => valeur(code,id) !== undefined));
   const depart = departCommun(france, annee);
   const lignes = retenues
     .sort((a, b) => b.fr - a.fr)
@@ -169,7 +168,7 @@ export function rendu(
       const barres = `<span class="fonction__barre" style="width:${((fr / totalFr) * 100).toFixed(
         1,
       )}%"></span>`;
-      const autres = COMPARES.map(([code]) => {
+      const autres = compares.map(([code]) => {
         const v = valeur(code, id);
         return `<td>${v === undefined ? "—" : echapper(pourcentage(v, true))}</td>`;
       }).join("");
@@ -187,27 +186,27 @@ export function rendu(
     })
     .join("");
 
-  const totauxCompares = COMPARES.map(([code, nom]) => {
+  const totauxCompares = compares.map(([code, nom]) => {
     const v = valeur(code, TOTAL);
     return v === undefined ? "" : ` · ${echapper(nom)} : ${echapper(pourcentage(v))}`;
   }).join("");
   const tableau = `<table class="fonctions" tabindex="0">
     <thead><tr><th scope="col">Fonction</th><th scope="col">France</th>
-      ${COMPARES.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}
+      ${compares.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}
       ${depart === null ? "" : `<th scope="col" class="evolution">Depuis ${echapper(depart)}</th>`}
     </tr></thead>
     <tbody>${lignes}</tbody>
   </table>`;
-  const maximum = Math.max(...retenues.flatMap(({ id, fr }) => [fr, ...COMPARES.map(([code]) => valeur(code, id) ?? 0)]));
+  const maximum = Math.max(...retenues.flatMap(({ id, fr }) => [fr, ...compares.map(([code]) => valeur(code, id) ?? 0)]));
   const comparatif = `<figure class="dataviz dataviz--fonctions" data-chart-system="lieflat" aria-label="Comparaison des dépenses publiques par fonction">
-    <figcaption><strong>Dépenses par fonction</strong><span>En % du PIB</span></figcaption>
-    <div class="dataviz__fonctions-legende"><span>● France</span>${COMPARES.map(([, nom], i) => `<span>${i === 0 ? "○" : "◆"} ${echapper(nom)}</span>`).join("")}</div>
+    <figcaption><strong>Dépenses par fonction · ${echapper(annee)}</strong><span>En % du PIB</span></figcaption>
+    <div class="dataviz__fonctions-legende"><span>● France</span>${compares.map(([, nom], i) => `<span>${["○", "◆", "△"][i]} ${echapper(nom)}</span>`).join("")}</div>
     <ol>${retenues.sort((a, b) => b.fr - a.fr).map(({ id, fr }) => {
-      const autres = COMPARES.map(([code, nom], i) => {
+      const autres = compares.map(([code, nom], i) => {
         const v = valeur(code, id);
         return v === undefined ? "" : `<i class="dataviz__fonction-point dataviz__fonction-point--${i + 1}" style="left:${(v / maximum * 100).toFixed(2)}%" aria-hidden="true"></i>`;
       }).join("");
-      return `<li><span>${echapper(libelle(id))}</span><span class="dataviz__fonction-rail"><i class="dataviz__fonction-point dataviz__fonction-point--fr" style="left:${(fr / maximum * 100).toFixed(2)}%" aria-hidden="true"></i>${autres}</span><strong>${echapper(pourcentage(fr, true))}</strong><span class="function-values">${COMPARES.map(([code,nom])=>`${echapper(nom)} ${valeur(code,id)===undefined ? "non publié" : echapper(pourcentage(valeur(code,id)!,true))}`).join(" · ")}</span></li>`;
+      return `<li><span>${echapper(libelle(id))}</span><span class="dataviz__fonction-rail"><i class="dataviz__fonction-point dataviz__fonction-point--fr" style="left:${(fr / maximum * 100).toFixed(2)}%" aria-hidden="true"></i>${autres}</span><strong>${echapper(pourcentage(fr, true))}</strong><span class="function-values">${compares.map(([code,nom])=>`${echapper(nom)} ${valeur(code,id)===undefined ? "non publié" : echapper(pourcentage(valeur(code,id)!,true))}`).join(" · ")}</span></li>`;
     }).join("")}</ol>
   </figure>`;
 

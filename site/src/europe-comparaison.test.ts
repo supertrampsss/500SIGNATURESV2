@@ -76,21 +76,18 @@ test("les pays portent leur nom français, jamais leur code", () => {
   // sur `territoire.nom` afficherait « DE » et « EU27_2020 ».
   const noms = nomsAffiches(rendu(PAYS));
   assert.ok(noms.includes("Allemagne"), `« Allemagne » manque : ${noms.join(", ")}`);
-  assert.ok(noms.includes("Union européenne (27 pays)"));
+  assert.ok(!noms.includes("Union européenne (27 pays)"));
   for (const nom of noms) assert.doesNotMatch(nom, /^[A-Z0-9_]{2,}$/, `« ${nom} » est un code`);
 });
 
-test("les repères européens attendus restent affichés quand leurs séries existent", () => {
+test("la table reprend exactement les quatre pays des graphiques", () => {
   const noms = nomsAffiches(rendu(REPERES_STABLES));
+  assert.equal(noms.length, 4);
   for (const nom of [
     "France",
     "Allemagne",
-    "Belgique",
-    "Luxembourg",
     "Espagne",
     "Italie",
-    "Union européenne (27 pays)",
-    "Zone euro (20 pays)",
   ]) {
     assert.ok(noms.includes(nom), `« ${nom} » manque : ${noms.join(", ")}`);
   }
@@ -191,10 +188,9 @@ test("le déficit garde son signe", () => {
   assert.match(html, /France<\/th>[\s\S]{0,120}<td>−5,1[^<]*<\/td>/);
 });
 
-test("l'excédent luxembourgeois reste positif", () => {
-  const html = rendu(REPERES_STABLES);
-  assert.match(html, /Luxembourg<\/th>[\s\S]{0,180}<td>0,1[^<]*<\/td>/);
-  assert.doesNotMatch(html, /Luxembourg<\/th>[\s\S]{0,180}<td>−0,1[^<]*<\/td>/);
+test("un excédent conserve son signe positif", () => {
+  const html = rendu({ ...PAYS, IT: territoire(50.4, 43.1, 137.1, .1) });
+  assert.match(html, /Italie<\/th>[\s\S]{0,180}<td>0,1[^<]*<\/td>/);
 });
 
 test("sans dépense ni prélèvements pour la France, le bloc ne s'affiche pas", () => {
@@ -211,9 +207,10 @@ test("sans dépense ni prélèvements pour la France, le bloc ne s'affiche pas",
   assert.equal(rendu(sansPrelevements), "");
 });
 
-test("moins de trois pays comparables n'est pas une comparaison", () => {
+test("une comparaison accepte deux pays et refuse un pays seul", () => {
   const deux = { FR: PAYS["FR"]!, DE: PAYS["DE"]! };
-  assert.equal(rendu(deux), "");
+  assert.notEqual(rendu(deux), "");
+  assert.equal(rendu({ FR: PAYS.FR }), "");
 });
 
 

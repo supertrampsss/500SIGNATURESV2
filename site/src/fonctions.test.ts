@@ -68,7 +68,7 @@ const PAYS: Record<string, Territoire> = {
     eurostat_fonction_protection_sociale: { "2024": 20.4 },
     eurostat_fonction_sante: { "2024": 7.6 },
   }),
-  EA20: territoire({
+  ES: territoire({
     [TOTAL]: { "2024": 49.4 },
     eurostat_fonction_sante: { "2024": 7.5 },
   }),
@@ -85,7 +85,7 @@ test("le total France est annoncé avec l'année et les points de comparaison", 
   assert.match(html, /2024/);
   assert.match(html, new RegExp(`57,3${FINE}% du PIB`));
   assert.match(html, new RegExp(`Allemagne : 49,4${FINE}%`));
-  assert.match(html, new RegExp(`Zone euro \\(20 pays\\) : 49,4${FINE}%`));
+  assert.match(html, new RegExp(`Espagne : 49,4${FINE}%`));
 });
 
 test("les fonctions sont triées par poids décroissant", () => {
@@ -98,7 +98,7 @@ test("les fonctions sont triées par poids décroissant", () => {
 
 test("une valeur absente chez un voisin s'écrit — plutôt que zéro", () => {
   const html = rendu(PAYS, CATALOGUE);
-  // La défense n'est renseignée ni pour DE ni pour EA20 dans ce jeu d'essai.
+  // La défense n'est renseignée ni pour DE ni pour ES dans ce jeu d'essai.
   assert.match(html, /Défense[\s\S]{0,600}<td>—<\/td>[\s\S]{0,60}<td>—<\/td>/);
 });
 

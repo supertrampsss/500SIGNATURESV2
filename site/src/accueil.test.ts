@@ -25,6 +25,7 @@ import {
   MESSAGE_PRINCIPAL,
   rendu,
   renduAnalysesRecentes,
+  renduApercuComptes,
   renduBandeConfiance,
   renduChezVous,
   renduVerdictDuMoment,
@@ -565,7 +566,7 @@ test("25. l'accueil sans donnée ouvre les trois parcours", () => {
   const portes = [
     ["Comprendre la France", "/bilan"],
     ["Explorer mon territoire", "/territoire"],
-    ["Prendre les commandes", "/simulateur"],
+    ["Prendre les commandes", "/mandats/"],
   ] as const;
   const positions = portes.map(([libelle, href]) => {
     const position = html.indexOf(`href=\"${href}\"`);
@@ -585,17 +586,8 @@ test("26. les portes précèdent les analyses récentes", () => {
   );
 });
 
-test("27. la mention d'unité est posée une fois, en tête de page", () => {
-  const html = page();
-  assert.equal(
-    html.split(MENTION_MILLIONS).length - 1,
-    1,
-    "répétée, la mention cesse d'être lue là où elle compte",
-  );
-  assert.ok(
-    html.indexOf(MENTION_MILLIONS) < html.indexOf("accueil__bloc"),
-    "elle précède le premier bloc",
-  );
+test("27. chaque chiffre porte son unité sans unité globale ambiguë", () => {
+  assert.ok(!page().includes(MENTION_MILLIONS));
 });
 
 test("27. la promesse ouvre la recherche et les parcours avant les preuves fraîches", () => {
@@ -618,16 +610,16 @@ test("27. la promesse ouvre la recherche et les parcours avant les preuves fraî
 
 test("28. les appels de détail restent disponibles après les portes", () => {
   const html = page();
-  for (const appel of ["Lire le verdict", "Rejouer le calcul", "Chercher ma commune"]) {
+  for (const appel of ["Lire le verdict", "Commencer un mandat", "Chercher ma commune"]) {
     assert.ok(html.includes(appel), appel);
   }
-  assert.ok(html.indexOf("Prendre les commandes") < html.indexOf("Rejouer le calcul"));
+  assert.ok(html.indexOf("Prendre les commandes") < html.indexOf("Commencer un mandat"));
 });
 
 test("29. les preuves et les approfondissements suivent les parcours", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "autre", titre: "Une autre" })] });
   const blocs = [...html.matchAll(/accueil__bloc accueil__bloc--([a-z]+)/g)].map((m) => m[1]);
-  assert.deepEqual(blocs, ["confiance", "verdict", "analyses", "territoire", "simulateur"]);
+  assert.deepEqual(blocs, ["confiance", "verdict", "analyses", "territoire"]);
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {
@@ -656,4 +648,18 @@ test("31. le message principal n'a qu'une rédaction en code, et une seule en HT
   // (prerendre.test.ts, « le gabarit ne s'annonce plus comme une de ses vues »).
   const gabarit = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   assert.equal(gabarit.split(MESSAGE_PRINCIPAL).length - 1, 1);
+});
+
+test("the home equation uses the latest common national year and never invents missing data", () => {
+ const html = renduApercuComptes({ nom:"France",parent:null,population:null,drapeaux:{},series:{
+  eurostat_apu_recettes:{"2023":1400000,"2024":1500000,"2025":1600000},
+  eurostat_apu_depenses:{"2023":1500000,"2024":1650000},
+  eurostat_pib_montant:{"2023":2800000,"2024":2900000}
+ }});
+ assert.match(html,/LES COMPTES PUBLICS · 2024/);
+ assert.match(html,/<dt>Recettes<\/dt>/);
+ assert.match(html,/<dt>Dépenses<\/dt>/);
+ assert.match(html,/Solde public annuel/);
+ assert.doesNotMatch(html,/2025/);
+ assert.doesNotMatch(renduApercuComptes(),/accueil__solde/);
 });

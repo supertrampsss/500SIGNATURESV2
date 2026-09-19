@@ -2,6 +2,7 @@ import { syncNationalScene } from "./national-scene.ts";
 import { icon } from "./icons.ts";
 import "./game.css";
 import "../styles/shared-design.css";
+import "./approved-decision-room.css";
 import { brancherTheme } from "../theme.ts";
 brancherTheme();
 import { decide, domainFor, startingGame, start } from "./engine.ts";
