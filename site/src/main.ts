@@ -7,6 +7,7 @@ import { brancherTheme } from "./theme.ts";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./styles/territoires-carte-approved.css";
 import { COUCHES, styleCarte } from "./carte-style.ts";
 
 import * as donnees from "./donnees.ts";
@@ -2911,7 +2912,24 @@ function brancherCitations(): void {
 }
 
 /** La carte est une amélioration. Une panne GPU ne bloque aucun compte. */
+function etatCarte(message: string, indisponible = false): void {
+  const cadre = document.getElementById("cadre-carte");
+  const etat = document.getElementById("carte-etat");
+  if (cadre) cadre.dataset.carteIndisponible = indisponible ? "oui" : "non";
+  if (etat) etat.textContent = message;
+}
+
 function initialiserCarte(): void {
+  const conteneur = document.getElementById("carte");
+  if (!conteneur || carte) return;
+  const canvas = document.createElement("canvas");
+  const webgl = canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl");
+  if (!webgl) {
+    etatCarte("La carte n’est pas disponible sur cet appareil. La recherche et les fiches restent accessibles.", true);
+    return;
+  }
+  etatCarte("Les limites administratives sont fournies par les données publiques chargées localement.");
+  try {
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   carte = new maplibregl.Map({
     container: "carte",
@@ -2928,6 +2946,10 @@ function initialiserCarte(): void {
       customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0",
     },
   });
+  } catch {
+    etatCarte("La carte ne peut pas être affichée ici. La recherche et les fiches restent accessibles.", true);
+    return;
+  }
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   // `compact: true` ne suffit pas : MapLibre rend l'attribution OUVERTE au
   // premier affichage — 473 px de crédits en bas de carte — et ne la replie
@@ -3259,8 +3281,9 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  // La carte territoriale a été retirée de l'interface. Les fiches, la
-  // recherche et les analyses restent disponibles dans la vue Territoires.
+  // Monter la carte réelle une fois le catalogue disponible. Le conteneur
+  // reste indépendant des fiches : un WebGL absent ou une tuile indisponible
+  // ne retire ni la recherche ni le tableau de données.
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();
@@ -3268,9 +3291,7 @@ async function demarrer(): Promise<void> {
   // la carte n'a pas à patienter pour ça.
 
   await peindre();
-  // Keep the legacy map helpers available to the data-layer tests without
-  // mounting a map in the product UI.
-  void initialiserCarte;
+  initialiserCarte();
   void fermerPanneau;
 
   brancherCommandes();
