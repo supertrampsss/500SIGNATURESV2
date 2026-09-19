@@ -189,6 +189,10 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
  .mandats-invitation { flex-direction:column;align-items:stretch; }
  .mandats-invitation>a { text-align:center; }
 }
+@media(max-width:340px) {
+ html body .entete__nav,html body .site-navigation { gap:0; }
+ html body .entete__nav a,html body .site-navigation a { font-size:.65rem; }
+}
 .civic-scene { grid-area:scene;position:relative;height:300px;perspective:850px;overflow:hidden;background:radial-gradient(ellipse at 50% 70%,var(--design-track),transparent 65%); }
 .civic-scene__city { position:absolute;width:270px;height:180px;left:50%;top:52px;transform:translateX(-50%) rotateX(18deg) rotateZ(-5deg); }
 .civic-scene__ground { position:absolute;inset:70px -15px -12px;background:#27454c;transform:skewY(-12deg);border-radius:32px;box-shadow:0 16px 0 #172f39; }
