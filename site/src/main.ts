@@ -93,7 +93,7 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
-import { intercepterNavigation, renduNavigation } from "./navigation.ts";
+import { intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import { brancherSalaires, renduSalaires } from "./salaires.ts";
@@ -3206,6 +3206,7 @@ function initialiserCarte(): void {
  }
 
 async function demarrer(): Promise<void> {
+  suivreHauteurEntete();
   // Les documents éditoriaux pré-rendus ne passent pas par `basculerVue` :
   // sans ce premier rendu, leur navigation mobile restait une barre vide,
   // donc plus aucune des quatre destinations n'était atteignable au pouce.

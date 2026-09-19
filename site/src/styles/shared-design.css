@@ -354,3 +354,9 @@ html[data-theme='clair'] body .brand-e .brand-e__dark { display:none; }
 @media(max-width:700px) {
  html body .brand-e { width:43px;height:56px; }
 }
+
+/* Keep all destinations and 44px targets while leaving room for the first decision. */
+@media(max-width:700px) {
+ html body[data-screen="play"] .site-header { padding-block:4px; gap:4px; }
+ html body[data-screen="play"] .site-header .brand-e { width:34px; height:44px; }
+}

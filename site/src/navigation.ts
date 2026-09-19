@@ -15,6 +15,17 @@ export const DESTINATIONS: readonly Destination[] = [
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];
 
+/** Le logo et les retours de ligne font varier la hauteur réelle du menu. */
+export function suivreHauteurEntete(): void {
+  const entete = document.querySelector<HTMLElement>(".entete");
+  if (!entete) return;
+  const mesurer = () => document.documentElement.style.setProperty(
+    "--decalage-entete", `${Math.ceil(entete.getBoundingClientRect().height)}px`,
+  );
+  mesurer();
+  new ResizeObserver(mesurer).observe(entete);
+}
+
 function normaliserChemin(pathname: string): string {
   return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 }

@@ -59,9 +59,15 @@ phrases factuelles, aucune citation inventée, pas de superlatifs promotionnels,
 incertitudes limitées aux points réellement non établis. Le choix d’un sujet
 sur X n’accorde aucune valeur probante aux affirmations qui y circulent.
 
-## Validation prévue
+## Validation
 
-`python -m plateforme.controle_analyses site/analyses`, `npm run check`, tests
-Playwright éditoriaux sur les cinq profils existants, inspection visuelle de
-l’index, d’un dossier, des sources et du mode sombre. La navigation mobile est
+Contrôle des 12 analyses sans erreur ; `npm run check` réussi (1 040 tests et
+build de production) ; 40 tests Playwright éditoriaux réussis sur les cinq
+profils existants ; inspection visuelle de l’index, d’un dossier, des sources
+et du mode sombre. La navigation mobile est
 adaptée aux cinq destinations plus au lien X déjà livré par une autre tâche.
+
+La hauteur du header est mesurée pour éviter de masquer les sommaires fixes.
+Le menu de Mandats conserve ses six liens et ses cibles tactiles ; le logo et
+les espacements sont réduits pendant une partie sur téléphone. Les tests de
+thème partagé incluent désormais Analyses.

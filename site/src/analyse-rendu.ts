@@ -633,7 +633,7 @@ function sourceHistorique(source: SourceAnalyse): Source {
 
 function lienSourceDossier(source: SourceAnalyse, indexSources?: IndexSources): string {
   const historique = sourceHistorique(source);
-  return `${lienPrimaire(historique)}${lienRegistre(historique, indexSources)}`;
+  return `<a href="${echapper(source.url)}" target="_blank" rel="noopener">${echapper(source.titre)}</a>${lienRegistre(historique, indexSources)}`;
 }
 
 function dateFrancaise(dateIso: string): string {

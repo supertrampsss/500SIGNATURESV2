@@ -94,7 +94,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-longue__chapo { max-width: 65ch; font-size: 1.05rem; line-height: 1.7; }
 .analyse-rendu--long h2 { font: 500 clamp(1.6rem, 2.6vw, 2.2rem)/1.18 var(--serif); letter-spacing: -.025em; margin-bottom: 1.2rem; }
 .analyse-rendu--long h3 { font-size: 1rem; }
-.analyse-rendu--long > .analyse-longue__sommaire { grid-column: 1; grid-row: 2 / span 2; position: sticky; top: calc(var(--haut-entete, 5rem) + 1.5rem); align-self: start; padding: 0 0 0 1rem; border: 0; border-left: 1px solid var(--trait); background: transparent; }
+.analyse-rendu--long > .analyse-longue__sommaire { grid-column: 1; grid-row: 2 / span 2; position: sticky; top: calc(var(--decalage-entete, 90px) + 1.5rem); align-self: start; padding: 0 0 0 1rem; border: 0; border-left: 1px solid var(--trait); background: transparent; }
 .analyse-longue__sommaire h2 { font: 700 .65rem/1.4 "Public Sans", sans-serif; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
 .analyse-longue__sommaire ol { display: grid; gap: .6rem; padding: 0; list-style: none; }
 .analyse-longue__sommaire a { display: block; color: var(--encre-douce); font-size: .72rem; line-height: 1.5; text-decoration: none; padding: .4rem 0; }
@@ -159,7 +159,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-rendu > section[class*="dossier-preuve"] { border: 0; border-top: 1px solid var(--trait); border-radius: 0; padding: 2rem 0 0; background: transparent; }
 .analyse-rendu > .dossier-preuve__verdict { padding: 1.5rem; border-left: 0 !important; border-top: 3px solid var(--accent); }
 .analyse-rendu > .dossier-preuve__sources { border-top: 3px solid var(--encre); }
-.analyse-rendu [id] { scroll-margin-top: calc(var(--haut-entete, 5rem) + 1.5rem); }
+.analyse-rendu [id] { scroll-margin-top: calc(var(--decalage-entete, 90px) + 1.5rem); }
 .analyses-index a:focus-visible, .analyses-index summary:focus-visible, .analyse-rendu summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 @media (min-width: 60rem) {
   .analyses-index .analyses-filtres { grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(0, 1fr)); }
