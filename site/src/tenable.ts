@@ -1,4 +1,4 @@
-import { courbesEurope } from "./insights-europe.ts";
+import { courbesEurope, PAYS_VISIBLES } from "./insights-europe.ts";
 /**
  * « Est-ce tenable ? » — le chapitre qui répond à sa propre question.
  *
@@ -45,7 +45,7 @@ const REFERENCE = "2017";
 
 /** Les voisins de la comparaison : même mesure, même millésime, et l'ordre ne
  *  bouge pas — un tri par valeur ferait un classement. */
-const VOISINS = ["FR", "IT", "ES", "DE", "EA20"];
+const VOISINS = PAYS_VISIBLES;
 
 const SOUS_SECTEURS: [string, string][] = [
   ["insee_dette_etat_montant", "L'État"],

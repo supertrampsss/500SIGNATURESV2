@@ -9,6 +9,7 @@ import './styles/salaires.css';
 import './styles/editorial-identity.css';
 import './styles/data-studio.css';
 import './styles/shared-design.css';
+import './styles/revue-civique.css';
 
 const contenu = document.getElementById('contenu');
 if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();

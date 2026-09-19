@@ -124,3 +124,17 @@ test("les anciens permaliens du simulateur convergent vers la seule interface pu
   assert.equal(adresseSimulateurCanonique("/simulateur", "?contrat=sans-impot"), "/mandats/");
   assert.equal(adresseSimulateurCanonique("/simulateur", "?version=3"), "/mandats/");
 });
+
+
+test("le logo du gabarit Salaires retourne vers l'accueil public", () => {
+  const html = readFileSync(new URL("../salaires/index.html", import.meta.url), "utf8");
+  assert.match(html, /<a class="entete__marque" href="\/" aria-label="500signatures, accueil">/);
+});
+
+
+test("l'entree Salaires autonome charge la direction approuvee apres les styles legacy", () => {
+  const html = readFileSync(new URL("../salaires/index.html", import.meta.url), "utf8");
+  assert.match(html, /src="\/src\/salaires-page\.ts"/);
+  const entry = readFileSync(new URL("./salaires-page.ts", import.meta.url), "utf8");
+  assert.ok(entry.indexOf("import './styles/revue-civique.css';") > entry.indexOf("import './styles/shared-design.css';"));
+});
