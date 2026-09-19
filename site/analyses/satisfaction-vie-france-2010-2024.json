@@ -210,57 +210,50 @@
     "sections": [
       {
         "id": "indicateur",
-        "titre": "Ce que mesure la note",
+        "titre": "Une note subjective de 0 à 10",
         "paragraphes": [
-          "La question demande aux personnes de 16 ans ou plus de noter la vie qu'elles mènent actuellement sur une échelle de 0 à 10. Il s'agit d'une évaluation subjective, recueillie dans l'enquête SRCV.",
-          "Cette note complète les indicateurs de revenus, de santé, de logement et d'emploi. Elle ne les remplace pas et ne forme pas un indice qui additionnerait toutes les dimensions."
+          "Les personnes de 16 ans ou plus notent la vie qu’elles mènent actuellement sur une échelle de 0 à 10 dans l’enquête SRCV.",
+          "Cette note complète les indicateurs de revenus, de santé, de logement et d’emploi. Elle ne les remplace pas."
         ]
       },
       {
         "id": "evolution",
-        "titre": "Trois repères ne montrent pas une baisse continue",
+        "titre": "Un creux en 2021, puis un redressement",
         "paragraphes": [
           "La note moyenne vaut 7,3 en 2010, descend à 6,8 en 2021 puis remonte à 7,2 en 2024. Le niveau de 2024 est proche de celui de 2010.",
-          "Ces repères permettent de voir un creux en 2021 et un redressement ensuite. Ils ne doivent pas être reliés par une courbe qui inventerait les valeurs absentes."
-        ],
-        "visualisationIds": [
-          "table-satisfaction"
+          "Ces trois repères montrent un creux en 2021 et un redressement ensuite. Ils ne permettent pas d’inventer les années intermédiaires."
         ]
       },
       {
         "id": "inegalites",
         "titre": "Une moyenne nationale masque des écarts",
         "paragraphes": [
-          "En 2023, la note moyenne atteint 7,8 parmi les 20 % les plus aisés et 6,6 parmi les 20 % les moins aisés. La moyenne d'ensemble est de 7,2.",
-          "Le niveau de vie n'explique pas à lui seul chaque réponse, mais cet écart montre pourquoi une moyenne nationale ne résume pas l'expérience de toutes les personnes."
-        ],
-        "visualisationIds": [
-          "ecart-niveau-vie"
+          "En 2023, la note moyenne atteint 7,8 parmi les 20 % les plus aisés et 6,6 parmi les 20 % les moins aisés. La moyenne d’ensemble est de 7,2.",
+          "Le niveau de vie n’explique pas chaque réponse, mais cet écart montre que l’expérience de la vie diffère selon les groupes."
         ]
       },
       {
         "id": "ruptures",
-        "titre": "Les changements de l’enquête imposent de la prudence",
+        "titre": "L’enquête a changé en cours de période",
         "paragraphes": [
-          "L'enquête SRCV a été refondue en 2020. Une nouvelle pondération du module de bien-être a ensuite créé une légère rupture en 2022.",
-          "Une différence d'un dixième peut donc refléter une variation réelle, un changement de méthode ou les deux. Les notes doivent être lues avec leur champ et leur millésime."
+          "L’enquête SRCV a été refondue en 2020. Une nouvelle pondération du module de bien-être a ensuite créé une légère rupture en 2022.",
+          "Une différence d’un dixième peut donc refléter une variation réelle, un changement de méthode ou les deux."
         ]
       },
       {
         "id": "ce-que-la-moyenne-ne-dit-pas",
-        "titre": "Le ressenti n’est pas une mesure complète du bien-être",
+        "titre": "Le bien-être ne se résume pas à une note",
         "paragraphes": [
-          "La satisfaction déclarée peut évoluer avec la santé, les relations, les ressources, l'emploi, les événements collectifs ou les attentes personnelles.",
-          "Pour parler de qualité de vie, il faut donc croiser cette note avec d'autres indicateurs et observer les écarts entre groupes.",
-          "L’OCDE recommande de regarder le bien-être avec un tableau de bord d’indicateurs : revenus, emploi, santé, relations sociales, sécurité et satisfaction déclarée. Elle rappelle que les moyennes peuvent cacher une dégradation pour certains groupes. La note française est donc utile, mais elle doit rester une pièce du dossier, pas son résumé complet."
+          "La satisfaction déclarée évolue avec la santé, les relations, les ressources, l’emploi, les événements collectifs et les attentes personnelles.",
+          "L’OCDE croise cette note avec les revenus, l’emploi, la santé, les relations sociales et la sécurité. Les moyennes peuvent masquer une dégradation pour certains groupes."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Un ressenti qui se redresse après 2021",
         "paragraphes": [
-          "Les données disponibles ne montrent pas une baisse continue de la satisfaction dans la vie : la note passe de 7,3 en 2010 à 6,8 en 2021 puis 7,2 en 2024.",
-          "La bonne lecture est celle d'un indicateur subjectif, sensible aux contextes et inégalement réparti. Elle est plus précise que le slogan d'une « qualité de vie » qui baisserait sans interruption."
+          "Les données disponibles ne montrent pas une baisse continue de la satisfaction : la note passe de 7,3 en 2010 à 6,8 en 2021 puis 7,2 en 2024.",
+          "Cette note reste un indicateur subjectif, sensible aux contextes et inégalement réparti."
         ]
       }
     ],

@@ -256,59 +256,49 @@
         "id": "le-reseau",
         "titre": "Sur un réseau européen, les électrons ne portent pas d’étiquette",
         "paragraphes": [
-          "Les réseaux français et européens sont interconnectés. À chaque instant, l'électricité circule selon la production disponible, la demande, les prix de gros et la capacité des lignes.",
-          "Un flux exporté n'est donc pas un lot de kilowattheures nucléaires identifié qui reviendrait ensuite dans une facture française. La formule « vendre puis racheter les mêmes électrons » est une image, pas une opération physique observée."
+          "Les réseaux français et européens sont interconnectés. À chaque instant, l’électricité circule selon la production disponible, la demande, les prix de gros et la capacité des lignes.",
+          "Un flux exporté n’est donc pas un lot de kilowattheures nucléaires identifié qui reviendrait ensuite dans une facture française. La formule « vendre puis racheter les mêmes électrons » est une image, pas une opération physique observée."
         ]
       },
       {
         "id": "echanges",
         "titre": "Pourquoi exporter quand la production française est abondante",
         "paragraphes": [
-          "Quand la production disponible dépasse la demande intérieure, les échanges donnent un débouché à cette énergie et contribuent à l'équilibre du système européen. Le solde net français atteint 89 TWh en 2024 puis 92,3 TWh en 2025.",
-          "RTE valorise en 2025 le mégawattheure exporté à 59 euros au prix français, proche du prix spot français de 61 euros. La valorisation aux prix des destinations atteint 101,5 euros. Ces valeurs correspondent à des conventions différentes autour des mêmes échanges ; elles ne prouvent pas une vente à bas prix suivie d'un rachat.",
-          "La CRE décrit la France comme un système intégré au marché européen : les flux répondent aux écarts de production, de consommation et de prix entre pays. Une exportation peut donc être utile au système à un moment donné, sans que cela signifie que chaque ménage français bénéficie directement du prix observé à la frontière."
-        ],
-        "visualisationIds": [
-          "solde-exportateur-figure"
+          "Quand la production disponible dépasse la demande intérieure, les échanges donnent un débouché à cette énergie et contribuent à l’équilibre du système européen. Le solde net français atteint 89 TWh en 2024 puis 92,3 TWh en 2025.",
+          "RTE valorise en 2025 le mégawattheure exporté à 59 euros au prix français, proche du prix spot français de 61 euros. La valorisation aux prix des destinations atteint 101,5 euros. Ces valeurs correspondent à des conventions différentes autour des mêmes échanges.",
+          "La France est intégrée au marché européen : les flux répondent aux écarts de production, de consommation et de prix entre pays. Une exportation peut donc être utile au système sans que chaque ménage français bénéficie directement du prix observé à la frontière."
         ]
       },
       {
         "id": "prix-de-gros",
         "titre": "Le marché de gros n’est pas le tarif payé à domicile",
         "paragraphes": [
-          "Le prix spot est un prix de marché pour une livraison à court terme. Un fournisseur peut aussi acheter à l'avance, diversifier ses contrats et couvrir ses risques. La facture d'un ménage ne recopie donc pas le prix d'une heure donnée.",
-          "Les prix de gros servent de référence aux échanges entre zones. Ils ne décrivent pas le contrat de détail, sa durée ni la totalité des coûts supportés par le client.",
-          "Les débats publics mélangent parfois un prix affiché pour une heure ou une zone avec une moyenne annuelle. Le Monde rappelle qu’un chiffre spectaculaire n’a de sens qu’avec son moment, son lieu et le mécanisme concerné. Cela ne remet pas en cause les moyennes de RTE ; cela oblige à ne pas les confondre avec un épisode ponctuel de marché ou d’équilibrage."
-        ],
-        "visualisationIds": [
-          "prix-gros-detail"
+          "Le prix spot est un prix de marché pour une livraison à court terme. Un fournisseur peut aussi acheter à l’avance, diversifier ses contrats et couvrir ses risques. La facture d’un ménage ne recopie donc pas le prix d’une heure donnée.",
+          "Un prix spectaculaire n’a de sens qu’avec son moment, son lieu et le mécanisme concerné. Une moyenne annuelle ne doit pas être confondue avec un épisode ponctuel de marché ou d’équilibrage."
         ]
       },
       {
         "id": "facture",
         "titre": "Une facture additionne plusieurs coûts",
         "paragraphes": [
-          "Le prix de détail comprend le coût d'approvisionnement, l'utilisation des réseaux, la commercialisation, les taxes et la TVA. La part exacte varie selon l'offre, la puissance souscrite et la période.",
-          "La CRE a proposé un tarif réglementé résidentiel moyen de 239 euros par mégawattheure TTC au 1er février 2025, contre 281 euros un an plus tôt. Ce repère montre comment le tarif de détail évolue avec son propre calendrier."
+          "Le prix de détail comprend le coût d’approvisionnement, l’utilisation des réseaux, la commercialisation, les taxes et la TVA. La part exacte varie selon l’offre, la puissance souscrite et la période.",
+          "La CRE a proposé un tarif réglementé résidentiel moyen de 239 euros par mégawattheure TTC au 1er février 2025, contre 281 euros un an plus tôt. Ce repère suit son propre calendrier."
         ]
       },
       {
         "id": "arenh",
         "titre": "Le prix de 42 euros ne désignait pas une vente aux voisins",
         "paragraphes": [
-          "Les 42 euros par mégawattheure souvent cités correspondent à l'accès régulé à l'électricité nucléaire historique, l'ARENH. Ce dispositif permettait à des fournisseurs d'acheter une part régulée de production pour leurs clients en France.",
-          "L'ARENH n'était pas un tarif accordé à des États étrangers et il a pris fin le 31 décembre 2025. Le confondre avec la valeur des exportations mélange deux mécanismes différents."
-        ],
-        "visualisationIds": [
-          "arenh-repere"
+          "Les 42 euros par mégawattheure souvent cités correspondent à l’accès régulé à l’électricité nucléaire historique, l’ARENH. Ce dispositif permettait à des fournisseurs d’acheter une part régulée de production pour leurs clients en France.",
+          "L’ARENH n’était pas un tarif accordé à des États étrangers et il a pris fin le 31 décembre 2025. Le confondre avec la valeur des exportations mélange deux mécanismes différents."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Comparer ce qui compose réellement la facture",
         "paragraphes": [
-          "La France peut être exportatrice nette tout en présentant des factures élevées. Les exportations concernent des échanges de gros ; la facture dépend d'un approvisionnement dans le temps, du réseau, de la commercialisation et des prélèvements.",
-          "La comparaison devient utile quand ces étages restent séparés. Aucun chiffre unique ne permet de passer directement du solde exportateur au montant payé par un ménage."
+          "La France peut être exportatrice nette tout en présentant des factures élevées. Les exportations concernent des échanges de gros ; la facture dépend de l’approvisionnement dans le temps, du réseau, de la commercialisation et des prélèvements.",
+          "Aucun chiffre unique ne permet de passer directement du solde exportateur au montant payé par un ménage."
         ]
       }
     ],

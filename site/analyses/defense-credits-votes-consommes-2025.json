@@ -155,50 +155,42 @@
     "sections": [
       {
         "id": "budget-vote",
-        "titre": "Le budget initial est une autorisation",
+        "titre": "Ce qui est voté",
         "paragraphes": [
-          "Le Parlement vote des crédits pour permettre aux armées et aux services de la mission Défense d'engager et de payer des dépenses. Les 59,9 milliards d'euros sont le point de départ de l'exercice 2025.",
-          "Ce chiffre ne décrit donc pas encore les factures payées. Il fixe une enveloppe et un cadre juridique de dépenses."
-        ],
-        "visualisationIds": [
-          "budget-reperes"
+          "En 2025, le Parlement a ouvert 59,9 milliards d’euros pour la mission Défense. Ces crédits autorisent les armées et les services concernés à engager et payer leurs dépenses.",
+          "Le montant voté au début de l’année est une enveloppe de départ. Il ne correspond pas encore aux factures effectivement payées."
         ]
       },
       {
         "id": "execution",
-        "titre": "Les dépenses exécutées racontent ce qui a été consommé",
+        "titre": "Ce qui a été exécuté",
         "paragraphes": [
-          "Les comptes d'exécution indiquent 62,1 milliards d'euros de crédits consommés en 2025. Par rapport au budget initial, l'écart est d'environ 2,2 milliards, soit près de 3,6 %.",
-          "Comparer ces deux montants est utile, mais le résultat ne suffit pas à dire si le budget finalement autorisé en cours d'année a été dépassé."
-        ],
-        "visualisationIds": [
-          "budget-execution"
+          "Les comptes d’exécution indiquent 62,1 milliards d’euros de crédits consommés en 2025. L’écart avec les 59,9 milliards initiaux est d’environ 2,2 milliards, soit près de 3,6 %.",
+          "Les crédits disponibles ont pu évoluer pendant l’année. Le rapprochement entre l’autorisation initiale et la consommation ne suffit donc pas à lui seul à décrire un dépassement."
         ]
       },
       {
         "id": "mouvements",
-        "titre": "Un budget peut évoluer pendant l’année",
+        "titre": "L’écart se construit pendant l’année",
         "paragraphes": [
-          "En cours d'exercice, des crédits peuvent être ouverts, transférés entre missions, annulés ou reportés. Ces opérations modifient les crédits disponibles sans changer le montant voté au départ.",
-          "Pour expliquer l'écart entre 59,9 et 62,1 milliards, il faut donc reconstituer les mouvements de gestion et regarder les crédits disponibles. Le seul rapprochement entre budget initial et exécution ne permet pas de choisir une explication.",
-          "La lecture de l’exécution doit aussi tenir compte des mouvements en gestion et des dépenses reportées. Le montant consommé décrit ce qui a été comptabilisé pendant l’exercice ; il ne résume ni toute la programmation militaire ni les engagements qui seront payés plus tard."
+          "Des crédits peuvent être ouverts, transférés entre missions, annulés ou reportés. Ces mouvements modifient les sommes disponibles sans changer le montant voté au départ.",
+          "La Cour des comptes relève aussi des reports de charges et des restes à payer. Une dépense comptabilisée en 2025 peut donc correspondre à un engagement plus ancien, tandis qu’un équipement payé plus tard peut déjà être commandé."
         ]
       },
       {
         "id": "ce-que-lecart-ne-dit-pas",
-        "titre": "Plus dépensé ne signifie pas automatiquement mieux dépensé",
+        "titre": "Un montant ne décrit pas une armée",
         "paragraphes": [
-          "La consommation des crédits mesure une dépense réalisée, pas directement une capacité militaire, une livraison d'équipement ou un résultat opérationnel.",
-          "Pour aller plus loin, il faut lire les objectifs et indicateurs des programmes, les équipements livrés, les délais, les restes à payer et les éventuels reports.",
-          "La Cour des comptes rappelle qu’un crédit voté peut être affecté par des reports de charges, des restes à payer et des décalages de calendrier. Une exécution proche de 100 % ne prouve donc pas, à elle seule, que tous les équipements ont été livrés ou que la dépense est durablement soutenable."
+          "La consommation des crédits mesure une dépense réalisée. Elle ne donne pas directement le nombre d’équipements livrés, leur disponibilité ou le résultat opérationnel obtenu.",
+          "Ces éléments apparaissent dans les objectifs des programmes, les délais industriels, les restes à payer et les indicateurs de performance."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Suivre le budget jusqu’à son exécution",
         "paragraphes": [
-          "Les deux montants publiés sont cohérents dès lors qu'on les rattache à leur définition : 59,9 milliards ont été inscrits au départ, 62,1 milliards ont été consommés sur l'exercice.",
-          "Un dossier complet doit ensuite suivre les mouvements de crédits et les résultats obtenus. C'est à cette condition que l'on passe d'un écart comptable à une analyse de gestion."
+          "59,9 milliards d’euros ont été inscrits au départ et 62,1 milliards ont été consommés sur l’exercice. Les deux chiffres décrivent deux moments différents de la vie du budget.",
+          "L’écart devient compréhensible lorsqu’on regarde les mouvements de crédits, les engagements et les résultats obtenus."
         ]
       }
     ],
