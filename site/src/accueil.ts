@@ -566,6 +566,39 @@ export function renduPortes(): string {
   </section>`;
 }
 
+/** Un aperçu de données déjà publiées : chaque ligne vient d'une observation
+ * portée par l'analyse mise en avant, avec son unité, son exercice et sa source.
+ * L'accueil ne fabrique donc ni total, ni année, ni valeur de remplacement. */
+export function renduApercuComptes(
+  analyse: Analyse | null,
+  catalogue: readonly Indicateur[],
+): string {
+  if (!analyse) return "";
+  const lignes = analyse.chiffres
+    .filter((chiffre) => chiffre.observe && catalogue.some((indicateur) => indicateur.id === chiffre.observe!.indicateur))
+    .slice(0, 3)
+    .map((chiffre) => {
+      const observation = chiffre.observe!;
+      const indicateur = catalogue.find((item) => item.id === observation.indicateur)!;
+      return `<li><span>${echapper(chiffre.lecture)}</span><strong>${formater(observation.valeur, indicateur.unite, false, indicateur.id)}</strong><small>Exercice ${echapper(observation.periode)}</small></li>`;
+    })
+    .join("");
+  if (!lignes) return "";
+  const source = analyse.sources[0];
+  return `<section class="accueil__apercu" aria-labelledby="accueil-apercu-titre">
+    <div><p class="accueil__sur-titre">UN APERÇU DES DONNÉES PUBLIÉES</p><h2 id="accueil-apercu-titre">Commencer par un chiffre vérifiable.</h2><p>Chaque valeur garde son unité, son millésime et la source du dossier mis en avant.</p></div>
+    <ul>${lignes}</ul>
+    ${source ? `<p class="accueil__source-apercu"><a href="${echapper(source.url)}" target="_blank" rel="noopener">Source : ${echapper(source.titre)}</a></p>` : ""}
+  </section>`;
+}
+
+export function renduQuestionsAccueil(): string {
+  return `<section class="accueil__questions" aria-labelledby="accueil-questions-titre">
+    <div><p class="accueil__sur-titre">POUR LIRE SANS PRÉREQUIS</p><h2 id="accueil-questions-titre">Des chiffres, et du contexte.</h2></div>
+    <div><details><summary>D'où viennent les données ?</summary><p>Chaque dossier relie ses indicateurs à une publication et précise l'exercice observé. <a href="${CHEMIN_SOURCES}">Voir les sources et la méthode.</a></p></details><details><summary>Mandats prédit-il l'avenir ?</summary><p>Non. Mandats est une simulation : ses conséquences sont des hypothèses de jeu, séparées des comptes observés.</p></details><details><summary>Une lecture est-elle gratuite ?</summary><p>Oui. La lecture, les données publiées et le jeu restent accessibles sans abonnement.</p></details></div>
+  </section>`;
+}
+
 /**
  * L'accueil entier : une promesse, trois portes, puis les preuves et contenus
  * de lecture. Les composants de détail restent ceux du premier lot : aucun
@@ -575,15 +608,19 @@ export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
   return `<div class="accueil">
     <section class="accueil__ouverture">
-      <h2 class="accueil__message">${echapper(MESSAGE_PRINCIPAL)}</h2>
+      <p class="accueil__sur-titre">COMPRENDRE LA FRANCE, À TOUTES LES ÉCHELLES</p>
+      <h1 class="accueil__message">L’argent public,<br><em>en clair.</em></h1>
+      <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
       <p class="accueil__cadrage">${MENTION_MILLIONS}.</p>
       <p class="accueil__recherche"><a class="accueil__appel" href="${ANCRE_RECHERCHE}">Chercher un territoire</a></p>
     </section>
+    ${renduApercuComptes(enAvant, donnees.catalogue)}
     ${renduPortes()}
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
     ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
     ${renduVerifiez()}
+    ${renduQuestionsAccueil()}
   </div>`;
 }
