@@ -529,7 +529,7 @@ const PAGE_ANALYSES = {
 const PAGE_BILAN = {
   titre: "Budget et dette publique en France | 500 signatures",
   description:
-    "Explorez les recettes, les dépenses et la dette publique en France. Graphiques historiques, comparaisons européennes et sources des chiffres.",
+    "Recettes, dépenses et dette publiques en France : séries historiques, comparaison européenne et sources vérifiables.",
 };
 
 const PAGE_SOURCES = {

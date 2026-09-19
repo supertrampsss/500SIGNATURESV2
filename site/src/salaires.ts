@@ -166,7 +166,7 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié", series: T
   return `<section class="salaires" id="salaires-contenu">
     <header class="salaires__entree"><p class="salaires__eyebrow">Salaires & revenus</p>
     <h1>Votre revenu,<br> décomposé.</h1>
-    <p class="salaires__intro">Explorez le poids des prélèvements avec une estimation du revenu net et du coût employeur.</p></header>
+    <p class="salaires__intro">Saisissez votre revenu net pour estimer les prélèvements et le coût total du travail.</p></header>
     <div class="salaires__atelier">
     <form class="salaires__form" id="salaires-form">
       <div class="salaires__statuts" role="group" aria-label="Votre statut">${STATUTS.map(option => `<button type="button" class="salaires__statut" data-statut="${option}" aria-pressed="${option === statut}">${libelleStatut(option)}</button>`).join("")}</div>
