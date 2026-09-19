@@ -40,12 +40,13 @@ test("Salaires reste un lien natif vers sa page pré-rendue", () => {
   assert.doesNotMatch(html, /href="\/salaires\/"[^>]*data-vue/);
 });
 
-test("le menu partagé contient quatre destinations, sans l'ancien simulateur", () => {
+test("le menu partagé contient les destinations et le lien social, sans l'ancien simulateur", () => {
   for (const disponible of [true, false]) {
     const html = renduNavigation("/bilan", disponible);
-    assert.equal((html.match(/<a /g) ?? []).length, 4);
+    assert.equal((html.match(/<a /g) ?? []).length, 5);
     assert.doesNotMatch(html, /href="\/simulateur"/);
     assert.match(html, /href="\/mandats\/"/);
+    assert.match(html, /href="https:\/\/x\.com\/500Signatures"[^>]*>X \/ Twitter<\/a>/);
   }
 });
 
