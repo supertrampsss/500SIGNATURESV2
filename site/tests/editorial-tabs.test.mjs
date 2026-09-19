@@ -65,11 +65,11 @@ test('Villes: search and financial detail work without a map',async({page},info)
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
 
-test('Salaires: dark mode, reduced motion and all four navigation links remain usable',async({page},info)=>{
+test('Salaires: dark mode, reduced motion and all five navigation links remain usable',async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await activate(page.getByRole('button',{name:'Activer le mode sombre'}),info);await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await noOverflow(page);
  const boxes=await page.locator('#navigation-principale a').evaluateAll(links=>links.map(a=>{const b=a.getBoundingClientRect();return {height:b.height,left:b.left,right:b.right,visible:!!a.getClientRects().length};}));
- expect(boxes).toHaveLength(4);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
+ expect(boxes).toHaveLength(5);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
 });
 

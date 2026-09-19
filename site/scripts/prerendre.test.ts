@@ -619,7 +619,7 @@ test("7 ter. l'index et chaque dossier publié ont un h1 propre", async () => {
   const analyses = await analysesPubliees();
   assert.ok(analyses.length > 0, "aucun dossier publié");
   const index = renduIndex(analyses, catalogueEnEuros(analyses));
-  assert.match(index, /<h1 id="analyses-titre">Dossiers de vérification<\/h1>/);
+  assert.match(index, /<h1 id="analyses-titre">Les chiffres<br>derrière le débat.<\/h1>/);
   for (const analyse of analyses) {
     const html = rendu(analyse, catalogueEnEuros([analyse]));
     assert.ok(html.includes(`<h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>`));

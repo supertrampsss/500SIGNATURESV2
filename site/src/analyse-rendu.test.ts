@@ -244,7 +244,7 @@ test("un dossier long déroule la réponse, le sommaire, les figures et la méth
   assert.match(html, /<time datetime="2026-08-30">30 août 2026<\/time>/);
   assert.match(html, /<h1[^>]*>Comment ces deux grandeurs ont-elles évolué \?<\/h1>/);
   assert.match(html, /Deux publications officielles répondent à deux questions distinctes\./);
-  assert.match(html, /Réponse en 30 secondes/);
+  assert.match(html, /Ce que disent les chiffres/);
   assert.match(html, /<nav class="analyse-longue__sommaire" aria-label="Sommaire">/);
   assert.match(html, /href="#constat"/);
   assert.match(html, /<figure[^>]*aria-labelledby="figure-comparaison-titre"[^>]*aria-describedby="figure-comparaison-resume"/);
@@ -314,7 +314,7 @@ test("chaque preuve garde sa définition et cite sa propre source à proximité"
   );
 });
 
-test("les observations complètes restent regroupées par unité et sourcées ligne à ligne", () => {
+test("les observations complètes restent regroupées par unité, références réunies en fin de dossier", () => {
   const html = rendu(analyseLongue(), CATALOGUE);
   const donnees = html.slice(html.indexOf('id="donnees-completes"'), html.indexOf('id="sources"'));
 
@@ -322,14 +322,15 @@ test("les observations complètes restent regroupées par unité et sourcées li
   assert.match(donnees, /data-unit="score_0_10"/);
   assert.match(donnees, /Prix TTC des ménages dans la bande de consommation DC\./);
   assert.match(donnees, /Note moyenne déclarée par les personnes âgées de 16 ans ou plus\./);
-  assert.match(donnees, /Eurostat, prix de l&#39;électricité/);
-  assert.match(donnees, /Insee, satisfaction dans la vie/);
+  assert.doesNotMatch(donnees, /href="https?:/);
+  assert.match(html.slice(html.indexOf('id="sources"')), /Eurostat, prix de l&#39;électricité/);
+  assert.match(html.slice(html.indexOf('id="sources"')), /Insee, satisfaction dans la vie/);
 });
 
 test("un dossier historique conserve le renderer court", () => {
   const html = rendu(analyseMinimale(), CATALOGUE);
   assert.match(html, /class="analyse-rendu" data-slug=/);
-  assert.doesNotMatch(html, /analyse-rendu--long|analyse-longue__/);
+  assert.doesNotMatch(html, /analyse-rendu--long/);
   assert.match(html, /dossier-preuve__verdict/);
   assert.match(html, /analyse-rendu__express/);
 });
@@ -1157,7 +1158,7 @@ test("l'index ne force aucune unité globale et garde celle de chaque chiffre", 
 test("l'index et chaque dossier portent leur propre titre de niveau 1", () => {
   const index = renduIndex([DEFENSE], CATALOGUE);
   const dossier = rendu(DEFENSE, CATALOGUE);
-  assert.match(index, /<h1 id="analyses-titre">Dossiers de vérification<\/h1>/);
+  assert.match(index, /<h1 id="analyses-titre">Les chiffres<br>derrière le débat.<\/h1>/);
   assert.match(dossier, new RegExp(`<h1 class="analyse-rendu__titre">${DEFENSE.titre}</h1>`));
   assert.doesNotMatch(dossier, /<h2 class="analyse-rendu__titre">/);
   assert.match(dossier, /<h2>Confronter l'affirmation aux comptes<\/h2>/);
@@ -1165,7 +1166,7 @@ test("l'index et chaque dossier portent leur propre titre de niveau 1", () => {
 });
 
 test("l'index donne accès aux réponses pré-rendues", () => {
-  assert.match(renduIndex([DEFENSE], CATALOGUE), /href="\/questions\/">Poser une question déjà documentée<\/a>/);
+  assert.match(renduIndex([DEFENSE], CATALOGUE), /href="\/questions\/">Consulter les questions fréquentes ↗<\/a>/);
 });
 
 test("chaque libellé de filtre est groupé avec son contrôle", () => {

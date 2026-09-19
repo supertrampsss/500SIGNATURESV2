@@ -27,6 +27,7 @@ import {
   type SourceAnalyse,
   type VisualisationAnalyse,
 } from "./analyse-contrat.ts";
+import { graphiqueAnalyse } from "./analyse-graphiques.ts";
 import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
 import { formater, formaterValeurAnalyse, libelleUniteAnalyse } from "./echelle.ts";
@@ -428,10 +429,6 @@ function express(
     <p class="dossier-preuve__intro">Affirmation contrôlée</p>
     <blockquote class="analyse-rendu__affirmation">${echapper(affirmation.texte)}</blockquote>
     ${attribution}
-    <p class="analyse-rendu__source">${lienPrimaire(affirmation.source)}${lienRegistre(
-      affirmation.source,
-      indexSources,
-    )}</p>
     <ul class="analyse-rendu__chiffres-cites">${chiffresCites}</ul>
   </section>`;
 }
@@ -591,11 +588,11 @@ function limites(analyse: Analyse): string {
         .map(
           (effet) => `<li class="analyse-rendu__effet-indirect">${echapper(
             effet.texte,
-          )} — ${echapper(effet.auteur)} (${lienPrimaire(effet.source)})</li>`,
+          )} — ${echapper(effet.auteur)}</li>`,
         )
         .join("")}</ul>`
     : "";
-  const contenu = hypotheses || effets || "<p>Aucune réserve spécifique n'est déclarée pour ce dossier.</p>";
+  const contenu = hypotheses + effets || "<p>Aucune réserve spécifique n'est déclarée pour ce dossier.</p>";
   return `<section class="dossier-preuve__limites">
     <h2>Limites et réserves</h2>
     ${contenu}
@@ -605,7 +602,7 @@ function limites(analyse: Analyse): string {
 /** Les citations primaires restent accessibles indépendamment du chemin
  * synthétique : elles permettent de retrouver le document d'origine. */
 function sources(analyse: Analyse, indexSources?: IndexSources): string {
-  const uniques = analyse.sources.filter((source, index, liste) =>
+  const uniques = [...analyse.sources, analyse.affirmation.source, ...analyse.effets_indirects.map(e => e.source)].filter((source, index, liste) =>
     liste.findIndex((candidate) => candidate.url.trim() === source.url.trim()) === index
   );
   const fichiers = uniques.length
@@ -613,7 +610,7 @@ function sources(analyse: Analyse, indexSources?: IndexSources): string {
         .map((s) => `<li>${lienPrimaire(s)}${lienRegistre(s, indexSources)}</li>`)
         .join("")}</ul>`
     : "<p>Aucune source primaire n'est déclarée.</p>";
-  return `<section class="dossier-preuve__sources">
+  return `<section class="dossier-preuve__sources" id="sources">
     <h2>Sources et reproduction</h2>
     <p class="analyse-rendu__fichier-publie">Fichier publié</p>
     ${fichiers}
@@ -702,7 +699,6 @@ function renduPreuveLongue(
   adresse: string,
   indexSources?: IndexSources,
 ): string {
-  const source = sourceDePreuve(contrat, preuve.id);
   return `<article class="analyse-longue__preuve" id="preuve-${echapper(
     preuve.id,
   )}" data-preuve-id="${echapper(preuve.id)}">
@@ -713,10 +709,7 @@ function renduPreuveLongue(
     <p class="analyse-longue__periode">Période : ${echapper(preuve.period)}</p>
     <p class="analyse-longue__definition">${echapper(preuve.definition)}</p>
     ${signauxQualite(preuve.qualityFlags)}
-    <p class="analyse-longue__source">Source : ${lienSourceDossier(
-      source,
-      indexSources,
-    )}${commandeCiterPreuve(preuve, contrat, adresse)}</p>
+    ${commandeCiterPreuve(preuve, contrat, adresse)}
   </article>`;
 }
 
@@ -792,7 +785,6 @@ function lignesFigureSeries(
     .flatMap((id) => {
       const serie = contrat.serieParId.get(id);
       if (!serie) return [];
-      const source = contrat.sourceParId.get(serie.sourceId)!;
       return serie.observations.map(
         (observation) => `<tr>
           <th scope="row">${echapper(serie.libelle)}</th>
@@ -800,7 +792,7 @@ function lignesFigureSeries(
           <td>${echapper(formaterValeurAnalyse(observation.value, serie.unit))}</td>
           <td>${echapper(libelleUniteAnalyse(serie.unit))}</td>
           <td>${echapper(serie.definition)}</td>
-          <td>${lienSourceDossier(source, indexSources)}</td>
+          
           <td>${texteSignauxQualite(observation.qualityFlags)}</td>
         </tr>`,
       );
@@ -816,14 +808,13 @@ function lignesFigurePreuves(
   return (visualisation.preuveIds ?? [])
     .map((id) => {
       const preuve = contrat.preuveParId.get(id)!;
-      const source = sourceDePreuve(contrat, id);
       return `<tr>
         <th scope="row">${echapper(preuve.libelle)}</th>
         <td>${echapper(preuve.period)}</td>
         <td>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))}</td>
         <td>${echapper(libelleUniteAnalyse(preuve.unit))}</td>
         <td>${echapper(preuve.definition)}</td>
-        <td>${lienSourceDossier(source, indexSources)}</td>
+        
         <td>${texteSignauxQualite(preuve.qualityFlags)}</td>
       </tr>`;
     })
@@ -851,6 +842,8 @@ function renduVisualisationLongue(
       <p id="figure-${identifiant}-resume">${echapper(visualisation.resume)}</p>
     </figcaption>
     ${axesVisualisation(visualisation, contrat)}
+    ${graphiqueAnalyse(visualisation, contrat)}
+    <details class="analyse-longue__table-details"${graphiqueAnalyse(visualisation, contrat) ? "" : " open"}><summary>Voir les valeurs et les définitions</summary>
     <div class="analyse-longue__defilement" tabindex="0" role="region" aria-label="Données de la figure ${echapper(
       visualisation.titre,
     )}">
@@ -862,12 +855,13 @@ function renduVisualisationLongue(
           <th scope="col">Valeur</th>
           <th scope="col">Unité</th>
           <th scope="col">Définition</th>
-          <th scope="col">Source</th>
+          
           <th scope="col">Qualité</th>
         </tr></thead>
         <tbody>${lignes}</tbody>
       </table>
     </div>
+    </details>
   </figure>`;
 }
 
@@ -901,9 +895,7 @@ function renduSectionsLongues(
       const preuves = (section.preuveIds ?? [])
         .map((id) => {
           const preuve = contrat.preuveParId.get(id)!;
-          if (preuvesRendues.has(id)) {
-            return `<li><a href="#preuve-${echapper(id)}">${echapper(preuve.libelle)}</a></li>`;
-          }
+          if (preuvesRendues.has(id)) return "";
           preuvesRendues.add(id);
           return `<li class="analyse-longue__preuve-integree">${renduPreuveLongue(
             preuve,
@@ -988,13 +980,12 @@ function renduMethodeLongue(
 ): string {
   const series = contrat.dossier.series
     .map((serie) => {
-      const source = contrat.sourceParId.get(serie.sourceId)!;
       return `<div>
         <dt>${echapper(serie.libelle)}</dt>
         <dd>
           <p>${echapper(serie.definition)}</p>
           <p>Unité publiée : ${echapper(libelleUniteAnalyse(serie.unit))}.</p>
-          <p>Source : ${lienSourceDossier(source, indexSources)}</p>
+          
         </dd>
       </div>`;
     })
@@ -1002,13 +993,12 @@ function renduMethodeLongue(
   const instantanes = contrat.dossier.preuves
     .filter((preuve) => !preuve.seriesId)
     .map((preuve) => {
-      const source = sourceDePreuve(contrat, preuve.id);
-      return `<div>
+          return `<div>
         <dt>${echapper(preuve.libelle)}</dt>
         <dd>
           <p>${echapper(preuve.definition)}</p>
           <p>Unité publiée : ${echapper(libelleUniteAnalyse(preuve.unit))}.</p>
-          <p>Source : ${lienSourceDossier(source, indexSources)}</p>
+          
         </dd>
       </div>`;
     })
@@ -1016,11 +1006,11 @@ function renduMethodeLongue(
   const millesime = version
     ? `<p class="analyse-longue__version">Version des données utilisées : ${echapper(version)}.</p>`
     : "";
-  return `<section class="analyse-longue__methode" id="methode">
-    <h2>Méthode et périmètre</h2>
+  return `<details class="analyse-longue__methode" id="methode">
+    <summary>Méthode et périmètre</summary>
     ${millesime}
     <dl>${series}${instantanes}</dl>
-  </section>`;
+  </details>`;
 }
 
 function groupesSeriesParUnite(series: readonly SerieAnalyse[]): Map<string, SerieAnalyse[]> {
@@ -1041,14 +1031,13 @@ function tableauSeriesCompletes(
 ): string {
   const lignes = series
     .flatMap((serie) => {
-      const source = contrat.sourceParId.get(serie.sourceId)!;
       return serie.observations.map(
         (observation) => `<tr>
           <th scope="row">${echapper(serie.libelle)}</th>
           <td>${echapper(observation.period)}</td>
           <td>${echapper(formaterValeurAnalyse(observation.value, serie.unit))}</td>
           <td>${echapper(serie.definition)}</td>
-          <td>${lienSourceDossier(source, indexSources)}</td>
+          
           <td>${texteSignauxQualite(observation.qualityFlags)}</td>
         </tr>`,
       );
@@ -1063,7 +1052,7 @@ function tableauSeriesCompletes(
         <caption>Séries publiées en ${echapper(libelleUniteAnalyse(unite))}</caption>
         <thead><tr>
           <th scope="col">Série</th><th scope="col">Période</th><th scope="col">Valeur</th>
-          <th scope="col">Définition</th><th scope="col">Source</th><th scope="col">Qualité</th>
+          <th scope="col">Définition</th><th scope="col">Qualité</th>
         </tr></thead>
         <tbody>${lignes}</tbody>
       </table>
@@ -1087,13 +1076,12 @@ function tableauxInstantanes(
     .map(([unite, preuves]) => {
       const lignes = preuves
         .map((preuve) => {
-          const source = sourceDePreuve(contrat, preuve.id);
-          return `<tr>
+                  return `<tr>
             <th scope="row">${echapper(preuve.libelle)}</th>
             <td>${echapper(preuve.period)}</td>
             <td>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))}</td>
             <td>${echapper(preuve.definition)}</td>
-            <td>${lienSourceDossier(source, indexSources)}</td>
+            
             <td>${texteSignauxQualite(preuve.qualityFlags)}</td>
           </tr>`;
         })
@@ -1107,7 +1095,7 @@ function tableauxInstantanes(
             <caption>Instantanés publiés en ${echapper(libelleUniteAnalyse(unite))}</caption>
             <thead><tr>
               <th scope="col">Preuve</th><th scope="col">Période</th><th scope="col">Valeur</th>
-              <th scope="col">Définition</th><th scope="col">Source</th><th scope="col">Qualité</th>
+              <th scope="col">Définition</th><th scope="col">Qualité</th>
             </tr></thead>
             <tbody>${lignes}</tbody>
           </table>
@@ -1124,11 +1112,11 @@ function renduDonneesCompletes(
   const series = [...groupesSeriesParUnite(contrat.dossier.series).entries()]
     .map(([unite, groupe]) => tableauSeriesCompletes(unite, groupe, contrat, indexSources))
     .join("");
-  return `<section class="analyse-longue__donnees" id="donnees-completes">
-    <h2>Données complètes</h2>
+  return `<details class="analyse-longue__donnees" id="donnees-completes">
+    <summary>Données complètes</summary>
     ${series}
     ${tableauxInstantanes(contrat, indexSources)}
-  </section>`;
+  </details>`;
 }
 
 function renduSourcesLongues(
@@ -1142,7 +1130,7 @@ function renduSourcesLongues(
         (source) => `<li data-source-id="${echapper(source.id)}">${lienSourceDossier(
           source,
           indexSources,
-        )}</li>`,
+        )}<p class="analyse-source__usage">${echapper([...contrat.dossier.series, ...contrat.dossier.preuves.filter(p => !p.seriesId)].filter(p => p.sourceId === source.id).map(p => p.libelle).join(" ; "))}</p><p class="analyse-source__date">Consulté le ${echapper(dateFrancaise(source.consulteLe))}.</p></li>`,
       )
       .join("")}</ol>
   </section>`;
@@ -1168,7 +1156,7 @@ function renduDossierLong(
   );
   return `<article class="analyse-rendu analyse-rendu--long" data-slug="${echapper(analyse.slug)}">
     <nav class="analyse-longue__fil" aria-label="Fil d’Ariane">
-      <a href="/analyses/">Dossiers</a><span aria-hidden="true">›</span><span aria-current="page">${echapper(
+      <a href="/analyses/">Analyses</a><span aria-hidden="true">›</span><span aria-current="page">${echapper(
         analyse.titre,
       )}</span>
     </nav>
@@ -1180,7 +1168,8 @@ function renduDossierLong(
       <p class="analyse-longue__chapo">${echapper(contrat.dossier.chapo)}</p>
     </header>
     <section class="analyse-longue__reponse" aria-labelledby="reponse-30-secondes">
-      <h2 id="reponse-30-secondes">Réponse en 30 secondes</h2>
+      <h2 id="reponse-30-secondes">Ce que disent les chiffres</h2>
+      <p class="analyse-longue__conclusion">${echapper(analyse.verdict.phrase)}</p>
       <div class="analyse-longue__preuves">${preuvesReponse
         .map((preuve) => renduPreuveLongue(preuve, contrat, adresse, indexSources))
         .join("")}</div>
@@ -1218,14 +1207,15 @@ export function rendu(
   const contrat = contratDossierAnalyse(analyse);
   if (contrat) return renduDossierLong(analyse, contrat, version, adresse, indexSources);
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
-    <h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>
+    <nav class="analyse-longue__fil" aria-label="Fil d’Ariane"><a href="/analyses/">Analyses</a><span aria-hidden="true">›</span><span aria-current="page">${echapper(analyse.titre)}</span></nav>
+    <header class="analyse-longue__entete"><p class="analyse-longue__meta">${echapper(analyse.themes.map(libelleTheme).join(" · "))} · Publié le ${echapper(dateFrancaise(analyse.publie_le))}</p><h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1></header>
     ${verdictDuDossier(analyse)}
     ${express(analyse, catalogue, adresse, indexSources)}
     ${preuve(analyse, catalogue, version)}
     ${detail(analyse, catalogue)}
     ${limites(analyse)}
-    ${sources(analyse, indexSources)}
     ${interactif(analyse)}
+    ${sources(analyse, indexSources)}
   </article>`;
 }
 
@@ -1356,6 +1346,8 @@ function valeursDistinctes(
  * Le reste est à un clic.
  */
 function chiffreEnCause(analyse: Analyse, catalogue: Indicateur[]): string {
+  const preuve = analyse.dossier?.preuves[0];
+  if (preuve) return `<p class="analyse-rendu__index-chiffre dossier-index__chiffre"><strong>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))} <small>${echapper(libelleUniteAnalyse(preuve.unit))}</small></strong><span>${echapper(preuve.libelle)} · ${echapper(preuve.period)}</span></p>`;
   const chiffre = analyse.chiffres[0];
   if (!chiffre) return "";
   const dit = `Cité comme « ${echapper(chiffre.dit)} »`;
@@ -1403,7 +1395,7 @@ function fraicheurDe(analyse: Analyse): string {
 export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string {
   const triees = [...analyses].sort((a, b) => b.publie_le.localeCompare(a.publie_le));
   const lignes = triees
-    .map((a) => {
+    .map((a, position) => {
       // Un cran `hors_perimetre` nomme toujours la confusion (spec §9.2) : la
       // règle vaut ici comme à l'étage 1. « Le chiffre existe, mais pas pour
       // ce qu'il désigne » sans dire ce qui est confondu demande au lecteur de
@@ -1432,16 +1424,17 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       )}" data-verdict="${echapper(qualification)}" data-perimetre="${echapper(
         carte.budgets,
       )}" data-texte="${echapper(carte.texte)}">
-        <p class="dossier-index__meta"><span>${echapper(sujets)}</span><span>${echapper(perimetre)}</span></p>
+        <p class="dossier-index__meta"><span class="dossier-index__numero">${String(position + 1).padStart(2, "0")}</span><span>${echapper(sujets)}</span><span>${echapper(perimetre)}</span></p>
         <h2 class="dossier-index__titre"><a class="dossier-index__lien" href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a></h2>
-        <p class="dossier-index__affirmation">${echapper(a.affirmation.texte)}</p>
+        <p class="dossier-index__affirmation">${echapper(a.dossier?.chapo ?? a.verdict.phrase)}</p>
         ${chiffreEnCause(a, catalogue)}
-        <p class="analyse-rendu__index-cran dossier-index__verdict"><strong>${echapper(
+        <details class="dossier-index__details"><summary>Le constat</summary><p class="analyse-rendu__index-cran dossier-index__verdict"><strong>${echapper(
           LIBELLE_QUALIFICATION[qualification],
         )}</strong><span>${echapper(a.verdict.phrase)}</span><span class="dossier-index__precision">${LIBELLE_CRAN[
           a.verdict.cran
-        ]}${confusion}</span></p>
+        ]}${confusion}</span></p></details>
         ${fraicheurDe(a)}
+        <a class="dossier-index__ouvrir" href="/analyses/${echapper(a.slug)}/" aria-label="Lire le dossier : ${echapper(a.titre)}">Lire le dossier <span aria-hidden="true">↗</span></a>
       </li>`;
     })
     .join("");
@@ -1457,7 +1450,7 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       <div class="analyses-filtres__groupe analyses-filtres__groupe--recherche">
         <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
         <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
-               autocomplete="off" placeholder="Un mot du chiffre, du verdict ou du titre" />
+               autocomplete="off" placeholder="Énergie, défense, logement…" />
       </div>
       ${facette(
         "type",
@@ -1495,11 +1488,12 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
 
   return `<section class="analyses-index" aria-labelledby="analyses-titre">
     <header class="analyses-index__entete">
-      <p class="analyses-index__eyebrow">Vérifier une affirmation</p>
-      <h1 id="analyses-titre">Dossiers de vérification</h1>
-      <p>Des affirmations confrontées aux comptes et aux publications qui les documentent.</p>
-      <p><a class="analyses-index__questions" href="/questions/">Poser une question déjà documentée</a></p>
+      <div><p class="analyses-index__eyebrow">France & Europe · Les dossiers</p>
+      <h1 id="analyses-titre">Les chiffres<br>derrière le débat.</h1>
+      <p class="analyses-index__chapo">Énergie, dépenses publiques, défense, logement. Une question précise, les données disponibles, ce qu’elles permettent de conclure.</p></div>
+      <aside class="analyses-index__repere"><span class="analyses-index__total">${analyses.length}</span><p>dossiers à explorer</p><p>Des données publiques.<br>Des périmètres explicites.<br>Les sources en fin de lecture.</p><a class="analyses-index__questions" href="/questions/">Consulter les questions fréquentes ↗</a></aside>
     </header>
+    <div class="analyses-index__rubrique"><h2>Tous les dossiers</h2><p>Du plus récent au plus ancien</p></div>
     ${barre}
     <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>
   </section>`;

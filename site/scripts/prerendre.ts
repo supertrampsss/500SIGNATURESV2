@@ -342,7 +342,10 @@ export function donneesCarteAnalyse(
   }
   const preuveDossier = chiffre.valeur === undefined || chiffre.valeur === null
     ? analyse.dossier?.preuves[0]
-    : analyse.dossier?.preuves.find((preuve) => preuve.value === chiffre.valeur);
+    : analyse.dossier?.preuves.find((preuve) => {
+      const facteur = preuve.unit === "billion_EUR" ? 1e9 : preuve.unit === "million_EUR" ? 1e6 : 1;
+      return preuve.value * facteur === chiffre.valeur;
+    });
   const exercice =
     chiffre.observe?.periode ??
     analyse.chiffres
@@ -503,7 +506,7 @@ export function marqueDuGabarit(shell: string): string {
  */
 const PAGE_ANALYSES = {
   titre: "Analyses des finances publiques | 500 signatures",
-  description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
+  description: "Énergie, défense, logement et finances publiques : les chiffres derrière le débat en France et en Europe, avec les sources de chaque dossier.",
 };
 
 /**

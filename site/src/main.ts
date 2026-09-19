@@ -111,6 +111,7 @@ import "./styles/editorial-identity.css";
 import "./styles/data-studio.css";
 import "./styles/shared-design.css";
 import "./styles/revue-civique.css";
+import "./styles/analyses-revue.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";

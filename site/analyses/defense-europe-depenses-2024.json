@@ -1,0 +1,195 @@
+{
+  "slug": "defense-europe-depenses-2024",
+  "titre": "Combien l’Europe dépense-t-elle pour sa défense ?",
+  "type": "decryptage",
+  "publie_le": "2026-09-19",
+  "themes": [
+    "europe",
+    "securite"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "Combien l’Europe dépense-t-elle pour sa défense ?",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Eurostat : dépenses publiques de défense, extraction du 20 août 2026",
+      "url": "https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Government_expenditure_on_defence",
+      "consulte_le": "2026-09-19"
+    }
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "La défense représente 266 milliards d’euros dans l’Union européenne en 2024, soit 1,5 % du PIB. Pour la France, Eurostat mesure 1,8 % du PIB selon la même définition."
+  },
+  "chiffres": [
+    {
+      "dit": "266 milliards d’euros",
+      "valeur": 266000000000.0,
+      "registre": "donnee_officielle",
+      "lecture": "Administrations publiques de l’UE, fonction défense COFOG, euros courants."
+    },
+    {
+      "dit": "1,8 % du PIB",
+      "valeur": 1.8,
+      "registre": "donnee_officielle",
+      "lecture": "Administrations publiques françaises, fonction défense COFOG."
+    },
+    {
+      "dit": "1,5 % du PIB",
+      "valeur": 1.5,
+      "registre": "donnee_officielle",
+      "lecture": "Ensemble de l’UE, fonction défense COFOG."
+    }
+  ],
+  "hypotheses": [
+    "Les chiffres 2024 de l’UE et de la France sont provisoires dans la publication consultée.",
+    "Ce dossier utilise les comptes COFOG 2024 ; il ne présente pas les annonces budgétaires 2026 comme des dépenses exécutées.",
+    "Une hausse en euros courants peut refléter les prix, les volumes ou les deux."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "id": "eurostat-defense",
+      "titre": "Eurostat : dépenses publiques de défense, extraction du 20 août 2026",
+      "url": "https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Government_expenditure_on_defence",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "eurostat-cofog",
+      "titre": "Eurostat : méthode et périmètre COFOG",
+      "url": "https://ec.europa.eu/eurostat/cache/metadata/en/gov_10a_exp_esms.htm",
+      "consulte_le": "2026-09-19"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Ce dossier décrit des données et des décisions publiées."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": "Publications primaires consultées le 2026-09-19",
+  "dossier": {
+    "chapo": "Les débats sur la Russie relancent la question de l’effort militaire européen. Voici les dépenses constatées en 2024, dans un périmètre commun à tous les pays.",
+    "sommaire": [
+      "comptes",
+      "perimetre",
+      "lecture"
+    ],
+    "series": [
+      {
+        "id": "defense-ue",
+        "libelle": "Dépenses de défense de l’Union européenne",
+        "unit": "billion_EUR",
+        "definition": "Administrations publiques de l’UE, fonction défense COFOG, euros courants.",
+        "sourceId": "eurostat-defense",
+        "observations": [
+          {
+            "period": "2020",
+            "value": 176
+          },
+          {
+            "period": "2021",
+            "value": 185
+          },
+          {
+            "period": "2022",
+            "value": 207
+          },
+          {
+            "period": "2023",
+            "value": 232
+          },
+          {
+            "period": "2024",
+            "value": 266,
+            "qualityFlags": [
+              "provisoire"
+            ]
+          }
+        ]
+      }
+    ],
+    "preuves": [
+      {
+        "id": "defense-total",
+        "libelle": "Dépenses de défense dans l’UE",
+        "value": 266,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Administrations publiques de l’UE, fonction défense COFOG, euros courants.",
+        "sourceId": "eurostat-defense",
+        "seriesId": "defense-ue",
+        "qualityFlags": [
+          "provisoire"
+        ]
+      },
+      {
+        "id": "defense-france",
+        "libelle": "France : défense rapportée au PIB",
+        "value": 1.8,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Administrations publiques françaises, fonction défense COFOG.",
+        "sourceId": "eurostat-defense",
+        "qualityFlags": [
+          "provisoire"
+        ]
+      },
+      {
+        "id": "defense-ue-pib",
+        "libelle": "UE : défense rapportée au PIB",
+        "value": 1.5,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Ensemble de l’UE, fonction défense COFOG.",
+        "sourceId": "eurostat-defense",
+        "qualityFlags": [
+          "provisoire"
+        ]
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "depenses-europe",
+        "type": "line",
+        "titre": "Les dépenses de défense de l’UE depuis 2020",
+        "resume": "Montants en euros courants : l’évolution inclut celle des prix.",
+        "seriesIds": [
+          "defense-ue"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "comptes",
+        "titre": "Des comptes annuels, pas une prévision de guerre",
+        "paragraphes": [
+          "La série décrit des dépenses publiques déjà enregistrées. Elle ne mesure ni la probabilité d’un conflit, ni les matériels disponibles à une date donnée."
+        ]
+      },
+      {
+        "id": "perimetre",
+        "titre": "Pourquoi les chiffres diffèrent de ceux de l’OTAN",
+        "paragraphes": [
+          "Eurostat classe les dépenses selon leur fonction. Les pensions militaires relèvent de la protection sociale ; la méthodologie de l’OTAN les traite autrement. Un pourcentage OTAN et un pourcentage COFOG ne sont donc pas interchangeables."
+        ]
+      },
+      {
+        "id": "lecture",
+        "titre": "Ce que permet la comparaison",
+        "paragraphes": [
+          "Le montant européen additionne les dépenses des administrations publiques des pays de l’UE. Ce n’est pas le budget d’une armée européenne. Le rapport au PIB mesure un effort relatif, sans renseigner à lui seul sur les effectifs, les stocks ou l’efficacité des achats."
+        ]
+      }
+    ],
+    "limitations": [
+      "Les chiffres 2024 de l’UE et de la France sont provisoires dans la publication consultée.",
+      "Ce dossier utilise les comptes COFOG 2024 ; il ne présente pas les annonces budgétaires 2026 comme des dépenses exécutées.",
+      "Une hausse en euros courants peut refléter les prix, les volumes ou les deux."
+    ]
+  }
+}

@@ -8,13 +8,14 @@ test("Mandats est une entrée native indépendante du chargement des données", 
   assert.doesNotMatch(renduNavigation("/bilan", false), /href="\/mandats\/"[^>]*data-vue/);
 });
 
-test("la navigation expose les quatre destinations utiles sans lien Accueil", () => {
+test("la navigation expose les cinq destinations utiles sans lien Accueil", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
+      { cle: "analyses", href: "/analyses/", libelle: "Analyses" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
@@ -30,8 +31,11 @@ test("Mandats est la destination courante avec ou sans barre finale", () => {
   assert.match(renduNavigation("/mandats/", true), /href="\/mandats\/"[^>]*aria-current="page"/);
 });
 
-test("Analyses ne figure pas dans la navigation principale", () => {
-  assert.doesNotMatch(renduNavigation("/", true), /Analyses|\/analyses/);
+test("Analyses est une destination native active sur l’index et ses dossiers", () => {
+  for (const path of ["/analyses", "/analyses/", "/analyses/energie/"]) {
+    assert.match(renduNavigation(path, true), /<a href="\/analyses\/" aria-current="page">Analyses<\/a>/);
+  }
+  assert.doesNotMatch(renduNavigation("/", true), /href="\/analyses\/"[^>]*data-vue/);
 });
 
 test("Salaires reste un lien natif vers sa page pré-rendue", () => {
@@ -40,10 +44,10 @@ test("Salaires reste un lien natif vers sa page pré-rendue", () => {
   assert.doesNotMatch(html, /href="\/salaires\/"[^>]*data-vue/);
 });
 
-test("le menu partagé contient quatre destinations, sans l'ancien simulateur", () => {
+test("le menu partagé contient cinq destinations, sans l'ancien simulateur", () => {
   for (const disponible of [true, false]) {
     const html = renduNavigation("/bilan", disponible);
-    assert.equal((html.match(/<a /g) ?? []).length, 4);
+    assert.equal((html.match(/<a /g) ?? []).length, 5);
     assert.doesNotMatch(html, /href="\/simulateur"/);
     assert.match(html, /href="\/mandats\/"/);
   }
