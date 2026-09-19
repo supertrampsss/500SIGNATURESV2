@@ -186,8 +186,8 @@ html body[data-vue="bilan"] #vue-bilan h2,
 html body[data-vue="salaires"] .salaires__entree h1 { font-family:var(--serif); font-weight:500; letter-spacing:-.035em; }
 
 /* Le titre de la vue Villes reprend la hiérarchie éditoriale des autres pages. */
-html body[data-vue="territoire"] .territoire-recherche h1,
-html body[data-vue="territoire"] .fiche__titre {
+html body[data-vue="territoire"] .territoire-recherche #territoire-recherche-titre,
+html body[data-vue="territoire"] .fiche .fiche__titre {
   font-family:var(--serif);
   font-weight:500;
   letter-spacing:-.035em;
