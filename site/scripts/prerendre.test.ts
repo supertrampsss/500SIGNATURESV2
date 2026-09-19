@@ -372,6 +372,12 @@ test("4. les balises de partage portent des adresses absolues", () => {
   // `twitter:` s'écrit en `name`, `og:` en `property` : c'est ce que les deux
   // spécifications demandent, et un validateur strict ne lit pas l'autre.
   assert.equal(balise("twitter:card", "name"), "summary_large_image");
+  assert.equal(balise("og:type", "property"), "article");
+  assert.equal(balise("og:image:width", "property"), "1200");
+  assert.equal(balise("og:image:height", "property"), "630");
+  assert.equal(balise("twitter:title", "name"), echapper(PAGE.titre));
+  assert.equal(balise("twitter:description", "name"), echapper(PAGE.description));
+  assert.equal(balise("twitter:image", "name"), "https://exemple.test/analyses/essai/carte.png");
 
   for (const nom of ["og:url", "og:image"]) {
     const valeur = balise(nom, "property") ?? "";

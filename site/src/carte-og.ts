@@ -41,7 +41,7 @@
  */
 
 import { LIBELLE_CRAN, type Cran } from "./analyse-rendu.ts";
-import { MENTION_MILLIONS, PALETTE, formater } from "./echelle.ts";
+import { MENTION_MILLIONS, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { eurosSigne } from "./simulateur-format.ts";
 import { echapper } from "./texte.ts";
@@ -66,11 +66,15 @@ const LARGEUR_UTILE = LARGEUR - 2 * MARGE;
 /** L'espace minimal entre le libellé d'une rangée et sa valeur. */
 const GOUTTIERE = 24;
 
-const FOND = PALETTE[0];
-const TRAIT = PALETTE[3];
-const ACCENT = PALETTE[6];
-const ENCRE = "#16324a";
-const ENCRE_SOURDE = "#4c6478";
+/* Les cartes sortent du contexte de l'application. Elles reprennent donc la
+ * palette de la Revue (papier, vert profond, terre cuite), au lieu de
+ * l'ancienne palette bleue du simulateur. */
+const FOND = "#f5f2ea";
+const PANNEAU = "#e7eadf";
+const TRAIT = "#cfd3c8";
+const ACCENT = "#a84429";
+const ENCRE = "#203b34";
+const ENCRE_SOURDE = "#596557";
 
 const TAILLE_CHAPEAU = 26;
 const TAILLE_TITRE = 46;
@@ -355,7 +359,7 @@ function corpsRangees(rangees: Rangee[]): string {
       const libelle = replie === "…" ? "" : replie;
       return (
         texte(libelle, MARGE, y, taille, ENCRE_SOURDE) +
-        texte(valeur, LARGEUR - MARGE, y, TAILLE_VALEUR, ENCRE, "end")
+        texte(valeur, LARGEUR - MARGE, y, TAILLE_VALEUR, ACCENT, "end")
       );
     })
     .join("");
@@ -531,15 +535,15 @@ function dessiner(cadre: Cadre): string {
       .join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${LARGEUR}" height="${HAUTEUR}" viewBox="0 0 ${LARGEUR} ${HAUTEUR}" role="img"><title>${echapper(
     `${cadre.chapeau} — ${cadre.titre}`,
-  )}</title><rect x="0" y="0" width="${LARGEUR}" height="${HAUTEUR}" fill="${FOND}"></rect><rect x="0" y="0" width="${LARGEUR}" height="10" fill="${ACCENT}"></rect>${texte(
+  )}</title><rect x="0" y="0" width="${LARGEUR}" height="${HAUTEUR}" fill="${FOND}"></rect><rect x="0" y="0" width="${LARGEUR}" height="12" fill="${ACCENT}"></rect><rect x="48" y="126" width="1104" height="380" fill="${PANNEAU}"></rect>${texte(
     cadre.chapeau,
     MARGE,
     88,
     TAILLE_CHAPEAU,
-    ENCRE_SOURDE,
+    ACCENT,
   )}<line x1="${MARGE}" y1="110" x2="${
     LARGEUR - MARGE
-  }" y2="110" stroke="${TRAIT}" stroke-width="2"></line>${lignesTitre}${cadre.corps}<line x1="${MARGE}" y1="524" x2="${
+  }" y2="110" stroke="${TRAIT}" stroke-width="2"></line>${lignesTitre.replaceAll(`fill="${ACCENT}"`, `fill="${ENCRE}"`)}${cadre.corps}<line x1="${MARGE}" y1="524" x2="${
     LARGEUR - MARGE
   }" y2="524" stroke="${TRAIT}" stroke-width="2"></line>${pied}</svg>`;
 }
@@ -682,7 +686,7 @@ export function carteAnalyse(donnees: DonneesAnalyse): string {
   }
   rangees.push({ phrase: LIBELLE_CRAN[donnees.cran] });
   return dessiner({
-    chapeau: "Analyse",
+    chapeau: "Dossier",
     titre: donnees.titre,
     corps: corpsRangees(rangees),
     // La mention des millions ne s'écrit que si un montant en euros est peint.

@@ -128,6 +128,33 @@ test("les évolutions et le tableau sont directement visibles", () => {
   assert.equal((html.match(/<table>/g) ?? []).length, 1);
 });
 
+test("épargne, dette et investissement partagent un seul graphique avec leurs années", () => {
+  const ids = ["ofgl_epargne_brute", "ofgl_encours_dette", "ofgl_depenses_d_investissement_hors_remb"];
+  const catalogue = ids.map(id => ({ id, libelle: ({
+    ofgl_epargne_brute: "Épargne brute",
+    ofgl_encours_dette: "Encours de dette",
+    ofgl_depenses_d_investissement_hors_remb: "Dépenses d'investissement",
+  } as Record<string,string>)[id] })) as unknown as Indicateur[];
+  const html = rendreExercices(exercices({
+    cites: ids,
+    catalogue,
+    series: {
+      ofgl_epargne_brute: { "2022": 35e6, "2025": 48e6 },
+      ofgl_encours_dette: { "2022": 390e6, "2023": 402e6, "2025": 413e6 },
+      ofgl_depenses_d_investissement_hors_remb: { "2022": 112e6, "2023": 130e6, "2025": 136e6 },
+    },
+  }));
+  assert.equal((html.match(/class="chart-time"/g) ?? []).length, 1);
+  assert.match(html, /Légende du graphique/);
+  assert.match(html, /48 M€/);
+  assert.match(html, /413 M€/);
+  assert.match(html, /136 M€/);
+  assert.match(html, /data-chart-periods="\[&quot;2022&quot;,&quot;2023&quot;,&quot;2025&quot;\]"/);
+  assert.match(html, /Épargne brute/);
+  assert.match(html, /Encours de dette/);
+  assert.match(html, /Dépenses d&#39;investissement/);
+});
+
 test("un tableau de l'État se lit en milliards, pas en millions", () => {
   // Le cas qui a fait changer la règle : à la maille nationale, la même
   // fonction écrivait « 336 069 » sous une légende qui disait « millions ».

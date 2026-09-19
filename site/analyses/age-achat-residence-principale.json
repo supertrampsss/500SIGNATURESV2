@@ -212,8 +212,8 @@
       {
         "id": "table-cohortes-historiques",
         "type": "snapshot_table",
-        "titre": "Quatre cohortes, quatre âges médians d'accès à la propriété",
-        "resume": "Les cohortes publiées sont affichées comme des repères distincts, sans interpoler les générations absentes.",
+        "titre": "Quatre générations, quatre âges médians d'accès à la propriété",
+        "resume": "Les générations publiées sont affichées comme des repères distincts, sans inventer les âges des générations absentes.",
         "preuveIds": [
           "preuve-cohorte-1924",
           "preuve-cohorte-1944",
@@ -237,7 +237,7 @@
         "id": "moyennes",
         "titre": "L’âge des nouveaux acheteurs",
         "paragraphes": [
-          "Le premier repère porte explicitement sur l'âge à l'acquisition pour les achats de 1998 à 2001. Le second donne l'âge moyen des primo-accédants observés en 2013. La différence numérique ne mesure donc pas une hausse de l'âge à l'achat."
+          "Le premier repère porte explicitement sur l'âge à l'acquisition pour les achats de 1998 à 2001. Le second donne l'âge moyen des personnes qui achetaient leur premier logement dans l'enquête de 2013. La différence numérique ne mesure donc pas une hausse de l'âge à l'achat."
         ],
         "visualisationIds": [
           "table-moyennes"
@@ -247,7 +247,7 @@
         "id": "cohortes",
         "titre": "Le parcours des générations apporte une histoire plus longue",
         "paragraphes": [
-          "Un autre indicateur officiel suit l'âge auquel la moitié d'une génération était devenue propriétaire : 47 ans pour la cohorte 1924, 36 ans pour 1944, un minimum de 33,5 ans pour 1952, puis 38 ans pour 1964. Pour les personnes nées entre 1974 et 1978, la publication situe ce seuil entre 35 et 39 ans."
+          "Un autre indicateur officiel suit l'âge auquel la moitié des personnes d'une même génération était devenue propriétaire : 47 ans pour les personnes nées en 1924, 36 ans pour celles nées en 1944, un minimum de 33,5 ans pour 1952, puis 38 ans pour 1964. Pour les personnes nées entre 1974 et 1978, la publication situe ce seuil entre 35 et 39 ans."
         ],
         "visualisationIds": [
           "table-cohortes-historiques",
@@ -258,7 +258,7 @@
         "id": "comparabilite",
         "titre": "L’âge des acheteurs et le parcours d’une génération",
         "paragraphes": [
-          "Une moyenne observée dans une enquête et l'âge auquel une cohorte franchit 50 % de propriétaires ne portent ni sur la même population ni sur le même calcul. Les réunir dans une courbe unique fabriquerait une évolution qui n'a pas été publiée."
+          "Une moyenne observée dans une enquête et l'âge auquel la moitié d'une génération est propriétaire ne portent ni sur la même population ni sur le même calcul. Les réunir dans une courbe unique fabriquerait une évolution qui n'a pas été publiée."
         ]
       },
       {

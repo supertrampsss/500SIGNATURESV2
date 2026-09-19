@@ -1,6 +1,6 @@
 {
   "slug": "groenland-accord-securite-europe",
-  "titre": "Groenland : ce que prépare l’accord de sécurité",
+  "titre": "Groenland : pourquoi l’accord de sécurité compte pour l’Europe",
   "type": "decryptage",
   "publie_le": "2026-09-19",
   "themes": [
@@ -23,7 +23,7 @@
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Un accord de sécurité entre le Groenland, le Danemark et les États-Unis est annoncé. La signature et les procédures parlementaires nationales précèdent son entrée en vigueur."
+    "phrase": "Un accord de sécurité entre le Groenland, le Danemark et les États-Unis est annoncé. Sa signature et les procédures parlementaires nationales précèdent son entrée en vigueur."
   },
   "chiffres": [
     {
@@ -31,6 +31,12 @@
       "valeur": 3,
       "registre": "donnee_officielle",
       "lecture": "L’annonce associe les gouvernements du Groenland, du Danemark et des États-Unis."
+    },
+    {
+      "dit": "Le Groenland est un territoire immense et peu peuplé",
+      "valeur": 56600,
+      "registre": "donnee_officielle",
+      "lecture": "Le territoire couvre plus de 2,1 millions de kilomètres carrés pour environ 56 600 habitants en 2024."
     }
   ],
   "hypotheses": [],
@@ -38,87 +44,222 @@
   "sources": [
     {
       "id": "danemark-accord",
-      "titre": "Gouvernement danois : communiqué conjoint du 18 septembre 2026",
+      "titre": "Gouvernement danois : accord de sécurité attendu pour l’Arctique et l’Atlantique Nord, 18 septembre 2026",
       "url": "https://stm.dk/en/press/press-releases/expected-agreement-on-strengthened-security-in-the-arctic-and-the-north-atlantic-area/",
       "consulte_le": "2026-09-19"
     },
     {
       "id": "commission-groenland",
-      "titre": "Commission européenne : statut et coopération avec le Groenland",
+      "titre": "Commission européenne : partenariat avec le Groenland, fiche du 7 septembre 2026",
       "url": "https://international-partnerships.ec.europa.eu/countries/greenland_en",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "eprs-groenland",
+      "titre": "Parlement européen : Greenland, caught in the Arctic geopolitical contest, 2025",
+      "url": "https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2025)769527",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "cfr-valeur-strategique",
+      "titre": "Council on Foreign Relations : Why Greenland Matters, 2026",
+      "url": "https://www.cfr.org/articles/why-greenland-matters",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "csis-securite-mineraux",
+      "titre": "Center for Strategic and International Studies : Greenland, Rare Earths, and Arctic Security, 2026",
+      "url": "https://www.csis.org/analysis/greenland-rare-earths-and-arctic-security",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "isdp-securite-arctique",
+      "titre": "Institute for Security and Development Policy : Greenland and Arctic Security, 2026",
+      "url": "https://www.isdp.eu/publication/greenland-and-arctic-security-whats-at-stake/",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ap-accord",
+      "titre": "Associated Press : Trump makes deal to build US military presence in Greenland, 18 septembre 2026",
+      "url": "https://apnews.com/article/trump-greenland-military-denmark-4cf77cb4608b685a70410bd679479193",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ap-mineraux",
+      "titre": "Associated Press : The harsh realities of Arctic mining undercut Trump’s argument to take Greenland, 2026",
+      "url": "https://apnews.com/article/denmark-greenland-trump-rare-earths-mining-3f47c0b2ae3edfb322a908ee39c42c05",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "strategie-mineraux-groenland",
+      "titre": "Gouvernement du Groenland : Mineral Resources Strategy 2025–2029",
+      "url": "https://naalakkersuisut.gl/-/media/nyheder/2025/01/3101_ny_raastofstrategi/eng_rastofstrategi-2025-2029.pdf",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "atlantic-strategie-groenland",
+      "titre": "Atlantic Council : A US and allied strategy for Greenland, 2026",
+      "url": "https://www.atlanticcouncil.org/content-series/atlantic-council-strategy-paper-series/a-us-and-allied-strategy-for-greenland/",
       "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
     "budget": "",
     "contrat": "",
-    "lecture": "Ce dossier décrit des données et des décisions publiées."
+    "lecture": "Ce dossier met en perspective une annonce diplomatique et ses enjeux."
   },
   "mises_a_jour": [
     {
       "date": "2026-09-19",
-      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+      "quoi": "Dossier repris à partir de sources institutionnelles et d’analyses de référence : contexte, intérêts, risques et limites de l’accord annoncé."
     }
   ],
-  "verifie_contre": "Publications primaires consultées le 2026-09-19",
+  "verifie_contre": "Publications primaires et analyses de référence consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Le Groenland, le Danemark et les États-Unis préparent un accord pour renforcer la sécurité dans l’Arctique et l’Atlantique Nord. Annoncée le 18 septembre, sa signature est attendue la semaine suivante, à l’Assemblée générale de l’ONU. Pour l’Europe, l’enjeu est la coopération de défense dans cette région.",
+    "chapo": "Le Groenland, le Danemark et les États-Unis annoncent un accord pour renforcer la sécurité dans l’Arctique et l’Atlantique Nord. Le sujet dépasse la signature attendue la semaine prochaine : l’île est importante pour la surveillance militaire, les routes maritimes et les ressources, mais son avenir ne peut pas être décidé sans les Groenlandais.",
     "series": [],
-    "preuves": [],
-    "visualisations": [],
-    "limitations": [],
+    "preuves": [
+      {
+        "id": "population-groenland",
+        "libelle": "Population du Groenland",
+        "value": 56600,
+        "unit": "count",
+        "period": "2024",
+        "definition": "Population indiquée par la Commission européenne dans sa fiche sur le Groenland.",
+        "sourceId": "commission-groenland"
+      },
+      {
+        "id": "glace-groenland",
+        "libelle": "Surface couverte par la glace",
+        "value": 80,
+        "unit": "percent",
+        "period": "2026",
+        "definition": "Part du Groenland couverte par la glace, selon le Council on Foreign Relations.",
+        "sourceId": "cfr-valeur-strategique",
+        "comparableGroup": "surface-glace"
+      },
+      {
+        "id": "sans-glace-groenland",
+        "libelle": "Surface sans glace",
+        "value": 20,
+        "unit": "percent",
+        "period": "2026",
+        "definition": "Part de la surface du Groenland qui n’est pas couverte par la glace, selon le Center for Strategic and International Studies.",
+        "sourceId": "csis-securite-mineraux",
+        "comparableGroup": "surface-glace"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "repere-territoire",
+        "type": "snapshot_table",
+        "titre": "Un territoire immense, peu peuplé et difficile d’accès",
+        "resume": "Ces deux repères aident à comprendre pourquoi la sécurité, les infrastructures et les coûts comptent autant dans le débat.",
+        "preuveIds": [
+          "population-groenland",
+          "glace-groenland"
+        ]
+      },
+      {
+        "id": "part-glace",
+        "type": "bar",
+        "titre": "La glace couvre l’essentiel de l’île",
+        "resume": "La faible part de territoire libre de glace limite les zones habitables, les infrastructures et les projets miniers.",
+        "preuveIds": [
+          "glace-groenland",
+          "sans-glace-groenland"
+        ]
+      }
+    ],
+    "limitations": [
+      "Le texte complet de l’accord n’est pas encore publié. Les moyens militaires, les investissements, les responsabilités et le calendrier précis restent donc inconnus.",
+      "Les ressources minières repérées ne constituent pas une production disponible : leur exploitation dépend de la faisabilité technique, du financement, des infrastructures, des autorisations et de l’accord des populations concernées.",
+      "L’annonce ne permet pas encore de mesurer l’effet réel sur l’OTAN, l’Union européenne ou le statut politique du Groenland."
+    ],
     "chronologie": {
-      "titre": "Les prochaines étapes de l’accord",
+      "titre": "Ce qui doit encore se passer",
       "sourceId": "danemark-accord",
       "etapes": [
         {
           "date": "18 septembre 2026",
-          "texte": "Annonce de l’accord à venir."
+          "texte": "Les trois gouvernements annoncent un accord à venir sur la sécurité dans l’Arctique et l’Atlantique Nord."
         },
         {
-          "date": "La semaine suivante",
-          "texte": "Signature attendue à l’Assemblée générale de l’ONU."
+          "date": "Semaine du 21 septembre 2026",
+          "texte": "La signature est attendue pendant l’Assemblée générale de l’ONU."
         },
         {
           "date": "Après la signature",
-          "texte": "Procédures parlementaires nationales avant l’entrée en vigueur."
+          "texte": "Les procédures parlementaires nécessaires au Danemark et au Groenland doivent précéder l’entrée en vigueur."
         }
       ]
     },
     "sections": [
       {
-        "id": "accord",
-        "titre": "Trois gouvernements autour de la table",
+        "id": "ce-qui-est-annonce",
+        "titre": "Ce qui est annoncé, et ce qui ne l’est pas encore",
         "paragraphes": [
-          "Le projet associe les autorités groenlandaises, danoises et américaines. Pour le Groenland, il doit renforcer sa sécurité et sa coopération internationale. Le Danemark le présente aussi comme une contribution à la sécurité de l’Europe et de l’OTAN."
+          "Le 18 septembre, les gouvernements du Groenland, du Danemark et des États-Unis ont annoncé qu’ils préparaient un accord de sécurité. La signature est attendue pendant l’Assemblée générale de l’ONU, puis le texte devra encore suivre les procédures parlementaires nécessaires.",
+          "À ce stade, nous ne disposons pas du texte complet. On sait donc quel est l’objectif politique affiché, mais pas encore quels avions, quels navires, quelles installations ou quels financements seraient concernés. Parler d’un accord déjà appliqué serait aller trop vite."
+        ],
+        "visualisationIds": [
+          "repere-territoire"
         ]
       },
       {
-        "id": "statut",
-        "titre": "Le lien entre le Groenland et l’Europe",
+        "id": "pourquoi-cette-ile-compte",
+        "titre": "Pourquoi cette île compte autant pour la sécurité",
         "paragraphes": [
-          "Le Groenland est un territoire autonome du Royaume de Danemark. Il est associé à l’Union européenne comme pays et territoire d’outre-mer. Ce statut lui donne une relation particulière avec l’UE, sans l’intégrer au territoire de l’Union."
+          "Le Groenland se trouve entre l’Amérique du Nord, l’Europe et le pôle Nord. Sa position permet de surveiller les mouvements dans l’Arctique et dans l’Atlantique Nord. Le passage maritime entre le Groenland, l’Islande et le Royaume-Uni est particulièrement suivi : des sous-marins et des navires russes doivent le traverser pour rejoindre l’Atlantique.",
+          "Les États-Unis disposent déjà de la base spatiale de Pituffik, qui sert à l’alerte contre les missiles et à la surveillance de l’espace. Un accord peut donc organiser une présence et une coopération plus importantes. Mais les analyses du Council on Foreign Relations rappellent qu’une prise de contrôle du territoire n’est pas nécessaire pour utiliser ces capacités : les États-Unis disposent déjà de droits militaires étendus dans le cadre de l’accord de défense de 1951.",
+          "Cette question concerne aussi l’Organisation du traité de l’Atlantique Nord (OTAN), l’alliance militaire dont le Danemark et les États-Unis sont membres. La surveillance de l’Arctique protège les liaisons entre l’Amérique du Nord et l’Europe. Elle demande des moyens, mais aussi une coordination entre alliés."
+        ],
+        "visualisationIds": [
+          "part-glace"
         ]
       },
       {
-        "id": "souverainete",
-        "titre": "La souveraineté figure dans l’annonce",
+        "id": "ce-que-laccord-peut-apporter",
+        "titre": "Ce que l’accord peut apporter",
         "paragraphes": [
-          "Le communiqué danois affirme que l’accord reconnaît la souveraineté et l’intégrité territoriale du Royaume, ainsi que le droit des Groenlandais à décider de leur avenir."
+          "Pour les trois gouvernements, le premier bénéfice possible est de clarifier qui coopère et dans quel cadre. Des moyens supplémentaires de surveillance, de secours, de communication ou de protection des infrastructures pourraient améliorer la sécurité d’une région immense, où les distances et les conditions météo rendent chaque intervention difficile.",
+          "Pour le Danemark et ses alliés, une coopération mieux organisée peut réduire les zones grises autour de la défense de l’Arctique. Pour le Groenland, elle peut aussi apporter des investissements et des emplois si les projets répondent à ses priorités et si les décisions sont prises avec ses autorités. Ces bénéfices sont possibles, pas garantis par la seule annonce.",
+          "L’annonce insiste sur la souveraineté du Royaume du Danemark et sur le droit des Groenlandais à décider de leur avenir. Cette formulation est essentielle : elle fixe une limite politique aux discussions sur la sécurité et les ressources."
+        ]
+      },
+      {
+        "id": "ressources-et-economie",
+        "titre": "Les ressources attirent les grandes puissances, mais l’exploitation est difficile",
+        "paragraphes": [
+          "Le Groenland possède des ressources minérales qui intéressent l’Europe et les États-Unis, notamment pour les technologies numériques, l’énergie et la défense. L’Union européenne a déjà engagé un partenariat avec le Groenland sur les matières premières, les câbles sous-marins, l’énergie et la formation. Le gouvernement groenlandais cherche lui aussi à développer des projets, tout en parlant de chaînes de valeur durables et de partenariats internationaux.",
+          "Cela ne signifie pas que le Groenland deviendra rapidement une grande source de minerais. Le froid, les distances, le manque de routes, de ports et d’énergie, ainsi que les coûts de transport rendent les projets difficiles. Des analyses du Center for Strategic and International Studies et de l’Associated Press soulignent aussi que plusieurs gisements restent au stade de l’exploration et que leur rentabilité n’est pas acquise.",
+          "Le risque est donc de présenter une richesse potentielle comme une richesse déjà disponible. Pour les Groenlandais, la question porte autant sur les emplois, les recettes et les infrastructures que sur les effets sur l’environnement, la pêche et l’autonomie politique."
+        ]
+      },
+      {
+        "id": "risques-et-limites",
+        "titre": "Les risques et les questions qui restent ouvertes",
+        "paragraphes": [
+          "Le premier risque est politique : une présence militaire accrue peut renforcer la sécurité, mais elle peut aussi donner le sentiment que le Groenland devient un objet de négociation entre grandes puissances. La place des autorités et de la population groenlandaises sera donc un test concret du respect du droit à l’autodétermination.",
+          "Le deuxième risque est celui de la promesse excessive. La Russie et la Chine s’intéressent à l’Arctique, mais les analyses disponibles décrivent encore une présence concrète limitée au Groenland. Cela ne justifie ni l’inaction ni les scénarios alarmistes : il faut distinguer une concurrence stratégique réelle d’une menace militaire déjà installée sur l’île.",
+          "Enfin, l’accord devra être jugé sur son contenu. Il faudra connaître les installations concernées, les dépenses prévues, le contrôle exercé par les autorités groenlandaises et danoises, la place de l’OTAN et les conséquences pour l’environnement. Sans ces informations, on ne peut pas dire si l’accord change profondément la situation ou s’il organise surtout une coopération déjà partiellement possible."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Une coopération à mettre en œuvre",
+        "titre": "Ce que l’on peut conclure aujourd’hui",
         "paragraphes": [
-          "La signature sera suivie des procédures parlementaires nationales nécessaires. Ces étapes doivent donner une suite concrète à la coopération annoncée."
+          "Le Groenland est important parce qu’il se trouve au croisement de trois sujets : la défense de l’Arctique, les liaisons entre l’Europe et l’Amérique du Nord, et l’accès futur à certaines ressources. L’accord annoncé peut améliorer la coordination entre le Groenland, le Danemark et les États-Unis.",
+          "Mais l’annonce ne règle pas les questions centrales. Le texte doit encore être signé, examiné et appliqué. Sa valeur dépendra des engagements précis, de la place donnée aux Groenlandais et de la capacité des partenaires à financer des infrastructures utiles sans réduire le territoire à une base militaire ou à une réserve de minerais."
         ]
       }
     ],
     "sommaire": [
-      "accord",
-      "statut",
-      "souverainete",
+      "ce-qui-est-annonce",
+      "pourquoi-cette-ile-compte",
+      "ce-que-laccord-peut-apporter",
+      "ressources-et-economie",
+      "risques-et-limites",
       "conclusion"
     ]
   }

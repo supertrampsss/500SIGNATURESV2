@@ -706,17 +706,30 @@ function adresseCanonique(page: Partageable, site: string): string {
  * de X n'est plus lue par les validateurs stricts.
  */
 function balisesPartage(page: Partageable, site: string): string {
+  const url = adresseCanonique(page, site);
+  const image = `${site}${page.image}`;
   const og: [string, string][] = [
+    ["og:type", "article"],
+    ["og:site_name", "500signatures"],
+    ["og:locale", "fr_FR"],
     ["og:title", page.titre],
     ["og:description", page.description],
-    ["og:url", adresseCanonique(page, site)],
-    ["og:image", `${site}${page.image}`],
+    ["og:url", url],
+    ["og:image", image],
+    ["og:image:width", "1200"],
+    ["og:image:height", "630"],
+    ["og:image:type", "image/png"],
+    ["og:image:alt", `${page.titre} — 500signatures`],
   ];
   return (
     og.map(([nom, valeur]) => `  <meta property="${nom}" content="${echapper(valeur)}" />\n`).join("") +
     // La carte large : c'est le format des images de partage du site, 1200 × 630
     // (carte-og.ts). En `summary`, X rognerait la carte au carré, sur le titre.
-    `  <meta name="twitter:card" content="summary_large_image" />\n`
+    `  <meta name="twitter:card" content="summary_large_image" />\n` +
+    `  <meta name="twitter:title" content="${echapper(page.titre)}" />\n` +
+    `  <meta name="twitter:description" content="${echapper(page.description)}" />\n` +
+    `  <meta name="twitter:image" content="${echapper(image)}" />\n` +
+    `  <meta name="twitter:image:alt" content="${echapper(`${page.titre} — 500signatures`)}" />\n`
   );
 }
 

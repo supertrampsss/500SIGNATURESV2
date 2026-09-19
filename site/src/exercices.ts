@@ -280,12 +280,39 @@ export function rendreExercices(tableau: Tableau | null): string {
         formater: valeur => formaterGraphique(valeur * diviseur),
       })
     : "";
+  const evolutionParLigne = (ligne: Tableau["lignes"][number]) => ({
+    name: ligne.libelle,
+    values: Object.fromEntries(tableau.exercices.flatMap((annee, index) =>
+      ligne.valeurs[index] === null ? [] : [[annee, ligne.valeurs[index]! / diviseur]],
+    )),
+  });
+  const financesIds = [
+    "ofgl_epargne_brute",
+    "ofgl_encours_dette",
+    "ofgl_depenses_d_investissement_hors_remb",
+  ];
+  const finances = financesIds.flatMap(id => tableau.lignes.filter(ligne => ligne.id === id));
+  const financesGroupees = finances.length > 1
+    ? `<div class="territory-finance-combined">
+      ${timeChart({
+        title: finances.length === 3 ? "Épargne, dette et investissement" : finances.map(ligne => ligne.libelle).join(" et "),
+        description: "L'épargne et les investissements concernent l'année indiquée. La dette est le montant encore dû à la fin de cette année.",
+        unit: mot,
+        format: value => formaterGraphique(value * diviseur),
+        series: finances.map(evolutionParLigne),
+        legend: true,
+      })}
+      <p class="territory-finance-combined__note">L’épargne et les investissements concernent l’année indiquée. La dette est le montant encore dû à la fin de cette année.</p>
+    </div>`
+    : "";
   const variations = tableau.lignes
-    .filter(ligne => !["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"].includes(ligne.id))
-    .map(ligne => timeChart({title:ligne.libelle,description:`Montants publiés de ${premier} à ${dernier}.`,unit:mot,format:value=>formaterGraphique(value*diviseur),series:[{name:ligne.libelle,values:Object.fromEntries(tableau.exercices.flatMap((year,i)=>ligne.valeurs[i]===null?[]:[[String(year),ligne.valeurs[i]!/diviseur]]))}]})).join("");
+    .filter(ligne => !["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"].includes(ligne.id)
+      && (!financesGroupees || !financesIds.includes(ligne.id)))
+    .map(ligne => timeChart({title:ligne.libelle,description:`Montants publiés de ${premier} à ${dernier}.`,unit:mot,format:value=>formaterGraphique(value*diviseur),series:[evolutionParLigne(ligne)]})).join("");
   return `<section class="bloc-lecture bloc-lecture--tableau">
     <h3>Évolution</h3>
     ${tendance}
+    ${financesGroupees}
     ${variations}
     <div class="tableau-exercices" tabindex="0">${tableExacte}</div>
   </section>`;

@@ -82,7 +82,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "La mission Défense a consommé 62,1 milliards d’euros en 2025, pour 59,9 milliards votés dans le budget initial. Cet écart de près de 2,2 milliards montre pourquoi le suivi des comptes doit se poursuivre après le vote de la loi de finances.",
+    "chapo": "Les dépenses de défense atteignent 62,1 milliards d’euros en 2025, contre 59,9 milliards prévus dans le budget initial. Cet écart de près de 2,2 milliards montre pourquoi il faut suivre les comptes après le vote du budget.",
     "series": [],
     "preuves": [
       {
@@ -123,7 +123,7 @@
         "id": "execution",
         "titre": "Ce qui a été dépensé pendant l’année",
         "paragraphes": [
-          "Les crédits votés fixent le budget initial. Les crédits consommés retracent son exécution. En 2025, les dépenses de la mission sont supérieures d’environ 3,6 % au montant initial. Ce rapprochement porte sur la même mission et la même année."
+          "Les sommes votées par le Parlement fixent le budget initial. Les sommes effectivement dépensées montrent ce qui a été réalisé. En 2025, les dépenses de défense sont supérieures d’environ 3,6 % au montant initial. La comparaison porte sur le même périmètre et la même année."
         ],
         "visualisationIds": [
           "budget-execution"
@@ -133,7 +133,7 @@
         "id": "mouvements",
         "titre": "Comment un budget peut évoluer",
         "paragraphes": [
-          "Des crédits peuvent être modifiés en cours d’année. Pour expliquer précisément l’écart, il faut rapprocher l’exécution des ouvertures, des annulations et des reports autorisés. Le dépassement du budget initial ne suffit donc pas à établir un dépassement des autorisations finales."
+          "Le budget peut changer en cours d’année : de nouvelles sommes peuvent être ouvertes, certaines annulées, et une partie reportée à l’année suivante. Pour expliquer précisément l’écart, il faut donc regarder ces mouvements. Dépenser plus que prévu au départ ne suffit pas à dire que le budget finalement autorisé a été dépassé."
         ]
       },
       {

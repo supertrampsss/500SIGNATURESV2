@@ -23,3 +23,17 @@ test('birth cohorts are labelled as generations and drawn as points',()=>{
  assert.match(html,/Génération de naissance/);
  assert.doesNotMatch(html,/<path/);
 });
+
+test('les impôts et les dépenses se lisent comme une variation en pourcentage',()=>{
+ const i=insight('impots-face-depenses');
+ i.preuves=[{indicateur:'impots',periode:'2025',valeur:0,libelle:'Impôts'},{indicateur:'depenses',periode:'2025',valeur:0,libelle:'Dépenses'}];
+ const catalogue=[
+  {id:'impots',libelle:'Impôts locaux',unite:'EUR',theme:'finances_locales'},
+  {id:'depenses',libelle:'Dépenses de fonctionnement',unite:'EUR',theme:'finances_locales'},
+ ];
+ const html=insightChart(i,catalogue,{impots:{'2019':100,'2025':116.7},depenses:{'2019':100,'2025':115.6}});
+ assert.match(html,/\+16,7 %/);
+ assert.match(html,/\+15,6 %/);
+ assert.match(html,/Évolution depuis 2019/);
+ assert.doesNotMatch(html,/Base 100|116,7 Base|115,6 Base/);
+});
