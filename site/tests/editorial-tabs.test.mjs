@@ -53,10 +53,9 @@ test('France: published accounts survive a network failure and chapters stay on 
  }
 });
 
-test('Territoires: search and financial detail work without WebGL',async({page},info)=>{
+test('Villes: search and financial detail work without a map',async({page},info)=>{
  await publication(page,{demographie:true});
- await page.addInitScript(()=>{const getContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return getContext.call(this,type,...args);};});
- await page.goto('/territoire');await expect(page.locator('#carte-etat')).toContainText(/pas disponible sur cet appareil/ );await expect(page.locator('#cadre-carte')).toHaveAttribute('data-carte-indisponible','oui');
+ await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de votre territoire.');
  await activate(page.locator('.territoire-depart button[data-code="33063"]'),info);
  await expect(page.locator('#detail #davantage-population')).toBeVisible();
  await expect(page.locator('#detail #davantage-population')).toContainText(/267\s991/);
@@ -74,7 +73,7 @@ test('Salaires: dark mode, reduced motion and all four navigation links remain u
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
 });
 
-test('France and Territoires: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
+test('France and Villes: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
  await publication(page);
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/bilan/');
