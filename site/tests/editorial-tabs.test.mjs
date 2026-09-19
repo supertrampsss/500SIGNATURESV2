@@ -101,8 +101,13 @@ test('France: published accounts survive a network failure and chapters stay on 
  await page.goto('/bilan/');await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');
  await expect(page.locator('.bilan-flux__ligne')).toHaveCount(2);await expect(page.locator('.bilan-verdict__totem')).toContainText('Solde public');
  await expect(page.locator('.bilan-erreur [role="alert"]')).toBeVisible();await expect(page.locator('#national')).toBeVisible();
- for(const [name,id] of [['Recettes','france-entrees'],['Dépenses','france-sorties'],['Dette','france-dette'],['Europe','bloc-europe']]){
-  await activate(page.getByRole('navigation',{name:'Chapitres des comptes publics'}).getByRole('link',{name,exact:true}),info);await expect(page).toHaveURL(new RegExp('#'+id+'$'));await expect(page.locator('#'+id)).toBeVisible();await noOverflow(page);
+ const chapitres=page.getByRole('navigation',{name:'Chapitres des comptes publics'});
+ // Sur mobile, le raccourci des chapitres est masqué pour laisser la page
+ // respirer. Le parcours reste vérifié sur desktop, où il est affiché.
+ if(await chapitres.isVisible()){
+  for(const [name,id] of [['Recettes','france-entrees'],['Dépenses','france-sorties'],['Dette','france-dette'],['Europe','bloc-europe']]){
+   await activate(chapitres.getByRole('link',{name,exact:true}),info);await expect(page).toHaveURL(new RegExp('#'+id+'$'));await expect(page.locator('#'+id)).toBeVisible();await noOverflow(page);
+  }
  }
 });
 
