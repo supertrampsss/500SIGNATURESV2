@@ -1,0 +1,104 @@
+/* Direction A — Revue civique. The data components stay authoritative; this
+   layer gives their shared shell the calm paper / ink / clay vocabulary of the
+   approved review while retaining the reader's selected dark theme. */
+:root {
+  --revue-clay: #a84429;
+  --revue-clay-soft: #f0e4dc;
+  --revue-paper: #f5f2ea;
+  --revue-ink: #203b34;
+  --revue-sage: #e7eadf;
+  --revue-rule: #cfd3c8;
+}
+
+body[data-vue="accueil"], body[data-vue="bilan"], body[data-vue="territoire"], body[data-page="editorial"] {
+  background: var(--revue-paper);
+  color: var(--revue-ink);
+}
+:root[data-theme="sombre"] body[data-vue="accueil"],
+:root[data-theme="sombre"] body[data-vue="bilan"],
+:root[data-theme="sombre"] body[data-vue="territoire"],
+:root[data-theme="sombre"] body[data-page="editorial"] {
+  background: var(--fond);
+  color: var(--encre);
+}
+
+body[data-vue="accueil"] #contenu,
+body[data-vue="bilan"] #contenu,
+body[data-vue="territoire"] #contenu,
+body[data-page="editorial"] #contenu { padding-bottom: 4rem; }
+
+body[data-vue="accueil"] .accueil,
+body[data-vue="bilan"] #vue-bilan,
+body[data-vue="territoire"] #vue-territoire,
+body[data-page="editorial"] #contenu { max-width: 78rem; margin-inline: auto; }
+
+/* Home: a clear editorial opening, then a measured grid of entry points. */
+body[data-vue="accueil"] .accueil__ouverture {
+  max-width: 58rem;
+  padding: clamp(3rem, 9vw, 8rem) clamp(1rem, 4vw, 3rem) clamp(2rem, 5vw, 4rem);
+  border-bottom: 1px solid var(--trait);
+}
+body[data-vue="accueil"] .accueil__message {
+  max-width: 13ch;
+  margin: 0 0 1rem;
+  color: var(--encre);
+  font: 600 clamp(2.8rem, 7vw, 6.4rem)/.95 var(--serif);
+  letter-spacing: -.025em;
+}
+body[data-vue="accueil"] .accueil__cadrage { max-width: 45ch; color: var(--encre-douce); font-size: 1.1rem; }
+body[data-vue="accueil"] .accueil__appel { color: var(--revue-clay); font-weight: 700; text-underline-offset: .25em; }
+body[data-vue="accueil"] .accueil-portes { margin: 0; padding: 2rem clamp(1rem, 4vw, 3rem); }
+body[data-vue="accueil"] .accueil-portes h3 { margin: 0 0 1rem; color: var(--encre-douce); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+body[data-vue="accueil"] .accueil-portes__grille { gap: 0; border-block: 1px solid var(--trait); }
+body[data-vue="accueil"] .accueil-porte { min-height: 11rem; border: 0; border-radius: 0; padding: 1.5rem; background: transparent; box-shadow: none; }
+body[data-vue="accueil"] .accueil-porte + .accueil-porte { border-left: 1px solid var(--trait); }
+body[data-vue="accueil"] .accueil-porte strong { font: 600 1.55rem/1.05 var(--serif); }
+body[data-vue="accueil"] .accueil-porte span { line-height: 1.5; }
+body[data-vue="accueil"] .accueil-porte::after { content: "↗"; align-self: end; color: var(--revue-clay); font-size: 1.25rem; }
+body[data-vue="accueil"] .accueil-porte--simuler { background: var(--revue-ink); color: #f7f4e9; }
+body[data-vue="accueil"] .accueil-porte--simuler span { color: #dce3dc; }
+
+/* France and Salaires read as dossiers: broad paper, quiet rules, one strong
+   figure per section. Existing source and chart markup remains untouched. */
+body[data-vue="bilan"] #vue-bilan,
+body[data-page="editorial"] #contenu { padding-inline: clamp(1rem, 4vw, 3rem); }
+body[data-vue="bilan"] .bilan-verdict,
+body[data-page="editorial"] .salaires { border-top: 4px solid var(--revue-clay); }
+body[data-vue="bilan"] .bilan-verdict__totem,
+body[data-page="editorial"] .salaires__resultat { box-shadow: 0 10px 30px rgb(15 27 46 / .08); }
+body[data-vue="bilan"] .bilan-reperage { position: sticky; top: var(--haut-entete); z-index: 2; background: var(--fond); }
+body[data-vue="bilan"] .bilan-reperage a[aria-current="true"],
+body[data-vue="bilan"] .bilan-reperage a:hover { color: var(--revue-clay); }
+body[data-page="editorial"] .salaires__entree { max-width: 60rem; padding-top: clamp(2rem, 7vw, 6rem); }
+body[data-page="editorial"] .salaires__entree h1 { max-width: 12ch; font-size: clamp(2.8rem, 7vw, 6rem); }
+body[data-page="editorial"] .salaires__atelier { border-top: 1px solid var(--trait); padding-top: 2rem; }
+body[data-page="editorial"] .salaires__statut[aria-pressed="true"] { border-color: var(--revue-clay); color: var(--revue-clay); }
+
+/* Territories: the search is the first instrument, and the map remains a
+   companion to the factual sheet at every width. */
+body[data-vue="territoire"] .territoire-recherche { border-radius: 0; border-top: 4px solid var(--revue-clay); }
+body[data-vue="territoire"] .territoire-recherche__champ input { border-radius: 2px; }
+body[data-vue="territoire"] .fiche { border-top: 1px solid var(--trait); }
+body[data-vue="territoire"] .repere { border-radius: 2px; border-top: 2px solid var(--revue-clay); }
+
+/* Mandats: decision room hierarchy. Choice data is already computed by the
+   engine; these styles make the decision, context and consequences scan as a
+   single room. */
+body[data-mode="national"] .dossier { max-width: 48rem; margin-inline: auto; }
+body[data-mode="national"] .dossier .decision-context { margin: 0 0 1.25rem; border-block: 1px solid var(--line); }
+body[data-mode="national"] .decision-context-label { display: block; color: var(--gold); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
+body[data-mode="national"] .decision-context p { max-width: 58ch; color: var(--muted); font-size: .8125rem; }
+body[data-mode="national"] .choice-consequences { display: grid; gap: .35rem; margin-top: .75rem; padding-top: .7rem; border-top: 1px solid #ffffff18; color: var(--muted); font-size: .75rem; line-height: 1.45; }
+body[data-mode="national"] .choice-consequences b { color: var(--gold); font-weight: 600; }
+body[data-mode="national"] .choice:focus-visible { outline-color: var(--gold); }
+body[data-mode="national"] .national-stage { box-shadow: 0 18px 55px rgb(0 0 0 / .22); }
+
+@media (max-width: 60rem) {
+  body[data-vue="accueil"] .accueil-porte + .accueil-porte { border-left: 0; border-top: 1px solid var(--trait); }
+  body[data-vue="bilan"] .bilan-reperage { top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-vue="accueil"] .accueil-porte,
+  body[data-mode="national"] .national-stage { transition: none; transform: none; }
+}

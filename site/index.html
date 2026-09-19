@@ -31,7 +31,9 @@
     <script>
       try {
         var t = localStorage.getItem("theme");
-        document.documentElement.dataset.theme = t === "clair" ? "clair" : "sombre";
+        // Revue civique opens on its printable paper surface. A reader who
+        // explicitly chose night mode keeps that preference across visits.
+        document.documentElement.dataset.theme = t === "sombre" ? "sombre" : "clair";
       } catch (e) {
         /* navigation privée : le thème suit alors le système, sans mémoire */
       }
