@@ -28,25 +28,25 @@
   "chiffres": [
     {
       "dit": "90 milliards d’euros",
-      "valeur": 90000000000.0,
+      "valeur": 90000000000,
       "registre": "donnee_officielle",
       "lecture": "Prêt de soutien à l’Ukraine, montant total prévu pour les deux années."
     },
     {
       "dit": "60 milliards d’euros",
-      "valeur": 60000000000.0,
+      "valeur": 60000000000,
       "registre": "donnee_officielle",
       "lecture": "Part de l’enveloppe destinée aux capacités industrielles et aux acquisitions de défense."
     },
     {
       "dit": "30 milliards d’euros",
-      "valeur": 30000000000.0,
+      "valeur": 30000000000,
       "registre": "donnee_officielle",
       "lecture": "Part de l’enveloppe destinée au soutien macroéconomique."
     },
     {
       "dit": "11,6 milliards d’euros",
-      "valeur": 11600000000.0,
+      "valeur": 11600000000,
       "registre": "donnee_officielle",
       "lecture": "Cumul indiqué sur la page du Conseil consultée à cette date ; ce montant peut évoluer."
     }
@@ -54,7 +54,7 @@
   "hypotheses": [
     "La ventilation entre soutien budgétaire et défense est indicative.",
     "Les 90 milliards ne constituent ni un don déjà intégralement versé, ni le total historique de l’aide européenne.",
-    "Le calendrier et le coût final du financement dépendent des décaissements, des taux et du remboursement."
+    "Le calendrier et le coût final du financement dépendent notamment des décaissements, des taux et du remboursement."
   ],
   "effets_indirects": [],
   "sources": [
@@ -75,6 +75,30 @@
       "titre": "Service européen pour l’action extérieure : financement et remboursement du prêt",
       "url": "https://www.eeas.europa.eu/eeas/ukraine-support-loan-and-eu-military-defence-support-ukraine_en",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "reglement-ukraine-pret",
+      "titre": "Conseil de l’Union européenne : texte juridique du Ukraine Support Loan",
+      "url": "https://data.consilium.europa.eu/doc/document/PE-6-2026-REV-1/en/pdf",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "eprs-ukraine-loan",
+      "titre": "Parlement européen : Ukraine Support Loan, analyse du dispositif",
+      "url": "https://www.europarl.europa.eu/thinktank/en/academic/EPRS_BRI%282026%29782649",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "osw-ukraine-loan",
+      "titre": "OSW : un compromis difficile sur l’aide financière de l’UE à l’Ukraine",
+      "url": "https://www.osw.waw.pl/en/publikacje/analyses/2025-12-19/a-bitter-compromise-over-eus-financial-assistance-to-ukraine",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "malta-independent-ukraine-loan",
+      "titre": "The Malta Independent : opinion critique sur le prêt européen à l’Ukraine",
+      "url": "https://www.independent.com.mt/articles/2026-01-11/newspaper-opinions/Why-the-EU%E2%80%99s-%E2%82%AC90-billion-loan-to-Ukraine-is-flawed-European-appraisal-with-Maltese-focus-6736286163",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -90,15 +114,29 @@
   ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Les 90 milliards d’euros annoncés pour l’Ukraine sont un prêt, pas une somme déjà versée. Pour comprendre ce que ce chiffre recouvre, il faut distinguer trois choses : l’argent emprunté par l’Union européenne, les montants prêtés à l’Ukraine et les intérêts pris en charge par le budget européen.",
-    "sommaire": [
-      "financement",
-      "usages",
-      "versements",
-      "remboursement",
-      "conditions",
-      "conclusion"
-    ],
+    "chapo": "Les 90 milliards d’euros annoncés pour l’Ukraine sont un prêt, pas une somme déjà versée. Pour comprendre ce chiffre, il faut distinguer l’emprunt de l’Union européenne, les montants prêtés à l’Ukraine, les usages prévus, les décaissements déjà effectués et le coût des intérêts pour le budget européen.",
+    "chronologie": {
+      "titre": "Le prêt se déploie par étapes",
+      "sourceId": "conseil-pret",
+      "etapes": [
+        {
+          "date": "23 avril 2026",
+          "texte": "Le Conseil finalise le prêt de soutien à l’Ukraine pour les besoins budgétaires et de défense de 2026 et 2027."
+        },
+        {
+          "date": "Juin 2026",
+          "texte": "Les premiers décaissements de la nouvelle enveloppe commencent."
+        },
+        {
+          "date": "19 septembre 2026",
+          "texte": "Le Conseil indique 11,6 milliards d’euros déjà versés dans le cadre du prêt."
+        },
+        {
+          "date": "2026-2027",
+          "texte": "Les versements doivent répondre progressivement aux besoins et aux conditions du dispositif."
+        }
+      ]
+    },
     "series": [],
     "preuves": [
       {
@@ -138,6 +176,26 @@
         "period": "2026-09-19",
         "definition": "Cumul indiqué sur la page du Conseil consultée à cette date ; ce montant peut évoluer.",
         "sourceId": "conseil-versements"
+      },
+      {
+        "id": "pret-verse-budget",
+        "libelle": "Versements macrofinanciers annoncés",
+        "value": 3.2,
+        "unit": "billion_EUR",
+        "period": "2026-06-25",
+        "definition": "Premier versement macrofinancier annoncé au titre du Ukraine Support Loan.",
+        "sourceId": "seae-financement",
+        "comparableGroup": "versements-2026"
+      },
+      {
+        "id": "pret-verse-defense",
+        "libelle": "Versements de défense annoncés",
+        "value": 8.4,
+        "unit": "billion_EUR",
+        "period": "2026-09-19",
+        "definition": "Montant de soutien à l'acquisition de matériel de défense inclus dans le cumul annoncé par le Conseil.",
+        "sourceId": "conseil-versements",
+        "comparableGroup": "versements-2026"
       }
     ],
     "visualisations": [
@@ -150,21 +208,47 @@
           "pret-defense",
           "pret-budget"
         ]
+      },
+      {
+        "id": "versements-repere",
+        "type": "snapshot_table",
+        "titre": "Une enveloppe et des versements ne sont pas le même chiffre",
+        "resume": "Les 90 milliards sont le plafond prévu ; les 11,6 milliards correspondent au cumul annoncé à la date de consultation.",
+        "preuveIds": [
+          "pret-total",
+          "pret-verse",
+          "pret-verse-budget",
+          "pret-verse-defense"
+        ]
       }
     ],
     "sections": [
       {
-        "id": "financement",
-        "titre": "L’Union européenne emprunte l’argent",
+        "id": "annonce-et-cadre",
+        "titre": "Les 90 milliards sont une enveloppe de prêt",
         "paragraphes": [
-          "L’Union européenne emprunte sur les marchés, puis prête cet argent à l’Ukraine. Les 90 milliards ne sont donc pas une dépense de la France seule. Le budget européen sert de garantie à l’opération."
+          "L'Union européenne emprunte sur les marchés de capitaux, puis met les fonds à la disposition de l'Ukraine. Le budget européen apporte le cadre et la garantie de l'opération.",
+          "Le chiffre de 90 milliards désigne le montant prévu pour 2026 et 2027. Il ne s'agit ni d'un don versé en une seule fois ni du total de toute l'aide européenne depuis le début de la guerre."
+        ],
+        "visualisationIds": [
+          "versements-repere"
+        ]
+      },
+      {
+        "id": "financement",
+        "titre": "Qui emprunte et qui reçoit ?",
+        "paragraphes": [
+          "L'emprunteur au niveau des marchés est l'Union européenne. L'Ukraine reçoit les fonds sous forme de prêt selon les besoins et les règles du dispositif.",
+          "La contribution de chaque État membre ne se lit donc pas comme une facture nationale de 90 milliards. Le risque et la garantie passent par le budget de l'Union.",
+          "Les analyses du Parlement européen et de l’OSW décrivent un emprunt commun garanti par la capacité budgétaire de l’Union, avec des modalités particulières pour les États qui ne participent pas au dispositif. Cela confirme que le montant européen n’est pas une simple addition de chèques nationaux."
         ]
       },
       {
         "id": "usages",
         "titre": "À quoi servent les 90 milliards ?",
         "paragraphes": [
-          "Pour 2026 et 2027, environ 60 milliards sont prévus pour la défense et environ 30 milliards pour le soutien du budget ukrainien. Ce sont les deux grandes utilisations prévues de l’enveloppe."
+          "Environ 60 milliards sont prévus pour les besoins de défense, notamment les capacités industrielles et l'acquisition de matériel. Environ 30 milliards servent au soutien macroéconomique et au fonctionnement du budget ukrainien.",
+          "Cette ventilation est indicative. Les versements peuvent être progressifs et répondre à des besoins distincts de l'enveloppe totale."
         ],
         "visualisationIds": [
           "enveloppe-versements"
@@ -174,35 +258,55 @@
         "id": "versements",
         "titre": "Combien a déjà été versé ?",
         "paragraphes": [
-          "Au 19 septembre 2026, le Conseil indique que 11,6 milliards d’euros ont déjà été versés. C’est un point d’étape : ce montant pourra augmenter. Il fait partie des 90 milliards prévus ; il ne faut donc pas l’ajouter à l’enveloppe totale."
+          "Au 19 septembre 2026, le Conseil indique 11,6 milliards d'euros déjà versés dans le cadre du prêt. Ce montant est un point d'étape et fait partie des 90 milliards : il ne faut pas l'ajouter au total.",
+          "La Commission avait annoncé un premier versement macrofinancier de 3,2 milliards d'euros en juin. Le cumul communiqué par le Conseil comprend aussi des versements liés à la défense, dont le montant se précise avec les nouvelles décisions."
+        ],
+        "visualisationIds": [
+          "versements-repere"
         ]
       },
       {
         "id": "remboursement",
-        "titre": "Le budget européen paie les intérêts",
+        "titre": "Le principal et les intérêts suivent deux logiques",
         "paragraphes": [
-          "L’Ukraine remboursera l’argent emprunté selon les règles prévues par le dispositif. Les intérêts, c’est-à-dire le coût de l’emprunt, sont pris en charge par le budget de l’Union européenne. Le prêt a donc un coût pour l’Europe, même s’il ne s’agit pas d’un don de 90 milliards versé immédiatement."
+          "L'Ukraine devra rembourser le prêt selon les règles du dispositif. Le budget de l'Union prend en charge les intérêts, c'est-à-dire le coût du financement sur les marchés.",
+          "Le dispositif prévoit un remboursement lié aux réparations dues par la Russie, sous réserve du droit applicable et des décisions qui permettront de les mobiliser. Le coût pour l'Europe ne se résume donc pas au mot « prêt ».",
+          "L’OSW souligne que le remboursement dépend du mécanisme lié aux réparations et qu’une partie du risque reste portée par le budget européen tant que ces réparations ne sont pas disponibles. C’est une analyse du risque juridique et financier, pas un montant supplémentaire à ajouter aux 90 milliards."
         ]
       },
       {
         "id": "conditions",
-        "titre": "Des versements soumis à des conditions",
+        "titre": "Les versements sont soumis à des conditions",
         "paragraphes": [
-          "Les versements dépendent des besoins de financement de l’Ukraine et du respect des engagements associés au prêt. Les conditions portent sur l’état de droit et la lutte contre la corruption."
+          "Les décaissements dépendent des besoins de financement et du respect des engagements associés au prêt. Le cadre mentionne notamment l'État de droit et la lutte contre la corruption.",
+          "Ces conditions expliquent pourquoi une enveloppe votée ne devient pas automatiquement une somme versée. Les paiements suivent les étapes et les contrôles du dispositif.",
+          "Une tribune critique publiée par The Malta Independent met en avant l’incertitude sur le remboursement et la nécessité d’un contrôle démocratique. Cette source exprime une position argumentée, non un fait établi ; elle est utile pour présenter le débat, mais les chiffres du dossier restent ceux des textes européens."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Ce que ce chiffre signifie vraiment",
+        "titre": "Ce que le chiffre signifie vraiment",
         "paragraphes": [
-          "Les 90 milliards sont le montant total prévu pour le prêt en 2026 et 2027. L’Union européenne lève les fonds, l’Ukraine les reçoit progressivement et le budget européen prend en charge les intérêts. Le montant doit donc être lu avec trois précisions : qui emprunte, pour quels besoins et à quel coût pour le budget européen."
+          "Les 90 milliards sont le montant total prévu pour un prêt européen en 2026 et 2027. L'Union lève les fonds, l'Ukraine les reçoit progressivement et le budget européen prend en charge les intérêts.",
+          "La question complète est donc : qui emprunte, pour quels besoins, combien a déjà été versé, quelles conditions s'appliquent et quel coût reste à la charge du budget européen ?"
         ]
       }
     ],
     "limitations": [
-      "La ventilation entre soutien budgétaire et défense est indicative.",
-      "Les 90 milliards ne constituent ni un don déjà intégralement versé, ni le total historique de l’aide européenne.",
-      "Le calendrier et le coût final du financement dépendent des décaissements, des taux et du remboursement."
+      "La ventilation de 60 milliards pour la défense et 30 milliards pour le budget est indicative.",
+      "Les 90 milliards ne constituent ni un don déjà intégralement versé, ni le total historique de l'aide européenne.",
+      "Les montants versés évoluent avec les nouveaux décaissements ; ils doivent être datés.",
+      "Le coût final du financement dépend des décaissements, des taux, du calendrier et du remboursement.",
+      "Le remboursement par des réparations de guerre dépend du droit applicable et de décisions futures."
+    ],
+    "sommaire": [
+      "annonce-et-cadre",
+      "financement",
+      "usages",
+      "versements",
+      "remboursement",
+      "conditions",
+      "conclusion"
     ]
   }
 }

@@ -57,7 +57,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2013",
-        "valeur": 1242358000000.0
+        "valeur": 1242358000000
       },
       "registre": "fait_comptable",
       "lecture": "En euros, la dépense valait 1 242 358 M€ en 2013."
@@ -69,7 +69,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2025",
-        "valeur": 1714137200000.0
+        "valeur": 1714137200000
       },
       "registre": "fait_comptable",
       "lecture": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté."
@@ -93,6 +93,12 @@
       "url": "https://www.insee.fr/fr/statistiques/8997691",
       "consulte_le": "2026-08-22",
       "id": "source-2"
+    },
+    {
+      "id": "cour-comptes-depenses-2024",
+      "titre": "Cour des comptes : rapport public annuel 2024, finances publiques",
+      "url": "https://www.ccomptes.fr/sites/default/files/2024-03/RPA-2024-volume-1-reduit.pdf",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -109,6 +115,24 @@
   "verifie_contre": "",
   "dossier": {
     "chapo": "Les dépenses publiques, celles de l'État, de la Sécurité sociale et des collectivités locales, financent les services, les investissements et les prestations. On peut les mesurer en euros ou les rapporter à la richesse produite. Ces deux lectures répondent à des questions différentes et peuvent évoluer dans des sens opposés.",
+    "chronologie": {
+      "titre": "Deux périodes servent de repères",
+      "sourceId": "source-1",
+      "etapes": [
+        {
+          "date": "2013",
+          "texte": "La dépense publique représente 58,6 % du PIB et atteint 1 242,4 milliards d’euros dans les comptes retenus."
+        },
+        {
+          "date": "2024",
+          "texte": "La part de la dépense dans le PIB vaut 57,3 % ; ce ratio est inférieur à celui de 2013."
+        },
+        {
+          "date": "2025",
+          "texte": "Les dépenses atteignent 1 714,1 milliards d’euros dans les comptes publiés par l’Insee."
+        }
+      ]
+    },
     "series": [],
     "preuves": [
       {
@@ -148,7 +172,7 @@
         "unit": "billion_EUR",
         "period": "2025",
         "definition": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté.",
-        "sourceId": "source-1",
+        "sourceId": "source-2",
         "comparableGroup": "montant"
       }
     ],
@@ -157,7 +181,7 @@
         "id": "ratios",
         "type": "bar",
         "titre": "Le poids des dépenses dans la richesse produite",
-        "resume": "France, en pourcentage du produit intérieur brut. Deux observations datées.",
+        "resume": "France, en pourcentage du PIB. Les deux observations sont datées et ne sont pas un montant en euros.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -172,14 +196,38 @@
           "chiffre-3",
           "chiffre-4"
         ]
+      },
+      {
+        "id": "lecture-ratio",
+        "type": "snapshot_table",
+        "titre": "Un ratio peut baisser quand le montant augmente",
+        "resume": "Les quatre repères montrent pourquoi il faut lire séparément le numérateur et le dénominateur.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2",
+          "chiffre-3",
+          "chiffre-4"
+        ]
       }
     ],
     "sections": [
       {
-        "id": "ratio",
-        "titre": "Le rapport à la richesse produite",
+        "id": "deux-lectures",
+        "titre": "Deux questions différentes se cachent derrière « la dépense baisse »",
         "paragraphes": [
-          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Ce rapport diminue lorsque le PIB progresse plus rapidement que les dépenses, même si celles-ci augmentent."
+          "Un montant en euros répond à la question « combien les administrations dépensent-elles ? ». Une part du PIB répond à la question « quelle place ces dépenses occupent-elles dans la richesse produite ? ».",
+          "Le numérateur est la dépense publique ; le dénominateur est le PIB. Si le PIB augmente plus vite que la dépense, le ratio baisse même lorsque la dépense augmente."
+        ],
+        "visualisationIds": [
+          "lecture-ratio"
+        ]
+      },
+      {
+        "id": "ratio",
+        "titre": "La part du PIB recule entre 2013 et 2024",
+        "paragraphes": [
+          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Le ratio baisse bien dans les comptes retenus.",
+          "Cette baisse décrit un poids relatif dans l'économie. Elle ne signifie pas que les administrations ont dépensé moins d'euros."
         ],
         "visualisationIds": [
           "ratios"
@@ -187,26 +235,54 @@
       },
       {
         "id": "montant",
-        "titre": "Les sommes dépensées",
+        "titre": "Les sommes dépensées augmentent sur les repères disponibles",
         "paragraphes": [
-          "Les dépenses passent de 1 242,4 milliards d’euros en 2013 à 1 714,1 milliards en 2025. Les montants et les ratios présentés s’arrêtent à des années différentes : ils ne permettent pas de calculer directement une évolution commune sur toute la période."
+          "Les dépenses passent de 1 242,4 milliards d'euros en 2013 à 1 714,1 milliards en 2025. Ces montants sont en euros courants.",
+          "Les années ne sont pas exactement les mêmes que celles du ratio : 2024 pour la part du PIB, 2025 pour le montant. Il ne faut pas fabriquer un taux de variation unique à partir de ces deux couples."
         ],
         "visualisationIds": [
           "montants"
         ]
       },
       {
+        "id": "prix-et-besoins",
+        "titre": "Les euros courants ne disent pas tout du service rendu",
+        "paragraphes": [
+          "Une dépense plus élevée peut financer plus de services, des prix plus élevés, des salaires revalorisés ou des besoins nouveaux. Pour comparer les moyens dans le temps, il faut aussi tenir compte de l'inflation.",
+          "La population, la situation économique et les règles de prise en charge peuvent changer. Le montant global ne mesure donc pas seul l'accès ou la qualité des services.",
+          "La Cour des comptes souligne que le ratio peut diminuer lorsque le PIB progresse plus vite que la dépense et lorsque des dispositifs exceptionnels de crise s’éteignent. Elle observe aussi que, si l’on retire ces mesures exceptionnelles, la dépense rapportée au PIB peut augmenter. Le recul du ratio global ne suffit donc pas à décrire toutes les tendances."
+        ]
+      },
+      {
+        "id": "perimetre",
+        "titre": "Le périmètre couvre toutes les administrations publiques",
+        "paragraphes": [
+          "Les comptes utilisés regroupent l'État, les organismes de Sécurité sociale et les collectivités locales. Ce périmètre est plus large que le seul budget de l'État.",
+          "Modifier le périmètre ou la définition peut changer le résultat. Toute comparaison doit donc conserver la source, l'année et l'unité.",
+          "Cette lecture rappelle pourquoi une série doit être replacée dans son contexte : crise sanitaire, boucliers tarifaires, inflation et soutiens temporaires modifient fortement les montants d’une année à l’autre. Comparer deux années sans isoler ces effets donne une impression de baisse ou de hausse plus simple que la réalité."
+        ]
+      },
+      {
         "id": "conclusion",
         "titre": "Préciser la mesure et la période",
         "paragraphes": [
-          "Une baisse en part du produit intérieur brut renseigne sur le poids relatif des administrations dans l’économie. Pour suivre les moyens des services publics, il faut aussi regarder les montants, la hausse générale des prix et les besoins de la population."
+          "La part des dépenses publiques dans le PIB recule de 58,6 % à 57,3 % entre 2013 et 2024, tandis que les montants publiés augmentent entre 2013 et 2025.",
+          "Dire « la dépense publique baisse » sans préciser l'unité mélange deux informations. Un dossier complet donne les deux lectures et explique leur relation."
         ]
       }
     ],
-    "limitations": [],
+    "limitations": [
+      "Les ratios et les montants ne portent pas tous sur les mêmes années.",
+      "Les montants sont en euros courants : ils incorporent l'évolution générale des prix.",
+      "Le périmètre est celui des administrations publiques, pas le seul budget de l'État.",
+      "Une variation de dépense ne permet pas à elle seule de conclure sur le volume ou la qualité des services."
+    ],
     "sommaire": [
+      "deux-lectures",
       "ratio",
       "montant",
+      "prix-et-besoins",
+      "perimetre",
       "conclusion"
     ]
   }

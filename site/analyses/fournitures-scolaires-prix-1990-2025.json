@@ -57,6 +57,18 @@
       "titre": "Insee BDM : IPC d'ensemble, série 001764363",
       "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001764363",
       "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "ufc-fournitures-2025",
+      "titre": "UFC-Que Choisir : fournitures scolaires, pas de baisse des prix en vue",
+      "url": "https://www.quechoisir.org/actualite-fournitures-scolaires-pas-de-baisse-des-prix-en-vue-n168488/",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "familles-france-rentree-2025",
+      "titre": "Familles de France : enquête sur le coût de la rentrée scolaire 2025",
+      "url": "https://www.familles-de-france.org/sites/default/files/2025-08/Dossier%20de%20presse%20RS%202025%20VF_compressed.pdf",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -72,13 +84,7 @@
   ],
   "verifie_contre": "Insee BDM, séries 001765036 et 001764363",
   "dossier": {
-    "chapo": "À chaque rentrée, les familles doivent acheter ou remplacer une partie du matériel scolaire. L’Insee suit l’évolution des prix des fournitures dans un panier défini. Sur la période 1990-2025, cette hausse peut être comparée à celle de l’ensemble des prix à la consommation.",
-    "sommaire": [
-      "mesure",
-      "evolution",
-      "limite",
-      "conclusion"
-    ],
+    "chapo": "À chaque rentrée, les familles doivent acheter ou remplacer une partie du matériel scolaire. L’Insee suit l’évolution des prix dans un panier défini, mais cette série ne donne pas le budget total d’une rentrée. Entre 1990 et 2025, on peut comparer ce sous-panier à l’ensemble des prix à la consommation.",
     "series": [
       {
         "id": "fournitures",
@@ -173,10 +179,20 @@
     ],
     "visualisations": [
       {
+        "id": "evolution-indices",
+        "type": "line",
+        "titre": "Deux indices, base 100 en 2015",
+        "resume": "Le sous-panier des fournitures progresse entre 1990 et 2025, mais moins que l'indice d'ensemble sur les repères affichés.",
+        "seriesIds": [
+          "fournitures",
+          "ipc-ensemble"
+        ]
+      },
+      {
         "id": "table-prix",
         "type": "snapshot_table",
-        "titre": "Repères pour les fournitures et l'indice d'ensemble",
-        "resume": "Les valeurs de 1990 et 2025 sont comparées sans tracer de trajectoire pour les années non affichées.",
+        "titre": "Les repères de prix disponibles",
+        "resume": "Les valeurs de 1990 et 2025 sont comparées sans inventer les années intermédiaires.",
         "preuveIds": [
           "preuve-1990",
           "preuve-2025",
@@ -187,42 +203,73 @@
     ],
     "sections": [
       {
-        "id": "mesure",
-        "titre": "Le panier de fournitures suivi par l’Insee",
+        "id": "ce-que-mesure-indice",
+        "titre": "Le panier suivi par l’Insee",
         "paragraphes": [
-          "La série 001765036 suit les prix d'une partie précise des fournitures scolaires et de bureau. Elle ne publie aucun « coût moyen d'une rentrée » en euros."
+          "La série 001765036 porte sur les « autres fournitures scolaires et de bureau ». Elle suit des prix dans un panier statistique défini, avec une base 100 en 2015.",
+          "Elle ne publie pas le montant moyen payé par une famille et ne représente pas nécessairement toute la liste demandée par une école."
         ]
       },
       {
         "id": "evolution",
-        "titre": "Une hausse inférieure à celle de l'indice d'ensemble sur la période",
+        "titre": "Une hausse depuis 1990, mais moins forte que l’indice d’ensemble",
         "paragraphes": [
-          "Entre 1990 et 2025, l'indice des fournitures, établi sur une base 100 en 2015, passe de 64,70 à 113,02. L'indice d'ensemble passe de 62,10 à 119,37. Les fournitures n'ont donc pas augmenté plus vite que l'ensemble des prix sur cette période."
+          "L'indice des fournitures passe de 64,70 en 1990 à 100 en 2015 puis 113,02 en 2025. Avec une base 100 en 2015, 113,02 signifie que le niveau moyen du panier est environ 13 % supérieur à celui de 2015, selon cette série.",
+          "Sur les mêmes repères, l'indice d'ensemble passe de 62,10 à 119,37. Le sous-panier des fournitures a donc progressé moins vite que l'ensemble des prix sur la période observée."
         ],
         "visualisationIds": [
+          "evolution-indices",
           "table-prix"
         ]
       },
       {
-        "id": "limite",
-        "titre": "Pourquoi ce n'est pas le budget total de rentrée",
+        "id": "comparaison",
+        "titre": "Comparer des indices ne donne pas un budget en euros",
         "paragraphes": [
-          "Les quantités achetées, les promotions, le réemploi, les vêtements, le numérique et les frais annexes changent le budget réellement payé. L'indice de prix ne les additionne pas."
+          "Un indice mesure une évolution relative. Pour obtenir une dépense en euros, il faudrait connaître les quantités achetées, le prix de chaque article, les promotions et le moment de l'achat.",
+          "La comparaison avec l'indice d'ensemble renseigne sur la vitesse de hausse des prix, pas sur le montant absolu d'une rentrée."
+        ]
+      },
+      {
+        "id": "budget-reel",
+        "titre": "Le budget dépend de la liste et des habitudes",
+        "paragraphes": [
+          "Le budget réellement payé varie selon le niveau scolaire, la liste demandée, le réemploi du matériel, l'achat neuf ou d'occasion et les promotions.",
+          "Les vêtements, le transport, le numérique, la cantine ou les activités peuvent aussi compter dans une rentrée, mais ils ne sont pas compris dans ce sous-panier.",
+          "Les enquêtes de terrain ne racontent pas forcément la même histoire que l’indice Insee. UFC-Que Choisir observe une hausse moyenne de 2 % sur 118 fournitures entre juillet 2024 et juillet 2025, tandis que Familles de France estime le panier moyen d’une entrée en 6e à 211,10 euros, en baisse de 5,53 % sur un an. Ces résultats ne sont pas contradictoires : les articles, les quantités, les promotions et les dates d’achat ne sont pas les mêmes."
+        ]
+      },
+      {
+        "id": "attention-aux-annees",
+        "titre": "Les dernières valeurs peuvent évoluer",
+        "paragraphes": [
+          "La valeur 2025 des fournitures est provisoire. L'Insee peut la réviser lorsque les données annuelles sont consolidées.",
+          "Il faut donc conserver le millésime, la base et le nom exact du panier lorsque l'on cite le chiffre.",
+          "Le bon réflexe est donc de préciser si l’on parle d’un indice de prix, d’une liste-type ou d’un panier réellement acheté. Une baisse du panier d’une association peut venir des prix, mais aussi de la composition de la liste ou des arbitrages des familles."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Le prix du matériel et le budget de rentrée",
         "paragraphes": [
-          "Les prix du panier de fournitures ont progressé moins vite que l’indice d’ensemble entre 1990 et 2025. Le montant payé par une famille dépend également de la liste demandée et de ce qu’elle peut réutiliser."
+          "Les prix du sous-panier de fournitures ont progressé entre 1990 et 2025, mais moins que l'indice d'ensemble sur les repères présentés.",
+          "Le coût d'une rentrée ne peut être déduit de cette seule courbe : il dépend des quantités, des choix et de la liste effectivement achetée."
         ]
       }
     ],
     "limitations": [
-      "Les points affichés résument les séries officielles complètes disponibles dans le pipeline.",
-      "La valeur 2025 des fournitures est provisoire et pourra être révisée par l'Insee.",
       "L'indice 001765036 est un sous-panier et ne doit jamais être renommé « coût de la rentrée ».",
+      "La valeur 2025 des fournitures est provisoire et pourra être révisée.",
+      "Les points affichés résument les séries disponibles ; ils ne représentent pas toutes les années intermédiaires dans le tableau.",
       "La comparaison avec l'indice d'ensemble ne prouve aucune causalité."
+    ],
+    "sommaire": [
+      "ce-que-mesure-indice",
+      "evolution",
+      "comparaison",
+      "budget-reel",
+      "attention-aux-annees",
+      "conclusion"
     ]
   }
 }

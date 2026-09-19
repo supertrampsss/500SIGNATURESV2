@@ -28,7 +28,7 @@
   "chiffres": [
     {
       "dit": "266 milliards d’euros",
-      "valeur": 266000000000.0,
+      "valeur": 266000000000,
       "registre": "donnee_officielle",
       "lecture": "Administrations publiques de l’UE, fonction défense COFOG, euros courants."
     },
@@ -63,6 +63,24 @@
       "titre": "Eurostat : méthode et périmètre COFOG",
       "url": "https://ec.europa.eu/eurostat/cache/metadata/en/gov_10a_exp_esms.htm",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "eda-defense-2024",
+      "titre": "Agence européenne de défense : les dépenses de défense de l’UE atteignent 343 milliards d’euros en 2024",
+      "url": "https://www.eda.europa.eu/news-and-events/news/2025/09/02/eu-defence-spending-hits-343-bln-in-2024-eda-data-shows",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ofce-defense",
+      "titre": "OFCE : les défis industriels et financiers de la montée en puissance de la défense européenne",
+      "url": "https://www.ofce.fr/blog2024/fr/2025/20250430_CBSD/",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "intereconomics-defense",
+      "titre": "Intereconomics : les défis des dépenses de défense en Europe",
+      "url": "https://www.intereconomics.eu/contents/year/2024/number/4/article/the-challenges-of-defence-spending-in-europe.html",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -78,12 +96,7 @@
   ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Les dépenses de défense de l’Union européenne atteignent 266 milliards d’euros en 2024. Depuis 2020, elles ont augmenté de 90 milliards. À quel rythme progressent-elles, et que financent ces budgets ?",
-    "sommaire": [
-      "progression",
-      "repartition",
-      "conclusion"
-    ],
+    "chapo": "Les dépenses publiques de défense de l’Union européenne atteignent 266 milliards d’euros en 2024. Elles ont augmenté depuis 2020, mais le montant total ne dit pas encore quelles capacités ont été construites. Pour lire cette hausse, il faut préciser le périmètre, suivre la composition des dépenses et distinguer les comptes exécutés des annonces futures.",
     "series": [
       {
         "id": "defense-ue",
@@ -155,6 +168,48 @@
         "qualityFlags": [
           "provisoire"
         ]
+      },
+      {
+        "id": "defense-salaires",
+        "libelle": "Rémunérations dans les dépenses de défense",
+        "value": 39,
+        "unit": "percent",
+        "period": "2024",
+        "definition": "Part des rémunérations dans les dépenses publiques de défense de l’Union européenne.",
+        "sourceId": "eurostat-defense",
+        "comparableGroup": "repartition-2024"
+      },
+      {
+        "id": "defense-achats",
+        "libelle": "Achats de biens et services",
+        "value": 28.2,
+        "unit": "percent",
+        "period": "2024",
+        "definition": "Part des achats de biens et services dans les dépenses publiques de défense de l’Union européenne.",
+        "sourceId": "eurostat-defense",
+        "comparableGroup": "repartition-2024"
+      },
+      {
+        "id": "defense-investissement",
+        "libelle": "Investissement de défense",
+        "value": 23.4,
+        "unit": "percent",
+        "period": "2024",
+        "definition": "Part de l’investissement dans les dépenses publiques de défense de l’Union européenne.",
+        "sourceId": "eurostat-defense",
+        "comparableGroup": "repartition-2024"
+      },
+      {
+        "id": "defense-eda-total",
+        "libelle": "Dépenses de défense de l’UE selon l’Agence européenne de défense",
+        "value": 343,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Estimation de l’Agence européenne de défense, selon son périmètre et sa méthode propres ; elle n’est pas directement interchangeable avec la fonction COFOG d’Eurostat.",
+        "sourceId": "eda-defense-2024",
+        "qualityFlags": [
+          "périmètre_différent"
+        ]
       }
     ],
     "visualisations": [
@@ -166,14 +221,54 @@
         "seriesIds": [
           "defense-ue"
         ]
+      },
+      {
+        "id": "repartition-cofog",
+        "type": "bar",
+        "titre": "Ce que recouvrent les dépenses de défense",
+        "resume": "En 2024, les rémunérations, les achats et l’investissement représentent les principaux blocs mesurés dans le périmètre COFOG.",
+        "preuveIds": [
+          "defense-salaires",
+          "defense-achats",
+          "defense-investissement"
+        ]
+      },
+      {
+        "id": "france-ue",
+        "type": "snapshot_table",
+        "titre": "France et Union européenne rapportées au PIB",
+        "resume": "Deux ratios de 2024 selon la même classification de fonction publique.",
+        "preuveIds": [
+          "defense-france",
+          "defense-ue-pib"
+        ]
+      },
+      {
+        "id": "perimetres-defense",
+        "type": "snapshot_table",
+        "titre": "Deux montants, deux périmètres",
+        "resume": "Eurostat et l’Agence européenne de défense ne comptent pas exactement la même chose. La différence doit être expliquée, pas masquée.",
+        "preuveIds": [
+          "defense-total",
+          "defense-eda-total"
+        ]
       }
     ],
     "sections": [
       {
-        "id": "progression",
-        "titre": "Une hausse plus rapide en 2024",
+        "id": "ce-que-mesure-cofog",
+        "titre": "Un périmètre comptable précis",
         "paragraphes": [
-          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis à 266 milliards en 2024. La dernière année ajoute donc 34 milliards, soit près de 15 %. Ces montants sont exprimés en euros de chaque année : ils ne tiennent pas compte de la hausse des prix."
+          "Le chiffre d'Eurostat correspond à la fonction « défense » de la nomenclature COFOG. Il regroupe les dépenses des administrations publiques selon leur fonction, et non toutes les annonces politiques ou tous les contrats militaires signés.",
+          "Les 266 milliards d'euros sont exprimés en euros courants. Ils additionnent les dépenses des États membres dans le périmètre retenu."
+        ]
+      },
+      {
+        "id": "progression",
+        "titre": "Une hausse nette depuis 2020",
+        "paragraphes": [
+          "Les dépenses passent de 176 milliards d'euros en 2020 à 232 milliards en 2023, puis 266 milliards en 2024. La dernière année ajoute 34 milliards, soit près de 15 %.",
+          "Une hausse en euros courants peut venir de volumes plus importants, de la hausse des prix ou des deux. Les montants ne mesurent donc pas à eux seuls une hausse équivalente des capacités."
         ],
         "visualisationIds": [
           "depenses-europe"
@@ -181,23 +276,69 @@
       },
       {
         "id": "repartition",
-        "titre": "Les salaires restent le premier poste",
+        "titre": "Les salaires restent le premier bloc mesuré",
         "paragraphes": [
-          "En 2024, les rémunérations représentent 39 % des dépenses, les achats de biens et services 28,2 % et l’investissement 23,4 %. L’augmentation des budgets finance donc aussi le fonctionnement quotidien des armées."
+          "En 2024, les rémunérations représentent 39 % des dépenses de défense, les achats de biens et services 28,2 % et l'investissement 23,4 %. Une partie importante des budgets finance donc le fonctionnement courant des armées.",
+          "Ces catégories ne disent pas quels matériels ont été livrés ni s'ils sont disponibles. Elles décrivent la structure comptable de la dépense."
+        ],
+        "visualisationIds": [
+          "repartition-cofog"
+        ]
+      },
+      {
+        "id": "france-et-europe",
+        "titre": "La France se situe au-dessus de la moyenne de l’Union",
+        "paragraphes": [
+          "Rapportées au PIB, les dépenses de défense représentent 1,8 % en France et 1,5 % pour l'ensemble de l'Union européenne en 2024, selon la même définition.",
+          "Ce ratio facilite la comparaison de taille économique différente. Il ne remplace pas l'examen des forces, des équipements, des stocks et des engagements opérationnels."
+        ],
+        "visualisationIds": [
+          "france-ue"
+        ]
+      },
+      {
+        "id": "deux-comptes-differents",
+        "titre": "Pourquoi trouve-t-on 266 ou 343 milliards ?",
+        "paragraphes": [
+          "Eurostat mesure la fonction « défense » des administrations publiques selon la nomenclature COFOG. L’Agence européenne de défense publie un montant plus large selon son propre périmètre. Les deux chiffres ne sont donc pas deux résultats contradictoires sur un même panier.",
+          "Les analyses de l’OFCE et d’Intereconomics ajoutent une autre question : dépenser davantage ne suffit pas si les capacités industrielles, les achats communs, les stocks et les délais de livraison ne suivent pas. Le budget mesure un effort financier ; il ne mesure pas à lui seul la puissance produite."
+        ],
+        "preuveIds": [
+          "defense-total",
+          "defense-eda-total"
+        ]
+      },
+      {
+        "id": "ce-qui-reste-a-mesurer",
+        "titre": "Une dépense en hausse n’est pas encore une capacité",
+        "paragraphes": [
+          "Pour mesurer le renforcement militaire, il faut aussi suivre les livraisons, les délais industriels, les personnels formés, la disponibilité des équipements et les coopérations entre pays.",
+          "Les décisions budgétaires annoncées après 2024 ne doivent pas être ajoutées aux dépenses exécutées de 2024. Elles appartiennent à un autre calendrier."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Des budgets en hausse, des capacités à construire",
         "paragraphes": [
-          "La progression financière est nette. Pour apprécier le renforcement militaire, il faut aussi suivre les équipements livrés, les personnels formés et leur disponibilité."
+          "La hausse européenne est réelle dans les comptes : 266 milliards d'euros en 2024, contre 176 milliards en 2020. Elle doit être lue avec son périmètre, ses prix et sa composition.",
+          "Le montant devient un indicateur de capacité seulement lorsqu'il est rapproché de ce qu'il permet effectivement de produire, de livrer et de maintenir."
         ]
       }
     ],
     "limitations": [
       "Les chiffres 2024 de l’UE et de la France sont provisoires dans la publication consultée.",
-      "Ce dossier utilise les comptes COFOG 2024 ; il ne présente pas les annonces budgétaires 2026 comme des dépenses exécutées.",
-      "Une hausse en euros courants peut refléter les prix, les volumes ou les deux."
+      "Ce dossier utilise les comptes COFOG 2024 ; il ne présente pas les annonces budgétaires ultérieures comme des dépenses exécutées.",
+      "Une hausse en euros courants peut refléter les prix, les volumes ou les deux.",
+      "Les parts de rémunérations, d'achats et d'investissement décrivent des catégories comptables, pas directement des capacités militaires."
+    ],
+    "sommaire": [
+      "ce-que-mesure-cofog",
+      "progression",
+      "repartition",
+      "france-et-europe",
+      "deux-comptes-differents",
+      "ce-qui-reste-a-mesurer",
+      "conclusion"
     ]
   }
 }

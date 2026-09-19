@@ -33,7 +33,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2024",
-        "valeur": 362178400000.0
+        "valeur": 362178400000
       },
       "registre": "fait_comptable",
       "lecture": "Les pensions de vieillesse valent 362 178,4 M€ en 2024."
@@ -45,7 +45,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2024",
-        "valeur": 363038000000.0
+        "valeur": 363038000000
       },
       "registre": "fait_comptable",
       "lecture": "La rémunération des agents publics vaut 363 038,0 M€."
@@ -57,7 +57,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2024",
-        "valeur": 1503590100000.0
+        "valeur": 1503590100000
       },
       "registre": "fait_comptable",
       "lecture": "Les administrations encaissent 1 503 590,1 M€ en 2024."
@@ -93,6 +93,18 @@
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table",
       "consulte_le": "2026-08-22",
       "id": "source-2"
+    },
+    {
+      "id": "drees-retraites-2024",
+      "titre": "DREES : rapport d’activité 2024 et comptes de la protection sociale",
+      "url": "https://drees.solidarites-sante.gouv.fr/sites/default/files/2025-05/Rapport_Activit%C3%A9%202024_DREES_vf%20%281%29.pdf",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "cour-comptes-demographie",
+      "titre": "Cour des comptes : démographie et finances publiques",
+      "url": "https://www.ccomptes.fr/sites/default/files/2025-12/20251202-Demographie-et-finances-publiques_0.pdf",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -108,7 +120,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Elles constituent une dépense majeure de l’État, de la Sécurité sociale et des collectivités locales. Leur poids peut être rapporté aux recettes, ou comparé à d’autres dépenses, à condition de préciser ce que l’on mesure.",
+    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Elles constituent une dépense majeure de l’État, de la Sécurité sociale et des collectivités locales. Leur poids peut être rapporté aux recettes, ou comparé à d’autres dépenses, à condition de préciser l’unité, le périmètre et la nomenclature.",
     "series": [],
     "preuves": [
       {
@@ -148,6 +160,18 @@
         "period": "2024",
         "definition": "Par finalité, la protection sociale pèse 23,7 % du PIB.",
         "sourceId": "source-2"
+      },
+      {
+        "id": "vieillesse-survie-drees",
+        "libelle": "Prestations vieillesse-survie selon la DREES",
+        "value": 400.3,
+        "unit": "billion_EUR",
+        "period": "2023",
+        "definition": "Dépenses de protection sociale du risque vieillesse-survie ; périmètre plus large que la seule ligne Eurostat des pensions de vieillesse.",
+        "sourceId": "drees-retraites-2024",
+        "qualityFlags": [
+          "périmètre_différent"
+        ]
       }
     ],
     "visualisations": [
@@ -160,38 +184,97 @@
           "chiffre-1",
           "chiffre-2"
         ]
+      },
+      {
+        "id": "pensions-recettes",
+        "type": "snapshot_table",
+        "titre": "Une dépense rapportée aux recettes",
+        "resume": "Les pensions représentent environ 24,1 % des recettes publiques de 2024 ; ce ratio n'est pas une part des dépenses.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-3"
+        ]
+      },
+      {
+        "id": "pensions-et-vieillesse",
+        "type": "snapshot_table",
+        "titre": "Pensions et vieillesse-survie ne sont pas synonymes",
+        "resume": "La DREES distingue la prestation de retraite du champ plus large des dépenses liées à la vieillesse et à la survie.",
+        "preuveIds": [
+          "chiffre-1",
+          "vieillesse-survie-drees"
+        ]
       }
     ],
     "sections": [
       {
+        "id": "ce-que-mesure-la-ligne",
+        "titre": "« Retraites » peut désigner plusieurs périmètres",
+        "paragraphes": [
+          "La ligne « pensions de vieillesse » est une catégorie des comptes publics. Elle n'est pas identique à toutes les dépenses liées à l'âge, ni au seul budget de l'État.",
+          "Les comptes regroupent plusieurs administrations. Il faut donc conserver la définition avant de comparer ce poste à une autre dépense.",
+          "La DREES distingue les pensions de retraite du champ plus large « vieillesse-survie ». Elle chiffre les pensions de retraite à 353 milliards d’euros en 2022 et l’ensemble vieillesse-survie à 400,3 milliards en 2023. Ces montants ne remplacent pas la série Eurostat 2024 : ils montrent que le résultat dépend de l’année et de la catégorie retenue."
+        ]
+      },
+      {
         "id": "poids",
         "titre": "Environ un quart des recettes publiques",
         "paragraphes": [
-          "Les pensions de vieillesse correspondent à environ 24,1 % des 1 503,6 milliards d’euros de recettes publiques de 2024. Cette proportion rapporte une dépense aux recettes ; elle ne décrit pas sa part dans l’ensemble des dépenses."
+          "Les pensions de vieillesse représentent 362,2 milliards d'euros en 2024. Rapportées aux 1 503,6 milliards de recettes publiques, elles correspondent à environ 24,1 %.",
+          "Ce calcul met une dépense en regard des recettes. Il ne signifie pas que les pensions absorbent un quart de toutes les dépenses, ni qu'elles sont financées par une seule recette."
+        ],
+        "visualisationIds": [
+          "pensions-recettes"
+        ]
+      },
+      {
+        "id": "classement",
+        "titre": "Le classement dépend de la manière de regrouper les dépenses",
+        "paragraphes": [
+          "La rémunération des agents publics atteint 363,0 milliards d'euros en 2024. Les deux postes sont donc presque au même niveau, et le premier rang peut changer selon l'année ou la nomenclature.",
+          "Une lecture par finalité regroupe autrement les dépenses : les retraites se trouvent dans la protection sociale, tandis que les rémunérations sont réparties entre les administrations et les services qu'elles font fonctionner."
         ],
         "visualisationIds": [
           "pensions-remunerations"
         ]
       },
       {
-        "id": "classement",
-        "titre": "Le classement dépend du regroupement retenu",
+        "id": "financement",
+        "titre": "Une dépense publique se lit avec ses recettes",
         "paragraphes": [
-          "La rémunération des agents publics atteint 363 milliards d’euros la même année. Les pensions sont presque au même niveau. Une présentation par finalité regroupe autrement ces montants : les retraites entrent dans la protection sociale, les rémunérations se répartissent entre plusieurs services."
+          "Les pensions sont versées par les régimes de retraite et les administrations concernées. Pour étudier leur financement, il faut rapprocher les prestations des cotisations, des impôts affectés, des transferts et des éventuelles subventions.",
+          "Le montant annuel ne permet pas à lui seul de dire si un système est équilibré. Il faut aussi examiner le nombre de retraités, la durée de versement et les règles qui déterminent les droits."
+        ]
+      },
+      {
+        "id": "ce-que-le-chiffre-ne-dit-pas",
+        "titre": "Un premier poste ne dit pas tout du débat sur les retraites",
+        "paragraphes": [
+          "Le classement ne mesure ni le niveau de vie des retraités ni l'effort demandé aux actifs. Il ne dit pas non plus comment les dépenses sont réparties entre les générations.",
+          "Ces questions demandent d'autres indicateurs : pensions moyennes, taux de remplacement, revenus des ménages, emploi, démographie et trajectoires financières des régimes."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Évaluer le financement dans son ensemble",
+        "titre": "Un poids central, à replacer dans l’ensemble",
         "paragraphes": [
-          "Le poids des pensions en fait un sujet central des finances publiques. Pour examiner leur financement, il faut suivre les recettes qui leur sont affectées, les prestations versées et l’évolution du nombre de retraités."
+          "Les pensions de vieillesse représentent environ un quart des recettes publiques en 2024 et se situent presque au même niveau que les rémunérations des agents publics.",
+          "Le chiffre confirme l'importance du sujet, mais son interprétation dépend du périmètre, des recettes et des règles de classement. Un dossier complet ne réduit pas les retraites à un seul rang."
         ]
       }
     ],
-    "limitations": [],
+    "limitations": [
+      "Les pensions de vieillesse, la protection sociale et le seul budget de l'État ne recouvrent pas le même périmètre.",
+      "Le ratio de 24,1 % rapporte une dépense aux recettes publiques ; ce n'est pas sa part dans les dépenses.",
+      "Le classement entre pensions et rémunérations peut varier avec l'année et la nomenclature.",
+      "Les chiffres ne décrivent pas à eux seuls les niveaux de vie ni l'équilibre financier futur des régimes."
+    ],
     "sommaire": [
+      "ce-que-mesure-la-ligne",
       "poids",
       "classement",
+      "financement",
+      "ce-que-le-chiffre-ne-dit-pas",
       "conclusion"
     ]
   }
