@@ -18,8 +18,8 @@ body[data-vue="accueil"], body[data-vue="bilan"], body[data-vue="territoire"], b
 :root[data-theme="sombre"] body[data-vue="bilan"],
 :root[data-theme="sombre"] body[data-vue="territoire"],
 :root[data-theme="sombre"] body[data-page="editorial"] {
-  background: var(--fond);
-  color: var(--encre);
+  background: var(--design-bg);
+  color: var(--design-ink);
 }
 
 body[data-vue="accueil"] #contenu,
