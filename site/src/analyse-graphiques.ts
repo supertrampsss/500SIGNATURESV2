@@ -18,11 +18,13 @@ function traceSeries(v: VisualisationAnalyse, groupe: SerieAnalyse[], unit: stri
   const haut = Math.max(0, ...valeurs) || 1;
   const y = (value: number) => 215 - (value - bas) / (haut - bas) * 185;
   const periodes = [...new Set(groupe.flatMap(s => s.observations.map(o => o.period)))].sort();
+  const largeurBarre = Math.max(3, Math.min(32, (droite - gauche) * .8 / Math.max(1, periodes.length) / groupe.length));
+  const margeBarre = v.type === "bar" ? largeurBarre * groupe.length / 2 + 4 : 0;
   const calendrier = periodes.every(p => Number.isFinite(periodeNumerique(p)));
   const position = (period: string) => calendrier ? periodeNumerique(period) : periodes.indexOf(period);
   const debut = position(periodes[0]!);
   const fin = position(periodes.at(-1)!);
-  const x = (period: string) => gauche + (fin === debut ? .5 : (position(period) - debut) / (fin - debut)) * (droite - gauche);
+  const x = (period: string) => gauche + margeBarre + (fin === debut ? .5 : (position(period) - debut) / (fin - debut)) * (droite - gauche - 2 * margeBarre);
   const nombre = (value: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 4 }).format(value);
   const grille = [bas, bas + (haut - bas) / 2, haut].map(value => `<g class="analyse-chart__grille"><line x1="${gauche}" x2="${droite}" y1="${y(value)}" y2="${y(value)}"/><text x="${gauche - 8}" y="${y(value) + 4}" text-anchor="end">${echapper(nombre(value))}</text></g>`).join("");
   const traces = groupe.map((serie, index) => {
@@ -36,7 +38,7 @@ function traceSeries(v: VisualisationAnalyse, groupe: SerieAnalyse[], unit: stri
         (calendrier && position(o.period) - position(precedent.period) > 1)) return [];
       return [`<polyline points="${x(precedent.period)},${y(precedent.value)} ${x(o.period)},${y(o.value)}"/>`];
     }).join("");
-    const largeur = Math.max(3, Math.min(32, (droite - gauche) * .8 / Math.max(1, periodes.length) / groupe.length));
+    const largeur = largeurBarre;
     const dessin = v.type === "bar"
       ? observations.map(o => `<rect x="${x(o.period) + (index - groupe.length / 2) * largeur}" y="${Math.min(y(o.value), y(0))}" width="${largeur - 2}" height="${Math.abs(y(o.value) - y(0))}" fill="currentColor">${titre(o)}</rect>`).join("")
       : segments + observations.map(o => `<circle cx="${x(o.period)}" cy="${y(o.value)}" r="4">${titre(o)}</circle>`).join("");

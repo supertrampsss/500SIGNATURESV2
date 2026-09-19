@@ -44,3 +44,13 @@ test("des instantanés sans groupe comparable ne deviennent pas un graphique de 
   contrat = contratDossierAnalyse(analyse)!;
   assert.equal(graphiqueAnalyse(contrat.dossier.visualisations[0]!, contrat), "");
 });
+
+
+test("les barres restent à droite des graduations sur ordinateur et mobile",()=>{
+  const contrat=contratDossierAnalyse(lire("electricite-exportee-facture-francais"))!;
+  const figure=contrat.dossier.visualisations.find(v=>v.type==="bar")!;
+  const svg=graphiqueAnalyse(figure,contrat);
+  const positions=[...svg.matchAll(/<rect x="([0-9.]+)"/g)].map(m=>Number(m[1]));
+  assert.ok(positions.length>=4);
+  assert.ok(positions.every(x=>x>=58),"aucune barre ne doit recouvrir les valeurs de l’axe");
+});
