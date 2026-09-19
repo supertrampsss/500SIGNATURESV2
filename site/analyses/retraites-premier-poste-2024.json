@@ -105,6 +105,12 @@
       "titre": "Cour des comptes : démographie et finances publiques",
       "url": "https://www.ccomptes.fr/sites/default/files/2025-12/20251202-Demographie-et-finances-publiques_0.pdf",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "montaigne-retraites-2025",
+      "titre": "Institut Montaigne : Retraites, le conclave se referme, la jeunesse reste à la porte (juin 2025)",
+      "url": "https://institutmontaigne.org/expressions/retraites-le-conclave-se-referme-la-jeunesse-reste-la-porte",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -116,11 +122,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Elles constituent une dépense majeure de l’État, de la Sécurité sociale et des collectivités locales. Leur poids peut être rapporté aux recettes, ou comparé à d’autres dépenses, à condition de préciser l’unité, le périmètre et la nomenclature.",
+    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024, presque autant que les rémunérations des agents publics. Leur financement mobilise les cotisations, les impôts et les transferts publics. Avec le vieillissement de la population, l’équilibre des régimes se joue entre les revenus des actifs, le nombre de retraités et la durée pendant laquelle les pensions sont versées.",
     "series": [],
     "preuves": [
       {
@@ -188,8 +198,8 @@
       {
         "id": "pensions-recettes",
         "type": "snapshot_table",
-        "titre": "Une dépense rapportée aux recettes",
-        "resume": "Les pensions représentent environ 24,1 % des recettes publiques de 2024 ; ce ratio n'est pas une part des dépenses.",
+        "titre": "Des pensions équivalentes à 24,1 % des recettes publiques",
+        "resume": "France, 2024 : 362,2 milliards d’euros de pensions de vieillesse pour 1 503,6 milliards de recettes publiques.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-3"
@@ -198,8 +208,8 @@
       {
         "id": "pensions-et-vieillesse",
         "type": "snapshot_table",
-        "titre": "Pensions et vieillesse-survie ne sont pas synonymes",
-        "resume": "La DREES distingue la prestation de retraite du champ plus large des dépenses liées à la vieillesse et à la survie.",
+        "titre": "Les pensions et le risque vieillesse-survie",
+        "resume": "Eurostat : pensions de vieillesse en 2024. DREES : ensemble du risque vieillesse-survie en 2023, incluant notamment les pensions de réversion.",
         "preuveIds": [
           "chiffre-1",
           "vieillesse-survie-drees"
@@ -209,10 +219,10 @@
     "sections": [
       {
         "id": "ce-que-mesure-la-ligne",
-        "titre": "Les retraites regroupent plusieurs réalités",
+        "titre": "Des pensions de retraite aux dépenses liées à la vieillesse",
         "paragraphes": [
-          "La ligne « pensions de vieillesse » représente 362,2 milliards d’euros dans les comptes publics de 2024. Elle n’inclut pas toutes les dépenses liées à l’âge et ne correspond pas au seul budget de l’État.",
-          "La DREES distingue les pensions de retraite du champ plus large « vieillesse-survie » : 353 milliards d’euros en 2022 pour les pensions et 400,3 milliards en 2023 pour l’ensemble du risque. Les années et les catégories ne sont donc pas interchangeables."
+          "La ligne « pensions de vieillesse » représente 362,2 milliards d’euros dans les comptes publics de 2024. Elle regroupe les pensions versées par les administrations publiques, au-delà du seul budget de l’État. Les autres dépenses liées à l’âge relèvent de catégories distinctes.",
+          "La DREES chiffre les pensions à 353 milliards d’euros en 2022 et l’ensemble du risque « vieillesse-survie » à 400,3 milliards en 2023. Ce dernier ensemble couvre aussi la survie, notamment les pensions de réversion versées après le décès d’un conjoint. La protection liée à la retraite se prolonge ainsi dans le revenu du conjoint survivant."
         ]
       },
       {
@@ -220,39 +230,40 @@
         "titre": "Environ un quart des recettes publiques",
         "paragraphes": [
           "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Rapportées aux 1 503,6 milliards de recettes publiques, elles correspondent à environ 24,1 %.",
-          "Ce rapprochement met une dépense en regard des recettes. Il ne signifie pas que les pensions absorbent un quart de toutes les dépenses ni qu’elles sont financées par une seule recette."
+          "Le financement des retraites occupe ainsi une place majeure dans les ressources collectives. Les régimes reçoivent des cotisations, des impôts affectés et des transferts ; les recettes publiques financent également les soins, l’éducation, les investissements et les autres prestations."
         ]
       },
       {
         "id": "classement",
         "titre": "Les rémunérations publiques sont au même niveau",
         "paragraphes": [
-          "La rémunération des agents publics atteint 363,0 milliards d’euros en 2024. Les deux postes sont donc presque au même niveau.",
-          "Le résultat change selon l’année et la nomenclature. Par finalité, les retraites sont regroupées dans la protection sociale, tandis que les rémunérations sont réparties entre les administrations et les services."
+          "La rémunération des agents publics atteint 363,0 milliards d’euros en 2024, soit environ 860 millions de plus que les pensions de vieillesse. Les deux postes sont presque au même niveau, avec un écart d’environ 0,2 % du montant des pensions.",
+          "Les pensions assurent un revenu aux retraités, tandis que les rémunérations paient le travail des agents dans les hôpitaux, les écoles et les autres services publics. Dans les comptes classés par finalité, les retraites appartiennent à la protection sociale, qui représente 23,7 % du PIB ; les rémunérations se répartissent entre les différents services."
         ]
       },
       {
         "id": "financement",
-        "titre": "Les pensions dépendent de plusieurs recettes",
+        "titre": "Les recettes et la démographie déterminent l’équilibre",
         "paragraphes": [
-          "Les régimes de retraite versent les pensions à partir des cotisations, des impôts affectés, des transferts et des éventuelles subventions.",
-          "L’équilibre dépend aussi du nombre de retraités, de la durée de versement et des règles qui déterminent les droits."
+          "Les régimes de retraite versent les pensions à partir des cotisations, des impôts affectés, des transferts et des éventuelles subventions. L’emploi et les rémunérations des actifs alimentent les recettes de cotisations.",
+          "Du côté des dépenses, le nombre de retraités, la durée de versement et les règles de calcul des droits déterminent les sommes à financer. Une augmentation du nombre de pensionnés accroît les besoins, même lorsque la pension moyenne reste stable."
         ]
       },
       {
         "id": "ce-que-le-chiffre-ne-dit-pas",
-        "titre": "Le montant ne résume pas le débat entre générations",
+        "titre": "Les revenus des actifs et des retraités au cœur des arbitrages",
         "paragraphes": [
-          "Le classement ne mesure ni le niveau de vie des retraités ni l’effort demandé aux actifs. Il ne montre pas non plus comment les dépenses sont réparties entre les générations.",
-          "Les pensions moyennes, les taux de remplacement, les revenus des ménages, l’emploi et la démographie complètent cette lecture."
+          "Les cotisations prélèvent une partie des revenus du travail pour financer les pensions. Relever leur taux augmente les recettes des régimes et l’effort demandé aux cotisants ; agir sur l’âge de départ modifie à la fois la durée d’activité et la durée de versement des pensions.",
+          "Le montant de la pension et son évolution déterminent le revenu de retraite. Le niveau de vie dépend aussi des autres revenus et de la composition du ménage. Les arbitrages sur les retraites touchent donc à la fois au financement collectif, aux conditions de fin de carrière et à la répartition des revenus entre générations.",
+          "Dans une analyse de juin 2025, l’Institut Montaigne critique un effort trop concentré sur les jeunes actifs et défend une contribution accrue des retraités. Cette position pose un arbitrage de redistribution : protéger le revenu des pensionnés tout en répartissant le financement entre générations, dont les situations d’emploi et de patrimoine diffèrent."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Un poids central, à replacer dans l’ensemble",
+        "titre": "Financer les pensions dans une population qui vieillit",
         "paragraphes": [
-          "Les pensions de vieillesse représentent environ un quart des recettes publiques en 2024 et se situent presque au même niveau que les rémunérations des agents publics.",
-          "Leur interprétation dépend du périmètre, des recettes et des règles de classement."
+          "En 2024, les pensions de vieillesse atteignent 362,2 milliards d’euros, l’équivalent de 24,1 % des recettes publiques. Elles sont presque au niveau des rémunérations des agents publics, mais remplissent une autre fonction : assurer un revenu après la vie active.",
+          "L’équilibre des retraites dépend de la progression des recettes face au nombre de pensionnés et à la durée des retraites. Les choix sur les cotisations, l’emploi, l’âge de départ et le niveau des pensions répartissent l’effort entre actifs, retraités et budgets publics."
         ]
       }
     ],

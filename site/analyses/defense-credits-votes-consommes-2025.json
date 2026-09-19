@@ -73,6 +73,12 @@
       "titre": "Cour des comptes : analyse de l’exécution budgétaire de la mission Défense en 2024",
       "url": "https://www.ccomptes.fr/sites/default/files/2025-04/NEB-2024-Defense.pdf",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "senat-defense-2025",
+      "titre": "Sénat : exécution 2025 de la mission Défense, rapport du 17 juin 2026",
+      "url": "https://www.senat.fr/rap/l25-736-29/l25-736-29_mono.html",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -84,17 +90,21 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les dépenses de défense atteignent 62,1 milliards d’euros en 2025, contre 59,9 milliards prévus dans le budget initial. Pour comprendre l’écart, il faut distinguer l’autorisation votée par le Parlement, les crédits disponibles après les mouvements de gestion et les crédits finalement consommés.",
+    "chapo": "La mission Défense a consommé 62,1 milliards d’euros en 2025, contre 59,9 milliards inscrits au budget initial. Les ouvertures et reports ont porté les crédits disponibles à 62,6 milliards. Malgré ces moyens supplémentaires, les opérations et les commandes d’équipement font peser des charges sur les exercices suivants.",
     "chronologie": {
-      "titre": "Le budget se lit à plusieurs moments",
+      "titre": "Du budget initial aux comptes de l’exercice",
       "sourceId": "source-1",
       "etapes": [
         {
-          "date": "Avant 2025",
+          "date": "Budget initial 2025",
           "texte": "La loi de finances fixe les crédits initiaux de la mission Défense."
         },
         {
@@ -103,7 +113,7 @@
         },
         {
           "date": "Après 2025",
-          "texte": "La loi relative aux résultats de la gestion permet de comparer les crédits consommés avec les autorisations et les crédits disponibles."
+          "texte": "Les comptes de l’exercice retracent les crédits consommés et les autorisations disponibles."
         }
       ]
     },
@@ -135,7 +145,7 @@
         "id": "budget-execution",
         "type": "bar",
         "titre": "Le budget initial et les dépenses exécutées",
-        "resume": "Mission Défense, année 2025, en milliards d’euros. Les deux montants n'ont pas le même statut.",
+        "resume": "Mission Défense, 2025 : 59,9 milliards d’euros inscrits au départ et 62,1 milliards consommés pendant l’exercice.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -144,8 +154,8 @@
       {
         "id": "budget-reperes",
         "type": "snapshot_table",
-        "titre": "Deux chiffres, deux questions",
-        "resume": "Le budget initial répond à « combien a été autorisé au départ ? » ; l'exécution répond à « combien a été consommé ? ». ",
+        "titre": "De l’autorisation initiale aux paiements",
+        "resume": "Les crédits votés ouvrent l’enveloppe de départ ; la consommation retrace l’exécution après les mouvements de crédits de l’année.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -155,42 +165,44 @@
     "sections": [
       {
         "id": "budget-vote",
-        "titre": "Ce qui est voté",
+        "titre": "Le Parlement ouvre une enveloppe de départ",
         "paragraphes": [
-          "En 2025, le Parlement a ouvert 59,9 milliards d’euros pour la mission Défense. Ces crédits autorisent les armées et les services concernés à engager et payer leurs dépenses.",
-          "Le montant voté au début de l’année est une enveloppe de départ. Il ne correspond pas encore aux factures effectivement payées."
+          "En 2025, le Parlement a ouvert 59,9 milliards d’euros pour la mission Défense. Les crédits de paiement autorisent les dépenses payables pendant l’exercice ; les engagements, notamment pour les équipements, peuvent courir sur plusieurs années.",
+          "Cette enveloppe initiale organise le financement des armées et des services concernés. Les crédits effectivement disponibles évoluent ensuite avec les ouvertures, les annulations, les transferts et les reports autorisés pendant l’année."
         ]
       },
       {
         "id": "execution",
-        "titre": "Ce qui a été exécuté",
+        "titre": "62,1 milliards d’euros consommés en 2025",
         "paragraphes": [
           "Les comptes d’exécution indiquent 62,1 milliards d’euros de crédits consommés en 2025. L’écart avec les 59,9 milliards initiaux est d’environ 2,2 milliards, soit près de 3,6 %.",
-          "Les crédits disponibles ont pu évoluer pendant l’année. Le rapprochement entre l’autorisation initiale et la consommation ne suffit donc pas à lui seul à décrire un dépassement."
+          "Le Sénat recense 62,6 milliards d’euros de crédits de paiement effectivement ouverts après les mouvements de gestion. La consommation reste donc inférieure à cette enveloppe actualisée, malgré son écart avec le budget initial."
         ]
       },
       {
         "id": "mouvements",
-        "titre": "L’écart se construit pendant l’année",
+        "titre": "Les mouvements de crédits et les commandes pluriannuelles",
         "paragraphes": [
-          "Des crédits peuvent être ouverts, transférés entre missions, annulés ou reportés. Ces mouvements modifient les sommes disponibles sans changer le montant voté au départ.",
-          "La Cour des comptes relève aussi des reports de charges et des restes à payer. Une dépense comptabilisée en 2025 peut donc correspondre à un engagement plus ancien, tandis qu’un équipement payé plus tard peut déjà être commandé."
+          "Des crédits peuvent être ouverts, transférés entre missions, annulés ou reportés. Ces mouvements modifient les sommes disponibles au cours de l’exercice.",
+          "Dans son analyse de l’exécution 2024, la Cour des comptes relève des reports de charges et des restes à payer. Les premiers correspondent à des charges reportées sur l’exercice suivant ; les seconds aux engagements qui donneront encore lieu à des paiements. Ce fonctionnement pluriannuel explique qu’un paiement de 2025 puisse concerner une commande antérieure.",
+          "Fin 2025, le Sénat relève 8,08 milliards d’euros de reports de charges et 117,4 milliards de restes à payer. Il chiffre aussi à 1,23 milliard les surcoûts financés au sein de la mission, au détriment d’autres dépenses programmées."
         ]
       },
       {
         "id": "ce-que-lecart-ne-dit-pas",
-        "titre": "Un montant ne décrit pas une armée",
+        "titre": "Les livraisons et la disponibilité des matériels",
         "paragraphes": [
-          "La consommation des crédits mesure une dépense réalisée. Elle ne donne pas directement le nombre d’équipements livrés, leur disponibilité ou le résultat opérationnel obtenu.",
-          "Ces éléments apparaissent dans les objectifs des programmes, les délais industriels, les restes à payer et les indicateurs de performance."
+          "Les paiements financent les personnels, le fonctionnement et les équipements. Pour les matériels, les échéances financières s’articulent avec les étapes des contrats et les délais industriels : une commande, un paiement et une livraison peuvent intervenir à des dates différentes.",
+          "Après la livraison, la capacité d’emploi dépend de l’entretien, des pièces disponibles et de la formation des personnels. Les indicateurs de performance des programmes suivent notamment la réalisation des objectifs et la disponibilité des moyens.",
+          "Le même rapport signale notamment la livraison de 11 Rafale en 2025. Le renouvellement des équipements se poursuit ainsi, pendant que les engagements contractés et les paiements reportés réduisent les marges des budgets suivants."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Suivre le budget jusqu’à son exécution",
+        "titre": "Une dépense supérieure au budget initial, des engagements sur plusieurs années",
         "paragraphes": [
-          "59,9 milliards d’euros ont été inscrits au départ et 62,1 milliards ont été consommés sur l’exercice. Les deux chiffres décrivent deux moments différents de la vie du budget.",
-          "L’écart devient compréhensible lorsqu’on regarde les mouvements de crédits, les engagements et les résultats obtenus."
+          "La consommation de 62,1 milliards d’euros dépasse le budget initial de 2025, mais reste dans les 62,6 milliards de crédits finalement ouverts. La tension porte aussi sur les charges reportées et les commandes à payer dans les années suivantes.",
+          "Pour les armées, ces financements prennent effet avec les livraisons, la formation et la disponibilité des matériels. Les restes à payer engagent aussi les budgets futurs : une commande renforce les besoins de paiement bien au-delà de l’année où elle est passée."
         ]
       }
     ],

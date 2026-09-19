@@ -99,6 +99,12 @@
       "titre": "Conseil des prélèvements obligatoires : propositions sur les prélèvements",
       "url": "https://www.economie.gouv.fr/daj/lettre-de-la-daj-les-propositions-du-conseil-des-prelevements-obligatoires-pour-renforcer",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ifrap-deficit-2025",
+      "titre": "Fondation iFRAP : Moins de déficit en 2025, merci les impôts supplémentaires (juin 2026)",
+      "url": "https://www.ifrap.org/budget-et-fiscalite/moins-de-deficit-en-2025-merci-les-impots-supplementaires",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -110,11 +116,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au produit intérieur brut (PIB), c'est-à-dire à la richesse produite dans le pays, ils permettent de comparer le poids de ces financements. Ce taux ne suffit pas à classer les pays « dans le monde » ni à mesurer seul ce que reçoit chaque ménage.",
+    "chapo": "En 2024, les impôts et cotisations sociales nettes représentent 45,2 % du produit intérieur brut (PIB) en France selon Eurostat, contre 40,2 % dans l’Union européenne et 45,4 % au Danemark. Ce niveau élevé finance notamment les services publics et la protection sociale. Son effet sur les ménages dépend des prélèvements qu’ils acquittent, mais aussi des prestations et des services qu’ils reçoivent.",
     "series": [],
     "preuves": [
       {
@@ -164,43 +174,44 @@
     "sections": [
       {
         "id": "ce-que-mesure-le-taux",
-        "titre": "Ce que recouvrent les prélèvements",
+        "titre": "Les impôts et cotisations dans la richesse produite",
         "paragraphes": [
-          "Dans la comparaison retenue, le taux rapporte les impôts et les cotisations sociales nettes au PIB. Il mesure la part de la richesse produite qui passe par les recettes publiques.",
-          "Ce taux ne correspond ni à la part de son salaire payée par chaque personne, ni à l’ensemble des dépenses d’un ménage pour se loger, se soigner ou se protéger."
+          "Le taux rapporte les impôts et les cotisations sociales nettes au PIB, la richesse produite dans le pays pendant l’année. Il rassemble les recettes prélevées sur les revenus, la consommation, le patrimoine et les activités économiques.",
+          "Les ménages contribuent par plusieurs canaux : cotisations sur le travail, impôts sur les revenus ou le patrimoine, taxes sur les achats. Leur contribution varie avec leur situation et leurs dépenses ; le taux national de 45,2 % porte sur l’ensemble de l’économie."
         ]
       },
       {
         "id": "comparaison",
-        "titre": "France, Danemark et Union européenne",
+        "titre": "La France cinq points au-dessus de la moyenne européenne",
         "paragraphes": [
-          "En 2024, la France atteint 45,2 % du PIB dans la série Eurostat utilisée ici, contre 40,2 % pour l’Union européenne. Le Danemark est légèrement au-dessus, à 45,4 %.",
-          "La France figure donc parmi les pays européens où les prélèvements sont les plus élevés. Cela ne suffit pas pour en faire la « championne du monde » : la comparaison présentée est européenne.",
-          "L’OCDE publie de son côté 43,5 % pour la France et 45,2 % pour le Danemark en 2024. L’écart vient des conventions et des révisions propres à chaque série ; les chiffres doivent rester attachés à leur source."
+          "En 2024, la France atteint 45,2 % du PIB dans la série Eurostat, contre 40,2 % pour l’Union européenne. Le Danemark se situe légèrement au-dessus de la France, à 45,4 %.",
+          "La France appartient donc au groupe des pays européens où les prélèvements sont les plus élevés, avec un écart de cinq points de PIB par rapport à la moyenne de l’Union. Le Danemark la devance de 0,2 point.",
+          "L’OCDE publie de son côté 43,5 % pour la France et 45,2 % pour le Danemark en 2024, avec ses propres conventions et révisions. Le Danemark devance donc la France dans les deux publications."
         ]
       },
       {
         "id": "des-financements-differents",
-        "titre": "Un même taux peut financer des protections différentes",
+        "titre": "Des services et des protections financés collectivement",
         "paragraphes": [
-          "Deux pays peuvent afficher des taux proches tout en organisant différemment leur santé, leurs retraites, leur chômage ou leur éducation. Une protection financée collectivement peut laisser moins de dépenses directes aux ménages.",
-          "Le Conseil des prélèvements obligatoires met aussi en avant la composition des recettes. Impôts, cotisations et taxes indirectes n’ont pas les mêmes effets sur les ménages et les entreprises."
+          "La santé, les retraites, le chômage et l’éducation peuvent être financés par des prélèvements publics ou par des dépenses privées dans des proportions différentes selon les pays. Une prise en charge collective plus large réduit certains paiements directs demandés aux ménages, tout en augmentant les besoins de recettes publiques.",
+          "Le Conseil des prélèvements obligatoires insiste aussi sur la composition des recettes. Les cotisations, les impôts directs et les taxes sur la consommation touchent des revenus et des dépenses différents. Deux pays ayant le même taux global peuvent ainsi répartir l’effort différemment entre ménages et entreprises.",
+          "Dans son analyse des comptes de 2025, la fondation iFRAP critique un redressement du déficit reposant surtout sur les impôts supplémentaires et plaide pour une maîtrise des dépenses. Le choix entre recettes et économies déplace l’effort entre contribuables, bénéficiaires des prestations et usagers des services publics."
         ]
       },
       {
         "id": "ce-que-la-comparaison-ne-dit-pas",
-        "titre": "Le taux ne mesure pas ce que reçoit chaque ménage",
+        "titre": "Des effets différents selon les ménages et la croissance",
         "paragraphes": [
-          "Le niveau de vie, les transferts sociaux, les dépenses privées et les services reçus complètent la lecture du taux. Ils permettent de voir ce que le financement collectif apporte en retour.",
-          "Le PIB peut évoluer différemment d’un pays à l’autre. Une variation du taux peut donc venir des recettes, de la richesse produite ou des deux."
+          "Le revenu disponible des ménages dépend des revenus perçus, des impôts directs et des transferts sociaux. Les services publics, notamment la santé et l’éducation, apportent également une prise en charge qui peut réduire les dépenses privées.",
+          "Le taux national évolue aussi avec la croissance : si les recettes augmentent moins vite que le PIB, leur part diminue. À l’inverse, un ralentissement de la richesse produite peut relever le ratio même sans hausse des taux d’imposition."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Une France très élevée dans la comparaison européenne",
+        "titre": "Un financement collectif élevé, réparti entre plusieurs prélèvements",
         "paragraphes": [
-          "La France se situe parmi les pays européens où les prélèvements rapportés au PIB sont les plus élevés dans la série retenue. Le chiffre ne constitue pas un classement mondial complet.",
-          "Pour comprendre ce niveau, il faut regarder les prestations et les services qu’il finance, ainsi que les dépenses privées qu’il remplace ou complète."
+          "La France consacre une part élevée de sa richesse produite au financement public : 45,2 % du PIB en impôts et cotisations sociales nettes en 2024 selon Eurostat, cinq points au-dessus de la moyenne européenne et légèrement en dessous du Danemark.",
+          "Ce choix de financement prend en charge des services et des protections qui reposent davantage sur les dépenses privées dans d’autres systèmes. Ses conséquences pour les ménages se jouent dans la répartition des prélèvements, l’accès aux prestations et la qualité des services financés."
         ]
       }
     ],

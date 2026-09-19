@@ -86,11 +86,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Réécriture des introductions, développements, légendes et conclusions en analyse directe ; données et références conservées."
     }
   ],
   "verifie_contre": "Enquêtes Logement 2002 et 2013, Le logement en France depuis trente ans, Insee 2017",
   "dossier": {
-    "chapo": "L’âge auquel on devient propriétaire renseigne sur l’accès au logement et les différences entre générations. Les sources publiques permettent de suivre plusieurs parcours, mais elles ne publient pas une courbe annuelle unique de l’âge moyen au premier achat. Pour comprendre le sujet, il faut séparer les nouveaux acheteurs, les générations et la détention actuelle.",
+    "chapo": "L’accès à la propriété a changé d’une génération à l’autre. La moitié des personnes nées en 1952 étaient devenues propriétaires à 33,5 ans, contre 38 ans pour celles nées en 1964. Aujourd’hui, les revenus, l’épargne, les prix du logement et les conditions de crédit déterminent la possibilité d’acheter, avec de forts écarts entre ménages du même âge.",
     "series": [
       {
         "id": "age-median-proprietaire-cohorte",
@@ -238,8 +242,8 @@
       {
         "id": "table-moyennes",
         "type": "snapshot_table",
-        "titre": "Deux repères sur l'âge des nouveaux acheteurs",
-        "resume": "Les deux âges portent sur des enquêtes et des fenêtres différentes ; ils ne forment pas une série annuelle.",
+        "titre": "L’âge moyen de deux groupes de primo-accédants",
+        "resume": "36 ans pour les premières acquisitions de 1998 à 2001 ; 39 ans pour les primo-accédants observés dans l’enquête 2013.",
         "preuveIds": [
           "preuve-2002",
           "preuve-2013"
@@ -249,7 +253,7 @@
         "id": "table-cohortes-historiques",
         "type": "snapshot_table",
         "titre": "Le parcours de quatre générations",
-        "resume": "L'âge affiché est celui auquel la moitié de chaque génération était propriétaire, pas l'âge moyen d'une transaction.",
+        "resume": "Âge auquel la moitié de chaque génération était devenue propriétaire de sa résidence principale.",
         "preuveIds": [
           "preuve-cohorte-1924",
           "preuve-cohorte-1944",
@@ -260,8 +264,8 @@
       {
         "id": "table-cohortes-recentes",
         "type": "snapshot_table",
-        "titre": "Une fourchette pour les générations nées de 1974 à 1978",
-        "resume": "La source situe le franchissement de 50 % entre 35 et 39 ans ; elle ne fournit pas un âge unique.",
+        "titre": "Entre 35 et 39 ans pour les générations 1974 à 1978",
+        "resume": "Pour les personnes nées de 1974 à 1978, le seuil de 50 % de propriétaires est atteint dans la tranche de 35 à 39 ans.",
         "preuveIds": [
           "preuve-cohortes-1974-1978-min",
           "preuve-cohortes-1974-1978-max"
@@ -282,26 +286,26 @@
     "sections": [
       {
         "id": "ce-que-la-question-demande",
-        "titre": "Devenir propriétaire n’est pas une seule mesure",
+        "titre": "Le premier achat et le parcours d’une génération",
         "paragraphes": [
-          "« À quel âge devient-on propriétaire ? » peut désigner l’âge d’un ménage au moment de son premier achat, ou l’âge auquel la moitié d’une génération est devenue propriétaire. Ces deux indicateurs ne racontent pas la même histoire.",
-          "Les enquêtes de détention montrent qui possède son logement à une date donnée. Elles ne donnent pas automatiquement l’âge auquel chaque ménage a signé son premier achat."
+          "L’âge au premier achat situe l’entrée dans la propriété des ménages qui achètent. L’âge auquel la moitié d’une génération possède son logement décrit un parcours collectif, où certains achètent tôt, d’autres plus tard et d’autres restent locataires.",
+          "Les enquêtes de détention mesurent, pour leur part, la proportion de propriétaires à une date donnée. Elles incluent les achats anciens : un ménage propriétaire à 60 ans peut avoir acquis son logement plusieurs décennies auparavant."
         ]
       },
       {
         "id": "moyennes",
-        "titre": "Les premiers achats se décalent",
+        "titre": "Des primo-accédants plus âgés dans l’enquête de 2013",
         "paragraphes": [
           "L’enquête Logement 2002 donne un âge moyen de 36 ans pour les premières acquisitions réalisées entre 1998 et 2001. La publication fondée sur l’enquête 2013 donne 39 ans pour les primo-accédants observés cette année-là.",
-          "Ces deux repères suggèrent un accès plus tardif, mais ils ne forment pas une série annuelle : les périodes et les définitions ne sont pas exactement les mêmes."
+          "Le second groupe d’acheteurs est plus âgé en moyenne. L’observation de 2002 couvre toutefois plusieurs années d’acquisition, celle de 2013 une autre fenêtre d’enquête : l’écart de trois ans porte sur ces deux groupes, sans retracer une hausse régulière entre les deux dates."
         ]
       },
       {
         "id": "cohortes",
-        "titre": "Les générations n’ont pas suivi le même parcours",
+        "titre": "Une accession plus précoce, puis plus tardive selon les générations",
         "paragraphes": [
           "L’Insee estime que la moitié de la génération née en 1924 était devenue propriétaire à 47 ans, contre 36 ans pour celle de 1944, 33,5 ans pour celle de 1952 et 38 ans pour celle de 1964.",
-          "Pour les personnes nées entre 1974 et 1978, le même seuil se situe dans une tranche de 35 à 39 ans. Le chiffre décrit une génération ; il ne prédit pas le parcours de chaque personne."
+          "L’accès à la propriété s’est donc avancé entre les générations 1924 et 1952, puis décalé pour celle de 1964. Pour les personnes nées entre 1974 et 1978, le seuil de 50 % se situe entre 35 et 39 ans. Les parcours ne suivent pas un mouvement uniforme vers un achat toujours plus tardif."
         ]
       },
       {
@@ -309,23 +313,23 @@
         "titre": "La propriété augmente avec l’âge",
         "paragraphes": [
           "Début 2024, 17,2 % des ménages dont la personne de référence a moins de 30 ans détiennent leur résidence principale. La proportion atteint 47,7 % entre 30 et 39 ans et 57,2 % pour l’ensemble des ménages.",
-          "Ces parts incluent des ménages qui ont acheté depuis longtemps. Elles complètent l’histoire des générations sans fournir l’âge moyen d’un premier achat."
+          "L’écart entre les moins de 30 ans et les trentenaires atteint ainsi 30,5 points. Les ménages plus âgés ont eu davantage de temps pour constituer une épargne et acquérir un logement ; ils ont aussi rencontré des prix et des conditions de crédit différents au cours de leur vie."
         ]
       },
       {
         "id": "ce-qui-determine-lacces",
-        "titre": "Les prix et le crédit pèsent sur le calendrier",
+        "titre": "Les prix, l’apport et le crédit pèsent sur le calendrier",
         "paragraphes": [
-          "Le moment de l’achat dépend des revenus, de l’épargne disponible, du prix du logement, de la taille du ménage et du lieu de résidence. Deux personnes du même âge peuvent donc suivre des parcours très différents.",
-          "Les Notaires de France soulignent aussi le rôle des taux d’intérêt et de la durée des prêts. Quand le crédit devient plus cher ou plus long, l’accès à la propriété peut se déplacer dans le temps."
+          "Le moment de l’achat dépend des revenus, de l’épargne disponible, du prix du logement, de la taille du ménage et du lieu de résidence. À revenu égal, un prix plus élevé demande un apport plus important, un emprunt plus lourd ou un logement moins cher.",
+          "Les Notaires de France soulignent le rôle des taux d’intérêt et de la durée des prêts. Une hausse du taux renchérit la mensualité pour un même emprunt ; allonger la durée peut alléger cette mensualité, mais prolonge le remboursement. Ces conditions peuvent conduire un ménage à reporter son projet ou à modifier le bien recherché."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Des parcours différents selon les générations",
+        "titre": "L’accès à la propriété se joue dans les revenus, les prix et le crédit",
         "paragraphes": [
-          "Les sources ne publient pas de série annuelle homogène de l’âge moyen au premier achat. Elles montrent des parcours différents selon les générations et une détention qui augmente nettement avec l’âge.",
-          "Les prix, les revenus et le coût du crédit sont nécessaires pour comprendre l’accès actuel au logement."
+          "Les générations n’ont pas accédé à la propriété au même rythme : le seuil de 50 % de propriétaires a été atteint plus tôt par la génération 1952 que par celles de 1924 ou de 1964. Début 2024, moins d’un ménage sur cinq parmi les moins de 30 ans possède sa résidence principale, contre près d’un sur deux parmi les trentenaires.",
+          "Un achat devient possible lorsque les revenus et l’apport permettent de financer un logement aux conditions de crédit disponibles. La hausse des prix ou du coût de l’emprunt peut retarder ce moment, tandis qu’une épargne plus importante ou un bien moins cher peut le rapprocher."
         ]
       }
     ],

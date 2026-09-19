@@ -86,13 +86,17 @@
     {
       "date": "2026-09-19",
       "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    },
+    {
+      "date": "2026-09-19",
+      "quoi": "Réécriture des introductions, développements, légendes et conclusions en analyse directe ; données et références conservées."
     }
   ],
   "verifie_contre": "Eurostat nrg_pc_202, France, bande D2, TTC et hors taxes",
   "dossier": {
-    "chapo": "Chauffage, eau chaude, cuisson : le prix du gaz pèse sur plusieurs dépenses du logement. Entre les seconds semestres 2022 et 2025, le prix moyen toutes taxes comprises (TTC) payé en France par les ménages de la catégorie D2 passe de 10,08 à 14,36 centimes par kilowattheure. Pour comprendre cette évolution, il faut séparer la catégorie statistique, le prix hors taxes, les prélèvements et la facture réelle.",
+    "chapo": "Entre les seconds semestres 2022 et 2025, le prix moyen du gaz toutes taxes comprises passe de 10,08 à 14,36 centimes par kilowattheure pour les ménages de la catégorie D2 en France, soit environ 42 % de hausse. Le coût hors taxes et les prélèvements augmentent tous deux. Pour les foyers qui utilisent le gaz pour le chauffage, l’eau chaude ou la cuisson, cette progression renchérit l’énergie consommée.",
     "chronologie": {
-      "titre": "Les repères sont semestriels",
+      "titre": "La hausse du prix moyen du gaz entre 2022 et 2025",
       "sourceId": "eurostat-gaz",
       "etapes": [
         {
@@ -211,8 +215,8 @@
       {
         "id": "courbe-gaz",
         "type": "line",
-        "titre": "Prix du gaz, avec et sans taxes, depuis 2022",
-        "resume": "Les deux séries augmentent ; l'écart entre elles correspond aux taxes et prélèvements dans cette définition.",
+        "titre": "Le prix du gaz avec et sans taxes depuis 2022",
+        "resume": "Pour la bande D2 en France, les prix moyens des seconds semestres augmentent de 2022 à 2025. L’écart entre TTC et hors taxes correspond aux taxes et prélèvements.",
         "seriesIds": [
           "gaz-ttc",
           "gaz-hors-taxes"
@@ -234,50 +238,50 @@
     "sections": [
       {
         "id": "categorie",
-        "titre": "La consommation des ménages change la comparaison",
+        "titre": "Une catégorie de ménages définie par leur consommation annuelle",
         "paragraphes": [
-          "Eurostat classe les ménages selon leur consommation annuelle. La bande D2 correspond aux consommateurs résidentiels utilisant au moins 20 gigajoules et moins de 200 gigajoules par an.",
-          "Elle permet de comparer les prix dans le temps et entre pays, mais elle ne décrit pas chaque foyer français."
+          "Eurostat regroupe dans la bande D2 les consommateurs résidentiels utilisant de 20 à moins de 200 gigajoules de gaz par an, soit des seuils d’environ 5 600 et 55 600 kilowattheures. Les prix publiés sont des moyennes pour cette catégorie de consommation.",
+          "Au sein de cette tranche, les dépenses restent différentes selon la consommation, l’offre du fournisseur et l’abonnement. Le chauffage, l’eau chaude et la cuisson représentent des usages dont le poids varie d’un logement à l’autre."
         ]
       },
       {
         "id": "constat",
-        "titre": "Le prix moyen TTC augmente entre 2022 et 2025",
+        "titre": "Le prix moyen TTC augmente d’environ 42 %",
         "paragraphes": [
-          "Pour la bande D2 en France, le prix moyen toutes taxes comprises passe de 0,1008 euro par kilowattheure au second semestre 2022 à 0,1436 euro au second semestre 2025.",
-          "Les repères intermédiaires sont 0,1181 puis 0,1331 euro par kilowattheure. Ce sont des moyennes semestrielles, pas une facture mensuelle individuelle."
+          "Pour la bande D2 en France, le prix moyen toutes taxes comprises passe de 0,1008 euro par kilowattheure au second semestre 2022 à 0,1436 euro au second semestre 2025. L’écart atteint 4,28 centimes par kilowattheure, soit environ 42 % du prix de départ.",
+          "Les moyennes des seconds semestres 2023 et 2024 s’établissent respectivement à 0,1181 et 0,1331 euro par kilowattheure. Sur ces repères, le prix augmente à chaque étape ; à consommation identique, chaque kilowattheure plus cher alourdit le coût de l’énergie."
         ]
       },
       {
         "id": "decomposition",
-        "titre": "Le prix hors taxes augmente aussi",
+        "titre": "Le hors taxes explique plus de la moitié de la hausse",
         "paragraphes": [
-          "Sur la même période, le prix avant taxes et prélèvements passe de 0,0754 à 0,0998 euro par kilowattheure. Le prix TTC augmente donc avec le coût hors taxes et les prélèvements.",
-          "L’écart entre les deux séries ne décrit pas toutes les lignes d’une facture, mais il montre que les taxes ne sont pas l’unique facteur du mouvement."
+          "Sur la même période, le prix avant taxes et prélèvements passe de 0,0754 à 0,0998 euro par kilowattheure. Sa progression atteint 2,44 centimes, sur les 4,28 centimes de hausse du prix TTC.",
+          "L’écart entre TTC et hors taxes passe de 2,54 à 4,38 centimes par kilowattheure, soit 1,84 centime supplémentaire. La hausse totale résulte donc à la fois du coût hors taxes et des prélèvements, avec une contribution plus forte du premier sur les deux dates comparées."
         ]
       },
       {
         "id": "repere",
-        "titre": "Le prix repère de la CRE suit son propre calendrier",
+        "titre": "Le réseau et les prélèvements évoluent aussi en cours d’année",
         "paragraphes": [
-          "Après la fin des tarifs réglementés du gaz, la Commission de régulation de l’énergie publie un prix repère mensuel pour aider les consommateurs à comparer les offres.",
-          "À l’été 2025, l’UFC-Que Choisir a relevé une hausse de la composante réseau et une hausse moyenne de facture plus limitée, puis une modification de la TVA sur l’abonnement en août. Ces évolutions peuvent différer de la moyenne semestrielle d’Eurostat."
+          "Après la fin des tarifs réglementés du gaz, la Commission de régulation de l’énergie publie un prix repère mensuel pour comparer les offres. Il suit les coûts d’approvisionnement et les autres composantes de la fourniture aux clients résidentiels.",
+          "À l’été 2025, l’UFC-Que Choisir a relevé une hausse de la composante réseau et une hausse moyenne de facture plus limitée, puis une modification de la TVA sur l’abonnement en août. Les composantes de la facture peuvent ainsi évoluer à des rythmes différents, au cours d’un même semestre."
         ]
       },
       {
         "id": "facture",
-        "titre": "Le prix au kilowattheure ne suffit pas à calculer une facture",
+        "titre": "La consommation et le contrat déterminent la dépense du foyer",
         "paragraphes": [
-          "Une facture dépend de la consommation, de l’abonnement, de la zone tarifaire, de l’offre du fournisseur et de la période de relevé.",
-          "La CRE compare les offres à l’aide d’un repère, tandis qu’Eurostat consolide des prix moyens par catégorie de consommation. Un contrat fixe ou indexé peut évoluer à un autre rythme."
+          "Une facture dépend de la consommation, de l’abonnement, de la zone tarifaire, de l’offre du fournisseur et de la période de relevé. Un logement consommant davantage de gaz subit un surcoût plus important pour une même hausse du prix au kilowattheure.",
+          "Le contrat fixe ou indexé détermine aussi le calendrier de transmission des variations de prix. Le repère mensuel de la CRE suit les conditions de fourniture, tandis qu’Eurostat rassemble les prix moyens payés sur le semestre dans chaque catégorie."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Une hausse du prix, pas une facture universelle",
+        "titre": "Le coût hors taxes et les prélèvements renchérissent le gaz",
         "paragraphes": [
-          "Pour la catégorie D2, le prix moyen TTC du gaz augmente entre les seconds semestres 2022 et 2025, et le prix hors taxes progresse également.",
-          "Ce résultat décrit une catégorie statistique. Il ne donne pas directement la facture de chaque ménage."
+          "Pour les ménages de la bande D2, le prix moyen TTC du gaz augmente d’environ 42 % entre les seconds semestres 2022 et 2025. Sur les 4,28 centimes supplémentaires par kilowattheure, 2,44 viennent du prix hors taxes et 1,84 de l’écart correspondant aux taxes et prélèvements.",
+          "Cette hausse accroît le coût du chauffage, de l’eau chaude et de la cuisson à consommation inchangée. Son effet pour chaque foyer dépend du volume utilisé et du contrat ; réduire la consommation peut atténuer la dépense, tandis que l’abonnement reste une charge même lorsque le logement consomme moins."
         ]
       }
     ],
