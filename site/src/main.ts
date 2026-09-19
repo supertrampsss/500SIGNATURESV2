@@ -7,7 +7,6 @@ import { brancherTheme } from "./theme.ts";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
-import "./styles/territoires-carte-approved.css";
 import { COUCHES, styleCarte } from "./carte-style.ts";
 
 import * as donnees from "./donnees.ts";
@@ -112,6 +111,7 @@ import "./styles/editorial-identity.css";
 import "./styles/data-studio.css";
 import "./styles/shared-design.css";
 import "./styles/revue-civique.css";
+import "./styles/territoires-carte-approved.css";
 import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
 
@@ -741,7 +741,7 @@ function planifierEtiquettes(reinitialiser = true): void {
 function majEtiquettes(): void {
   const couche = COUCHES[etat.niveau];
   const calque = $("etiquettes");
-  if (!carte) return;
+  if (!carte || !calque) return;
   const idCouche = `remplissage-${couche}`;
   // `resize()` peut courir avant que la couche de la nouvelle maille soit
   // ajoutée. MapLibre journalise une erreur même si `queryRenderedFeatures`
@@ -1381,6 +1381,14 @@ async function ouvrirTerritoire(
       if (panneau.querySelector(".fiche__chargement")) {
         panneau.innerHTML =
           '<p class="erreur">Les données de ce territoire n\'ont pas pu être chargées.</p>';
+      }
+      if (window.innerWidth <= 960 && document.body.dataset.vue === "territoire") {
+        const titre = panneau.querySelector<HTMLElement>(".fiche__titre");
+        if (titre) {
+          titre.tabIndex = -1;
+          titre.focus({ preventScroll: true });
+          titre.scrollIntoView({ block: "start", behavior: "auto" });
+        }
       }
     }
     fileOuverture.fermer(ticket);
@@ -2361,7 +2369,9 @@ async function peindreAccueil(): Promise<void> {
   const regions = await donnees
     .territoires(MAILLE_EXEMPLE, "tous")
     .catch((): Record<string, Territoire> => ({}));
+  const paysAccueil = await donnees.territoires("pays", "tous").catch((): Record<string, Territoire> => ({}));
   cadre.innerHTML = renduAccueil({
+    france: paysAccueil.FR,
     analyses: ANALYSES,
     catalogue,
     territoires: exemplesTerritoires(regions, catalogue),
@@ -2442,6 +2452,8 @@ function basculerVue(): void {
   // il n'avait rien à voir avec les cinq chapitres du bilan, qui racontent la
   // France.
   if (vue === "territoire") {
+    initialiserCarte();
+    requestAnimationFrame(() => carte?.resize());
     void peindreDetail();
     void peindrePalmares();
   }
@@ -2921,7 +2933,7 @@ function etatCarte(message: string, indisponible = false): void {
 
 function initialiserCarte(): void {
   const conteneur = document.getElementById("carte");
-  if (!conteneur || carte) return;
+  if (!conteneur || carte || document.body.dataset.vue !== "territoire" || !catalogue.length) return;
   const canvas = document.createElement("canvas");
   const webgl = canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl");
   if (!webgl) {
@@ -2950,6 +2962,9 @@ function initialiserCarte(): void {
     etatCarte("La carte ne peut pas être affichée ici. La recherche et les fiches restent accessibles.", true);
     return;
   }
+  carte.on("error", () => {
+    etatCarte("Les tuiles de la carte ne peuvent pas \u00eatre charg\u00e9es. La recherche et les fiches restent accessibles.", true);
+  });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   // `compact: true` ne suffit pas : MapLibre rend l'attribution OUVERTE au
   // premier affichage — 473 px de crédits en bas de carte — et ne la replie

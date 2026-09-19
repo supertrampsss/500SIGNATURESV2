@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
 const HOME='/mandats/';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
@@ -35,7 +36,7 @@ test('territory, sandbox and reduced motion keep the saved mandate intact',async
  await activate(page.getByRole('button',{name:'Décider',exact:true}),info);const motion=await page.locator('.choice').first().evaluate(el=>getComputedStyle(el).transitionDuration);expect(motion).toBe('0s');
 });
 test('municipal mandate stays unavailable and keeps an existing save',async({page},info)=>{
- const municipalSave={version:4,mode:'municipal',choices:[],ambition:'equilibre',city:{code:'33063',name:'Bordeaux'}};
+ const municipalSave={version:2,mode:'municipal',seed:42,choices:[],ambition:'equilibre'};
  await page.addInitScript(save=>localStorage.setItem('500signatures.mandats.v1',JSON.stringify(save)),municipalSave);
  await page.goto(HOME+'?mode=municipal&v=4&ambition=equilibre&seed=42');await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).toEqual(municipalSave);

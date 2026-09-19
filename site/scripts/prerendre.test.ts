@@ -1019,7 +1019,7 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   // les trois appels à l'action. Sans JavaScript, sans réseau, sans rien.
   const texte = texteDuMain(html);
   assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
-  for (const appel of ["Lire le verdict", "Rejouer le calcul", "Chercher ma commune"]) {
+  for (const appel of ["Lire le verdict", "Commencer un mandat", "Chercher ma commune"]) {
     assert.ok(texte.includes(appel), appel);
   }
   // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.
@@ -1035,7 +1035,7 @@ test("12 bis. le pré-rendu sert les mêmes trois portes que l'accueil dynamique
   const portes = [
     ["Comprendre la France", "/bilan"],
     ["Explorer mon territoire", "/territoire"],
-    ["Prendre les commandes", "/simulateur"],
+    ["Prendre les commandes", "/mandats/"],
   ] as const;
   const positions = portes.map(([libelle, href]) => {
     const porte = corps.match(new RegExp(`<a class="accueil-porte[^\"]*" href="${href}"[\\s\\S]*?${libelle}`));
@@ -1087,7 +1087,7 @@ test("12 quater. le build écrit l'accueil dans le gabarit, et le gabarit seulem
   assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
   assert.match(
     corps,
-    /injecterAccueil\(shell, corpsAccueil\(analyses, catalogue, regions, producteurs\), version\)/,
+    /injecterAccueil\(shell, corpsAccueil\(analyses, catalogue, regions, producteurs, pays\.FR\), version\)/,
     "main() n'écrit plus l'accueil : la racine repartirait vide pour qui n'exécute pas JavaScript.",
   );
   // Le corps des cinq autres vues n'est pas touché : l'application se monte

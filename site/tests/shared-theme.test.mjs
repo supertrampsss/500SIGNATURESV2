@@ -2,8 +2,6 @@ import {test,expect} from '@playwright/test';
 
 test('the compact theme control persists through every primary destination and a saved mandate',async({page},info)=>{
  await page.goto('/salaires/');
- await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
- await page.getByRole('button',{name:'Activer le mode clair',exact:true}).click();
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
  await page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Mandats',exact:true}).click();
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
@@ -68,8 +66,8 @@ test('France keeps the approved backgrounds and readable inner margins in both t
  await page.goto('/bilan/');
  await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
  for(const [theme,background,toggle] of [
-  ['sombre','rgb(12, 32, 41)','Activer le mode clair'],
-  ['clair','rgb(246, 243, 235)','Activer le mode sombre']
+  ['clair','rgb(245, 242, 234)','Activer le mode sombre'],
+  ['sombre','rgb(12, 32, 41)','Activer le mode clair']
  ]){
   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
   await expect(page.getByRole('img',{name:'500 SIGNATURES',exact:true})).toBeVisible();

@@ -23,12 +23,12 @@ body[data-vue="accueil"], body[data-vue="bilan"], body[data-vue="territoire"], b
 }
 
 body[data-vue="accueil"] #contenu,
-body[data-vue="bilan"] #contenu,
+html body[data-vue="bilan"] #contenu,
 body[data-vue="territoire"] #contenu,
 body[data-page="editorial"] #contenu { padding-bottom: 4rem; }
 
 body[data-vue="accueil"] .accueil,
-body[data-vue="bilan"] #vue-bilan,
+html body[data-vue="bilan"] #vue-bilan,
 body[data-vue="territoire"] #vue-territoire,
 body[data-page="editorial"] #contenu { max-width: 78rem; margin-inline: auto; }
 
@@ -45,6 +45,9 @@ body[data-vue="accueil"] .accueil__message {
   font: 600 clamp(2.8rem, 7vw, 6.4rem)/.95 var(--serif);
   letter-spacing: -.025em;
 }
+body[data-vue="accueil"] .accueil__sur-titre { margin: 0 0 1rem; color: var(--revue-clay); font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+body[data-vue="accueil"] .accueil__message em { color: var(--revue-clay); font-style: normal; }
+body[data-vue="accueil"] .accueil__contrat { max-width: 44ch; margin: 0 0 .5rem; color: var(--encre); font-size: 1.15rem; line-height: 1.5; }
 body[data-vue="accueil"] .accueil__cadrage { max-width: 45ch; color: var(--encre-douce); font-size: 1.1rem; }
 body[data-vue="accueil"] .accueil__appel { color: var(--revue-clay); font-weight: 700; text-underline-offset: .25em; }
 body[data-vue="accueil"] .accueil-portes { margin: 0; padding: 2rem clamp(1rem, 4vw, 3rem); }
@@ -60,15 +63,16 @@ body[data-vue="accueil"] .accueil-porte--simuler span { color: #dce3dc; }
 
 /* France and Salaires read as dossiers: broad paper, quiet rules, one strong
    figure per section. Existing source and chart markup remains untouched. */
-body[data-vue="bilan"] #vue-bilan,
+html body[data-vue="bilan"] #vue-bilan,
 body[data-page="editorial"] #contenu { padding-inline: clamp(1rem, 4vw, 3rem); }
-body[data-vue="bilan"] .bilan-verdict,
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict,
 body[data-page="editorial"] .salaires { border-top: 4px solid var(--revue-clay); }
-body[data-vue="bilan"] .bilan-verdict__totem,
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict__totem,
 body[data-page="editorial"] .salaires__resultat { box-shadow: 0 10px 30px rgb(15 27 46 / .08); }
-body[data-vue="bilan"] .bilan-reperage { position: sticky; top: var(--haut-entete); z-index: 2; background: var(--fond); }
-body[data-vue="bilan"] .bilan-reperage a[aria-current="true"],
-body[data-vue="bilan"] .bilan-reperage a:hover { color: var(--revue-clay); }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage { position: sticky; top: var(--haut-entete); z-index: 2; background: var(--fond); }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { justify-content: flex-start; padding-inline: .9rem; font-size: .8rem; letter-spacing: .02em; }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a[aria-current="true"],
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:hover { color: var(--revue-clay); }
 body[data-page="editorial"] .salaires__entree { max-width: 60rem; padding-top: clamp(2rem, 7vw, 6rem); }
 body[data-page="editorial"] .salaires__entree h1 { max-width: 12ch; font-size: clamp(2.8rem, 7vw, 6rem); }
 body[data-page="editorial"] .salaires__atelier { border-top: 1px solid var(--trait); padding-top: 2rem; }
@@ -81,24 +85,97 @@ body[data-vue="territoire"] .territoire-recherche__champ input { border-radius: 
 body[data-vue="territoire"] .fiche { border-top: 1px solid var(--trait); }
 body[data-vue="territoire"] .repere { border-radius: 2px; border-top: 2px solid var(--revue-clay); }
 
-/* Mandats: decision room hierarchy. Choice data is already computed by the
-   engine; these styles make the decision, context and consequences scan as a
-   single room. */
-body[data-mode="national"] .dossier { max-width: 48rem; margin-inline: auto; }
-body[data-mode="national"] .dossier .decision-context { margin: 0 0 1.25rem; border-block: 1px solid var(--line); }
-body[data-mode="national"] .decision-context-label { display: block; color: var(--gold); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
-body[data-mode="national"] .decision-context p { max-width: 58ch; color: var(--muted); font-size: .8125rem; }
-body[data-mode="national"] .choice-consequences { display: grid; gap: .35rem; margin-top: .75rem; padding-top: .7rem; border-top: 1px solid #ffffff18; color: var(--muted); font-size: .75rem; line-height: 1.45; }
-body[data-mode="national"] .choice-consequences b { color: var(--gold); font-weight: 600; }
-body[data-mode="national"] .choice:focus-visible { outline-color: var(--gold); }
-body[data-mode="national"] .national-stage { box-shadow: 0 18px 55px rgb(0 0 0 / .22); }
-
 @media (max-width: 60rem) {
   body[data-vue="accueil"] .accueil-porte + .accueil-porte { border-left: 0; border-top: 1px solid var(--trait); }
-  body[data-vue="bilan"] .bilan-reperage { top: 0; }
+  html body[data-vue="bilan"] #vue-bilan .bilan-reperage { top: 0; }
+  html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { justify-content: center; padding-inline: .4rem; font-size: .75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   body[data-vue="accueil"] .accueil-porte,
   body[data-mode="national"] .national-stage { transition: none; transform: none; }
 }
+/* Approved editorial structure, using the locally hosted original typefaces. */
+body:is([data-vue="accueil"],[data-vue="bilan"],[data-vue="territoire"],[data-vue="salaires"]) { --serif:"Spectral",Georgia,serif; --sans:"Public Sans",system-ui,sans-serif; --police-titres:var(--serif); font-family:var(--sans); }
+:root[data-theme="clair"] body:is([data-vue="accueil"],[data-vue="bilan"],[data-vue="territoire"],[data-vue="salaires"]) { --fond:#f5f2ea; --encre:#203b34; --encre-douce:#697268; --trait:#d1d5c7; --papier:#f5f2ea; --papier-creuse:#e7eadf; --ui-papier:#f5f2ea; --ui-encre:#203b34; --ui-encre-douce:#697268; --ui-trait:#d1d5c7; --ui-surface-creuse:#e7eadf; }
+html body[data-vue="bilan"] #vue-bilan #national { display:grid; grid-template-columns:168px minmax(0,1fr); column-gap:40px; row-gap:26px; margin-top:3rem; }
+html body[data-vue="bilan"] #vue-bilan #national > * { grid-column:2; min-width:0; }
+html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { grid-column:1; grid-row:1 / span 9; display:flex; flex-direction:column; align-self:start; position:sticky; top:calc(var(--haut-entete,80px) + 18px); border:0; border-left:1px solid var(--trait); background:transparent; counter-reset:chapter; padding:0; }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { border:0; min-height:48px; padding:10px 12px; font-size:12px; color:var(--encre-douce); gap:10px; }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a::before { counter-increment:chapter; content:"0" counter(chapter); font-size:10px; color:var(--revue-clay); }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:hover,html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:focus-visible { background:var(--papier-creuse); color:var(--encre); }
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict { border:0; grid-template-columns:minmax(0,1fr) minmax(210px,.8fr); grid-template-areas:'editorial totem' 'equation equation'; gap:28px; }
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict h1 { font:500 clamp(2.5rem,4.4vw,4.4rem)/1.04 var(--serif); letter-spacing:-.055em; }
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict__totem { background:var(--papier-creuse); border:1px solid var(--trait); padding:26px; box-shadow:none; }
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict__totem .bilan-montant { color:var(--revue-clay); font:500 clamp(2.8rem,5vw,4.7rem)/1 var(--serif); letter-spacing:-.05em; }
+html body[data-vue="bilan"] #vue-bilan .bilan-flux { background:var(--papier-creuse); color:var(--encre); border:1px solid var(--trait); border-radius:0; padding:24px 28px; }
+html body[data-vue="bilan"] #vue-bilan .bilan-flux figcaption span { color:var(--encre-douce); }
+html body[data-vue="bilan"] #vue-bilan .bilan-flux__rail { background:#d5d8ce; }
+html body[data-vue="bilan"] #vue-bilan .bilan-flux__barre--0 { background:#59745c; }
+html body[data-vue="bilan"] #vue-bilan .bilan-flux__barre--1 { background:#a84429; }
+html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { border-top:1px solid var(--trait); padding-top:26px; }
+html body[data-vue="bilan"] #vue-bilan .bilan-chapitre h2,html body[data-vue="bilan"] #vue-bilan .insights-france h2 { font-family:var(--serif); letter-spacing:-.035em; }
+html body[data-vue="bilan"] #vue-bilan .bilan-complements { background:var(--papier-creuse); }
+body[data-vue="salaires"] .salaires { max-width:1180px; margin:auto; padding:0 28px; border-top:0; }
+body[data-vue="salaires"] .salaires__entree { padding:58px 0 30px; }
+body[data-vue="salaires"] .salaires__entree h1 { font:500 clamp(3rem,6vw,5.5rem)/1.02 var(--serif); letter-spacing:-.05em; }
+body[data-vue="salaires"] .salaires__atelier { display:grid; grid-template-columns:minmax(250px,.8fr) minmax(0,1.2fr); gap:40px; align-items:start; }
+body[data-vue="salaires"] .salaires__form { padding:28px; background:var(--papier-creuse); border:1px solid var(--trait); border-radius:0; }
+body[data-vue="salaires"] .salaires__resultat { border:1px solid var(--trait); border-radius:0; box-shadow:none; }
+body[data-vue="salaires"] .salaires__statut { border-radius:0; }
+body[data-vue="territoire"] .territoire-recherche { background:var(--fond); color:var(--encre); border-top:0; border-bottom:1px solid var(--trait); padding-block:44px 30px; }
+body[data-vue="territoire"] .territoire-recherche h1 { font:500 clamp(2.5rem,4.5vw,4.2rem)/1.06 var(--serif); letter-spacing:-.05em; }
+body[data-vue="territoire"] .territoire-recherche__surtitre { color:var(--revue-clay); }
+body[data-vue="territoire"] .territoire-recherche__champ input { border:1px solid var(--trait); background:var(--papier-creuse); color:var(--encre); border-radius:0; }
+body[data-vue="territoire"] .fiche__titre { font-family:var(--serif); }
+@media(max-width:900px) {
+ html body[data-vue="bilan"] #vue-bilan #national { display:block; }
+ html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { display:flex; flex-direction:row; position:sticky; top:var(--haut-entete,0px); overflow-x:auto; border-block:1px solid var(--trait); background:var(--fond); margin-bottom:26px; padding:0; z-index:5; }
+ html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { white-space:nowrap; flex:0 0 auto; padding:10px 13px; }
+ html body[data-vue="bilan"] #vue-bilan .bilan-reperage a::before { display:none; }
+ html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { margin-top:26px; }
+}
+@media(max-width:600px) {
+ html body[data-vue="bilan"] #vue-bilan .bilan-verdict { grid-template-columns:1fr; grid-template-areas:'editorial' 'totem' 'equation'; gap:22px; }
+ html body[data-vue="bilan"] #vue-bilan .bilan-verdict__totem { padding:22px; }
+ html body[data-vue="bilan"] #vue-bilan .bilan-flux { padding:20px; }
+ body[data-vue="salaires"] .salaires { padding:0 20px; }
+ body[data-vue="salaires"] .salaires__atelier { grid-template-columns:1fr; gap:24px; }
+ body[data-vue="territoire"] .territoire-recherche { padding:28px 20px 24px; }
+ body[data-vue="territoire"][data-carte="oui"] #panneau { border-radius:22px 22px 0 0; background:var(--fond); box-shadow:0 -12px 30px #203b341a; }
+}
+body[data-vue="accueil"] .accueil__hero { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr); gap:42px; align-items:center; padding:65px 38px; border-bottom:1px solid var(--trait); }
+body[data-vue="accueil"] .accueil__ouverture { padding:0; border:0; }
+body[data-vue="accueil"] .accueil__message { font-weight:500; line-height:1.02; font-size:clamp(3rem,6.3vw,6rem); }
+body[data-vue="accueil"] .accueil__apercu { padding:32px; background:var(--papier-creuse); border:1px solid var(--trait); }
+body[data-vue="accueil"] .accueil__apercu h2 { font:400 17px var(--sans); margin:24px 0 8px; }
+body[data-vue="accueil"] .accueil__solde { display:block; color:var(--revue-clay); font:500 clamp(2.5rem,4.8vw,4.5rem)/1.08 var(--serif); letter-spacing:-.05em; }
+body[data-vue="accueil"] .accueil__apercu dl { margin:30px 0; }
+body[data-vue="accueil"] .accueil__apercu dl>div { display:grid; grid-template-columns:1fr auto; gap:10px; margin-top:20px; font-size:13px; }
+body[data-vue="accueil"] .accueil__apercu dd { margin:0; font-weight:600; }
+body[data-vue="accueil"] .accueil__barre { grid-column:1/-1; height:8px; background:linear-gradient(90deg,#59745c var(--part),#d0d5c9 var(--part)); }
+body[data-vue="accueil"] .accueil__barre--1 { background:linear-gradient(90deg,#a84429 var(--part),#d0d5c9 var(--part)); }
+body[data-vue="accueil"] .accueil__source-apercu { font-size:11px; line-height:1.6; color:var(--encre-douce); }
+body[data-vue="accueil"] .accueil__questions { display:grid; grid-template-columns:1fr 1.5fr; gap:40px; padding:52px 38px; border-top:1px solid var(--trait); }
+body[data-vue="accueil"] .accueil__questions h2 { font:500 36px/1.08 var(--serif); }
+body[data-vue="accueil"] .accueil__questions details { border-bottom:1px solid var(--trait); padding:18px 0; }
+body[data-vue="accueil"] .accueil__questions summary { cursor:pointer; font-weight:600; min-height:30px; }
+body[data-vue="accueil"] .accueil__questions p { font-size:14px; line-height:1.7; }
+body[data-vue="accueil"] .accueil__mandats { padding:55px 38px; background:#203b34; color:#f5f2ea; }
+body[data-vue="accueil"] .accueil__mandats h2 { font:500 46px/1.07 var(--serif); margin:14px 0; color:inherit; }
+body[data-vue="accueil"] .accueil__mandats p { max-width:48ch; color:inherit; }
+body[data-vue="accueil"] .accueil__mandats a { display:inline-block; margin-top:20px; padding:13px 20px; background:#f5f2ea; color:#203b34; text-decoration:none; }
+@media(max-width:760px) { body[data-vue="accueil"] .accueil__hero { grid-template-columns:1fr; padding:42px 22px; gap:34px; } body[data-vue="accueil"] .accueil__questions { grid-template-columns:1fr; padding:36px 22px; gap:18px; } body[data-vue="accueil"] .accueil__mandats { padding:40px 22px; } }
+body[data-vue="accueil"] .accueil__solde small { display:block; font:400 15px/1.4 var(--sans); letter-spacing:0; margin-top:8px; }
+body[data-vue="accueil"] .accueil__source-apercu a { color:var(--encre); text-decoration-color:var(--revue-clay); text-underline-offset:3px; }
+.dataviz__fonction-point--3 { background:#a84429; border-color:#a84429; transform:translate(-50%,-50%) rotate(45deg); }
+
+/* Explicitly supersede the legacy ID selectors from shared-design. */
+html body[data-vue="bilan"] #vue-bilan .bilan-verdict h1 { font:500 clamp(2.5rem,5vw,4.5rem)/1.04 var(--serif); letter-spacing:-.045em; }
+html body[data-vue="bilan"] #vue-bilan .bilan-chapitre h2,
+html body[data-vue="bilan"] #vue-bilan h2,
+html body[data-vue="territoire"] .territoire-recherche h1,
+html body[data-vue="territoire"] .fiche__titre,
+html body[data-vue="salaires"] .salaires__entree h1 { font-family:var(--serif); font-weight:500; letter-spacing:-.035em; }
+html[data-theme="clair"] body[data-vue] { --design-bg:#f5f2ea; --design-panel:#f5f2ea; --design-inset:#e7eadf; --design-ink:#203b34; --design-muted:#697268; --design-line:#cfd3c8; --design-gold:#a84429; --design-red:#a84429; --design-selected:#e7eadf; }
+html[data-theme="clair"] body[data-vue] .entete { background:#f5f2ea; }

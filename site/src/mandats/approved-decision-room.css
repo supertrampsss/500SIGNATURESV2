@@ -1,0 +1,36 @@
+/* Mandats has its own entry point: the approved decision room lives with the game. */
+.mandate-selection { max-width:1180px; margin:0 auto; }
+.mandate-selection .selection-heading { padding:42px 0 26px; }
+.mandate-selection .selection-heading h1 { font-family:Spectral,Georgia,serif; font-weight:500; font-size:clamp(3rem,6vw,5.5rem); line-height:1.04; letter-spacing:-.045em; }
+.mandate-selection .mode-grid { display:block; }
+.mandate-selection .mode-card.national { display:flex; position:relative; align-items:end; width:100%; min-height:560px; overflow:hidden; border:1px solid #7e947660; border-radius:0; text-align:left; background:#122728; }
+.mandate-selection .mode-card.national .mode-art { position:absolute; inset:0; width:100%; height:100%; border:0; }
+.mandate-selection .mode-card.national .mode-art picture,.mandate-selection .mode-card.national .mode-art img { width:100%; height:100%; object-fit:cover; }
+.mandate-selection .mode-card.national .mode-art::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,#071b1dee,#071b1d40 80%),linear-gradient(0deg,#071b1de0,transparent 60%); pointer-events:none; }
+.mandate-selection .mode-copy { position:relative; z-index:1; padding:50px; max-width:580px; }
+.mandate-selection .mode-copy h2 { font:500 clamp(3rem,6vw,5rem)/1.03 Spectral,Georgia,serif; letter-spacing:-.04em; color:#f5f2ea; }
+.mandate-selection .mode-copy p { font-size:17px; line-height:1.6; color:#d5ddd1; }
+.mandate-selection .mode-meta { color:#e3d0a5; font-size:14px; margin-top:20px; }
+.mandate-selection .mode-cta { display:inline-block; padding:15px 22px; margin-top:30px; background:#e4c188; color:#132725; font-weight:600; }
+.mandate-selection .mode-art-caption,.mandate-selection .mode-number { display:none; }
+.mandate-selection .selection-rules { margin-top:40px; border-top:1px solid var(--line); padding-top:30px; }
+body[data-mode="national"] .game-grid[data-view="decision"] .dossier { padding:28px; background:linear-gradient(130deg,#1b3034,#102227); border:1px solid #728b8055; box-shadow:0 20px 70px #0002; }
+body[data-mode="national"] .dossier h1 { font:500 clamp(1.8rem,3vw,2.8rem)/1.14 Spectral,Georgia,serif; letter-spacing:-.035em; }
+body[data-mode="national"] .decision-context { padding:12px 0; margin:0 0 18px; border-block:1px solid var(--line); }
+body[data-mode="national"] .decision-context-label { display:block; color:#dfbd8b; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+body[data-mode="national"] .decision-context p { font-size:12px; line-height:1.5; color:var(--muted); margin:6px 0 0; }
+body[data-mode="national"] .choice-consequences { display:grid; gap:5px; margin:8px 0; border-top:1px solid #ffffff18; padding-top:9px; color:#becbc4; font-size:12px; line-height:1.5; }
+body[data-mode="national"] .choice-consequences b { color:#dfbd8b; font-weight:500; }
+body[data-mode="national"] .national-stage { border-radius:0; box-shadow:0 18px 55px #0003; }
+:root[data-theme="clair"] body[data-mode="national"] .game-grid[data-view="decision"] .dossier { background:#e7eadf; }
+:root[data-theme="clair"] body[data-mode="national"] .choice-consequences { color:#435b51; border-color:#c1c9bd; }
+:root[data-theme="clair"] body[data-mode="national"] .choice-consequences b,:root[data-theme="clair"] body[data-mode="national"] .decision-context-label { color:#7b4d27; }
+@media(max-width:700px) {
+ .mandate-selection .mode-card.national { min-height:520px; }
+ .mandate-selection .mode-copy { padding:30px 24px; }
+ .mandate-selection .mode-copy p { font-size:15px; }
+ .mandate-selection .selection-heading { padding:26px 0 22px; }
+ body[data-mode="national"] .game-grid[data-view="decision"] .dossier { padding:18px 14px; }
+ body[data-mode="national"] .decision-context { margin-bottom:14px; }
+}
+@media(prefers-reduced-motion:reduce) { .mandate-selection .mode-card,body[data-mode="national"] .dossier { transition:none; } }

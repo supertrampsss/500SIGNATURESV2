@@ -12,7 +12,7 @@ export function brancherTheme(): void {
   peindre();
   window.addEventListener("storage", (event) => {
     if (event.key !== "theme") return;
-    document.documentElement.dataset.theme = event.newValue === "clair" ? "clair" : "sombre";
+    document.documentElement.dataset.theme = event.newValue === "sombre" ? "sombre" : "clair";
     peindre();
   });
   bouton.addEventListener("click", () => {

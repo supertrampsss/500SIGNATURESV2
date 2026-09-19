@@ -38,11 +38,12 @@
 
 import { LIBELLE_CONFUSION, LIBELLE_CRAN, type Analyse, type Source } from "./analyse-rendu.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { formater, MENTION_MILLIONS } from "./echelle.ts";
+import { formater, montantLisible } from "./echelle.ts";
 import { coucheEvolution, formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { CONTRATS } from "./mission.ts";
 import { echapper } from "./texte.ts";
 import { traduire } from "./traductions.ts";
+import { chiffres as chiffresOuverture } from "./ouverture.ts";
 
 /**
  * Le message principal du site, arrêté à la conception (spec §8).
@@ -228,7 +229,7 @@ export function renduVerifiez(): string {
       propre solde.
     </p>
     <ul class="accueil__defis">${defis}</ul>
-    <a class="accueil__appel" href="/simulateur">Rejouer le calcul</a>
+    <a class="accueil__appel" href="/mandats/">Rejouer le calcul</a>
   </section>`;
 }
 
@@ -531,6 +532,7 @@ export function renduBandeConfiance(
  * ----------------------------------------------------------------------- */
 
 export type DonneesAccueil = {
+  france?: Territoire;
   analyses: readonly Analyse[];
   catalogue: readonly Indicateur[];
   /** Les territoires candidats à l'exemple vivant, tels que l'appelant les a
@@ -558,40 +560,26 @@ export function renduPortes(): string {
         <strong>Explorer mon territoire</strong>
         <span>Retrouver les comptes de ma commune, de mon département ou de ma région.</span>
       </a>
-      <a class="accueil-porte accueil-porte--simuler" href="/simulateur">
+      <a class="accueil-porte accueil-porte--simuler" href="/mandats/">
         <strong>Prendre les commandes</strong>
-        <span>Rejouer les arbitrages budgétaires, ligne par ligne.</span>
+        <span>Décider pendant cinq ans, et voir les conséquences.</span>
       </a>
     </div>
   </section>`;
 }
 
-/** Un aperçu de données déjà publiées : chaque ligne vient d'une observation
- * portée par l'analyse mise en avant, avec son unité, son exercice et sa source.
- * L'accueil ne fabrique donc ni total, ni année, ni valeur de remplacement. */
-export function renduApercuComptes(
-  analyse: Analyse | null,
-  catalogue: readonly Indicateur[],
-): string {
-  if (!analyse) return "";
-  const lignes = analyse.chiffres
-    .filter((chiffre) => chiffre.observe && catalogue.some((indicateur) => indicateur.id === chiffre.observe!.indicateur))
-    .slice(0, 3)
-    .map((chiffre) => {
-      const observation = chiffre.observe!;
-      const indicateur = catalogue.find((item) => item.id === observation.indicateur)!;
-      return `<li><span>${echapper(chiffre.lecture)}</span><strong>${formater(observation.valeur, indicateur.unite, false, indicateur.id)}</strong><small>Exercice ${echapper(observation.periode)}</small></li>`;
-    })
-    .join("");
-  if (!lignes) return "";
-  const source = analyse.sources[0];
-  return `<section class="accueil__apercu" aria-labelledby="accueil-apercu-titre">
-    <div><p class="accueil__sur-titre">UN APERÇU DES DONNÉES PUBLIÉES</p><h2 id="accueil-apercu-titre">Commencer par un chiffre vérifiable.</h2><p>Chaque valeur garde son unité, son millésime et la source du dossier mis en avant.</p></div>
-    <ul>${lignes}</ul>
-    ${source ? `<p class="accueil__source-apercu"><a href="${echapper(source.url)}" target="_blank" rel="noopener">Source : ${echapper(source.titre)}</a></p>` : ""}
-  </section>`;
+/** The same published national series and common year as the France dossier. */
+export function renduApercuComptes(france?: Territoire): string {
+  const comptes = chiffresOuverture(france);
+  if (!comptes) return `<aside class="accueil__apercu"><p class="accueil__sur-titre">LES COMPTES PUBLICS</p><h2>Remonter aux chiffres.</h2><p>Les comptes s’affichent dès que leurs séries publiées sont disponibles.</p><a href="/bilan/">Lire le dossier France</a></aside>`;
+  const maximum = Math.max(comptes.recettes, comptes.depenses, 1);
+  return `<aside class="accueil__apercu" aria-label="Aperçu des comptes publics français">
+    <p class="accueil__sur-titre">LES COMPTES PUBLICS · ${comptes.fin}</p>
+    <h2>Solde public annuel</h2><strong class="accueil__solde">${montantLisible(-comptes.emprunte).replace("\u00a0", "<small>")}</small></strong>
+    <dl>${[["Recettes",comptes.recettes],["Dépenses",comptes.depenses]].map(([nom,valeur],i)=>`<div><dt>${nom}</dt><dd>${montantLisible(Number(valeur))}</dd><span class="accueil__barre accueil__barre--${i}" style="--part:${Number(valeur)/maximum*100}%" aria-hidden="true"></span></div>`).join("")}</dl>
+    <p class="accueil__source-apercu">Administrations publiques réunies · Eurostat.<br>Montants arrondis indépendamment. <a href="/bilan/">Voir les séries et leurs sources</a></p>
+  </aside>`;
 }
-
 export function renduQuestionsAccueil(): string {
   return `<section class="accueil__questions" aria-labelledby="accueil-questions-titre">
     <div><p class="accueil__sur-titre">POUR LIRE SANS PRÉREQUIS</p><h2 id="accueil-questions-titre">Des chiffres, et du contexte.</h2></div>
@@ -607,20 +595,19 @@ export function renduQuestionsAccueil(): string {
 export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
   return `<div class="accueil">
-    <section class="accueil__ouverture">
+    <div class="accueil__hero"><section class="accueil__ouverture">
       <p class="accueil__sur-titre">COMPRENDRE LA FRANCE, À TOUTES LES ÉCHELLES</p>
       <h1 class="accueil__message">L’argent public,<br><em>en clair.</em></h1>
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
-      <p class="accueil__cadrage">${MENTION_MILLIONS}.</p>
       <p class="accueil__recherche"><a class="accueil__appel" href="${ANCRE_RECHERCHE}">Chercher un territoire</a></p>
     </section>
-    ${renduApercuComptes(enAvant, donnees.catalogue)}
+    ${renduApercuComptes(donnees.france)}</div>
     ${renduPortes()}
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
     ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
-    ${renduVerifiez()}
+    <section class="accueil__mandats"><div><p class="accueil__sur-titre">MANDATS · UN JEU DE STRATÉGIE</p><h2>Les chiffres éclairent.<br>À vous de décider.</h2><p>45 décisions. Cinq ans. Vos arbitrages et leurs conséquences, dans une simulation distincte des données observées.</p><a class="accueil__appel" href="/mandats/?mode=national">Commencer un mandat</a></div></section>
     ${renduQuestionsAccueil()}
   </div>`;
 }

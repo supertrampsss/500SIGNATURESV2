@@ -103,3 +103,17 @@
     scroll-behavior: auto;
   }
 }
+/* The map is embedded in the editorial flow, independent of the old fullscreen mode. */
+html body[data-vue="territoire"] #cadre-carte { display:block; position:relative; width:100%; }
+html body[data-vue="territoire"] .territoire-carte-stage { position:relative; min-width:0; }
+html body[data-vue="territoire"] #carte { display:block; position:relative; inset:auto; width:100%; height:clamp(22rem,48vw,37rem); }
+html body[data-vue="territoire"] #etiquettes { display:block; position:absolute; inset:0; pointer-events:none; }
+html body[data-vue="territoire"] #infobulle:not([hidden]) { display:block; position:absolute; top:0; left:0; }
+html body[data-vue="territoire"] #legende:not([hidden]) { display:block; position:relative; inset:auto; margin:0; width:auto; max-width:none; padding:12px 20px; }
+html body[data-vue="territoire"] #cadre-carte[data-carte-indisponible="oui"] #carte { display:grid; height:auto; min-height:7rem; }
+@media(max-width:600px) { html body[data-vue="territoire"] #carte { height:22rem; } }
+html body[data-vue="territoire"] #legende-titre { margin:0 0 8px; font-size:13px; }
+html body[data-vue="territoire"] #legende-echelle { display:flex; list-style:none; padding:0; margin:0; height:10px; overflow:hidden; }
+html body[data-vue="territoire"] #legende-echelle li { display:block; flex:1; height:10px; margin:0; border:0; border-radius:0; }
+html body[data-vue="territoire"] #legende-bornes { display:flex; justify-content:space-between; gap:12px; padding-top:8px; font-size:12px; }
+html body[data-vue="territoire"] .fiche__titre { scroll-margin-top:100px; }

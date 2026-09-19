@@ -774,9 +774,11 @@ export function corpsAccueil(
   catalogue: Indicateur[],
   regions: Record<string, Territoire>,
   producteurs: readonly string[],
+  france?: Territoire,
 ): string {
   const complet = [...catalogue, ...indicateursDerives(catalogue)];
   return renduAccueil({
+    france,
     analyses,
     catalogue: complet,
     territoires: exemplesTerritoires(regions, complet),
@@ -1635,7 +1637,7 @@ async function main(): Promise<void> {
   // y remplace le titre, la description et l'image par ceux du scénario
   // demandé (`poserApercu`, src/apercu-scenario.ts).
   const htmlSite = injecterPartage(
-    injecterAccueil(shell, corpsAccueil(analyses, catalogue, regions, producteurs), version),
+    injecterAccueil(shell, corpsAccueil(analyses, catalogue, regions, producteurs, pays.FR), version),
     {
       titre: titreDuGabarit(shell),
       description: descriptionDuGabarit(shell),
