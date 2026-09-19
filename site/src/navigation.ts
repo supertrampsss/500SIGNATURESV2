@@ -1,5 +1,5 @@
 export type Destination = {
-  cle: "france" | "territoires" | "simuler" | "salaires";
+  cle: "france" | "territoires" | "simuler" | "salaires" | "analyses";
   href: string;
   libelle: string;
   /** Les pages éditoriales restent de vrais liens : elles rechargent leur
@@ -11,8 +11,20 @@ export const DESTINATIONS: readonly Destination[] = [
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Villes" },
   { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
+  { cle: "analyses", href: "/analyses/", libelle: "Analyses", native: true },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];
+
+/** Le logo et les retours de ligne font varier la hauteur réelle du menu. */
+export function suivreHauteurEntete(): void {
+  const entete = document.querySelector<HTMLElement>(".entete");
+  if (!entete) return;
+  const mesurer = () => document.documentElement.style.setProperty(
+    "--decalage-entete", `${Math.ceil(entete.getBoundingClientRect().height)}px`,
+  );
+  mesurer();
+  new ResizeObserver(mesurer).observe(entete);
+}
 
 function normaliserChemin(pathname: string): string {
   return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
@@ -22,7 +34,7 @@ function normaliserChemin(pathname: string): string {
 export function intercepterNavigation(clic: MouseEvent): Destination | null {
   const lien = (clic.target as HTMLElement | null)?.closest<HTMLAnchorElement>("a[data-vue]");
   if (!lien) return null;
-  if (lien.dataset.vue === "salaires") return null;
+  if (DESTINATIONS.some(d => d.cle === lien.dataset.vue && d.native)) return null;
   if (lien.getAttribute("aria-disabled") === "true") {
     clic.preventDefault();
     return null;
@@ -40,7 +52,7 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
   return DESTINATIONS.filter(({ cle }) => cle !== "simuler").map(({ cle, href, libelle }) => {
     const destination = DESTINATIONS.find((candidate) => candidate.cle === cle)!;
     if (destination.native) {
-      const courant = chemin === normaliserChemin(href) ? ' aria-current="page"' : "";
+      const courant = (chemin === normaliserChemin(href) || (cle === "analyses" && chemin.startsWith("/analyses/"))) ? ' aria-current="page"' : "";
       return `<a href="${href}"${courant}>${libelle}</a>`;
     }
     const estSimulateurIndisponible = cle === "simuler" && !simulateurDisponible;

@@ -69,7 +69,7 @@ html body[data-vue="bilan"] #vue-bilan .bilan-verdict,
 body[data-page="editorial"] .salaires { border-top: 4px solid var(--revue-clay); }
 html body[data-vue="bilan"] #vue-bilan .bilan-verdict__totem,
 body[data-page="editorial"] .salaires__resultat { box-shadow: 0 10px 30px rgb(15 27 46 / .08); }
-html body[data-vue="bilan"] #vue-bilan .bilan-reperage { position: sticky; top: var(--haut-entete); z-index: 2; background: var(--fond); }
+html body[data-vue="bilan"] #vue-bilan .bilan-reperage { position: sticky; top: var(--decalage-entete, 90px); z-index: 2; background: var(--fond); }
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { justify-content: flex-start; padding-inline: .9rem; font-size: .8rem; letter-spacing: .02em; }
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a[aria-current="true"],
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:hover { color: var(--revue-clay); }
@@ -100,7 +100,7 @@ body:is([data-vue="accueil"],[data-vue="bilan"],[data-vue="territoire"],[data-vu
 :root[data-theme="clair"] body:is([data-vue="accueil"],[data-vue="bilan"],[data-vue="territoire"],[data-vue="salaires"]) { --fond:#f5f2ea; --encre:#203b34; --encre-douce:#697268; --trait:#d1d5c7; --papier:#f5f2ea; --papier-creuse:#e7eadf; --ui-papier:#f5f2ea; --ui-encre:#203b34; --ui-encre-douce:#697268; --ui-trait:#d1d5c7; --ui-surface-creuse:#e7eadf; }
 html body[data-vue="bilan"] #vue-bilan #national { display:grid; grid-template-columns:168px minmax(0,1fr); column-gap:40px; row-gap:26px; margin-top:3rem; }
 html body[data-vue="bilan"] #vue-bilan #national > * { grid-column:2; min-width:0; }
-html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { grid-column:1; grid-row:1 / span 9; display:flex; flex-direction:column; align-self:start; position:sticky; top:calc(var(--haut-entete,80px) + 18px); border:0; border-left:1px solid var(--trait); background:transparent; counter-reset:chapter; padding:0; }
+html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { grid-column:1; grid-row:1 / span 9; display:flex; flex-direction:column; align-self:start; position:sticky; top:calc(var(--decalage-entete, 90px) + 18px); border:0; border-left:1px solid var(--trait); background:transparent; counter-reset:chapter; padding:0; }
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { border:0; min-height:48px; padding:10px 12px; font-size:12px; color:var(--encre-douce); gap:10px; }
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a::before { counter-increment:chapter; content:"0" counter(chapter); font-size:10px; color:var(--revue-clay); }
 html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:hover,html body[data-vue="bilan"] #vue-bilan .bilan-reperage a:focus-visible { background:var(--papier-creuse); color:var(--encre); }
@@ -139,7 +139,7 @@ body[data-vue="territoire"] .territoire-recherche__champ input { border:1px soli
 body[data-vue="territoire"] .fiche__titre { font-family:var(--serif); }
 @media(max-width:900px) {
  html body[data-vue="bilan"] #vue-bilan #national { display:block; }
- html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { display:flex; flex-direction:row; position:sticky; top:var(--haut-entete,0px); overflow-x:auto; border-block:1px solid var(--trait); background:var(--fond); margin-bottom:26px; padding:0; z-index:5; }
+ html body[data-vue="bilan"] #vue-bilan #national > .bilan-reperage { display:flex; flex-direction:row; position:sticky; top:var(--decalage-entete, 90px); overflow-x:auto; border-block:1px solid var(--trait); background:var(--fond); margin-bottom:26px; padding:0; z-index:5; }
  html body[data-vue="bilan"] #vue-bilan .bilan-reperage a { white-space:nowrap; flex:0 0 auto; padding:10px 13px; }
  html body[data-vue="bilan"] #vue-bilan .bilan-reperage a::before { display:none; }
  html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { margin-top:26px; }
@@ -188,3 +188,9 @@ html body[data-vue="territoire"] .fiche__titre,
 html body[data-vue="salaires"] .salaires__entree h1 { font-family:var(--serif); font-weight:500; letter-spacing:-.035em; }
 html[data-theme="clair"] body[data-vue] { --design-bg:#f5f2ea; --design-panel:#f5f2ea; --design-inset:#e7eadf; --design-ink:#203b34; --design-muted:#697268; --design-line:#cfd3c8; --design-gold:#a84429; --design-red:#a84429; --design-selected:#e7eadf; }
 html[data-theme="clair"] body[data-vue] .entete { background:#f5f2ea; }
+
+/* Leave the chapter heading below both sticky navigation bars. */
+html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { scroll-margin-top: calc(var(--decalage-entete, 90px) + 20px); }
+@media(max-width:900px) {
+ html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { scroll-margin-top: calc(var(--decalage-entete, 90px) + 70px); }
+}

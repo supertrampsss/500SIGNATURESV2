@@ -400,6 +400,9 @@ export function formater(
  */
 export function libelleUniteAnalyse(unite: string): string {
   switch (unite) {
+    case "billion_EUR": return "milliards d’euros";
+    case "million_EUR": return "millions d’euros";
+    case "percent_GDP": return "% du PIB";
     case "EUR_per_kWh":
       return "euros par kilowattheure";
     case "EUR_per_100_kWh":
@@ -452,6 +455,9 @@ export function formaterValeurAnalyse(valeur: number, unite: string): string {
       ),
     );
   switch (unite) {
+    case "billion_EUR":
+    case "million_EUR":
+    case "percent_GDP": return nombre(2);
     case "EUR_per_kWh":
       return `${nombre(4)}\u202f€/kWh`;
     case "EUR_per_100_kWh":
@@ -576,6 +582,9 @@ function formaterNombre(
     return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
       valeur,
     )} consult./an`;
+  }
+  if (["billion_EUR", "million_EUR", "percent_GDP"].includes(unite)) {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(valeur)} ${libelleUniteAnalyse(unite)}`;
   }
   // Repli honnête : une unité que ce module ne connaît pas s'affiche telle
   // quelle, à côté du nombre. Le bug du taux de pauvreté en euros venait de ce

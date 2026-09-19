@@ -169,8 +169,8 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
 }
 @media(max-width:700px) {
  html body .entete,html body .site-header { padding:10px 20px;grid-template-columns:1fr 44px;gap:8px; }
- html body .entete__nav,html body .site-navigation { grid-column:1/-1;grid-row:2;display:flex;justify-content:space-between;gap:12px;width:100%; }
- html body .entete__nav a,html body .site-navigation a { font-size:.9rem; }
+ html body .entete__nav,html body .site-navigation { grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;width:100%; }
+ html body .entete__nav a,html body .site-navigation a { font-size:.8rem; }
  html body .bascule-theme { grid-column:2;grid-row:1; }
  html body .site-header .header-actions { grid-row:3;margin-top:0; }
  html body #vue-bilan { padding-inline:20px; }
@@ -353,4 +353,10 @@ html[data-theme='clair'] body .brand-e .brand-e__light { display:block; }
 html[data-theme='clair'] body .brand-e .brand-e__dark { display:none; }
 @media(max-width:700px) {
  html body .brand-e { width:43px;height:56px; }
+}
+
+/* Keep all destinations and 44px targets while leaving room for the first decision. */
+@media(max-width:700px) {
+ html body[data-screen="play"] .site-header { padding-block:4px; gap:4px; }
+ html body[data-screen="play"] .site-header .brand-e { width:34px; height:44px; }
 }

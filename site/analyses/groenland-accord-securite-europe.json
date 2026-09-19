@@ -1,0 +1,155 @@
+{
+  "slug": "groenland-accord-securite-europe",
+  "titre": "Groenland : que change l’annonce d’un accord avec les États-Unis ?",
+  "type": "decryptage",
+  "publie_le": "2026-09-19",
+  "themes": [
+    "europe",
+    "securite"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "Groenland : que change l’annonce d’un accord avec les États-Unis ?",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Gouvernement danois : communiqué conjoint du 18 septembre 2026",
+      "url": "https://stm.dk/en/press/press-releases/expected-agreement-on-strengthened-security-in-the-arctic-and-the-north-atlantic-area/",
+      "consulte_le": "2026-09-19"
+    }
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "Au 19 septembre 2026, le communiqué officiel annonce une signature la semaine suivante et rappelle la souveraineté du Royaume de Danemark ainsi que le droit des Groenlandais à l’autodétermination. Il n’annonce pas une cession du territoire."
+  },
+  "chiffres": [
+    {
+      "dit": "225 millions d’euros",
+      "valeur": 225000000.0,
+      "registre": "donnee_officielle",
+      "lecture": "Enveloppe DOAG destinée au Groenland sur la période, distincte des autres programmes."
+    },
+    {
+      "dit": "90 %",
+      "valeur": 90,
+      "registre": "donnee_officielle",
+      "lecture": "Part de l’enveloppe DOAG pour le Groenland affectée à l’éducation."
+    },
+    {
+      "dit": "10 %",
+      "valeur": 10,
+      "registre": "donnee_officielle",
+      "lecture": "Part de l’enveloppe DOAG pour le Groenland affectée à la croissance verte."
+    }
+  ],
+  "hypotheses": [
+    "État des informations au 19 septembre 2026, avant la signature annoncée.",
+    "Le communiqué consulté ne donne pas le texte intégral de l’accord ni son coût.",
+    "L’enveloppe DOAG ne couvre pas tous les instruments européens, notamment la pêche et la connectivité numérique."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "id": "danemark-accord",
+      "titre": "Gouvernement danois : communiqué conjoint du 18 septembre 2026",
+      "url": "https://stm.dk/en/press/press-releases/expected-agreement-on-strengthened-security-in-the-arctic-and-the-north-atlantic-area/",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "commission-groenland",
+      "titre": "Commission européenne : statut et coopération avec le Groenland",
+      "url": "https://international-partnerships.ec.europa.eu/countries/greenland_en",
+      "consulte_le": "2026-09-19"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Ce dossier décrit des données et des décisions publiées."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": "Publications primaires consultées le 2026-09-19",
+  "dossier": {
+    "chapo": "Après les annonces du 18 septembre, des publications présentent le Groenland comme devenu américain. Le communiqué conjoint danois et groenlandais décrit un accord de sécurité encore à signer.",
+    "sommaire": [
+      "annonce",
+      "statut",
+      "finances"
+    ],
+    "series": [],
+    "preuves": [
+      {
+        "id": "aide-groenland",
+        "libelle": "Coopération européenne programmée",
+        "value": 225,
+        "unit": "million_EUR",
+        "period": "2021-2027",
+        "definition": "Enveloppe DOAG destinée au Groenland sur la période, distincte des autres programmes.",
+        "sourceId": "commission-groenland"
+      },
+      {
+        "id": "education-groenland",
+        "libelle": "Part destinée à l’éducation",
+        "value": 90,
+        "unit": "percent",
+        "period": "2021-2027",
+        "definition": "Part de l’enveloppe DOAG pour le Groenland affectée à l’éducation.",
+        "sourceId": "commission-groenland",
+        "comparableGroup": "ventilation"
+      },
+      {
+        "id": "croissance-groenland",
+        "libelle": "Part destinée à la croissance verte",
+        "value": 10,
+        "unit": "percent",
+        "period": "2021-2027",
+        "definition": "Part de l’enveloppe DOAG pour le Groenland affectée à la croissance verte.",
+        "sourceId": "commission-groenland",
+        "comparableGroup": "ventilation"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "cooperation-europe",
+        "type": "bar",
+        "titre": "Un partenariat européen déjà financé",
+        "resume": "Ces montants décrivent la coopération civile existante. Ils ne chiffrent pas le futur accord militaire.",
+        "preuveIds": [
+          "education-groenland",
+          "croissance-groenland"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "annonce",
+        "titre": "Une signature annoncée, puis des procédures nationales",
+        "paragraphes": [
+          "Le communiqué du 18 septembre prévoit une signature à l’Assemblée générale des Nations unies. L’entrée en vigueur dépend ensuite des procédures parlementaires nationales nécessaires. Le texte consulté ne permet pas de détailler les futures installations militaires."
+        ]
+      },
+      {
+        "id": "statut",
+        "titre": "Quel lien avec l’Union européenne ?",
+        "paragraphes": [
+          "Le Groenland est un territoire autonome du Royaume de Danemark, associé à l’UE comme pays et territoire d’outre-mer. Il ne fait pas partie du territoire de l’Union ; ses habitants de nationalité danoise sont citoyens européens."
+        ]
+      },
+      {
+        "id": "finances",
+        "titre": "Que finance déjà l’Europe ?",
+        "paragraphes": [
+          "Le programme de coopération prévoit 225 millions d’euros pour 2021-2027, dont 90 % pour l’éducation et 10 % pour la croissance verte. Il s’agit d’une enveloppe pluriannuelle. Elle ne représente ni une dépense annuelle, ni le coût de la défense du Groenland."
+        ]
+      }
+    ],
+    "limitations": [
+      "État des informations au 19 septembre 2026, avant la signature annoncée.",
+      "Le communiqué consulté ne donne pas le texte intégral de l’accord ni son coût.",
+      "L’enveloppe DOAG ne couvre pas tous les instruments européens, notamment la pêche et la connectivité numérique."
+    ]
+  }
+}
