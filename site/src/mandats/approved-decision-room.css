@@ -13,6 +13,13 @@
 .mandate-selection .mode-meta { color:#e3d0a5; font-size:14px; margin-top:20px; }
 .mandate-selection .mode-cta { display:inline-block; padding:15px 22px; margin-top:30px; background:#e4c188; color:#132725; font-weight:600; }
 .mandate-selection .mode-art-caption,.mandate-selection .mode-number { display:none; }
+/* The light editorial surface keeps the relief on the left, so the copy on
+   the ivory panel must use the ink palette rather than the dark-theme white. */
+:root[data-theme="clair"] .mandate-selection .mode-card.national { background:#f6f3eb; border-color:#cfd3c8; }
+:root[data-theme="clair"] .mandate-selection .mode-card.national .mode-copy h2 { color:#102c37; }
+:root[data-theme="clair"] .mandate-selection .mode-card.national .mode-copy p { color:#435b64; }
+:root[data-theme="clair"] .mandate-selection .mode-card.national .mode-meta { color:#7b4d27; }
+:root[data-theme="clair"] .mandate-selection .mode-card.national .mode-cta { color:#102c37; background:#e4c188; }
 .mandate-selection .selection-rules { margin-top:40px; border-top:1px solid var(--line); padding-top:30px; }
 body[data-mode="national"] .game-grid[data-view="decision"] .dossier { padding:28px; background:linear-gradient(130deg,#1b3034,#102227); border:1px solid #728b8055; box-shadow:0 20px 70px #0002; }
 body[data-mode="national"] .dossier h1 { font:500 clamp(1.8rem,3vw,2.8rem)/1.14 Spectral,Georgia,serif; letter-spacing:-.035em; }
