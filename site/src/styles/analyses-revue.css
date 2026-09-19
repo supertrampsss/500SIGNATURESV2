@@ -155,6 +155,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-longue__sources { border-top: 3px solid var(--encre); padding-top: 2rem; font-size: .85rem; line-height: 1.65; }
 .analyse-longue__sources ol { padding-left: 1.25rem; }
 .analyse-longue__sources li { margin-bottom: 1.5rem; padding-left: .5rem; }
+.analyse-rendu .analyse-rendu__registre-source { display: block; width: fit-content; margin-top: .35rem; font-size: .75rem; }
 .analyse-source__usage, .analyse-source__date { color: var(--encre-douce); font-size: .73rem; margin: .5rem 0 0; }
 .analyse-rendu > section[class*="dossier-preuve"] { border: 0; border-top: 1px solid var(--trait); border-radius: 0; padding: 2rem 0 0; background: transparent; }
 .analyse-rendu > .dossier-preuve__verdict { padding: 1.5rem; border-left: 0 !important; border-top: 3px solid var(--accent); }
