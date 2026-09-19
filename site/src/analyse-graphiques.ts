@@ -43,7 +43,7 @@ function traceSeries(v: VisualisationAnalyse, groupe: SerieAnalyse[], unit: stri
     return `<g class="analyse-chart__serie analyse-chart__serie--${index % 4}">${dessin}</g>`;
   }).join("");
   const labels = periodes.filter((_, i) => i === 0 || i === periodes.length - 1 || (compact ? i === Math.floor(periodes.length / 2) : periodes.length <= 6)).map(period => `<text x="${x(period)}" y="246" text-anchor="${period === periodes[0] ? "start" : period === periodes.at(-1) ? "end" : "middle"}">${echapper(period)}</text>`).join("");
-  return `<svg class="analyse-chart__${compact ? "mobile" : "desktop"}" viewBox="0 0 ${largeurSVG} 265" role="img" aria-label="${echapper(v.titre)} (${echapper(libelleUniteAnalyse(unit))}). Les valeurs sont disponibles dans le tableau ci-dessous.">${grille}${traces}<g class="analyse-chart__dates">${labels}</g></svg>`;
+  return `<svg class="analyse-chart__${compact ? "mobile" : "desktop"}" viewBox="0 0 ${largeurSVG} 265" role="img" aria-label="${echapper(v.titre)} (${echapper(libelleUniteAnalyse(unit))}). ${echapper(groupe.map(s => s.libelle + " : " + s.observations.map(o => o.period + ", " + nombre(o.value)).join(" ; ")).join(". "))}">${grille}${traces}<g class="analyse-chart__dates">${labels}</g></svg>`;
 }
 
 /** Rendu statique. Une échelle par unité ; barres avec origine à zéro. */

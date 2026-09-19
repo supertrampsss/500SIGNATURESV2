@@ -82,15 +82,21 @@
     "contrat": "",
     "lecture": "Ce dossier décrit des données et des décisions publiées."
   },
-  "mises_a_jour": [],
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Le montant revient dans le débat sur le soutien à l’Ukraine. Il désigne un prêt européen pour 2026 et 2027, avec une part budgétaire et une part militaire.",
+    "chapo": "L’Union européenne prévoit un prêt de 90 milliards d’euros à l’Ukraine pour 2026 et 2027. Il doit soutenir les dépenses de l’État ukrainien et ses besoins militaires. Son financement, les versements et la prise en charge des intérêts déterminent la portée de cet engagement.",
     "sommaire": [
       "financement",
       "versements",
       "remboursement",
-      "conditions"
+      "conditions",
+      "conclusion"
     ],
     "series": [],
     "preuves": [
@@ -151,6 +157,9 @@
         "titre": "Qui emprunte ?",
         "paragraphes": [
           "L’Union européenne lève les fonds sur les marchés. Le prêt est couvert par la marge disponible du budget européen. Ce montant ne correspond donc pas à une dépense de la France seule."
+        ],
+        "visualisationIds": [
+          "enveloppe-versements"
         ]
       },
       {
@@ -158,9 +167,6 @@
         "titre": "Combien a déjà été versé ?",
         "paragraphes": [
           "La page de suivi du Conseil consultée le 19 septembre 2026 indique 11,6 milliards d’euros versés au titre de ce prêt. Ce cumul doit être daté : il évolue au fil des décaissements."
-        ],
-        "preuveIds": [
-          "pret-verse"
         ]
       },
       {
@@ -175,6 +181,13 @@
         "titre": "À quelles conditions ?",
         "paragraphes": [
           "Les versements dépendent des besoins de financement ukrainiens et sont assortis de conditions, notamment sur l’état de droit et la lutte contre la corruption."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Un engagement sur plusieurs années",
+        "paragraphes": [
+          "Les 90 milliards représentent l’enveloppe du prêt. Les versements ont lieu progressivement et sous conditions. Le budget européen prend en charge les intérêts ; le remboursement du principal est lié aux réparations dues par la Russie."
         ]
       }
     ],

@@ -5,13 +5,13 @@
  * suppose qu'on le sait déjà. L'accueil pose le message principal, puis en
  * donne la preuve tout de suite : un verdict, un simulateur, un territoire.
  *
- * 1. Le verdict du moment — la dernière analyse mise en avant, au format
+ * 1. Le dossier du moment — la dernière analyse mise en avant, au format
  *    carte-verdict : le chiffre annoncé, son auteur et sa date, le chiffre des
  *    comptes, le cran, la source.
  * 2. Vérifiez par vous-même — une porte vers le simulateur, jamais le
  *    simulateur lui-même : les contraintes existantes, et le lien qui les ouvre.
  * 3. Et chez vous ? — le champ de recherche du site, avec un exemple vivant.
- * 4. Les analyses récentes — les cartes des analyses déjà publiées.
+ * 4. Les dossiers récents — les cartes des analyses déjà publiées.
  * 5. La bande de confiance — ce que le site publie, qui le produit, et où
  *    l'on va vérifier.
  *
@@ -67,7 +67,7 @@ const ANCRE_RECHERCHE = "/territoire#recherche";
 const CHEMIN_SOURCES = "/sources/";
 
 /* --------------------------------------------------------------------------
- * Bloc 1 — Le verdict du moment
+ * Bloc 1 — Le dossier du moment
  * ----------------------------------------------------------------------- */
 
 /**
@@ -125,7 +125,7 @@ function chiffreDesComptes(
 }
 
 /**
- * Le verdict du moment, au format carte-verdict.
+ * Le dossier du moment, au format carte-verdict.
  *
  * Deux sources, et elles ne se remplacent pas : `affirmation.source` est celle
  * de la **déclaration** mise en cause, `sources[0]` celle du **chiffre des
@@ -179,7 +179,7 @@ export function renduVerdictDuMoment(
     ? `<dt>Chiffre annoncé</dt><dd>« ${echapper(chiffreDit)} »</dd>`
     : "";
   return `<section class="accueil__bloc accueil__bloc--verdict" aria-labelledby="accueil-verdict">
-    <h3 id="accueil-verdict">Le verdict du moment</h3>
+    <h3 id="accueil-verdict">Le dossier du moment</h3>
     <article class="accueil__carte-verdict" data-slug="${echapper(analyse.slug)}">
       <h4 class="accueil__titre-analyse">${echapper(analyse.titre)}</h4>
       <blockquote class="accueil__affirmation">${echapper(affirmation.texte)}</blockquote>
@@ -190,7 +190,7 @@ export function renduVerdictDuMoment(
         LIBELLE_CRAN[verdict.cran]
       }</p>
       ${confusion}
-      <a class="accueil__appel" href="/analyses/${echapper(analyse.slug)}/">Lire le verdict</a>
+      <a class="accueil__appel" href="/analyses/${echapper(analyse.slug)}/">Lire le dossier</a>
     </article>
   </section>`;
 }
@@ -451,7 +451,7 @@ export function renduChezVous(territoire: ExempleTerritoire | null): string {
 }
 
 /* --------------------------------------------------------------------------
- * Bloc 4 — Les analyses récentes
+ * Bloc 4 — Les dossiers récents
  * ----------------------------------------------------------------------- */
 
 /** Le plafond du bloc : six cartes (spec §8). Au-delà, l'accueil devient
@@ -459,7 +459,7 @@ export function renduChezVous(territoire: ExempleTerritoire | null): string {
 const CARTES_MAXIMUM = 6;
 
 /**
- * Les analyses récentes, de la plus récente à la plus ancienne.
+ * Les dossiers récents, de la plus récente à la plus ancienne.
  *
  * L'ordre est celui des dates de publication — jamais celui des montants en
  * cause, qui rangerait des grandeurs que rien ne compare et ferait un
@@ -490,7 +490,7 @@ export function renduAnalysesRecentes(
     )
     .join("");
   return `<section class="accueil__bloc accueil__bloc--analyses" aria-labelledby="accueil-analyses">
-    <h3 id="accueil-analyses">Les analyses récentes</h3>
+    <h3 id="accueil-analyses">Les dossiers récents</h3>
     <ul class="accueil__analyses">${cartes}</ul>
   </section>`;
 }
@@ -554,7 +554,7 @@ export function renduPortes(): string {
     <div class="accueil-portes__grille">
       <a class="accueil-porte accueil-porte--france" href="/bilan">
         <strong>Comprendre la France</strong>
-        <span>Lire l'équation nationale et les analyses publiées.</span>
+        <span>Lire l'équation nationale et les dossiers publiés.</span>
       </a>
       <a class="accueil-porte accueil-porte--territoires" href="/territoire">
         <strong>Explorer mon territoire</strong>

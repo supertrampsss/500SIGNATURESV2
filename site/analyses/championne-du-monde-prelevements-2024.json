@@ -1,6 +1,6 @@
 {
   "slug": "championne-du-monde-prelevements-2024",
-  "titre": "« Championne du monde des prélèvements » : championne de quel monde ?",
+  "titre": "Prélèvements obligatoires : où se situe la France en Europe ?",
   "type": "decryptage",
   "publie_le": "2026-08-22",
   "themes": [
@@ -73,12 +73,14 @@
     {
       "titre": "Recettes des administrations publiques par catégorie (Eurostat, gov_10a_taxag)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_taxag/default/table",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-1"
     },
     {
       "titre": "Taux de prélèvements obligatoires au sein de l'Union européenne (Insee)",
       "url": "https://www.insee.fr/fr/statistiques/2381410",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-2"
     }
   ],
   "simulateur": {
@@ -86,6 +88,92 @@
     "contrat": "",
     "lecture": "Le simulateur règle des recettes en euros, pas un taux rapporté au produit intérieur brut : baisser un impôt y fait bouger le solde, jamais directement ce ratio."
   },
-  "mises_a_jour": [],
-  "verifie_contre": ""
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
+  "verifie_contre": "",
+  "dossier": {
+    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au PIB, ils permettent de comparer le poids de ces financements entre pays. Dans les données harmonisées présentées ici pour 2024, la France se situe au-dessus de la moyenne européenne.",
+    "series": [],
+    "preuves": [
+      {
+        "id": "chiffre-1",
+        "libelle": "France",
+        "value": 45.2,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Les prélèvements obligatoires français : 45,2 % du PIB en 2024.",
+        "sourceId": "source-1",
+        "comparableGroup": "taux-2024"
+      },
+      {
+        "id": "chiffre-2",
+        "libelle": "Danemark",
+        "value": 45.4,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Le Danemark en prélève 45,4 % la même année, même définition.",
+        "sourceId": "source-1",
+        "comparableGroup": "taux-2024"
+      },
+      {
+        "id": "chiffre-3",
+        "libelle": "Union européenne",
+        "value": 40.2,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "L'Union à vingt-sept en prélève 40,2 % : cinq points de moins.",
+        "sourceId": "source-1",
+        "comparableGroup": "taux-2024"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "comparaison-prelevements",
+        "type": "bar",
+        "titre": "Les prélèvements rapportés au PIB en 2024",
+        "resume": "Impôts et cotisations selon la définition harmonisée retenue dans la série.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2",
+          "chiffre-3"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "comparaison",
+        "titre": "La France au-dessus de la moyenne de l’Union",
+        "paragraphes": [
+          "Le taux français atteint 45,2 % du PIB, contre 40,2 % dans l’Union européenne. Le Danemark se situe à 45,4 %. Le choix des pays et de la définition est essentiel pour interpréter un classement."
+        ],
+        "visualisationIds": [
+          "comparaison-prelevements"
+        ]
+      },
+      {
+        "id": "financement",
+        "titre": "Des systèmes de financement différents",
+        "paragraphes": [
+          "Une protection sociale financée par cotisations apparaît dans les prélèvements obligatoires. Une couverture financée par des paiements privés se retrouve ailleurs dans les dépenses des ménages. Comparer les taux demande donc aussi d’examiner les services et les prestations financés."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Comparer le financement et la couverture",
+        "paragraphes": [
+          "Le niveau français est élevé dans cette comparaison européenne. Pour apprécier ce que les ménages paient et reçoivent, le taux doit être rapproché de la couverture sociale et des dépenses privées correspondantes."
+        ]
+      }
+    ],
+    "limitations": [],
+    "sommaire": [
+      "comparaison",
+      "financement",
+      "conclusion"
+    ]
+  }
 }

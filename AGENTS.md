@@ -65,9 +65,18 @@ report blockers instead of bypassing them. A later explicit hold takes precedenc
 
 - Speak as the project with French « nous » / « on », not a personal « je ».
 - Lead social posts with a concrete, strong question or stake, including the
-  presidential election horizon when relevant. Mention Analyses alongside the tools.
+  presidential election horizon when relevant. Mention Dossiers alongside the tools.
 - Explain methods and scope positively and precisely. Avoid wording that belittles
   the product, such as « le modèle est simplifié, ce n’est pas une fiche de paie ».
   Preserve necessary factual qualifications, dates, units and sources.
 - Keep the Villes landing page neutral: no preselected city or suggested-city buttons.
 - Apply Humanizer principles: natural French, no stock slogans or invented claims.
+
+## Dossiers (owner-approved Journal layout, 19 September 2026)
+
+- Visible navigation label: Dossiers. Preserve /analyses/ URLs.
+- Introduce the subject, develop it with useful charts, finish with a conclusion.
+- One reading column using the France palette and fonts. No author byline.
+- Sources and publication/update dates belong at the bottom of each article.
+- No verdict, proof-path, citation button, method panel, or collapsible article content.
+- Cards are fully clickable, with a visible hover and keyboard focus.

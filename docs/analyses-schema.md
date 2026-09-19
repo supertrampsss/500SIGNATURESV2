@@ -213,3 +213,10 @@ ce que le site cautionne, juxtaposé à ce qui est dit.
   observés. `chiffres[].dit` fait la même exception, pour la même raison —
   mais seulement envers un chiffre qui n'est pas le sien : voir « `dit` reste
   exempté, mais jamais sans rapport avec son propre chiffre » ci-dessus.
+
+
+## Présentation Dossiers — 19 septembre 2026
+
+Le rendu public suit une introduction, un développement illustré et une conclusion. Les références et dates sont regroupées en pied de dossier, sans signature de rédaction. Les anciens champs de contrôle restent internes : aucun verdict, chemin de preuve, bouton de citation ou accordéon ne figure dans les articles.
+
+Une `dossier.chronologie` peut illustrer un sujet diplomatique : `titre`, `sourceId` et une liste non vide `etapes` (`date`, `texte`). Sa source doit exister dans les sources du dossier. Dans ce cas, les listes numériques `preuves` et `visualisations` peuvent être vides. `limitations` peut être vide ; les précisions nécessaires sont rédigées dans le développement. Les autres validations de sources et d’unités sont conservées.

@@ -1,10 +1,14 @@
 {
   "slug": "defense-credits-votes-consommes-2025",
-  "titre": "Le budget de la Défense : deux chiffres publiés, deux sens",
+  "titre": "Défense en 2025 : les dépenses dépassent le budget initial de 2,2 milliards",
   "type": "decryptage",
   "publie_le": "2026-08-14",
-  "themes": ["budget_etat"],
-  "budgets_concernes": ["etat"],
+  "themes": [
+    "budget_etat"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
   "mise_en_avant": true,
   "affirmation": {
     "texte": "Le budget de la Défense pour 2025 est cité tantôt autour de 59,9 milliards d'euros, tantôt autour de 62,1 milliards. Les deux montants sont publiés, et ils ne désignent pas la même chose.",
@@ -55,7 +59,8 @@
     {
       "titre": "Projet de loi relatif aux résultats de la gestion et portant approbation des comptes de l'année (PLRG) 2025, annexe 1",
       "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
-      "consulte_le": "2026-08-14"
+      "consulte_le": "2026-08-14",
+      "id": "source-1"
     }
   ],
   "simulateur": {
@@ -63,6 +68,81 @@
     "contrat": "",
     "lecture": "Le simulateur règle les crédits votés du budget général : c'est la première des deux séries qu'il fait varier."
   },
-  "mises_a_jour": [],
-  "verifie_contre": ""
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
+  "verifie_contre": "",
+  "dossier": {
+    "chapo": "La mission Défense a consommé 62,1 milliards d’euros en 2025, pour 59,9 milliards votés dans le budget initial. Cet écart de près de 2,2 milliards montre pourquoi le suivi des comptes doit se poursuivre après le vote de la loi de finances.",
+    "series": [],
+    "preuves": [
+      {
+        "id": "chiffre-1",
+        "libelle": "Budget initial",
+        "value": 59.946338573,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Les crédits votés : l'autorisation donnée par le Parlement en loi de finances.",
+        "sourceId": "source-1",
+        "comparableGroup": "defense-2025"
+      },
+      {
+        "id": "chiffre-2",
+        "libelle": "Dépenses exécutées",
+        "value": 62.12373674991,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Les crédits consommés : ce que la mission a effectivement dépensé.",
+        "sourceId": "source-1",
+        "comparableGroup": "defense-2025"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "budget-execution",
+        "type": "bar",
+        "titre": "Le budget initial et les dépenses exécutées",
+        "resume": "Mission Défense, année 2025, milliards d’euros.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "execution",
+        "titre": "Ce qui a été dépensé pendant l’année",
+        "paragraphes": [
+          "Les crédits votés fixent le budget initial. Les crédits consommés retracent son exécution. En 2025, les dépenses de la mission sont supérieures d’environ 3,6 % au montant initial. Ce rapprochement porte sur la même mission et la même année."
+        ],
+        "visualisationIds": [
+          "budget-execution"
+        ]
+      },
+      {
+        "id": "mouvements",
+        "titre": "Comment un budget peut évoluer",
+        "paragraphes": [
+          "Des crédits peuvent être modifiés en cours d’année. Pour expliquer précisément l’écart, il faut rapprocher l’exécution des ouvertures, des annulations et des reports autorisés. Le dépassement du budget initial ne suffit donc pas à établir un dépassement des autorisations finales."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Suivre le budget jusqu’à son exécution",
+        "paragraphes": [
+          "Le montant effectivement dépensé permet d’évaluer l’effort réalisé. Le rapprochement avec les crédits disponibles et les résultats des programmes est l’étape suivante pour apprécier la gestion de la mission."
+        ]
+      }
+    ],
+    "limitations": [],
+    "sommaire": [
+      "execution",
+      "mouvements",
+      "conclusion"
+    ]
+  }
 }

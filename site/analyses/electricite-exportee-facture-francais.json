@@ -1,10 +1,15 @@
 {
   "slug": "electricite-exportee-facture-francais",
-  "titre": "Vend-on notre électricité moins cher à nos voisins qu'aux Français ?",
+  "titre": "Pourquoi la France exporte de l’électricité alors que les factures restent élevées",
   "type": "decryptage",
   "publie_le": "2026-08-30",
-  "themes": ["energie", "europe"],
-  "budgets_concernes": ["etat"],
+  "themes": [
+    "energie",
+    "europe"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
   "mise_en_avant": true,
   "affirmation": {
     "texte": "La France vend son électricité nucléaire à bas prix aux pays voisins, puis les Français la rachètent plus cher.",
@@ -84,11 +89,22 @@
     "contrat": "",
     "lecture": "Le simulateur peut faire varier des choix énergétiques, mais il ne transforme pas un prix spot en facture domestique : ces grandeurs restent séparées."
   },
-  "mises_a_jour": [],
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
   "verifie_contre": "RTE 2024-2025 et CRE, pages consultées le 30 août 2026",
   "dossier": {
-    "chapo": "La France exporte beaucoup d'électricité lorsqu'elle en produit davantage qu'elle n'en consomme et que les interconnexions le permettent. Mais comparer le prix de gros de ces flux à une facture résidentielle TTC revient à comparer deux objets différents.",
-    "sommaire": ["reponse", "echanges", "facture", "arenh"],
+    "chapo": "La France produit parfois davantage d’électricité qu’elle n’en consomme et vend l’excédent sur le marché européen. Dans le même temps, les ménages paient une facture qui comprend l’énergie, les réseaux et les taxes. Pour comprendre l’écart, il faut suivre séparément le prix des échanges et la composition du tarif payé à domicile.",
+    "sommaire": [
+      "reponse",
+      "echanges",
+      "facture",
+      "arenh",
+      "conclusion"
+    ],
     "series": [
       {
         "id": "solde-exportateur",
@@ -97,8 +113,14 @@
         "definition": "Exportations physiques diminuées des importations physiques d'électricité sur l'année.",
         "sourceId": "rte-echanges-2025",
         "observations": [
-          {"period": "2024", "value": 89000},
-          {"period": "2025", "value": 92300}
+          {
+            "period": "2024",
+            "value": 89000
+          },
+          {
+            "period": "2025",
+            "value": 92300
+          }
         ]
       },
       {
@@ -108,8 +130,14 @@
         "definition": "Niveau moyen TTC du tarif réglementé proposé par la CRE pour les consommateurs d'une puissance inférieure ou égale à 36 kVA.",
         "sourceId": "cre-trve-2025",
         "observations": [
-          {"period": "2024-02", "value": 281},
-          {"period": "2025-02", "value": 239}
+          {
+            "period": "2024-02",
+            "value": 281
+          },
+          {
+            "period": "2025-02",
+            "value": 239
+          }
         ]
       }
     ],
@@ -186,26 +214,34 @@
         "type": "bar",
         "titre": "Une France nettement exportatrice en 2024 et 2025",
         "resume": "Le solde exportateur net atteint 89 000 GWh en 2024 et 92 300 GWh en 2025.",
-        "seriesIds": ["solde-exportateur"]
+        "seriesIds": [
+          "solde-exportateur"
+        ]
       },
       {
         "id": "prix-gros-detail",
         "type": "snapshot_table",
         "titre": "Trois valorisations de gros et une facture de détail",
         "resume": "Les valeurs de gros de RTE se comparent entre elles ; le tarif TTC de la CRE appartient à un autre étage de prix.",
-        "preuveIds": ["preuve-export-prix-francais", "preuve-spot-france", "preuve-export-destinations", "preuve-trve-2025"]
+        "preuveIds": [
+          "preuve-export-prix-francais",
+          "preuve-spot-france",
+          "preuve-export-destinations",
+          "preuve-trve-2025"
+        ]
       }
     ],
     "sections": [
       {
         "id": "reponse",
-        "titre": "La réponse courte : non, pas de vente puis de rachat",
+        "titre": "Comment circulent les échanges européens",
         "paragraphes": [
           "Le réseau européen met en commun des zones reliées entre elles. À chaque instant, l'électricité circule selon la production disponible, la demande, les prix de gros et la capacité des interconnexions. Un flux exporté n'est pas étiqueté puis revendu au ménage français.",
           "La bonne comparaison oppose d'abord des prix de gros entre eux. Elle examine ensuite, séparément, comment un prix de détail est construit."
         ],
-        "preuveIds": ["preuve-export-prix-francais", "preuve-spot-france", "preuve-export-destinations"],
-        "visualisationIds": ["prix-gros-detail"]
+        "visualisationIds": [
+          "prix-gros-detail"
+        ]
       },
       {
         "id": "echanges",
@@ -214,8 +250,9 @@
           "Quand la production française disponible dépasse la demande intérieure, exporter offre un débouché à la production excédentaire. En 2024 comme en 2025, la France a été très largement exportatrice nette.",
           "RTE montre aussi pourquoi la formule « vendu moins cher aux voisins » est trompeuse : en 2025, le mégawattheure exporté vaut 59 euros au prix français, presque le prix spot français de 61 euros, tandis que la valorisation aux prix des pays de destination atteint 101,5 euros. Ces deux valorisations encadrent le même flux avec des conventions différentes ; elles ne décrivent pas un cadeau suivi d'un rachat."
         ],
-        "preuveIds": ["preuve-solde-2024", "preuve-solde-2025"],
-        "visualisationIds": ["solde-exportateur-figure"]
+        "visualisationIds": [
+          "solde-exportateur-figure"
+        ]
       },
       {
         "id": "facture",
@@ -223,8 +260,7 @@
         "paragraphes": [
           "Une facture de détail ne reprend pas simplement le prix spot du jour. Elle agrège le coût d'approvisionnement du fournisseur, souvent couvert à l'avance, la capacité, l'utilisation des réseaux, la commercialisation, les prélèvements et la TVA.",
           "La CRE a proposé de faire passer le tarif réglementé moyen de 281 à 239 euros par mégawattheure TTC au 1er février 2025, en raison notamment de la baisse des coûts d'approvisionnement. Cette proposition illustre comment le prix de détail réagit aux coûts de gros, avec sa propre composition et son propre calendrier."
-        ],
-        "preuveIds": ["preuve-trve-2025"]
+        ]
       },
       {
         "id": "arenh",
@@ -232,8 +268,14 @@
         "paragraphes": [
           "Le prix de 42 euros par mégawattheure souvent cité correspondait à l'ARENH. Ce mécanisme permettait aux fournisseurs d'accéder à une quantité régulée de production nucléaire historique en fonction de leurs portefeuilles de clients en France.",
           "L'ARENH n'était donc pas un tarif préférentiel consenti à des États voisins. Il a pris fin le 31 décembre 2025. Le confondre avec le prix des exportations transfrontalières ajoute un troisième objet à deux grandeurs déjà différentes."
-        ],
-        "preuveIds": ["preuve-arenh"]
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Comparer ce qui compose réellement la facture",
+        "paragraphes": [
+          "Les exportations donnent un débouché à la production disponible. La facture d’un ménage dépend aussi de son contrat, des coûts de réseau et des prélèvements. Une comparaison utile détaille chacun de ces éléments avant de rapprocher les prix."
+        ]
       }
     ],
     "limitations": [

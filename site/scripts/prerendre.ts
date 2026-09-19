@@ -353,7 +353,8 @@ export function donneesCarteAnalyse(
       .filter((periode): periode is string => !!periode)
       .sort()
       .pop() ??
-    preuveDossier?.period;
+    preuveDossier?.period ??
+    (analyse.dossier?.chronologie ? analyse.affirmation.date ?? undefined : undefined);
   if (!exercice) {
     throw new Error(
       `L'analyse "${analyse.slug}" ne déclare aucun exercice : sa carte de partage circulerait ` +
@@ -505,7 +506,7 @@ export function marqueDuGabarit(shell: string): string {
  * exactement le défaut que ce lot vient de corriger sur la carte du site.
  */
 const PAGE_ANALYSES = {
-  titre: "Analyses des finances publiques | 500 signatures",
+  titre: "Dossiers : France, Europe et international | 500 signatures",
   description: "Énergie, défense, logement et finances publiques : les chiffres derrière le débat en France et en Europe, avec les sources de chaque dossier.",
 };
 
@@ -580,7 +581,7 @@ export function sections(shell: string): { chemin: string; nature: string; titre
     // que `chargerAnalyses` lit et que `controle_analyses` contrôle. Il reste
     // servi, reste au plan du site, et garde donc sa carte. La lui retirer
     // laissait un `og:image` mort — ce que `validerCartes` a refusé au build.
-    { chemin: "analyses", nature: "Analyses", titre: marque, phrase: PAGE_ANALYSES.description },
+    { chemin: "analyses", nature: "Dossiers", titre: marque, phrase: PAGE_ANALYSES.description },
     // Le simulateur ne déclare aucune phrase qui ne dépende des fichiers
     // publiés : le seul titre qu'il écrit à l'écran compte les budgets qu'il a
     // montés. Celle-ci n'est pas une accroche écrite pour remplir l'image,

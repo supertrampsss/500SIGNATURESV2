@@ -1,6 +1,6 @@
 {
   "slug": "la-depense-publique-baisse-2024",
-  "titre": "« La dépense publique baisse » : le ratio baisse, la dépense monte",
+  "titre": "Dépense publique : comment lire les montants et la part du PIB",
   "type": "decryptage",
   "publie_le": "2026-08-22",
   "themes": [
@@ -85,12 +85,14 @@
     {
       "titre": "Dépenses des administrations publiques (Eurostat, gov_10a_main)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-1"
     },
     {
       "titre": "Le compte des administrations publiques en 2025 (Insee Première n° 2106)",
       "url": "https://www.insee.fr/fr/statistiques/8997691",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-2"
     }
   ],
   "simulateur": {
@@ -98,6 +100,114 @@
     "contrat": "",
     "lecture": "Le simulateur travaille en euros, jamais en part du produit intérieur brut : une coupe y baisse la dépense sans rien dire du ratio, dont le dénominateur ne dépend pas du budget."
   },
-  "mises_a_jour": [],
-  "verifie_contre": ""
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
+  "verifie_contre": "",
+  "dossier": {
+    "chapo": "Les dépenses publiques financent les services, les investissements et les prestations des administrations. On peut les mesurer en euros ou les rapporter à la richesse produite. Ces deux lectures répondent à des questions différentes et peuvent évoluer dans des sens opposés.",
+    "series": [],
+    "preuves": [
+      {
+        "id": "chiffre-1",
+        "libelle": "Part du PIB en 2013",
+        "value": 58.6,
+        "unit": "percent_GDP",
+        "period": "2013",
+        "definition": "La dépense publique valait 58,6 % du PIB en 2013.",
+        "sourceId": "source-1",
+        "comparableGroup": "ratio"
+      },
+      {
+        "id": "chiffre-2",
+        "libelle": "Part du PIB en 2024",
+        "value": 57.3,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Elle vaut 57,3 % en 2024 : le ratio a bien reculé.",
+        "sourceId": "source-1",
+        "comparableGroup": "ratio"
+      },
+      {
+        "id": "chiffre-3",
+        "libelle": "Dépenses en 2013",
+        "value": 1242.358,
+        "unit": "billion_EUR",
+        "period": "2013",
+        "definition": "En euros, la dépense valait 1 242 358 M€ en 2013.",
+        "sourceId": "source-1",
+        "comparableGroup": "montant"
+      },
+      {
+        "id": "chiffre-4",
+        "libelle": "Dépenses en 2025",
+        "value": 1714.1372,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté.",
+        "sourceId": "source-1",
+        "comparableGroup": "montant"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "ratios",
+        "type": "bar",
+        "titre": "Le poids des dépenses dans le PIB",
+        "resume": "France, en pourcentage du PIB. Deux observations datées.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2"
+        ]
+      },
+      {
+        "id": "montants",
+        "type": "bar",
+        "titre": "Les dépenses en euros courants",
+        "resume": "France, en milliards d’euros. Les montants incluent l’évolution des prix.",
+        "preuveIds": [
+          "chiffre-3",
+          "chiffre-4"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "ratio",
+        "titre": "Le rapport à la richesse produite",
+        "paragraphes": [
+          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Ce rapport diminue lorsque le PIB progresse plus rapidement que les dépenses, même si celles-ci augmentent."
+        ],
+        "visualisationIds": [
+          "ratios"
+        ]
+      },
+      {
+        "id": "montant",
+        "titre": "Les sommes dépensées",
+        "paragraphes": [
+          "Les dépenses passent de 1 242,4 milliards d’euros en 2013 à 1 714,1 milliards en 2025. Les montants et les ratios présentés s’arrêtent à des années différentes : ils ne permettent pas de calculer directement une évolution commune sur toute la période."
+        ],
+        "visualisationIds": [
+          "montants"
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Préciser la mesure et la période",
+        "paragraphes": [
+          "Une baisse en part du PIB renseigne sur le poids relatif des administrations dans l’économie. Pour suivre les moyens des services publics, il faut aussi regarder les montants, l’inflation et les besoins de la population."
+        ]
+      }
+    ],
+    "limitations": [],
+    "sommaire": [
+      "ratio",
+      "montant",
+      "conclusion"
+    ]
+  }
 }

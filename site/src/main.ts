@@ -2637,7 +2637,7 @@ function brancherPartageEditorial(): void {
   if (!article || !compose) return;
   article.insertAdjacentHTML(
     "beforeend",
-    rendrePartage([{ cle: "analyse", libelle: "Partager cette analyse" }], compose.objet.image),
+    rendrePartage([{ cle: "analyse", libelle: "Partager ce dossier" }], compose.objet.image),
   );
   brancherPartage(article, partageDeLaPage);
 }
