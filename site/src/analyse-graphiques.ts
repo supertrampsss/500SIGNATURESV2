@@ -1,5 +1,5 @@
 import type { DossierAnalyseValide, SerieAnalyse, VisualisationAnalyse } from "./analyse-contrat.ts";
-import { formaterValeurAnalyse, libelleUniteAnalyse } from "./echelle.ts";
+import { libelleUniteAnalyse, valeurEtUniteAnalyse } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
 function periodeNumerique(period: string): number {
@@ -29,7 +29,7 @@ function traceSeries(v: VisualisationAnalyse, groupe: SerieAnalyse[], unit: stri
   const grille = [bas, bas + (haut - bas) / 2, haut].map(value => `<g class="analyse-chart__grille"><line x1="${gauche}" x2="${droite}" y1="${y(value)}" y2="${y(value)}"/><text x="${gauche - 8}" y="${y(value) + 4}" text-anchor="end">${echapper(nombre(value))}</text></g>`).join("");
   const traces = groupe.map((serie, index) => {
     const observations = [...serie.observations].sort((a, b) => position(a.period) - position(b.period));
-    const titre = (o: {period: string; value: number}) => `<title>${echapper(serie.libelle)} · ${echapper(o.period)} : ${echapper(nombre(o.value))} ${echapper(libelleUniteAnalyse(unit))}</title>`;
+    const titre = (o: {period: string; value: number}) => `<title>${echapper(serie.libelle)} · ${echapper(o.period)} : ${echapper(valeurEtUniteAnalyse(o.value, unit))}</title>`;
     // Une rupture ou plusieurs années non observées ne deviennent pas une
     // trajectoire continue. Les observations restent toutes consultables.
     const segments = observations.slice(1).flatMap((o, i) => {
@@ -56,10 +56,11 @@ export function graphiqueAnalyse(v: VisualisationAnalyse, contrat: DossierAnalys
     if (v.type !== "bar" || !preuves.length || !preuves[0]!.comparableGroup ||
       preuves.some(p => p.unit !== preuves[0]!.unit || p.comparableGroup !== preuves[0]!.comparableGroup || p.value < 0)) return "";
     const maximum = Math.max(...preuves.map(p => p.value)) || 1;
-    return `<ul class="analyse-bars">${preuves.map(p => `<li><div><span>${echapper(p.libelle)}</span><strong>${echapper(formaterValeurAnalyse(p.value, p.unit))} ${echapper(libelleUniteAnalyse(p.unit))}</strong></div><span class="analyse-bars__rail" aria-hidden="true"><span style="width:${p.value / maximum * 100}%"></span></span><small>${echapper(p.period)}</small></li>`).join("")}</ul>`;
+    return `<ul class="analyse-bars">${preuves.map(p => `<li><div><span>${echapper(p.libelle)}</span><strong>${echapper(valeurEtUniteAnalyse(p.value, p.unit))}</strong></div><span class="analyse-bars__rail" aria-hidden="true"><span style="width:${p.value / maximum * 100}%"></span></span><small>${echapper(p.period)}</small></li>`).join("")}</ul>`;
   }
   return [...new Set(series.map(s => s.unit))].map(unit => {
     const groupe = series.filter(s => s.unit === unit);
     return `<div class="analyse-chart">${traceSeries(v, groupe, unit, false)}${traceSeries(v, groupe, unit, true)}<ul class="analyse-chart__legende">${groupe.map((s, i) => `<li class="analyse-chart__cle analyse-chart__cle--${i % 4}">${echapper(s.libelle)}</li>`).join("")}</ul></div>`;
   }).join("");
 }
+

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { contratDossierAnalyse, rendu, type Analyse } from "./analyse-rendu.ts";
 import { graphiqueAnalyse } from "./analyse-graphiques.ts";
-import { formaterValeurAnalyse, libelleUniteAnalyse, formater } from "./echelle.ts";
+import { formaterValeurAnalyse, libelleUniteAnalyse, formater, valeurEtUniteAnalyse } from "./echelle.ts";
 
 const lire = (slug: string): Analyse => JSON.parse(readFileSync(new URL(`../analyses/${slug}.json`, import.meta.url), "utf8"));
 
@@ -12,6 +12,14 @@ test("les nouveaux montants gardent leur échelle, y compris dans une citation",
   assert.equal(libelleUniteAnalyse("billion_EUR"), "milliards d’euros");
   assert.equal(formater(11.6, "billion_EUR", false), "11,6 milliards d’euros");
   assert.equal(formaterValeurAnalyse(1.8, "percent_GDP"), "1,8");
+});
+
+test("une unité déjà écrite dans une valeur n'est jamais répétée", () => {
+  assert.equal(valeurEtUniteAnalyse(39, "percent"), "39\u202f%");
+  assert.equal(valeurEtUniteAnalyse(0.4023, "EUR_per_kWh"), "0,4023\u202f€/kWh");
+  assert.equal(valeurEtUniteAnalyse(266, "billion_EUR"), "266 milliards d’euros");
+  const html = rendu(lire("defense-europe-depenses-2024"), [], "", "https://500signatures.fr/analyses/defense-europe-depenses-2024/");
+  assert.doesNotMatch(html, /%\s+pourcentage/);
 });
 
 test("les références externes sont toutes en fin de dossier, les séries restent attribuées", () => {
@@ -54,3 +62,4 @@ test("les barres restent à droite des graduations sur ordinateur et mobile",()=
   assert.ok(positions.length>=4);
   assert.ok(positions.every(x=>x>=58),"aucune barre ne doit recouvrir les valeurs de l’axe");
 });
+
