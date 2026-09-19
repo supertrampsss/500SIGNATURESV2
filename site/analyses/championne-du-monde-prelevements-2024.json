@@ -81,6 +81,24 @@
       "url": "https://www.insee.fr/fr/statistiques/2381410",
       "consulte_le": "2026-08-22",
       "id": "source-2"
+    },
+    {
+      "id": "eurostat-fiscalite-2024",
+      "titre": "Eurostat : taux d’imposition et de cotisations dans l’Union en 2024",
+      "url": "https://ec.europa.eu/eurostat/en/web/products-eurostat-news/w/ddn-20251031-2",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ocde-recettes-2024",
+      "titre": "OCDE : recettes fiscales et cotisations, comparaison 2024",
+      "url": "https://www.oecd.org/fr/publications/restaurer-les-finances-publiques_e9a64552-fr/full-report/revenue-measures_22e8b4c3.html",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "cpo-prelevements",
+      "titre": "Conseil des prélèvements obligatoires : propositions sur les prélèvements",
+      "url": "https://www.economie.gouv.fr/daj/lettre-de-la-daj-les-propositions-du-conseil-des-prelevements-obligatoires-pour-renforcer",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -96,7 +114,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au produit intérieur brut (PIB), c'est-à-dire à la richesse produite dans le pays, ils permettent de comparer le poids de ces financements entre pays. Dans les données harmonisées présentées ici pour 2024, la France se situe au-dessus de la moyenne européenne.",
+    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au produit intérieur brut (PIB), c'est-à-dire à la richesse produite dans le pays, ils permettent de comparer le poids de ces financements. Ce taux ne suffit pas à classer les pays « dans le monde » ni à mesurer seul ce que reçoit chaque ménage.",
     "series": [],
     "preuves": [
       {
@@ -105,7 +123,7 @@
         "value": 45.2,
         "unit": "percent_GDP",
         "period": "2024",
-        "definition": "Les prélèvements obligatoires français : 45,2 % du PIB en 2024.",
+        "definition": "Les prélèvements obligatoires français : 45,2 % du PIB en 2024 selon la série harmonisée utilisée dans ce dossier.",
         "sourceId": "source-1",
         "comparableGroup": "taux-2024"
       },
@@ -115,7 +133,7 @@
         "value": 45.4,
         "unit": "percent_GDP",
         "period": "2024",
-        "definition": "Le Danemark en prélève 45,4 % la même année, même définition.",
+        "definition": "Le Danemark en prélève 45,4 % la même année et selon la même série.",
         "sourceId": "source-1",
         "comparableGroup": "taux-2024"
       },
@@ -125,7 +143,7 @@
         "value": 40.2,
         "unit": "percent_GDP",
         "period": "2024",
-        "definition": "L'Union à vingt-sept en prélève 40,2 % : cinq points de moins.",
+        "definition": "L'Union européenne à vingt-sept en prélève 40,2 % dans la comparaison retenue.",
         "sourceId": "source-1",
         "comparableGroup": "taux-2024"
       }
@@ -134,8 +152,8 @@
       {
         "id": "comparaison-prelevements",
         "type": "bar",
-        "titre": "Les prélèvements comparés à la richesse produite en 2024",
-        "resume": "Impôts et cotisations selon la définition commune retenue pour comparer les pays.",
+        "titre": "Les prélèvements rapportés à la richesse produite",
+        "resume": "France, Danemark et Union européenne en 2024, selon la définition harmonisée de la source.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2",
@@ -145,34 +163,62 @@
     ],
     "sections": [
       {
-        "id": "comparaison",
-        "titre": "La France au-dessus de la moyenne de l’Union",
+        "id": "ce-que-mesure-le-taux",
+        "titre": "Ce que mesure le taux de prélèvements",
         "paragraphes": [
-          "Le taux français atteint 45,2 % du PIB, contre 40,2 % dans l’Union européenne. Le Danemark se situe à 45,4 %. Le classement dépend du périmètre et de la définition retenus."
+          "Le taux rapporte les impôts et les cotisations sociales nettes au PIB. Le dénominateur est la richesse produite sur le territoire ; le numérateur regroupe des recettes publiques selon les comptes nationaux.",
+          "Ce n'est ni le pourcentage de son salaire payé par chaque personne, ni la totalité de ce qu'un ménage dépense pour se loger, se soigner ou se protéger. La définition commune est indispensable avant toute comparaison."
+        ]
+      },
+      {
+        "id": "comparaison",
+        "titre": "La France se situe au-dessus de la moyenne de l’Union",
+        "paragraphes": [
+          "Dans la série présentée ici pour 2024, la France atteint 45,2 % du PIB, contre 40,2 % pour l'Union européenne. Le Danemark est légèrement au-dessus, à 45,4 %.",
+          "La phrase « championne du monde » va donc au-delà de ce que mesure la donnée : la comparaison est européenne et dépend de la définition, de l'année et des révisions statistiques.",
+          "Une autre publication de l’OCDE donne pour 2024 un taux de 43,5 % pour la France et 45,2 % pour le Danemark. Cette différence avec la série Eurostat retenue ici ne permet pas de conclure à une erreur : les organismes peuvent appliquer des conventions, des révisions et des périmètres différents. La source et la définition doivent toujours accompagner le pourcentage."
         ],
         "visualisationIds": [
           "comparaison-prelevements"
         ]
       },
       {
-        "id": "financement",
-        "titre": "Des systèmes de financement différents",
+        "id": "des-financements-differents",
+        "titre": "Un même taux peut financer des protections différentes",
         "paragraphes": [
-          "Une protection sociale financée par cotisations apparaît dans les prélèvements obligatoires. Une couverture financée par des paiements privés se retrouve ailleurs dans les dépenses des ménages. Comparer les taux demande donc aussi d’examiner les services et les prestations financés."
+          "Deux pays peuvent afficher des taux proches tout en organisant différemment leur santé, leurs retraites, leur chômage ou leur éducation. Une part plus importante financée par l'impôt ou les cotisations peut correspondre à une part moindre laissée aux paiements directs.",
+          "Le taux renseigne sur le financement collectif. Il ne dit pas à lui seul combien coûte un service, quelle est sa qualité ou quelle protection reçoit chaque ménage.",
+          "Le Conseil des prélèvements obligatoires rappelle que le débat ne porte pas seulement sur le niveau total, mais aussi sur la composition des recettes et leurs effets. Le même taux peut être obtenu avec davantage de cotisations, d’impôts ou de taxes indirectes ; les effets sur les ménages et les entreprises ne sont alors pas les mêmes."
+        ]
+      },
+      {
+        "id": "ce-que-la-comparaison-ne-dit-pas",
+        "titre": "Un classement ne résume pas la vie économique",
+        "paragraphes": [
+          "Les prélèvements doivent être lus avec le revenu disponible, les transferts sociaux, les dépenses privées et les services reçus. Ils ne se comparent pas directement à un taux d'imposition individuel.",
+          "Le PIB lui-même peut évoluer différemment d'un pays à l'autre. Une variation du taux peut donc venir des recettes, de la richesse produite ou des deux."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Comparer le financement et la couverture",
+        "titre": "Une France très élevée dans le périmètre mesuré",
         "paragraphes": [
-          "Le niveau français est élevé dans cette comparaison européenne. Pour apprécier ce que les ménages paient et reçoivent, le taux doit être rapproché de la couverture sociale et des dépenses privées correspondantes."
+          "La France se situe parmi les pays européens où les prélèvements rapportés au PIB sont les plus élevés dans la comparaison retenue. Elle n'est pas pour autant « la championne du monde » au sens d'une comparaison mondiale complète.",
+          "Pour juger les effets de ce financement, il faut poursuivre la lecture jusqu'aux services, aux prestations et aux dépenses privées qu'il remplace ou complète."
         ]
       }
     ],
-    "limitations": [],
+    "limitations": [
+      "La série comparée couvre l'Union européenne et certains pays voisins, pas tous les pays du monde.",
+      "Les valeurs peuvent être révisées et varier de quelques dixièmes selon la base, la définition et l'année de consultation.",
+      "Le taux de prélèvements obligatoires ne mesure ni la facture individuelle d'un ménage ni la qualité des services publics.",
+      "La comparaison ne permet pas d'établir une causalité entre niveau de prélèvements et résultats sociaux ou économiques."
+    ],
     "sommaire": [
+      "ce-que-mesure-le-taux",
       "comparaison",
-      "financement",
+      "des-financements-differents",
+      "ce-que-la-comparaison-ne-dit-pas",
       "conclusion"
     ]
   }

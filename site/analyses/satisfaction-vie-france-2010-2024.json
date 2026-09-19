@@ -24,7 +24,7 @@
   "verdict": {
     "cran": "hors_perimetre",
     "confusion": "indicateur_partiel",
-    "phrase": "L'Insee publie une satisfaction moyenne déclarée sur une échelle de 0 à 10, pas un indice total de « qualité de vie ». Pour la France métropolitaine, elle vaut 7,3 en 2010, atteint 6,8 en 2021 puis 7,2 en 2024. Ces trois repères ne décrivent pas une baisse continue, et les ruptures de série ou de méthode autour de 2020 et 2022 imposent de la prudence."
+    "phrase": "L'Insee publie une satisfaction moyenne déclarée sur une échelle de 0 à 10, pas un indice total de « qualité de vie ». Pour la France métropolitaine, elle vaut 7,3 en 2010, descend notamment à 6,8 en 2021 puis atteint 7,2 en 2024. Ces trois repères ne décrivent pas une baisse continue, et les ruptures de série ou de méthode autour de 2020 et 2022 imposent de la prudence."
   },
   "chiffres": [
     {
@@ -58,6 +58,18 @@
       "titre": "Catalogue Insee : DS_SRCV_SATISFACTION",
       "url": "https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_SRCV_SATISFACTION",
       "consulte_le": "2026-08-30"
+    },
+    {
+      "id": "insee-focus-bien-etre",
+      "titre": "Insee Focus : satisfaction dans la vie et bien-être, 2023",
+      "url": "https://www.insee.fr/fr/statistiques/8352111",
+      "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "ocde-bien-etre-2024",
+      "titre": "OCDE : Comment va la vie ? 2024, version abrégée",
+      "url": "https://www.oecd-ilibrary.org/fr/publications/comment-va-la-vie-2024-version-abregee_bc0cfa41-fr.html",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -73,13 +85,7 @@
   ],
   "verifie_contre": "Insee SRCV, DS_SRCV_SATISFACTION, 2010-2024",
   "dossier": {
-    "chapo": "Comment les personnes vivant en France jugent-elles leur vie ? L’Insee leur demande de lui attribuer une note de 0 à 10. Cet indicateur permet de suivre le ressenti déclaré, en complément des données sur les revenus, la santé ou le logement.",
-    "sommaire": [
-      "indicateur",
-      "evolution",
-      "ruptures",
-      "conclusion"
-    ],
+    "chapo": "Comment les personnes vivant en France jugent-elles leur vie ? L’Insee leur demande d’attribuer une note de 0 à 10. Cet indicateur suit un ressenti déclaré et complète les données sur les revenus, la santé, le logement ou l’emploi. Il ne constitue pas à lui seul un indice de qualité de vie.",
     "series": [
       {
         "id": "satisfaction",
@@ -145,6 +151,36 @@
         "qualityFlags": [
           "ruptures-2020-2022"
         ]
+      },
+      {
+        "id": "preuve-2023-bas",
+        "libelle": "Satisfaction des 20 % les moins aisés en 2023",
+        "value": 6.6,
+        "unit": "score_0_10",
+        "period": "2023",
+        "definition": "Note moyenne des personnes situées dans les 20 % les moins aisés.",
+        "sourceId": "insee-focus-bien-etre",
+        "comparableGroup": "niveau-de-vie-2023"
+      },
+      {
+        "id": "preuve-2023-haut",
+        "libelle": "Satisfaction des 20 % les plus aisés en 2023",
+        "value": 7.8,
+        "unit": "score_0_10",
+        "period": "2023",
+        "definition": "Note moyenne des personnes situées dans les 20 % les plus aisées.",
+        "sourceId": "insee-focus-bien-etre",
+        "comparableGroup": "niveau-de-vie-2023"
+      },
+      {
+        "id": "preuve-2023-ensemble",
+        "libelle": "Satisfaction moyenne en 2023",
+        "value": 7.2,
+        "unit": "score_0_10",
+        "period": "2023",
+        "definition": "Note moyenne de satisfaction dans la vie en 2023 pour les personnes vivant en logement ordinaire.",
+        "sourceId": "insee-focus-bien-etre",
+        "comparableGroup": "niveau-de-vie-2023"
       }
     ],
     "visualisations": [
@@ -158,6 +194,17 @@
           "preuve-2021",
           "preuve-2024"
         ]
+      },
+      {
+        "id": "ecart-niveau-vie",
+        "type": "bar",
+        "titre": "La satisfaction varie aussi avec le niveau de vie",
+        "resume": "En 2023, la note moyenne est plus élevée parmi les 20 % les plus aisés que parmi les 20 % les moins aisés.",
+        "preuveIds": [
+          "preuve-2023-bas",
+          "preuve-2023-haut",
+          "preuve-2023-ensemble"
+        ]
       }
     ],
     "sections": [
@@ -165,39 +212,72 @@
         "id": "indicateur",
         "titre": "Ce que mesure la note",
         "paragraphes": [
-          "La question demande aux personnes d'évaluer leur satisfaction dans la vie de 0 à 10. Cette mesure subjective complète les indicateurs de revenu, santé ou logement ; elle ne les remplace pas."
+          "La question demande aux personnes de 16 ans ou plus de noter la vie qu'elles mènent actuellement sur une échelle de 0 à 10. Il s'agit d'une évaluation subjective, recueillie dans l'enquête SRCV.",
+          "Cette note complète les indicateurs de revenus, de santé, de logement et d'emploi. Elle ne les remplace pas et ne forme pas un indice qui additionnerait toutes les dimensions."
         ]
       },
       {
         "id": "evolution",
         "titre": "Trois repères ne montrent pas une baisse continue",
         "paragraphes": [
-          "La note vaut 7,3 en 2010, 6,8 en 2021 et 7,2 en 2024. Le niveau de 2024 reste légèrement inférieur à celui de 2010, mais ces seuls repères ne décrivent pas les variations des années intermédiaires."
+          "La note moyenne vaut 7,3 en 2010, descend à 6,8 en 2021 puis remonte à 7,2 en 2024. Le niveau de 2024 est proche de celui de 2010.",
+          "Ces repères permettent de voir un creux en 2021 et un redressement ensuite. Ils ne doivent pas être reliés par une courbe qui inventerait les valeurs absentes."
         ],
         "visualisationIds": [
           "table-satisfaction"
         ]
       },
       {
-        "id": "ruptures",
-        "titre": "Les changements de l’enquête",
+        "id": "inegalites",
+        "titre": "Une moyenne nationale masque des écarts",
         "paragraphes": [
-          "L'enquête Statistiques sur les ressources et les conditions de vie (SRCV), menée par l'Insee, a été refondue en 2020. Une nouvelle pondération du bien-être a ensuite créé une légère rupture en 2022. Une différence d'un dixième ne doit donc pas être surinterprétée."
+          "En 2023, la note moyenne atteint 7,8 parmi les 20 % les plus aisés et 6,6 parmi les 20 % les moins aisés. La moyenne d'ensemble est de 7,2.",
+          "Le niveau de vie n'explique pas à lui seul chaque réponse, mais cet écart montre pourquoi une moyenne nationale ne résume pas l'expérience de toutes les personnes."
+        ],
+        "visualisationIds": [
+          "ecart-niveau-vie"
+        ]
+      },
+      {
+        "id": "ruptures",
+        "titre": "Les changements de l’enquête imposent de la prudence",
+        "paragraphes": [
+          "L'enquête SRCV a été refondue en 2020. Une nouvelle pondération du module de bien-être a ensuite créé une légère rupture en 2022.",
+          "Une différence d'un dixième peut donc refléter une variation réelle, un changement de méthode ou les deux. Les notes doivent être lues avec leur champ et leur millésime."
+        ]
+      },
+      {
+        "id": "ce-que-la-moyenne-ne-dit-pas",
+        "titre": "Le ressenti n’est pas une mesure complète du bien-être",
+        "paragraphes": [
+          "La satisfaction déclarée peut évoluer avec la santé, les relations, les ressources, l'emploi, les événements collectifs ou les attentes personnelles.",
+          "Pour parler de qualité de vie, il faut donc croiser cette note avec d'autres indicateurs et observer les écarts entre groupes.",
+          "L’OCDE recommande de regarder le bien-être avec un tableau de bord d’indicateurs : revenus, emploi, santé, relations sociales, sécurité et satisfaction déclarée. Elle rappelle que les moyennes peuvent cacher une dégradation pour certains groupes. La note française est donc utile, mais elle doit rester une pièce du dossier, pas son résumé complet."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Un ressenti qui se redresse après 2021",
         "paragraphes": [
-          "La note de 2024 est supérieure à celle de 2021. Les changements de l’enquête et les années manquantes dans ces repères invitent à examiner les évolutions sociales derrière la moyenne, plutôt qu’à conclure à une dégradation générale."
+          "Les données disponibles ne montrent pas une baisse continue de la satisfaction dans la vie : la note passe de 7,3 en 2010 à 6,8 en 2021 puis 7,2 en 2024.",
+          "La bonne lecture est celle d'un indicateur subjectif, sensible aux contextes et inégalement réparti. Elle est plus précise que le slogan d'une « qualité de vie » qui baisserait sans interruption."
         ]
       }
     ],
     "limitations": [
       "La série ne couvre pas les personnes vivant en institution.",
-      "Le champ est la France métropolitaine pour les repères présentés.",
+      "Le champ des repères comparés est la France métropolitaine.",
       "Les ruptures de série ou de méthode autour de 2020 et 2022 limitent les comparaisons fines.",
-      "La satisfaction dans la vie n'est pas un indice composite de qualité de vie : revenu, santé, logement, emploi et sécurité doivent être lus séparément."
+      "La satisfaction dans la vie n'est pas un indice composite de qualité de vie.",
+      "Les écarts selon le niveau de vie sont des moyennes de groupes et ne prédisent pas la note de chaque personne."
+    ],
+    "sommaire": [
+      "indicateur",
+      "evolution",
+      "inegalites",
+      "ruptures",
+      "ce-que-la-moyenne-ne-dit-pas",
+      "conclusion"
     ]
   }
 }

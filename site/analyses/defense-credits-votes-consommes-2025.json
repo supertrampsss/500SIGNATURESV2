@@ -33,7 +33,7 @@
         "niveau": "pays",
         "code": "FR",
         "periode": "2025",
-        "valeur": 59946338573.0
+        "valeur": 59946338573
       },
       "registre": "fait_comptable",
       "lecture": "Les crédits votés : l'autorisation donnée par le Parlement en loi de finances."
@@ -67,6 +67,12 @@
       "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
       "consulte_le": "2026-08-14",
       "id": "source-1"
+    },
+    {
+      "id": "cour-comptes-defense-2024",
+      "titre": "Cour des comptes : analyse de l’exécution budgétaire de la mission Défense en 2024",
+      "url": "https://www.ccomptes.fr/sites/default/files/2025-04/NEB-2024-Defense.pdf",
+      "consulte_le": "2026-09-19"
     }
   ],
   "simulateur": {
@@ -82,7 +88,25 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les dépenses de défense atteignent 62,1 milliards d’euros en 2025, contre 59,9 milliards prévus dans le budget initial. Cet écart de près de 2,2 milliards montre pourquoi il faut suivre les comptes après le vote du budget.",
+    "chapo": "Les dépenses de défense atteignent 62,1 milliards d’euros en 2025, contre 59,9 milliards prévus dans le budget initial. Pour comprendre l’écart, il faut distinguer l’autorisation votée par le Parlement, les crédits disponibles après les mouvements de gestion et les crédits finalement consommés.",
+    "chronologie": {
+      "titre": "Le budget se lit à plusieurs moments",
+      "sourceId": "source-1",
+      "etapes": [
+        {
+          "date": "Avant 2025",
+          "texte": "La loi de finances fixe les crédits initiaux de la mission Défense."
+        },
+        {
+          "date": "Pendant 2025",
+          "texte": "Des mouvements de crédits peuvent modifier les montants disponibles : ouvertures, transferts, annulations ou reports."
+        },
+        {
+          "date": "Après 2025",
+          "texte": "La loi relative aux résultats de la gestion permet de comparer les crédits consommés avec les autorisations et les crédits disponibles."
+        }
+      ]
+    },
     "series": [],
     "preuves": [
       {
@@ -111,7 +135,17 @@
         "id": "budget-execution",
         "type": "bar",
         "titre": "Le budget initial et les dépenses exécutées",
-        "resume": "Mission Défense, année 2025, milliards d’euros.",
+        "resume": "Mission Défense, année 2025, en milliards d’euros. Les deux montants n'ont pas le même statut.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2"
+        ]
+      },
+      {
+        "id": "budget-reperes",
+        "type": "snapshot_table",
+        "titre": "Deux chiffres, deux questions",
+        "resume": "Le budget initial répond à « combien a été autorisé au départ ? » ; l'exécution répond à « combien a été consommé ? ». ",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -120,10 +154,22 @@
     ],
     "sections": [
       {
-        "id": "execution",
-        "titre": "Ce qui a été dépensé pendant l’année",
+        "id": "budget-vote",
+        "titre": "Le budget initial est une autorisation",
         "paragraphes": [
-          "Les sommes votées par le Parlement fixent le budget initial. Les sommes effectivement dépensées montrent ce qui a été réalisé. En 2025, les dépenses de défense sont supérieures d’environ 3,6 % au montant initial. La comparaison porte sur le même périmètre et la même année."
+          "Le Parlement vote des crédits pour permettre aux armées et aux services de la mission Défense d'engager et de payer des dépenses. Les 59,9 milliards d'euros sont le point de départ de l'exercice 2025.",
+          "Ce chiffre ne décrit donc pas encore les factures payées. Il fixe une enveloppe et un cadre juridique de dépenses."
+        ],
+        "visualisationIds": [
+          "budget-reperes"
+        ]
+      },
+      {
+        "id": "execution",
+        "titre": "Les dépenses exécutées racontent ce qui a été consommé",
+        "paragraphes": [
+          "Les comptes d'exécution indiquent 62,1 milliards d'euros de crédits consommés en 2025. Par rapport au budget initial, l'écart est d'environ 2,2 milliards, soit près de 3,6 %.",
+          "Comparer ces deux montants est utile, mais le résultat ne suffit pas à dire si le budget finalement autorisé en cours d'année a été dépassé."
         ],
         "visualisationIds": [
           "budget-execution"
@@ -131,23 +177,42 @@
       },
       {
         "id": "mouvements",
-        "titre": "Comment un budget peut évoluer",
+        "titre": "Un budget peut évoluer pendant l’année",
         "paragraphes": [
-          "Le budget peut changer en cours d’année : de nouvelles sommes peuvent être ouvertes, certaines annulées, et une partie reportée à l’année suivante. Pour expliquer précisément l’écart, il faut donc regarder ces mouvements. Dépenser plus que prévu au départ ne suffit pas à dire que le budget finalement autorisé a été dépassé."
+          "En cours d'exercice, des crédits peuvent être ouverts, transférés entre missions, annulés ou reportés. Ces opérations modifient les crédits disponibles sans changer le montant voté au départ.",
+          "Pour expliquer l'écart entre 59,9 et 62,1 milliards, il faut donc reconstituer les mouvements de gestion et regarder les crédits disponibles. Le seul rapprochement entre budget initial et exécution ne permet pas de choisir une explication.",
+          "La lecture de l’exécution doit aussi tenir compte des mouvements en gestion et des dépenses reportées. Le montant consommé décrit ce qui a été comptabilisé pendant l’exercice ; il ne résume ni toute la programmation militaire ni les engagements qui seront payés plus tard."
+        ]
+      },
+      {
+        "id": "ce-que-lecart-ne-dit-pas",
+        "titre": "Plus dépensé ne signifie pas automatiquement mieux dépensé",
+        "paragraphes": [
+          "La consommation des crédits mesure une dépense réalisée, pas directement une capacité militaire, une livraison d'équipement ou un résultat opérationnel.",
+          "Pour aller plus loin, il faut lire les objectifs et indicateurs des programmes, les équipements livrés, les délais, les restes à payer et les éventuels reports.",
+          "La Cour des comptes rappelle qu’un crédit voté peut être affecté par des reports de charges, des restes à payer et des décalages de calendrier. Une exécution proche de 100 % ne prouve donc pas, à elle seule, que tous les équipements ont été livrés ou que la dépense est durablement soutenable."
         ]
       },
       {
         "id": "conclusion",
         "titre": "Suivre le budget jusqu’à son exécution",
         "paragraphes": [
-          "Le montant effectivement dépensé permet d’évaluer l’effort réalisé. Le rapprochement avec les crédits disponibles et les résultats des programmes est l’étape suivante pour apprécier la gestion de la mission."
+          "Les deux montants publiés sont cohérents dès lors qu'on les rattache à leur définition : 59,9 milliards ont été inscrits au départ, 62,1 milliards ont été consommés sur l'exercice.",
+          "Un dossier complet doit ensuite suivre les mouvements de crédits et les résultats obtenus. C'est à cette condition que l'on passe d'un écart comptable à une analyse de gestion."
         ]
       }
     ],
-    "limitations": [],
+    "limitations": [
+      "Le budget initial et les crédits consommés ne sont pas deux mesures de la même étape.",
+      "Le dossier ne reconstitue pas ici tous les mouvements de crédits intervenus pendant 2025.",
+      "La consommation budgétaire ne mesure pas à elle seule l'efficacité ni la disponibilité des forces.",
+      "Les montants sont arrondis dans le texte, tandis que les preuves conservent les valeurs publiées."
+    ],
     "sommaire": [
+      "budget-vote",
       "execution",
       "mouvements",
+      "ce-que-lecart-ne-dit-pas",
       "conclusion"
     ]
   }
