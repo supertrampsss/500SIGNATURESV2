@@ -57,6 +57,25 @@
 .salaires__allocation li { display: grid; gap: .2rem; padding: .75rem 0; border-top: 1px solid var(--trait); }
 .salaires__allocation li span { font-size: 1.125rem; font-weight: 600; }
 .salaires__allocation li b { color: var(--encre-douce); font-size: 1rem; font-weight: 400; }
+/* Le premier écran met le salaire et la destination des prélèvements face à face. */
+html body .salaires__atelier > .salaires__allocation--atelier {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1.25rem,3vw,2.5rem);
+  background: var(--design-inset, var(--papier-creuse));
+  border: 1px solid var(--design-line, var(--trait));
+  border-radius: 18px;
+}
+html body .salaires__atelier > .salaires__allocation--atelier > header { max-width: 65ch; margin-bottom: 1.5rem; }
+html body .salaires__atelier > .salaires__allocation--atelier .salary-missions { grid-template-columns: minmax(0,1fr); gap: .65rem; margin: 0; }
+html body .salaires__atelier > .salaires__allocation--atelier .salary-missions li { grid-template-columns: minmax(0,1fr) auto; gap: .55rem .75rem; padding: .85rem 1rem; border-radius: 10px; }
+html body .salaires__atelier > .salaires__allocation--atelier .salary-missions h3 { font-size: 1.05rem; }
+html body .salaires__atelier > .salaires__allocation--atelier .salary-missions p { margin: .25rem 0 0; font-size: .82rem; }
+html body .salaires__atelier > .salaires__allocation--atelier .salary-missions strong { font-size: 1.15rem; }
+html body .salaires__atelier > .salaires__allocation--atelier .salaires__sources { margin-top: 1.25rem; font-size: .78rem; line-height: 1.5; }
+.salaires__resultat--detail { margin-top: 2rem; }
+.salaires__resultat-intro { max-width: 55ch; margin: 1rem 0 0; color: var(--design-muted, var(--encre-douce)); line-height: 1.5; }
 @media(max-width: 47.99rem) {
  .salaires__atelier,.salaires__allocation { grid-template-columns: minmax(0,1fr); }
  .salaires__entree h1 br { display: none; }
@@ -67,6 +86,7 @@
  .salaires__reserve p { font-size: .9375rem; }
  .salaires__total h2 { font-size: 3.5rem; }
  .salaires__allocation { gap: 1rem; }
+ html body .salaires__atelier > .salaires__allocation--atelier { border-radius: 14px; }
  .salary-history__controls { align-items: stretch; }
  .salary-history__controls label, .salary-history__controls select, .salary-history__share { width: 100%; }
  .salary-history__share-status { align-self: auto; }

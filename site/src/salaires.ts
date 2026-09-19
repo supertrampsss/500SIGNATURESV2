@@ -156,9 +156,9 @@ function evolutionAllocation(series:Territoire["series"]):string {
 
 function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
  const data=repartitionCollective(series);
- if(!data)return `<section class="salaires__allocation"><h2>Ce que financent les prélèvements</h2><p>Retraites, santé, chômage, éducation et services publics.</p><a href="/bilan/#bloc-fonctions">Consulter la répartition publiée des dépenses publiques</a></section>`;
+ if(!data)return `<section class="salaires__allocation salaires__allocation--atelier"><h2>Où vont vos prélèvements ?</h2><p>Retraites, santé, chômage, éducation et services publics.</p><a href="/bilan/#bloc-fonctions">Consulter la répartition publiée des dépenses publiques</a></section>`;
  const total=calcul.coutTotal-calcul.net;
- return `<section class="salaires__allocation"><header><p class="salaires__eyebrow">Ce que finance l'effort collectif</p><h2>Où vont vos prélèvements ?</h2><p>Vos <strong data-allocation-total>${formaterSalaire(total)}</strong> de prélèvements estimés, répartis selon la structure des dépenses publiques de ${data.year}.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterSalaire(total*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join("")}</ol><p class="salaires__sources">Répartition indicative : elle applique une moyenne nationale à votre estimation, sans retracer l'affectation de vos cotisations. ${data.basis}, ${data.year}. <a href="/bilan/#bloc-fonctions">Données et évolution</a> · <a href="/sources/">Sources et méthode</a></p></section>`;
+ return `<section class="salaires__allocation salaires__allocation--atelier"><header><p class="salaires__eyebrow">Après le salaire reçu</p><h2>Où vont vos prélèvements ?</h2><p>Sur votre estimation, <strong data-allocation-total>${formaterSalaire(total)}</strong> correspondent aux prélèvements. Voici leur répartition indicative selon les dépenses publiques de ${data.year}.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterSalaire(total*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join("")}</ol><p class="salaires__sources">Cette estimation applique une moyenne nationale à votre résultat : elle ne retrace pas l'affectation exacte de vos cotisations. ${data.basis}, ${data.year}. <a href="/bilan/#bloc-fonctions">Données et évolution</a> · <a href="/sources/">Sources et méthode</a></p></section>`;
 }
 
 export function renduSalaires(net = 2100, statut: Statut = "salarié", series: Territoire["series"] = {}): string {
@@ -176,14 +176,17 @@ export function renduSalaires(net = 2100, statut: Statut = "salarié", series: T
       <p id="salaires-erreur" class="salaires__erreur" role="status" hidden></p>
       <p class="salaires__reserve">Estimation selon votre statut.</p>
     </form>
-    <section class="salaires__resultat" aria-labelledby="salaires-resultat-label" data-salaires-statut="${statut}">
-      <div class="salaires__total"><p id="salaires-resultat-label">Coût total estimé</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
+    ${allocation(calcul,series)}
+    </div>
+
+    <section class="salaires__resultat salaires__resultat--detail" aria-labelledby="salaires-resultat-label" data-salaires-statut="${statut}">
+      <div class="salaires__total"><p id="salaires-resultat-label">Du revenu reçu au coût total</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
+      <p class="salaires__resultat-intro">Le revenu reçu et les prélèvements estimés forment le coût total du travail.</p>
       <div class="salaires__barre" aria-hidden="true">${LIGNES.map(([cle],i)=>`<span class="salaires__segment salaires__segment--${i}" data-segment="${cle}" style="width:${calcul.coutTotal ? calcul[cle]/calcul.coutTotal*100 : 0}%"></span>`).join("")}</div>
       <dl class="salaires__ventilation">${LIGNES.map(([cle,label],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i><span data-label="${cle}">${libelleLigne(cle,statut,label)}</span></dt><dd data-salaires="${cle}">${formaterSalaire(calcul[cle])}</dd></div>`).join("")}</dl>
       <p class="visuellement-cache" id="salaires-annonce" role="status"></p>
-    </section></div>
+    </section>
 
-    ${allocation(calcul,series)}
     ${evolutionAllocation(series)}
     <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
   </section>`;
