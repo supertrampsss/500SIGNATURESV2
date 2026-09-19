@@ -114,12 +114,16 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-longue__figure figcaption p { font-size: .85rem; line-height: 1.65; color: var(--encre-douce); }
 .analyse-longue__unite-figure, .analyse-longue__axes { font-size: .72rem; }
 .analyse-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.analyse-chart .analyse-chart__mobile { display: none; }
 .analyse-chart__grille line { stroke: var(--trait); stroke-width: 1; }
 .analyse-chart__grille text, .analyse-chart__dates { fill: var(--encre-douce); font: 13px "Public Sans", sans-serif; }
 .analyse-chart__serie { color: var(--accent); }
 .analyse-chart__serie--1 { color: #59745c; }
 .analyse-chart__serie--2 { color: #537d8d; }
 .analyse-chart__serie--3 { color: #937129; }
+:root[data-theme="sombre"] .analyse-chart__serie--1 { color: #99c5a1; }
+:root[data-theme="sombre"] .analyse-chart__serie--2 { color: #8dbbd0; }
+:root[data-theme="sombre"] .analyse-chart__serie--3 { color: #d9be78; }
 .analyse-chart__serie polyline { fill: none; stroke: currentColor; stroke-width: 3; stroke-linejoin: round; }
 .analyse-chart__serie--1 polyline { stroke-dasharray: 8 4; }
 .analyse-chart__serie--2 polyline { stroke-dasharray: 3 4; }
@@ -130,12 +134,16 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-chart__cle--1::before { background: #59745c; }
 .analyse-chart__cle--2::before { background: #537d8d; }
 .analyse-chart__cle--3::before { background: #937129; }
+:root[data-theme="sombre"] .analyse-chart__cle--1::before { background: #99c5a1; }
+:root[data-theme="sombre"] .analyse-chart__cle--2::before { background: #8dbbd0; }
+:root[data-theme="sombre"] .analyse-chart__cle--3::before { background: #d9be78; }
 .analyse-bars { list-style: none; padding: 0; display: grid; gap: 1.5rem; }
 .analyse-bars li > div { display: flex; justify-content: space-between; gap: 1rem; font-size: .82rem; }
 .analyse-bars strong { text-align: right; color: var(--accent); }
 .analyse-bars__rail { display: block; height: .75rem; background: var(--trait); margin-top: .65rem; }
 .analyse-bars__rail > span { display: block; height: 100%; background: var(--accent); }
 .analyse-bars li:nth-child(2) .analyse-bars__rail > span { background: #59745c; }
+:root[data-theme="sombre"] .analyse-bars li:nth-child(2) .analyse-bars__rail > span { background: #99c5a1; }
 .analyse-bars small { font-size: .68rem; color: var(--encre-douce); }
 .analyse-longue__table-details summary, .analyse-longue__methode > summary, .analyse-longue__donnees > summary { cursor: pointer; min-height: 44px; padding: .75rem 0; color: var(--encre); font-size: .85rem; font-weight: 650; }
 .analyse-longue__methode, .analyse-longue__donnees { border-top: 1px solid var(--trait); padding: .5rem 0; }
@@ -167,6 +175,9 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
   .analyse-longue__sommaire li { flex: 0 0 10rem; }
 }
 @media (max-width: 40rem) {
+  .analyse-chart .analyse-chart__desktop { display: none; }
+  .analyse-chart .analyse-chart__mobile { display: block; }
+  .analyse-chart__grille text, .analyse-chart__dates { font-size: 16px; }
   .analyses-index .analyse-rendu__index { grid-template-columns: minmax(0, 1fr); }
   .analyses-index__rubrique { display: block; }
   .analyses-index__entete { padding-top: .5rem; padding-bottom: 2rem; }

@@ -704,7 +704,7 @@ function renduPreuveLongue(
   )}" data-preuve-id="${echapper(preuve.id)}">
     <h3>${echapper(preuve.libelle)}</h3>
     <p class="analyse-longue__valeur"><strong>${echapper(
-      formaterValeurAnalyse(preuve.value, preuve.unit),
+      new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 4 }).format(preuve.value),
     )}</strong> <span>${echapper(libelleUniteAnalyse(preuve.unit))}</span></p>
     <p class="analyse-longue__periode">Période : ${echapper(preuve.period)}</p>
     <p class="analyse-longue__definition">${echapper(preuve.definition)}</p>
@@ -1003,12 +1003,8 @@ function renduMethodeLongue(
       </div>`;
     })
     .join("");
-  const millesime = version
-    ? `<p class="analyse-longue__version">Version des données utilisées : ${echapper(version)}.</p>`
-    : "";
   return `<details class="analyse-longue__methode" id="methode">
     <summary>Méthode et périmètre</summary>
-    ${millesime}
     <dl>${series}${instantanes}</dl>
   </details>`;
 }
@@ -1347,7 +1343,7 @@ function valeursDistinctes(
  */
 function chiffreEnCause(analyse: Analyse, catalogue: Indicateur[]): string {
   const preuve = analyse.dossier?.preuves[0];
-  if (preuve) return `<p class="analyse-rendu__index-chiffre dossier-index__chiffre"><strong>${echapper(formaterValeurAnalyse(preuve.value, preuve.unit))} <small>${echapper(libelleUniteAnalyse(preuve.unit))}</small></strong><span>${echapper(preuve.libelle)} · ${echapper(preuve.period)}</span></p>`;
+  if (preuve) return `<p class="analyse-rendu__index-chiffre dossier-index__chiffre"><strong>${echapper(new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 4 }).format(preuve.value))} <small>${echapper(libelleUniteAnalyse(preuve.unit))}</small></strong><span>${echapper(preuve.libelle)} · ${echapper(preuve.period)}</span></p>`;
   const chiffre = analyse.chiffres[0];
   if (!chiffre) return "";
   const dit = `Cité comme « ${echapper(chiffre.dit)} »`;
@@ -1409,7 +1405,6 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       const carte = carteDeLAnalyse(a);
       const qualification = qualificationVerdict(a);
       const sujets = a.themes.map(libelleTheme).join(" · ");
-      const perimetre = a.budgets_concernes.map((budget) => LIBELLE_BUDGET[budget]).join(" · ");
       // Un lien de fragment (`#slug`) ne résout que si l'index et l'analyse
       // sont composés sur la même page — ce que ce module ne fait jamais :
       // `rendu()` produit un `<article>` par page, à son propre chemin
@@ -1424,15 +1419,15 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       )}" data-verdict="${echapper(qualification)}" data-perimetre="${echapper(
         carte.budgets,
       )}" data-texte="${echapper(carte.texte)}">
-        <p class="dossier-index__meta"><span class="dossier-index__numero">${String(position + 1).padStart(2, "0")}</span><span>${echapper(sujets)}</span><span>${echapper(perimetre)}</span></p>
+        <p class="dossier-index__meta"><span class="dossier-index__numero">${String(position + 1).padStart(2, "0")}</span><span>${echapper(sujets)}</span></p>
         <h2 class="dossier-index__titre"><a class="dossier-index__lien" href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a></h2>
         <p class="dossier-index__affirmation">${echapper(a.dossier?.chapo ?? a.verdict.phrase)}</p>
         ${chiffreEnCause(a, catalogue)}
-        <details class="dossier-index__details"><summary>Le constat</summary><p class="analyse-rendu__index-cran dossier-index__verdict"><strong>${echapper(
+        <details class="dossier-index__details"><summary>Le constat</summary><p class="analyse-rendu__index-cran dossier-index__verdict">${a.dossier ? `<span>${echapper(a.verdict.phrase)}</span>` : `<strong>${echapper(
           LIBELLE_QUALIFICATION[qualification],
         )}</strong><span>${echapper(a.verdict.phrase)}</span><span class="dossier-index__precision">${LIBELLE_CRAN[
           a.verdict.cran
-        ]}${confusion}</span></p></details>
+        ]}${confusion}</span>`}</p></details>
         ${fraicheurDe(a)}
         <a class="dossier-index__ouvrir" href="/analyses/${echapper(a.slug)}/" aria-label="Lire le dossier : ${echapper(a.titre)}">Lire le dossier <span aria-hidden="true">↗</span></a>
       </li>`;
@@ -1491,7 +1486,7 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       <div><p class="analyses-index__eyebrow">France & Europe · Les dossiers</p>
       <h1 id="analyses-titre">Les chiffres<br>derrière le débat.</h1>
       <p class="analyses-index__chapo">Énergie, dépenses publiques, défense, logement. Une question précise, les données disponibles, ce qu’elles permettent de conclure.</p></div>
-      <aside class="analyses-index__repere"><span class="analyses-index__total">${analyses.length}</span><p>dossiers à explorer</p><p>Des données publiques.<br>Des périmètres explicites.<br>Les sources en fin de lecture.</p><a class="analyses-index__questions" href="/questions/">Consulter les questions fréquentes ↗</a></aside>
+      <aside class="analyses-index__repere"><span class="analyses-index__total">${analyses.length}</span><p>dossiers à explorer</p><p>À partir des publications de l’Insee, d’Eurostat et des organismes publics.</p><a class="analyses-index__questions" href="/questions/">Consulter les questions fréquentes ↗</a></aside>
     </header>
     <div class="analyses-index__rubrique"><h2>Tous les dossiers</h2><p>Du plus récent au plus ancien</p></div>
     ${barre}

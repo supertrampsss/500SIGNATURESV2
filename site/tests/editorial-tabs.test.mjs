@@ -1,5 +1,57 @@
 import {test,expect} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
+
+test('Analyses : recherche, filtres, lecture et sources en fin de dossier', async ({page}, info) => {
+ await page.goto('/analyses/');
+ await expect(page.locator('#navigation-principale a[href="/analyses/"]')).toHaveAttribute('aria-current','page');
+ await expect(page.locator('#analyses-index > li')).toHaveCount(12);
+ const toggle=page.locator('#analyses-filtres-bouton');
+ if(await toggle.isVisible()) await activate(toggle,info);
+ await page.locator('#analyses-recherche').fill('groenland');
+ await expect(page.locator('#analyses-index > li:visible')).toHaveCount(1);
+ await page.locator('#analyses-recherche').fill('motintrouvablexyz');
+ await expect(page.locator('#analyses-etat-vide')).toBeVisible();
+ await page.locator('[data-effacer-filtres]').click();
+ await expect(page.locator('#analyses-index > li:visible')).toHaveCount(12);
+ await page.locator('#analyses-theme').selectOption('energie');
+ await expect(page.locator('#analyses-index > li:visible')).toHaveCount(2);
+ await noOverflow(page);
+ await page.getByRole('link',{name:'Le gaz des ménages a-t-il encore augmenté ?',exact:true}).click();
+ await expect(page.locator('.analyse-chart svg:visible')).toBeVisible();
+ await expect(page.locator('#navigation-principale a[href="/analyses/"]')).toHaveAttribute('aria-current','page');
+ await expect(page.locator('.analyse-rendu a[href^="http"]:not(#sources a):not(.partage a)')).toHaveCount(0);
+ await expect(page.locator('#sources a[href^="http"]')).toHaveCount(2);
+ await page.locator('.analyse-longue__table-details summary').first().click();
+ await expect(page.locator('.analyse-longue__table-details table').first()).toBeVisible();
+ await noOverflow(page);
+ await page.getByRole('button',{name:'Activer le mode sombre'}).click();
+ await noOverflow(page);
+ await page.screenshot({path:info.outputPath('analyses-dark-'+info.project.name+'.png')});
+});
+
+test('Analyses : nouveaux dossiers et dossier historique sans débordement', async({page},info)=>{
+ for(const slug of ['defense-europe-depenses-2024','ukraine-pret-europeen-90-milliards','groenland-accord-securite-europe','defense-credits-votes-consommes-2025']) {
+  await page.goto('/analyses/'+slug+'/');
+  await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.locator('#sources')).toHaveCount(1);
+  await expect(page.locator('.analyse-rendu a[href^="http"]:not(#sources a):not(.partage a)')).toHaveCount(0);
+  await noOverflow(page);
+ }
+ await page.screenshot({path:info.outputPath('analyse-courte-'+info.project.name+'.png')});
+});
+
+test('Analyses : les dossiers et leurs sources sont lisibles sans JavaScript',async({browser},info)=>{
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:info.project.use.viewport});
+ const page=await context.newPage();
+ await page.goto('http://127.0.0.1:4180/analyses/');
+ await expect(page.locator('#analyses-index > li')).toHaveCount(12);
+ await expect(page.locator('#analyses-filtres')).toBeHidden();
+ await page.getByRole('link',{name:'Combien l’Europe dépense-t-elle pour sa défense ?',exact:true}).click();
+ await expect(page.locator('.analyse-chart svg:visible')).toBeVisible();
+ await expect(page.locator('#sources')).toContainText('Eurostat');
+ await noOverflow(page);
+ await context.close();
+});
 const fixture=JSON.parse(await readFile(new URL('./fixtures/editorial-publication.json',import.meta.url),'utf8'));
 const numeric=text=>Number(text.replace(/[^0-9]/g,''));
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
