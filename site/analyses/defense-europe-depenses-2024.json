@@ -1,6 +1,6 @@
 {
   "slug": "defense-europe-depenses-2024",
-  "titre": "Combien l’Europe dépense-t-elle pour sa défense ?",
+  "titre": "Défense : l’accélération des dépenses européennes",
   "type": "decryptage",
   "publie_le": "2026-09-19",
   "themes": [
@@ -70,14 +70,19 @@
     "contrat": "",
     "lecture": "Ce dossier décrit des données et des décisions publiées."
   },
-  "mises_a_jour": [],
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
   "dossier": {
-    "chapo": "Les débats sur la Russie relancent la question de l’effort militaire européen. Voici les dépenses constatées en 2024, dans un périmètre commun à tous les pays.",
+    "chapo": "Les dépenses de défense de l’Union européenne atteignent 266 milliards d’euros en 2024. Depuis 2020, elles ont augmenté de 90 milliards. À quel rythme progressent-elles, et que financent ces budgets ?",
     "sommaire": [
-      "comptes",
-      "perimetre",
-      "lecture"
+      "progression",
+      "repartition",
+      "conclusion"
     ],
     "series": [
       {
@@ -156,8 +161,8 @@
       {
         "id": "depenses-europe",
         "type": "line",
-        "titre": "Les dépenses de défense de l’UE depuis 2020",
-        "resume": "Montants en euros courants : l’évolution inclut celle des prix.",
+        "titre": "90 milliards d’euros de plus en quatre ans",
+        "resume": "Dépenses publiques de défense de l’UE, en euros courants. Les données de 2024 sont provisoires.",
         "seriesIds": [
           "defense-ue"
         ]
@@ -165,24 +170,27 @@
     ],
     "sections": [
       {
-        "id": "comptes",
-        "titre": "Des comptes annuels, pas une prévision de guerre",
+        "id": "progression",
+        "titre": "Une hausse plus rapide en 2024",
         "paragraphes": [
-          "La série décrit des dépenses publiques déjà enregistrées. Elle ne mesure ni la probabilité d’un conflit, ni les matériels disponibles à une date donnée."
+          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis à 266 milliards en 2024. La dernière année ajoute donc 34 milliards, soit près de 15 %. Ces montants sont exprimés en euros courants : la hausse des prix en absorbe une partie."
+        ],
+        "visualisationIds": [
+          "depenses-europe"
         ]
       },
       {
-        "id": "perimetre",
-        "titre": "Pourquoi les chiffres diffèrent de ceux de l’OTAN",
+        "id": "repartition",
+        "titre": "Les salaires restent le premier poste",
         "paragraphes": [
-          "Eurostat classe les dépenses selon leur fonction. Les pensions militaires relèvent de la protection sociale ; la méthodologie de l’OTAN les traite autrement. Un pourcentage OTAN et un pourcentage COFOG ne sont donc pas interchangeables."
+          "En 2024, les rémunérations représentent 39 % des dépenses, les achats de biens et services 28,2 % et l’investissement 23,4 %. L’augmentation des budgets finance donc aussi le fonctionnement quotidien des armées."
         ]
       },
       {
-        "id": "lecture",
-        "titre": "Ce que permet la comparaison",
+        "id": "conclusion",
+        "titre": "Des budgets en hausse, des capacités à construire",
         "paragraphes": [
-          "Le montant européen additionne les dépenses des administrations publiques des pays de l’UE. Ce n’est pas le budget d’une armée européenne. Le rapport au PIB mesure un effort relatif, sans renseigner à lui seul sur les effectifs, les stocks ou l’efficacité des achats."
+          "La progression financière est nette. Pour apprécier le renforcement militaire, il faut aussi suivre les équipements livrés, les personnels formés et leur disponibilité."
         ]
       }
     ],

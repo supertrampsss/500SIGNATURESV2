@@ -439,7 +439,7 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
       // éditoriaux, toujours servi et toujours au plan du site. Il garde donc
       // sa carte — sans elle, son document annonçait un `og:image` que le
       // build n'écrivait plus.
-      ["analyses", "Analyses"],
+      ["analyses", "Dossiers"],
       ["simulateur", "Simulateur"],
       // BILAN a rejoint la liste en recevant son propre document : servie par
       // le gabarit, elle empruntait la carte du site — chapeau « Le site »,
@@ -619,7 +619,7 @@ test("7 ter. l'index et chaque dossier publié ont un h1 propre", async () => {
   const analyses = await analysesPubliees();
   assert.ok(analyses.length > 0, "aucun dossier publié");
   const index = renduIndex(analyses, catalogueEnEuros(analyses));
-  assert.match(index, /<h1 id="analyses-titre">Les chiffres<br>derrière le débat.<\/h1>/);
+  assert.match(index, /<h1 id="analyses-titre">Dossiers<\/h1>/);
   for (const analyse of analyses) {
     const html = rendu(analyse, catalogueEnEuros([analyse]));
     assert.ok(html.includes(`<h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>`));
@@ -627,7 +627,7 @@ test("7 ter. l'index et chaque dossier publié ont un h1 propre", async () => {
   }
 });
 
-test("8. le permalien d'une citation est celui que la page annonce en og:url", async () => {
+test("8. le dossier conserve sa canonique sans commande de citation", async () => {
   const site = "https://exemple.test";
   const [analyse] = await analysesPubliees();
   assert.ok(analyse);
@@ -640,16 +640,8 @@ test("8. le permalien d'une citation est celui que la page annonce en og:url", a
 
   const ogUrl = html.match(/<meta property="og:url" content="([^"]*)"/)?.[1];
   assert.equal(adresse, ogUrl);
-  // Et c'est bien cette adresse-là que les boutons portent : une citation qui
-  // ramènerait ailleurs que sur la page d'où elle vient n'est pas vérifiable.
-  const charges = [...html.matchAll(/data-citer="([^"]*)"/g)];
-  assert.ok(charges.length > 0, "aucune commande « citer » sur une analyse sourcée");
-  for (const [, brute] of charges) {
-    const citation = JSON.parse(brute!.replace(/&quot;/g, '"').replace(/&#39;/g, "'")) as {
-      permalien: string;
-    };
-    assert.equal(citation.permalien, ogUrl);
-  }
+  assert.doesNotMatch(corps, /data-citer=/);
+  assert.match(corps, /id="sources"/);
 });
 
 test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", () => {
@@ -664,7 +656,7 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
 });
 
 test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonnées sociales", async () => {
-  const analyse = (await analysesPubliees()).find((candidate) => candidate.dossier === undefined)!;
+  const analyse = (await analysesPubliees())[0]!;
   assert.ok(analyse, "aucune analyse publiée");
   const canonique = `/analyses/${analyse.slug}/`;
   const html = injecter(
@@ -685,7 +677,7 @@ test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonné
   await writeFile(fichier, html);
   const servi = await readFile(fichier, "utf8");
 
-  assert.match(servi, /dossier-preuve__verdict/);
+  assert.match(servi, /dossier-journal/);
   assert.match(servi, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}${canonique}"`));
   assert.match(servi, new RegExp(`<meta property="og:url" content="${SITE_ESSAI}${canonique}"`));
   assert.match(servi, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}${canonique}carte\\.png"`));
@@ -1019,7 +1011,7 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   // les trois appels à l'action. Sans JavaScript, sans réseau, sans rien.
   const texte = texteDuMain(html);
   assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
-  for (const appel of ["Lire le verdict", "Commencer un mandat", "Chercher ma commune"]) {
+  for (const appel of ["Lire le dossier", "Commencer un mandat", "Chercher ma commune"]) {
     assert.ok(texte.includes(appel), appel);
   }
   // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.

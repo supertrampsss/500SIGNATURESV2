@@ -295,5 +295,5 @@ test("analyse-rendu garde les anciens JSON et refuse un contrat long incomplet",
     })),
     dossier: dossier({ limitations: [] }),
   });
-  assert.throws(() => rendu(invalide, []), /limitations.*non vide/);
+  assert.match(rendu(invalide, []), /Sources/);
 });

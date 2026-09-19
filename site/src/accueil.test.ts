@@ -155,7 +155,7 @@ function sansCommentaires(source: string): string {
 }
 
 /* --------------------------------------------------------------------------
- * Bloc 1 — Le verdict du moment
+ * Bloc 1 — Le dossier du moment
  * ----------------------------------------------------------------------- */
 
 test("1. le verdict du moment est la plus récente des analyses mises en avant", () => {
@@ -187,7 +187,7 @@ test("3. la carte-verdict porte le chiffre annoncé, le chiffre des comptes, le 
   assert.ok(html.includes(LIBELLE_CRAN[DEFENSE.verdict.cran]));
   assert.ok(html.includes(LIBELLE_CONFUSION.vote_execute), "hors_perimetre nomme sa confusion");
   assert.ok(html.includes(`href="/analyses/${DEFENSE.slug}/"`));
-  assert.ok(html.includes("Lire le verdict"));
+  assert.ok(html.includes("Lire le dossier"));
 });
 
 test("4. l'auteur et la date de la déclaration s'affichent quand l'analyse les porte", () => {
@@ -243,7 +243,7 @@ test("6. un indicateur absent du catalogue ne peint pas un montant : pas d'unit�
   assert.ok(!html.includes("Chiffre des comptes"));
   // La carte reste utile : le cran, l'affirmation et le lien tiennent.
   assert.ok(html.includes(LIBELLE_CRAN.exact));
-  assert.ok(html.includes("Lire le verdict"));
+  assert.ok(html.includes("Lire le dossier"));
 });
 
 test("7. un taux observé garde son unité : jamais un pourcentage peint en millions d'euros", () => {
@@ -452,7 +452,7 @@ test("20. l'exemple montre un territoire à la fois : aucun classement", () => {
 });
 
 /* --------------------------------------------------------------------------
- * Bloc 4 — Les analyses récentes
+ * Bloc 4 — Les dossiers récents
  * ----------------------------------------------------------------------- */
 
 test("21. les analyses récentes se rangent par date de publication, jamais par montant", () => {
@@ -581,7 +581,7 @@ test("25. l'accueil sans donnée ouvre les trois parcours", () => {
 test("26. les portes précèdent les analyses récentes", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
   assert.ok(
-    html.indexOf("Prendre les commandes") < html.indexOf("Les analyses récentes"),
+    html.indexOf("Prendre les commandes") < html.indexOf("Les dossiers récents"),
     "les parcours précèdent l'actualité éditoriale",
   );
 });
@@ -610,7 +610,7 @@ test("27. la promesse ouvre la recherche et les parcours avant les preuves fraî
 
 test("28. les appels de détail restent disponibles après les portes", () => {
   const html = page();
-  for (const appel of ["Lire le verdict", "Commencer un mandat", "Chercher ma commune"]) {
+  for (const appel of ["Lire le dossier", "Commencer un mandat", "Chercher ma commune"]) {
     assert.ok(html.includes(appel), appel);
   }
   assert.ok(html.indexOf("Prendre les commandes") < html.indexOf("Commencer un mandat"));

@@ -11,7 +11,7 @@ export const DESTINATIONS: readonly Destination[] = [
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Villes" },
   { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
-  { cle: "analyses", href: "/analyses/", libelle: "Analyses", native: true },
+  { cle: "analyses", href: "/analyses/", libelle: "Dossiers", native: true },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];
 

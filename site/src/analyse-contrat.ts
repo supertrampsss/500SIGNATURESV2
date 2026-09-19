@@ -74,6 +74,7 @@ export type SectionAnalyse = {
 
 export type DossierAnalyse = {
   chapo: string;
+  chronologie?: {titre: string; sourceId: string; etapes: {date: string; texte: string}[]};
   /** Liste ordonnée d'ancres. Absente, le rendu peut omettre le sommaire. */
   sommaire?: string[];
   series: SerieAnalyse[];
@@ -289,9 +290,9 @@ function verifierSeries(value: unknown, erreurs: string[]): SerieAnalyse[] {
   return resultat;
 }
 
-function verifierPreuves(value: unknown, erreurs: string[]): PreuveAnalyse[] {
+function verifierPreuves(value: unknown, erreurs: string[], facultatif = false): PreuveAnalyse[] {
   const resultat: PreuveAnalyse[] = [];
-  for (const [index, element] of listeNonVide(value, "preuves", erreurs).entries()) {
+  for (const [index, element] of (facultatif ? liste : listeNonVide)(value, "preuves", erreurs).entries()) {
     const chemin = `preuves[${index}]`;
     if (!objet(element)) {
       erreurs.push(`${chemin} doit être un objet`);
@@ -314,9 +315,9 @@ function verifierPreuves(value: unknown, erreurs: string[]): PreuveAnalyse[] {
   return resultat;
 }
 
-function verifierVisualisations(value: unknown, erreurs: string[]): VisualisationAnalyse[] {
+function verifierVisualisations(value: unknown, erreurs: string[], facultatif = false): VisualisationAnalyse[] {
   const resultat: VisualisationAnalyse[] = [];
-  for (const [index, element] of listeNonVide(value, "visualisations", erreurs).entries()) {
+  for (const [index, element] of (facultatif ? liste : listeNonVide)(value, "visualisations", erreurs).entries()) {
     const chemin = `visualisations[${index}]`;
     if (!objet(element)) {
       erreurs.push(`${chemin} doit être un objet`);
@@ -451,15 +452,26 @@ export function validerDossierAnalyse(
   chaine(value.chapo, "chapo", erreurs);
   const sources = verifierSources(sourcesValue, erreurs);
   const series = verifierSeries(value.series, erreurs);
-  const preuves = verifierPreuves(value.preuves, erreurs);
-  const visualisations = verifierVisualisations(value.visualisations, erreurs);
+  const preuves = verifierPreuves(value.preuves, erreurs, value.chronologie !== undefined);
+  const visualisations = verifierVisualisations(value.visualisations, erreurs, value.chronologie !== undefined);
   const sections = verifierSections(value.sections, erreurs);
-  listeChaines(value.limitations, "limitations", erreurs, true);
+  listeChaines(value.limitations, "limitations", erreurs);
   const sommaire = value.sommaire === undefined
     ? undefined
     : listeIds(value.sommaire, "sommaire", erreurs, true);
 
   const sourceParId = indexer(sources, "sources", erreurs);
+  if (value.chronologie !== undefined) {
+    if (!objet(value.chronologie)) erreurs.push("chronologie doit être un objet");
+    else {
+      chaine(value.chronologie.titre,"chronologie.titre",erreurs);
+      if (chaine(value.chronologie.sourceId,"chronologie.sourceId",erreurs)) exigerReference(value.chronologie.sourceId, sourceParId,"chronologie.sourceId",erreurs);
+      listeNonVide(value.chronologie.etapes,"chronologie.etapes",erreurs).forEach((etape,i)=>{
+        if (!objet(etape)) erreurs.push(`chronologie.etapes[${i}] doit être un objet`);
+        else {chaine(etape.date,`chronologie.etapes[${i}].date`,erreurs);chaine(etape.texte,`chronologie.etapes[${i}].texte`,erreurs);}
+      });
+    }
+  }
   const serieParId = indexer(series, "series", erreurs);
   const preuveParId = indexer(preuves, "preuves", erreurs);
   const visualisationParId = indexer(visualisations, "visualisations", erreurs);

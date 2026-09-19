@@ -1,6 +1,6 @@
 {
   "slug": "retraites-premier-poste-2024",
-  "titre": "« Les retraites, premier poste de dépense » : photo-finish",
+  "titre": "Quelle place occupent les retraites dans les finances publiques ?",
   "type": "comparaison",
   "publie_le": "2026-08-22",
   "themes": [
@@ -85,12 +85,14 @@
     {
       "titre": "Dépenses des administrations publiques par transaction (Eurostat, gov_10a_main)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-1"
     },
     {
       "titre": "Dépenses des administrations publiques par fonction (Eurostat, gov_10a_exp)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-08-22",
+      "id": "source-2"
     }
   ],
   "simulateur": {
@@ -98,6 +100,99 @@
     "contrat": "",
     "lecture": "Le simulateur porte les deux côtés : la branche retraite de la Sécurité sociale, et les rémunérations dans les budgets qui les portent. Signer « sans baisser une seule prestation » verrouille le premier et laisse le second ouvert."
   },
-  "mises_a_jour": [],
-  "verifie_contre": ""
+  "mises_a_jour": [
+    {
+      "date": "2026-09-19",
+      "quoi": "Introduction, développement et conclusion repris ; présentation en lecture continue."
+    }
+  ],
+  "verifie_contre": "",
+  "dossier": {
+    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Elles constituent une dépense majeure des administrations publiques. Leur poids peut être rapporté aux recettes, ou comparé à d’autres dépenses, à condition de préciser ce que l’on mesure.",
+    "series": [],
+    "preuves": [
+      {
+        "id": "chiffre-1",
+        "libelle": "Pensions de vieillesse",
+        "value": 362.1784,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Les pensions de vieillesse valent 362 178,4 M€ en 2024.",
+        "sourceId": "source-1",
+        "comparableGroup": "depenses-2024"
+      },
+      {
+        "id": "chiffre-2",
+        "libelle": "Rémunérations des agents publics",
+        "value": 363.038,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "La rémunération des agents publics vaut 363 038,0 M€.",
+        "sourceId": "source-1",
+        "comparableGroup": "depenses-2024"
+      },
+      {
+        "id": "chiffre-3",
+        "libelle": "Recettes publiques",
+        "value": 1503.5901,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Les administrations encaissent 1 503 590,1 M€ en 2024.",
+        "sourceId": "source-1"
+      },
+      {
+        "id": "chiffre-4",
+        "libelle": "Protection sociale",
+        "value": 23.7,
+        "unit": "percent_GDP",
+        "period": "2024",
+        "definition": "Par finalité, la protection sociale pèse 23,7 % du PIB.",
+        "sourceId": "source-2"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "pensions-remunerations",
+        "type": "bar",
+        "titre": "Deux grandes dépenses publiques en 2024",
+        "resume": "France, milliards d’euros. Les pensions et les rémunérations financent des besoins différents.",
+        "preuveIds": [
+          "chiffre-1",
+          "chiffre-2"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "poids",
+        "titre": "Environ un quart des recettes publiques",
+        "paragraphes": [
+          "Les pensions de vieillesse correspondent à environ 24,1 % des 1 503,6 milliards d’euros de recettes publiques de 2024. Cette proportion rapporte une dépense aux recettes ; elle ne décrit pas sa part dans l’ensemble des dépenses."
+        ],
+        "visualisationIds": [
+          "pensions-remunerations"
+        ]
+      },
+      {
+        "id": "classement",
+        "titre": "Le classement dépend du regroupement retenu",
+        "paragraphes": [
+          "La rémunération des agents publics atteint 363 milliards d’euros la même année. Les pensions sont presque au même niveau. Une présentation par finalité regroupe autrement ces montants : les retraites entrent dans la protection sociale, les rémunérations se répartissent entre plusieurs services."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Évaluer le financement dans son ensemble",
+        "paragraphes": [
+          "Le poids des pensions en fait un sujet central des finances publiques. Pour examiner leur financement, il faut suivre les recettes qui leur sont affectées, les prestations versées et l’évolution du nombre de retraités."
+        ]
+      }
+    ],
+    "limitations": [],
+    "sommaire": [
+      "poids",
+      "classement",
+      "conclusion"
+    ]
+  }
 }

@@ -15,7 +15,7 @@ test("la navigation expose les cinq destinations utiles sans lien Accueil", () =
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
-      { cle: "analyses", href: "/analyses/", libelle: "Analyses" },
+      { cle: "analyses", href: "/analyses/", libelle: "Dossiers" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
@@ -33,7 +33,7 @@ test("Mandats est la destination courante avec ou sans barre finale", () => {
 
 test("Analyses est une destination native active sur l’index et ses dossiers", () => {
   for (const path of ["/analyses", "/analyses/", "/analyses/energie/"]) {
-    assert.match(renduNavigation(path, true), /<a href="\/analyses\/" aria-current="page">Analyses<\/a>/);
+    assert.match(renduNavigation(path, true), /<a href="\/analyses\/" aria-current="page">Dossiers<\/a>/);
   }
   assert.doesNotMatch(renduNavigation("/", true), /href="\/analyses\/"[^>]*data-vue/);
 });
