@@ -288,7 +288,7 @@ export function rendu(analyse: Analyse, _catalogue: Indicateur[], _version = "",
     // Compatibilité des imports historiques ; les dossiers du site ont tous un développement rédigé.
     corps = `<section class="analyse-longue__section"><h2>Les données publiées</h2>${analyse.chiffres.map(c=>`<p>${echapper(c.lecture)}</p>`).join("")}</section><section class="analyse-longue__section"><h2>Conclusion</h2><p>${echapper(analyse.verdict.phrase)}</p></section>`;
   }
-  return `<article class="analyse-rendu analyse-rendu--long dossier-journal" data-slug="${echapper(analyse.slug)}"><nav class="analyse-longue__fil" aria-label="Retour aux dossiers"><a href="/analyses/">Tous les dossiers</a></nav><header class="analyse-longue__entete"><p class="analyse-longue__meta">${echapper(analyse.themes.map(t=>libelleTheme(t).replace("Comparaisons européennes","Europe")).join(" · "))}</p><h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1><p class="analyse-longue__chapo">${echapper(contrat?.dossier.chapo ?? analyse.affirmation.texte)}</p></header>${corps}${piedDossier(analyse)}</article>`;
+  return `<article class="analyse-rendu analyse-rendu--long dossier-journal" data-slug="${echapper(analyse.slug)}"><nav class="analyse-longue__fil" aria-label="Retour aux dossiers"><a href="/analyses/">Dossiers</a></nav><header class="analyse-longue__entete"><p class="analyse-longue__meta">${echapper(analyse.themes.map(t=>libelleTheme(t).replace("Comparaisons européennes","Europe")).join(" · "))}</p><h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1><p class="analyse-longue__chapo">${echapper(contrat?.dossier.chapo ?? analyse.affirmation.texte)}</p></header>${corps}${piedDossier(analyse)}</article>`;
 }
 export type CriteresIndex = {
   type?: string;
@@ -483,9 +483,7 @@ export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): strin
       <p class="analyses-index__chapo">Politique française, Europe, relations internationales. Les sujets du débat public, expliqués avec des faits et des chiffres.</p></div>
 
     </header>
-    <div class="analyses-index__rubrique"><h2>Tous les dossiers</h2><p>Du plus récent au plus ancien</p></div>
     ${barre}
     <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>
   </section>`;
 }
-
