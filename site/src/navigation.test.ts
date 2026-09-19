@@ -13,7 +13,7 @@ test("la navigation expose les quatre destinations utiles sans lien Accueil", ()
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
       { cle: "france", href: "/bilan", libelle: "France" },
-      { cle: "territoires", href: "/territoire", libelle: "Territoires" },
+      { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],

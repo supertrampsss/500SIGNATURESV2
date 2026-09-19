@@ -495,7 +495,7 @@ test("le registre rend recherche filtres et fiches normalisées", () => {
   assert.match(html, /data-contextes="national territoires simulateur"/);
   assert.match(html, /id="registre-sources-contexte"/);
   assert.match(html, />National<\/option>/);
-  assert.match(html, />Territoires<\/option>/);
+  assert.match(html, />Villes<\/option>/);
   assert.match(html, />Simulateur<\/option>/);
   assert.match(html, /id="registre-sources-filtres" hidden/);
 });

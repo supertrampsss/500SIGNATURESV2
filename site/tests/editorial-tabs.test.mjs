@@ -97,7 +97,7 @@ test('France and Territoires: charts are the content, touch and keyboard change 
  const key=page.locator('[data-waffle-key]').first();
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
- await page.getByRole('link',{name:'Territoires',exact:true}).click();
+ await page.getByRole('link',{name:'Villes',exact:true}).click();
  await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Bordeaux');
  await activate(page.locator('#suggestions button[data-code="33063"]'),info);
  await expect(page.locator('.territory-charts')).toBeVisible();

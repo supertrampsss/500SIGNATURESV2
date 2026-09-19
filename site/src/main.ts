@@ -3230,6 +3230,9 @@ async function demarrer(): Promise<void> {
   brancherFiltresAnalyses();
   brancherRegistreSources();
   brancherQuestions();
+  // Les analyses France sont pré-rendues sur `/bilan` : leur bouton de partage
+  // doit être branché avant le retour anticipé des pages éditoriales.
+  brancherPartageAnalysesFrance();
   // Et pour la même raison encore : les chiffres citables portent déjà leur
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.

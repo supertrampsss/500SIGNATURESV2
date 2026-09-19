@@ -9,7 +9,7 @@ export type Destination = {
 
 export const DESTINATIONS: readonly Destination[] = [
   { cle: "france", href: "/bilan", libelle: "France" },
-  { cle: "territoires", href: "/territoire", libelle: "Territoires" },
+  { cle: "territoires", href: "/territoire", libelle: "Villes" },
   { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];

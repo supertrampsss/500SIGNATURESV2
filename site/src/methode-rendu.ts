@@ -341,7 +341,7 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
         <select id="registre-sources-contexte">
           <option value="">Toutes les pages</option>
           <option value="national">National</option>
-          <option value="territoires">Territoires</option>
+          <option value="territoires">Villes</option>
           <option value="simulateur">Simulateur</option>
         </select>
       </div>
