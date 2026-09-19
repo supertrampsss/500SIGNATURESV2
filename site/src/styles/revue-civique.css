@@ -183,9 +183,16 @@ body[data-vue="accueil"] .accueil__source-apercu a { color:var(--encre); text-de
 html body[data-vue="bilan"] #vue-bilan .bilan-verdict h1 { font:500 clamp(2.5rem,5vw,4.5rem)/1.04 var(--serif); letter-spacing:-.045em; }
 html body[data-vue="bilan"] #vue-bilan .bilan-chapitre h2,
 html body[data-vue="bilan"] #vue-bilan h2,
-html body[data-vue="territoire"] .territoire-recherche h1,
-html body[data-vue="territoire"] .fiche__titre,
 html body[data-vue="salaires"] .salaires__entree h1 { font-family:var(--serif); font-weight:500; letter-spacing:-.035em; }
+
+/* Les titres de la vue Villes suivent la même hiérarchie Barlow que les
+   autres écrans du système visuel approuvé. */
+html body[data-vue="territoire"] .territoire-recherche h1,
+html body[data-vue="territoire"] .fiche__titre {
+  font-family:"Barlow Semi Condensed",Arial,sans-serif;
+  font-weight:600;
+  letter-spacing:-.02em;
+}
 html[data-theme="clair"] body[data-vue] { --design-bg:#f5f2ea; --design-panel:#f5f2ea; --design-inset:#e7eadf; --design-ink:#203b34; --design-muted:#697268; --design-line:#cfd3c8; --design-gold:#a84429; --design-red:#a84429; --design-selected:#e7eadf; }
 html[data-theme="clair"] body[data-vue] .entete { background:#f5f2ea; }
 
