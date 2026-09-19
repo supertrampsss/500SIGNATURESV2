@@ -1,9 +1,8 @@
 /salaires /salaires/ 301
-/ /bilan 301
 
 # Entrées historiques : elles ne sont plus des pages ni des onglets publics.
-/accueil /bilan 301
-/accueil/ /bilan 301
+/accueil / 301
+/accueil/ / 301
 /carte /territoire 301
 /carte/ /territoire 301
 /donnees /territoire 301

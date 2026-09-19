@@ -11,11 +11,16 @@ import * as routes from "./routes.ts";
 
 const { ALIAS, CHEMINS, adresseSimulateurCanonique, cheminDeVue, vueDepuisAdresse } = routes;
 
-test("la racine publique redirige vers la page France", () => {
+test("la racine publique sert l'accueil et ses anciennes adresses y convergent", () => {
   const redirects = readFileSync(new URL("../public/_redirects", import.meta.url), "utf8");
-  assert.match(redirects, /^\/\s+\/bilan\s+301\s*$/m);
+  const rules = redirects.split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith("#")).map(line => line.split(/\s+/));
+  // Cloudflare applies these rules before serving the prerendered index.html.
+  // A root redirect would hide the approved home page despite correct SPA routing.
+  assert.equal(rules.some(([source]) => source === "/" || source === "/*"), false);
+  for (const source of ["/accueil", "/accueil/"]) {
+    assert.deepEqual(rules.filter(([from]) => from === source), [[source, "/", "301"]]);
+  }
   for (const [legacy, canonical] of [
-    ["accueil", "bilan"],
     ["carte", "territoire"],
     ["donnees", "territoire"],
     ["reperes", "bilan"],
