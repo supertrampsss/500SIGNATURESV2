@@ -1,6 +1,6 @@
 /** Original SVG/HTML charts. Rendering is pure; interaction lives in chart-controls.ts. */
 export type ChartSeries = { name: string; color?: string; emphasized?: boolean; values: Record<string, number>; labels?: Record<string, string>; dashed?: boolean; pointsOnly?: boolean };
-export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean; periodLabel?: string };
+export type ChartOptions = { title: string; description: string; series: ChartSeries[]; unit: string; format: (value: number) => string; gap?: boolean; zeroBaseline?: boolean; hideMissing?: boolean; periodLabel?: string; legend?: boolean };
 export const escapeChart = (text: string): string => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
 export function chartPeriods(series: ChartSeries[]): string[] {
@@ -64,6 +64,7 @@ export function timeChart(options: ChartOptions): string {
   const readouts = periods.map(p=>chartReadout(options,p));
   return `<figure class="chart-time${options.series.length > 6 ? ' chart-time--many' : ''}" data-chart-periods="${escapeChart(JSON.stringify(periods))}" data-chart-fractions="${escapeChart(JSON.stringify(periods.map((_,i)=>fraction(i))))}" data-chart-readouts="${escapeChart(JSON.stringify(readouts))}">
     <figcaption><strong>${escapeChart(options.title)}</strong><span>${escapeChart(options.unit)}</span></figcaption>
+    ${options.legend ? `<ul class="chart-legend" aria-label="Légende du graphique">${options.series.map((series, index) => `<li class="chart-key--${index}"${series.color ? ` style="color:${escapeChart(series.color)}"` : ''}>${escapeChart(series.name)}</li>`).join('')}</ul>` : ''}
     <output class="chart-readout" aria-live="polite" aria-atomic="true">${readouts.at(-1)}</output>
     <div class="chart-plot">${draw(360)}${draw(720)}</div>
     ${periods.length>1?`<label class="chart-scrub"><span>${escapeChart(periodLabel)}</span><input type="range" min="0" max="${periods.length-1}" value="${periods.length-1}" step="1" aria-label="${escapeChart(periodLabel)} du graphique : ${escapeChart(options.title)}" aria-valuetext="${escapeChart(periods.at(-1)!)}"/><span class="chart-scrub__year">${escapeChart(periods.at(-1)!)}</span></label>`:''}

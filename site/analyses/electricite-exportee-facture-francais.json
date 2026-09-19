@@ -97,7 +97,7 @@
   ],
   "verifie_contre": "RTE 2024-2025 et CRE, pages consultées le 30 août 2026",
   "dossier": {
-    "chapo": "La France produit parfois davantage d’électricité qu’elle n’en consomme et vend l’excédent sur le marché européen. Dans le même temps, les ménages paient une facture qui comprend l’énergie, les réseaux et les taxes. Pour comprendre l’écart, il faut suivre séparément le prix des échanges et la composition du tarif payé à domicile.",
+    "chapo": "La France produit parfois davantage d’électricité qu’elle n’en consomme et vend l’excédent sur le marché européen. Dans le même temps, les ménages paient une facture qui comprend l’énergie, les réseaux et les taxes. Pour comprendre l’écart, il faut suivre séparément le prix des échanges et la composition du tarif payé à domicile, toutes taxes comprises (TTC).",
     "sommaire": [
       "reponse",
       "echanges",
@@ -213,7 +213,7 @@
         "id": "solde-exportateur-figure",
         "type": "bar",
         "titre": "Une France nettement exportatrice en 2024 et 2025",
-        "resume": "Le solde exportateur net atteint 89 000 GWh en 2024 et 92 300 GWh en 2025.",
+        "resume": "Le solde net des exportations atteint 89 000 gigawattheures (GWh) en 2024 et 92 300 GWh en 2025.",
         "seriesIds": [
           "solde-exportateur"
         ]
@@ -248,7 +248,7 @@
         "titre": "Pourquoi exporter quand l'électricité française est abondante",
         "paragraphes": [
           "Quand la production française disponible dépasse la demande intérieure, exporter offre un débouché à la production excédentaire. En 2024 comme en 2025, la France a été très largement exportatrice nette.",
-          "RTE montre aussi pourquoi la formule « vendu moins cher aux voisins » est trompeuse : en 2025, le mégawattheure exporté vaut 59 euros au prix français, presque le prix spot français de 61 euros, tandis que la valorisation aux prix des pays de destination atteint 101,5 euros. Ces deux valorisations encadrent le même flux avec des conventions différentes ; elles ne décrivent pas un cadeau suivi d'un rachat."
+          "Le gestionnaire du réseau de transport d’électricité (RTE) montre aussi pourquoi la formule « vendu moins cher aux voisins » est trompeuse : en 2025, le mégawattheure exporté vaut 59 euros au prix français, presque le prix spot français de 61 euros. Le prix spot est le prix du marché de gros pour une livraison immédiate. La valorisation aux prix des pays de destination atteint 101,5 euros. Ces deux valorisations encadrent le même flux avec des conventions différentes ; elles ne décrivent pas un cadeau suivi d'un rachat."
         ],
         "visualisationIds": [
           "solde-exportateur-figure"
@@ -256,17 +256,17 @@
       },
       {
         "id": "facture",
-        "titre": "Pourquoi la facture française est plus élevée qu'un prix spot",
+        "titre": "Pourquoi la facture française dépasse le prix du marché à court terme",
         "paragraphes": [
-          "Une facture de détail ne reprend pas simplement le prix spot du jour. Elle agrège le coût d'approvisionnement du fournisseur, souvent couvert à l'avance, la capacité, l'utilisation des réseaux, la commercialisation, les prélèvements et la TVA.",
-          "La CRE a proposé de faire passer le tarif réglementé moyen de 281 à 239 euros par mégawattheure TTC au 1er février 2025, en raison notamment de la baisse des coûts d'approvisionnement. Cette proposition illustre comment le prix de détail réagit aux coûts de gros, avec sa propre composition et son propre calendrier."
+          "Une facture de détail ne reprend pas simplement le prix spot du jour, c'est-à-dire le prix du marché de gros pour une livraison immédiate. Elle agrège le coût d'approvisionnement du fournisseur, souvent couvert à l'avance, la capacité, l'utilisation des réseaux, la commercialisation, les prélèvements et la taxe sur la valeur ajoutée (TVA).",
+          "La Commission de régulation de l’énergie (CRE) a proposé de faire passer le tarif réglementé moyen de 281 à 239 euros par mégawattheure TTC au 1er février 2025, en raison notamment de la baisse des coûts d'approvisionnement. Cette proposition illustre comment le prix de détail réagit aux coûts de gros, avec sa propre composition et son propre calendrier."
         ]
       },
       {
         "id": "arenh",
-        "titre": "Le chiffre de 42 euros de l'ARENH ne décrit pas une vente aux pays étrangers",
+        "titre": "Le prix de 42 euros ne décrit pas une vente aux pays étrangers",
         "paragraphes": [
-          "Le prix de 42 euros par mégawattheure souvent cité correspondait à l'ARENH. Ce mécanisme permettait aux fournisseurs d'accéder à une quantité régulée de production nucléaire historique en fonction de leurs portefeuilles de clients en France.",
+          "Le prix de 42 euros par mégawattheure souvent cité correspondait à l'accès régulé à l'électricité nucléaire historique (ARENH). Ce dispositif permettait aux fournisseurs d'accéder à une quantité régulée de production nucléaire historique en fonction de leurs portefeuilles de clients en France.",
           "L'ARENH n'était donc pas un tarif préférentiel consenti à des États voisins. Il a pris fin le 31 décembre 2025. Le confondre avec le prix des exportations transfrontalières ajoute un troisième objet à deux grandeurs déjà différentes."
         ]
       },

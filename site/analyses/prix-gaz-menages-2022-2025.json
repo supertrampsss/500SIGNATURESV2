@@ -72,7 +72,7 @@
   ],
   "verifie_contre": "Eurostat nrg_pc_202, France, bande D2, TTC et hors taxes",
   "dossier": {
-    "chapo": "Chauffage, eau chaude, cuisson : le prix du gaz pèse sur plusieurs dépenses du logement. Entre les seconds semestres 2022 et 2025, le prix moyen TTC payé par les ménages de la catégorie D2 en France passe de 10,08 à 14,36 centimes par kWh. La décomposition permet de comprendre cette hausse.",
+    "chapo": "Chauffage, eau chaude, cuisson : le prix du gaz pèse sur plusieurs dépenses du logement. Entre les seconds semestres 2022 et 2025, le prix moyen toutes taxes comprises (TTC) payé en France par les ménages de la catégorie de consommation D2, une catégorie standardisée, passe de 10,08 à 14,36 centimes par kilowattheure (kWh). La décomposition permet de comprendre cette hausse.",
     "sommaire": [
       "constat",
       "decomposition",
@@ -167,7 +167,7 @@
       {
         "id": "courbe-gaz",
         "type": "line",
-        "titre": "Prix du gaz TTC et hors taxes depuis 2022",
+        "titre": "Prix du gaz, avec et sans taxes, depuis 2022",
         "resume": "Les deux séries augmentent ; l'écart entre elles correspond aux taxes et prélèvements dans cette définition.",
         "seriesIds": [
           "gaz-ttc",
@@ -180,7 +180,7 @@
         "id": "constat",
         "titre": "Le prix moyen payé en France",
         "paragraphes": [
-          "Le prix TTC de la bande D2 augmente de 0,1008 à 0,1436 euro par kWh entre les seconds semestres 2022 et 2025."
+          "Le prix toutes taxes comprises de la catégorie D2 augmente de 0,1008 à 0,1436 euro par kilowattheure entre les seconds semestres 2022 et 2025."
         ],
         "visualisationIds": [
           "courbe-gaz"
@@ -190,14 +190,14 @@
         "id": "decomposition",
         "titre": "Le hors taxes augmente aussi",
         "paragraphes": [
-          "Sur la même période, le prix hors taxes passe de 0,0754 à 0,0998 euro par kWh. La fiscalité compte dans le TTC, mais elle n'explique donc pas seule le mouvement."
+          "Sur la même période, le prix avant taxes passe de 0,0754 à 0,0998 euro par kilowattheure. Les taxes comptent dans le prix toutes taxes comprises, mais elles n'expliquent donc pas seules le mouvement."
         ]
       },
       {
         "id": "repere",
         "titre": "Ne pas confondre moyenne payée et prix repère",
         "paragraphes": [
-          "Le prix repère mensuel de la CRE aide à comparer les offres après la fin des tarifs réglementés du gaz. Ce n'est ni une obligation tarifaire ni la moyenne observée par Eurostat."
+          "Le prix repère mensuel de la Commission de régulation de l’énergie (CRE) aide à comparer les offres après la fin des tarifs réglementés du gaz. Ce n'est ni une obligation tarifaire ni la moyenne observée par Eurostat."
         ]
       },
       {

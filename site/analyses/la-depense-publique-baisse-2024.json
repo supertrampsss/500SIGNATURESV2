@@ -1,6 +1,6 @@
 {
   "slug": "la-depense-publique-baisse-2024",
-  "titre": "Dépense publique : comment lire les montants et la part du PIB",
+  "titre": "Dépense publique : comment lire les montants et la part de la richesse produite",
   "type": "decryptage",
   "publie_le": "2026-08-22",
   "themes": [
@@ -108,7 +108,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les dépenses publiques financent les services, les investissements et les prestations des administrations. On peut les mesurer en euros ou les rapporter à la richesse produite. Ces deux lectures répondent à des questions différentes et peuvent évoluer dans des sens opposés.",
+    "chapo": "Les dépenses publiques, celles de l'État, de la Sécurité sociale et des collectivités locales, financent les services, les investissements et les prestations. On peut les mesurer en euros ou les rapporter à la richesse produite. Ces deux lectures répondent à des questions différentes et peuvent évoluer dans des sens opposés.",
     "series": [],
     "preuves": [
       {
@@ -156,8 +156,8 @@
       {
         "id": "ratios",
         "type": "bar",
-        "titre": "Le poids des dépenses dans le PIB",
-        "resume": "France, en pourcentage du PIB. Deux observations datées.",
+        "titre": "Le poids des dépenses dans la richesse produite",
+        "resume": "France, en pourcentage du produit intérieur brut. Deux observations datées.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -167,7 +167,7 @@
         "id": "montants",
         "type": "bar",
         "titre": "Les dépenses en euros courants",
-        "resume": "France, en milliards d’euros. Les montants incluent l’évolution des prix.",
+        "resume": "France, en milliards d’euros de chaque année. Les montants incluent l’évolution des prix.",
         "preuveIds": [
           "chiffre-3",
           "chiffre-4"
@@ -199,7 +199,7 @@
         "id": "conclusion",
         "titre": "Préciser la mesure et la période",
         "paragraphes": [
-          "Une baisse en part du PIB renseigne sur le poids relatif des administrations dans l’économie. Pour suivre les moyens des services publics, il faut aussi regarder les montants, l’inflation et les besoins de la population."
+          "Une baisse en part du produit intérieur brut renseigne sur le poids relatif des administrations dans l’économie. Pour suivre les moyens des services publics, il faut aussi regarder les montants, la hausse générale des prix et les besoins de la population."
         ]
       }
     ],

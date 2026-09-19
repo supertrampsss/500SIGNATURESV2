@@ -66,6 +66,9 @@ body[data-vue='bilan'] #vue-bilan { --encre:var(--studio-ink); --encre-douce:var
 .chart-time figcaption strong { font:600 1.1rem/1.3 var(--sans); }
 .chart-time figcaption strong { color:var(--studio-ink); }
 .chart-time figcaption > span { font-size:.78rem; color:var(--studio-muted); align-self:center; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:.45rem 1.3rem; list-style:none; margin:0 0 1rem; padding:0; font:.78rem/1.35 var(--sans); }
+.chart-legend li { display:inline-flex; align-items:center; gap:.45rem; }
+.chart-legend li::before { content:""; display:block; width:1rem; height:3px; background:currentColor; flex:none; }
 .chart-readout { display:grid; grid-template-columns:3rem minmax(0,1fr); gap:.7rem; min-height:4rem; margin-bottom:.5rem; }
 .chart-readout > b { font:500 .85rem/1.4 var(--sans); color:var(--studio-muted); padding-top:.1rem; }
 .chart-readout__values { display:flex; flex-wrap:wrap; gap:.5rem 2rem; }
@@ -162,6 +165,11 @@ body[data-vue='territoire'] .repere__terme { font-size:.75rem; }
 .territory-charts__tabs button[aria-pressed='true'] { color:var(--studio-paper); background:var(--studio-ink); border-color:var(--studio-ink); }
 .territory-charts [hidden] { display:none!important; }
 .territory-charts__source { font-size:.78rem; color:var(--studio-muted); margin:.5rem 0 0; }
+.territory-finance-combined { --territory-third:#765285; margin:1.5rem 0; padding:1.25rem; border:1px solid var(--studio-line); border-radius:14px; }
+.territory-finance-combined .chart-series--2,.territory-finance-combined .chart-key--2,.territory-finance-combined .chart-legend .chart-key--2 { color:var(--territory-third); }
+.territory-finance-combined__note { margin:1rem 0 0; color:var(--studio-muted); font:.8rem/1.45 var(--sans); }
+html[data-theme='sombre'] .territory-finance-combined { --territory-third:#d1aee0; }
+@media(prefers-color-scheme:dark) { html:not([data-theme='clair']) .territory-finance-combined { --territory-third:#d1aee0; } }
 .territory-reading { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem 2rem; margin:2rem 0; }
 body[data-vue='territoire'] .territory-reading .bloc-lecture { margin:0; padding:1rem 0; border:0; border-top:1px solid var(--studio-line); }
 body[data-vue='territoire'] .territory-reading h3 { font:600 1.05rem/1.3 var(--sans); margin:0 0 .6rem; }
@@ -187,6 +195,9 @@ body[data-vue='territoire'] .territory-reading p { font-size:.9rem; }
  body[data-vue='territoire'] .repere:nth-child(3) { border-left:0; }
  body[data-vue='territoire'] .repere:nth-child(n+3) { border-top:1px solid var(--studio-line); }
  .territory-reading { grid-template-columns:1fr; gap:.5rem; }
+ .territory-finance-combined { padding:1rem .75rem; }
+ .territory-finance-combined .chart-readout__values { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+ .territory-finance-combined .chart-key > span { max-width:none; }
 }
 @media(prefers-reduced-motion:no-preference) {
  .chart-series path { animation:chart-appear 600ms ease-out both; }

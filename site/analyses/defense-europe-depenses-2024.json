@@ -162,7 +162,7 @@
         "id": "depenses-europe",
         "type": "line",
         "titre": "90 milliards d’euros de plus en quatre ans",
-        "resume": "Dépenses publiques de défense de l’UE, en euros courants. Les données de 2024 sont provisoires.",
+        "resume": "Dépenses publiques de défense de l’Union européenne, en euros de chaque année. Les chiffres de 2024 sont provisoires.",
         "seriesIds": [
           "defense-ue"
         ]
@@ -173,7 +173,7 @@
         "id": "progression",
         "titre": "Une hausse plus rapide en 2024",
         "paragraphes": [
-          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis à 266 milliards en 2024. La dernière année ajoute donc 34 milliards, soit près de 15 %. Ces montants sont exprimés en euros courants : la hausse des prix en absorbe une partie."
+          "Les dépenses passent de 176 milliards d’euros en 2020 à 232 milliards en 2023, puis à 266 milliards en 2024. La dernière année ajoute donc 34 milliards, soit près de 15 %. Ces montants sont exprimés en euros de chaque année : ils ne tiennent pas compte de la hausse des prix."
         ],
         "visualisationIds": [
           "depenses-europe"

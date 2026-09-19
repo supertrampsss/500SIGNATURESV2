@@ -60,7 +60,7 @@ html body .entete__nav a,html body .site-navigation a { color:var(--design-muted
 html body .entete__nav a[aria-current],html body .site-navigation a[aria-current] { color:var(--design-gold); border-bottom-color:var(--design-gold); background:transparent; }
 html body[data-vue] .entete__nav a[aria-current] { color:var(--design-gold);border-bottom-color:var(--design-gold);background:transparent; }
 html body[data-vue] .entete__nom { font:600 1.5rem/1.1 'Source Sans 3',Arial,sans-serif;letter-spacing:-.055em; }
-html body .bascule-theme { width:44px;height:44px;min-width:44px;display:grid;place-items:center;padding:0;border:1px solid var(--design-line);border-radius:50%;background:transparent;color:var(--design-ink); }
+html body .bascule-theme { width:44px;height:44px;min-width:44px;display:grid;place-items:center;padding:0;border:1px solid var(--design-line);border-radius:50%;background:transparent;color:var(--design-ink);position:relative;z-index:2; }
 html body .bascule-theme svg { width:21px;height:21px; }
 html body[data-mode] .site-header .brand strong { font:600 1.5rem/1.1 'Source Sans 3',Arial,sans-serif;letter-spacing:-.055em; }
 .bascule-theme::before,.bascule-theme::after { display:none!important; }
@@ -168,11 +168,15 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
  .salaires__segment,.bilan-flux__barre { transition:width .55s cubic-bezier(.2,.8,.2,1); }
 }
 @media(max-width:700px) {
- html body .entete,html body .site-header { padding:10px 20px;grid-template-columns:1fr 44px;gap:8px; }
- html body .entete__nav,html body .site-navigation { grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;width:100%; }
- html body .entete__nav a,html body .site-navigation a { font-size:.8rem; }
- html body .bascule-theme { grid-column:2;grid-row:1; }
+ html body .entete,html body .site-header { padding:8px 12px;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;min-width:0; }
+ html body .entete__marque { grid-column:1;grid-row:1;width:36px;max-width:36px;overflow:hidden; }
+ html body .entete__marque .brand-e { width:36px;height:46px; }
+ html body .entete__nav,html body .site-navigation { grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;gap:12px;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scrollbar-width:none;white-space:nowrap; }
+ html body .entete__nav::-webkit-scrollbar,html body .site-navigation::-webkit-scrollbar { display:none; }
+ html body .entete__nav a,html body .site-navigation a { flex:0 0 auto;font-size:.8rem; }
+ html body .bascule-theme,html body .entete .bascule-theme { grid-column:3;grid-row:1;width:36px;height:36px;min-width:36px; }
  html body .site-header .header-actions { grid-row:3;margin-top:0; }
+ html body[data-vue="bilan"] #vue-bilan #national > nav.bilan-reperage { display:none; }
  html body #vue-bilan { padding-inline:20px; }
  html body #vue-bilan #national { margin-top:16px; }
  html body #vue-bilan .bilan-verdict { grid-template-columns:minmax(0,1fr);grid-template-areas:'editorial' 'scene' 'totem' 'equation'; }
@@ -184,6 +188,10 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
  html body .insights .insight { padding:20px; }
  .mandats-invitation { flex-direction:column;align-items:stretch; }
  .mandats-invitation>a { text-align:center; }
+}
+@media(max-width:340px) {
+ html body .entete__nav,html body .site-navigation { gap:0; }
+ html body .entete__nav a,html body .site-navigation a { font-size:.65rem; }
 }
 .civic-scene { grid-area:scene;position:relative;height:300px;perspective:850px;overflow:hidden;background:radial-gradient(ellipse at 50% 70%,var(--design-track),transparent 65%); }
 .civic-scene__city { position:absolute;width:270px;height:180px;left:50%;top:52px;transform:translateX(-50%) rotateX(18deg) rotateZ(-5deg); }

@@ -96,7 +96,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au PIB, ils permettent de comparer le poids de ces financements entre pays. Dans les données harmonisées présentées ici pour 2024, la France se situe au-dessus de la moyenne européenne.",
+    "chapo": "Les impôts et cotisations financent une grande partie des services publics et de la protection sociale. Rapportés au produit intérieur brut (PIB), c'est-à-dire à la richesse produite dans le pays, ils permettent de comparer le poids de ces financements entre pays. Dans les données harmonisées présentées ici pour 2024, la France se situe au-dessus de la moyenne européenne.",
     "series": [],
     "preuves": [
       {
@@ -134,8 +134,8 @@
       {
         "id": "comparaison-prelevements",
         "type": "bar",
-        "titre": "Les prélèvements rapportés au PIB en 2024",
-        "resume": "Impôts et cotisations selon la définition harmonisée retenue dans la série.",
+        "titre": "Les prélèvements comparés à la richesse produite en 2024",
+        "resume": "Impôts et cotisations selon la définition commune retenue pour comparer les pays.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2",

@@ -306,6 +306,53 @@ dialog .scope { font-size:12px; }
   .mode-art-caption { display:none; }
   .selection-heading h1 { font-size:2.2rem; }
 }
+
+/* Sur un petit écran, la carte reste un repère visuel et la fiche de mandat
+   retrouve toute sa largeur. La grille en deux colonnes rendait le texte
+   illisible et comprimait la carte. */
+@media(max-width:560px) {
+  #mandats { padding-inline:14px; }
+  .selection-heading { padding:10px 0 18px; }
+  .selection-heading h1 { font-size:2.35rem; margin-bottom:10px; }
+  .selection-heading .lead { font-size:15px; }
+  .mode-grid { gap:14px; }
+  .mode-card,.mode-card.national {
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    align-items:stretch;
+    padding:5px;
+  }
+  .mandate-selection .mode-card.national {
+    min-height:0;
+    align-items:stretch;
+  }
+  .mode-art,.mode-card.national .mode-art,
+  .mandate-selection .mode-card.national .mode-art {
+    position:relative;
+    inset:auto;
+    width:100%;
+    height:148px;
+    aspect-ratio:auto;
+    border-right:0;
+    border-bottom:1px solid var(--line);
+  }
+  .mode-art svg { min-width:0; width:100%; height:100%; transform:none; }
+  .mode-art img { object-position:50% 45%; }
+  .mode-copy { padding:17px 15px 15px; }
+  .mode-copy h2 { font-size:1.95rem; margin:6px 0 8px; }
+  .mode-copy p { font-size:15px; line-height:1.45; margin-bottom:12px; }
+  .mode-meta { font-size:12px; }
+  .mode-meta>span:last-child { display:inline; }
+  .mode-cta { margin-top:14px; padding-top:12px; }
+}
+
+@media(max-width:820px) {
+  /* The opening map should orient without pushing the first decision below the fold. */
+  .briefing { gap:14px; padding-top:4px; }
+  .brief-map .world-canvas { aspect-ratio:2.1; }
+  .brief-map-caption { padding:12px 4px; }
+}
 @media(max-height:500px) and (orientation:landscape) { .game-tabs { position:static; } .strategic-panel { max-width:400px; align-self:center; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 @media(prefers-contrast:more) { :root { --muted:#e3eaeb; --line:#759aa5; } .choice,.world-control,.ambition-option { border-color:#a7c6cd; } }
