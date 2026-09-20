@@ -203,3 +203,340 @@ html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { scroll-margin-top: calc
 @media(max-width:900px) {
  html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { scroll-margin-top: calc(var(--decalage-entete, 90px) + 70px); }
 }
+
+/* Landing v2 — desktop editorial composition.
+   The imagegen direction and the Mobbin references both pointed to the same
+   useful structure: one clear promise, one factual preview, then a featured
+   story beside the recent index. The content stays HTML and sourced; the
+   treatment gives the desktop page a visible rhythm without adding arrows or
+   explanatory caveats. */
+@media (min-width: 901px) {
+  body[data-vue="accueil"] .accueil {
+    max-width: 82rem;
+  }
+
+  body[data-vue="accueil"] .accueil__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.03fr) minmax(22rem, .97fr);
+    gap: clamp(2.5rem, 5vw, 6.5rem);
+    align-items: stretch;
+    padding: clamp(3.75rem, 6vw, 6.5rem) clamp(2rem, 5vw, 5rem) clamp(2.5rem, 4vw, 4.25rem);
+    border-bottom: 1px solid var(--trait);
+  }
+
+  body[data-vue="accueil"] .accueil__ouverture {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: none;
+    padding: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__message {
+    max-width: 10ch;
+    font-size: clamp(4rem, 6.2vw, 6.8rem);
+    line-height: .96;
+    letter-spacing: -.045em;
+    text-wrap: balance;
+  }
+
+  body[data-vue="accueil"] .accueil__contrat {
+    max-width: 43ch;
+    margin-top: 1.35rem;
+    font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+    line-height: 1.55;
+  }
+
+  body[data-vue="accueil"] .accueil__recherche {
+    margin-top: 2.25rem;
+  }
+
+  body[data-vue="accueil"] .accueil__recherche .accueil__appel:first-child {
+    padding-inline: 1.2rem;
+    background: var(--revue-clay);
+    border-color: var(--revue-clay);
+    color: #fffaf2;
+    text-decoration: none;
+  }
+
+  body[data-vue="accueil"] .accueil__recherche .accueil__appel:first-child:hover,
+  body[data-vue="accueil"] .accueil__recherche .accueil__appel:first-child:focus-visible {
+    background: var(--encre);
+    border-color: var(--encre);
+  }
+
+  body[data-vue="accueil"] .accueil__apercu {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 28rem;
+    box-sizing: border-box;
+    padding: clamp(1.75rem, 3vw, 3rem);
+    background: var(--papier);
+    border: 1px solid var(--trait);
+    border-top: 4px solid var(--revue-clay);
+    border-radius: 0;
+    box-shadow: 1.25rem 1.25rem 0 var(--papier-creuse);
+  }
+
+  body[data-vue="accueil"] .accueil__apercu::after {
+    content: "";
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    width: 4rem;
+    height: 4rem;
+    border-right: 1px solid var(--revue-clay);
+    border-bottom: 1px solid var(--revue-clay);
+    opacity: .55;
+    pointer-events: none;
+  }
+
+  body[data-vue="accueil"] .accueil__apercu h2 {
+    margin: 1.35rem 0 .5rem;
+    font: 500 clamp(1.45rem, 2vw, 2rem)/1.1 var(--serif);
+    letter-spacing: -.025em;
+  }
+
+  body[data-vue="accueil"] .accueil__solde {
+    margin-top: .3rem;
+    font-size: clamp(3.25rem, 5.2vw, 5rem);
+  }
+
+  body[data-vue="accueil"] .accueil__apercu dl {
+    margin: 2.2rem 0 1.25rem;
+  }
+
+  body[data-vue="accueil"] .accueil__barre {
+    position: relative;
+    overflow: hidden;
+    background: var(--trait) !important;
+  }
+
+  body[data-vue="accueil"] .accueil__barre::before {
+    content: "";
+    display: block;
+    width: var(--part);
+    height: 100%;
+    background: #59745c;
+  }
+
+  body[data-vue="accueil"] .accueil__barre--1::before {
+    background: var(--revue-clay);
+  }
+
+  body[data-vue="accueil"] .accueil__bloc--france {
+    margin: 0;
+    padding: clamp(2.5rem, 5vw, 4.75rem) clamp(2rem, 5vw, 5rem);
+  }
+
+  body[data-vue="accueil"] .accueil__france {
+    display: block;
+  }
+
+  body[data-vue="accueil"] .accueil__france-intro {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 3rem;
+    max-width: none;
+    font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+  }
+
+  body[data-vue="accueil"] .accueil__france-intro p {
+    max-width: 40ch;
+    margin-bottom: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__france-liens {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .75rem 1.25rem;
+    flex: 0 0 auto;
+  }
+
+  body[data-vue="accueil"] .accueil__france-liens .accueil__appel--secondaire {
+    padding-inline: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__bloc--territoire {
+    margin: 0;
+    padding: clamp(2.5rem, 5vw, 4.75rem) clamp(2rem, 5vw, 5rem);
+    background: var(--papier-creuse);
+  }
+
+  body[data-vue="accueil"] .accueil__bloc--territoire .accueil__exemple {
+    max-width: 54rem;
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, .75fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+    padding: clamp(2.5rem, 5vw, 4.75rem) clamp(2rem, 5vw, 5rem);
+    border-top: 1px solid var(--trait);
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers .accueil__bloc {
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers .accueil__bloc--dossiers {
+    padding: clamp(1.75rem, 3vw, 3rem);
+    border: 1px solid var(--trait);
+    border-top: 4px solid var(--revue-clay);
+    border-radius: 0;
+    background: var(--papier);
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers .accueil__bloc--dossiers-recents {
+    min-width: 0;
+    padding: 0 0 0 clamp(1.75rem, 3vw, 3rem);
+    border-left: 1px solid var(--trait);
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers .accueil__bloc--dossiers-recents h3 {
+    font-size: clamp(1.7rem, 2.5vw, 2.4rem);
+  }
+
+  body[data-vue="accueil"] .accueil__carte-analyse {
+    padding: 1.15rem 0;
+  }
+
+  body[data-vue="accueil"] .accueil__carte-analyse a {
+    display: block;
+    margin-bottom: .5rem;
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    line-height: 1.2;
+  }
+
+  body[data-vue="accueil"] .accueil__questions {
+    padding: clamp(2.5rem, 5vw, 4.75rem) clamp(2rem, 5vw, 5rem);
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    list-style: none;
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::-webkit-details-marker {
+    display: none;
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::marker {
+    content: "";
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::after {
+    content: "+";
+    flex: 0 0 auto;
+    color: var(--revue-clay);
+    font-size: 1.35rem;
+    font-weight: 400;
+  }
+
+  body[data-vue="accueil"] .accueil__questions details[open] summary::after {
+    content: "−";
+  }
+
+  body[data-vue="accueil"] .accueil__mandats {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3rem;
+    align-items: center;
+    padding: clamp(2.75rem, 5vw, 4.75rem) clamp(2rem, 5vw, 5rem);
+  }
+
+  body[data-vue="accueil"] .accueil__mandats-index {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    color: #f5f2ea;
+    border-left: 1px solid rgb(245 242 234 / .4);
+    padding-left: 2rem;
+  }
+
+  body[data-vue="accueil"] .accueil__mandats-index strong {
+    font: 500 clamp(3.5rem, 6vw, 6rem)/1 var(--serif);
+  }
+}
+
+@media (max-width: 900px) {
+  body[data-vue="accueil"] .accueil__hero {
+    gap: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__apercu {
+    margin: 0 clamp(1rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers {
+    display: block;
+  }
+
+  body[data-vue="accueil"] .accueil__dossiers .accueil__bloc--dossiers-recents {
+    margin-top: 2.5rem;
+    padding: 2.5rem 0 0;
+    border-top: 1px solid var(--trait);
+    border-left: 0;
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    list-style: none;
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::-webkit-details-marker {
+    display: none;
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::marker {
+    content: "";
+  }
+
+  body[data-vue="accueil"] .accueil__questions summary::after {
+    content: "+";
+    flex: 0 0 auto;
+    color: var(--revue-clay);
+    font-size: 1.25rem;
+  }
+
+  body[data-vue="accueil"] .accueil__questions details[open] summary::after {
+    content: "−";
+  }
+
+  body[data-vue="accueil"] .accueil__mandats-index {
+    margin-top: 2rem;
+    padding-left: 0;
+    border-left: 0;
+    gap: .75rem;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-vue="accueil"] .accueil__apercu {
+    margin-inline: 1rem;
+    box-shadow: .6rem .6rem 0 var(--papier-creuse);
+  }
+
+  body[data-vue="accueil"] .accueil__france-intro {
+    display: block;
+  }
+
+  body[data-vue="accueil"] .accueil__france-liens {
+    justify-content: flex-start;
+    margin-top: 1.25rem;
+  }
+}
