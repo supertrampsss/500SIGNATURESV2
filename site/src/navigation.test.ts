@@ -8,10 +8,11 @@ test("Mandats est une entrée native indépendante du chargement des données", 
   assert.doesNotMatch(renduNavigation("/bilan", false), /href="\/mandats\/"[^>]*data-vue/);
 });
 
-test("la navigation expose les cinq destinations utiles sans lien Accueil", () => {
+test("la navigation expose l’accueil et les cinq destinations utiles", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
+      { cle: "accueil", href: "/", libelle: "Accueil" },
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
@@ -19,7 +20,12 @@ test("la navigation expose les cinq destinations utiles sans lien Accueil", () =
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
-  assert.doesNotMatch(renduNavigation("/", true), /Accueil|data-vue="accueil"/);
+  assert.match(renduNavigation("/", true), /<a href="\/" aria-current="page">Accueil<\/a>/);
+});
+
+test("l’accueil est une entrée native et reste courant à la racine", () => {
+  assert.match(renduNavigation("/", true), /<a href="\/" aria-current="page">Accueil<\/a>/);
+  assert.doesNotMatch(renduNavigation("/bilan", true), /href="\/"[^>]*aria-current="page"/);
 });
 
 test("France est la destination courante sur le chemin historique du bilan", () => {
@@ -47,7 +53,7 @@ test("Salaires reste un lien natif vers sa page pré-rendue", () => {
 test("le menu partagé contient les destinations et le lien social, sans l'ancien simulateur", () => {
   for (const disponible of [true, false]) {
     const html = renduNavigation("/bilan", disponible);
-    assert.equal((html.match(/<a /g) ?? []).length, 6);
+    assert.equal((html.match(/<a /g) ?? []).length, 7);
     assert.doesNotMatch(html, /href="\/simulateur"/);
     assert.match(html, /href="\/mandats\/"/);
     assert.match(html, /href="https:\/\/x\.com\/500Signatures"[^>]*>X \/ Twitter<\/a>/);

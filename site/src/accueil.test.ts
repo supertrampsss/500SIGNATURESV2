@@ -586,11 +586,29 @@ test("26. les portes précèdent les analyses récentes", () => {
   );
 });
 
-test("27. chaque chiffre porte son unité sans unité globale ambiguë", () => {
+test("27. l'accueil suit le récit comprendre, vérifier, situer, décider", () => {
+  const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
+  const repères = [
+    'aria-labelledby="accueil-parcours"',
+    'aria-labelledby="accueil-verdict"',
+    'aria-labelledby="accueil-territoire"',
+    'aria-labelledby="accueil-analyses"',
+    'class="accueil__mandats"',
+    'aria-labelledby="accueil-confiance"',
+  ].map((repère) => html.indexOf(repère));
+  assert.ok(repères.every((position) => position !== -1), "chaque étape du récit est rendue");
+  assert.deepEqual(
+    [...repères].sort((a, b) => a - b),
+    repères,
+    "les preuves et les actions suivent une progression unique",
+  );
+});
+
+test("28. chaque chiffre porte son unité sans unité globale ambiguë", () => {
   assert.ok(!page().includes(MENTION_MILLIONS));
 });
 
-test("27. la promesse ouvre la recherche et les parcours avant les preuves fraîches", () => {
+test("28. la promesse ouvre la recherche et les parcours avant les preuves fraîches", () => {
   const html = page();
   assert.ok(html.includes(MESSAGE_PRINCIPAL));
   const ouverture = html.slice(
@@ -619,7 +637,7 @@ test("28. les appels de détail restent disponibles après les portes", () => {
 test("29. les preuves et les approfondissements suivent les parcours", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "autre", titre: "Une autre" })] });
   const blocs = [...html.matchAll(/accueil__bloc accueil__bloc--([a-z]+)/g)].map((m) => m[1]);
-  assert.deepEqual(blocs, ["confiance", "verdict", "analyses", "territoire"]);
+  assert.deepEqual(blocs, ["verdict", "territoire", "analyses", "confiance"]);
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {

@@ -1,5 +1,5 @@
 export type Destination = {
-  cle: "france" | "territoires" | "simuler" | "salaires" | "analyses";
+  cle: "accueil" | "france" | "territoires" | "simuler" | "salaires" | "analyses";
   href: string;
   libelle: string;
   /** Les pages éditoriales restent de vrais liens : elles rechargent leur
@@ -8,6 +8,7 @@ export type Destination = {
 };
 
 export const DESTINATIONS: readonly Destination[] = [
+  { cle: "accueil", href: "/", libelle: "Accueil", native: true },
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Villes" },
   { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
