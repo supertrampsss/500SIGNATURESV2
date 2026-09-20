@@ -51,11 +51,30 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
   await expect(accueil).toHaveAttribute('href','/accueil/');
   await accueil.click();
   await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
-  await expect(page.getByRole('heading',{name:'Comprendre les comptes publics. Décider en connaissance de cause.',exact:true})).toBeVisible();
+  await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
  }
  await page.goto('/mandats/methode/');
  await page.getByRole('link',{name:'500 signatures, accueil',exact:true}).click();
  await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
+});
+
+test('Accueil presents the editorial path before the secondary simulation',async({page},info)=>{
+ await page.goto('/accueil/');
+ const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
+ await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats','X / Twitter']);
+ await expect(navigation.getByRole('link',{name:'Salaires',exact:true})).toHaveCount(0);
+ await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
+ await expect(page.getByRole('link',{name:'Lire le dossier du moment',exact:true})).toBeVisible();
+ const order=await page.locator('body').innerText();
+ const sections=['France','Et chez vous ?','Dossiers · à la une','Les dossiers récents','Une simulation, pas une prévision.'];
+ let previous=-1;
+ for(const section of sections){
+  const position=order.indexOf(section);
+  expect(position,section).toBeGreaterThan(previous);
+  previous=position;
+ }
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
+ await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });
 
 test('the compact theme control persists through every primary destination and a saved mandate',async({page},info)=>{
@@ -74,12 +93,11 @@ test('the compact theme control persists through every primary destination and a
  await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
  await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
  await expect(page.getByRole('region',{name:'Le contexte en détail',exact:true})).toHaveCount(0);
- for(const name of ['Villes','France','Salaires','Dossiers']){
+ for(const name of ['Villes','France','Dossiers']){
    await page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name,exact:true}).click();
    await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
    await expect(page.locator('h1:visible').first()).toHaveCSS('color','rgb(245, 240, 223)');
-   await expect(page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link')).toHaveCount(7);
-   if(name==='Salaires') await expect(page.locator('.salary-history')).toBeVisible();
+   await expect(page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link')).toHaveCount(6);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  }
  await page.screenshot({path:info.outputPath('shared-theme-'+info.project.name+'.png'),fullPage:true});

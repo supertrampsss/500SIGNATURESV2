@@ -45,16 +45,16 @@ test("Analyses est une destination native active sur l’index et ses dossiers",
   assert.doesNotMatch(renduNavigation("/", true), /href="\/analyses\/"[^>]*data-vue/);
 });
 
-test("Salaires reste un lien natif vers sa page pré-rendue", () => {
+test("Salaires reste une destination native secondaire", () => {
   const html = renduNavigation("/salaires/", true);
-  assert.match(html, /<a href="\/salaires\/" aria-current="page">Salaires<\/a>/);
-  assert.doesNotMatch(html, /href="\/salaires\/"[^>]*data-vue/);
+  assert.doesNotMatch(html, /href="\/salaires\/"/);
+  assert.equal(DESTINATIONS.find(({ cle }) => cle === "salaires")?.secondaire, true);
 });
 
 test("le menu partagé contient les destinations et le lien social, sans l'ancien simulateur", () => {
   for (const disponible of [true, false]) {
     const html = renduNavigation("/bilan", disponible);
-    assert.equal((html.match(/<a /g) ?? []).length, 7);
+    assert.equal((html.match(/<a /g) ?? []).length, 6);
     assert.doesNotMatch(html, /href="\/simulateur"/);
     assert.match(html, /href="\/mandats\/"/);
     assert.match(html, /href="https:\/\/x\.com\/500Signatures"[^>]*>X \/ Twitter<\/a>/);

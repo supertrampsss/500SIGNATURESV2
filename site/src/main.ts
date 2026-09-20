@@ -2288,7 +2288,7 @@ function rendreNavigationPrincipale(): void {
 /* --------------------------------------------------------------------------
  * L'accueil, à la racine du site.
  *
- * `accueil.ts` rend les cinq blocs en fonctions pures ; ce bloc-ci ne fait que
+ * `accueil.ts` rend les blocs éditoriaux en fonctions pures ; ce bloc-ci ne fait que
  * lui porter des données déjà résolues et poser la chaîne obtenue dans la page,
  * comme le reste de ce fichier le fait pour chaque module.
  * ----------------------------------------------------------------------- */

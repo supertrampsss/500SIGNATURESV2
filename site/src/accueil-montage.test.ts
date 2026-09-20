@@ -129,11 +129,12 @@ test("le tirage de l'exemple se fait au montage, jamais dans le rendu", () => {
   assert.match(MAIN, /alea: Math\.random\(\)/);
 });
 
-test("le montage charge les trois portes, mobiles puis en grille", () => {
+test("le montage pose France avant les autres parcours", () => {
   assert.match(MAIN, /import "\.\/styles\/accueil-parcours\.css";/);
-  assert.match(PARCOURS, /grid-template-columns:\s*1fr;/);
-  assert.match(PARCOURS, /@media \(min-width: 60rem\)[\s\S]*grid-template-columns:\s*repeat\(3,/);
-  assert.match(PARCOURS, /\.accueil-porte--simuler[\s\S]*background:\s*var\(--ui-nuit\)/);
+  assert.match(PARCOURS, /\.accueil__france\s*\{/);
+  assert.match(PARCOURS, /grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(PARCOURS, /@media \(max-width: 60rem\)/);
+  assert.doesNotMatch(PARCOURS, /accueil-porte--simuler/);
 });
 
 /* --------------------------------------------------------------------------

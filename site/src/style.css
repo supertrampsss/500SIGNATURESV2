@@ -6302,7 +6302,7 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
 }
 
-/* ---- Les cinq blocs -------------------------------------------------------
+/* ---- Les blocs éditoriaux -------------------------------------------------
    Ils étaient cinq cartes identiques empilées — même cadre, même rembourrage,
    même rayon, même sur-titre en capitales — et la page se lisait comme une
    liste de boîtes plutôt que comme un parcours. Une carte doit dire « ceci se
@@ -6318,7 +6318,7 @@ body[data-carte="oui"] .legende {
   border-top: 1px solid var(--trait);
 }
 /* Le verdict, et lui seul, reste une carte. */
-.accueil__bloc--verdict {
+.accueil__bloc--dossiers {
   padding: var(--espace-7);
   background: var(--papier);
   border: 1px solid var(--trait);
@@ -6369,7 +6369,7 @@ body[data-carte="oui"] .legende {
   background: var(--accent-teinte);
 }
 
-/* ---- Bloc 1 : le verdict du moment ---- */
+/* ---- Dossiers : le dossier du moment ---- */
 
 .accueil__titre-analyse {
   margin: 0 0 var(--espace-5);
