@@ -478,17 +478,22 @@ export function renduAnalysesRecentes(
   if (recentes.length === 0) return "";
   const cartes = recentes
     .map(
-      (a) => `<li class="accueil__carte-analyse">
-        <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
-        <span class="accueil__cran accueil__cran--${echapper(a.verdict.cran)}">${
-          LIBELLE_CRAN[a.verdict.cran]
-        }</span>
-        <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
+      (a, index) => `<li class="accueil__carte-analyse${index === 0 ? " accueil__carte--vedette" : ""}">
+        <span class="accueil__carte-vignette accueil__carte-vignette--${index % 4}" aria-hidden="true"></span>
+        <div class="accueil__carte-corps">
+          <p class="accueil__carte-theme">${echapper(a.themes[0] ?? "Dossier")}</p>
+          <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
+          <p class="accueil__carte-chapo">${echapper(a.dossier?.chapo ?? a.affirmation.texte)}</p>
+          <span class="accueil__cran accueil__cran--${echapper(a.verdict.cran)}">${
+            LIBELLE_CRAN[a.verdict.cran]
+          }</span>
+          <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
+        </div>
       </li>`,
     )
     .join("");
   return `<section class="accueil__bloc accueil__bloc--dossiers-recents" aria-labelledby="accueil-analyses">
-    <h3 id="accueil-analyses">Les dossiers récents</h3>
+    <div class="accueil__section-heading"><h3 id="accueil-analyses">Derniers dossiers</h3><a href="/analyses/">Tous les dossiers</a></div>
     <ul class="accueil__analyses">${cartes}</ul>
   </section>`;
 }
@@ -542,16 +547,41 @@ export type DonneesAccueil = {
   producteurs: readonly string[];
 };
 
+function renduAlaUneCompacte(analyse: Analyse | null): string {
+  if (!analyse) return "";
+  return `<div class="accueil__a-la-une">
+    <p class="accueil__sur-titre">À LA UNE</p>
+    <div class="accueil__a-la-une-corps">
+      <span class="accueil__a-la-une-vignette" aria-hidden="true"></span>
+      <div><p class="accueil__a-la-une-etiquette">Dossier à la une</p><a href="/analyses/${echapper(analyse.slug)}/">${echapper(analyse.titre)}</a><p>${echapper(analyse.dossier?.chapo ?? analyse.affirmation.texte)}</p></div>
+    </div>
+  </div>`;
+}
+
 /** The same published national series and common year as the France dossier. */
-export function renduApercuComptes(france?: Territoire): string {
+export function renduApercuComptes(
+  france?: Territoire,
+  analyse: Analyse | null = null,
+): string {
   const comptes = chiffresOuverture(france);
   if (!comptes) return `<aside class="accueil__apercu"><p class="accueil__sur-titre">LES COMPTES PUBLICS</p><h2>Remonter aux chiffres.</h2><p>Les comptes s’affichent dès que leurs séries publiées sont disponibles.</p><a href="/bilan/">Lire le dossier France</a><a href="/salaires/">Explorer salaires et prélèvements</a></aside>`;
   const maximum = Math.max(comptes.recettes, comptes.depenses, 1);
+  const titre = analyse ? "Dépenses publiques" : "Solde public annuel";
+  const valeurTotem = analyse ? comptes.depenses : -comptes.emprunte;
+  const sousTitre = analyse
+    ? `Administrations publiques réunies · exercice ${comptes.fin}`
+    : "Administrations publiques réunies · Eurostat.";
+  const source = analyse
+    ? "Eurostat · comptes nationaux."
+    : "Administrations publiques réunies · Eurostat.<br>Montants arrondis indépendamment.";
+  const surTitre = analyse ? `FRANCE · ${comptes.fin}` : `LES COMPTES PUBLICS · ${comptes.fin}`;
   return `<aside class="accueil__apercu" aria-label="Aperçu des comptes publics français">
-    <p class="accueil__sur-titre">LES COMPTES PUBLICS · ${comptes.fin}</p>
-    <h2>Solde public annuel</h2><strong class="accueil__solde">${montantLisible(-comptes.emprunte).replace("\u00a0", "<small>")}</small></strong>
+    <p class="accueil__sur-titre">${surTitre}</p>
+    <h2>${titre}</h2><strong class="accueil__solde">${montantLisible(valeurTotem).replace("\u00a0", "<small>")}</small></strong>
+    <p class="accueil__apercu-sous-titre">${sousTitre}</p>
     <dl>${[["Recettes",comptes.recettes],["Dépenses",comptes.depenses]].map(([nom,valeur],i)=>`<div><dt>${nom}</dt><dd>${montantLisible(Number(valeur))}</dd><span class="accueil__barre accueil__barre--${i}" style="--part:${Number(valeur)/maximum*100}%" aria-hidden="true"></span></div>`).join("")}</dl>
-    <p class="accueil__source-apercu">Administrations publiques réunies · Eurostat.<br>Montants arrondis indépendamment. <a href="/bilan/">Voir les séries et leurs sources</a> · <a href="/salaires/">Explorer salaires et prélèvements</a></p>
+    <p class="accueil__source-apercu"><strong>Source</strong><br>${source}<br><a href="/bilan/">Voir les séries et leurs sources</a></p>
+    ${renduAlaUneCompacte(analyse)}
   </aside>`;
 }
 
@@ -571,6 +601,14 @@ export function renduQuestionsAccueil(): string {
   </section>`;
 }
 
+function renduPreuvesOuverture(donnees: DonneesAccueil): string {
+  return `<div class="accueil__preuves" aria-label="Repères du site">
+    <div><span>Des indicateurs publiés</span><strong>${formater(donnees.catalogue.length, "count", false)}</strong></div>
+    <div><span>Des dossiers documentés</span><strong>${formater(donnees.analyses.length, "count", false)}</strong></div>
+    <div><span>Une information accessible</span><strong>Pour tous</strong></div>
+  </div>`;
+}
+
 /**
  * L'accueil entier : une promesse, la France, les Villes, les Dossiers, puis
  * la simulation. Les sources et les questions réassurent avant le dernier
@@ -581,17 +619,18 @@ export function rendu(donnees: DonneesAccueil): string {
   const cheminDossier = enAvant ? `/analyses/${echapper(enAvant.slug)}/` : "/analyses/";
   return `<div class="accueil">
     <div class="accueil__hero"><section class="accueil__ouverture">
-      <p class="accueil__sur-titre">500 SIGNATURES · DOSSIERS ET COMPTES PUBLICS</p>
+      <p class="accueil__sur-titre">500 SIGNATURES · DONNÉES PUBLIQUES</p>
       <h1 class="accueil__message">Les chiffres publics expliqués.</h1>
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
-      <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Lire le dossier du moment</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Comprendre la France</a></p>
-    </section>${renduApercuComptes(donnees.france)}
+      <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Découvrir les dossiers</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Explorer la France</a></p>
+      ${renduPreuvesOuverture(donnees)}
+    </section><div class="accueil__illustration" aria-hidden="true"><img src="/brand/accueil-assemblee.png" alt=""></div>${renduApercuComptes(donnees.france, enAvant)}
     </div>
     ${renduFranceAccueil()}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
     <div class="accueil__dossiers">${renduVerdictDuMoment(enAvant, donnees.catalogue)}${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}</div>
+    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">À vous de décider.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduQuestionsAccueil()}
-    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">À vous de décider.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
   </div>`;
 }
