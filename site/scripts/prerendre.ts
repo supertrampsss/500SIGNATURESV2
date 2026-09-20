@@ -1728,6 +1728,10 @@ async function main(): Promise<void> {
   );
   await writeFile(path.join(DIST, "index.html"), htmlSite, "utf8");
   ecrites.push({ chemin: "index.html", html: htmlSite });
+  // Le menu ouvre un document explicite : cette adresse évite que l'ancienne
+  // racine SPA ou un lien historique soit confondu avec la page France.
+  await mkdir(path.join(DIST, "accueil"), { recursive: true });
+  await writeFile(path.join(DIST, "accueil", "index.html"), htmlSite, "utf8");
 
   // La page BILAN, à son propre chemin. Elle réunit ce que REPÈRES et MÉTHODE
   // écrivaient séparément : les huit cadres nationaux, puis les sources et la

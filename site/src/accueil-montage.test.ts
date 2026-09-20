@@ -1,12 +1,12 @@
 /**
- * Le montage de l'accueil à la racine du site.
+ * Le montage de l'accueil à la racine et sur `/accueil/`.
  *
  * `accueil.ts` est éprouvé chez lui : ses cinq blocs sont des fonctions pures,
  * et `accueil.test.ts` les prend une par une. Ce fichier-ci éprouve ce que la
  * pureté ne peut pas dire — **où** la page s'accroche et **ce que ses liens
  * ouvrent** :
  *
- * 1. `/` rend l'accueil ;
+ * 1. `/` et `/accueil/` rendent l'accueil ;
  * 2. `/territoire` rend toujours la carte, et aucun lien déjà partagé ne change
  *    de destination ;
  * 3. le champ de recherche du bloc 3 est celui du site, jamais un second ;
@@ -70,6 +70,7 @@ const LOT_EXEMPLE: Record<string, Territoire> = {
 test("la racine rend l'accueil, et l'accueil n'est pas une vue de l'application", () => {
   assert.equal(estAccueil("/", ""), true);
   assert.equal(estAccueil("", ""), true);
+  assert.equal(estAccueil("/accueil/", ""), true);
   // La racine reste libre dans la table des vues : l'accueil est une page, pas
   // une vue de l'application monoécran (décision D-L4-a). L'y inscrire ferait
   // deux chemins pour une même chose, et `cheminDeVue` en composerait un.
