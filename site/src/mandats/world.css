@@ -38,7 +38,6 @@ h1 em { font-style:italic; color:var(--accent); }
 .mode-copy h2 { font-family:"Barlow Semi Condensed",Arial,sans-serif; font-size:clamp(1.85rem,2.6vw,2.6rem); margin:8px 0 12px; }
 .mode-copy p { font-size:16px; line-height:1.6; max-width:470px; margin-bottom:14px; }
 .mode-meta { font-size:12px; gap:8px 14px; }
-.mode-meta span:first-child { color:#e3e7df; }
 .mode-cta { font-size:14px; margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
 .mode-cta>span { width:36px; height:36px; background:#e8c69b12; border-color:#e8c69b44; }
 .selection-footer,.selection-footer a { font-size:12px; }
@@ -265,7 +264,6 @@ dialog .scope { font-size:12px; }
   .mode-copy h2 { font-size:1.75rem; margin:7px 0 10px; }
   .mode-copy p { font-size:14px; line-height:1.5; margin-bottom:10px; }
   .mode-meta { font-size:12px; gap:5px; }
-  .mode-meta>span:last-child { display:none; }
   .mode-cta { font-size:14px; padding-top:12px; margin-top:12px; }
   .mode-cta>span { width:28px; height:28px; flex-shrink:0; }
   .selection-heading h1 { font-size:2.5rem; }
