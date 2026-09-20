@@ -51,7 +51,7 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
   await expect(accueil).toHaveAttribute('href','/');
   await accueil.click();
   await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
-  await expect(page.getByRole('heading',{name:'L’argent public, en clair.',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Comprendre les comptes publics. Décider en connaissance de cause.',exact:true})).toBeVisible();
  }
 });
 

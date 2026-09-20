@@ -1130,7 +1130,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // servi, et les cinq chemins de vues. Son titre et sa description valent donc
   // pour toutes — « carte des finances locales » décrivait la carte, qui a
   // quitté la racine pour `/territoire`.
-  assert.equal(titreDuGabarit(GABARIT_REEL), "Où va l'argent public");
+  assert.equal(titreDuGabarit(GABARIT_REEL), "Accueil · Comprendre les comptes publics · 500 signatures");
   assert.equal(marqueDuGabarit(GABARIT_REEL), "500 SIGNATURES");
   // Et sa description est le message du site, arrêté à la conception (spec §8).
   // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui
