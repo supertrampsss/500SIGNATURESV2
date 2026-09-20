@@ -445,7 +445,7 @@ export function libelleUniteAnalyse(unite: string): string {
  * Le renderer long ne choisit jamais une échelle en fonction de l'ordre de
  * grandeur. Il garde notamment €/kWh distinct de €/MWh et un indice distinct
  * d'un pourcentage. La précision maximale suit celle des sources ciblées ;
- * aucune décimale fixe n'est ajoutée à une observation qui n'en porte pas.
+ * les prix en euros gardent deux décimales pour afficher les centimes.
  */
 export function formaterValeurAnalyse(valeur: number, unite: string): string {
   const nombre = (maximumFractionDigits: number) =>
@@ -455,6 +455,11 @@ export function formaterValeurAnalyse(valeur: number, unite: string): string {
       ),
     );
   switch (unite) {
+    case "EUR":
+      return `${moins(new Intl.NumberFormat("fr-FR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(sansZeroNegatif(valeur, 2)))}\u202f€`;
     case "billion_EUR":
     case "million_EUR":
     case "percent_GDP": return nombre(2);

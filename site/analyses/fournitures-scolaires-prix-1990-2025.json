@@ -1,6 +1,6 @@
 {
   "slug": "fournitures-scolaires-prix-1990-2025",
-  "titre": "Fournitures scolaires : comment les prix ont évolué depuis 1990",
+  "titre": "Fournitures scolaires : pourquoi la rentrée reste chère",
   "type": "decryptage",
   "publie_le": "2026-08-30",
   "themes": [
@@ -12,69 +12,113 @@
   ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "L'indice des prix des autres fournitures scolaires et de bureau atteint 113,02 en 2025, base 100 en 2015.",
+    "texte": "Pourquoi les fournitures scolaires pèsent-elles encore sur le budget des familles après la flambée des prix ?",
     "auteur": null,
     "date": null,
     "source": {
-      "titre": "Affirmation courante confrontée aux indices de prix de l'Insee",
-      "url": "https://www.insee.fr/fr/statistiques/serie/telecharger?code=001765036",
-      "consulte_le": "2026-08-30"
+      "titre": "UFC-Que Choisir : prix des fournitures scolaires en 2025",
+      "url": "https://www.quechoisir.org/actualite-fournitures-scolaires-pas-de-baisse-des-prix-en-vue-n168488/",
+      "consulte_le": "2026-09-20"
     }
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Le chiffre est publié par l'Insee, mais il mesure un sous-panier intitulé « autres fournitures scolaires et de bureau », pas le budget total d'une rentrée. Entre 1990 et 2025, son indice progresse moins que l'indice d'ensemble des prix à la consommation."
+    "phrase": "La forte hausse de 2023 a été suivie d’évolutions contrastées selon les produits et les magasins. Les prix, les listes scolaires et les aides publiques déterminent ensemble ce que les familles doivent payer."
   },
   "chiffres": [
     {
-      "dit": "indice 113,02 en 2025, base 100 en 2015",
-      "valeur": 113.02,
-      "registre": "donnee_officielle",
-      "lecture": "L'indice Insee du sous-panier atteint 113,02 en 2025, base 100 en 2015."
+      "dit": "Hausse des prix des autres fournitures scolaires et de bureau depuis 1990 : environ 75 %",
+      "valeur": 75,
+      "registre": "interpretation",
+      "lecture": "Variation arrondie entre les observations Insee de 1990 et de 2025."
     },
     {
-      "dit": "indice 64,70 en 1990, base 100 en 2015",
-      "valeur": 64.7,
-      "registre": "donnee_officielle",
-      "lecture": "La série remonte à 64,70 en 1990 mais ne couvre que les autres fournitures scolaires et de bureau."
+      "dit": "Hausse générale des prix depuis 1990 : environ 79 %",
+      "valeur": 79,
+      "registre": "interpretation",
+      "lecture": "Variation arrondie entre les observations Insee de 1990 et de 2025."
+    },
+    {
+      "dit": "Panier de rentrée en sixième en 2025 : 211,10 euros",
+      "valeur": 211.1,
+      "registre": "estimation_externe",
+      "lecture": "Familles de France : fournitures et articles de sport pour un élève entrant en sixième."
     }
   ],
-  "hypotheses": [
-    "Un indice de prix mesure l'évolution d'un panier à qualité aussi constante que possible ; il ne donne pas le montant dépensé par une famille.",
-    "La série ne couvre ni les vêtements, ni l'équipement informatique, ni les frais scolaires ou périscolaires.",
-    "Comparer l'indice spécialisé à l'indice d'ensemble éclaire une dynamique de prix, pas le reste à charge d'un ménage précis."
-  ],
+  "hypotheses": [],
   "effets_indirects": [],
   "sources": [
     {
       "id": "insee-fournitures",
-      "titre": "Insee BDM : IPC, autres fournitures scolaires et de bureau, série 001765036",
+      "titre": "Insee : prix des autres fournitures scolaires et de bureau, 1990–2025",
       "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001765036",
-      "consulte_le": "2026-08-30"
+      "consulte_le": "2026-09-20"
     },
     {
       "id": "insee-ipc-ensemble",
-      "titre": "Insee BDM : IPC d'ensemble, série 001764363",
+      "titre": "Insee : évolution de l’ensemble des prix à la consommation, 1990–2025",
       "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001764363",
-      "consulte_le": "2026-08-30"
+      "consulte_le": "2026-09-20"
     },
     {
       "id": "ufc-fournitures-2025",
       "titre": "UFC-Que Choisir : fournitures scolaires, pas de baisse des prix en vue",
       "url": "https://www.quechoisir.org/actualite-fournitures-scolaires-pas-de-baisse-des-prix-en-vue-n168488/",
-      "consulte_le": "2026-09-19"
+      "consulte_le": "2026-09-20"
     },
     {
       "id": "familles-france-rentree-2025",
       "titre": "Familles de France : enquête sur le coût de la rentrée scolaire 2025",
       "url": "https://www.familles-de-france.org/sites/default/files/2025-08/Dossier%20de%20presse%20RS%202025%20VF_compressed.pdf",
-      "consulte_le": "2026-09-19"
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "ufc-fournitures-2023",
+      "titre": "UFC-Que Choisir : la forte hausse des fournitures en 2023",
+      "url": "https://www.quechoisir.org/actualite-fournitures-scolaires-tres-chere-rentree-n108926/",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "ufc-fournitures-2024",
+      "titre": "UFC-Que Choisir : papier, marques et prix des cahiers en 2024",
+      "url": "https://www.quechoisir.org/actualite-fournitures-scolaires-a-quand-une-baisse-du-prix-des-cahiers-n128442/",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "copacel-couts-2024",
+      "titre": "COPACEL : bilan de l’industrie papetière et coût de l’énergie, avril 2024",
+      "url": "https://copacel.fr/https-www-copacel-fr-wp-content-uploads-2024-04-cp-copacel-4-avril-2024-pdf/",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "csf-scolarite-2025",
+      "titre": "Confédération syndicale des familles : coût de la scolarité 2025, notamment les listes scolaires et la gratuité",
+      "url": "https://www.la-csf.org/wp-content/uploads/2025/08/Cout-de-la-scolarite-2025-definitif-light.pdf",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "education-listes",
+      "titre": "Ministère de l’Éducation nationale : limiter et harmoniser les listes de fournitures",
+      "url": "https://www.education.gouv.fr/fournitures-scolaires-pour-la-rentree-455277",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "caf-ars-2025",
+      "titre": "Cnaf : allocation de rentrée scolaire et dépenses des familles, août 2025",
+      "url": "https://caf.fr/professionnels/presse/publications/l-allocation-de-rentree-scolaire-versee-par-les-caf-partir-du-19-aout",
+      "consulte_le": "2026-09-20"
+    },
+    {
+      "id": "lemonde-distribution-2025",
+      "titre": "Le Monde : les achats de fournitures se tournent aussi vers Temu et Shein, août 2025",
+      "url": "https://www.lemonde.fr/economie/article/2025/08/31/rentree-scolaire-les-familles-au-budget-serre-se-tournent-vers-les-geants-chinois-temu-et-shein_6637914_3234.html",
+      "consulte_le": "2026-09-20"
     }
   ],
   "simulateur": {
     "budget": "",
     "contrat": "",
-    "lecture": "Le simulateur arbitre des politiques éducatives ; il ne transforme pas un indice de prix en budget familial."
+    "lecture": "Le dossier porte sur les prix des fournitures et sur le financement des achats scolaires."
   },
   "mises_a_jour": [
     {
@@ -84,11 +128,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Réécriture des introductions, développements, légendes et conclusions en analyse directe ; données et références conservées."
+    },
+    {
+      "date": "2026-09-20",
+      "quoi": "Nouvelle enquête : causes des hausses, dépenses en euros, marques, listes scolaires et aides. Correction des observations de l’IPC d’ensemble après consultation de la BDM ; contrôles éditoriaux avec Jev."
     }
   ],
-  "verifie_contre": "Insee BDM, séries 001765036 et 001764363",
+  "verifie_contre": "Séries Insee 001765036 et 001764363 relues dans la BDM le 2026-09-20 ; enquêtes et publications citées en sources.",
   "dossier": {
-    "chapo": "Les prix des « autres fournitures scolaires et de bureau » suivies par l’Insee ont augmenté entre 1990 et 2025, moins vite que l’ensemble des prix à la consommation. Pour les familles, la dépense de rentrée dépend aussi de la liste demandée, des quantités et du matériel réutilisé. En 2025, les enquêtes d’UFC-Que Choisir et de Familles de France éclairent ces deux dimensions : le prix des articles et le coût d’un panier d’entrée en 6e.",
+    "chapo": "Cahiers, stylos, cartable, affaires de sport : les achats s’accumulent avant même le premier jour de classe. Après la flambée de 2023, certaines dépenses ont reculé, mais les familles ne retrouvent pas partout les anciens prix. Le papier et l’énergie expliquent une partie de la hausse. Les marques, les demandes des établissements et les aides reçues font ensuite une différence très concrète à la caisse.",
     "series": [
       {
         "id": "fournitures",
@@ -106,11 +154,12 @@
             "value": 100
           },
           {
+            "period": "2021",
+            "value": 101.08
+          },
+          {
             "period": "2025",
-            "value": 113.02,
-            "qualityFlags": [
-              "provisional"
-            ]
+            "value": 113.02
           }
         ]
       },
@@ -123,7 +172,7 @@
         "observations": [
           {
             "period": "1990",
-            "value": 62.1
+            "value": 67.4
           },
           {
             "period": "2015",
@@ -131,7 +180,32 @@
           },
           {
             "period": "2025",
-            "value": 119.37
+            "value": 120.95
+          }
+        ]
+      },
+      {
+        "id": "panier-sixieme",
+        "libelle": "Équipement de rentrée en sixième, fournitures et sport",
+        "unit": "EUR",
+        "definition": "Coût moyen du panier Familles de France, en euros courants. Enquête 2025, page 10 : rétrospective 2022–2025.",
+        "sourceId": "familles-france-rentree-2025",
+        "observations": [
+          {
+            "period": "2022",
+            "value": 208.12
+          },
+          {
+            "period": "2023",
+            "value": 226.33
+          },
+          {
+            "period": "2024",
+            "value": 223.46
+          },
+          {
+            "period": "2025",
+            "value": 211.1
           }
         ]
       }
@@ -155,15 +229,12 @@
         "period": "2025",
         "definition": "Indice annuel base 100 en 2015 du sous-panier de fournitures.",
         "sourceId": "insee-fournitures",
-        "seriesId": "fournitures",
-        "qualityFlags": [
-          "provisional"
-        ]
+        "seriesId": "fournitures"
       },
       {
         "id": "preuve-ensemble-1990",
         "libelle": "Indice d'ensemble en 1990",
-        "value": 62.1,
+        "value": 67.4,
         "unit": "index_2015_100",
         "period": "1990",
         "definition": "Indice annuel d'ensemble des prix à la consommation, base 100 en 2015.",
@@ -173,93 +244,182 @@
       {
         "id": "preuve-ensemble-2025",
         "libelle": "Indice d'ensemble en 2025",
-        "value": 119.37,
+        "value": 120.95,
         "unit": "index_2015_100",
         "period": "2025",
         "definition": "Indice annuel d'ensemble des prix à la consommation, base 100 en 2015.",
         "sourceId": "insee-ipc-ensemble",
         "seriesId": "ipc-ensemble"
+      },
+      {
+        "id": "hausse-fournitures",
+        "libelle": "Autres fournitures scolaires et de bureau",
+        "value": 75,
+        "unit": "percent",
+        "period": "1990–2025",
+        "definition": "Variation arrondie à l’entier : (113,02 / 64,70 − 1) × 100.",
+        "sourceId": "insee-fournitures",
+        "comparableGroup": "hausse-prix-1990-2025"
+      },
+      {
+        "id": "hausse-ensemble",
+        "libelle": "Ensemble des prix à la consommation",
+        "value": 79,
+        "unit": "percent",
+        "period": "1990–2025",
+        "definition": "Variation arrondie à l’entier : (120,95 / 67,40 − 1) × 100.",
+        "sourceId": "insee-ipc-ensemble",
+        "comparableGroup": "hausse-prix-1990-2025"
+      },
+      {
+        "id": "panier-2022",
+        "libelle": "Rentrée 2022",
+        "value": 208.12,
+        "unit": "EUR",
+        "period": "2022",
+        "definition": "Panier de rentrée en sixième de Familles de France, fournitures et articles de sport.",
+        "sourceId": "familles-france-rentree-2025",
+        "seriesId": "panier-sixieme",
+        "comparableGroup": "panier-sixieme-euros"
+      },
+      {
+        "id": "panier-2023",
+        "libelle": "Rentrée 2023",
+        "value": 226.33,
+        "unit": "EUR",
+        "period": "2023",
+        "definition": "Panier de rentrée en sixième de Familles de France, fournitures et articles de sport.",
+        "sourceId": "familles-france-rentree-2025",
+        "seriesId": "panier-sixieme",
+        "comparableGroup": "panier-sixieme-euros"
+      },
+      {
+        "id": "panier-2024",
+        "libelle": "Rentrée 2024",
+        "value": 223.46,
+        "unit": "EUR",
+        "period": "2024",
+        "definition": "Panier de rentrée en sixième de Familles de France, fournitures et articles de sport.",
+        "sourceId": "familles-france-rentree-2025",
+        "seriesId": "panier-sixieme",
+        "comparableGroup": "panier-sixieme-euros"
+      },
+      {
+        "id": "panier-2025",
+        "libelle": "Rentrée 2025",
+        "value": 211.1,
+        "unit": "EUR",
+        "period": "2025",
+        "definition": "Panier de rentrée en sixième de Familles de France, fournitures et articles de sport.",
+        "sourceId": "familles-france-rentree-2025",
+        "seriesId": "panier-sixieme",
+        "comparableGroup": "panier-sixieme-euros"
       }
     ],
     "visualisations": [
       {
         "id": "evolution-indices",
-        "type": "line",
-        "titre": "Deux indices, base 100 en 2015",
-        "resume": "De 1990 à 2025, environ +75 % pour le sous-panier de fournitures et +92 % pour l’ensemble des prix. La valeur 2025 des fournitures est provisoire.",
-        "seriesIds": [
-          "fournitures",
-          "ipc-ensemble"
+        "type": "bar",
+        "titre": "Depuis 1990, les prix ont augmenté d’environ trois quarts",
+        "resume": "Hausse cumulée entre 1990 et 2025, d’après l’Insee. Les fournitures scolaires et de bureau suivies ici progressent un peu moins que l’ensemble des prix.",
+        "preuveIds": [
+          "hausse-fournitures",
+          "hausse-ensemble"
         ]
       },
       {
         "id": "table-prix",
-        "type": "snapshot_table",
-        "titre": "Les niveaux de prix en 1990 et en 2025",
-        "resume": "En base 100 en 2015, les fournitures passent de 64,70 à 113,02 et l’indice d’ensemble de 62,10 à 119,37.",
+        "type": "bar",
+        "titre": "Le panier d’entrée en sixième revient près de son coût de 2022",
+        "resume": "Familles de France : 208,12 euros en 2022, 226,33 en 2023, 223,46 en 2024 et 211,10 en 2025. Fournitures et articles de sport.",
         "preuveIds": [
-          "preuve-1990",
-          "preuve-2025",
-          "preuve-ensemble-1990",
-          "preuve-ensemble-2025"
+          "panier-2022",
+          "panier-2023",
+          "panier-2024",
+          "panier-2025"
         ]
       }
     ],
     "sections": [
       {
         "id": "ce-que-mesure-indice",
-        "titre": "Les prix d’un panier de fournitures et de bureau",
+        "titre": "Le choc de 2023 reste dans les tickets de caisse",
         "paragraphes": [
-          "La série 001765036 de l’Insee suit les prix des « autres fournitures scolaires et de bureau », avec une base 100 en 2015. Un indice de 113,02 en 2025 correspond à un niveau de prix environ 13 % plus élevé que celui de 2015.",
-          "La dépense d’une famille se forme ensuite avec les articles et les quantités effectivement achetés. Une liste plus longue, un changement de niveau scolaire ou le remplacement de matériel peut augmenter le budget même lorsque les prix varient peu."
+          "La hausse a été particulièrement brutale à l’été 2023. UFC-Que Choisir relevait alors une augmentation moyenne de 10 % sur les fournitures étudiées en grande distribution, en un an. La papeterie était la plus touchée : +14 % pour les cahiers, feuilles et classeurs. Dans le détail, les feuilles simples avaient pris 34 % et les cahiers grand format 22 %.",
+          "L’accalmie qui a suivi a été beaucoup plus faible. En juillet 2024, l’association constatait une baisse moyenne de 1 % sur les produits relevés. En juillet 2025, les prix repartaient à la hausse de 2 % sur les 118 articles observés. Pour les parents, c’est une différence essentielle : une petite réduction après une forte augmentation laisse une facture élevée."
         ]
       },
       {
         "id": "evolution",
-        "titre": "Une hausse moins forte que l’ensemble des prix depuis 1990",
+        "titre": "Depuis 1990, une hausse d’environ trois quarts",
         "paragraphes": [
-          "L’indice des fournitures passe de 64,70 en 1990 à 100 en 2015 puis 113,02 en 2025. Entre les deux extrémités, la hausse atteint environ 75 % ; depuis 2015, elle est d’environ 13 %.",
-          "Sur les mêmes repères de 1990 et 2025, l’indice d’ensemble passe de 62,10 à 119,37, soit environ 92 % de hausse. Les prix des fournitures ont donc progressé moins vite que ceux de l’ensemble du panier de consommation sur cette longue période. La valeur 2025 des fournitures est provisoire."
+          "Sur le temps long, les « autres fournitures scolaires et de bureau » suivies par l’Insee coûtent environ 75 % de plus en 2025 qu’en 1990. L’ensemble des prix à la consommation a augmenté d’environ 79 % sur la même période. Ces fournitures ont donc suivi une évolution assez proche de celle des prix en général.",
+          "La dernière décennie raconte surtout une rupture récente. Dans cette catégorie, les prix ont très peu bougé entre 2015 et 2021, puis ont progressé de près de 12 % entre 2021 et 2025. La période où le matériel restait au même prix a laissé place à des hausses concentrées sur quelques rentrées."
+        ],
+        "visualisationIds": [
+          "evolution-indices"
         ]
       },
       {
         "id": "comparaison",
-        "titre": "Les quantités et les achats annexes pèsent sur la rentrée",
+        "titre": "Pourquoi la baisse du papier ne se retrouve pas entièrement dans les cahiers",
         "paragraphes": [
-          "Le coût des fournitures dépend du prix de chaque article, des quantités, des promotions et du moment de l’achat. Réutiliser du matériel réduit le nombre d’articles à acheter ; une liste plus exigeante peut au contraire accroître la dépense.",
-          "Les vêtements, le transport, le numérique, la cantine et les activités s’ajoutent au budget de rentrée de certaines familles. Ils relèvent d’autres postes de consommation que les fournitures scolaires et de bureau suivies ici."
+          "La pâte à papier est au départ des feuilles et des cahiers. Ses cours mondiaux ont plus que doublé entre juin 2020 et septembre 2022, selon les données de l’Insee citées par UFC-Que Choisir. Les fabricants ont aussi subi le renchérissement de l’énergie. Transformer la pâte, fabriquer le papier puis produire et transporter un cahier mobilise plusieurs entreprises, chacune avec ses coûts.",
+          "En 2024, UFC-Que Choisir soulignait que le prix de la pâte avait reflué de 30 %, sans baisse équivalente dans les rayons. Du côté des industriels, COPACEL, qui représente les producteurs de papier et de carton, reconnaissait la détente du gaz et de l’électricité, tout en expliquant que leur coût restait supérieur aux niveaux d’avant-crise.",
+          "Ces deux constats éclairent la situation : la matière première est devenue moins chère, mais toute la chaîne de fabrication n’est pas revenue à ses anciens coûts. La concurrence entre marques compte également. En 2024, les fournitures de marques de distributeurs baissaient de 3 % dans l’enquête d’UFC-Que Choisir, tandis que celles des marques nationales augmentaient encore de 1 %."
         ]
       },
       {
         "id": "budget-reel",
-        "titre": "Deux enquêtes sur les achats de 2025",
+        "titre": "211 euros pour équiper un élève entrant en sixième",
         "paragraphes": [
-          "Le budget varie selon le niveau scolaire, la liste demandée, le réemploi du matériel, l’achat neuf ou d’occasion et les promotions.",
-          "UFC-Que Choisir observe une hausse moyenne de 2 % sur 118 fournitures entre juillet 2024 et juillet 2025. Familles de France estime de son côté le panier moyen d’une entrée en 6e à 211,10 euros, en baisse de 5,53 % sur un an. Les articles, les quantités et les dates d’achat diffèrent entre ces enquêtes : un panier de rentrée peut baisser alors que les prix d’un autre ensemble d’articles augmentent."
+          "Familles de France estime à 211,10 euros le panier de rentrée en sixième en 2025, soit 12,36 euros de moins qu’en 2024. Il comprend 47 références : papeterie, autres fournitures et trois articles de sport. Après le pic de 2023, son coût revient près des 208,12 euros relevés en 2022.",
+          "Le lieu d’achat change fortement la note : 192,42 euros en hypermarché, 210,35 en supermarché et 243,03 en magasin spécialisé dans cette enquête. Entre les deux extrêmes, l’écart dépasse 50 euros.",
+          "La baisse de ce panier et la hausse constatée par UFC-Que Choisir coexistent. Familles de France sélectionne un équipement complet au bon rapport qualité-prix, avec notamment du sport ; UFC suit les prix d’une sélection de fournitures vendues en ligne par la grande distribution. Une famille peut donc économiser en changeant de produit ou de magasin, alors que les références qu’elle achetait auparavant restent chères."
+        ],
+        "visualisationIds": [
+          "table-prix"
         ]
       },
       {
         "id": "attention-aux-annees",
-        "titre": "Les listes et le réemploi déterminent les besoins d’achat",
+        "titre": "La recherche de petits prix transforme les achats",
         "paragraphes": [
-          "Une famille qui conserve une partie des fournitures de l’année précédente concentre ses achats sur les articles manquants ou usés. À l’inverse, une entrée au collège peut imposer de nouvelles fournitures et déplacer le budget vers d’autres produits.",
-          "Les promotions et le choix des points de vente modifient également le coût de la liste. Ces écarts de composition et de conditions d’achat expliquent pourquoi les familles peuvent connaître des évolutions différentes à la même rentrée."
+          "Le choix d’une marque de distributeur permet souvent de payer moins cher. UFC-Que Choisir observait déjà en 2023 que ces produits restaient moins onéreux en moyenne que les marques nationales, malgré une hausse de prix plus forte cette année-là. L’étiquette de la marque et le prix final doivent donc être regardés ensemble.",
+          "La concurrence s’étend aussi aux plateformes chinoises. Dans son enquête d’août 2025, Le Monde décrit la place prise par Temu et Shein dans les achats de petites fournitures. Des fabricants comme Pilot et Stabilo y signalent des contrefaçons. La recherche du prix le plus bas pose ainsi une autre question : la qualité et l’authenticité de ce que les enfants utiliseront toute l’année."
+        ]
+      },
+      {
+        "id": "listes-scolaires",
+        "titre": "Les établissements décident aussi de ce qu’il faut acheter",
+        "paragraphes": [
+          "Le nombre d’articles demandés se décide à l’école. Le ministère de l’Éducation nationale demande aux établissements d’harmoniser les listes entre enseignants, de limiter les fournitures et d’étaler les achats selon les besoins. Il prévoit que les parents puissent faire des observations avant l’arrêt de la liste et qu’ils la reçoivent dès juin. Ces règles permettent d’éviter les achats en double et les dépenses imposées au dernier moment.",
+          "Sur le terrain, la Confédération syndicale des familles relève encore, dans son enquête 2025, des listes très longues au secondaire, des demandes de deux paires de baskets et du matériel spécifique peu utilisé. Elle cite aussi une liste de CP à Niort où les achats demandés aux parents se limitent à des affaires personnelles, le matériel collectif allégeant les besoins.",
+          "Réduire la facture ne repose donc pas seulement sur le temps passé par les parents à comparer les prix. Une liste commune, du matériel partagé et des achats groupés organisés avec les associations peuvent agir directement sur ce qu’une famille doit acheter."
+        ]
+      },
+      {
+        "id": "aides-gratuite",
+        "titre": "Qui paie : les familles, la Caf ou les collectivités ?",
+        "paragraphes": [
+          "En 2025, l’allocation de rentrée scolaire allait de 423,48 à 462,33 euros par enfant selon l’âge, pour les familles remplissant les conditions de ressources. La Cnaf annonçait près de trois millions de foyers bénéficiaires. Cette aide arrive au moment où il faut régler les achats de rentrée.",
+          "Les besoins continuent ensuite : vêtements, équipement numérique et renouvellement du matériel. Dans une étude citée par la Cnaf auprès de 2 000 familles bénéficiaires, l’allocation représentait environ un tiers du budget annuel moyen consacré à l’équipement des enfants. C’est pourquoi son montant dépasse le prix d’une simple liste de fournitures.",
+          "La CSF défend une prise en charge publique plus large et la gratuité des fournitures. Elle souligne que l’aide reçue dépend aussi du lieu de résidence : certaines communes fournissent le matériel, d’autres le laissent à la charge des parents. Fournir directement les cahiers et les stylos évite aux familles d’avancer l’argent, mais suppose de financer les achats sur le budget de la collectivité et de les organiser avec les enseignants."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "Une hausse des prix à long terme, des dépenses variables selon les familles",
+        "titre": "Faire baisser le prix, mais aussi la liste à payer",
         "paragraphes": [
-          "Depuis 1990, les prix du sous-panier de fournitures ont augmenté d’environ 75 %, contre environ 92 % pour l’indice d’ensemble, sur les valeurs de 2025 disponibles. Leur progression a donc été plus lente que celle de l’ensemble des prix à la consommation.",
-          "Pour une famille, la dépense se joue aussi dans la liste scolaire, le réemploi et les quantités. Les observations de 2025 illustrent cette diversité : UFC-Que Choisir relève une hausse des prix de son ensemble d’articles, tandis que Familles de France mesure une baisse du coût de son panier d’entrée en 6e."
+          "Les hausses de 2023 ont renchéri des achats indispensables. Les baisses suivantes ont apporté un répit inégal : le panier de Familles de France revient près de son coût de 2022, alors que les relevés d’UFC-Que Choisir montrent encore des prix élevés sur de nombreuses fournitures.",
+          "Les réponses se jouent à plusieurs endroits : dans les prix pratiqués par les fabricants et les magasins, dans les listes établies par les écoles et dans la prise en charge publique. Harmoniser les demandes évite des achats ; fournir du matériel ou verser une aide réduit ce que les parents paient eux-mêmes. Pour les familles les plus contraintes, ces décisions comptent autant que la promotion sur un paquet de cahiers."
         ]
       }
     ],
     "limitations": [
-      "L'indice 001765036 est un sous-panier et ne doit jamais être renommé « coût de la rentrée ».",
-      "La valeur 2025 des fournitures est provisoire et pourra être révisée.",
-      "Les points affichés résument les séries disponibles ; ils ne représentent pas toutes les années intermédiaires dans le tableau.",
-      "La comparaison avec l'indice d'ensemble ne prouve aucune causalité."
+      "Les comparaisons historiques portent sur la catégorie Insee « autres fournitures scolaires et de bureau ».",
+      "Les montants Familles de France comprennent les articles de sport de leur panier de sixième.",
+      "Les séries Insee citées ont été arrêtées lors du changement de base ; leurs observations de 2025 sont définitives dans la réponse BDM consultée le 20 septembre 2026."
     ],
     "sommaire": [
       "ce-que-mesure-indice",
@@ -267,6 +427,8 @@
       "comparaison",
       "budget-reel",
       "attention-aux-annees",
+      "listes-scolaires",
+      "aides-gratuite",
       "conclusion"
     ]
   }

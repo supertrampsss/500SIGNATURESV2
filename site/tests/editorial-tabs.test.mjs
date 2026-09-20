@@ -5,6 +5,26 @@ const dossiers = await Promise.all((await readdir(new URL('../analyses/', import
  .filter(name => name.endsWith('.json'))
  .map(async name => JSON.parse(await readFile(new URL('../analyses/' + name, import.meta.url), 'utf8'))));
 
+test('Fournitures : récit, prix en euros et graphiques lisibles', async ({page}, info) => {
+ await page.goto('/analyses/fournitures-scolaires-prix-1990-2025/');
+ await expect(page.locator('h1')).toHaveText('Fournitures scolaires : pourquoi la rentrée reste chère');
+ await expect(page.locator('.analyse-rendu')).not.toContainText(/base 100|sous-panier|provisoire|92 %/i);
+ await expect(page.locator('#sources a[href^="http"]')).toHaveCount(11);
+ await noOverflow(page);
+ await page.screenshot({path:info.outputPath('fournitures-introduction.png')});
+ await page.locator('#figure-evolution-indices').scrollIntoViewIfNeeded();
+ await expect(page.locator('#figure-evolution-indices')).toContainText('79 %');
+ await page.screenshot({path:info.outputPath('fournitures-historique.png')});
+ await page.locator('#figure-table-prix').scrollIntoViewIfNeeded();
+ await expect(page.locator('#figure-table-prix .analyse-bars > li')).toHaveCount(4);
+ await expect(page.locator('#figure-table-prix .analyse-bars strong')).toHaveText([
+  '208,12 €', '226,33 €', '223,46 €', '211,10 €',
+ ]);
+ await expect(page.locator('#figure-table-prix')).not.toContainText('M€');
+ await noOverflow(page);
+ await page.screenshot({path:info.outputPath('fournitures-euros.png')});
+});
+
 test('Analyses : recherche, filtres, lecture et sources en fin de dossier', async ({page}, info) => {
  await page.goto('/analyses/');
  await expect(page.locator('#navigation-principale a[href="/analyses/"]')).toHaveAttribute('aria-current','page');
