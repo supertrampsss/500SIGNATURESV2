@@ -55,7 +55,7 @@ import { chiffres as chiffresOuverture } from "./ouverture.ts";
  * et une seconde rédaction du même message aurait fini par en dire autre chose.
  */
 export const MESSAGE_PRINCIPAL =
-  "Les chiffres du débat budgétaire, recalculés sur les comptes publiés — et rejouables.";
+  "Comprendre les comptes publics, les dossiers qui les expliquent et les décisions qui en découlent.";
 
 /** L'ancre du champ de recherche de territoire, celui de l'en-tête du site
  *  (`index.html`). L'accueil n'en construit pas un second : deux champs qui
@@ -596,8 +596,8 @@ export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
   return `<div class="accueil">
     <div class="accueil__hero"><section class="accueil__ouverture">
-      <p class="accueil__sur-titre">COMPRENDRE LA FRANCE, À TOUTES LES ÉCHELLES</p>
-      <h1 class="accueil__message">L’argent public,<br><em>en clair.</em></h1>
+      <p class="accueil__sur-titre">ACCUEIL · COMPRENDRE LES COMPTES PUBLICS</p>
+      <h1 class="accueil__message">Comprendre les comptes publics.<br><em>Décider en connaissance de cause.</em></h1>
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
       <p class="accueil__recherche"><a class="accueil__appel" href="${ANCRE_RECHERCHE}">Chercher un territoire</a></p>
     </section>

@@ -475,7 +475,7 @@ export function descriptionDuGabarit(shell: string): string {
 }
 
 /**
- * La marque du site : le nom éditorial de l'en-tête, « Où va l'argent public ».
+ * La marque du site : le nom éditorial de l'en-tête, « Comprendre les comptes publics ».
  *
  * C'est le titre des cartes de section qui ne décrivent pas une page
  * pré-rendue — l'index des analyses, le simulateur. Ce que ces images-là nomment
