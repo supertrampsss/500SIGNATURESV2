@@ -125,7 +125,7 @@ export function vueDepuisAdresse(chemin: string, fragment: string): string | nul
 }
 
 /**
- * La racine du site rend l'accueil, et rien d'autre n'y mène.
+ * La racine et `/accueil/` rendent l'accueil.
  *
  * `vueDepuisAdresse` y répond déjà `null` : la racine est libre, la carte vit à
  * `/territoire`, et l'accueil s'y installe sans qu'aucune vue bouge ni qu'aucun
@@ -139,7 +139,8 @@ export function vueDepuisAdresse(chemin: string, fragment: string): string | nul
  * `/#decryptages`) demande une vue, et ce n'est pas l'accueil.
  */
 export function estAccueil(chemin: string, fragment: string): boolean {
-  return chemin.replace(/^\/+|\/+$/g, "") === "" && vueDepuisAdresse(chemin, fragment) === null;
+  const propre = chemin.replace(/^\/+|\/+$/g, "");
+  return (propre === "" || propre === "accueil") && vueDepuisAdresse(chemin, fragment) === null;
 }
 
 /**

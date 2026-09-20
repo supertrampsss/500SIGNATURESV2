@@ -53,7 +53,7 @@
     <!-- L'en-tête porte la marque et les trois destinations permanentes. La
          recherche appartient désormais à Territoires, seule vue où elle sert. -->
     <header class="entete">
-      <a data-brand-name="500 SIGNATURES" class="entete__marque" href="/" aria-label="500signatures, accueil">
+      <a data-brand-name="500 SIGNATURES" class="entete__marque" href="/accueil/" aria-label="500signatures, accueil">
         <span class="brand-e" role="img" aria-label="500 SIGNATURES"><img class="brand-e__dark" src="/brand/concept-e-dark.svg" width="260" height="342" alt=""><img class="brand-e__light" src="/brand/concept-e-light.svg" width="260" height="342" alt=""></span>
         <span class="entete__signature">Comprendre les comptes publics</span>
       </a>
@@ -68,7 +68,7 @@
     </header>
 
     <main id="contenu">
-    <!-- L'accueil, à la racine du site. Ce n'est pas une vue de l'application
+    <!-- L'accueil, à la racine du site et sur `/accueil/`. Ce n'est pas une vue de l'application
          monoécran — `CHEMINS` (routes.ts) n'en porte aucune entrée, et la carte
          reste à `/territoire` — mais elle occupe le même cadre, et
          `basculerVue` la montre et la masque comme les autres.

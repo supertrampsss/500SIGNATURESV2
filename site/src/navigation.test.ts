@@ -12,7 +12,7 @@ test("la navigation expose l’accueil et les cinq destinations utiles", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
-      { cle: "accueil", href: "/", libelle: "Accueil" },
+      { cle: "accueil", href: "/accueil/", libelle: "Accueil" },
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
@@ -20,12 +20,13 @@ test("la navigation expose l’accueil et les cinq destinations utiles", () => {
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
-  assert.match(renduNavigation("/", true), /<a href="\/" aria-current="page">Accueil<\/a>/);
+  assert.match(renduNavigation("/", true), /<a href="\/accueil\/" aria-current="page">Accueil<\/a>/);
 });
 
 test("l’accueil est une entrée native et reste courant à la racine", () => {
-  assert.match(renduNavigation("/", true), /<a href="\/" aria-current="page">Accueil<\/a>/);
-  assert.doesNotMatch(renduNavigation("/bilan", true), /href="\/"[^>]*aria-current="page"/);
+  assert.match(renduNavigation("/", true), /<a href="\/accueil\/" aria-current="page">Accueil<\/a>/);
+  assert.match(renduNavigation("/accueil/", true), /<a href="\/accueil\/" aria-current="page">Accueil<\/a>/);
+  assert.doesNotMatch(renduNavigation("/bilan", true), /href="\/accueil\/"[^>]*aria-current="page"/);
 });
 
 test("France est la destination courante sur le chemin historique du bilan", () => {

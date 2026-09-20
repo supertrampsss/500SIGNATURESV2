@@ -45,14 +45,17 @@ test('Mandats : carte de départ lisible et texte centré dans les deux thèmes'
 });
 
 test('Mandats expose Accueil et le lien revient à la page d’accueil',async({page})=>{
- for(const path of ['/mandats/','/mandats/methode/']){
+ for(const path of ['/mandats/','/mandats/methode/','/mandats/comprendre/','/bilan/']){
   await page.goto(path);
   const accueil=page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Accueil',exact:true});
-  await expect(accueil).toHaveAttribute('href','/');
+  await expect(accueil).toHaveAttribute('href','/accueil/');
   await accueil.click();
-  await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
+  await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
   await expect(page.getByRole('heading',{name:'Comprendre les comptes publics. Décider en connaissance de cause.',exact:true})).toBeVisible();
  }
+ await page.goto('/mandats/methode/');
+ await page.getByRole('link',{name:'500 signatures, accueil',exact:true}).click();
+ await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
 });
 
 test('the compact theme control persists through every primary destination and a saved mandate',async({page},info)=>{
