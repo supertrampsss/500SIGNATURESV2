@@ -1,19 +1,17 @@
 /**
- * L'accueil : cinq blocs, dans l'ordre de la spec §8.
+ * L'accueil : une porte éditoriale, puis France, Villes, Dossiers et Mandats.
  *
  * Le site ouvrait sur sa carte. Une carte ne dit pas ce que fait le site — elle
- * suppose qu'on le sait déjà. L'accueil pose le message principal, puis en
- * donne la preuve tout de suite : un verdict, un simulateur, un territoire.
+ * suppose qu'on le sait déjà. L'accueil pose le rôle du site, puis guide le
+ * lecteur dans l'ordre des produits réels : les comptes de France, les comptes
+ * locaux, les dossiers, et enfin la simulation.
  *
- * 1. Le dossier du moment — la dernière analyse mise en avant, au format
- *    carte-verdict : le chiffre annoncé, son auteur et sa date, le chiffre des
- *    comptes, le cran, la source.
- * 2. Vérifiez par vous-même — une porte vers le simulateur, jamais le
- *    simulateur lui-même : les contraintes existantes, et le lien qui les ouvre.
- * 3. Et chez vous ? — le champ de recherche du site, avec un exemple vivant.
- * 4. Les dossiers récents — les cartes des analyses déjà publiées.
- * 5. La bande de confiance — ce que le site publie, qui le produit, et où
- *    l'on va vérifier.
+ * 1. France — les comptes nationaux, leur source et un accès à l'atelier
+ *    Salaires, qui reste secondaire.
+ * 2. Villes — le champ de recherche du site, avec un exemple vivant.
+ * 3. Dossiers — le dossier du moment puis les analyses déjà publiées.
+ * 4. La bande de confiance et les questions — la méthode avant la simulation.
+ * 5. Mandats — une simulation distincte, placée en dernier.
  *
  * Comme les autres renderers éditoriaux, ce module ne touche pas au
  * DOM : chaque fonction est pure, reçoit des données déjà résolues, rend une
@@ -55,7 +53,7 @@ import { chiffres as chiffresOuverture } from "./ouverture.ts";
  * et une seconde rédaction du même message aurait fini par en dire autre chose.
  */
 export const MESSAGE_PRINCIPAL =
-  "Comprendre les comptes publics, les dossiers qui les expliquent et les décisions qui en découlent.";
+  "500 signatures transforme les chiffres publics et les annonces politiques en dossiers compréhensibles, vérifiés et accessibles à tous.";
 
 /** L'ancre du champ de recherche de territoire, celui de l'en-tête du site
  *  (`index.html`). L'accueil n'en construit pas un second : deux champs qui
@@ -178,8 +176,8 @@ export function renduVerdictDuMoment(
   const rangeeDit = chiffreDit
     ? `<dt>Chiffre annoncé</dt><dd>« ${echapper(chiffreDit)} »</dd>`
     : "";
-  return `<section class="accueil__bloc accueil__bloc--verdict" aria-labelledby="accueil-verdict">
-    <h3 id="accueil-verdict">Le dossier du moment</h3>
+  return `<section class="accueil__bloc accueil__bloc--dossiers" aria-labelledby="accueil-verdict">
+    <h3 id="accueil-verdict">Dossiers · à la une</h3>
     <article class="accueil__carte-verdict" data-slug="${echapper(analyse.slug)}">
       <h4 class="accueil__titre-analyse">${echapper(analyse.titre)}</h4>
       <blockquote class="accueil__affirmation">${echapper(affirmation.texte)}</blockquote>
@@ -489,7 +487,7 @@ export function renduAnalysesRecentes(
       </li>`,
     )
     .join("");
-  return `<section class="accueil__bloc accueil__bloc--analyses" aria-labelledby="accueil-analyses">
+  return `<section class="accueil__bloc accueil__bloc--dossiers-recents" aria-labelledby="accueil-analyses">
     <h3 id="accueil-analyses">Les dossiers récents</h3>
     <ul class="accueil__analyses">${cartes}</ul>
   </section>`;
@@ -544,41 +542,28 @@ export type DonneesAccueil = {
   producteurs: readonly string[];
 };
 
-/** Les trois entrées de l'accueil : trois intentions distinctes, pas trois
- * variantes d'une même navigation. Elles restent sans donnée pour que le
- * premier écran soit immédiatement utile, y compris avant le chargement des
- * fichiers publiés. */
-export function renduPortes(): string {
-  return `<section class="accueil-portes" aria-labelledby="accueil-parcours">
-    <h3 id="accueil-parcours">Choisissez votre parcours</h3>
-    <div class="accueil-portes__grille">
-      <a class="accueil-porte accueil-porte--france" href="/bilan">
-        <strong>Comprendre la France</strong>
-        <span>Lire l'équation nationale et les dossiers publiés.</span>
-      </a>
-      <a class="accueil-porte accueil-porte--territoires" href="/territoire">
-        <strong>Explorer mon territoire</strong>
-        <span>Retrouver les comptes de ma commune, de mon département ou de ma région.</span>
-      </a>
-      <a class="accueil-porte accueil-porte--simuler" href="/mandats/">
-        <strong>Prendre les commandes</strong>
-        <span>Décider pendant cinq ans, et voir les conséquences.</span>
-      </a>
-    </div>
-  </section>`;
-}
-
 /** The same published national series and common year as the France dossier. */
 export function renduApercuComptes(france?: Territoire): string {
   const comptes = chiffresOuverture(france);
-  if (!comptes) return `<aside class="accueil__apercu"><p class="accueil__sur-titre">LES COMPTES PUBLICS</p><h2>Remonter aux chiffres.</h2><p>Les comptes s’affichent dès que leurs séries publiées sont disponibles.</p><a href="/bilan/">Lire le dossier France</a></aside>`;
+  if (!comptes) return `<aside class="accueil__apercu"><p class="accueil__sur-titre">LES COMPTES PUBLICS</p><h2>Remonter aux chiffres.</h2><p>Les comptes s’affichent dès que leurs séries publiées sont disponibles.</p><a href="/bilan/">Lire le dossier France</a><a href="/salaires/">Explorer salaires et prélèvements</a></aside>`;
   const maximum = Math.max(comptes.recettes, comptes.depenses, 1);
   return `<aside class="accueil__apercu" aria-label="Aperçu des comptes publics français">
     <p class="accueil__sur-titre">LES COMPTES PUBLICS · ${comptes.fin}</p>
     <h2>Solde public annuel</h2><strong class="accueil__solde">${montantLisible(-comptes.emprunte).replace("\u00a0", "<small>")}</small></strong>
     <dl>${[["Recettes",comptes.recettes],["Dépenses",comptes.depenses]].map(([nom,valeur],i)=>`<div><dt>${nom}</dt><dd>${montantLisible(Number(valeur))}</dd><span class="accueil__barre accueil__barre--${i}" style="--part:${Number(valeur)/maximum*100}%" aria-hidden="true"></span></div>`).join("")}</dl>
-    <p class="accueil__source-apercu">Administrations publiques réunies · Eurostat.<br>Montants arrondis indépendamment. <a href="/bilan/">Voir les séries et leurs sources</a></p>
+    <p class="accueil__source-apercu">Administrations publiques réunies · Eurostat.<br>Montants arrondis indépendamment. <a href="/bilan/">Voir les séries et leurs sources</a> · <a href="/salaires/">Explorer salaires et prélèvements</a></p>
   </aside>`;
+}
+
+/** France est le premier produit du site, Salaires reste une exploration liée. */
+export function renduFranceAccueil(france?: Territoire): string {
+  return `<section class="accueil__bloc accueil__bloc--france" aria-labelledby="accueil-france">
+    <h3 id="accueil-france">France</h3>
+    <div class="accueil__france">
+      <div class="accueil__france-intro"><p>Lire les comptes publics nationaux, comprendre les grands équilibres et retrouver les séries qui les documentent.</p><a class="accueil__appel" href="/bilan/">Comprendre la France</a></div>
+      ${renduApercuComptes(france)}
+    </div>
+  </section>`;
 }
 export function renduQuestionsAccueil(): string {
   return `<section class="accueil__questions" aria-labelledby="accueil-questions-titre">
@@ -588,26 +573,27 @@ export function renduQuestionsAccueil(): string {
 }
 
 /**
- * L'accueil entier : une promesse, trois portes, une vérification, puis le
- * passage du national au local et enfin à l'arbitrage. Les sources ferment le
- * récit au lieu de l'interrompre avant le premier dossier.
+ * L'accueil entier : une promesse, la France, les Villes, les Dossiers, puis
+ * la simulation. Les sources et les questions réassurent avant le dernier
+ * parcours, au lieu de faire concurrence aux dossiers.
  */
 export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
+  const cheminDossier = enAvant ? `/analyses/${echapper(enAvant.slug)}/` : "/analyses/";
   return `<div class="accueil">
     <div class="accueil__hero"><section class="accueil__ouverture">
-      <p class="accueil__sur-titre">ACCUEIL · COMPRENDRE LES COMPTES PUBLICS</p>
-      <h1 class="accueil__message">Comprendre les comptes publics.<br><em>Décider en connaissance de cause.</em></h1>
+      <p class="accueil__sur-titre">500 SIGNATURES · DOSSIERS ET COMPTES PUBLICS</p>
+      <h1 class="accueil__message">Les chiffres publics expliqués.</h1>
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
-      <p class="accueil__recherche"><a class="accueil__appel" href="${ANCRE_RECHERCHE}">Chercher un territoire</a></p>
+      <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Lire le dossier du moment</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Comprendre la France</a></p>
     </section>
-    ${renduApercuComptes(donnees.france)}</div>
-    ${renduPortes()}
-    ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
+    </div>
+    ${renduFranceAccueil(donnees.france)}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
+    ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
     ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
-    <section class="accueil__mandats"><div><p class="accueil__sur-titre">MANDATS · UN JEU DE STRATÉGIE</p><h2>Les chiffres éclairent.<br>À vous de décider.</h2><p>45 décisions. Cinq ans. Vos arbitrages et leurs conséquences, dans une simulation distincte des données observées.</p><a class="accueil__appel" href="/mandats/?mode=national">Commencer un mandat</a></div></section>
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduQuestionsAccueil()}
+    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">Une simulation, pas une prévision.</h2><p>45 décisions sur cinq ans. Testez des arbitrages et leurs conséquences dans un jeu distinct des comptes observés et des dossiers publiés.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div></section>
   </div>`;
 }

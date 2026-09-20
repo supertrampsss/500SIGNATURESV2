@@ -1041,10 +1041,10 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   const html = injecterAccueil(GABARIT_REEL, corps, "v-essai");
 
   // Ce que `<main>` porte, balises retirées : le message principal du site, et
-  // les trois appels à l'action. Sans JavaScript, sans réseau, sans rien.
+  // les appels à l'action. Sans JavaScript, sans réseau, sans rien.
   const texte = texteDuMain(html);
   assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
-  for (const appel of ["Lire le dossier", "Commencer un mandat", "Chercher ma commune"]) {
+  for (const appel of ["Lire le dossier", "Découvrir Mandats", "Chercher ma commune"]) {
     assert.ok(texte.includes(appel), appel);
   }
   // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.
@@ -1055,17 +1055,16 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
 });
 
-test("12 bis. le pré-rendu sert les mêmes trois portes que l'accueil dynamique", async () => {
+test("12 bis. le pré-rendu sert la hiérarchie France puis l'atelier secondaire", async () => {
   const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
-  const portes = [
-    ["Comprendre la France", "/bilan"],
-    ["Explorer mon territoire", "/territoire"],
-    ["Prendre les commandes", "/mandats/"],
+  const parcours = [
+    ["Comprendre la France", "/bilan/"],
+    ["Explorer salaires et prélèvements", "/salaires/"],
   ] as const;
-  const positions = portes.map(([libelle, href]) => {
-    const porte = corps.match(new RegExp(`<a class="accueil-porte[^\"]*" href="${href}"[\\s\\S]*?${libelle}`));
-    assert.ok(porte, `porte ${libelle} introuvable`);
-    return porte.index!;
+  const positions = parcours.map(([libelle, href]) => {
+    const position = corps.indexOf(`href="${href}"`);
+    assert.ok(position !== -1 && corps.includes(libelle), `${libelle} introuvable`);
+    return position;
   });
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
 });
@@ -1130,7 +1129,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // servi, et les cinq chemins de vues. Son titre et sa description valent donc
   // pour toutes — « carte des finances locales » décrivait la carte, qui a
   // quitté la racine pour `/territoire`.
-  assert.equal(titreDuGabarit(GABARIT_REEL), "Accueil · Comprendre les comptes publics · 500 signatures");
+  assert.equal(titreDuGabarit(GABARIT_REEL), "Les chiffres publics expliqués · 500 signatures");
   assert.equal(marqueDuGabarit(GABARIT_REEL), "500 SIGNATURES");
   // Et sa description est le message du site, arrêté à la conception (spec §8).
   // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui

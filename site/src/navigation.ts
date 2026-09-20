@@ -2,6 +2,9 @@ export type Destination = {
   cle: "accueil" | "france" | "territoires" | "simuler" | "salaires" | "analyses";
   href: string;
   libelle: string;
+  /** Les ateliers thématiques restent accessibles, mais ne concurrencent pas
+   * les quatre destinations qui structurent le produit public. */
+  secondaire?: boolean;
   /** Les pages éditoriales restent de vrais liens : elles rechargent leur
    * document pré-rendu au lieu de passer par la SPA. */
   native?: boolean;
@@ -11,7 +14,7 @@ export const DESTINATIONS: readonly Destination[] = [
   { cle: "accueil", href: "/accueil/", libelle: "Accueil", native: true },
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Villes" },
-  { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true },
+  { cle: "salaires", href: "/salaires/", libelle: "Salaires", native: true, secondaire: true },
   { cle: "analyses", href: "/analyses/", libelle: "Dossiers", native: true },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
 ];
@@ -50,7 +53,7 @@ export function intercepterNavigation(clic: MouseEvent): Destination | null {
 /** Rend la seule navigation primaire du site, indépendamment du document. */
 export function renduNavigation(pathname: string, simulateurDisponible: boolean): string {
   const chemin = normaliserChemin(pathname);
-  return DESTINATIONS.filter(({ cle }) => cle !== "simuler").map(({ cle, href, libelle }) => {
+  return DESTINATIONS.filter(({ cle, secondaire }) => cle !== "simuler" && !secondaire).map(({ cle, href, libelle }) => {
     const destination = DESTINATIONS.find((candidate) => candidate.cle === cle)!;
     if (destination.native) {
       const courant = (chemin === normaliserChemin(href) || (cle === "accueil" && chemin === "/") || (cle === "analyses" && chemin.startsWith("/analyses/"))) ? ' aria-current="page"' : "";

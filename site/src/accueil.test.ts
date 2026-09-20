@@ -555,7 +555,7 @@ function page(overrides: Partial<Parameters<typeof rendu>[0]> = {}): string {
   });
 }
 
-test("25. l'accueil sans donnée ouvre les trois parcours", () => {
+test("25. l'accueil sans donnée ouvre France et son atelier secondaire", () => {
   const html = rendu({
     analyses: [],
     catalogue: [],
@@ -563,37 +563,37 @@ test("25. l'accueil sans donnée ouvre les trois parcours", () => {
     alea: 0,
     producteurs: [],
   });
-  const portes = [
-    ["Comprendre la France", "/bilan"],
-    ["Explorer mon territoire", "/territoire"],
-    ["Prendre les commandes", "/mandats/"],
+  const parcours = [
+    ["Comprendre la France", "/bilan/"],
+    ["Explorer salaires et prélèvements", "/salaires/"],
   ] as const;
-  const positions = portes.map(([libelle, href]) => {
+  const positions = parcours.map(([libelle, href]) => {
     const position = html.indexOf(`href=\"${href}\"`);
     assert.ok(position !== -1, `${libelle} mène à ${href}`);
     assert.ok(html.includes(libelle), `${libelle} est proposé`);
     return position;
   });
-  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "les portes gardent leur ordre");
-  assert.ok(html.includes('class="accueil-portes"'));
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "France précède son atelier secondaire");
+  assert.ok(html.includes('class="accueil__bloc accueil__bloc--france"'));
 });
 
-test("26. les portes précèdent les analyses récentes", () => {
+test("26. France et Villes précèdent les dossiers, Mandats ferme le parcours", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
+  assert.ok(html.indexOf("France") < html.indexOf("Et chez vous ?"));
   assert.ok(
-    html.indexOf("Prendre les commandes") < html.indexOf("Les dossiers récents"),
-    "les parcours précèdent l'actualité éditoriale",
+    html.indexOf("Et chez vous ?") < html.indexOf("Dossiers · à la une"),
+    "Villes précède les dossiers",
   );
+  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("Une simulation, pas une prévision."));
 });
 
-test("27. l'accueil suit le récit comprendre, vérifier, situer, décider", () => {
+test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
   const repères = [
-    'aria-labelledby="accueil-parcours"',
-    'aria-labelledby="accueil-verdict"',
+    'aria-labelledby="accueil-france"',
     'aria-labelledby="accueil-territoire"',
+    'aria-labelledby="accueil-verdict"',
     'aria-labelledby="accueil-analyses"',
-    'class="accueil__mandats"',
     'aria-labelledby="accueil-confiance"',
   ].map((repère) => html.indexOf(repère));
   assert.ok(repères.every((position) => position !== -1), "chaque étape du récit est rendue");
@@ -602,13 +602,14 @@ test("27. l'accueil suit le récit comprendre, vérifier, situer, décider", () 
     repères,
     "les preuves et les actions suivent une progression unique",
   );
+  assert.ok(html.indexOf('aria-labelledby="accueil-confiance"') < html.indexOf("Une simulation, pas une prévision."));
 });
 
 test("28. chaque chiffre porte son unité sans unité globale ambiguë", () => {
   assert.ok(!page().includes(MENTION_MILLIONS));
 });
 
-test("28. la promesse ouvre la recherche et les parcours avant les preuves fraîches", () => {
+test("28. la promesse ouvre la lecture et France avant les autres parcours", () => {
   const html = page();
   assert.ok(html.includes(MESSAGE_PRINCIPAL));
   const ouverture = html.slice(
@@ -616,28 +617,28 @@ test("28. la promesse ouvre la recherche et les parcours avant les preuves fraî
     html.indexOf('class="accueil__bloc accueil__bloc--confiance'),
   );
   assert.ok(
-    texteLu(ouverture).includes("Chercher un territoire"),
-    "la recherche reste accessible depuis la promesse",
+    texteLu(ouverture).includes("Lire le dossier du moment"),
+    "la lecture est l'action principale de la promesse",
   );
-  assert.ok(ouverture.includes('class="accueil-portes"'));
+  assert.ok(ouverture.includes('class="accueil__bloc accueil__bloc--france"'));
   assert.ok(
-    html.indexOf('class="accueil-portes"') < html.indexOf('accueil__bloc--confiance'),
-    "la fraîcheur des données suit les portes",
+    html.indexOf('class="accueil__bloc accueil__bloc--france"') < html.indexOf('accueil__bloc--confiance'),
+    "France précède la confiance",
   );
 });
 
-test("28. les appels de détail restent disponibles après les portes", () => {
+test("28. les appels de détail restent disponibles dans leur parcours", () => {
   const html = page();
-  for (const appel of ["Lire le dossier", "Commencer un mandat", "Chercher ma commune"]) {
+  for (const appel of ["Lire le dossier", "Découvrir Mandats", "Chercher ma commune"]) {
     assert.ok(html.includes(appel), appel);
   }
-  assert.ok(html.indexOf("Prendre les commandes") < html.indexOf("Commencer un mandat"));
+  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("Découvrir Mandats"));
 });
 
 test("29. les preuves et les approfondissements suivent les parcours", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "autre", titre: "Une autre" })] });
   const blocs = [...html.matchAll(/accueil__bloc accueil__bloc--([a-z]+)/g)].map((m) => m[1]);
-  assert.deepEqual(blocs, ["verdict", "territoire", "analyses", "confiance"]);
+  assert.deepEqual(blocs, ["france", "territoire", "dossiers", "dossiers", "confiance"]);
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {
