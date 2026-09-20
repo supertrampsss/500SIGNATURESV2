@@ -1,37 +1,54 @@
-# Lancement X de 500signatures
+# Lancement X de 500signatures — storytelling v2
 
-## Positionnement
+## État du compte
 
-Compte officiel de 500signatures.fr, un outil français pour comprendre les comptes publics, comparer les territoires et simuler les arbitrages d'un mandat. Ton factuel, direct et pédagogique. Chaque chiffre renvoie à une source publiée.
+Le compte public `@500Signatures` affiche actuellement 0 post. La bio visible est : « Les comptes de la France. Des chiffres pour comprendre. Des faits pour débattre. Données publiques, territoires, salaires. »
+
+Le compte est donc à lancer, pas à corriger tweet par tweet. La première publication doit installer une promesse et une méthode ; les suivantes doivent faire avancer la même histoire.
+
+## Ligne narrative
+
+**Question → chiffre → vérification → échelle locale → arbitrage.**
+
+Le site ne doit pas être présenté comme un catalogue de rubriques. La promesse est plus simple : prendre un chiffre public, expliquer ce qu’il mesure vraiment, montrer sa source, puis donner au lecteur un moyen de l’explorer ou de décider.
 
 ## Profil proposé
 
-- Nom : 500signatures
-- Identifiant recommandé : `@500signatures` ; variantes : `@500signaturesfr`, `@OùVaLArgent`
-- Bio : `Les comptes publics, commune par commune. Des chiffres sourcés, des comparaisons claires, des arbitrages à simuler. Un pays. Des choix.`
+- Nom : `500 signatures`
+- Identifiant : `@500Signatures`
+- Bio : `Les comptes publics, du pays à la commune. Des chiffres sourcés pour comprendre, des dossiers pour vérifier, un jeu pour décider.`
 - Site : `https://500signatures.fr`
 - Localisation : `France`
-- Image : reprendre le monogramme 500signatures sur fond bleu nuit, sans emoji ni photographie générique.
-- Bannière : composition crème et bleu nuit avec la formule « Un pays. Des choix. » et une courbe de dépenses, recettes et déficit.
+- Image : monogramme 500signatures sur fond bleu nuit, sans emoji ni photographie générique.
+- Bannière : `Comprendre. Vérifier. Décider.` sur une composition crème et bleu nuit.
 
-## Premiers posts
+## Fil de lancement prêt à publier
 
-1. `Où va l'argent public ? 500signatures rassemble les comptes de la France, les finances locales, les salaires et les arbitrages d'un mandat. Chaque chiffre est sourcé et vérifiable. https://500signatures.fr`
+Les liens sont volontairement précis. Le fil peut être publié en une séquence, puis chaque message peut vivre seul dans les jours suivants.
 
-2. `La France dépense 153 milliards d'euros de plus qu'elle n'encaisse. Comprendre ce déficit demande de regarder les recettes, les dépenses et les choix qui les relient. https://500signatures.fr/bilan`
+1. `On parle de « l’argent public » comme d’un seul bloc. Pourtant, un chiffre ne vaut que par son périmètre, son année et sa source. 500signatures part de là : rendre les comptes lisibles, puis laisser chacun vérifier.`
 
-3. `Bordeaux, Paris ou une autre commune : comparez les recettes, les dépenses, la dette et l'épargne sur le même périmètre. https://500signatures.fr/territoire`
+2. `En 2025, les administrations publiques ont encaissé 1 562 Md€ et dépensé 1 714 Md€. Le solde est de −153 Md€. Ce chiffre est un point de départ : il faut ensuite regarder ce qui entre, ce qui sort et qui porte la dépense.` https://500signatures.fr/bilan/
 
-4. `45 décisions. Un mandat. Des conséquences qui continuent dans le temps. Gouvernez une ville ou la France et regardez ce que vos choix changent. https://500signatures.fr/mandats/`
+3. `Un compte public se lit en trois questions : qu’est-ce qui entre ? où part l’argent ? qui porte la dette ? 500signatures rassemble les séries publiées et suit les mêmes définitions d’une année à l’autre.` https://500signatures.fr/sources/
 
-5. `Un chiffre public n'est utile que si sa définition, son unité, sa période et sa source sont lisibles. C'est la règle de 500signatures.`
+4. `Un exemple : les dépenses publiques de défense de l’UE atteignent 266 Md€ en 2024, contre 176 Md€ en 2020. Le montant ne dit pas à lui seul ce qui est livré : le dossier regarde aussi les personnels, les achats et les investissements.` https://500signatures.fr/analyses/defense-europe-depenses-2024/
 
-## Rythme de lancement
+5. `La France ne se résume pas à sa moyenne nationale. À l’échelle d’une commune, les recettes, la dette, l’épargne et l’investissement racontent un autre budget. Cherchez votre territoire.` https://500signatures.fr/territoire#recherche
 
-Semaine 1 : un post de présentation, un chiffre France, une comparaison territoriale, une capture du mandat, puis un fil « comment lire un compte public ».
+6. `Les chiffres changent de sens quand on les rapproche d’une vie réelle. Entrez un salaire net : voyez les prélèvements estimés et le coût total du travail, avec le détail des postes.` https://500signatures.fr/salaires/
 
-Semaine 2 : trois posts de données et un fil pédagogique. Répondre aux questions avec les liens vers la page et la source, sans automatiser les réponses.
+7. `Comprendre les comptes ne suffit pas toujours : il faut voir les arbitrages. Dans Mandats, 45 décisions s’enchaînent sur cinq ans. Une réforme améliore un poste, en contraint un autre, parfois plus tard.` https://500signatures.fr/mandats/
+
+8. `La règle de 500signatures tient en une phrase : un chiffre doit pouvoir être retrouvé, défini et discuté. Les dossiers expliquent, les comptes documentent, le jeu rend les choix visibles.` https://500signatures.fr
+
+## Rythme après le lancement
+
+- Publier le fil d’ouverture dans l’ordre, sans intercaler de promotion.
+- Reprendre ensuite un chiffre ou un dossier par publication, toujours avec sa page et sa source.
+- Alterner les échelles : France, territoire, dossier, salaire, arbitrage.
+- Répondre aux questions avec le lien vers la définition ou la source, pas avec une opinion improvisée.
 
 ## Règles éditoriales
 
-Pas de chiffres sans source. Pas d'affirmation causale à partir d'une simple corrélation. Pas de polémique artificielle. Les posts doivent rester lisibles sans contexte et pointer vers une page précise.
+Pas de chiffre sans source. Pas d’affirmation causale à partir d’une simple corrélation. Pas de dramatisation artificielle. Chaque publication doit pouvoir être comprise sans le tweet précédent et conduire vers une page précise.

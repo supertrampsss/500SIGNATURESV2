@@ -588,9 +588,9 @@ export function renduQuestionsAccueil(): string {
 }
 
 /**
- * L'accueil entier : une promesse, trois portes, puis les preuves et contenus
- * de lecture. Les composants de détail restent ceux du premier lot : aucun
- * calcul ne vit dans la composition de parcours.
+ * L'accueil entier : une promesse, trois portes, une vérification, puis le
+ * passage du national au local et enfin à l'arbitrage. Les sources ferment le
+ * récit au lieu de l'interrompre avant le premier dossier.
  */
 export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
@@ -603,11 +603,11 @@ export function rendu(donnees: DonneesAccueil): string {
     </section>
     ${renduApercuComptes(donnees.france)}</div>
     ${renduPortes()}
-    ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
-    ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
+    ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
     <section class="accueil__mandats"><div><p class="accueil__sur-titre">MANDATS · UN JEU DE STRATÉGIE</p><h2>Les chiffres éclairent.<br>À vous de décider.</h2><p>45 décisions. Cinq ans. Vos arbitrages et leurs conséquences, dans une simulation distincte des données observées.</p><a class="accueil__appel" href="/mandats/?mode=national">Commencer un mandat</a></div></section>
+    ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduQuestionsAccueil()}
   </div>`;
 }
