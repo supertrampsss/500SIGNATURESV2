@@ -556,19 +556,18 @@ export function renduApercuComptes(france?: Territoire): string {
 }
 
 /** France est le premier produit du site, Salaires reste une exploration liée. */
-export function renduFranceAccueil(france?: Territoire): string {
+export function renduFranceAccueil(): string {
   return `<section class="accueil__bloc accueil__bloc--france" aria-labelledby="accueil-france">
     <h3 id="accueil-france">France</h3>
     <div class="accueil__france">
-      <div class="accueil__france-intro"><p>Lire les comptes publics nationaux, comprendre les grands équilibres et retrouver les séries qui les documentent.</p><a class="accueil__appel" href="/bilan/">Comprendre la France</a></div>
-      ${renduApercuComptes(france)}
+      <div class="accueil__france-intro"><p>Lire les comptes publics nationaux, comprendre les grands équilibres et retrouver les séries qui les documentent.</p><div class="accueil__france-liens"><a class="accueil__appel" href="/bilan/">Comprendre la France</a><a class="accueil__appel accueil__appel--secondaire" href="/salaires/">Explorer salaires et prélèvements</a></div></div>
     </div>
   </section>`;
 }
 export function renduQuestionsAccueil(): string {
   return `<section class="accueil__questions" aria-labelledby="accueil-questions-titre">
     <div><p class="accueil__sur-titre">POUR LIRE SANS PRÉREQUIS</p><h2 id="accueil-questions-titre">Des chiffres, et du contexte.</h2></div>
-    <div><details><summary>D'où viennent les données ?</summary><p>Chaque dossier relie ses indicateurs à une publication et précise l'exercice observé. <a href="${CHEMIN_SOURCES}">Voir les sources et la méthode.</a></p></details><details><summary>Mandats prédit-il l'avenir ?</summary><p>Non. Mandats est une simulation : ses conséquences sont des hypothèses de jeu, séparées des comptes observés.</p></details><details><summary>Une lecture est-elle gratuite ?</summary><p>Oui. La lecture, les données publiées et le jeu restent accessibles sans abonnement.</p></details></div>
+    <div><details><summary>D'où viennent les données ?</summary><p>Chaque dossier relie ses indicateurs à une publication et précise l'exercice observé. <a href="${CHEMIN_SOURCES}">Voir les sources et la méthode.</a></p></details><details><summary>Que contient Mandats ?</summary><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences, selon les règles du jeu.</p></details><details><summary>Une lecture est-elle gratuite ?</summary><p>Oui. La lecture, les données publiées et le jeu restent accessibles sans abonnement.</p></details></div>
   </section>`;
 }
 
@@ -586,14 +585,13 @@ export function rendu(donnees: DonneesAccueil): string {
       <h1 class="accueil__message">Les chiffres publics expliqués.</h1>
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
       <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Lire le dossier du moment</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Comprendre la France</a></p>
-    </section>
+    </section>${renduApercuComptes(donnees.france)}
     </div>
-    ${renduFranceAccueil(donnees.france)}
+    ${renduFranceAccueil()}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
-    ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
-    ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
+    <div class="accueil__dossiers">${renduVerdictDuMoment(enAvant, donnees.catalogue)}${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}</div>
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduQuestionsAccueil()}
-    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">Une simulation, pas une prévision.</h2><p>45 décisions sur cinq ans. Testez des arbitrages et leurs conséquences dans un jeu distinct des comptes observés et des dossiers publiés.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div></section>
+    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">À vous de décider.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
   </div>`;
 }

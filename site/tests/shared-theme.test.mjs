@@ -66,12 +66,24 @@ test('Accueil presents the editorial path before the secondary simulation',async
  await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
  await expect(page.getByRole('link',{name:'Lire le dossier du moment',exact:true})).toBeVisible();
  const order=await page.locator('body').innerText();
- const sections=['France','Et chez vous ?','Dossiers · à la une','Les dossiers récents','Une simulation, pas une prévision.'];
+ const sections=['France','Et chez vous ?','Dossiers · à la une','Les dossiers récents','À vous de décider.'];
  let previous=-1;
  for(const section of sections){
   const position=order.indexOf(section);
   expect(position,section).toBeGreaterThan(previous);
   previous=position;
+ }
+ expect(order).not.toContain('prévision');
+ expect(order).not.toContain('↗');
+ if(info.project.name==='desktop-chromium'){
+  const layout=await page.evaluate(()=>{
+   const hero=getComputedStyle(document.querySelector('.accueil__hero'));
+   const dossiers=getComputedStyle(document.querySelector('.accueil__dossiers'));
+   return {hero:hero.display,dossiers:dossiers.display,columns:dossiers.gridTemplateColumns};
+  });
+  expect(layout.hero).toBe('grid');
+  expect(layout.dossiers).toBe('grid');
+  expect(layout.columns.split(' ').length).toBeGreaterThanOrEqual(2);
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});

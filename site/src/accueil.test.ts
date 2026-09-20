@@ -584,7 +584,7 @@ test("26. France et Villes précèdent les dossiers, Mandats ferme le parcours",
     html.indexOf("Et chez vous ?") < html.indexOf("Dossiers · à la une"),
     "Villes précède les dossiers",
   );
-  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("Une simulation, pas une prévision."));
+  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("À vous de décider."));
 });
 
 test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () => {
@@ -602,7 +602,7 @@ test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () 
     repères,
     "les preuves et les actions suivent une progression unique",
   );
-  assert.ok(html.indexOf('aria-labelledby="accueil-confiance"') < html.indexOf("Une simulation, pas une prévision."));
+  assert.ok(html.indexOf('aria-labelledby="accueil-confiance"') < html.indexOf("À vous de décider."));
 });
 
 test("28. chaque chiffre porte son unité sans unité globale ambiguë", () => {
