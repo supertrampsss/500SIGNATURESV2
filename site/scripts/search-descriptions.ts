@@ -5,7 +5,7 @@ export const SEARCH_DESCRIPTIONS: Readonly<Record<string, string>> = {
   '/analyses/defense-credits-votes-consommes-2025/': 'Défense en 2025 : 62,1 milliards d’euros dépensés, 62,6 milliards de crédits ouverts. Les livraisons progressent et les charges futures s’accumulent.',
   '/analyses/defense-europe-depenses-2024/': 'Dépenses de défense en Europe : 266 milliards d’euros en 2024. Suivez la hausse depuis 2020 et la répartition entre salaires, achats et investissement.',
   '/analyses/electricite-exportee-facture-francais/': 'La France exporte de l’électricité, tandis que les factures financent l’énergie, les réseaux et les taxes. Les contrats transmettent les prix dans le temps.',
-  '/analyses/fournitures-scolaires-prix-1990-2025/': 'Les prix des fournitures augmentent moins vite que l’ensemble des prix depuis 1990. Listes scolaires, réemploi et promotions font varier le budget de rentrée.',
+  '/analyses/fournitures-scolaires-prix-1990-2025/': 'Papier, énergie, marques, listes scolaires et aides : pourquoi la rentrée reste chère après la flambée de 2023, avec des prix en euros et des sources croisées.',
   '/analyses/groenland-accord-securite-europe/': 'Accord de sécurité au Groenland : ce qui est annoncé pour l’Arctique, ce qui doit encore être ratifié et les intérêts européens en jeu.',
   '/analyses/la-depense-publique-baisse-2024/': 'La dépense publique progresse en euros tandis que sa part du PIB recule. Prix, besoins collectifs et choix de financement expliquent ces évolutions.',
   '/analyses/prix-gaz-menages-2022-2025/': 'Le prix TTC du gaz augmente d’environ 42 % entre fin 2022 et fin 2025 pour les ménages D2. Le coût hors taxes et les prélèvements contribuent à la hausse.',
@@ -16,6 +16,6 @@ export const SEARCH_DESCRIPTIONS: Readonly<Record<string, string>> = {
   '/questions/arenh-42-euros-etranger/': 'À qui était destiné l’ARENH à 42 €/MWh ? Comprenez la différence entre accès régulé au nucléaire et exportations d’électricité.',
   '/questions/electricite-vendue-moins-chere-etranger/': 'Pourquoi le prix de l’électricité exportée diffère-t-il de votre facture ? Réponse sur le marché de gros, le réseau et les taxes.',
   '/questions/hausse-prix-gaz/': 'Le gaz a-t-il encore augmenté en France ? Une réponse sourcée qui précise la période, le prix observé et les taxes.',
-  '/questions/prix-fournitures-scolaires/': 'Les fournitures scolaires ont-elles flambé ? Une réponse sourcée qui distingue évolution nominale et inflation générale.',
+  '/questions/prix-fournitures-scolaires/': 'Comment les prix des fournitures scolaires ont évolué depuis 1990 et pourquoi les hausses récentes pèsent sur les achats de rentrée.',
   '/questions/qualite-vie-france/': 'La qualité de vie baisse-t-elle en France ? Consultez la réponse et les limites des données de satisfaction déclarée.',
 };

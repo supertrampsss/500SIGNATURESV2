@@ -43,7 +43,7 @@ export const REPONSES_STATIQUES: readonly ReponseStatique[] = [
     question: "Les fournitures scolaires ont-elles flambé ?",
     aliases: ["hausse fournitures scolaires", "cout rentree scolaire", "prix cartables cahiers"],
     motsCles: ["fournitures", "scolaires", "rentree", "cartables", "cahiers"],
-    reponse: "Le sous-panier Insee « autres fournitures scolaires et de bureau » atteint provisoirement 113,02 en 2025, base 100 en 2015. Entre 1990 et 2025, il augmente moins que l'indice d'ensemble. Il ne mesure ni le coût total d'une rentrée ni la dépense d'une famille.",
+    reponse: "Entre 1990 et 2025, les prix des « autres fournitures scolaires et de bureau » suivies par l’Insee ont augmenté d’environ 75 %, contre 79 % pour l’ensemble des prix. Dans cette catégorie, les prix ont peu bougé entre 2015 et 2021, avant une hausse de près de 12 % entre 2021 et 2025.",
     analyseSlug: "fournitures-scolaires-prix-1990-2025",
     sourceRefs: [{analyseId: "fournitures-scolaires-prix-1990-2025", sourceId: "insee-fournitures"}, {analyseId: "fournitures-scolaires-prix-1990-2025", sourceId: "insee-ipc-ensemble"}]
   },

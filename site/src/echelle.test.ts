@@ -280,6 +280,11 @@ test("un loyer au mètre carré ne se légende pas en euros courants", () => {
 });
 
 test("les unités des dossiers longs gardent leur échelle publiée", () => {
+  assert.equal(formaterValeurAnalyse(211.1, "EUR"), "211,10\u202f€");
+  assert.equal(formaterValeurAnalyse(208.12, "EUR"), "208,12\u202f€");
+  assert.equal(formaterValeurAnalyse(0, "EUR"), "0,00\u202f€");
+  assert.equal(formaterValeurAnalyse(-0.001, "EUR"), "0,00\u202f€");
+  assert.equal(formaterValeurAnalyse(266, "billion_EUR"), "266");
   assert.equal(formaterValeurAnalyse(0.4023, "EUR_per_kWh"), "0,4023\u202f€/kWh");
   assert.equal(formaterValeurAnalyse(102.45, "EUR_per_MWh"), "102,45\u202f€/MWh");
   assert.equal(formaterValeurAnalyse(120_000, "GWH"), "120\u202f000\u202fGWh");
