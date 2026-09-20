@@ -171,9 +171,10 @@ html[data-theme='clair'] body:has(#mandats) .cost { color:var(--design-muted); }
  html body .entete,html body .site-header { padding:8px 12px;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;min-width:0; }
  html body .entete__marque { grid-column:1;grid-row:1;width:36px;max-width:36px;overflow:hidden; }
  html body .entete__marque .brand-e { width:36px;height:46px; }
- html body .entete__nav,html body .site-navigation { grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;gap:12px;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scrollbar-width:none;white-space:nowrap; }
- html body .entete__nav::-webkit-scrollbar,html body .site-navigation::-webkit-scrollbar { display:none; }
- html body .entete__nav a,html body .site-navigation a { flex:0 0 auto;font-size:.8rem; }
+ /* Sept entrées tiennent dans deux lignes sur mobile : le menu reste
+    entièrement visible et la page ne gagne pas de défilement horizontal. */
+ html body .entete__nav,html body .site-navigation { grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;min-width:0;width:100%;overflow:visible;white-space:normal; }
+ html body .entete__nav a,html body .site-navigation a { min-width:0;font-size:.8rem;text-align:center; }
  html body .bascule-theme,html body .entete .bascule-theme { grid-column:3;grid-row:1;width:36px;height:36px;min-width:36px; }
  html body .site-header .header-actions { grid-row:3;margin-top:0; }
  html body[data-vue="bilan"] #vue-bilan #national > nav.bilan-reperage { display:none; }

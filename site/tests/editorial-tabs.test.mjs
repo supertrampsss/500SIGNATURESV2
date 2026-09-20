@@ -177,7 +177,7 @@ test('Salaires: dark mode, reduced motion and navigation and social links remain
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await activate(page.getByRole('button',{name:'Activer le mode sombre'}),info);await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await noOverflow(page);
  const boxes=await page.locator('#navigation-principale a').evaluateAll(links=>links.map(a=>{const b=a.getBoundingClientRect();return {height:b.height,left:b.left,right:b.right,visible:!!a.getClientRects().length};}));
- expect(boxes).toHaveLength(6);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
+ expect(boxes).toHaveLength(7);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
 });
 
