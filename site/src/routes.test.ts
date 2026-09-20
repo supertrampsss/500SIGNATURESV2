@@ -11,15 +11,14 @@ import * as routes from "./routes.ts";
 
 const { ALIAS, CHEMINS, adresseSimulateurCanonique, cheminDeVue, vueDepuisAdresse } = routes;
 
-test("la racine publique sert l'accueil et ses anciennes adresses y convergent", () => {
+test("la racine et /accueil/ servent l'accueil", () => {
   const redirects = readFileSync(new URL("../public/_redirects", import.meta.url), "utf8");
   const rules = redirects.split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith("#")).map(line => line.split(/\s+/));
   // Cloudflare applies these rules before serving the prerendered index.html.
   // A root redirect would hide the approved home page despite correct SPA routing.
   assert.equal(rules.some(([source]) => source === "/" || source === "/*"), false);
-  for (const source of ["/accueil", "/accueil/"]) {
-    assert.deepEqual(rules.filter(([from]) => from === source), [[source, "/", "301"]]);
-  }
+  assert.deepEqual(rules.filter(([from]) => from === "/accueil"), [["/accueil", "/accueil/", "301"]]);
+  assert.deepEqual(rules.filter(([from]) => from === "/accueil/"), []);
   for (const [legacy, canonical] of [
     ["carte", "territoire"],
     ["donnees", "territoire"],
@@ -128,7 +127,7 @@ test("les anciens permaliens du simulateur convergent vers la seule interface pu
 
 test("le logo du gabarit Salaires retourne vers l'accueil public", () => {
   const html = readFileSync(new URL("../salaires/index.html", import.meta.url), "utf8");
-  assert.match(html, /<a class="entete__marque" href="\/" aria-label="500signatures, accueil">/);
+  assert.match(html, /<a class="entete__marque" href="\/accueil\/" aria-label="500signatures, accueil">/);
 });
 
 
