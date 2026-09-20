@@ -5,6 +5,27 @@ const dossiers = await Promise.all((await readdir(new URL('../analyses/', import
  .filter(name => name.endsWith('.json'))
  .map(async name => JSON.parse(await readFile(new URL('../analyses/' + name, import.meta.url), 'utf8'))));
 
+test('Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal', async ({page}, info) => {
+ for(const dossier of dossiers.filter(d => d.dossier.visualisations.some(v => v.type === 'snapshot_table'))) {
+  await page.goto('/analyses/'+dossier.slug+'/');
+  const tables=page.locator('.analyse-longue__tableau');
+  expect(await tables.count()).toBeGreaterThan(0);
+  for(const [tableIndex,table] of (await tables.all()).entries()) {
+   await table.scrollIntoViewIfNeeded();
+   if(dossier.slug==='defense-europe-depenses-2024') await page.screenshot({path:info.outputPath('table-defense-'+tableIndex+'.png')});
+   const dimensions=await table.evaluate(el=>({
+    container:el.parentElement.clientWidth,table:el.getBoundingClientRect().width,
+    overflow:el.parentElement.scrollWidth-el.parentElement.clientWidth,
+    overflowingCells:Array.from(el.querySelectorAll('th,td')).filter(cell=>cell.scrollWidth>cell.clientWidth+1).map(cell=>cell.textContent),
+    splitHeaders:Array.from(el.querySelectorAll('thead th')).filter(cell=>{const range=document.createRange();range.selectNodeContents(cell);return range.getClientRects().length>1;}).map(cell=>{const css=getComputedStyle(cell);return {text:cell.textContent,width:cell.getBoundingClientRect().width,padding:css.padding,font:css.font};}),
+   }));
+   expect(dimensions, dossier.slug).toMatchObject({overflow:0,overflowingCells:[],splitHeaders:[]});
+   expect(dimensions.table, dossier.slug).toBeLessThanOrEqual(dimensions.container+1);
+  }
+  await noOverflow(page);
+ }
+});
+
 test('Fournitures : récit, prix en euros et graphiques lisibles', async ({page}, info) => {
  await page.goto('/analyses/fournitures-scolaires-prix-1990-2025/');
  await expect(page.locator('h1')).toHaveText('Fournitures scolaires : pourquoi la rentrée reste chère');

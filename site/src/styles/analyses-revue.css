@@ -89,3 +89,24 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 @media print{.analyse-longue__fil{display:none}.dossier-journal .analyse-longue__figure{break-inside:avoid}}
 
 .dossier-journal .analyse-longue__unite-figure{border:0;padding:0;background:none}
+
+/* Three editorial columns fit the reading column, including on narrow phones.
+   Override the legacy wide-data-table minimums without clipping any cells. */
+.dossier-journal .analyse-longue__defilement { overflow:visible; }
+.dossier-journal .analyse-longue__tableau { min-width:0; table-layout:fixed; }
+.dossier-journal .analyse-longue__tableau th,
+.dossier-journal .analyse-longue__tableau td {
+  min-width:0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.dossier-journal .analyse-longue__tableau thead th:first-child { width:45%; }
+.dossier-journal .analyse-longue__tableau thead th:nth-child(2) { width:20%; }
+.dossier-journal .analyse-longue__tableau thead th:last-child { width:35%; }
+@media(max-width:40rem) {
+  .dossier-journal .analyse-longue__tableau th,
+  .dossier-journal .analyse-longue__tableau td { padding-inline:.25rem; }
+  .dossier-journal .analyse-longue__tableau thead th:first-child { width:40%; }
+  .dossier-journal .analyse-longue__tableau thead th:nth-child(2) { width:30%; }
+  .dossier-journal .analyse-longue__tableau thead th:last-child { width:30%; }
+}
