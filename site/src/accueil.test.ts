@@ -584,7 +584,7 @@ test("26. France et Villes précèdent les dossiers, Mandats ferme le parcours",
     html.indexOf("Et chez vous ?") < html.indexOf("Dossiers · à la une"),
     "Villes précède les dossiers",
   );
-  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("À vous de décider."));
+  assert.ok(html.indexOf("Derniers dossiers") < html.indexOf("À vous de décider."));
 });
 
 test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () => {
@@ -602,7 +602,7 @@ test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () 
     repères,
     "les preuves et les actions suivent une progression unique",
   );
-  assert.ok(html.indexOf('aria-labelledby="accueil-confiance"') < html.indexOf("À vous de décider."));
+  assert.ok(html.indexOf("À vous de décider.") < html.indexOf('aria-labelledby="accueil-confiance"'));
 });
 
 test("28. chaque chiffre porte son unité sans unité globale ambiguë", () => {
@@ -617,7 +617,7 @@ test("28. la promesse ouvre la lecture et France avant les autres parcours", () 
     html.indexOf('class="accueil__bloc accueil__bloc--confiance'),
   );
   assert.ok(
-    texteLu(ouverture).includes("Lire le dossier du moment"),
+    texteLu(ouverture).includes("Découvrir les dossiers"),
     "la lecture est l'action principale de la promesse",
   );
   assert.ok(ouverture.includes('class="accueil__bloc accueil__bloc--france"'));
@@ -632,7 +632,7 @@ test("28. les appels de détail restent disponibles dans leur parcours", () => {
   for (const appel of ["Lire le dossier", "Découvrir Mandats", "Chercher ma commune"]) {
     assert.ok(html.includes(appel), appel);
   }
-  assert.ok(html.indexOf("Les dossiers récents") < html.indexOf("Découvrir Mandats"));
+  assert.ok(html.indexOf("Derniers dossiers") < html.indexOf("Découvrir Mandats"));
 });
 
 test("29. les preuves et les approfondissements suivent les parcours", () => {

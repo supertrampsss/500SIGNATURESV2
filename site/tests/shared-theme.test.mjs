@@ -61,12 +61,15 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
 test('Accueil presents the editorial path before the secondary simulation',async({page},info)=>{
  await page.goto('/accueil/');
  const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
- await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats','X / Twitter']);
+ const navigationLabels=info.project.name==='desktop-chromium'
+  ? ['France','Villes','Dossiers','Mandats']
+  : ['Accueil','France','Villes','Dossiers','Mandats','X / Twitter'];
+ await expect(navigation.getByRole('link')).toHaveText(navigationLabels);
  await expect(navigation.getByRole('link',{name:'Salaires',exact:true})).toHaveCount(0);
  await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
- await expect(page.getByRole('link',{name:'Lire le dossier du moment',exact:true})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Découvrir les dossiers',exact:true})).toBeVisible();
  const order=await page.locator('body').innerText();
- const sections=['France','Et chez vous ?','Dossiers · à la une','Les dossiers récents','À vous de décider.'];
+ const sections=['France','Et chez vous ?','Derniers dossiers','À vous de décider.'];
  let previous=-1;
  for(const section of sections){
   const position=order.indexOf(section);
@@ -75,14 +78,15 @@ test('Accueil presents the editorial path before the secondary simulation',async
  }
  expect(order).not.toContain('prévision');
  expect(order).not.toContain('↗');
- if(info.project.name==='desktop-chromium'){
-  const layout=await page.evaluate(()=>{
+  if(info.project.name==='desktop-chromium'){
+   const layout=await page.evaluate(()=>{
    const hero=getComputedStyle(document.querySelector('.accueil__hero'));
    const dossiers=getComputedStyle(document.querySelector('.accueil__dossiers'));
-   return {hero:hero.display,dossiers:dossiers.display,columns:dossiers.gridTemplateColumns};
+   const cartes=getComputedStyle(document.querySelector('.accueil__analyses'));
+   return {hero:hero.display,dossiers:dossiers.display,columns:cartes.gridTemplateColumns};
   });
   expect(layout.hero).toBe('grid');
-  expect(layout.dossiers).toBe('grid');
+  expect(layout.dossiers).toBe('block');
   expect(layout.columns.split(' ').length).toBeGreaterThanOrEqual(2);
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
