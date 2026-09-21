@@ -36,7 +36,7 @@ import {
   MAILLE_EXEMPLE,
   MESSAGE_PRINCIPAL,
 } from "../src/accueil.ts";
-import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
+import { rendu, renduDossierVedette, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import {
   REPONSES_STATIQUES,
   renduQuestionsIndex,
@@ -63,6 +63,7 @@ import { rendu as renduEurope } from "../src/europe-comparaison.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
 import { renduConclusionsBilan } from "../src/national.ts";
+import { renduFrancePage } from "../src/france-page.ts";
 import { insightsFrance } from "../src/insights-france.ts";
 import { renduInsights } from "../src/insights-rendu.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
@@ -960,6 +961,20 @@ function remplirCadre(html: string, id: string, corps: string): string {
   return html.replace(vide, () => `<${nom}${attributs}>\n${corps}\n</${nom}>`);
 }
 
+/** Remplace la composition complète d'un cadre, en respectant ses balises imbriquées. */
+function remplacerContenuCadre(html: string, id: string, corps: string): string {
+  const { balise, nom } = ouvertureDuCadre(html, id);
+  const debut = html.indexOf(balise) + balise.length;
+  const balises = new RegExp(`<\\/?${nom}\\b[^>]*>`, "g");
+  balises.lastIndex = debut;
+  let profondeur = 1;
+  for (let match = balises.exec(html); match; match = balises.exec(html)) {
+    profondeur += match[0].startsWith("</") ? -1 : 1;
+    if (profondeur === 0) return html.slice(0, debut) + corps + html.slice(match.index);
+  }
+  throw new Error(`Le cadre « ${id} » n'est pas correctement fermé.`);
+}
+
 /** Déplie un cadre. Un cadre replié serait écrit dans le document et servi à
  *  personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas
  *  — c'est le défaut d'avant ce pré-rendu, et `injecterAccueil` le nomme déjà. */
@@ -1057,6 +1072,7 @@ export function injecterReperes(
   niches: DepensesFiscales,
   budget: BudgetEtat,
   indexSources?: IndexSources,
+  analyses: readonly Analyse[] = [],
 ): string {
   // Les deux fichiers restent lus et passés ici : la signature ne bouge pas à
   // chaque maquette, et le jour où un bloc du budget revient, sa donnée est
@@ -1103,6 +1119,10 @@ export function injecterReperes(
   html = analysesFrance
     ? remplirCadre(html, "insights-france", analysesFrance)
     : replierCadre(html, "insights-france");
+  const dossierVedette = renduDossierVedette(analyses);
+  html = dossierVedette
+    ? deplierCadre(remplirCadre(html, "bilan-dossier", dossierVedette), "bilan-dossier-section")
+    : replierCadre(html, "bilan-dossier-section");
   // Le pont entre les chapitres 1 et 2 : la phrase qui fait descendre d'un
   // étage (1 562 milliards pour l'ensemble, 380 pour l'État seul). Sans elle,
   // les deux chiffres d'encaissement se lisaient comme une contradiction.
@@ -1112,6 +1132,8 @@ export function injecterReperes(
   html = pont ? deplierCadre(remplirCadre(html, "pont-perimetre", pont), "pont-perimetre") : html;
   html = deplierCadre(html, "national");
   html = deplierCadre(html, "vue-bilan");
+  const pageFrance = renduFrancePage(pays, catalogue, analyses, indexSources);
+  if (pageFrance) html = remplacerContenuCadre(html, "national", pageFrance);
   // L'accueil replié, pour la raison qu'`injecterMethode` nomme : le gabarit le
   // sert déplié pour la racine, et ce document-ci le montrerait au-dessus des
   // repères jusqu'à ce que `basculerVue` tranche.
@@ -1751,6 +1773,7 @@ async function main(): Promise<void> {
       niches,
       budget,
       indexSources,
+      analyses,
     ),
     {
       titre: PAGE_BILAN.titre,

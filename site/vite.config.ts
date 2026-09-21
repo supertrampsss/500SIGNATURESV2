@@ -4,6 +4,17 @@ export default defineConfig({
   // Vite extracts shared CSS before entry CSS. The approved theme must remain
   // last in every generated document, just as it is in the source imports.
   plugins: [{
+    name: "france-prerender-preview",
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const [pathname, query] = (req.url ?? "").split("?");
+        if (pathname === "/bilan" || pathname === "/bilan/") {
+          req.url = `/bilan/index.html${query === undefined ? "" : `?${query}`}`;
+        }
+        next();
+      });
+    },
+  }, {
     name: "shared-design-last",
     transformIndexHtml: {
       order: "post",

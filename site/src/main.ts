@@ -29,6 +29,7 @@ import {
 import { groupeDe } from "./semblables.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
+import { renduFrancePage, brancherFrancePage } from "./france-page.ts";
 import { insightsFrance } from "./insights-france.ts";
 import { renduInsights } from "./insights-rendu.ts";
 import { afficherFonctions } from "./fonctions.ts";
@@ -92,7 +93,7 @@ import {
   exemplesTerritoires,
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
-import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
+import { carteRetenue, renduDossierVedette, type Analyse } from "./analyse-rendu.ts";
 import { intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { brancherQuestions } from "./questions-ui.ts";
@@ -109,13 +110,17 @@ import "./styles/questions.css";
 import "./styles/salaires.css";
 import "./styles/editorial-identity.css";
 import "./styles/data-studio.css";
-import "./styles/shared-design.css";
 import "./styles/revue-civique.css";
+// The approved visual direction is the final shared layer: it must override
+// the historical paper/dashboard rules loaded by the legacy sheets above.
 import "./styles/analyses-revue.css";
+import "./styles/shared-design.css";
+import "./styles/france-page.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
+brancherFrancePage();
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -3308,6 +3313,7 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
+    if (!document.querySelector('.fr-page')) {
     afficherConclusionsBilan(pays, sourcesPubliees);
     // Les cinq chapitres portent EXACTEMENT les blocs de la maquette validée,
     // et rien d'autre : la première mise en production gardait sept blocs
@@ -3345,11 +3351,31 @@ async function demarrer(): Promise<void> {
     cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france", series: pays.FR.series });
     cadreInsightsFrance.hidden = analysesFrance.length === 0;
     brancherPartageAnalysesFrance();
+    const cadreDossierFrance = document.getElementById("bilan-dossier");
+    const sectionDossierFrance = document.getElementById("bilan-dossier-section");
+    if (cadreDossierFrance && sectionDossierFrance) {
+      const dossier = renduDossierVedette(ANALYSES);
+      cadreDossierFrance.innerHTML = dossier;
+      sectionDossierFrance.hidden = dossier === "";
+    }
     if (location.hash.startsWith("#insight-")) {
       requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "start" }));
     }
     if (analysesFrance.length > 0) {
       $("national").hidden = false;
+    }
+    }
+    const pageFrance = renduFrancePage(pays, catalogue, ANALYSES, sourcesPubliees);
+    if (pageFrance && !document.querySelector('.fr-page')) {
+      $("national").innerHTML = pageFrance;
+      $("national").hidden = false;
+      brancherPartageAnalysesFrance();
+      const cible = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (cible && (location.hash.startsWith('#insight-') || location.hash.startsWith('#arbitrages-'))) {
+        const famille = cible.closest('details');
+        if (famille) famille.open = true;
+        requestAnimationFrame(() => cible.scrollIntoView({block:'start'}));
+      }
     }
   } catch {
     // Les séries nationales ne sont pas encore publiées : la carte reste utile.

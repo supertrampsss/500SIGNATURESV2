@@ -48,6 +48,20 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### France: approved full-page visual reference (21 September 2026)
+
+The owner's full desktop/mobile mockup `codex-clipboard-38fe691f-cbf0-4957-adf1-75a44ccb8736.png`
+supersedes earlier France visual recommendations: navy/red on off-white, Assembly
+photograph, compact chapter navigation and four KPIs, line charts, receipts table,
+stacked spending bar, redistribution columns, paired social-security/debt panels,
+European bar charts, seven illustrated topic cards and the complete footer.
+Use `site/src/france-page.ts` and `site/src/styles/france-page.css` for this composition.
+Keep all existing analyses accessible inside their topic and all numbers sourced.
+Do not restore the old dot plots, giant headings or long ungrouped analysis layout.
+France remains the national accounts page; Villes remains the territorial explorer.
+Inspect the entire rendered page, including mobile and opened topics, before claiming
+visual completion. A passing build is not evidence of visual fidelity.
+
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for commands and checks by change type.
 Inspect the working tree before edits and preserve other people's changes.
 Keep domain rules outside UI code; use the existing stack before adding dependencies.

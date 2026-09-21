@@ -25,7 +25,7 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3, catalogue: Indicateur[]
 }
 
 /** Toutes les analyses restent visibles. */
-function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4, catalogue: Indicateur[], series?: Territoire["series"]): string {
+export function cartesAvecSuite(cartes: Insight[], niveauTitre: 3 | 4, catalogue: Indicateur[], series?: Territoire["series"]): string {
   return `<ol class="insights__grille">${cartes.map(insight => carte(insight,niveauTitre,catalogue,series)).join("")}</ol>`;
 }
 
