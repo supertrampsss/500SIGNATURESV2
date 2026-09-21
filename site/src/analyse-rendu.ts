@@ -400,6 +400,22 @@ function valeursDistinctes(
     .sort((a, b) => a.libelle.localeCompare(b.libelle, "fr"));
 }
 
+/** Pont minimal utilisé par la page France pour afficher son lien éditorial. */
+export function renduDossierVedette(analyses: readonly Analyse[]): string {
+  const analyse = analyses.find((a) => a.slug === "groenland-accord-securite-europe") ?? analyses[0];
+  if (!analyse) return "";
+  const chapo = analyse.dossier?.chapo ?? analyse.affirmation.texte;
+  return `<article class="bilan-dossier" aria-labelledby="bilan-dossier-title">
+    <div class="bilan-dossier__texte">
+      <p class="bilan-dossier__surtitre">Pour aller plus loin</p>
+      <h2 id="bilan-dossier-title">Un dossier pour éclairer les chiffres</h2>
+      <p class="bilan-dossier__titre">${echapper(analyse.titre)}</p>
+      <p class="bilan-dossier__chapo">${echapper(chapo)}</p>
+      <a class="bilan-dossier__lire" href="/analyses/${echapper(analyse.slug)}/">Lire le dossier</a>
+    </div>
+  </article>`;
+}
+
 export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): string {
   const triees = [...analyses].sort((a, b) => b.publie_le.localeCompare(a.publie_le));
   const lignes = triees
