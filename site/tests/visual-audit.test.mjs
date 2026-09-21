@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 const PAGES = [
-  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Les chiffres publics expliqués.' },
+  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Comprendre aujourd’hui' },
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
   { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Votre ville, ses données, ses choix' },
 ];
