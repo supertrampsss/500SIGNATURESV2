@@ -60,7 +60,7 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
       return `<a href="${href}"${courant}>${libelle}</a>`;
     }
     const estSimulateurIndisponible = cle === "simuler" && !simulateurDisponible;
-    const courant = chemin === href && !estSimulateurIndisponible ? ' aria-current="page"' : "";
+    const courant = chemin === normaliserChemin(href) && !estSimulateurIndisponible ? ' aria-current="page"' : "";
     const indisponible = estSimulateurIndisponible ? ' aria-disabled="true" tabindex="-1"' : "";
     return `<a href="${href}" data-vue="${cle}"${courant}${indisponible}>${libelle}</a>`;
   }).join("") + `<a href="/mandats/"${chemin === "/mandats" ? ' aria-current="page"' : ""}>Mandats</a><a href="https://x.com/500Signatures" target="_blank" rel="me noopener">X / Twitter</a>`;
