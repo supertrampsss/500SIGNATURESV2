@@ -652,7 +652,7 @@ test("7 ter. l'index et chaque dossier publié ont un h1 propre", async () => {
   const analyses = await analysesPubliees();
   assert.ok(analyses.length > 0, "aucun dossier publié");
   const index = renduIndex(analyses, catalogueEnEuros(analyses));
-  assert.match(index, /<h1 id="analyses-titre">Dossiers<\/h1>/);
+  assert.match(index, /<h1 id="analyses-titre">Les dossiers publics, pièce par pièce\.<\/h1>/);
   for (const analyse of analyses) {
     const html = rendu(analyse, catalogueEnEuros([analyse]));
     assert.ok(html.includes(`<h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>`));
@@ -1281,22 +1281,12 @@ test("15 quinquies. la liste des cadres se lit dans le gabarit, et elle n'est pa
   assert.ok(CADRES_REPERES.includes("bloc-cent-euros-apu"), CADRES_REPERES.join(", "));
 });
 
-test("15 sexies. aucun cadre du gabarit n'est servi déplié et vide", () => {
-  // La règle que la docstring d'`injecterReperes` porte, appliquée à TOUS les
-  // cadres du gabarit et non aux seuls qu'on a pensé à nommer : chacun est
-  // rempli, ou replié. C'est le contrôle qui manquait quand les trois cadres
-  // neufs sont partis en production vides.
+test("15 sexies. la composition France publiée ne contient aucun cadre vide", () => {
   const html = REPERES_ESSAI();
-  for (const id of CADRES_REPERES) {
-    const cadre = new RegExp(`<article[^>]*id="${id}"([^>]*)>([\\s\\S]*?)</article>`);
-    const trouve = html.match(cadre);
-    assert.ok(trouve, `« ${id} » a disparu du document`);
-    const [, attributs, corps] = trouve;
-    assert.ok(
-      / hidden/.test(attributs) || corps.trim() !== "",
-      `« ${id} » est servi déplié et vide : le lecteur voit un cadre bordé sans rien dedans`,
-    );
-  }
+  assert.match(html, /data-france-design="maquette-complete-20260921"/);
+  assert.match(html, /id="bloc-ouverture"/);
+  assert.match(html, /id="bloc-secu"/);
+  assert.doesNotMatch(html, /<(?:section|article|aside|div)[^>]*id="bloc-[^"]*"[^>]*>\s*<\/(?:section|article|aside|div)>/);
 });
 
 function territoireEssai(series: Record<string, Record<string, number>>): Territoire {
@@ -1426,39 +1416,25 @@ test("15. la source Europe pré-rendue résout vers une fiche effectivement serv
   assert.match(sources, /id="eurostat-comparaison"/);
 });
 
-test("15. le bilan servi enchaîne directement le verdict et les trois chapitres", () => {
+test("15. le bilan publié suit la maquette complète et n'annonce que les chapitres disponibles", () => {
   const html = REPERES_ESSAI();
-  const ids = ["france-verdict", "france-entrees", "france-sorties", "france-dette"];
-  const positions = ids.map((id) => html.indexOf(`id="${id}"`));
-  assert.ok(positions.every((position) => position >= 0), "un chapitre du parcours manque au bilan");
-  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "le parcours du bilan n'est plus dans l'ordre de lecture");
-  assert.doesNotMatch(html, /bilan-portes/);
-  assert.equal((html.match(/class="bilan-chapitre"/g) ?? []).length, 3);
-  assert.match(html, /href="#france-entrees"/);
-  assert.match(html, /href="#france-sorties"/);
-  assert.match(html, /href="#france-dette"/);
-  assert.doesNotMatch(html, /<strong>La dette et l'Europe<\/strong>/);
-  assert.doesNotMatch(html, /href="#france-europe"/);
-  assert.doesNotMatch(html, /bilan-guide__nav/);
-  assert.doesNotMatch(html, /id="france-europe"/);
-  const position = (id: string) => {
-    const index = html.indexOf(`id="${id}"`);
-    assert.ok(index >= 0, `${id} introuvable dans le bilan servi`);
-    return index;
-  };
-  assert.ok(position("bloc-dette") < position("bloc-europe"));
-  assert.ok(position("bloc-europe") < html.indexOf('class="mandats-invitation"'));
-  assert.doesNotMatch(html, /id="france-verdict"[\s\S]*?class="ui-conclusion bilan-verdict"[\s\S]*?Pour 100 € encaissés/);
-  assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion[^"]*"[\s\S]*?D'où vient l'argent/);
+  const ids = ["france-verdict", "france-entrees", "bloc-secu", "france-dette", "insights-france"];
+  const positions = ids.map(id => html.indexOf(`id="${id}"`));
+  assert.ok(positions.every(position => position >= 0));
+  assert.deepEqual([...positions].sort((a,b) => a-b), positions);
+  assert.doesNotMatch(html, /class="bilan-chapitre"|bilan-portes/);
+  for (const lien of html.matchAll(/href="#((?:france-|bloc-|insights-france)[^"]*)"/g)) {
+    assert.ok(html.includes(`id="${lien[1]}"`), `Ancre sans cible : ${lien[1]}`);
+  }
 });
 
 test("15 bis. le pré-rendu ne réintroduit aucun doublon du verdict", () => {
-  assert.doesNotMatch(GABARIT_REEL, /id="bilan-synthese"|id="bilan-reperes"/);
-  const html = REPERES_ESSAI();
+  const html=REPERES_ESSAI();
   assert.doesNotMatch(html, /id="bilan-synthese"|id="bilan-reperes"/);
-  assert.match(html, /<a href="\/mandats\/\?mode=national">Prendre les décisions<\/a>/);
-  const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /syntheseOuverture|reperesOuverture/);
+  assert.equal((html.match(/class="fr-hero"/g) ?? []).length,1);
+  assert.equal((html.match(/class="fr-keyfigures"/g) ?? []).length,1);
+  assert.match(html, /href="\/mandats\/"/);
+  assert.doesNotMatch(html,/mandats-invitation/);
 });
 
 test("15 ter. le pré-rendu transmet les pays aux comparaisons des arbitrages France", () => {
@@ -1466,83 +1442,43 @@ test("15 ter. le pré-rendu transmet les pays aux comparaisons des arbitrages Fr
   assert.match(source, /insightsFrance\(pays\.FR,\s*catalogue,\s*pays\)/);
 });
 
-test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
+test("15. /bilan sert graphiques, chiffres et projection sourcée sans JavaScript", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);
-
-  // Ce que les deux blocs alimentés par ce fixture écrivent, dans les mots que
-  // le module rend — jamais une chaîne tapée ici, qui ne dirait rien de ce que
-  // la page écrit vraiment. Les quatre autres blocs n'ont pas leurs séries
-  // dans ce fixture : le test « 15 ter » vérifie qu'ils partent repliés.
-  for (const phrase of [
-    "la charge de la dette va augmenter",
-    "La Sécu est-elle en déficit ?",
-  ]) {
+  for (const phrase of ["Les comptes","La dette publique","La Sécurité sociale en 2024","98 milliards"]) {
     assert.ok(texte.includes(phrase), `« ${phrase} » n'est pas servi`);
   }
-
-  // La trajectoire institutionnelle, et non une extrapolation nominale maison,
-  // doit être réellement pré-rendue avec le bloc.
-  assert.ok(html.includes("130,5"), "le point 2030 de la mission indépendante n'est pas servi");
-  assert.ok(html.includes("tableau 5, p. 15"), "la source précise de la projection n'est pas servie");
-
-  // Le seuil suit la mesure : 1 051 signes sur ce fixture, qui n'alimente que
-  // deux des six blocs. Il a encore baissé après le 19 août — « qui la
-  // porte » plié dans la réponse plutôt que répété dans une légende, le
-  // graphique du taux d'emprunt retiré (déjà dans la réponse), le sommaire
-  // du bilan retiré, et les trois légendes qui expliquaient un tableau au lieu
-  // de le laisser parler (COFOG, seuils de décile, sous-secteur S1314) — et
-  // c'est voulu : la page porte moins de texte qu'avant sans en dire moins,
-  // les mêmes faits vivant en un seul endroit chacun.
-  assert.ok(texte.length > 950, `<main> ne porte que ${texte.length} signes de texte`);
+  assert.match(html, /130,5/);
+  assert.match(html, /budget\.gouv\.fr[^"]+#page=20/);
+  assert.match(html, /<svg[^>]*role="img"/);
+  assert.ok(texte.length > 950);
 });
 
-test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {
+test("15 bis. la vue France part dépliée et l'accueil reste replié", () => {
   const html = REPERES_ESSAI();
-
-  // Dépliée, sans quoi la page serait écrite dans le document et servie à
-  // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
   assert.match(html, /<div class="vue" id="vue-bilan">/);
-  // La section nationale est `hidden` dans le gabarit — c'est le retour des
-  // peintres qui l'ouvre côté navigateur, et le pré-rendu doit l'ouvrir aussi.
   assert.match(html, /<section class="national" id="national">/);
-  // L'accueil replié, sans quoi il s'afficherait au-dessus des repères jusqu'à
-  // ce que `basculerVue` tranche.
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
-  // Mais tous les cadres restent présents : `$` y renverrait `null`, et le
-  // navigateur ne pourrait plus repeindre.
-  for (const id of [...CADRES_REPERES, "national"]) {
-    assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
-  }
-  // Le document reste celui de l'application : `data-page="editorial"`
-  // arrêterait le paquet avant les graphiques et le sélecteur d'exercice.
+  assert.match(html,/class="fr-page"/);
   assert.doesNotMatch(html, /data-page="editorial"/);
 });
 
-test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", () => {
-  // Un cadre déplié et vide se lit comme une panne. Le fixture alimente aussi
-  // l'ouverture pour éprouver l'équation ; les peintres sans leurs séries
-  // doivent tout de même partir repliés.
+test("15 ter. un bloc sans données est omis, sans remplacer ses chiffres", () => {
   const html = REPERES_ESSAI();
-  for (const id of [
-    "bloc-recettes-etat",
-    "bloc-cent-euros-apu",
-    "bloc-fonctions",
-    "bloc-redistribution",
-  ]) {
-    assert.match(html, new RegExp(`id="${id}"[^>]* hidden>`), `« ${id} » est resté déplié et vide`);
+  for (const id of ["bloc-recettes-etat","bloc-cent-euros-apu","bloc-fonctions","bloc-redistribution"]) {
+    assert.ok(!html.includes(`id="${id}"`), `Bloc sans données : ${id}`);
   }
-  // Les blocs qui ont leurs séries, eux, sont écrits — sans quoi ce test
-  // passerait sur une page entièrement repliée sans rien prouver.
-  assert.doesNotMatch(html, /id="bloc-dette"[^>]* hidden>/);
-  assert.ok(texteDuMain(html).includes("la charge de la dette va augmenter"));
+  assert.match(html,/id="bloc-dette"/);
+  assert.match(html,/id="bloc-secu"/);
+  assert.doesNotMatch(html,/NaN|Infinity|undefined/);
 });
 
-test("la protection sociale disparaît sans données et revient avec la Sécu", () => {
-  const sansSecu = CATALOGUE_REPERES.filter((i) => !i.id.startsWith("eurostat_secu_"));
-  const vide = injecterReperes(GABARIT_REEL, PAYS_ESSAI, sansSecu, NICHES_ESSAI, BUDGET_ESSAI);
-  assert.match(vide, /id="france-complements"[^>]*\bhidden\b/);
-  assert.doesNotMatch(REPERES_ESSAI(), /id="france-complements"[^>]*\bhidden\b/);
+test("la Sécurité sociale disparaît sans ses séries et revient avec elles", () => {
+  const pays=structuredClone(PAYS_ESSAI);
+  for(const id of Object.keys(pays.FR.series)) if(id.startsWith("eurostat_secu_")) delete pays.FR.series[id];
+  const vide=injecterReperes(GABARIT_REEL,pays,CATALOGUE_REPERES,NICHES_ESSAI,BUDGET_ESSAI);
+  assert.doesNotMatch(vide,/id="bloc-secu"/);
+  assert.match(REPERES_ESSAI(),/id="bloc-secu"/);
 });
 
 test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repères", () => {
