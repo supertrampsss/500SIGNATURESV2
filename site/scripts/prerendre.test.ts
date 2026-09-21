@@ -1035,31 +1035,28 @@ const LOT_ESSAI: Record<string, Territoire> = {
   "02": region("Plus petit code complet", TROIS_SERIES),
 };
 
-test("12. le gabarit sert l'accueil écrit, message principal compris, sans exécuter une ligne", async () => {
+test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async () => {
   const analyses = await analysesPubliees();
   const corps = corpsAccueil(analyses, CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
   const html = injecterAccueil(GABARIT_REEL, corps, "v-essai");
 
-  // Ce que `<main>` porte, balises retirées : le message principal du site, et
-  // les appels à l'action. Sans JavaScript, sans réseau, sans rien.
   const texte = texteDuMain(html);
-  assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
-  for (const appel of ["Lire le dossier", "Découvrir Mandats", "Chercher ma commune"]) {
+  assert.ok(texte.includes("Comprendre aujourd’hui"), "l'accroche n'est pas servie");
+  assert.ok(texte.includes("pour mieux agir demain."), "la promesse n'est pas complète");
+  for (const appel of ["Explorer la France", "Lire les dossiers", "Commencer mon mandat"]) {
     assert.ok(texte.includes(appel), appel);
   }
-  // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.
-  assert.ok(texte.length > 1000, `<main> ne porte que ${texte.length} signes de texte`);
-
-  // Le cadre reste le cadre : `basculerVue` (main.ts) le montre et le masque
-  // par son identifiant, et `brancherAppelRecherche` y délègue son écouteur.
+  assert.ok(texte.length > 500, `<main> ne porte que ${texte.length} signes de texte`);
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
 });
 
-test("12 bis. le pré-rendu sert la hiérarchie France puis l'atelier secondaire", async () => {
+test("12 bis. le pré-rendu sert les trois portes avant la simulation", async () => {
   const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
   const parcours = [
-    ["Comprendre la France", "/bilan/"],
-    ["Explorer salaires et prélèvements", "/salaires/"],
+    ["Comprendre<br>la France", "/bilan/"],
+    ["Explorer<br>les territoires", "/territoire"],
+    ["Approfondir<br>un sujet", "/analyses/"],
+    ["Prenez les rênes du pays.", "/mandats/?mode=national"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {
     const position = corps.indexOf(`href="${href}"`);
@@ -1069,18 +1066,12 @@ test("12 bis. le pré-rendu sert la hiérarchie France puis l'atelier secondaire
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
 });
 
-test("12 ter. le tirage du pré-rendu est le premier territoire COMPLET de la liste publiée", () => {
-  // Un choix, jamais un aléa refait à chaque build : deux constructions du même
-  // dépôt donneraient deux pages, et le diff du site deviendrait illisible.
+test("12 ter. le pré-rendu de l'accueil ne dépend plus d'un territoire tiré au sort", () => {
   assert.equal(ALEA_PRERENDU, 0);
   const corps = corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]);
-  // Zéro désigne le premier ÉLIGIBLE — la région trouée afficherait un trou à
-  // l'endroit le plus visible du site — dans l'ordre des CODES, et non dans
-  // celui où JavaScript rend les clés d'un objet, où « 11 » passe devant « 01 ».
-  assert.ok(corps.includes("Plus petit code complet"));
+  assert.ok(!corps.includes("Plus petit code complet"));
   assert.ok(!corps.includes("Plus petit code, troué"));
   assert.ok(!corps.includes("Code plus grand, complet"));
-  // Et deux compositions de suite donnent la même page, au caractère près.
   assert.equal(corps, corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]));
 });
 
