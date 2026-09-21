@@ -143,12 +143,12 @@
         </figure>
         <aside class="territoire-apercu__recents">
           <h2>Communes récentes</h2>
-          <ul>
-            <li>Lyon <span>(69)</span></li>
-            <li>Bordeaux <span>(33)</span></li>
-            <li>Nantes <span>(44)</span></li>
-            <li>Strasbourg <span>(67)</span></li>
-            <li>Lille <span>(59)</span></li>
+          <ul id="territoire-recents">
+            <li><a href="/territoire?niveau=commune&territoire=69123"><span>Lyon</span><small>69</small></a></li>
+            <li><a href="/territoire?niveau=commune&territoire=33063"><span>Bordeaux</span><small>33</small></a></li>
+            <li><a href="/territoire?niveau=commune&territoire=44109"><span>Nantes</span><small>44</small></a></li>
+            <li><a href="/territoire?niveau=commune&territoire=67482"><span>Strasbourg</span><small>67</small></a></li>
+            <li><a href="/territoire?niveau=commune&territoire=59350"><span>Lille</span><small>59</small></a></li>
           </ul>
           <a href="/territoire#recherche">Voir toutes les communes</a>
         </aside>
@@ -157,12 +157,12 @@
       <section class="territoire-synthese" aria-labelledby="territoire-synthese-titre">
         <h2 id="territoire-synthese-titre">Synthèse du territoire</h2>
         <div class="territoire-synthese__contenu">
-          <div class="territoire-synthese__image" role="img" aria-label="Paysage de commune française"></div>
+          <div class="territoire-synthese__image" aria-hidden="true"></div>
           <div class="territoire-synthese__reperes">
-            <div><span class="territoire-repere__icone territoire-repere__icone--population" aria-hidden="true">●●●</span><strong>Population</strong><p>Habitants et dynamiques</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--budget" aria-hidden="true">●●●</span><strong>Budget</strong><p>Recettes, dépenses, grands équilibres</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--services" aria-hidden="true">▥</span><strong>Services</strong><p>Équipements et services publics</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--executif" aria-hidden="true">●</span><strong>L'exécutif municipal</strong><p>Maire et équipe municipale</p></div>
+            <div><span class="territoire-repere__icone territoire-repere__icone--population" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><strong>Population</strong><p>Habitants et dynamiques</p></div>
+            <div><span class="territoire-repere__icone territoire-repere__icone--budget" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V11m6 9V5m6 15v-7m4 7V8"/></svg></span><strong>Budget</strong><p>Recettes, dépenses, grands équilibres</p></div>
+            <div><span class="territoire-repere__icone territoire-repere__icone--services" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 9 9-5 9 5M5 10v9m4-9v9m6-9v9m4-9v9M3 20h18"/></svg></span><strong>Services</strong><p>Équipements et services publics</p></div>
+            <div><span class="territoire-repere__icone territoire-repere__icone--executif" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21v-4a7 7 0 0 1 14 0v4"/></svg></span><strong>L'exécutif municipal</strong><p>Maire et équipe municipale</p></div>
           </div>
         </div>
       </section>

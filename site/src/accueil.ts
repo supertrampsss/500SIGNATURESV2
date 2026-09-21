@@ -493,7 +493,7 @@ export function renduAnalysesRecentes(
     )
     .join("");
   return `<section class="accueil__bloc accueil__bloc--dossiers-recents" aria-labelledby="accueil-analyses">
-    <div class="accueil__section-heading"><h3 id="accueil-analyses">Derniers dossiers</h3><a href="/analyses/">Tous les dossiers</a></div>
+    <div class="accueil__section-heading"><h3 id="accueil-analyses">Derniers dossiers</h3></div>
     <ul class="accueil__analyses">${cartes}</ul>
   </section>`;
 }
@@ -624,13 +624,13 @@ export function rendu(donnees: DonneesAccueil): string {
       <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
       <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Découvrir les dossiers</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Explorer la France</a></p>
       ${renduPreuvesOuverture(donnees)}
-    </section><div class="accueil__illustration" aria-hidden="true"><img src="/brand/accueil-assemblee.png" alt=""></div>${renduApercuComptes(donnees.france, enAvant)}
+    </section>${renduApercuComptes(donnees.france, enAvant)}
     </div>
     ${renduFranceAccueil()}
     ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
     <div class="accueil__dossiers">${renduVerdictDuMoment(enAvant, donnees.catalogue)}${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}</div>
-    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">À vous de décider.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
     ${renduQuestionsAccueil()}
+    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">Passez des chiffres aux arbitrages.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
   </div>`;
 }

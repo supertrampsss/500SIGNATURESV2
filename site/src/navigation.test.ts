@@ -13,7 +13,7 @@ test("la navigation expose l’accueil et les cinq destinations utiles", () => {
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
       { cle: "accueil", href: "/accueil/", libelle: "Accueil" },
-      { cle: "france", href: "/bilan", libelle: "France" },
+      { cle: "france", href: "/bilan/", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Villes" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
       { cle: "analyses", href: "/analyses/", libelle: "Dossiers" },
@@ -30,7 +30,7 @@ test("l’accueil est une entrée native et reste courant à la racine", () => {
 });
 
 test("France est la destination courante sur le chemin historique du bilan", () => {
-  assert.match(renduNavigation("/bilan", true), /href="\/bilan"[^>]*aria-current="page"/);
+  assert.match(renduNavigation("/bilan", true), /href="\/bilan\/"[^>]*aria-current="page"/);
 });
 
 test("Mandats est la destination courante avec ou sans barre finale", () => {

@@ -116,6 +116,7 @@ import "./styles/revue-civique.css";
 import "./styles/analyses-revue.css";
 import "./styles/shared-design.css";
 import "./styles/france-page.css";
+import "./styles/france-aligned-pages.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
@@ -676,6 +677,46 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
   return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
 }
 
+
+type TerritoireRecent = { code: string; niveau: string; nom: string };
+const CLE_TERRITOIRES_RECENTS = "500signatures:territoires-recents";
+
+function lireTerritoiresRecents(): TerritoireRecent[] {
+  try {
+    const brut = localStorage.getItem(CLE_TERRITOIRES_RECENTS);
+    if (!brut) return [];
+    const lu = JSON.parse(brut);
+    if (!Array.isArray(lu)) return [];
+    return lu.filter((item): item is TerritoireRecent =>
+      item && typeof item.code === "string" && typeof item.niveau === "string" && typeof item.nom === "string",
+    ).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+function rendreTerritoiresRecents(): void {
+  const liste = document.getElementById("territoire-recents");
+  if (!liste) return;
+  const recents = lireTerritoiresRecents();
+  if (!recents.length) return;
+  liste.innerHTML = recents.map(({ code, niveau, nom }) =>
+    `<li><a href="${adresseTerritoire(code, niveau)}"><span>${echapper(nom)}</span><small>Revoir</small></a></li>`,
+  ).join("");
+}
+
+function memoriserTerritoireRecent(code: string, niveau: string, nom: string): void {
+  if (niveau !== "commune") return;
+  const recents = lireTerritoiresRecents().filter((item) => !(item.code === code && item.niveau === niveau));
+  recents.unshift({ code, niveau, nom });
+  try {
+    localStorage.setItem(CLE_TERRITOIRES_RECENTS, JSON.stringify(recents.slice(0, 5)));
+  } catch {
+    return;
+  }
+  rendreTerritoiresRecents();
+}
+
 /** Une entrée locale, sans présenter le budget national comme un territoire choisi. */
 function afficherApercu(): void {
   delete document.body.dataset.territoireSelection;
@@ -964,6 +1005,7 @@ async function montrerFiche(code: string): Promise<void> {
   const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   etat.selection = code;
+  memoriserTerritoireRecent(code, niveau, territoire.nom);
   document.body.dataset.territoireSelection = "oui";
   marquerSelection(code);
   ecrireUrl();
@@ -3197,6 +3239,7 @@ async function demarrer(): Promise<void> {
   // La fonction est rejouée par `basculerVue` pour les vues applicatives,
   // avec le même contenu et sans effet de bord.
   rendreNavigationPrincipale();
+  rendreTerritoiresRecents();
   // Les liens du simulateur historique restent lisibles, mais ne doivent plus
   // ouvrir deux interfaces différentes. On les ramène silencieusement vers
   // la campagne V3 avant de lire l'état ou de monter une vue.
