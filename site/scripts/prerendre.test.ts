@@ -1052,18 +1052,22 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
 
 test("12 bis. le pré-rendu sert les trois portes avant la simulation", async () => {
   const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
+  const debutPortes = corps.indexOf('class="story-section story-doors"');
+  const finPortes = corps.indexOf('class="story-section story-questions"', debutPortes);
+  const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
     ["Comprendre<br>la France", "/bilan/"],
     ["Explorer<br>les territoires", "/territoire"],
     ["Approfondir<br>un sujet", "/analyses/"],
-    ["Prenez les rênes du pays.", "/mandats/?mode=national"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {
-    const position = corps.indexOf(`href="${href}"`);
-    assert.ok(position !== -1 && corps.includes(libelle), `${libelle} introuvable`);
+    const position = portes.indexOf(`href="${href}"`);
+    assert.ok(position !== -1 && portes.includes(libelle), `${libelle} introuvable`);
     return position;
   });
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  assert.ok(corps.indexOf("Prenez les rênes du pays.") > finPortes);
+  assert.ok(corps.includes('href="/mandats/?mode=national"'));
 });
 
 test("12 ter. le pré-rendu de l'accueil ne dépend plus d'un territoire tiré au sort", () => {
