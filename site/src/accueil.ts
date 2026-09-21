@@ -601,14 +601,6 @@ export function renduQuestionsAccueil(): string {
   </section>`;
 }
 
-function renduPreuvesOuverture(donnees: DonneesAccueil): string {
-  return `<div class="accueil__preuves" aria-label="Repères du site">
-    <div><span>Des indicateurs publiés</span><strong>${formater(donnees.catalogue.length, "count", false)}</strong></div>
-    <div><span>Des dossiers documentés</span><strong>${formater(donnees.analyses.length, "count", false)}</strong></div>
-    <div><span>Une information accessible</span><strong>Pour tous</strong></div>
-  </div>`;
-}
-
 /**
  * L'accueil entier : une promesse, la France, les Villes, les Dossiers, puis
  * la simulation. Les sources et les questions réassurent avant le dernier
