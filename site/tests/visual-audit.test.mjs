@@ -74,7 +74,8 @@ for (const pageCible of PAGES) {
       };
 
       const resume = (selecteur) => {
-        const element = document.querySelector(selecteur);
+        const element = Array.from(document.querySelectorAll(selecteur))
+          .find((candidate) => candidate instanceof HTMLElement && visible(candidate));
         if (!(element instanceof HTMLElement)) return null;
         const style = getComputedStyle(element);
         const rect = element.getBoundingClientRect();
