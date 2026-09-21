@@ -175,6 +175,9 @@ test('navigation : contrat des destinations publiques depuis France', async ({ p
   await page.goto('/bilan/', { waitUntil: 'domcontentloaded' });
   await stabiliser(page);
 
+  const menu = page.locator('.fr-menu');
+  if (await menu.isVisible()) await menu.click();
+
   const navigation = page.getByRole('navigation', { name: 'Navigation principale', exact: true });
   const observee = [];
 
