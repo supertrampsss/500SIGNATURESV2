@@ -743,9 +743,8 @@ html[data-theme] body[data-vue="territoire"] #vue-territoire {
 html[data-theme] body[data-vue="territoire"] .territoire-recherche {
   display:grid;
   grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);
-  grid-template-rows:auto auto;
-  gap:12px 42px;
-  align-items:end;
+  gap:42px;
+  align-items:center;
   margin:0;
   padding:48px 52px 42px;
   border:0;
@@ -755,8 +754,10 @@ html[data-theme] body[data-vue="territoire"] .territoire-recherche {
   color:var(--fr-ink);
 }
 
-html[data-theme] body[data-vue="territoire"] .territoire-recherche__introduction {
-  grid-row:1 / span 2;
+html[data-theme] body[data-vue="territoire"] .territoire-recherche__outil {
+  display:grid;
+  gap:10px;
+  align-self:center;
 }
 
 html[data-theme] body[data-vue="territoire"] .territoire-recherche__surtitre {
@@ -1080,6 +1081,7 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .t
   display:none;
 }
 
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche__outil,
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche__champ {
   max-width:620px;
 }
@@ -1413,12 +1415,14 @@ html[data-theme] body[data-vue="territoire"] .territoire__tables {
     font-size:15px;
   }
 
-  html[data-theme] body[data-vue="territoire"] .territoire-recherche__champ-titre {
+  html[data-theme] body[data-vue="territoire"] .territoire-recherche__outil {
     margin-top:24px;
+    gap:9px;
   }
 
+  html[data-theme] body[data-vue="territoire"] .territoire-recherche__champ-titre,
   html[data-theme] body[data-vue="territoire"] .territoire-recherche__champ {
-    margin-top:9px;
+    margin-top:0;
   }
 
   html[data-theme] body[data-vue="territoire"] .territoire-apercu,
