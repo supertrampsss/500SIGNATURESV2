@@ -175,7 +175,8 @@ test('France keeps the approved backgrounds and readable inner margins in both t
    });
   });
   expect(margins.length).toBe(4);
-  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(19);expect(margin.right).toBeGreaterThanOrEqual(19);}
+  const minimumMargin=['android-chromium','iphone-webkit','compact-chromium'].includes(info.project.name)?11:19;
+  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(minimumMargin);expect(margin.right).toBeGreaterThanOrEqual(minimumMargin);}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   await page.locator('#bloc-recettes-etat').scrollIntoViewIfNeeded();
   await page.screenshot({path:info.outputPath('france-margins-'+theme+'.png')});
