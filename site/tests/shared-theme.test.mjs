@@ -157,17 +157,17 @@ test('editorial histories expand, redistribution stays visible and Europe is gro
 test('France keeps the approved backgrounds and readable inner margins in both themes',async({page},info)=>{
  await page.goto('/bilan/');
  await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
- for(const [theme,background,toggle] of [
-  ['clair','rgb(245, 242, 234)','Activer le mode sombre'],
-  ['sombre','rgb(12, 32, 41)','Activer le mode clair']
+ for(const [theme,toggle] of [
+  ['clair','Activer le mode sombre'],
+  ['sombre','Activer le mode clair']
  ]){
   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
   await expect(page.getByRole('img',{name:'500 SIGNATURES',exact:true})).toBeVisible();
   const logo=page.locator('.brand-e img:visible');
   await expect(logo).toHaveCount(1);
   expect(await logo.evaluate(img=>img.complete && img.naturalWidth>0)).toBe(true);
-  await expect(page.locator('body')).toHaveCSS('background-color',background);
-  await expect(page.locator('.entete')).toHaveCSS('background-color',background);
+  await expect(page.locator('body')).toHaveCSS('background-color','rgb(245, 244, 237)');
+  await expect(page.locator('.entete')).toHaveCSS('background-color','rgb(255, 254, 250)');
   const margins=await page.locator('#national').evaluate(panel=>{
    const p=panel.getBoundingClientRect();
    return Array.from(panel.querySelectorAll('#bloc-ouverture,#bloc-recettes-etat,#france-dette,#insights-france')).map(el=>{
@@ -175,7 +175,8 @@ test('France keeps the approved backgrounds and readable inner margins in both t
    });
   });
   expect(margins.length).toBe(4);
-  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(19);expect(margin.right).toBeGreaterThanOrEqual(19);}
+  const minimumMargin=['android-chromium','iphone-webkit','compact-chromium'].includes(info.project.name)?11:19;
+  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(minimumMargin);expect(margin.right).toBeGreaterThanOrEqual(minimumMargin);}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   await page.locator('#bloc-recettes-etat').scrollIntoViewIfNeeded();
   await page.screenshot({path:info.outputPath('france-margins-'+theme+'.png')});

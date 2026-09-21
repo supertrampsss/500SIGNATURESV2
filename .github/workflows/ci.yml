@@ -64,3 +64,31 @@ jobs:
         run: |
           pip install -q -e ./pipeline pytest
           pytest -q pipeline/tests
+
+  visual-audit:
+    # Audit visuel indépendant des tests unitaires : même si un test historique
+    # échoue, les captures desktop/mobile restent produites et téléchargeables.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Typecheck et build du site
+        run: npm run build
+      - name: Installer Chromium pour l'audit visuel
+        run: npx playwright install --with-deps chromium
+      - name: Capturer Accueil, France et Villes
+        run: npm run audit:visual
+      - name: Publier les captures et le rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-audit-${{ github.sha }}
+          path: site/visual-audit-artifacts/
+          retention-days: 14
+

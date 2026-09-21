@@ -555,90 +555,48 @@ function page(overrides: Partial<Parameters<typeof rendu>[0]> = {}): string {
   });
 }
 
-test("25. l'accueil sans donnée ouvre France et son atelier secondaire", () => {
-  const html = rendu({
-    analyses: [],
-    catalogue: [],
-    territoires: [],
-    alea: 0,
-    producteurs: [],
-  });
-  const parcours = [
-    ["Comprendre la France", "/bilan/"],
-    ["Explorer salaires et prélèvements", "/salaires/"],
-  ] as const;
-  const positions = parcours.map(([libelle, href]) => {
-    const position = html.indexOf(`href=\"${href}\"`);
-    assert.ok(position !== -1, `${libelle} mène à ${href}`);
-    assert.ok(html.includes(libelle), `${libelle} est proposé`);
-    return position;
-  });
-  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "France précède son atelier secondaire");
-  assert.ok(html.includes('class="accueil__bloc accueil__bloc--france"'));
-});
-
-test("26. France et Villes précèdent les dossiers, Mandats ferme le parcours", () => {
-  const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
-  assert.ok(html.indexOf("France") < html.indexOf("Et chez vous ?"));
-  assert.ok(
-    html.indexOf("Et chez vous ?") < html.indexOf("Dossiers · à la une"),
-    "Villes précède les dossiers",
-  );
-  assert.ok(html.indexOf("Derniers dossiers") < html.indexOf("À vous de décider."));
-});
-
-test("27. l'accueil suit France, Villes, Dossiers, confiance, puis Mandats", () => {
-  const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
-  const repères = [
-    'aria-labelledby="accueil-france"',
-    'aria-labelledby="accueil-territoire"',
-    'aria-labelledby="accueil-verdict"',
-    'aria-labelledby="accueil-analyses"',
-    'aria-labelledby="accueil-confiance"',
-  ].map((repère) => html.indexOf(repère));
-  assert.ok(repères.every((position) => position !== -1), "chaque étape du récit est rendue");
-  assert.deepEqual(
-    [...repères].sort((a, b) => a - b),
-    repères,
-    "les preuves et les actions suivent une progression unique",
-  );
-  assert.ok(html.indexOf("À vous de décider.") < html.indexOf('aria-labelledby="accueil-confiance"'));
-});
-
-test("28. chaque chiffre porte son unité sans unité globale ambiguë", () => {
-  assert.ok(!page().includes(MENTION_MILLIONS));
-});
-
-test("28. la promesse ouvre la lecture et France avant les autres parcours", () => {
+test("25. l'accueil ouvre les trois portes utiles sans atelier secondaire", () => {
   const html = page();
-  assert.ok(html.includes(MESSAGE_PRINCIPAL));
-  const ouverture = html.slice(
-    html.indexOf(MESSAGE_PRINCIPAL) + MESSAGE_PRINCIPAL.length,
-    html.indexOf('class="accueil__bloc accueil__bloc--confiance'),
-  );
-  assert.ok(
-    texteLu(ouverture).includes("Découvrir les dossiers"),
-    "la lecture est l'action principale de la promesse",
-  );
-  assert.ok(ouverture.includes('class="accueil__bloc accueil__bloc--france"'));
-  assert.ok(
-    html.indexOf('class="accueil__bloc accueil__bloc--france"') < html.indexOf('accueil__bloc--confiance'),
-    "France précède la confiance",
-  );
-});
-
-test("28. les appels de détail restent disponibles dans leur parcours", () => {
-  const html = page();
-  for (const appel of ["Lire le dossier", "Découvrir Mandats", "Chercher ma commune"]) {
-    assert.ok(html.includes(appel), appel);
+  for (const href of ["/bilan/", "/territoire", "/analyses/"]) {
+    assert.ok(html.includes(`href="${href}"`), href);
   }
-  assert.ok(html.indexOf("Derniers dossiers") < html.indexOf("Découvrir Mandats"));
+  assert.ok(!html.includes("Explorer salaires et prélèvements"));
+  assert.equal([...html.matchAll(/class="story-door"/g)].length, 3);
 });
 
-test("29. les preuves et les approfondissements suivent les parcours", () => {
-  const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "autre", titre: "Une autre" })] });
-  const blocs = [...html.matchAll(/accueil__bloc accueil__bloc--([a-z]+)/g)].map((m) => m[1]);
-  assert.deepEqual(blocs, ["france", "territoire", "dossiers", "dossiers", "confiance"]);
+test("26. France, territoires et dossiers précèdent Mandats", () => {
+  const html = page();
+  const france = html.indexOf("Comprendre<br>la France");
+  const territoires = html.indexOf("Explorer<br>les territoires");
+  const dossiers = html.indexOf("Approfondir<br>un sujet");
+  const mandats = html.indexOf("Prenez les rênes du pays.");
+  assert.ok(france !== -1 && territoires !== -1 && dossiers !== -1 && mandats !== -1);
+  assert.ok(france < territoires && territoires < dossiers && dossiers < mandats);
+});
+
+test("27. l'accueil reste court : trois portes, trois questions, confiance, puis Mandats", () => {
+  const html = page();
+  assert.equal([...html.matchAll(/class="story-door"/g)].length, 3);
+  assert.equal([...html.matchAll(/class="story-question"/g)].length, 3);
+  assert.ok(html.indexOf("Quelques questions pour commencer.") < html.indexOf("Sources officielles"));
+  assert.ok(html.indexOf("Sources officielles") < html.indexOf("Prenez les rênes du pays."));
+  assert.ok(!html.includes("Ce que vous pouvez faire sur 500 Signatures"));
+});
+
+test("28. la promesse d'accueil est brève et donne deux actions immédiates", () => {
+  const html = page();
+  assert.ok(html.includes("Comprendre aujourd’hui"));
+  assert.ok(html.includes("pour mieux agir demain."));
+  assert.ok(html.includes("Explorer la France"));
+  assert.ok(html.includes("Lire les dossiers"));
+});
+
+test("28 bis. Mandats est explicitement une simulation présidentielle de cinq ans", () => {
+  const html = page();
+  assert.ok(html.includes("Simulez un mandat présidentiel sur cinq ans"));
+  assert.ok(html.includes("mesurez l’impact de vos décisions"));
+  assert.ok(html.includes('href="/mandats/?mode=national"'));
+  assert.ok(html.includes("Commencer mon mandat"));
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {

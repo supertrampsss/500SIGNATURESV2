@@ -493,7 +493,7 @@ export function renduAnalysesRecentes(
     )
     .join("");
   return `<section class="accueil__bloc accueil__bloc--dossiers-recents" aria-labelledby="accueil-analyses">
-    <div class="accueil__section-heading"><h3 id="accueil-analyses">Derniers dossiers</h3><a href="/analyses/">Tous les dossiers</a></div>
+    <div class="accueil__section-heading"><h3 id="accueil-analyses">Derniers dossiers</h3></div>
     <ul class="accueil__analyses">${cartes}</ul>
   </section>`;
 }
@@ -601,36 +601,95 @@ export function renduQuestionsAccueil(): string {
   </section>`;
 }
 
-function renduPreuvesOuverture(donnees: DonneesAccueil): string {
-  return `<div class="accueil__preuves" aria-label="Repères du site">
-    <div><span>Des indicateurs publiés</span><strong>${formater(donnees.catalogue.length, "count", false)}</strong></div>
-    <div><span>Des dossiers documentés</span><strong>${formater(donnees.analyses.length, "count", false)}</strong></div>
-    <div><span>Une information accessible</span><strong>Pour tous</strong></div>
-  </div>`;
-}
-
 /**
  * L'accueil entier : une promesse, la France, les Villes, les Dossiers, puis
  * la simulation. Les sources et les questions réassurent avant le dernier
  * parcours, au lieu de faire concurrence aux dossiers.
  */
-export function rendu(donnees: DonneesAccueil): string {
-  const enAvant = analyseDuMoment(donnees.analyses);
-  const cheminDossier = enAvant ? `/analyses/${echapper(enAvant.slug)}/` : "/analyses/";
-  return `<div class="accueil">
-    <div class="accueil__hero"><section class="accueil__ouverture">
-      <p class="accueil__sur-titre">500 SIGNATURES · DONNÉES PUBLIQUES</p>
-      <h1 class="accueil__message">Les chiffres publics expliqués.</h1>
-      <p class="accueil__contrat">${echapper(MESSAGE_PRINCIPAL)}</p>
-      <p class="accueil__recherche"><a class="accueil__appel" href="${cheminDossier}">Découvrir les dossiers</a> <a class="accueil__appel accueil__appel--secondaire" href="/bilan/">Explorer la France</a></p>
-      ${renduPreuvesOuverture(donnees)}
-    </section><div class="accueil__illustration" aria-hidden="true"><img src="/brand/accueil-assemblee.png" alt=""></div>${renduApercuComptes(donnees.france, enAvant)}
+function renduPortesAccueil(): string {
+  return `<section class="story-section story-doors" aria-labelledby="story-portes">
+    <p class="story-kicker">TROIS PORTES D’ENTRÉE</p>
+    <h2 id="story-portes">Explorez 500 Signatures.</h2>
+    <div class="story-doors__grid">
+      <a class="story-door" href="/bilan/">
+        <div class="story-door__copy"><span>FRANCE</span><strong>Comprendre<br>la France</strong><small>Les grands équilibres en un coup d’œil.</small><b>Voir les données →</b></div>
+        <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
+      </a>
+      <a class="story-door" href="/territoire">
+        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Explorer<br>les territoires</strong><small>Comparez les communes et leurs réalités.</small><b>Explorer les territoires →</b></div>
+        <img src="/france/logement.jpg" alt="" width="360" height="240" loading="lazy">
+      </a>
+      <a class="story-door" href="/analyses/">
+        <div class="story-door__copy"><span>DOSSIERS</span><strong>Approfondir<br>un sujet</strong><small>Des analyses claires sur les grands enjeux.</small><b>Voir les dossiers →</b></div>
+        <img src="/france/fiscalite.jpg" alt="" width="360" height="240" loading="lazy">
+      </a>
     </div>
-    ${renduFranceAccueil()}
-    ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
-    <div class="accueil__dossiers">${renduVerdictDuMoment(enAvant, donnees.catalogue)}${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}</div>
-    <section class="accueil__mandats" aria-labelledby="accueil-mandats"><div><p class="accueil__sur-titre">MANDATS · EN DERNIER</p><h2 id="accueil-mandats">À vous de décider.</h2><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences.</p><a class="accueil__appel" href="/mandats/?mode=national">Découvrir Mandats</a></div><div class="accueil__mandats-index" aria-hidden="true"><strong>45</strong><span>décisions<br>sur cinq ans</span></div></section>
-    ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
-    ${renduQuestionsAccueil()}
+  </section>`;
+}
+
+function renduQuestionsStory(): string {
+  return `<section class="story-section story-questions" aria-labelledby="story-questions">
+    <div class="story-heading"><div><p class="story-kicker">À EXPLORER</p><h2 id="story-questions">Quelques questions pour commencer.</h2></div><a href="/analyses/">Voir tous les dossiers →</a></div>
+    <div class="story-questions__grid">
+      <a class="story-question" href="/bilan/">
+        <img src="/france/budget.jpg" alt="" width="420" height="220" loading="lazy">
+        <span>Où va l’argent public ?</span>
+      </a>
+      <a class="story-question" href="/territoire">
+        <img src="/france/services.jpg" alt="" width="420" height="220" loading="lazy">
+        <span>Comment votre territoire se situe-t-il ?</span>
+      </a>
+      <a class="story-question" href="/analyses/">
+        <img src="/dossiers/groenland.jpg" alt="" width="420" height="220" loading="lazy">
+        <span>Quels grands enjeux dépassent nos frontières ?</span>
+      </a>
+    </div>
+  </section>`;
+}
+
+function renduConfianceStory(): string {
+  return `<section class="story-trust" aria-label="Sources et méthode">
+    <a href="/sources/"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></a>
+    <a href="/sources/"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></a>
+    <a href="/sources/"><strong>Accessible à tous</strong><span>Des explications claires.</span></a>
+  </section>`;
+}
+
+/**
+ * L'accueil entier : une entrée simple vers France, les territoires et les
+ * dossiers. Mandats arrive en dernier comme expérience de simulation.
+ */
+export function rendu(donnees: DonneesAccueil): string {
+  void donnees;
+  return `<div class="accueil accueil-story">
+    <section class="story-hero" aria-labelledby="story-titre">
+      <div class="story-hero__copy">
+        <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
+        <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
+        <p>Explorez les chiffres publics, comparez les territoires et approfondissez les grands enjeux.</p>
+        <div class="story-actions"><a class="story-button" href="/bilan/">Explorer la France</a><a class="story-link" href="/analyses/">Lire les dossiers →</a></div>
+      </div>
+      <figure class="story-hero__media">
+        <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">
+        <figcaption><a href="/france/credits.html">Palais de justice de Paris · crédits</a></figcaption>
+      </figure>
+    </section>
+    ${renduPortesAccueil()}
+    ${renduQuestionsStory()}
+    ${renduConfianceStory()}
+    <section class="story-mandats" aria-labelledby="story-mandats">
+      <div>
+        <p class="story-kicker">ET ENSUITE…</p>
+        <h2 id="story-mandats">Prenez les rênes du pays.</h2>
+        <p>Simulez un mandat présidentiel sur cinq ans et mesurez l’impact de vos décisions.</p>
+        <a class="story-button" href="/mandats/?mode=national">Commencer mon mandat</a>
+      </div>
+      <div class="story-mandats__visual" aria-hidden="true"><strong>5 ans</strong><span>Vos choix.<br>Leurs conséquences.</span></div>
+    </section>
+    <footer class="story-footer">
+      <a href="/accueil/">500 Signatures</a><span>Des données pour une démocratie plus proche.</span>
+      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Villes</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
+      <a class="story-footer__credits" href="/france/credits.html">Crédits photographiques</a>
+    </footer>
   </div>`;
 }
