@@ -376,8 +376,8 @@ export function afficherFiche(
         <a class="fiche__cta" href="#territoire-chiffres-cles">Explorer les données</a>
       </div>
       <figure class="fiche__hero-scene">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Panorama_Place_de_la_Bourse_Bordeaux.jpg/1280px-Panorama_Place_de_la_Bourse_Bordeaux.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
-        <figcaption><a href="https://commons.wikimedia.org/wiki/File:Panorama_Place_de_la_Bourse_Bordeaux.jpg" target="_blank" rel="noreferrer">Place de la Bourse · AirScott / Wikimedia Commons · CC BY-SA 4.0</a></figcaption>
+        <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg/1280px-Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
+        <figcaption><a href="https://commons.wikimedia.org/wiki/File:Place_de_la_Bourse,_Bordeaux,_France.jpg" target="_blank" rel="noreferrer">Place de la Bourse · Xellery / Wikimedia Commons · CC BY-SA 3.0</a></figcaption>
       </figure>
     ${
       territoire.maire && EXECUTIFS[niveau]
