@@ -575,10 +575,10 @@ test("le dossier Groenland explique la sécurité avec un calendrier sourcé",()
   a.dossier.chronologie.sourceId='inconnue';
   assert.throws(()=>rendu(a,[]),/chronologie.sourceId/);
 });
-test("les cartes donnent un seul lien natif et une introduction immédiatement lisible",()=>{
+test("les cartes donnent des accès natifs et une introduction immédiatement lisible",()=>{
   const html=renduIndex([DEFENSE],CATALOGUE);
   assert.doesNotMatch(html,/<details|<summary|Le constat|↗/);
-  assert.equal((html.match(/href="\/analyses\/defense-credits-votes-consommes-2025\/"/g)??[]).length,1);
+  assert.ok((html.match(/href="\/analyses\/defense-credits-votes-consommes-2025\/"/g)??[]).length>=2);
   assert.match(html,/>Dossiers<\/h1>/);
 });
 test("le rendu échappe le titre, le texte et les sources",()=>{
