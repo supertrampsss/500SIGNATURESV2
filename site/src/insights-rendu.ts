@@ -41,8 +41,8 @@ const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
 ];
 
 function renduTerritoireAvecSuite(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
-  const visibles = insights.slice(0, 6);
-  const suite = insights.slice(6);
+  const visibles = insights.slice(0, 4);
+  const suite = insights.slice(4);
   return `${cartesAvecSuite(visibles, 3, catalogue, series)}
     ${suite.length ? `<details class="insights__suite"><summary>Voir ${suite.length} autres analyses</summary>${cartesAvecSuite(suite, 3, catalogue, series)}</details>` : ""}`;
 }
