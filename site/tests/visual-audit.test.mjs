@@ -6,6 +6,7 @@ const PAGES = [
   { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Comprendre aujourd’hui' },
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
   { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Votre ville, ses données, ses choix' },
+  { slug: 'ville-bordeaux', path: '/territoire?niveau=commune&territoire=33063', vue: 'territoire', heading: 'Bordeaux' },
 ];
 
 const NAVIGATION = [
