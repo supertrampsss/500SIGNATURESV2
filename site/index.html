@@ -101,19 +101,33 @@
     <div class="vue vue--territoire" id="vue-territoire" hidden>
       <section class="territoire-recherche" aria-labelledby="territoire-recherche-titre">
         <div class="territoire-recherche__introduction">
-          <p class="territoire-recherche__surtitre">Communes · Données · Vie locale</p>
-          <h1 id="territoire-recherche-titre">Votre ville, ses données, ses choix</h1>
-          <p class="territoire-recherche__intro">Explorez les données de votre commune pour mieux comprendre son fonctionnement et les choix qui façonnent votre cadre de vie.</p>
-        </div>
-        <div class="territoire-recherche__outil">
-          <p class="territoire-recherche__champ-titre">Chercher une commune</p>
-          <div class="recherche territoire-recherche__champ">
+          <p class="territoire-recherche__surtitre">TERRITOIRES · DONNÉES LOCALES</p>
+          <h1 id="territoire-recherche-titre">Comprendre votre ville.</h1>
+          <p class="territoire-recherche__intro">Budget, population, services publics, exécutif municipal : accédez aux données de votre commune et comparez-la avec d’autres territoires.</p>
+          <div class="territoire-recherche__outil">
+            <p class="territoire-recherche__champ-titre">Rechercher une commune</p>
+            <div class="recherche territoire-recherche__champ">
             <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
             <span class="territoire-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span><input id="recherche" type="search" autocomplete="off" role="combobox"
                    aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
                    placeholder="Rechercher une commune" />
-            <ul id="suggestions" role="listbox" aria-label="Villes trouvées" hidden></ul>
+              <ul id="suggestions" role="listbox" aria-label="Villes trouvées" hidden></ul>
+            </div>
+            <p class="territoire-recherche__exemples">Ex. : Lyon, Bordeaux, Nantes, Lille…</p>
           </div>
+        </div>
+        <div class="territoire-recherche__visuel" aria-hidden="true">
+          <div class="territoire-recherche__village">
+            <span class="village__colline"></span>
+            <span class="village__eglise"></span>
+            <span class="village__maison village__maison--1"></span>
+            <span class="village__maison village__maison--2"></span>
+            <span class="village__maison village__maison--3"></span>
+            <span class="village__maison village__maison--4"></span>
+            <span class="village__arbre village__arbre--1"></span>
+            <span class="village__arbre village__arbre--2"></span>
+          </div>
+          <p>Des territoires mieux compris pour des choix plus éclairés.</p>
         </div>
       </section>
 
@@ -157,17 +171,33 @@
       </section>
 
       <section class="territoire-synthese" aria-labelledby="territoire-synthese-titre">
-        <h2 id="territoire-synthese-titre">Synthèse du territoire</h2>
-        <div class="territoire-synthese__contenu">
-          <div class="territoire-synthese__image" aria-hidden="true"></div>
-          <div class="territoire-synthese__reperes">
-            <div><span class="territoire-repere__icone territoire-repere__icone--population" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><strong>Population</strong><p>Habitants et dynamiques</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--budget" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V11m6 9V5m6 15v-7m4 7V8"/></svg></span><strong>Budget</strong><p>Recettes, dépenses, grands équilibres</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--services" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 9 9-5 9 5M5 10v9m4-9v9m6-9v9m4-9v9M3 20h18"/></svg></span><strong>Services</strong><p>Équipements et services publics</p></div>
-            <div><span class="territoire-repere__icone territoire-repere__icone--executif" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21v-4a7 7 0 0 1 14 0v4"/></svg></span><strong>L'exécutif municipal</strong><p>Maire et équipe municipale</p></div>
-          </div>
+        <div class="territoire-synthese__entete">
+          <p>UNE FICHE LOCALE, EN CLAIR</p>
+          <h2 id="territoire-synthese-titre">Ce que vous trouverez.</h2>
+        </div>
+        <div class="territoire-synthese__reperes">
+          <div><span class="territoire-repere__icone territoire-repere__icone--budget" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V11m6 9V5m6 15v-7m4 7V8"/></svg></span><strong>Finances locales</strong><p>Recettes, dépenses, dette et investissement.</p></div>
+          <div><span class="territoire-repere__icone territoire-repere__icone--population" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><strong>Population</strong><p>Démographie, logement, revenus et emploi.</p></div>
+          <div><span class="territoire-repere__icone territoire-repere__icone--services" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 9 9-5 9 5M5 10v9m4-9v9m6-9v9m4-9v9M3 20h18"/></svg></span><strong>Services publics</strong><p>Équipements, moyens et réalités locales.</p></div>
+          <div><span class="territoire-repere__icone territoire-repere__icone--executif" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21v-4a7 7 0 0 1 14 0v4"/></svg></span><strong>Exécutif municipal</strong><p>Maire en fonction et mandat précédent.</p></div>
         </div>
       </section>
+
+      <section class="territoire-confiance" aria-label="Comparer et comprendre les territoires">
+        <div class="territoire-confiance__comparaison">
+          <p>POUR ALLER PLUS LOIN</p>
+          <h2>Comparez les territoires.</h2>
+          <span>Mettez votre commune en perspective avec d’autres villes, son département et sa région.</span>
+          <a href="#recherche">Choisir une commune</a>
+        </div>
+        <div class="territoire-confiance__sources">
+          <p>DES DONNÉES FIABLES</p>
+          <h2>Des communes plus transparentes.</h2>
+          <span>Des sources publiques pour mieux comprendre la vie locale.</span>
+          <a href="/sources/">Sources et méthode</a>
+        </div>
+      </section>
+
       <aside class="panneau panneau--territoire" id="panneau" aria-label="Fiche du territoire">
           <div class="panneau__contenu" id="volet-territoire">
             <div class="fiche" id="fiche" aria-live="polite">
@@ -185,9 +215,11 @@
            communes, réglés sur l'indicateur affiché — ont été retirés :
            demandé par le propriétaire du site, ils n'ont plus d'écran. -->
       <section class="territoire__tables">
-        <div id="detail"></div>
+        <details class="territoire-donnees-completes">
+          <summary>Voir toutes les données du territoire</summary>
+          <div id="detail"></div>
+        </details>
         <section class="comparateur" id="comparateur" hidden></section>
-
       </section>
 
     </div>

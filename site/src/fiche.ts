@@ -357,8 +357,11 @@ export function afficherFiche(
         series: territoire.series,
       });
   cible.innerHTML = `
-    <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>
-    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
+    <section class="fiche__hero" aria-labelledby="fiche-titre">
+      <div class="fiche__hero-copy">
+        <p class="territoire-section-kicker">${niveau === "commune" ? "VILLE · TERRITOIRE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
+        <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
+        <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
       // était soulignée en pointillé, c'est-à-dire habillée en lien, alors
       // qu'aucun clic ne mène nulle part. La classe dit au style de ne pas
@@ -369,6 +372,13 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
+      </div>
+      <div class="fiche__hero-scene" aria-hidden="true">
+        <span class="fiche__hero-building fiche__hero-building--1"></span>
+        <span class="fiche__hero-building fiche__hero-building--2"></span>
+        <span class="fiche__hero-building fiche__hero-building--3"></span>
+        <span class="fiche__hero-reflet"></span>
+      </div>
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? (() => {
@@ -422,18 +432,47 @@ export function afficherFiche(
           })()
         : ""
     }
+    </section>
     ${
       // Sous le dernier bloc : le tableau des exercices, et rien d'autre. Les
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
-        exercices({
-          cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
-          series: territoire.series ?? {},
-          catalogue: options.indicateurs,
-        }),
-      )}${lienPreuve}${analysesCroisees}<div class="fiche__situation" id="fiche-situation"></div></div>`
+      (() => {
+        const evolution = rendreExercices(
+          exercices({
+            cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
+            series: territoire.series ?? {},
+            catalogue: options.indicateurs,
+          }),
+        );
+        return `<div class="fiche__essentiel">
+          <section class="territoire-reperes-section" aria-label="Les grands repères de ${echapper(territoire.nom)}">
+            <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
+            <h2>Les grands repères</h2>
+            ${ouvertureChiffree}
+          </section>
+          <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
+            <p class="territoire-section-kicker">FINANCES LOCALES</p>
+            <h2>Les comptes de ${echapper(territoire.nom)}</h2>
+            ${territoireFinances(territoire)}
+          </section>
+          <section class="territoire-lecture-section" aria-label="Lecture des comptes">
+            <p class="territoire-section-kicker">EN CLAIR</p>
+            <h2>Ce que disent les comptes</h2>
+            <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
+          </section>
+          ${evolution ? `<details class="territoire-evolution-detail"><summary>Voir le détail annuel</summary>${evolution}</details>` : ""}
+          ${lienPreuve}
+          <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
+            <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
+            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} parmi les autres territoires</h2>
+            <p class="territoire-comparaison-section__intro">Des repères pour situer ce territoire sans réduire sa situation à un seul chiffre.</p>
+            <div class="fiche__situation" id="fiche-situation"></div>
+          </section>
+          ${analysesCroisees}
+        </div>`;
+      })()
     }
   `;
 }

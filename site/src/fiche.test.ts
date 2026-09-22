@@ -264,29 +264,23 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche s'arrête au tableau des exercices", () => {
-  // Sous « Ce qui sort de terre » : le tableau des exercices, puis le
-  // conteneur des rangs, que main.ts remplit quand la maille entière est là.
-  // Rien d'autre — ni faits, ni pont, ni feuille d'impôts, ni liste.
+test("la fiche locale hiérarchise repères, comptes, lecture puis détail annuel", () => {
   const html = ficheDeBordeaux();
-  const sections = [...html.matchAll(/class="([a-z-]+)"/g)]
-    .map((m) => m[1])
-    .filter((c) => !c.startsWith("repere") && !c.startsWith("bloc") && !c.startsWith("note"));
-  for (const classe of sections) {
-    assert.ok(
-      ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
-       "fiche__essentiel", "fiche__parent", "fiche__situation",
-       "tableau-exercices", "territory-reading", "territory-charts", "territory-finance-combined", "chart-time", "chart-legend", "chart-key--", "chart-plot", "chart-readout", "chart-scrub", "chart-grid", "chart-cursor"].includes(classe),
-      `section inattendue : ${classe}`,
-    );
-  }
-  // Le tableau « Gestion financière » a été retiré de la fiche : les repères,
-  // les graphiques et le classement suffisent à lire la situation sans ajouter
-  // une seconde table comptable.
+  const ordre = [
+    'territoire-reperes-section',
+    'territoire-comptes-section',
+    'territoire-lecture-section',
+    'territoire-evolution-detail',
+    'fiche__situation',
+  ].map((classe) => {
+    const position = html.indexOf(classe);
+    assert.ok(position !== -1, `${classe} manque à la fiche`);
+    return position;
+  });
+  assert.deepEqual([...ordre].sort((a,b)=>a-b), ordre);
+  assert.match(html, /<summary>Voir le détail annuel<\/summary>/);
   assert.doesNotMatch(html, /Gestion financière/);
   assert.doesNotMatch(html, /class="note"/);
-  // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
-  // fiche ne dit jamais ce qu'elle est en train de calculer.
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
 });
 

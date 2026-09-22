@@ -40,6 +40,13 @@ const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
   { famille: "environnement", titre: "Énergie et environnement" },
 ];
 
+function renduTerritoireAvecSuite(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
+  return `<details class="insights__suite insights__suite--toutes">
+    <summary>Voir les analyses complémentaires</summary>
+    ${cartesAvecSuite(insights, 3, catalogue, series)}
+  </details>`;
+}
+
 function renduFranceParThemes(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
   const themes = THEMES_FRANCE
     .map((theme) => ({ ...theme, insights: insights.filter(({ famille }) => famille === theme.famille) }))
@@ -90,7 +97,7 @@ export function renduInsights(
     </header>
     ${estFrance
       ? renduFranceParThemes(insights, catalogue, options.series)
-      : cartesAvecSuite(insights, 3, catalogue, options.series)}
+      : renduTerritoireAvecSuite(insights, catalogue, options.series)}
     <p class="insights__methode"><a href="/sources/">Sources et méthode</a></p>
   </section>`;
 }
