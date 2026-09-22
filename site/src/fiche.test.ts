@@ -264,13 +264,12 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche locale hiérarchise repères, comptes, lecture puis détail annuel", () => {
+test("la fiche locale hiérarchise repères, comptes, lecture puis comparaison sans détail annuel redondant", () => {
   const html = ficheDeBordeaux();
   const ordre = [
     'territoire-reperes-section',
     'territoire-comptes-section',
     'territoire-lecture-section',
-    'territoire-evolution-detail',
     'fiche__situation',
   ].map((classe) => {
     const position = html.indexOf(classe);
@@ -278,7 +277,8 @@ test("la fiche locale hiérarchise repères, comptes, lecture puis détail annue
     return position;
   });
   assert.deepEqual([...ordre].sort((a,b)=>a-b), ordre);
-  assert.match(html, /<summary>Voir le détail annuel<\/summary>/);
+  assert.doesNotMatch(html, /territoire-evolution-detail|Voir le détail annuel/);
+  assert.doesNotMatch(html, /Explorer les données/);
   assert.doesNotMatch(html, /Gestion financière/);
   assert.doesNotMatch(html, /class="note"/);
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
