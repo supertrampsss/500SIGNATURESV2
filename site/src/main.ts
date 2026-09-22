@@ -3,7 +3,6 @@
  * est affiché est partageable tel quel (docs/04).
  */
 
-import { brancherTheme } from "./theme.ts";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -94,7 +93,7 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, renduDossierVedette, type Analyse } from "./analyse-rendu.ts";
-import { intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
+import { brancherMenuNavigation, intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import { brancherSalaires, renduSalaires } from "./salaires.ts";
@@ -118,6 +117,7 @@ import "./styles/shared-design.css";
 import "./styles/france-page.css";
 import "./styles/france-aligned-pages.css";
 import "./styles/territoire-rework.css";
+import "./styles/site-shell-v2.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
@@ -2328,6 +2328,7 @@ function rendreNavigationPrincipale(): void {
   const navigation = document.getElementById("navigation-principale");
   if (!navigation) return;
   navigation.innerHTML = renduNavigation(location.pathname, true);
+  brancherMenuNavigation();
 }
 
 
@@ -2790,64 +2791,29 @@ function brancherRegistreSources(): void {
 }
 
 function brancherFiltresAnalyses(): void {
-  const barre = document.getElementById("analyses-filtres");
-  const liste = document.getElementById("analyses-index");
-  const bouton = document.getElementById("analyses-filtres-bouton");
-  const etatVide = document.getElementById("analyses-etat-vide");
-  if (!barre || !liste) return;
-  const cartes = Array.from(liste.querySelectorAll("li"));
-  const menus = Array.from(barre.querySelectorAll("select"));
-  const champ = barre.querySelector("input");
-  const compte = barre.querySelector("p");
-  const effacer = barre.querySelector("[data-effacer-filtres]");
-  barre.hidden = false;
-  if (bouton) bouton.hidden = false;
-  const ouvrir = () => {
-    const ouvert = barre.dataset.ouvert !== "true";
-    barre.dataset.ouvert = String(ouvert);
-    if (bouton) bouton.setAttribute("aria-expanded", String(ouvert));
+  const cartes=Array.from(document.querySelectorAll<HTMLElement>("[data-dossier-card]"));
+  if(!cartes.length) return;
+  const champ=document.getElementById("analyses-recherche-v2") as HTMLInputElement|null;
+  const boutons=Array.from(document.querySelectorAll<HTMLButtonElement>("[data-analyse-theme]"));
+  let themeActif="";
+  const appliquer=()=>{
+    const recherche=champ?.value ?? "";
+    for(const carte of cartes){
+      const retenue=carteRetenue({
+        type:carte.dataset.type ?? "",
+        themes:carte.dataset.themes ?? "",
+        budgets:carte.dataset.budgets ?? "",
+        texte:carte.dataset.texte ?? "",
+      },{type:"",theme:themeActif,budget:"",recherche});
+      carte.hidden=!retenue;
+    }
   };
-  const appliquer = () => {
-    const criteres = { type: "", theme: "", budget: "", recherche: champ ? champ.value : "" };
-    for (const menu of menus) {
-      if (menu.dataset.facette === "type") criteres.type = menu.value;
-      if (menu.dataset.facette === "theme") criteres.theme = menu.value;
-      if (menu.dataset.facette === "budget") criteres.budget = menu.value;
-    }
-    let retenues = 0;
-    for (const carte of cartes) {
-      const retenue = carteRetenue(
-        {
-          type: carte.dataset.type ?? "",
-          themes: carte.dataset.themes ?? "",
-          budgets: carte.dataset.budgets ?? "",
-          texte: carte.dataset.texte ?? carte.dataset.cherche ?? "",
-        },
-        criteres,
-      );
-      carte.hidden = !retenue;
-      if (retenue) retenues += 1;
-    }
-    if (compte) {
-      compte.textContent =
-        retenues === cartes.length
-          ? ""
-          : `${retenues} analyse${retenues > 1 ? "s" : ""} sur ${cartes.length}`;
-    }
-    if (etatVide) etatVide.hidden = retenues !== 0;
-  };
-  // Un `<select>` émet `input` comme un champ de texte : un seul écouteur,
-  // posé sur la barre, suffit aux quatre réglages.
-  barre.addEventListener("input", appliquer);
-  if (bouton) {
-    bouton.addEventListener("click", ouvrir);
-  }
-  if (effacer && "addEventListener" in effacer) {
-    effacer.addEventListener("click", () => {
-      if (champ) champ.value = "";
-      for (const menu of menus) menu.value = "";
+  champ?.addEventListener("input",appliquer);
+  for(const bouton of boutons){
+    bouton.addEventListener("click",()=>{
+      themeActif=bouton.dataset.analyseTheme ?? "";
+      for(const autre of boutons) autre.setAttribute("aria-pressed",String(autre===bouton));
       appliquer();
-      if (champ) champ.focus();
     });
   }
 }
@@ -3249,7 +3215,6 @@ async function demarrer(): Promise<void> {
   brancherEvenementsInterface();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
-  brancherTheme();
   // Pour la même raison : une analyse est servie entière par le serveur, avec
   // ses balises et son image déjà écrites. Son partage n'attend donc pas le
   // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.

@@ -355,23 +355,43 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
   </section>`;
 }
 
+function renduSourcesPrincipalesV2(jeux: readonly Jeu[]): string {
+  return parProducteur(jeux).slice(0,6).map(({producteur,jeux:siens})=>{
+    const premier=siens[0];
+    return `<article class="sources-v2__source"><span aria-hidden="true">●</span><h3>${echapper(producteur)}</h3><p>${formater(siens.length,"count",false)} jeu${siens.length>1?"x":""} publié${siens.length>1?"s":""}</p>${premier ? `<a href="${echapper(premier.url)}" rel="noreferrer">Voir la source</a>` : ""}</article>`;
+  }).join("");
+}
+
+function renduFAQSourcesV2(): string {
+  const questions=[
+    ["D’où viennent les données ?","Des fichiers et API publiés par les producteurs indiqués dans le registre des sources."],
+    ["Comment sont calculés les indicateurs ?","Les transformations et formules sont documentées, puis vérifiées avant publication."],
+    ["À quelle fréquence les données sont-elles mises à jour ?","Chaque jeu suit le calendrier de son producteur ; la date de lecture est conservée."],
+    ["Pourquoi certains chiffres peuvent-ils différer ailleurs ?","Le périmètre, le millésime ou l’unité peuvent différer. La fiche source permet de retrouver le calcul utilisé ici."],
+    ["Les données peuvent-elles être réutilisées ?","Les licences sont indiquées jeu par jeu dans le registre des sources."],
+  ];
+  return questions.map(([q,r])=>`<details><summary>${q}</summary><p>${r}</p></details>`).join("");
+}
+
 /** La page de confiance est un document éditorial autonome : la méthode
  * précède le registre qui permet d'en vérifier l'application, et chaque fiche
  * conserve son identifiant pour que les liens profonds publiés restent stables. */
 export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly FicheSource[]): string {
-  return `<section class="sources-methode" aria-labelledby="sources-methode-titre">
-    <header class="sources-methode__entete">
-      <p class="sources-methode__eyebrow">Transparence</p>
-      <h1 id="sources-methode-titre">Sources et méthode</h1>
-      <p>Retrouvez l’origine des chiffres, leurs définitions et les contrôles appliqués.</p>
+  return `<section class="sources-methode sources-v2" aria-labelledby="sources-methode-titre">
+    <header class="sources-v2__hero">
+      <div><p class="sources-v2__eyebrow">Des données publiques, une information vérifiable</p><h1 id="sources-methode-titre">Sources et méthode</h1><p class="sources-v2__lead">Des données publiques, des calculs transparents, pour une information fiable et accessible.</p><p>500 Signatures s’appuie sur les publications de ses producteurs, conserve leur provenance et documente les transformations appliquées.</p></div>
+      <figure><img src="/france/justice.jpg" alt="" width="900" height="520"><figcaption>Institutions publiques · crédits photographiques</figcaption></figure>
     </header>
-    <section id="methode" class="sources-methode__methode">
-      ${renduSources(jeux)}
-      ${renduSourcesArbitrages()}
-      ${renduMethode()}
-      ${renduGrille()}
+    <section class="sources-v2__principes"><h2>Nos principes</h2><div><article><strong>Données officielles</strong><p>Les chiffres viennent de publications identifiées.</p></article><article><strong>Transparence</strong><p>Sources, unités et méthodes restent consultables.</p></article><article><strong>Indépendance</strong><p>Les analyses ne modifient pas les données publiées.</p></article><article><strong>Pédagogie</strong><p>Les données complexes sont expliquées simplement.</p></article></div></section>
+    <section class="sources-v2__sources"><div class="sources-v2__section-head"><div><p class="sources-v2__eyebrow">Sources principales</p><h2>Les producteurs derrière les chiffres</h2></div><p>${formater(jeux.length,"count",false)} jeux publiés</p></div><div class="sources-v2__sources-grid">${renduSourcesPrincipalesV2(jeux)}</div></section>
+    <section class="sources-v2__methode-grid">
+      <article><p class="sources-v2__eyebrow">Calcul</p><h2>Notre méthode</h2><ol><li><strong>Collecte</strong><span>Lecture du fichier ou de l’API officielle.</span></li><li><strong>Harmonisation</strong><span>Périmètres, unités et périodes sont rendus comparables.</span></li><li><strong>Calcul</strong><span>Les formules sont appliquées de façon reproductible.</span></li><li><strong>Contrôle</strong><span>Les incohérences bloquent la publication.</span></li></ol></article>
+      <article><p class="sources-v2__eyebrow">Mise à jour</p><h2>Au rythme des publications</h2><p>Les jeux sont relus lorsqu’une nouvelle version officielle est disponible. La date d’extraction reste visible dans le registre.</p><div class="sources-v2__note">Chaque source conserve son millésime, sa licence et sa date de lecture.</div></article>
+      <article><p class="sources-v2__eyebrow">Vérification</p><h2>Une chaîne contrôlée</h2><p>Les chiffres publiés et les montants cités dans les dossiers passent par des contrôles déterministes avant mise en ligne.</p><div class="sources-v2__note">Un écart non résolu arrête la publication au lieu d’être masqué.</div></article>
     </section>
-    ${renduRegistre(fiches)}
+    <section class="sources-v2__faq"><div><p class="sources-v2__eyebrow">Questions fréquentes</p><h2>Ce qu’il faut savoir</h2></div><div>${renduFAQSourcesV2()}</div></section>
+    <section class="sources-v2__usages"><p class="sources-v2__eyebrow">Un socle commun</p><h2>Les mêmes données, des usages différents</h2><div><article><strong>France</strong><p>Lire les grands équilibres nationaux.</p><a href="/bilan/">Voir France</a></article><article><strong>Villes</strong><p>Comprendre les réalités locales.</p><a href="/territoire">Voir Villes</a></article><article><strong>Dossiers</strong><p>Approfondir un sujet documenté.</p><a href="/analyses/">Voir Dossiers</a></article><article><strong>Mandats</strong><p>Simuler un mandat présidentiel et mesurer les effets de choix publics.</p><a href="/mandats/">Voir Mandats</a></article></div></section>
+    <details class="sources-v2__detail"><summary>Consulter le registre et la méthode détaillée</summary><div class="sources-v2__detail-corps">${renduSources(jeux)}${renduSourcesArbitrages()}${renduMethode()}${renduGrille()}${renduRegistre(fiches)}</div></details>
   </section>`;
 }
 

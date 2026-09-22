@@ -419,45 +419,37 @@ function carteDe(html: string, titre: string): string {
 
 
 test("un corpus d'une seule analyse n'affiche aucune barre de filtres", () => {
-  // Une barre qui ne peut rien réduire est du mobilier : elle occupe la place
-  // de la seule chose que la page a à montrer.
   const html = renduIndex([DEFENSE], CATALOGUE);
-  assert.doesNotMatch(html, /analyses-filtres/);
-  assert.doesNotMatch(html, /<select/);
+  assert.doesNotMatch(html, /dossiers-v2__filtres/);
   assert.doesNotMatch(html, /type="search"/);
 });
 
-test("une facette ne s'affiche que si le corpus porte au moins deux valeurs distinctes", () => {
-  // Deux analyses de MÊME type, de MÊME budget, de thèmes DIFFÉRENTS : seule
-  // la facette « thème » peut changer la liste, seule elle s'affiche.
+test("les thèmes deviennent des filtres directs quand le corpus le permet", () => {
   const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["budget_etat"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["dette"] });
   const html = renduIndex([a, b], CATALOGUE);
-  assert.match(html, /data-facette="theme"/);
-  assert.doesNotMatch(html, /data-facette="type"/);
-  assert.doesNotMatch(html, /data-facette="budget"/);
-  // Et les deux valeurs y sont, nommées en français — jamais l'identifiant nu.
-  const menu = html.slice(html.indexOf('data-facette="theme"'), html.indexOf("</select>"));
-  assert.match(menu, /Budget de l&#39;État/);
-  assert.match(menu, /Dette publique/);
+  assert.match(html, /data-analyse-theme="budget_etat"/);
+  assert.match(html, /data-analyse-theme="dette"/);
+  assert.match(html, /Budget de l&#39;État/);
+  assert.match(html, /Dette publique/);
+  assert.doesNotMatch(html, /data-facette="type"|data-facette="budget"/);
 });
 
-test("les trois facettes s'affichent dès que les trois séparent le corpus", () => {
+test("la barre de filtres nouvelle reste simple : thèmes et recherche", () => {
   const a = analyseMinimale({ slug: "a", titre: "Première", type: "decryptage", themes: ["dette"], budgets_concernes: ["etat"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", type: "comparaison", themes: ["securite_sociale"], budgets_concernes: ["secu"] });
   const html = renduIndex([a, b], CATALOGUE);
-  for (const facette of ["type", "theme", "budget"]) {
-    assert.match(html, new RegExp(`data-facette="${facette}"`), `facette ${facette} absente`);
-  }
+  assert.match(html, /data-analyse-theme="dette"/);
+  assert.match(html, /data-analyse-theme="securite_sociale"/);
+  assert.match(html, /id="analyses-recherche-v2"/);
+  assert.doesNotMatch(html, /<select/);
 });
 
-test("la barre est servie repliée : sans le paquet, aucun réglage mort, toutes les cartes lisibles", () => {
-  // La page est pré-rendue (scripts/prerendre.ts) : les filtres sont un
-  // progrès, jamais une condition d'accès. `main.ts` déplie la barre.
+test("la liste pré-rendue garde toutes les cartes lisibles avant JavaScript", () => {
   const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["budget_etat"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["dette"] });
   const html = renduIndex([a, b], CATALOGUE);
-  assert.match(html, /<div class="analyses-filtres" id="analyses-filtres"[^>]* hidden>/);
+  assert.match(html, /class="dossiers-v2__filtres"/);
   assert.doesNotMatch(html, /<li[^>]*\bhidden\b/);
   assert.ok(html.includes("Première") && html.includes("Seconde"));
 });
@@ -547,14 +539,13 @@ test("la recherche porte sur le verdict et les chiffres, pas seulement sur le ti
 
 
 
-test("chaque libellé de filtre est groupé avec son contrôle", () => {
-  const a = analyseMinimale({ slug: "a", titre: "Première", type: "decryptage", themes: ["dette"], budgets_concernes: ["etat"] });
-  const b = analyseMinimale({ slug: "b", titre: "Seconde", type: "comparaison", themes: ["securite_sociale"], budgets_concernes: ["secu"] });
+test("les contrôles de l'index restent accessibles", () => {
+  const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["dette"] });
+  const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["securite_sociale"] });
   const html = renduIndex([a, b], CATALOGUE);
-  assert.match(html, /<div class="analyses-filtres__groupe analyses-filtres__groupe--recherche">\s*<label[^>]*for="analyses-recherche"[\s\S]*?<input[^>]*id="analyses-recherche"/);
-  for (const facette of ["type", "theme", "budget"]) {
-    assert.match(html, new RegExp(`<div class="analyses-filtres__groupe">\\s*<label[^>]*for="analyses-${facette}"[\\s\\S]*?<select[^>]*id="analyses-${facette}"`));
-  }
+  assert.match(html, /<label><span class="visuellement-cache">Rechercher un dossier<\/span><input id="analyses-recherche-v2"/);
+  assert.match(html, /<button type="button" data-analyse-theme="" aria-pressed="true">Tous les dossiers<\/button>/);
+  assert.match(html, /data-analyse-theme="dette"/);
 });
 
 
@@ -584,10 +575,10 @@ test("le dossier Groenland explique la sécurité avec un calendrier sourcé",()
   a.dossier.chronologie.sourceId='inconnue';
   assert.throws(()=>rendu(a,[]),/chronologie.sourceId/);
 });
-test("les cartes donnent un seul lien natif et une introduction immédiatement lisible",()=>{
+test("les cartes donnent des accès natifs et une introduction immédiatement lisible",()=>{
   const html=renduIndex([DEFENSE],CATALOGUE);
   assert.doesNotMatch(html,/<details|<summary|Le constat|↗/);
-  assert.equal((html.match(/href="\/analyses\/defense-credits-votes-consommes-2025\/"/g)??[]).length,1);
+  assert.ok((html.match(/href="\/analyses\/defense-credits-votes-consommes-2025\/"/g)??[]).length>=2);
   assert.match(html,/>Dossiers<\/h1>/);
 });
 test("le rendu échappe le titre, le texte et les sources",()=>{

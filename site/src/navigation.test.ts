@@ -51,13 +51,12 @@ test("Salaires reste une destination native secondaire", () => {
   assert.equal(DESTINATIONS.find(({ cle }) => cle === "salaires")?.secondaire, true);
 });
 
-test("le menu partagé contient les destinations et le lien social, sans l'ancien simulateur", () => {
+test("le menu partagé contient les cinq destinations principales", () => {
   for (const disponible of [true, false]) {
     const html = renduNavigation("/bilan", disponible);
-    assert.equal((html.match(/<a /g) ?? []).length, 6);
+    assert.equal((html.match(/<a /g) ?? []).length, 5);
     assert.doesNotMatch(html, /href="\/simulateur"/);
     assert.match(html, /href="\/mandats\/"/);
-    assert.match(html, /href="https:\/\/x\.com\/500Signatures"[^>]*>X \/ Twitter<\/a>/);
   }
 });
 

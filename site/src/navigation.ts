@@ -53,7 +53,8 @@ export function intercepterNavigation(clic: MouseEvent): Destination | null {
 /** Rend la seule navigation primaire du site, indépendamment du document. */
 export function renduNavigation(pathname: string, simulateurDisponible: boolean): string {
   const chemin = normaliserChemin(pathname);
-  return DESTINATIONS.filter(({ cle, secondaire }) => cle !== "simuler" && !secondaire).map(({ cle, href, libelle }) => {
+  const primaires = new Set(["accueil","france","territoires","analyses"]);
+  return DESTINATIONS.filter(({ cle }) => primaires.has(cle)).map(({ cle, href, libelle }) => {
     const destination = DESTINATIONS.find((candidate) => candidate.cle === cle)!;
     if (destination.native) {
       const courant = (chemin === normaliserChemin(href) || (cle === "accueil" && chemin === "/") || (cle === "analyses" && chemin.startsWith("/analyses/"))) ? ' aria-current="page"' : "";
@@ -63,5 +64,23 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
     const courant = chemin === normaliserChemin(href) && !estSimulateurIndisponible ? ' aria-current="page"' : "";
     const indisponible = estSimulateurIndisponible ? ' aria-disabled="true" tabindex="-1"' : "";
     return `<a href="${href}" data-vue="${cle}"${courant}${indisponible}>${libelle}</a>`;
-  }).join("") + `<a href="/mandats/"${chemin === "/mandats" ? ' aria-current="page"' : ""}>Mandats</a><a href="https://x.com/500Signatures" target="_blank" rel="me noopener">X / Twitter</a>`;
+  }).join("") + `<a href="/mandats/"${chemin === "/mandats" ? ' aria-current="page"' : ""}>Mandats</a>`;
+}
+
+export function brancherMenuNavigation(): void {
+  const entete=document.querySelector<HTMLElement>(".entete");
+  const nav=document.querySelector<HTMLElement>(".entete__nav");
+  if(!entete||!nav||entete.querySelector(".fr-menu")) return;
+  const bouton=document.createElement("button");
+  bouton.type="button";
+  bouton.className="fr-menu";
+  bouton.setAttribute("aria-expanded","false");
+  bouton.setAttribute("aria-label","Ouvrir le menu");
+  bouton.innerHTML='<span aria-hidden="true"></span><span aria-hidden="true"></span>';
+  entete.insertBefore(bouton,nav);
+  bouton.addEventListener("click",()=>{
+    const ouvert=entete.dataset.frMenu==="ouvert";
+    if(ouvert){ delete entete.dataset.frMenu; bouton.setAttribute("aria-expanded","false"); bouton.setAttribute("aria-label","Ouvrir le menu"); }
+    else { entete.dataset.frMenu="ouvert"; bouton.setAttribute("aria-expanded","true"); bouton.setAttribute("aria-label","Fermer le menu"); }
+  });
 }

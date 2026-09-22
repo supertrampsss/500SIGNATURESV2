@@ -5,7 +5,7 @@ import { escape as e } from '../src/mandats/sharing.ts';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8');
 const method = await readFile(dist+'mandats/methode/index.html','utf8');
-const sharedHeader = method.match(/<header class="site-header">[\s\S]*?<\/header>/)![0];
+const sharedHeader = method.match(/<header class="[^"]*\bsite-header\b[^"]*">[\s\S]*?<\/header>/)![0];
 const themeScripts = [...method.matchAll(/<script\b[^>]*>[\s\S]*?<\/script>/g)].map(m=>m[0]).join('');
 const styles = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]*>/g)].map(m=>m[0]).join('');
 const origin = 'https://500signatures.fr';

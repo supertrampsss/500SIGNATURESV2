@@ -54,16 +54,14 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
   await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
  }
  await page.goto('/mandats/methode/');
- await page.getByRole('link',{name:'500 signatures, accueil',exact:true}).click();
+ await page.getByRole('link',{name:'500 Signatures, accueil',exact:true}).click();
  await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
 });
 
 test('Accueil presents the editorial path before the secondary simulation',async({page},info)=>{
  await page.goto('/accueil/');
  const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
- const navigationLabels=info.project.name==='desktop-chromium'
-  ? ['France','Villes','Dossiers','Mandats']
-  : ['Accueil','France','Villes','Dossiers','Mandats','X / Twitter'];
+ const navigationLabels=['Accueil','France','Villes','Dossiers','Mandats'];
  await expect(navigation.getByRole('link')).toHaveText(navigationLabels);
  await expect(navigation.getByRole('link',{name:'Salaires',exact:true})).toHaveCount(0);
  await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
@@ -93,32 +91,18 @@ test('Accueil presents the editorial path before the secondary simulation',async
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });
 
-test('the compact theme control persists through every primary destination and a saved mandate',async({page},info)=>{
- await page.goto('/salaires/');
- await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
- await page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Mandats',exact:true}).click();
- await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
- await page.goto('/mandats/?mode=national');
- await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
- expect(await page.locator('.game-tabs').evaluate(el=>getComputedStyle(el).backgroundColor===getComputedStyle(document.body).backgroundColor)).toBe(true);
- await page.locator('[data-action="choose"]').first().click();
- await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
- await page.getByRole('button',{name:'Activer le mode sombre',exact:true}).click();
- await page.reload();
- await page.getByRole('button',{name:/Reprendre/}).click();
- await expect(page.locator('.campaign-position')).toContainText('Décision 2/45');
- await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
- await expect(page.getByRole('region',{name:'Le contexte en détail',exact:true})).toHaveCount(0);
- for(const name of ['Villes','France','Dossiers']){
-   await page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name,exact:true}).click();
-   await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
-   await expect(page.locator('h1:visible').first()).toHaveCSS('color','rgb(245, 240, 223)');
-   await expect(page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link')).toHaveCount(6);
-   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
- }
- await page.screenshot({path:info.outputPath('shared-theme-'+info.project.name+'.png'),fullPage:true});
+test('the shared header is identical across primary destinations',async({page})=>{
+  for(const path of ['/accueil/','/bilan/','/territoire','/analyses/','/sources/']){
+    await page.goto(path);
+    await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
+    await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
+    await expect(page.locator('.brand-e')).toHaveCount(0);
+    await expect(page.locator('#theme-bascule')).toHaveCount(0);
+    const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
+    await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats']);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
+  }
 });
-
 test('retired simulator URLs lead to Mandats while old browser data is preserved',async({page},info)=>{
  test.skip(info.project.name!=='desktop-chromium','One redirect compatibility check.');
  await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
@@ -154,32 +138,23 @@ test('editorial histories expand, redistribution stays visible and Europe is gro
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
 });
 
-test('France keeps the approved backgrounds and readable inner margins in both themes',async({page},info)=>{
+test('France keeps the approved background and shared header',async({page},info)=>{
  await page.goto('/bilan/');
  await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
- for(const [theme,toggle] of [
-  ['clair','Activer le mode sombre'],
-  ['sombre','Activer le mode clair']
- ]){
-  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
-  await expect(page.getByRole('img',{name:'500 SIGNATURES',exact:true})).toBeVisible();
-  const logo=page.locator('.brand-e img:visible');
-  await expect(logo).toHaveCount(1);
-  expect(await logo.evaluate(img=>img.complete && img.naturalWidth>0)).toBe(true);
-  await expect(page.locator('body')).toHaveCSS('background-color','rgb(245, 244, 237)');
-  await expect(page.locator('.entete')).toHaveCSS('background-color','rgb(255, 254, 250)');
-  const margins=await page.locator('#national').evaluate(panel=>{
-   const p=panel.getBoundingClientRect();
-   return Array.from(panel.querySelectorAll('#bloc-ouverture,#bloc-recettes-etat,#france-dette,#insights-france')).map(el=>{
-    const r=el.getBoundingClientRect();return {left:r.left-p.left,right:p.right-r.right};
-   });
+ await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
+ await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
+ await expect(page.locator('.brand-e')).toHaveCount(0);
+ await expect(page.locator('#theme-bascule')).toHaveCount(0);
+ await expect(page.locator('body')).toHaveCSS('background-color','rgb(245, 244, 237)');
+ await expect(page.locator('.entete')).toHaveCSS('background-color','rgb(255, 254, 250)');
+ const margins=await page.locator('#national').evaluate(panel=>{
+  const p=panel.getBoundingClientRect();
+  return Array.from(panel.querySelectorAll('#bloc-ouverture,#bloc-recettes-etat,#france-dette,#insights-france')).map(el=>{
+   const r=el.getBoundingClientRect();return {left:r.left-p.left,right:p.right-r.right};
   });
-  expect(margins.length).toBe(4);
-  const minimumMargin=['android-chromium','iphone-webkit','compact-chromium'].includes(info.project.name)?11:19;
-  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(minimumMargin);expect(margin.right).toBeGreaterThanOrEqual(minimumMargin);}
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
-  await page.locator('#bloc-recettes-etat').scrollIntoViewIfNeeded();
-  await page.screenshot({path:info.outputPath('france-margins-'+theme+'.png')});
-  await page.getByRole('button',{name:toggle,exact:true}).click();
- }
+ });
+ expect(margins.length).toBe(4);
+ const minimumMargin=['android-chromium','iphone-webkit','compact-chromium'].includes(info.project.name)?11:19;
+ for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(minimumMargin);expect(margin.right).toBeGreaterThanOrEqual(minimumMargin);}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
 });
