@@ -4,6 +4,7 @@ import "./game.css";
 import "../styles/shared-design.css";
 import "../styles/site-shell-v2.css";
 import "./approved-decision-room.css";
+import "./mandats-2026-rework.css";
 import { decide, domainFor, startingGame, start } from "./engine.ts";
 import { pilotEnabled, readPilot, recordPilot, setPilotConsent } from "./telemetry.ts";
 import { prepareOffline, removeOffline, updateOffline } from "./offline.ts";

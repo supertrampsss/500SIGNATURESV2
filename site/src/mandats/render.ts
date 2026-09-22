@@ -8,9 +8,9 @@ import { planner } from "./planner.ts";
 import { ambitionFor } from "./ambitions.ts";
 import { deliveryFeed, world, worldArt } from "./world.ts";
 import type { WorldOptions } from "./world.ts";
-import { choicesFor, DOMAINS, domainFor, calendarFor, startingGame, preview, score } from "./engine.ts";
+import { choicesFor, domainFor, calendarFor, startingGame, preview, score } from "./engine.ts";
 import { escape as e } from "./sharing.ts";
-import type { Game, Mode } from "./types.ts";
+import type { Game } from "./types.ts";
 export type Screen = "select" | "mandate" | "play" | "result";
 export type View = "decision" | "territory" | "finance" | "journal" | "plan";
 export const n = (v: number, digits = 1) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
@@ -23,11 +23,72 @@ export function territoryMap(g: Game, small = false): string {
   return `<svg class="territory-map ${small ? "map-small" : ""}" viewBox="0 0 600 420" role="img" aria-label="Carte schématique : ${g.areas.map(a => `${e(a.name)}, services ${Math.round(a.services)} sur 100`).join(" ; ")}"><path d="M0 60H600M0 120H600M0 180H600M0 240H600M0 300H600M0 360H600M60 0V420M120 0V420M180 0V420M240 0V420M300 0V420M360 0V420M420 0V420M480 0V420M540 0V420" fill="none" stroke="currentColor" stroke-opacity=".07"/>${shapes.map((s, i) => `<path d="${s}" fill="${g.mode === "municipal" ? "#3d8474" : "#496982"}" fill-opacity="${.25 + g.areas[i].services / 180}" stroke="#91b5b7" stroke-width="1.5"/>`).join("")}${g.mode === "municipal" ? '<path d="M370 -10C340 70 360 120 328 195S280 310 244 430" stroke="#426e86" stroke-width="16" fill="none"/><path d="M370 -10C340 70 360 120 328 195S280 310 244 430" stroke="#7aa6b8" stroke-width="1" fill="none"/>' : '<path d="M292 100 420 184 320 330 178 230Z" stroke="#94c4dd" stroke-dasharray="5 7" fill="none" opacity=".7"/>'}${g.areas.map((a, i) => { const x = g.mode === "municipal" ? [145, 207, 427][i] : [295, 427, 175, 325][i]; const y = g.mode === "municipal" ? [285, 110, 235][i] : [100, 178, 210, 320][i]; return `<g><circle cx="${x}" cy="${y}" r="${7 + a.services / 9}" fill="#d7f2dd" fill-opacity=".12"/><circle cx="${x}" cy="${y}" r="5" fill="${a.services >= 60 ? "#b9e7c5" : "#edc488"}"/>${small ? "" : `<text x="${x}" y="${y + 32}" text-anchor="middle" fill="#f2f7f4" font-size="14" font-family="Source Sans 3, sans-serif">${e(a.name)}</text><text x="${x}" y="${y + 51}" text-anchor="middle" fill="#b8cbd1" font-size="12" font-family="Source Sans 3, sans-serif">Services ${Math.round(a.services)}/100</text>`}</g>`; }).join("")}</svg>`;
 }
 export function selection(saved: Game | null, light = false): string {
-  return `<section class="mandate-selection"><div class="selection-heading">${eyebrow("SIMULATION BUDGÉTAIRE")}<h1 tabindex="-1">Choisissez votre <em>mandat.</em></h1><p class="lead">Arbitrez les impôts, les services publics et les investissements du pays.</p></div>${saved ? `<div class="resume"><span><strong>Partie sauvegardée.</strong> ${e(domainFor(saved).place.replace(" · scénario fictif", ""))} · ${saved.turn}/${domainFor(saved).turns} décisions</span>${button("resume", "Reprendre", "button compact")}</div>` : ""}<div class="mode-grid">${(["national"] as Mode[]).map(mode => {
-    const d = DOMAINS[mode];
-    return `<button class="mode-card ${mode}" data-action="mode" data-mode="${mode}"><div class="mode-art">${worldArt(mode, { light })}<span class="mode-number">01 / LE PAYS</span><span class="mode-art-caption">FRANCE<small>Simulation de mandat</small></span></div><div class="mode-copy"><span class="eyebrow">${e(d.role)}</span><h2>${e(d.label)}</h2><p>Décidez des impôts, des services publics et des dépenses du pays.</p><div class="mode-meta"><span>45 décisions · 5 années</span><span>Budget national</span></div><span class="mode-cta">Prendre les commandes</span></div></button>`;
-  }).join("")}</div><section class="selection-rules"><h2>Votre mandat en trois étapes</h2><ol><li><strong>Décidez.</strong> Un vote applique la mesure et ouvre la décision suivante.</li><li><strong>Suivez les conséquences.</strong> Le budget et la société évoluent, parfois avec un délai.</li><li><strong>Construisez votre bilan.</strong> En France, partez de 153 Md€ de déficit annuel : 30 réformes, des décisions débloquées par vos choix et au plus 5 crises espacées.</li></ol><a href="/mandats/methode/">Sources et méthode</a></section><div class="selection-footer"></div></section>`;
+  return `<section class="mandate-selection mandate-home">
+    <section class="mandate-home-hero" aria-labelledby="mandate-home-title">
+      <div class="mandate-home-copy">
+        ${eyebrow("SIMULER · ARBITRER · COMPRENDRE")}
+        <h1 id="mandate-home-title" tabindex="-1">Prenez les rênes<br>du pays.</h1>
+        <p class="lead">Incarnez le gouvernement et pilotez la France pendant cinq ans. Faites des choix, gérez les équilibres, affrontez les crises et voyez leurs effets.</p>
+        <div class="mandate-home-actions">
+          <button class="mandate-home-primary" data-action="mode" data-mode="national" aria-label="Gouverner la France">Commencer mon mandat <span aria-hidden="true">→</span></button>
+          <a class="mandate-home-secondary" href="#mandate-concept">Découvrir le concept</a>
+        </div>
+      </div>
+      <div class="mandate-home-visual">
+        <div class="mandate-home-art">${worldArt("national", { light })}</div>
+        <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
+      </div>
+    </section>
+    ${saved ? `<div class="resume mandate-home-resume"><span><strong>Partie sauvegardée.</strong> ${e(domainFor(saved).place.replace(" · scénario fictif", ""))} · ${saved.turn}/${domainFor(saved).turns} décisions</span>${button("resume", "Reprendre", "button compact")}</div>` : ""}
+    <section class="mandate-home-features" aria-label="Ce que vous ferez pendant le mandat">
+      <article><span class="mandate-feature-icon">${icon("decision")}</span><div><h2>Prenez des décisions</h2><p>Réformes, fiscalité, services publics : arbitrez parmi des options documentées.</p></div></article>
+      <article><span class="mandate-feature-icon mandate-feature-icon--red">${icon("finance")}</span><div><h2>Gérez les équilibres</h2><p>Chaque décision produit des effets croisés sur les comptes et la société.</p></div></article>
+      <article><span class="mandate-feature-icon">${icon("journal")}</span><div><h2>Affrontez les crises</h2><p>Réagissez à des événements économiques, sociaux et internationaux.</p></div></article>
+      <article><span class="mandate-feature-icon mandate-feature-icon--red">${icon("plan")}</span><div><h2>Voyez l’impact de vos choix</h2><p>Suivez l’évolution du déficit, de la dette et de la confiance au fil du mandat.</p></div></article>
+    </section>
+    <section class="mandate-home-preview" id="mandate-concept" aria-labelledby="mandate-preview-title">
+      <div class="mandate-home-preview-copy">
+        ${eyebrow("UNE EXPÉRIENCE IMMERSIVE")}
+        <h2 id="mandate-preview-title">Un mandat, des choix,<br>des conséquences.</h2>
+        <p>Une simulation politique fondée sur des données publiques et des scénarios documentés. Explorez la complexité de l’action publique et mesurez l’impact de vos décisions, année après année.</p>
+        <ul class="mandate-home-proofs">
+          <li>Des données publiques</li>
+          <li>Des scénarios documentés</li>
+          <li>Une approche pédagogique</li>
+        </ul>
+      </div>
+      <div class="mandate-preview-window" aria-label="Aperçu du simulateur Mandats">
+        <header><strong>Mon mandat</strong><span>2027 · année 1/5</span></header>
+        <div class="mandate-preview-body">
+          <nav aria-label="Aperçu de la navigation"><span aria-current="page">Vue d’ensemble</span><span>Décisions</span><span>Événements</span><span>Indicateurs</span></nav>
+          <div class="mandate-preview-main">
+            <h3>Année 2027</h3>
+            <p>Vos priorités pour la première année de mandat.</p>
+            <div class="mandate-preview-metrics"><div><span>Déficit public</span><strong>153 Md€</strong></div><div><span>Dette publique</span><strong>111 %</strong></div><div><span>Confiance</span><strong>48 / 100</strong></div></div>
+            <section class="mandate-preview-decision"><span>PROCHAINE DÉCISION</span><strong>Réformer l’assurance chômage</strong><small>Emploi & travail · décision 1/45</small></section>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>`;
 }
+
+function nationalPlayHeader(g: Game): string {
+  const calendar = calendarFor(g);
+  const deficit = Math.abs(annualDeficit(g));
+  const debtRatio = g.finance.gdp ? g.finance.debt / g.finance.gdp * 100 : 0;
+  return `<section class="mandat-play-hero" aria-label="Votre mandat">
+    <div><p class="eyebrow">MANDATS</p><h2>Faites les choix qui comptent.</h2><p>Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles.</p></div>
+    <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
+  </section>
+  <section class="mandat-play-status mobile-mandate-context" aria-label="État du mandat">
+    <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
+    <div><span>Déficit public</span><strong>${n(deficit)} Md€</strong></div>
+    <div><span>Dette publique</span><strong>${n(debtRatio)} %</strong><small>du PIB</small></div>
+    <div><span>Confiance citoyenne</span><strong>${Math.round(g.metrics.trust)} / 100</strong></div>
+  </section>`;
+}
+
 export function pulse(g: Game): string {
   const d = domainFor(g);
   const financeValue = g.mode === "municipal" ? `${n(g.finance.cash)} M€` : g.version >= 6 ? `${n(Math.abs(annualDeficit(g)))} Md€` : `${n(g.finance.debt / g.finance.gdp * 100)} %`;
@@ -90,5 +151,7 @@ export function gameShell(g: Game, screen: Screen, view: View, shared = false, o
   const calendar = calendarFor(g);
   const timeline = `<ol class="mandate-timeline" aria-label="Progression du mandat">${Array.from({ length: calendar.years }, (_, i) => `<li class="${i < calendar.completedYears ? "completed" : i === calendar.year - 1 ? "current" : ""}"><span>${i < calendar.completedYears ? icon("check") : i + 1}</span><small>AN ${i + 1}</small></li>`).join("")}</ol>`;
   const tabs = screen === "play" ? `<nav class="game-tabs" aria-label="Vues du mandat"><button data-action="view" data-view="decision" ${view === "decision" ? 'aria-current="page"' : ""}>${icon("decision")}Décider</button><button data-action="view" data-view="finance" ${["finance","territory","journal"].includes(view) ? 'aria-current="page"' : ""}>${icon("finance")}Bilan</button><button data-action="tools">${icon("journal")}Ma partie</button></nav>` : "";
-  return `${screen === "play" && view === "decision" ? "" : pulse(g)}${g.mode === "national" ? nationalMandateHeading(g) : `<div class="mobile-mandate-context"><span>${e(domainFor(g).place)}</span><strong>Année ${calendar.year}/${calendar.years}</strong></div>`}<div class="game-grid" data-screen="${screen}" data-view="${view}"><aside class="strategic-panel"><div class="world-heading"><div>${eyebrow(g.mode === "municipal" ? "VOTRE VILLE" : "LA FRANCE")}<h2>${e(domainFor(g).place)}</h2></div></div>${g.mode === "national" ? `<div class="national-command-world">${nationalScene(g, opts)}${nationalCommandPulse(g)}</div>` : world(g, opts)}${timeline}<div class="strategic-underlay"><div class="strategic-metrics"><span>Confiance <strong>${Math.round(g.metrics.trust)}<small>/100</small></strong></span><span>Patrimoine <strong>${Math.round(g.metrics.assets)}<small>/100</small></strong></span><button class="text-button" data-action="light-mode" aria-pressed="${!!opts.light}">${opts.light ? "Vue illustrée" : "Vue légère"}</button></div>${deliveryFeed(g)}${trajectory(g)}</div></aside><div class="game-content">${tabs}${content}${view === "decision" && g.city ? `<p class="decision-source">Source locale : <a href="${e(g.city.provenance.source)}">${e(g.city.provenance.producer)} · comptes ${g.city.year}</a></p>` : ""}${screen === "play" && view === "decision" && g.turn < domainFor(g).turns ? turnFeedback(g) : ""}</div></div>`;
+  const nationalDecisionHome = g.mode === "national" && screen === "play" && view === "decision";
+  const mandateHeading = g.mode === "national" ? (nationalDecisionHome ? nationalPlayHeader(g) : nationalMandateHeading(g)) : `<div class="mobile-mandate-context"><span>${e(domainFor(g).place)}</span><strong>Année ${calendar.year}/${calendar.years}</strong></div>`;
+  return `${screen === "play" && view === "decision" ? "" : pulse(g)}${mandateHeading}<div class="game-grid" data-screen="${screen}" data-view="${view}"><aside class="strategic-panel"><div class="world-heading"><div>${eyebrow(g.mode === "municipal" ? "VOTRE VILLE" : "LA FRANCE")}<h2>${e(domainFor(g).place)}</h2></div></div>${g.mode === "national" ? `<div class="national-command-world">${nationalScene(g, opts)}${nationalCommandPulse(g)}</div>` : world(g, opts)}${timeline}<div class="strategic-underlay"><div class="strategic-metrics"><span>Confiance <strong>${Math.round(g.metrics.trust)}<small>/100</small></strong></span><span>Patrimoine <strong>${Math.round(g.metrics.assets)}<small>/100</small></strong></span><button class="text-button" data-action="light-mode" aria-pressed="${!!opts.light}">${opts.light ? "Vue illustrée" : "Vue légère"}</button></div>${deliveryFeed(g)}${trajectory(g)}</div></aside><div class="game-content">${tabs}${content}${view === "decision" && g.city ? `<p class="decision-source">Source locale : <a href="${e(g.city.provenance.source)}">${e(g.city.provenance.producer)} · comptes ${g.city.year}</a></p>` : ""}${screen === "play" && view === "decision" && g.turn < domainFor(g).turns ? turnFeedback(g) : ""}</div></div>`;
 }
