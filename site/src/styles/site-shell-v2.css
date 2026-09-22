@@ -85,8 +85,8 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
   max-width:none!important;
   margin:0!important;
   color:var(--site-ink);
-  font:600 clamp(52px,5vw,72px)/.98 "Source Sans 3","Public Sans",Arial,sans-serif!important;
-  letter-spacing:-2.9px!important;
+  font:500 clamp(52px,5vw,72px)/.98 "Spectral",Georgia,serif!important;
+  letter-spacing:-2.8px!important;
 }
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__intro{
   max-width:54ch!important;
