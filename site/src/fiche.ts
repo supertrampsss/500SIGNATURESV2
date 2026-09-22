@@ -447,8 +447,11 @@ export function afficherFiche(
         return `<div class="fiche__essentiel">
           <section class="territoire-reperes-section" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
-            <h2>Les grands repères</h2>
-            ${ouvertureChiffree}
+            <h2>Les chiffres clés de ${echapper(territoire.nom)}</h2>
+            <div class="territoire-reperes-grid">
+              ${territoire.population ? `<div class="territoire-population-card"><span>Population</span><strong>${new Intl.NumberFormat("fr-FR").format(territoire.population)}</strong><small>habitants</small></div>` : ""}
+              ${ouvertureChiffree}
+            </div>
           </section>
           <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
