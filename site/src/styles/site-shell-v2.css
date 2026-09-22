@@ -547,3 +547,184 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-f
     padding:18px 16px 4px!important;
   }
 }
+
+
+/* Villes concept 2: edge-to-edge hero, aligned content, compact search, full footer. */
+
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .entete{
+  width:100%!important;
+  max-width:none!important;
+  min-height:76px!important;
+  margin:0!important;
+  padding:14px max(32px,calc((100vw - 1180px)/2 + 36px))!important;
+  border:0!important;
+  border-bottom:1px solid rgba(9,45,88,.08)!important;
+  border-radius:0!important;
+  background:rgba(255,254,250,.985)!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #contenu{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #vue-territoire{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche{
+  min-height:clamp(610px,calc(100svh - 156px),720px)!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo{
+  inset:0!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo::after{
+  background:
+    linear-gradient(90deg,rgba(247,250,252,.88) 0%,rgba(247,250,252,.68) 33%,rgba(247,250,252,.20) 58%,rgba(247,250,252,0) 76%),
+    linear-gradient(180deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.06) 58%,rgba(9,45,88,.10) 100%)!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo img{
+  object-position:center center!important;
+  filter:saturate(.98) brightness(1.03)!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+  min-height:clamp(610px,calc(100svh - 156px),720px)!important;
+  width:min(1180px,calc(100% - 64px))!important;
+  margin:0 auto!important;
+  padding:72px 0 126px!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  text-align:left!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__surtitre{
+  margin:0 0 22px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{
+  max-width:760px!important;
+  font-size:clamp(54px,5.05vw,74px)!important;
+  line-height:.98!important;
+  letter-spacing:-3px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__intro{
+  max-width:730px!important;
+  margin-top:18px!important;
+  font-size:clamp(17px,1.45vw,20px)!important;
+  line-height:1.48!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{
+  width:min(720px,100%)!important;
+  margin:28px 0 0!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ{
+  width:100%!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ #recherche{
+  width:100%!important;
+  min-height:64px!important;
+  padding:0 64px!important;
+  border:1px solid rgba(81,113,141,.28)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 14px 38px rgba(22,43,60,.14)!important;
+  font-size:18px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ .territoire-search-icon{
+  left:24px!important;
+  width:24px!important;
+  height:24px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ .territoire-search-icon svg{
+  width:24px!important;
+  height:24px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo figcaption{
+  right:max(18px,calc((100vw - 1180px)/2))!important;
+  bottom:14px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer{
+  display:grid!important;
+  grid-template-columns:auto 1fr auto!important;
+  gap:18px!important;
+  align-items:center!important;
+  width:100%!important;
+  margin:0!important;
+  padding:22px max(32px,calc((100vw - 1180px)/2))!important;
+  border:0!important;
+  background:rgba(255,254,250,.99)!important;
+  box-sizing:border-box!important;
+  box-shadow:none!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer>strong{
+  font-size:19px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer nav{
+  gap:18px!important;
+}
+
+@media(max-width:700px){
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .entete{
+    width:100%!important;
+    padding:10px 16px 0!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche,
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+    min-height:590px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+    width:calc(100% - 32px)!important;
+    padding:48px 0 120px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{
+    max-width:9.5ch!important;
+    font-size:clamp(42px,12vw,54px)!important;
+    letter-spacing:-2.3px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__intro{
+    max-width:31ch!important;
+    font-size:16px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{
+    width:100%!important;
+    margin-top:24px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ #recherche{
+    min-height:58px!important;
+    padding:0 54px!important;
+    font-size:16px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo img{
+    object-position:43% center!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo::after{
+    background:linear-gradient(180deg,rgba(247,250,252,.91) 0%,rgba(247,250,252,.72) 42%,rgba(247,250,252,.18) 72%,rgba(9,45,88,.12) 100%)!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo figcaption{
+    right:10px!important;
+    bottom:8px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:10px!important;
+    padding:18px 16px!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer nav{
+    flex-wrap:wrap!important;
+    justify-content:flex-start!important;
+    gap:10px 14px!important;
+  }
+}
