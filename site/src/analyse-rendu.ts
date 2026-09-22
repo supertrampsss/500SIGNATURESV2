@@ -442,18 +442,18 @@ export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): strin
   const visuelles=autres.filter((a)=>IMAGES_INDEX[a.slug]).slice(0,8);
   const secondaires=autres.filter((a)=>!visuelles.includes(a));
   const themes=valeursDistinctes(triees.flatMap((a)=>a.themes),libelleTheme).slice(0,7);
+  const filtres=triees.length<2 ? "" : `<div class="dossiers-v2__filtres"><button type="button" data-analyse-theme="" aria-pressed="true">Tous les dossiers</button>${themes.map((t)=>`<button type="button" data-analyse-theme="${echapper(t.valeur)}" aria-pressed="false">${echapper(t.libelle.replace("Comparaisons européennes","Europe"))}</button>`).join("")}<label><span class="visuellement-cache">Rechercher un dossier</span><input id="analyses-recherche-v2" type="search" placeholder="Rechercher"></label></div>`;
   const carteVedette=vedette ? carteDeLAnalyse(vedette) : null;
   const vedetteHtml=vedette && carteVedette ? `<article class="dossiers-v2__vedette" data-dossier-card data-type="${echapper(carteVedette.type)}" data-themes="${echapper(carteVedette.themes)}" data-budgets="${echapper(carteVedette.budgets)}" data-texte="${echapper(carteVedette.texte)}">
       <img src="${IMAGES_INDEX[vedette.slug] ?? "/dossiers/groenland.jpg"}" alt="" width="840" height="470">
       <div><p class="dossiers-v2__eyebrow">Dossier à la une</p><h2><a href="/analyses/${echapper(vedette.slug)}/">${echapper(vedette.titre)}</a></h2><p>${echapper(vedette.dossier?.chapo ?? vedette.affirmation.texte)}</p><time datetime="${echapper(vedette.publie_le)}">${echapper(dateDossier(vedette.publie_le))}</time><a class="dossiers-v2__lire" href="/analyses/${echapper(vedette.slug)}/">Lire le dossier</a></div>
     </article>` : "";
-  const chips=themes.map((t)=>`<button type="button" data-analyse-theme="${echapper(t.valeur)}" aria-pressed="false">${echapper(t.libelle.replace("Comparaisons européennes","Europe"))}</button>`).join("");
   return `<section class="analyses-index dossiers-v2" aria-labelledby="analyses-titre">
     <header class="dossiers-v2__hero">
       <div><p class="dossiers-v2__eyebrow">Analyses et décryptages</p><h1 id="analyses-titre">Dossiers</h1><p class="dossiers-v2__lead">Des analyses sourcées pour aller plus loin que les chiffres.</p><p>Les dossiers approfondissent les grands enjeux publics à partir des données publiées et de sources identifiées.</p></div>
       <figure><img src="/dossiers/groenland.jpg" alt="Paysage du Groenland" width="900" height="520"><figcaption>Groenland · illustration du dossier</figcaption></figure>
     </header>
-    <div class="dossiers-v2__filtres"><button type="button" data-analyse-theme="" aria-pressed="true">Tous les dossiers</button>${chips}<label><span class="visuellement-cache">Rechercher un dossier</span><input id="analyses-recherche-v2" type="search" placeholder="Rechercher"></label></div>
+    ${filtres}
     ${vedetteHtml}
     <section class="dossiers-v2__liste-section"><div class="dossiers-v2__section-head"><h2>Les derniers dossiers</h2><p>Des analyses pour un débat plus serein.</p></div><ul class="dossiers-v2__grille" id="analyses-index">${visuelles.map(carteDossierV2).join("")}${secondaires.map(carteDossierV2).join("")}</ul></section>
     <section class="dossiers-v2__preuves"><div><strong>Des données fiables</strong><span>Sources publiques officielles</span></div><div><strong>Des analyses indépendantes</strong><span>Une approche factuelle et pédagogique</span></div><div><strong>Une information accessible</strong><span>Des sujets complexes, expliqués clairement</span></div></section>
