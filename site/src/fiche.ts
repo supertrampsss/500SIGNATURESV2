@@ -357,8 +357,11 @@ export function afficherFiche(
         series: territoire.series,
       });
   cible.innerHTML = `
-    <h1 class="fiche__titre">${echapper(territoire.nom)}</h1>
-    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
+    <section class="fiche__hero" aria-labelledby="fiche-titre">
+      <div class="fiche__hero-copy">
+        <p class="territoire-section-kicker">${niveau === "commune" ? "VILLE · TERRITOIRE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
+        <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
+        <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
       // était soulignée en pointillé, c'est-à-dire habillée en lien, alors
       // qu'aucun clic ne mène nulle part. La classe dit au style de ne pas
@@ -369,6 +372,13 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
+      </div>
+      <div class="fiche__hero-scene" aria-hidden="true">
+        <span class="fiche__hero-building fiche__hero-building--1"></span>
+        <span class="fiche__hero-building fiche__hero-building--2"></span>
+        <span class="fiche__hero-building fiche__hero-building--3"></span>
+        <span class="fiche__hero-reflet"></span>
+      </div>
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? (() => {
@@ -422,6 +432,7 @@ export function afficherFiche(
           })()
         : ""
     }
+    </section>
     ${
       // Sous le dernier bloc : le tableau des exercices, et rien d'autre. Les
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
@@ -453,8 +464,13 @@ export function afficherFiche(
           </section>
           ${evolution ? `<details class="territoire-evolution-detail"><summary>Voir le détail annuel</summary>${evolution}</details>` : ""}
           ${lienPreuve}
+          <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
+            <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
+            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} parmi les autres territoires</h2>
+            <p class="territoire-comparaison-section__intro">Des repères pour situer ce territoire sans réduire sa situation à un seul chiffre.</p>
+            <div class="fiche__situation" id="fiche-situation"></div>
+          </section>
           ${analysesCroisees}
-          <div class="fiche__situation" id="fiche-situation"></div>
         </div>`;
       })()
     }
