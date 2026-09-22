@@ -167,10 +167,14 @@
            communes, réglés sur l'indicateur affiché — ont été retirés :
            demandé par le propriétaire du site, ils n'ont plus d'écran. -->
       <section class="territoire__tables">
-        <details class="territoire-donnees-completes">
-          <summary>Voir toutes les données du territoire</summary>
+        <section class="territoire-donnees-completes" aria-labelledby="territoire-donnees-titre">
+          <header class="territoire-donnees-completes__entete">
+            <p class="territoire-section-kicker">DONNÉES COMPLÈTES</p>
+            <h2 id="territoire-donnees-titre">Toutes les données du territoire</h2>
+            <p>Indicateur par indicateur, avec les exercices publiés et les unités correspondantes.</p>
+          </header>
           <div id="detail"></div>
-        </details>
+        </section>
         <section class="comparateur" id="comparateur" hidden></section>
       </section>
 
