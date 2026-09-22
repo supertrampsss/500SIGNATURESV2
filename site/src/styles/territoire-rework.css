@@ -1353,3 +1353,134 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .f
   box-shadow:none !important;
   backdrop-filter:none !important;
 }
+
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section__corps{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(230px,.45fr);
+  gap:14px;
+  margin-top:20px;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section__corps .fiche__situation{
+  margin:0;
+  padding:0;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .bloc-lecture--situation{
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .bloc-lecture--situation>h3{
+  margin:0 0 12px;
+  font:600 17px/1.2 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation>li:first-child{
+  display:none;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation>li:nth-child(n+5){
+  display:none;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__pli{
+  overflow:hidden;
+  height:100%;
+  border:1px solid var(--fr-line);
+  border-radius:5px;
+  background:#fff;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__pli>summary{
+  display:grid;
+  grid-template-columns:1fr auto;
+  min-height:145px;
+  gap:7px 10px;
+  align-content:center;
+  padding:18px;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__rang{
+  color:var(--fr-red);
+  font:600 30px/1 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__valeur{
+  align-self:start;
+  color:var(--fr-ink);
+  font:600 21px/1.1 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__quoi{
+  grid-column:1/-1;
+  color:var(--fr-ink);
+  font-size:12px;
+  line-height:1.35;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__quoi em{
+  display:block;
+  margin-top:5px;
+  color:var(--fr-muted);
+  font-size:10px;
+  font-style:normal;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card{
+  position:relative;
+  overflow:hidden;
+  min-height:205px;
+  padding:22px;
+  border:1px solid #dbe6ed;
+  border-radius:6px;
+  background:var(--fr-pale-blue);
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card h3{
+  max-width:12ch;
+  margin:0 0 9px;
+  color:var(--fr-ink);
+  font:500 25px/1.05 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card>p:not(.territoire-section-kicker){
+  position:relative;
+  z-index:2;
+  max-width:28ch;
+  margin:0;
+  color:var(--fr-muted);
+  font-size:12px;
+  line-height:1.45;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card__skyline{
+  position:absolute;
+  left:20px;
+  right:20px;
+  bottom:18px;
+  height:50px;
+  opacity:.55;
+  background:
+    linear-gradient(90deg,transparent 0 4%,#8bb9d6 4% 5%,transparent 5% 12%,#8bb9d6 12% 13%,transparent 13% 23%,#8bb9d6 23% 24%,transparent 24% 38%,#8bb9d6 38% 39%,transparent 39% 50%,#8bb9d6 50% 51%,transparent 51% 65%,#8bb9d6 65% 66%,transparent 66% 80%,#8bb9d6 80% 81%,transparent 81% 100%);
+  border-bottom:1px solid #8bb9d6;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card__skyline::before{
+  content:"";
+  position:absolute;
+  left:47%;
+  bottom:0;
+  width:26px;
+  height:42px;
+  border:1px solid #8bb9d6;
+  border-bottom:0;
+}
+html[data-theme] body[data-vue="territoire"] .territoire-contexte-card__skyline::after{
+  content:"";
+  position:absolute;
+  left:calc(47% + 4px);
+  bottom:42px;
+  border-left:9px solid transparent;
+  border-right:9px solid transparent;
+  border-bottom:25px solid #8bb9d6;
+}
+@media(max-width:700px){
+  html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section__corps{
+    grid-template-columns:1fr;
+  }
+  html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation{
+    grid-template-columns:1fr;
+  }
+}
