@@ -602,9 +602,8 @@ export function renduQuestionsAccueil(): string {
 }
 
 /**
- * L'accueil entier : une promesse, la France, les Villes, les Dossiers, puis
- * la simulation. Les sources et les questions réassurent avant le dernier
- * parcours, au lieu de faire concurrence aux dossiers.
+ * L'accueil entier : une promesse, trois portes claires, une bande de confiance,
+ * puis la simulation. Aucun second jeu de cartes ne répète les mêmes destinations.
  */
 function renduPortesAccueil(): string {
   return `<section class="story-section story-doors" aria-labelledby="story-portes">
@@ -627,31 +626,11 @@ function renduPortesAccueil(): string {
   </section>`;
 }
 
-function renduQuestionsStory(): string {
-  return `<section class="story-section story-questions" aria-labelledby="story-questions">
-    <div class="story-heading"><div><p class="story-kicker">QUESTIONS CLÉS</p><h2 id="story-questions">Quelques questions pour commencer.</h2></div></div>
-    <div class="story-questions__grid">
-      <a class="story-question" href="/bilan/">
-        <img src="/france/budget.jpg" alt="" width="420" height="220" loading="lazy">
-        <span>Où va l’argent public ?</span>
-      </a>
-      <a class="story-question" href="/territoire">
-        <img src="/france/services.jpg" alt="" width="420" height="220" loading="lazy">
-        <span>Comment votre territoire se situe-t-il ?</span>
-      </a>
-      <a class="story-question" href="/analyses/">
-        <img src="/dossiers/groenland.jpg" alt="" width="420" height="220" loading="lazy">
-        <span>Quels grands enjeux dépassent nos frontières ?</span>
-      </a>
-    </div>
-  </section>`;
-}
-
 function renduConfianceStory(): string {
-  return `<section class="story-trust" aria-label="Sources et méthode">
-    <a href="/sources/"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></a>
-    <a href="/sources/"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></a>
-    <a href="/sources/"><strong>Accessible à tous</strong><span>Des explications claires.</span></a>
+  return `<section class="story-trust" aria-label="Nos engagements">
+    <div><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></div>
+    <div><strong>Données vérifiées</strong><span>Une méthode transparente.</span></div>
+    <div><strong>Accessible à tous</strong><span>Des explications claires.</span></div>
   </section>`;
 }
 
@@ -675,7 +654,6 @@ export function rendu(donnees: DonneesAccueil): string {
       </figure>
     </section>
     ${renduPortesAccueil()}
-    ${renduQuestionsStory()}
     ${renduConfianceStory()}
     <section class="story-mandats" aria-labelledby="story-mandats">
       <div>
