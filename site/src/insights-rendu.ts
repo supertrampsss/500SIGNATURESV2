@@ -41,10 +41,7 @@ const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
 ];
 
 function renduTerritoireAvecSuite(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
-  return `<details class="insights__suite insights__suite--toutes">
-    <summary>Voir les analyses complémentaires</summary>
-    ${cartesAvecSuite(insights, 3, catalogue, series)}
-  </details>`;
+  return cartesAvecSuite(insights.slice(0, 4), 3, catalogue, series);
 }
 
 function renduFranceParThemes(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
@@ -84,10 +81,10 @@ export function renduInsights(
   const estFrance = options.contexte === "france";
   const titre = estFrance
     ? "Les arbitrages derrière les comptes"
-    : `Ce que racontent les chiffres de ${options.nom ?? "ce territoire"}`;
+    : "Les grands enjeux locaux";
   const introduction = estFrance
     ? "Les chiffres qui font débat."
-    : "Quelques repères pour situer ce territoire.";
+    : `Les analyses essentielles pour comprendre ${options.nom ?? "ce territoire"}.`;
 
   return `<section class="insights insights--${options.contexte}" aria-labelledby="insights-${options.contexte}-titre">
     <header class="insights__entete">
