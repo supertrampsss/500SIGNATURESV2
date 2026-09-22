@@ -81,11 +81,11 @@ test("les arbitrages France restent tous dans le document et sont regroupés par
   assert.doesNotMatch(html, /insights__retour/);
 });
 
-test("toutes les analyses territoriales sont immédiatement visibles", () => {
+test("quatre analyses territoriales essentielles sont immédiatement visibles", () => {
   const cartes = Array.from({ length: 5 }, (_, index) => ({ ...insight, id: `territoire-${index}` }));
   const html = renduInsights(cartes, catalogue, { contexte: "territoire", nom: "Ville-test" });
 
-  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 5);
+  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 4);
   assert.equal((html.match(/<details class="insights__more">/g) ?? []).length, 0);
   assert.doesNotMatch(html, />Voir les autres</);
   assert.match(html, /Les analyses essentielles pour comprendre Ville-test/);
