@@ -1,49 +1,23 @@
 import {test,expect} from '@playwright/test';
 
-test('Mandats : carte de départ lisible et texte centré dans les deux thèmes',async({page},info)=>{
+test('Mandats : accueil éditorial lisible dans les deux thèmes',async({page},info)=>{
  await page.goto('/mandats/');
- const card=page.locator('.mode-card.national');
- const copy=card.locator('.mode-copy');
+ const hero=page.locator('.mandate-home-hero');
+ const primary=page.getByRole('button',{name:'Gouverner la France'});
  for(const [theme,toggle] of [['clair','Activer le mode sombre'],['sombre','Activer le mode clair']]) {
   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
-  await card.scrollIntoViewIfNeeded();
+  await expect(hero).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Prenez les rênes du pays.',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Prenez des décisions',exact:true})).toBeVisible();
+  await expect(primary).toBeVisible();
+  await expect(page.locator('.mandate-home-primary')).toHaveCount(1);
   await page.screenshot({path:info.outputPath('mandats-selection-'+theme+'.png'),fullPage:true});
-  const appearance=await copy.evaluate(el=>{
-   const luminance=color=>{
-    const values=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
-    return values[0]*.2126+values[1]*.7152+values[2]*.0722;
-   };
-   const bg=getComputedStyle(el).backgroundColor;
-   const parent=el.getBoundingClientRect();
-   return {
-    bg,
-    texts:Array.from(el.querySelectorAll('.eyebrow,h2,p,.mode-meta span,.mode-cta')).map(child=>{
-     const css=getComputedStyle(child),r=child.getBoundingClientRect();
-     const fg=luminance(css.color),background=luminance(child.classList.contains('mode-cta')?css.backgroundColor:bg);
-     return {text:child.textContent,color:css.color,contrast:(Math.max(fg,background)+.05)/(Math.min(fg,background)+.05),visible:r.width>0&&r.height>0};
-    }),
-    aligned:getComputedStyle(el).textAlign,
-    ctaCenter:Math.abs((el.querySelector('.mode-cta').getBoundingClientRect().left+el.querySelector('.mode-cta').getBoundingClientRect().right)/2-(parent.left+parent.right)/2),
-   };
-  });
-  expect(appearance.bg).not.toMatch(/rgba\([^)]*,\s*0\)|transparent/);
-  for(const text of appearance.texts){expect(text.visible,text.text).toBe(true);expect(text.contrast,JSON.stringify({theme,bg:appearance.bg,...text})).toBeGreaterThanOrEqual(4.5);}
-  expect(appearance.aligned).toBe('center');
-  expect(appearance.ctaCenter).toBeLessThanOrEqual(2);
-  const layout=await card.evaluate(el=>{
-   const image=el.querySelector('.mode-art').getBoundingClientRect(),copy=el.querySelector('.mode-copy').getBoundingClientRect();
-   return {stacked:innerWidth<=700,image:{x:image.x,y:image.y,width:image.width,bottom:image.bottom},copy:{x:copy.x,y:copy.y,width:copy.width,bottom:copy.bottom}};
-  });
-  expect(Math.abs(layout.image.width-layout.copy.width)).toBeLessThanOrEqual(2);
-  if(layout.stacked) expect(Math.abs(layout.copy.y-layout.image.bottom)).toBeLessThanOrEqual(2);
-  else {expect(Math.abs(layout.image.y-layout.copy.y)).toBeLessThanOrEqual(2);expect(Math.abs(layout.image.bottom-layout.copy.bottom)).toBeLessThanOrEqual(2);}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   await page.getByRole('button',{name:toggle,exact:true}).click();
  }
- await card.click();
+ await primary.click();
  await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
 });
-
 test('Mandats expose Accueil et le lien revient à la page d’accueil',async({page})=>{
  for(const path of ['/mandats/','/mandats/methode/','/mandats/comprendre/','/bilan/']){
   await page.goto(path);
@@ -127,7 +101,7 @@ test('retired simulator URLs lead to Mandats while old browser data is preserved
  await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
  await page.goto('/simulateur/comparer?version=2&budget=france');
  await expect(page).toHaveURL(/\/mandats\/$/);
- await expect(page.getByRole('heading',{name:'Choisissez votre mandat.',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Prenez les rênes du pays.',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>localStorage.getItem('simulator-legacy-preservation'))).toBe('old-save');
 });
 
