@@ -1210,3 +1210,7 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .f
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche{padding:10px 12px}
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche__outil{max-width:none}
 }
+
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{
+  max-width:14.5ch;
+}
