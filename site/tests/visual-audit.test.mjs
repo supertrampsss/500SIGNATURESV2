@@ -177,6 +177,33 @@ for (const pageCible of PAGES) {
   });
 }
 
+test('accueil : le header et la page ont exactement la même largeur', async ({ page }) => {
+  await page.goto('/accueil/');
+  await stabiliser(page);
+  const mesures=await page.evaluate(()=>{
+    const header=document.querySelector('.entete')?.getBoundingClientRect();
+    const accueil=document.querySelector('.accueil')?.getBoundingClientRect();
+    return header&&accueil?{header:{left:header.left,right:header.right,width:header.width},accueil:{left:accueil.left,right:accueil.right,width:accueil.width}}:null;
+  });
+  expect(mesures).not.toBeNull();
+  expect(Math.abs(mesures.header.width-mesures.accueil.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(mesures.header.left-mesures.accueil.left)).toBeLessThanOrEqual(1);
+  await expect(page.locator('.story-trust__icon')).toHaveCount(3);
+  await expect(page.locator('.story-hero .story-button')).toHaveCount(1);
+  await expect(page.locator('.story-door b')).toHaveCount(0);
+});
+
+test('Bordeaux : les données complètes sont visibles et le détail annuel dupliqué a disparu', async ({ page }) => {
+  await page.goto('/territoire?niveau=commune&territoire=33063');
+  await stabiliser(page);
+  await expect(page.getByRole('heading',{name:'Toutes les données du territoire',exact:true})).toBeVisible();
+  await expect(page.locator('.territoire-donnees-completes')).toBeVisible();
+  await expect(page.getByText('Voir le détail annuel',{exact:true})).toHaveCount(0);
+  await expect(page.locator('.territoire-evolution-detail')).toHaveCount(0);
+  await expect(page.locator('#detail .davantage__theme').first()).toBeVisible({timeout:10_000});
+  await expect(page.locator('.insights--territoire .insights__grille')).toBeVisible();
+});
+
 test('navigation : contrat des destinations publiques depuis France', async ({ page }, testInfo) => {
   await page.goto('/bilan/', { waitUntil: 'domcontentloaded' });
   await stabiliser(page);

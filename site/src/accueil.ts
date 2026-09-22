@@ -609,18 +609,18 @@ export function renduQuestionsAccueil(): string {
 function renduPortesAccueil(): string {
   return `<section class="story-section story-doors" aria-labelledby="story-portes">
     <p class="story-kicker">TROIS PORTES D’ENTRÉE</p>
-    <h2 id="story-portes">Explorez 500 Signatures.</h2>
+    <h2 id="story-portes">Par où commencer ?</h2>
     <div class="story-doors__grid">
       <a class="story-door" href="/bilan/">
-        <div class="story-door__copy"><span>FRANCE</span><strong>Comprendre<br>la France</strong><small>Les grands équilibres en un coup d’œil.</small><b>Voir les données →</b></div>
+        <div class="story-door__copy"><span>FRANCE</span><strong>Les comptes<br>de la France</strong><small>Les grands équilibres nationaux en un coup d’œil.</small></div>
         <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/territoire">
-        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Explorer<br>les territoires</strong><small>Comparez les communes et leurs réalités.</small><b>Explorer les territoires →</b></div>
+        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Votre<br>territoire</strong><small>Comparez votre commune et comprenez ses réalités.</small></div>
         <img src="/france/logement.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/analyses/">
-        <div class="story-door__copy"><span>DOSSIERS</span><strong>Approfondir<br>un sujet</strong><small>Des analyses claires sur les grands enjeux.</small><b>Voir les dossiers →</b></div>
+        <div class="story-door__copy"><span>DOSSIERS</span><strong>Les<br>dossiers</strong><small>Des analyses sourcées sur les grands enjeux publics.</small></div>
         <img src="/france/fiscalite.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
     </div>
@@ -629,7 +629,7 @@ function renduPortesAccueil(): string {
 
 function renduQuestionsStory(): string {
   return `<section class="story-section story-questions" aria-labelledby="story-questions">
-    <div class="story-heading"><div><p class="story-kicker">À EXPLORER</p><h2 id="story-questions">Quelques questions pour commencer.</h2></div><a href="/analyses/">Voir tous les dossiers →</a></div>
+    <div class="story-heading"><div><p class="story-kicker">POUR COMMENCER</p><h2 id="story-questions">Quelques questions à ouvrir.</h2></div></div>
     <div class="story-questions__grid">
       <a class="story-question" href="/bilan/">
         <img src="/france/budget.jpg" alt="" width="420" height="220" loading="lazy">
@@ -649,9 +649,9 @@ function renduQuestionsStory(): string {
 
 function renduConfianceStory(): string {
   return `<section class="story-trust" aria-label="Sources et méthode">
-    <a href="/sources/"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></a>
-    <a href="/sources/"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></a>
-    <a href="/sources/"><strong>Accessible à tous</strong><span>Des explications claires.</span></a>
+    <a href="/sources/"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18M12 3l9 5H3l9-5Z"/></svg></span><span class="story-trust__copy"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></span></a>
+    <a href="/sources/"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="story-trust__copy"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></span></a>
+    <a href="/sources/"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><span class="story-trust__copy"><strong>Accessible à tous</strong><span>Des explications claires.</span></span></a>
   </section>`;
 }
 
@@ -666,8 +666,8 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="story-hero__copy">
         <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
         <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
-        <p>Explorez les chiffres publics, comparez les territoires et approfondissez les grands enjeux.</p>
-        <div class="story-actions"><a class="story-button" href="/bilan/">Explorer la France</a><a class="story-link" href="/analyses/">Lire les dossiers →</a></div>
+        <p>Consultez les chiffres publics, comparez les territoires et approfondissez les grands enjeux.</p>
+        <div class="story-actions"><a class="story-button" href="/bilan/">Comprendre la France</a></div>
       </div>
       <figure class="story-hero__media">
         <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">
