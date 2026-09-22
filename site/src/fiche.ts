@@ -362,8 +362,7 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
-        <p class="fiche__intro">Population, finances locales, services publics : explorez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
-        <a class="fiche__cta" href="#territoire-chiffres-cles">Explorer les données</a>
+        <p class="fiche__intro">Population, finances locales, services publics : consultez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
       </div>
       <figure class="fiche__hero-scene">
         <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg/1280px-Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
