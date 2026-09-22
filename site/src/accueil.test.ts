@@ -566,7 +566,7 @@ test("25. l'accueil ouvre les trois portes utiles sans atelier secondaire", () =
 
 test("26. France, territoires et dossiers précèdent Mandats", () => {
   const html = page();
-  const france = html.indexOf("Comprendre<br>la France");
+  const france = html.indexOf("Voir les comptes de la France");
   const territoires = html.indexOf("Comprendre<br>les territoires");
   const dossiers = html.indexOf("Approfondir<br>un sujet");
   const mandats = html.indexOf("Prenez les rênes du pays.");
@@ -579,7 +579,7 @@ test("27. l'accueil reste court : trois portes, pas de second jeu de cartes, con
   assert.equal([...html.matchAll(/class="story-door"/g)].length, 3);
   assert.equal([...html.matchAll(/class="story-question"/g)].length, 0);
   assert.doesNotMatch(html, /Quelques questions pour commencer|QUESTIONS CLÉS/);
-  assert.ok(html.indexOf("Sources officielles") < html.indexOf("Prenez les rênes du pays."));
+  assert.ok(html.indexOf("Sources officielles") > html.indexOf("Commencer mon mandat"));
   assert.ok(!html.includes("Ce que vous pouvez faire sur 500 Signatures"));
 });
 
@@ -591,11 +591,12 @@ test("28. la promesse d'accueil est brève et garde une seule action principale"
   assert.doesNotMatch(html, /Explorez|Explorer/);
   assert.doesNotMatch(html, /Voir tous les dossiers/);
   assert.doesNotMatch(html, /→/);
-  assert.equal([...html.matchAll(/class="story-button"/g)].length, 2);
+  assert.equal([...html.matchAll(/class="story-button"/g)].length, 1);
+  assert.doesNotMatch(html, /class="story-actions"/);
   const debutConfiance = html.indexOf('class="story-trust"');
   const finConfiance = html.indexOf("</section>", debutConfiance);
   assert.ok(debutConfiance >= 0 && finConfiance > debutConfiance);
-  assert.doesNotMatch(html.slice(debutConfiance, finConfiance), /<a\b/);
+  assert.equal([...html.slice(debutConfiance, finConfiance).matchAll(/<a\b/g)].length, 3);
 });
 
 test("28 bis. Mandats est explicitement une simulation présidentielle de cinq ans", () => {

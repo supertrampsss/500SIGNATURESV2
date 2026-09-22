@@ -543,7 +543,8 @@ test("les contrôles de l'index restent accessibles", () => {
   const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["dette"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["securite_sociale"] });
   const html = renduIndex([a, b], CATALOGUE);
-  assert.match(html, /<label><span class="visuellement-cache">Rechercher un dossier<\/span><input id="analyses-recherche-v2"/);
+  assert.match(html, /class="dossiers-v2__search-icon"/);
+  assert.match(html, /id="analyses-recherche-v2"[^>]*placeholder="Rechercher un dossier"/);
   assert.match(html, /<button type="button" data-analyse-theme="" aria-pressed="true">Tous les dossiers<\/button>/);
   assert.match(html, /data-analyse-theme="dette"/);
 });

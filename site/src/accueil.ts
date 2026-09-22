@@ -611,7 +611,7 @@ function renduPortesAccueil(): string {
     <h2 id="story-portes">Trois façons de lire les chiffres publics.</h2>
     <div class="story-doors__grid">
       <a class="story-door" href="/bilan/">
-        <div class="story-door__copy"><span>FRANCE</span><strong>Comprendre<br>la France</strong><small>Les grands équilibres en un coup d’œil.</small></div>
+        <div class="story-door__copy"><span>FRANCE</span><strong>Voir les comptes de la France</strong><small>Les grands équilibres en un coup d’œil.</small></div>
         <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/territoire">
@@ -628,9 +628,9 @@ function renduPortesAccueil(): string {
 
 function renduConfianceStory(): string {
   return `<section class="story-trust" aria-label="Nos engagements">
-    <div><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></div>
-    <div><strong>Données vérifiées</strong><span>Une méthode transparente.</span></div>
-    <div><strong>Accessible à tous</strong><span>Des explications claires.</span></div>
+    <a class="story-trust__item" href="/sources/"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18M12 3l9 5H3l9-5Z"/></svg></span><span class="story-trust__copy"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></span></a>
+    <a class="story-trust__item" href="/sources/#methode"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="story-trust__copy"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></span></a>
+    <a class="story-trust__item" href="/analyses/"><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><span class="story-trust__copy"><strong>Accessible à tous</strong><span>Des explications claires.</span></span></a>
   </section>`;
 }
 
@@ -646,7 +646,6 @@ export function rendu(donnees: DonneesAccueil): string {
         <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
         <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
         <p>Les chiffres publics, les territoires et les grands enjeux, dans une lecture claire et sourcée.</p>
-        <div class="story-actions"><a class="story-button" href="/bilan/">Voir les comptes de la France</a></div>
       </div>
       <figure class="story-hero__media">
         <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">
@@ -654,7 +653,6 @@ export function rendu(donnees: DonneesAccueil): string {
       </figure>
     </section>
     ${renduPortesAccueil()}
-    ${renduConfianceStory()}
     <section class="story-mandats" aria-labelledby="story-mandats">
       <div>
         <p class="story-kicker">ET ENSUITE…</p>
@@ -664,6 +662,7 @@ export function rendu(donnees: DonneesAccueil): string {
       </div>
       <div class="story-mandats__visual" aria-hidden="true"><strong>5 ans</strong><span>Vos choix.<br>Leurs conséquences.</span></div>
     </section>
+    ${renduConfianceStory()}
     <footer class="story-footer">
       <a href="/accueil/">500 Signatures</a><span>Des données pour une démocratie plus proche.</span>
       <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Villes</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
