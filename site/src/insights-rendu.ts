@@ -41,7 +41,7 @@ const THEMES_FRANCE: Array<{ famille: FamilleInsight; titre: string }> = [
 ];
 
 function renduTerritoireAvecSuite(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
-  return cartesAvecSuite(insights, 3, catalogue, series);
+  return cartesAvecSuite(insights.slice(0, 4), 3, catalogue, series);
 }
 
 function renduFranceParThemes(insights: Insight[], catalogue: Indicateur[], series?: Territoire["series"]): string {
