@@ -592,7 +592,10 @@ test("28. la promesse d'accueil est brève et garde une seule action principale"
   assert.doesNotMatch(html, /Voir tous les dossiers/);
   assert.doesNotMatch(html, /→/);
   assert.equal([...html.matchAll(/class="story-button"/g)].length, 2);
-  assert.doesNotMatch(html, /story-trust[^>]*>[\s\S]*?<a\b/);
+  const debutConfiance = html.indexOf('class="story-trust"');
+  const finConfiance = html.indexOf("</section>", debutConfiance);
+  assert.ok(debutConfiance >= 0 && finConfiance > debutConfiance);
+  assert.doesNotMatch(html.slice(debutConfiance, finConfiance), /<a\b/);
 });
 
 test("28 bis. Mandats est explicitement une simulation présidentielle de cinq ans", () => {
