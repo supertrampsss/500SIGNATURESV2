@@ -39,7 +39,7 @@ test("renduInsights rend l'analyse et la comparaison, jamais la réserve", () =>
     nom: "Ville-test",
   });
 
-  assert.match(html, /Ce que racontent les chiffres de Ville-test/);
+  assert.match(html, /Les grands enjeux locaux/);
   assert.match(html, /Le fait &lt;vérifié&gt;/);
   assert.match(html, /L&#39;analyse reste visible/);
   assert.doesNotMatch(html, /La limite est explicite/);
@@ -81,14 +81,14 @@ test("les arbitrages France restent tous dans le document et sont regroupés par
   assert.doesNotMatch(html, /insights__retour/);
 });
 
-test("toutes les analyses territoriales sont immédiatement visibles", () => {
+test("quatre analyses territoriales essentielles sont immédiatement visibles", () => {
   const cartes = Array.from({ length: 5 }, (_, index) => ({ ...insight, id: `territoire-${index}` }));
   const html = renduInsights(cartes, catalogue, { contexte: "territoire", nom: "Ville-test" });
 
-  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 5);
+  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 4);
   assert.equal((html.match(/<details class="insights__more">/g) ?? []).length, 0);
   assert.doesNotMatch(html, />Voir les autres</);
-  assert.match(html, /Quelques repères pour situer ce territoire/);
+  assert.match(html, /Les analyses essentielles pour comprendre Ville-test/);
 });
 
 test("une carte sans comparaison ne crée pas de paragraphe fantôme", () => {

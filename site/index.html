@@ -102,8 +102,8 @@
       <section class="territoire-recherche" aria-labelledby="territoire-recherche-titre">
         <div class="territoire-recherche__introduction">
           <p class="territoire-recherche__surtitre">TERRITOIRES · DONNÉES LOCALES</p>
-          <h1 id="territoire-recherche-titre">Comprendre votre ville.</h1>
-          <p class="territoire-recherche__intro">Budget, population, services publics, exécutif municipal : accédez aux données de votre commune et comparez-la avec d’autres territoires.</p>
+          <h1 id="territoire-recherche-titre">Chaque commune<br>éclaire la France.</h1>
+          <p class="territoire-recherche__intro">Budgets, population, services publics, exécutif municipal : explorez les données de votre commune et comparez-la avec d’autres territoires.</p>
           <div class="territoire-recherche__outil">
             <p class="territoire-recherche__champ-titre">Rechercher une commune</p>
             <div class="recherche territoire-recherche__champ">
@@ -115,47 +115,25 @@
             </div>
             <p class="territoire-recherche__exemples">Ex. : Lyon, Bordeaux, Nantes, Lille…</p>
           </div>
+          <a class="territoire-recherche__retour" href="/territoire">Voir toutes les communes</a>
         </div>
         <div class="territoire-recherche__visuel" aria-hidden="true">
-          <div class="territoire-recherche__village">
-            <span class="village__colline"></span>
-            <span class="village__eglise"></span>
-            <span class="village__maison village__maison--1"></span>
-            <span class="village__maison village__maison--2"></span>
-            <span class="village__maison village__maison--3"></span>
-            <span class="village__maison village__maison--4"></span>
-            <span class="village__arbre village__arbre--1"></span>
-            <span class="village__arbre village__arbre--2"></span>
+          <div class="territoire-hero-map">
+            <svg viewBox="0 0 270 300" role="img" aria-label="Carte simplifiée de la France métropolitaine">
+              <path class="territoire-hero-map__shape" d="M91 20 C111 17 127 27 142 36 L158 33 L180 47 L202 54 L219 72 L232 88 L226 107 L235 126 L222 143 L225 165 L210 181 L204 204 L184 216 L165 240 L140 249 L120 241 L103 227 L86 232 L68 219 L52 211 L48 193 L35 178 L44 160 L41 143 L50 126 L42 114 L24 108 L17 97 L33 91 L46 79 L58 75 L64 60 L78 52 L82 37 Z"/>
+              <path class="territoire-hero-map__grid" d="M75 57 L180 207 M55 103 L210 143 M48 160 L184 216 M103 31 L120 241 M158 33 L140 249 M42 114 L222 143"/>
+              <path class="territoire-hero-map__corse" d="M242 213 C250 210 257 218 257 228 C258 239 252 250 246 256 C240 249 238 238 239 226 Z"/>
+            </svg>
+            <span class="territoire-hero-map__point p1"></span><span class="territoire-hero-map__point p2"></span><span class="territoire-hero-map__point p3"></span><span class="territoire-hero-map__point p4"></span><span class="territoire-hero-map__point p5"></span><span class="territoire-hero-map__point p6"></span><span class="territoire-hero-map__point p7"></span><span class="territoire-hero-map__point p8"></span><span class="territoire-hero-map__point p9"></span><span class="territoire-hero-map__point p10"></span><span class="territoire-hero-map__point p11"></span><span class="territoire-hero-map__point p12"></span><span class="territoire-hero-map__point p13"></span><span class="territoire-hero-map__point p14"></span><span class="territoire-hero-map__point p15"></span><span class="territoire-hero-map__point p16"></span><span class="territoire-hero-map__point p17"></span><span class="territoire-hero-map__point p18"></span>
           </div>
-          <p>Des territoires mieux compris pour des choix plus éclairés.</p>
+          <p>Des territoires mieux connus pour des choix plus éclairés.</p>
         </div>
       </section>
 
       <section class="territoire-apercu" aria-label="Explorer les communes">
-        <figure class="territoire-apercu__carte" aria-label="Carte des communes de France">
-          <div class="territoire-apercu__carte-dessin" aria-hidden="true">
-            <span class="territoire-apercu__point territoire-apercu__point--1"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--2"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--3"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--4"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--5"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--6"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--7"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--8"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--9"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--10"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--11"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--12"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--13"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--14"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--15"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--16"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--17"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--18"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--19"></span>
-            <span class="territoire-apercu__point territoire-apercu__point--20"></span>
-          </div>
-          <figcaption>Rechercher une commune<br>pour l'afficher sur la carte.</figcaption>
+        <figure class="territoire-apercu__carte territoire-apercu__photo">
+          <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Bordeaux_-_Pont_de_Pierre_vu_depuis_la_fl%C3%A8che_Saint_Michel_V2.jpg/1280px-Bordeaux_-_Pont_de_Pierre_vu_depuis_la_fl%C3%A8che_Saint_Michel_V2.jpg" alt="Vue de Bordeaux depuis la Garonne" width="1280" height="538" loading="lazy">
+          <figcaption><strong>Des données locales<br>pour comprendre<br>les réalités de terrain.</strong><a href="https://commons.wikimedia.org/wiki/File:Bordeaux_-_Pont_de_Pierre_vu_depuis_la_fl%C3%A8che_Saint_Michel_V2.jpg" target="_blank" rel="noreferrer">Bordeaux · Guallendra / Wikimedia Commons · CC BY-SA 3.0</a></figcaption>
         </figure>
         <aside class="territoire-apercu__recents">
           <h2>Communes récentes</h2>
@@ -186,8 +164,8 @@
       <section class="territoire-confiance" aria-label="Comparer et comprendre les territoires">
         <div class="territoire-confiance__comparaison">
           <p>POUR ALLER PLUS LOIN</p>
-          <h2>Comparez les territoires.</h2>
-          <span>Mettez votre commune en perspective avec d’autres villes, son département et sa région.</span>
+          <h2>Des données au service de la démocratie locale.</h2>
+          <span>500 Signatures rassemble et met en perspective les données publiques locales.</span>
           <a href="#recherche">Choisir une commune</a>
         </div>
         <div class="territoire-confiance__sources">
@@ -222,6 +200,11 @@
         <section class="comparateur" id="comparateur" hidden></section>
       </section>
 
+      <footer class="territoire-footer" aria-label="Pied de page Territoires">
+        <strong>500 Signatures</strong>
+        <span>Des données pour une démocratie plus proche.</span>
+        <nav><a href="/bilan/">France</a><a href="/territoire">Villes</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
+      </footer>
     </div>
 
     <div class="vue" id="vue-bilan" hidden>

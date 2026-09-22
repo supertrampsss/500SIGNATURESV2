@@ -372,13 +372,13 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
+        <p class="fiche__intro">Population, finances locales, services publics : explorez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
+        <a class="fiche__cta" href="#territoire-chiffres-cles">Explorer les données</a>
       </div>
-      <div class="fiche__hero-scene" aria-hidden="true">
-        <span class="fiche__hero-building fiche__hero-building--1"></span>
-        <span class="fiche__hero-building fiche__hero-building--2"></span>
-        <span class="fiche__hero-building fiche__hero-building--3"></span>
-        <span class="fiche__hero-reflet"></span>
-      </div>
+      <figure class="fiche__hero-scene">
+        <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg/1280px-Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
+        <figcaption><a href="https://commons.wikimedia.org/wiki/File:Place_de_la_Bourse,_Bordeaux,_France.jpg" target="_blank" rel="noreferrer">Place de la Bourse · Xellery / Wikimedia Commons · CC BY-SA 3.0</a></figcaption>
+      </figure>
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? (() => {
@@ -447,14 +447,18 @@ export function afficherFiche(
           }),
         );
         return `<div class="fiche__essentiel">
-          <section class="territoire-reperes-section" aria-label="Les grands repères de ${echapper(territoire.nom)}">
+          <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
-            <h2>Les grands repères</h2>
-            ${ouvertureChiffree}
+            <h2>Les chiffres clés de ${echapper(territoire.nom)}</h2>
+            <div class="territoire-reperes-grid">
+              ${territoire.population ? `<div class="territoire-population-card"><span>Population</span><strong>${new Intl.NumberFormat("fr-FR").format(territoire.population)}</strong><small>habitants</small></div>` : ""}
+              ${ouvertureChiffree}
+            </div>
           </section>
           <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
-            <h2>Les comptes de ${echapper(territoire.nom)}</h2>
+            <h2>Des comptes à lire dans le temps.</h2>
+            <p class="territoire-comptes-section__intro">Recettes, dépenses, dette et investissement : suivez les principaux équilibres financiers sur les derniers exercices publiés.</p>
             ${territoireFinances(territoire)}
           </section>
           <section class="territoire-lecture-section" aria-label="Lecture des comptes">
@@ -466,9 +470,9 @@ export function afficherFiche(
           ${lienPreuve}
           <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
-            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} parmi les autres territoires</h2>
+            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} dans son environnement</h2>
             <p class="territoire-comparaison-section__intro">Des repères pour situer ce territoire sans réduire sa situation à un seul chiffre.</p>
-            <div class="fiche__situation" id="fiche-situation"></div>
+            <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div><aside class="territoire-comparaison-note"><p class="territoire-section-kicker">LE TERRITOIRE</p><h3>Comprendre ${echapper(territoire.nom)} dans son contexte.</h3><p>Les comparaisons permettent de situer les finances locales sans réduire le territoire à un classement unique.</p></aside></div>
           </section>
           ${analysesCroisees}
         </div>`;
