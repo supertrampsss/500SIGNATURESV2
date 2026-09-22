@@ -574,11 +574,11 @@ test("26. France, territoires et dossiers précèdent Mandats", () => {
   assert.ok(france < territoires && territoires < dossiers && dossiers < mandats);
 });
 
-test("27. l'accueil reste court : trois portes, trois questions, confiance, puis Mandats", () => {
+test("27. l'accueil reste court : trois portes, pas de second jeu de cartes, confiance, puis Mandats", () => {
   const html = page();
   assert.equal([...html.matchAll(/class="story-door"/g)].length, 3);
-  assert.equal([...html.matchAll(/class="story-question"/g)].length, 3);
-  assert.ok(html.indexOf("Quelques questions pour commencer.") < html.indexOf("Sources officielles"));
+  assert.equal([...html.matchAll(/class="story-question"/g)].length, 0);
+  assert.doesNotMatch(html, /Quelques questions pour commencer|QUESTIONS CLÉS/);
   assert.ok(html.indexOf("Sources officielles") < html.indexOf("Prenez les rênes du pays."));
   assert.ok(!html.includes("Ce que vous pouvez faire sur 500 Signatures"));
 });
@@ -591,6 +591,8 @@ test("28. la promesse d'accueil est brève et garde une seule action principale"
   assert.doesNotMatch(html, /Explorez|Explorer/);
   assert.doesNotMatch(html, /Voir tous les dossiers/);
   assert.doesNotMatch(html, /→/);
+  assert.equal([...html.matchAll(/class="story-button"/g)].length, 2);
+  assert.doesNotMatch(html, /story-trust[^>]*>[\s\S]*?<a\b/);
 });
 
 test("28 bis. Mandats est explicitement une simulation présidentielle de cinq ans", () => {
