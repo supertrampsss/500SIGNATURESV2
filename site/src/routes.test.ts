@@ -125,9 +125,11 @@ test("les anciens permaliens du simulateur convergent vers la seule interface pu
 });
 
 
-test("le logo du gabarit Salaires retourne vers l'accueil public", () => {
+test("la marque texte du gabarit Salaires retourne vers l'accueil public", () => {
   const html = readFileSync(new URL("../salaires/index.html", import.meta.url), "utf8");
-  assert.match(html, /<a class="entete__marque" href="\/accueil\/" aria-label="500signatures, accueil">/);
+  assert.match(html, /<a data-brand-name="500 SIGNATURES" class="entete__marque" href="\/accueil\/" aria-label="500 Signatures, accueil">/);
+  assert.match(html, /<span class="entete__wordmark">500 Signatures<\/span>/);
+  assert.doesNotMatch(html, /class="brand-e"/);
 });
 
 
