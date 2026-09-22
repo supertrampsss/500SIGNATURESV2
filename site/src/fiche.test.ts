@@ -17,7 +17,7 @@ import { test } from "node:test";
 import type { Indicateur } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme, THEMES_RANGES } from "./fiche.ts";
 import { THEMES } from "./themes.ts";
-import { construireRegistre, indexerSources, lienSource } from "./registre-sources.ts";
+import { construireRegistre, indexerSources } from "./registre-sources.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
@@ -182,7 +182,7 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
   );
 });
 
-test("la fiche territoriale relie chaque maille à son registre exact", () => {
+test("la fiche ne répète plus le lien Sources sous les comptes", () => {
   const catalogueDuRegistre = CATALOGUE_FINANCIER.map((indicateur) => ({
     ...indicateur,
     confiance: "publié",
@@ -199,26 +199,16 @@ test("la fiche territoriale relie chaque maille à son registre exact", () => {
     indicateurs: catalogueDuRegistre,
     analyses: [],
   });
-  const index = indexerSources(fiches);
-  const attendues = new Map(fiches.map((fiche) => [fiche.nom, lienSource(fiche.id)]));
-
-  for (const [niveau, url] of [
-    ["commune", attendues.get("Communes")],
-    ["departement", attendues.get("Départements")],
-    ["region", attendues.get("Régions")],
-  ] as const) {
-    const cible = { innerHTML: "" } as unknown as HTMLElement;
-    afficherFiche(cible, {
-      niveau,
-      territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
-      indicateurs: CATALOGUE_FINANCIER,
-      sources: index,
-    });
-    assert.ok(url, `source ${niveau} absente du registre`);
-    assert.match(cible.innerHTML, new RegExp(`href="${url}"`));
-    assert.match(cible.innerHTML, /Sources et méthode/);
-  }
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
+    indicateurs: CATALOGUE_FINANCIER,
+    sources: indexerSources(fiches),
+  });
+  assert.doesNotMatch(cible.innerHTML, /fiche__preuve-source|>Sources et méthode</);
 });
+
 /**
  * Aucune ligne de mandat, à aucune maille.
  *
@@ -264,13 +254,13 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche locale hiérarchise repères, comptes, lecture puis détail annuel", () => {
+test("la fiche locale hiérarchise repères, comptes, lecture puis comparaison sans doublon annuel", () => {
   const html = ficheDeBordeaux();
   const ordre = [
     'territoire-reperes-section',
     'territoire-comptes-section',
     'territoire-lecture-section',
-    'territoire-evolution-detail',
+    'territoire-comparaison-section',
     'fiche__situation',
   ].map((classe) => {
     const position = html.indexOf(classe);
@@ -278,7 +268,7 @@ test("la fiche locale hiérarchise repères, comptes, lecture puis détail annue
     return position;
   });
   assert.deepEqual([...ordre].sort((a,b)=>a-b), ordre);
-  assert.match(html, /<summary>Voir le détail annuel<\/summary>/);
+  assert.doesNotMatch(html, /Voir le détail annuel|territoire-evolution-detail/);
   assert.doesNotMatch(html, /Gestion financière/);
   assert.doesNotMatch(html, /class="note"/);
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
