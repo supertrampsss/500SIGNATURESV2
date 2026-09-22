@@ -438,6 +438,10 @@ html[data-theme] body[data-vue="territoire"] .territoire-donnees-completes {
     bottom:14px;
   }
 
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-apercu {
+    display:none !important;
+  }
+
   html[data-theme] body[data-vue="territoire"] .territoire-synthese__reperes {
     grid-template-columns:1fr;
   }
