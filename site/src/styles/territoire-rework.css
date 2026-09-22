@@ -370,6 +370,7 @@ html[data-theme] body[data-vue="territoire"] .insights--territoire .insights__gr
 
 html[data-theme] body[data-vue="territoire"] .insights--territoire .insight {
   min-width:0;
+  align-self:start;
   padding:20px;
   border:1px solid var(--fr-line);
   border-radius:6px;
@@ -415,7 +416,26 @@ html[data-theme] body[data-vue="territoire"] .territoire-donnees-completes {
   }
 
   html[data-theme] body[data-vue="territoire"] .territoire-apercu {
+    display:block !important;
     margin-top:12px;
+  }
+
+  html[data-theme] body[data-vue="territoire"] .territoire-apercu__carte {
+    min-height:240px;
+    border-right:0;
+    border-bottom:1px solid var(--fr-line);
+  }
+
+  html[data-theme] body[data-vue="territoire"] .territoire-apercu__carte-dessin {
+    top:44%;
+    width:170px;
+    height:180px;
+  }
+
+  html[data-theme] body[data-vue="territoire"] .territoire-apercu__carte figcaption {
+    left:18px;
+    right:18px;
+    bottom:14px;
   }
 
   html[data-theme] body[data-vue="territoire"] .territoire-synthese__reperes {
