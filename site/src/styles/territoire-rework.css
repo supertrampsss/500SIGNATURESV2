@@ -1345,3 +1345,11 @@ html[data-theme] body[data-vue="territoire"] .territoire-footer nav a{
     justify-content:flex-start;
   }
 }
+
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche__champ-titre{
+  display:none !important;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .fiche .fiche__titre{
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+}
