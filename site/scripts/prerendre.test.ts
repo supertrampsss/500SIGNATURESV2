@@ -1043,9 +1043,10 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
   const texte = texteDuMain(html);
   assert.ok(texte.includes("Comprendre aujourd’hui"), "l'accroche n'est pas servie");
   assert.ok(texte.includes("pour mieux agir demain."), "la promesse n'est pas complète");
-  for (const appel of ["Explorer la France", "Lire les dossiers", "Commencer mon mandat"]) {
+  for (const appel of ["Voir les comptes de la France", "Commencer mon mandat"]) {
     assert.ok(texte.includes(appel), appel);
   }
+  assert.doesNotMatch(texte, /Explorez|Explorer|Voir tous les dossiers/);
   assert.ok(texte.length > 500, `<main> ne porte que ${texte.length} signes de texte`);
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
 });
@@ -1057,7 +1058,7 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
   const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
     ["Comprendre<br>la France", "/bilan/"],
-    ["Explorer<br>les territoires", "/territoire"],
+    ["Comprendre<br>les territoires", "/territoire"],
     ["Approfondir<br>un sujet", "/analyses/"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {

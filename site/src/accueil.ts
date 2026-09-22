@@ -608,19 +608,19 @@ export function renduQuestionsAccueil(): string {
  */
 function renduPortesAccueil(): string {
   return `<section class="story-section story-doors" aria-labelledby="story-portes">
-    <p class="story-kicker">TROIS PORTES D’ENTRÉE</p>
-    <h2 id="story-portes">Explorez 500 Signatures.</h2>
+    <p class="story-kicker">PAR OÙ COMMENCER</p>
+    <h2 id="story-portes">Trois façons de lire les chiffres publics.</h2>
     <div class="story-doors__grid">
       <a class="story-door" href="/bilan/">
-        <div class="story-door__copy"><span>FRANCE</span><strong>Comprendre<br>la France</strong><small>Les grands équilibres en un coup d’œil.</small><b>Voir les données →</b></div>
+        <div class="story-door__copy"><span>FRANCE</span><strong>Comprendre<br>la France</strong><small>Les grands équilibres en un coup d’œil.</small></div>
         <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/territoire">
-        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Explorer<br>les territoires</strong><small>Comparez les communes et leurs réalités.</small><b>Explorer les territoires →</b></div>
+        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Comprendre<br>les territoires</strong><small>Budgets, population, services publics et réalités locales.</small></div>
         <img src="/france/logement.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/analyses/">
-        <div class="story-door__copy"><span>DOSSIERS</span><strong>Approfondir<br>un sujet</strong><small>Des analyses claires sur les grands enjeux.</small><b>Voir les dossiers →</b></div>
+        <div class="story-door__copy"><span>DOSSIERS</span><strong>Approfondir<br>un sujet</strong><small>Des analyses claires sur les grands enjeux.</small></div>
         <img src="/france/fiscalite.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
     </div>
@@ -629,7 +629,7 @@ function renduPortesAccueil(): string {
 
 function renduQuestionsStory(): string {
   return `<section class="story-section story-questions" aria-labelledby="story-questions">
-    <div class="story-heading"><div><p class="story-kicker">À EXPLORER</p><h2 id="story-questions">Quelques questions pour commencer.</h2></div><a href="/analyses/">Voir tous les dossiers →</a></div>
+    <div class="story-heading"><div><p class="story-kicker">QUESTIONS CLÉS</p><h2 id="story-questions">Quelques questions pour commencer.</h2></div></div>
     <div class="story-questions__grid">
       <a class="story-question" href="/bilan/">
         <img src="/france/budget.jpg" alt="" width="420" height="220" loading="lazy">
@@ -666,8 +666,8 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="story-hero__copy">
         <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
         <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
-        <p>Explorez les chiffres publics, comparez les territoires et approfondissez les grands enjeux.</p>
-        <div class="story-actions"><a class="story-button" href="/bilan/">Explorer la France</a><a class="story-link" href="/analyses/">Lire les dossiers →</a></div>
+        <p>Les chiffres publics, les territoires et les grands enjeux, dans une lecture claire et sourcée.</p>
+        <div class="story-actions"><a class="story-button" href="/bilan/">Voir les comptes de la France</a></div>
       </div>
       <figure class="story-hero__media">
         <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">

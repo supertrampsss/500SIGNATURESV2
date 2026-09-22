@@ -96,7 +96,8 @@ test('the shared header is identical across primary destinations',async({page})=
     await page.goto(path);
     await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
     await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
-    await expect(page.locator('.brand-e')).toHaveCount(0);
+    await expect(page.locator('.brand-e')).toHaveCount(1);
+    await expect(page.locator('.brand-e__light')).toBeVisible();
     await expect(page.locator('#theme-bascule')).toHaveCount(0);
     const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
     await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats']);
@@ -143,7 +144,8 @@ test('France keeps the approved background and shared header',async({page},info)
  await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
  await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
- await expect(page.locator('.brand-e')).toHaveCount(0);
+ await expect(page.locator('.brand-e')).toHaveCount(1);
+ await expect(page.locator('.brand-e__light')).toBeVisible();
  await expect(page.locator('#theme-bascule')).toHaveCount(0);
  await expect(page.locator('body')).toHaveCSS('background-color','rgb(245, 244, 237)');
  await expect(page.locator('.entete')).toHaveCSS('background-color','rgb(255, 254, 250)');
