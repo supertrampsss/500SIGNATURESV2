@@ -82,7 +82,7 @@ function nationalPlayHeader(g: Game): string {
     <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
   </section>
   <section class="mandat-play-status" aria-label="État du mandat">
-    <div class="mandat-play-year"><span>Année</span><strong>${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
+    <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
     <div><span>Déficit public</span><strong>${n(deficit)} Md€</strong></div>
     <div><span>Dette publique</span><strong>${n(debtRatio)} %</strong><small>du PIB</small></div>
     <div><span>Confiance citoyenne</span><strong>${Math.round(g.metrics.trust)} / 100</strong></div>
