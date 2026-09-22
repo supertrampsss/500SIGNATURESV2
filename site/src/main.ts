@@ -93,7 +93,7 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, renduDossierVedette, type Analyse } from "./analyse-rendu.ts";
-import { intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
+import { brancherMenuNavigation, intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import { brancherSalaires, renduSalaires } from "./salaires.ts";
