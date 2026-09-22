@@ -200,7 +200,7 @@ test('Bordeaux : les données complètes sont visibles et le détail annuel dupl
   await expect(page.locator('.territoire-donnees-completes')).toBeVisible();
   await expect(page.getByText('Voir le détail annuel',{exact:true})).toHaveCount(0);
   await expect(page.locator('.territoire-evolution-detail')).toHaveCount(0);
-  await expect(page.locator('#detail .analyses__theme').first()).toBeVisible({timeout:10_000});
+  await expect(page.locator('#detail .davantage__theme').first()).toBeVisible({timeout:10_000});
   await expect(page.locator('.insights--territoire .insights__grille')).toBeVisible();
 });
 
