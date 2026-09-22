@@ -3,7 +3,6 @@
  * est affiché est partageable tel quel (docs/04).
  */
 
-import { brancherTheme } from "./theme.ts";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -118,6 +117,7 @@ import "./styles/shared-design.css";
 import "./styles/france-page.css";
 import "./styles/france-aligned-pages.css";
 import "./styles/territoire-rework.css";
+import "./styles/site-shell-v2.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
@@ -2328,6 +2328,7 @@ function rendreNavigationPrincipale(): void {
   const navigation = document.getElementById("navigation-principale");
   if (!navigation) return;
   navigation.innerHTML = renduNavigation(location.pathname, true);
+  brancherMenuNavigation();
 }
 
 
@@ -3249,7 +3250,6 @@ async function demarrer(): Promise<void> {
   brancherEvenementsInterface();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
-  brancherTheme();
   // Pour la même raison : une analyse est servie entière par le serveur, avec
   // ses balises et son image déjà écrites. Son partage n'attend donc pas le
   // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
