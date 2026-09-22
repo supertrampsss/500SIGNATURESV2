@@ -17,7 +17,6 @@ import { test } from "node:test";
 import type { Indicateur } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme, THEMES_RANGES } from "./fiche.ts";
 import { THEMES } from "./themes.ts";
-import { construireRegistre, indexerSources, lienSource } from "./registre-sources.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
@@ -182,43 +181,12 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
   );
 });
 
-test("la fiche territoriale relie chaque maille à son registre exact", () => {
-  const catalogueDuRegistre = CATALOGUE_FINANCIER.map((indicateur) => ({
-    ...indicateur,
-    confiance: "publié",
-    badges: [],
-    niveaux: ["commune", "departement", "region"],
-    jeu_par_niveau: { departement: "ofgl-departements", region: "ofgl-regions" },
-  }));
-  const fiches = construireRegistre({
-    jeux: [
-      { id: "ofgl-communes", titre: "Communes", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/communes", extraction: "2026-01-01" },
-      { id: "ofgl-departements", titre: "Départements", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/departements", extraction: "2026-01-01" },
-      { id: "ofgl-regions", titre: "Régions", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/regions", extraction: "2026-01-01" },
-    ],
-    indicateurs: catalogueDuRegistre,
-    analyses: [],
-  });
-  const index = indexerSources(fiches);
-  const attendues = new Map(fiches.map((fiche) => [fiche.nom, lienSource(fiche.id)]));
-
-  for (const [niveau, url] of [
-    ["commune", attendues.get("Communes")],
-    ["departement", attendues.get("Départements")],
-    ["region", attendues.get("Régions")],
-  ] as const) {
-    const cible = { innerHTML: "" } as unknown as HTMLElement;
-    afficherFiche(cible, {
-      niveau,
-      territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
-      indicateurs: CATALOGUE_FINANCIER,
-      sources: index,
-    });
-    assert.ok(url, `source ${niveau} absente du registre`);
-    assert.match(cible.innerHTML, new RegExp(`href="${url}"`));
-    assert.match(cible.innerHTML, /Sources et méthode/);
-  }
+test("la fiche ne répète plus un lien source sous les comptes", () => {
+  const html = ficheDeBordeaux();
+  assert.doesNotMatch(html, /class="fiche__preuve-source"/);
+  assert.doesNotMatch(html, /href="\/sources\/#/);
 });
+
 /**
  * Aucune ligne de mandat, à aucune maille.
  *
