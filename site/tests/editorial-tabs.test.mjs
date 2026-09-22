@@ -161,15 +161,15 @@ test('France: published accounts survive a network failure and chapters stay on 
 
 test('Villes: search and financial detail work without a map',async({page},info)=>{
  await publication(page,{demographie:true});
- await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de votre territoire.');
+ await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Explorez les comptes de votre ville.');
  await expect(page.locator(".territoire-depart")).toHaveCount(0);
- await page.getByRole("combobox",{name:"Rechercher un territoire"}).fill("Bordeaux");
+ await page.getByRole("combobox",{name:"Rechercher une ville"}).fill("Bordeaux");
  await page.locator('#suggestions button[data-code="33063"]').click();
  await expect(page.locator('#detail #davantage-population')).toBeVisible();
  await expect(page.locator('#detail #davantage-population')).toContainText(/267\s991/);
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
  await expect(page.locator('.territory-charts')).toBeVisible();await expect(page.locator('#detail')).toContainText('Population');await expect(page.locator('#fiche').getByRole('link',{name:'Sources',exact:true})).toBeVisible();await noOverflow(page);
- await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
+ await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
 
@@ -205,7 +205,7 @@ test('France and Villes: charts are the content, touch and keyboard change the a
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
  await page.getByRole('link',{name:'Villes',exact:true}).click();
- await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Bordeaux');
+ await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Bordeaux');
  await activate(page.locator('#suggestions button[data-code="33063"]'),info);
  await expect(page.locator('.territory-charts')).toBeVisible();
  await activate(page.locator('[data-chart-tab="dette"]'),info);
@@ -214,7 +214,7 @@ test('France and Villes: charts are the content, touch and keyboard change the a
  await page.locator('.territory-charts').screenshot({path:info.outputPath('territory-'+info.project.name+'.png')});
  await activate(page.locator('[data-chart-tab="budget"]'),info);await noOverflow(page);
  const before=await page.locator('[data-chart-panel="budget"] output').textContent();
- await page.getByRole('combobox',{name:'Rechercher un territoire'}).fill('Paris');
+ await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Paris');
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
  await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
  if(await page.locator('html').getAttribute('data-theme')==='sombre')await page.getByRole('button',{name:'Activer le mode clair'}).click();await page.getByRole('button',{name:'Activer le mode sombre'}).click();await noOverflow(page);
