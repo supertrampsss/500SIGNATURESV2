@@ -362,7 +362,7 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
-        <p class="fiche__intro">Population, finances locales, services publics : explorez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
+        <p class="fiche__intro">Population, finances locales, services publics : retrouvez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
       </div>
       <figure class="fiche__hero-scene">
         <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg/1280px-Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
@@ -423,10 +423,9 @@ export function afficherFiche(
     }
     </section>
     ${
-      // Sous le dernier bloc : le tableau des exercices, et rien d'autre. Les
-      // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
-      // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
-      // posent après, depuis main.ts : ils demandent la maille entière.
+      // Les repères, les comptes et leur lecture forment un seul parcours.
+      // La comparaison vient ensuite ; le détail brut reste visible plus bas
+      // dans « Toutes les données du territoire ».
       (() => {
         return `<div class="fiche__essentiel">
           <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
