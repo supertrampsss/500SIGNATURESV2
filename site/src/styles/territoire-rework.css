@@ -995,3 +995,65 @@ html[data-theme] body[data-vue="territoire"] .insights__suite--toutes {
     padding:20px 16px;
   }
 }
+
+
+/* Fidelity hotfix: approved mockups 1 + 4 */
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche{
+display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,.82fr);min-height:420px;padding:0;background:var(--fr-paper)}
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{padding:54px 34px 48px 52px}
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{max-width:8.5ch;font-size:clamp(54px,5vw,72px);line-height:.95;letter-spacing:-3px}
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{width:min(100%,500px);margin-top:26px;padding:0;border:0;background:transparent}
+html[data-theme] body[data-vue="territoire"] .territoire-recherche__visuel{position:relative;min-height:420px;background:linear-gradient(180deg,#f9fcfd,#eff7fb)}
+html[data-theme] body[data-vue="territoire"] .territoire-recherche__visuel>p{position:absolute;top:46px;right:28px;width:12ch;margin:0;padding-top:12px;border-top:2px solid var(--fr-red);color:var(--fr-ink);font:italic 600 17px/1.2 "Spectral",Georgia,serif}
+html[data-theme] body[data-vue="territoire"] .territoire-hero-map{position:absolute;left:47%;top:53%;width:270px;height:285px;transform:translate(-50%,-50%);clip-path:polygon(46% 1%,67% 10%,78% 28%,96% 37%,86% 57%,75% 65%,72% 84%,56% 98%,38% 89%,30% 73%,12% 61%,3% 43%,18% 28%,28% 10%);background:#dcecf6;box-shadow:inset 0 0 0 1px #bfd8e7}
+html[data-theme] body[data-vue="territoire"] .territoire-hero-map__point{position:absolute;width:9px;height:9px;border-radius:50%;border:2px solid #fff;background:var(--fr-blue);box-shadow:0 0 0 1px #6fa4c4}
+.territoire-hero-map .p1{left:29%;top:16%}.territoire-hero-map .p2{left:48%;top:12%}.territoire-hero-map .p3{left:65%;top:23%}.territoire-hero-map .p4{left:24%;top:34%}.territoire-hero-map .p5{left:43%;top:31%}.territoire-hero-map .p6{left:60%;top:39%}.territoire-hero-map .p7{left:74%;top:47%}.territoire-hero-map .p8{left:27%;top:51%}.territoire-hero-map .p9{left:46%;top:49%;background:var(--fr-red)}.territoire-hero-map .p10{left:62%;top:57%}.territoire-hero-map .p11{left:35%;top:65%}.territoire-hero-map .p12{left:52%;top:70%}.territoire-hero-map .p13{left:68%;top:73%}.territoire-hero-map .p14{left:42%;top:82%}.territoire-hero-map .p15{left:19%;top:44%}.territoire-hero-map .p16{left:79%;top:35%}.territoire-hero-map .p17{left:57%;top:18%}.territoire-hero-map .p18{left:34%;top:40%}
+html[data-theme] body[data-vue="territoire"] .territoire-apercu__photo{position:relative;min-height:300px;overflow:hidden}
+html[data-theme] body[data-vue="territoire"] .territoire-apercu__photo img{width:100%;height:100%;min-height:300px;object-fit:cover}
+html[data-theme] body[data-vue="territoire"] .territoire-apercu__photo figcaption{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:24px;background:linear-gradient(90deg,#092d58b2 0,#092d5838 48%,transparent 72%);color:#fff}
+html[data-theme] body[data-vue="territoire"] .territoire-apercu__photo figcaption strong{max-width:14ch;font:600 24px/1.1 "Spectral",Georgia,serif}
+html[data-theme] body[data-vue="territoire"] .territoire-apercu__photo figcaption a{align-self:flex-start;padding:4px 7px;border-radius:3px;background:#fffefadd;color:var(--fr-ink);font-size:9px;text-decoration:none}
+html[data-theme] body[data-vue="territoire"] .territoire-confiance{grid-template-columns:1fr}
+html[data-theme] body[data-vue="territoire"] .territoire-confiance__sources{display:none}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] :is(.territoire-apercu,.territoire-synthese,.territoire-confiance){display:none!important}
+
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .panneau--territoire{margin:0}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .fiche{padding:0}
+html[data-theme] body[data-vue="territoire"] .fiche__hero{display:grid;grid-template-columns:minmax(0,.72fr) minmax(480px,1.28fr);min-height:350px;background:var(--fr-paper)}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-copy{padding:50px 28px 46px 52px}
+html[data-theme] body[data-vue="territoire"] .fiche__hero .fiche__titre{font-size:clamp(60px,5.4vw,78px)}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene{position:relative;min-height:350px;margin:0;overflow:hidden;background:#dcecf6}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene img{width:100%;height:100%;min-height:350px;object-fit:cover}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene::before{content:"";position:absolute;inset:0 auto 0 0;width:25%;z-index:1;background:linear-gradient(90deg,var(--fr-paper),transparent)}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene figcaption{position:absolute;right:10px;bottom:9px;z-index:2;padding:4px 7px;border-radius:3px;background:#fffefadd;font-size:9px}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene figcaption a{color:var(--fr-ink);text-decoration:none}
+html[data-theme] body[data-vue="territoire"] .fiche__hero .fiche__maire{top:20px;right:22px;width:255px;padding:17px 19px;background:#fffefaee}
+html[data-theme] body[data-vue="territoire"] .fiche__essentiel{padding:0 28px 26px}
+html[data-theme] body[data-vue="territoire"] .territoire-comptes-section{grid-template-columns:minmax(260px,.62fr) minmax(0,1.38fr);gap:28px;margin-top:16px;padding:28px}
+html[data-theme] body[data-vue="territoire"] .territoire-comptes-section__intro{grid-column:1;max-width:32ch;margin:12px 0 0;color:var(--fr-muted);font-size:14px;line-height:1.5}
+html[data-theme] body[data-vue="territoire"] .territoire-comptes-section .territory-charts{grid-column:2;grid-row:1 / span 4;margin:0}
+html[data-theme] body[data-vue="territoire"] .territoire-lecture-section{margin-top:16px;padding:28px}
+html[data-theme] body[data-vue="territoire"] .territoire-lecture-section .territory-reading{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section{margin-top:16px;padding:28px}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation>li:nth-child(n+4){display:none}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation__pli{height:100%;border:1px solid var(--fr-line);border-radius:5px;background:#fff}
+html[data-theme] body[data-vue="territoire"] .insights--territoire{margin-top:12px;padding-top:0;border:0}
+html[data-theme] body[data-vue="territoire"] .insights--territoire>.insights__entete,html[data-theme] body[data-vue="territoire"] .insights--territoire>.insights__methode{display:none}
+
+@media(max-width:700px){
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche{display:block}
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{padding:30px 20px 24px}
+html[data-theme] body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{font-size:47px}
+html[data-theme] body[data-vue="territoire"] .territoire-recherche__visuel{min-height:250px}
+html[data-theme] body[data-vue="territoire"] .territoire-hero-map{width:180px;height:190px;left:48%;top:55%}
+html[data-theme] body[data-vue="territoire"] .fiche__hero{display:block;min-height:0}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-copy{padding:28px 18px 22px}
+html[data-theme] body[data-vue="territoire"] .fiche__hero .fiche__titre{font-size:52px}
+html[data-theme] body[data-vue="territoire"] .fiche__hero-scene,html[data-theme] body[data-vue="territoire"] .fiche__hero-scene img{min-height:200px}
+html[data-theme] body[data-vue="territoire"] .fiche__hero .fiche__maire{position:relative;top:auto;right:auto;width:auto;margin:12px 18px 0}
+html[data-theme] body[data-vue="territoire"] .fiche__essentiel{padding:0 12px 18px}
+html[data-theme] body[data-vue="territoire"] .territoire-comptes-section{display:block;padding:20px 16px}
+html[data-theme] body[data-vue="territoire"] .territoire-lecture-section .territory-reading{grid-template-columns:1fr}
+html[data-theme] body[data-vue="territoire"] .territoire-comparaison-section .situation{grid-template-columns:1fr}
+}
