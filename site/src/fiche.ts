@@ -7,9 +7,8 @@ import { territoireFinances } from "./territoire-finances.ts";
 
 import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
-import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
+import type { IndexSources } from "./registre-sources.ts";
 import { insightsTerritoire } from "./insights-territoire.ts";
 import { renduInsights } from "./insights-rendu.ts";
 
@@ -332,15 +331,6 @@ export function afficherFiche(
     series: territoire.series ?? {},
     catalogue: options.indicateurs,
   });
-  const idSource = options.sources
-    ? blocsDeLecture
-        .flatMap((bloc) => bloc.cites)
-        .map((indicateur) => sourceIdPourIndicateur(options.sources!, indicateur, niveau))
-        .find((id): id is string => Boolean(id))
-    : undefined;
-  const lienPreuve = idSource
-    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Sources et méthode</a></p>`
-    : "";
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
   // Ce sont les repères qu'on vient chercher, et ils étaient noyés au milieu de
@@ -439,13 +429,6 @@ export function afficherFiche(
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
       (() => {
-        const evolution = rendreExercices(
-          exercices({
-            cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
-            series: territoire.series ?? {},
-            catalogue: options.indicateurs,
-          }),
-        );
         return `<div class="fiche__essentiel">
           <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
@@ -466,8 +449,6 @@ export function afficherFiche(
             <h2>Ce que disent les comptes</h2>
             <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
           </section>
-          ${evolution ? `<details class="territoire-evolution-detail"><summary>Voir le détail annuel</summary>${evolution}</details>` : ""}
-          ${lienPreuve}
           <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
             <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} dans son environnement</h2>
