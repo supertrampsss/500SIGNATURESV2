@@ -472,7 +472,7 @@ export function afficherFiche(
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
             <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} dans son environnement</h2>
             <p class="territoire-comparaison-section__intro">Des repères pour situer ce territoire sans réduire sa situation à un seul chiffre.</p>
-            <div class="fiche__situation" id="fiche-situation"></div>
+            <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div><aside class="territoire-comparaison-note"><p class="territoire-section-kicker">LE TERRITOIRE</p><h3>Comprendre ${echapper(territoire.nom)} dans son contexte.</h3><p>Les comparaisons permettent de situer les finances locales sans réduire le territoire à un classement unique.</p></aside></div>
           </section>
           ${analysesCroisees}
         </div>`;
