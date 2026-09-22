@@ -427,13 +427,36 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${territoireFinances(territoire)}<div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>${rendreExercices(
-        exercices({
-          cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
-          series: territoire.series ?? {},
-          catalogue: options.indicateurs,
-        }),
-      )}${lienPreuve}${analysesCroisees}<div class="fiche__situation" id="fiche-situation"></div></div>`
+      (() => {
+        const evolution = rendreExercices(
+          exercices({
+            cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
+            series: territoire.series ?? {},
+            catalogue: options.indicateurs,
+          }),
+        );
+        return `<div class="fiche__essentiel">
+          <section class="territoire-reperes-section" aria-label="Les grands repères de ${echapper(territoire.nom)}">
+            <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
+            <h2>Les grands repères</h2>
+            ${ouvertureChiffree}
+          </section>
+          <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
+            <p class="territoire-section-kicker">FINANCES LOCALES</p>
+            <h2>Les comptes de ${echapper(territoire.nom)}</h2>
+            ${territoireFinances(territoire)}
+          </section>
+          <section class="territoire-lecture-section" aria-label="Lecture des comptes">
+            <p class="territoire-section-kicker">EN CLAIR</p>
+            <h2>Ce que disent les comptes</h2>
+            <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
+          </section>
+          ${evolution ? `<details class="territoire-evolution-detail"><summary>Voir le détail annuel</summary>${evolution}</details>` : ""}
+          ${lienPreuve}
+          ${analysesCroisees}
+          <div class="fiche__situation" id="fiche-situation"></div>
+        </div>`;
+      })()
     }
   `;
 }

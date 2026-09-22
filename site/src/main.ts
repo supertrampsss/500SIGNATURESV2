@@ -117,6 +117,7 @@ import "./styles/analyses-revue.css";
 import "./styles/shared-design.css";
 import "./styles/france-page.css";
 import "./styles/france-aligned-pages.css";
+import "./styles/territoire-rework.css";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
