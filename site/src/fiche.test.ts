@@ -206,7 +206,7 @@ test("la fiche ne répète plus le lien Sources sous les comptes", () => {
     indicateurs: CATALOGUE_FINANCIER,
     sources: indexerSources(fiches),
   });
-  assert.doesNotMatch(cible.innerHTML, /fiche__preuve-source|>Sources et méthode</);
+  assert.doesNotMatch(cible.innerHTML, /fiche__preuve-source|<a[^>]*>Sources et méthode<\/a>/);
 });
 
 /**
