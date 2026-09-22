@@ -372,24 +372,6 @@ export function filtrerAnalyses(analyses: Analyse[], criteres: CriteresIndex): A
  * dépôt ne publie aujourd'hui qu'une analyse — trois menus à une entrée
  * auraient occupé le haut de la page pour ne rien pouvoir faire.
  */
-function facette(
-  nom: string,
-  libelle: string,
-  defaut: string,
-  valeurs: { valeur: string; libelle: string }[],
-): string {
-  if (valeurs.length < 2) return "";
-  const options = valeurs
-    .map((v) => `<option value="${echapper(v.valeur)}">${echapper(v.libelle)}</option>`)
-    .join("");
-  return `<div class="analyses-filtres__groupe">
-        <label class="analyses-filtres__label" for="analyses-${nom}">${echapper(libelle)}</label>
-        <select class="pilule pilule--menu" id="analyses-${nom}" data-facette="${nom}">
-          <option value="">${echapper(defaut)}</option>${options}
-        </select>
-      </div>`;
-}
-
 /** Les valeurs distinctes d'une facette, triées par leur libellé. */
 function valeursDistinctes(
   brutes: string[],
@@ -416,90 +398,64 @@ export function renduDossierVedette(analyses: readonly Analyse[]): string {
   </article>`;
 }
 
+const IMAGES_INDEX: Record<string,string> = {
+  "groenland-accord-securite-europe": "/dossiers/groenland.jpg",
+  "championne-du-monde-prelevements-2024": "/france/fiscalite.jpg",
+  "la-depense-publique-baisse-2024": "/france/budget.jpg",
+  "defense-europe-depenses-2024": "/france/assemblee.jpg",
+  "defense-credits-votes-consommes-2025": "/france/justice.jpg",
+  "age-achat-residence-principale": "/france/logement.jpg",
+  "retraites-premier-poste-2024": "/france/retraites.jpg",
+  "fournitures-scolaires-prix-1990-2025": "/france/services.jpg",
+  "satisfaction-vie-france-2010-2024": "/france/travail.jpg",
+};
+
+function dateDossier(iso:string):string {
+  const date=new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});
+}
+
+function etiquetteDossier(a:Analyse):string {
+  const theme=a.themes[0];
+  return theme ? libelleTheme(theme).replace("Comparaisons européennes","Europe") : "Analyse";
+}
+
+function carteDossierV2(a:Analyse):string {
+  const carte=carteDeLAnalyse(a);
+  const image=IMAGES_INDEX[a.slug];
+  const chapo=a.dossier?.chapo ?? a.affirmation.texte;
+  return `<li class="dossier-v2-card" data-dossier-card data-type="${echapper(carte.type)}" data-themes="${echapper(carte.themes)}" data-budgets="${echapper(carte.budgets)}" data-texte="${echapper(carte.texte)}">
+    ${image ? `<img class="dossier-v2-card__image" src="${image}" alt="" width="640" height="360" loading="lazy">` : ""}
+    <div class="dossier-v2-card__corps">
+      <p class="dossier-v2-card__theme">${echapper(etiquetteDossier(a))}</p>
+      <h2><a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a></h2>
+      <p>${echapper(chapo)}</p>
+      <footer><time datetime="${echapper(a.publie_le)}">${echapper(dateDossier(a.publie_le))}</time><span>${echapper(a.themes.map(libelleTheme).join(" · "))}</span></footer>
+    </div>
+  </li>`;
+}
+
 export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): string {
-  const triees = [...analyses].sort((a, b) => b.publie_le.localeCompare(a.publie_le));
-  const lignes = triees
-    .map((a) => {
-      const carte = carteDeLAnalyse(a);
-      const qualification = qualificationVerdict(a);
-      const sujets = a.themes.map(t=>libelleTheme(t).replace("Comparaisons européennes","Europe")).join(" · ");
-      // Un lien de fragment (`#slug`) ne résout que si l'index et l'analyse
-      // sont composés sur la même page — ce que ce module ne fait jamais :
-      // `rendu()` produit un `<article>` par page, à son propre chemin
-      // (tâche 4, `dist/analyses/<slug>/index.html`). C'est ce chemin réel
-      // que l'index doit viser.
-      return `<li class="analyse-rendu__index-ligne dossier-index" data-type="${echapper(
-        carte.type,
-      )}" data-themes="${echapper(carte.themes)}" data-budgets="${echapper(
-        carte.budgets,
-      )}" data-cherche="${echapper(carte.texte)}" data-theme="${echapper(
-        carte.themes,
-      )}" data-verdict="${echapper(qualification)}" data-perimetre="${echapper(
-        carte.budgets,
-      )}" data-texte="${echapper(carte.texte)}">
-        <p class="dossier-index__meta"><span>${echapper(sujets)}</span></p>
-        <h2 class="dossier-index__titre"><a class="dossier-index__lien" href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a></h2>
-        <p class="dossier-index__affirmation">${echapper(a.dossier?.chapo ?? a.affirmation.texte)}</p>
-        <span class="dossier-index__ouvrir" aria-hidden="true">Lire le dossier</span>
-      </li>`;
-    })
-    .join("");
-
-  // Une barre ne peut rien réduire sous deux analyses — même raison que pour
-  // une facette à valeur unique, un cran plus haut.
-  const barre =
-    triees.length < 2
-      ? ""
-      : `<button class="analyses-filtres__bouton" id="analyses-filtres-bouton" type="button"
-           aria-expanded="false" aria-controls="analyses-filtres" hidden>Filtrer les dossiers</button>
-    <div class="analyses-filtres" id="analyses-filtres" data-ouvert="false" hidden>
-      <div class="analyses-filtres__groupe analyses-filtres__groupe--recherche">
-        <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
-        <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
-               autocomplete="off" placeholder="Énergie, défense, logement…" />
-      </div>
-      ${facette(
-        "type",
-        "Type",
-        "Tous les types",
-        valeursDistinctes(
-          triees.map((a) => a.type),
-          (v) => LIBELLE_TYPE[v as TypeAnalyse] ?? v,
-        ),
-      )}
-      ${facette(
-        "theme",
-        "Thème",
-        "Tous les thèmes",
-        valeursDistinctes(
-          triees.flatMap((a) => a.themes),
-          libelleTheme,
-        ),
-      )}
-      ${facette(
-        "budget",
-        "Budget",
-        "Tous les budgets",
-        valeursDistinctes(
-          triees.flatMap((a) => a.budgets_concernes),
-          (v) => LIBELLE_BUDGET[v as BudgetConcerne] ?? v,
-        ),
-      )}
-      <p class="analyses-filtres__compte" role="status"></p>
-      <div class="analyses-filtres__vide" id="analyses-etat-vide" hidden>
-        <p>Aucun dossier ne correspond à ces filtres.</p>
-        <button type="button" data-effacer-filtres>Effacer les filtres</button>
-      </div>
-    </div>`;
-
-  return `<section class="analyses-index" aria-labelledby="analyses-titre">
-    <header class="analyses-index__entete">
-      <div><p class="analyses-index__eyebrow">France · Europe · International</p>
-      <h1 id="analyses-titre">Dossiers</h1>
-      <p class="analyses-index__chapo">Politique française, Europe, relations internationales. Les sujets du débat public, expliqués avec des faits et des chiffres.</p></div>
-
+  const triees=[...analyses].sort((a,b)=>b.publie_le.localeCompare(a.publie_le));
+  const vedette=triees.find((a)=>a.slug==="groenland-accord-securite-europe") ?? triees[0];
+  const autres=triees.filter((a)=>a!==vedette);
+  const visuelles=autres.filter((a)=>IMAGES_INDEX[a.slug]).slice(0,8);
+  const secondaires=autres.filter((a)=>!visuelles.includes(a));
+  const themes=valeursDistinctes(triees.flatMap((a)=>a.themes),libelleTheme).slice(0,7);
+  const carteVedette=vedette ? carteDeLAnalyse(vedette) : null;
+  const vedetteHtml=vedette && carteVedette ? `<article class="dossiers-v2__vedette" data-dossier-card data-type="${echapper(carteVedette.type)}" data-themes="${echapper(carteVedette.themes)}" data-budgets="${echapper(carteVedette.budgets)}" data-texte="${echapper(carteVedette.texte)}">
+      <img src="${IMAGES_INDEX[vedette.slug] ?? "/dossiers/groenland.jpg"}" alt="" width="840" height="470">
+      <div><p class="dossiers-v2__eyebrow">Dossier à la une</p><h2><a href="/analyses/${echapper(vedette.slug)}/">${echapper(vedette.titre)}</a></h2><p>${echapper(vedette.dossier?.chapo ?? vedette.affirmation.texte)}</p><time datetime="${echapper(vedette.publie_le)}">${echapper(dateDossier(vedette.publie_le))}</time><a class="dossiers-v2__lire" href="/analyses/${echapper(vedette.slug)}/">Lire le dossier</a></div>
+    </article>` : "";
+  const chips=themes.map((t)=>`<button type="button" data-analyse-theme="${echapper(t.valeur)}" aria-pressed="false">${echapper(t.libelle.replace("Comparaisons européennes","Europe"))}</button>`).join("");
+  return `<section class="analyses-index dossiers-v2" aria-labelledby="analyses-titre">
+    <header class="dossiers-v2__hero">
+      <div><p class="dossiers-v2__eyebrow">Analyses et décryptages</p><h1 id="analyses-titre">Dossiers</h1><p class="dossiers-v2__lead">Des analyses sourcées pour aller plus loin que les chiffres.</p><p>Les dossiers approfondissent les grands enjeux publics à partir des données publiées et de sources identifiées.</p></div>
+      <figure><img src="/dossiers/groenland.jpg" alt="Paysage du Groenland" width="900" height="520"><figcaption>Groenland · illustration du dossier</figcaption></figure>
     </header>
-    ${barre}
-    <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>
+    <div class="dossiers-v2__filtres"><button type="button" data-analyse-theme="" aria-pressed="true">Tous les dossiers</button>${chips}<label><span class="visuellement-cache">Rechercher un dossier</span><input id="analyses-recherche-v2" type="search" placeholder="Rechercher"></label></div>
+    ${vedetteHtml}
+    <section class="dossiers-v2__liste-section"><div class="dossiers-v2__section-head"><h2>Les derniers dossiers</h2><p>Des analyses pour un débat plus serein.</p></div><ul class="dossiers-v2__grille" id="analyses-index">${visuelles.map(carteDossierV2).join("")}${secondaires.map(carteDossierV2).join("")}</ul></section>
+    <section class="dossiers-v2__preuves"><div><strong>Des données fiables</strong><span>Sources publiques officielles</span></div><div><strong>Des analyses indépendantes</strong><span>Une approche factuelle et pédagogique</span></div><div><strong>Une information accessible</strong><span>Des sujets complexes, expliqués clairement</span></div></section>
   </section>`;
 }
