@@ -372,6 +372,8 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
+        <p class="fiche__intro">Population, finances locales, services publics : explorez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
+        <a class="fiche__cta" href="#territoire-chiffres-cles">Explorer les données</a>
       </div>
       <figure class="fiche__hero-scene">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Panorama_Place_de_la_Bourse_Bordeaux.jpg/1280px-Panorama_Place_de_la_Bourse_Bordeaux.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
@@ -445,7 +447,7 @@ export function afficherFiche(
           }),
         );
         return `<div class="fiche__essentiel">
-          <section class="territoire-reperes-section" aria-label="Les grands repères de ${echapper(territoire.nom)}">
+          <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
             <h2>Les chiffres clés de ${echapper(territoire.nom)}</h2>
             <div class="territoire-reperes-grid">
