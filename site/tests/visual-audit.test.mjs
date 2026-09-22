@@ -174,6 +174,30 @@ for (const pageCible of PAGES) {
       audit.document.scrollWidth,
       `débordement horizontal : ${JSON.stringify(audit.debordements)}`,
     ).toBeLessThanOrEqual(audit.document.clientWidth + 1);
+
+    if (pageCible.slug === 'accueil') {
+      const accueil = await page.evaluate(() => {
+        const header = document.querySelector('.entete')?.getBoundingClientRect();
+        const home = document.querySelector('.accueil-story')?.getBoundingClientRect();
+        return {
+          header: header ? { left: header.left, right: header.right, width: header.width } : null,
+          home: home ? { left: home.left, right: home.right, width: home.width } : null,
+          brandIcons: document.querySelectorAll('.brand-e').length,
+          duplicateQuestions: document.querySelectorAll('.story-questions').length,
+          doors: document.querySelectorAll('.story-door').length,
+        };
+      });
+      expect.soft(accueil.brandIcons, 'le header Accueil doit rester texte seul').toBe(0);
+      expect.soft(accueil.duplicateQuestions, 'le second jeu de cartes doit rester supprimé').toBe(0);
+      expect.soft(accueil.doors, 'les trois portes principales doivent rester visibles').toBe(3);
+      expect.soft(accueil.header).not.toBeNull();
+      expect.soft(accueil.home).not.toBeNull();
+      if (accueil.header && accueil.home) {
+        expect.soft(Math.abs(accueil.header.left - accueil.home.left), 'bord gauche header / Accueil').toBeLessThanOrEqual(1);
+        expect.soft(Math.abs(accueil.header.right - accueil.home.right), 'bord droit header / Accueil').toBeLessThanOrEqual(1);
+        expect.soft(Math.abs(accueil.header.width - accueil.home.width), 'largeur header / Accueil').toBeLessThanOrEqual(1);
+      }
+    }
   });
 }
 

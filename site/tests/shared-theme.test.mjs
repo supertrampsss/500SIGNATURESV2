@@ -91,13 +91,31 @@ test('Accueil presents the editorial path before the secondary simulation',async
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });
 
+test('Accueil uses exactly the same outer width as its header and has no duplicate navigation cards',async({page})=>{
+ await page.goto('/accueil/');
+ await expect(page.locator('.story-hero')).toBeVisible();
+ await expect(page.locator('.story-questions')).toHaveCount(0);
+ await expect(page.locator('.story-door')).toHaveCount(3);
+ const geometry=await page.evaluate(()=>{
+  const header=document.querySelector('.entete').getBoundingClientRect();
+  const home=document.querySelector('.accueil-story').getBoundingClientRect();
+  return {
+   left:Math.abs(header.left-home.left),
+   right:Math.abs(header.right-home.right),
+   width:Math.abs(header.width-home.width),
+  };
+ });
+ expect(geometry.left).toBeLessThanOrEqual(1);
+ expect(geometry.right).toBeLessThanOrEqual(1);
+ expect(geometry.width).toBeLessThanOrEqual(1);
+});
+
 test('the shared header is identical across primary destinations',async({page})=>{
   for(const path of ['/accueil/','/bilan/','/territoire','/analyses/','/sources/']){
     await page.goto(path);
     await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
     await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
-    await expect(page.locator('.brand-e')).toHaveCount(1);
-    await expect(page.locator('.brand-e__light')).toBeVisible();
+    await expect(page.locator('.brand-e')).toHaveCount(0);
     await expect(page.locator('#theme-bascule')).toHaveCount(0);
     const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
     await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats']);
@@ -144,8 +162,7 @@ test('France keeps the approved background and shared header',async({page},info)
  await expect(page.locator('#bloc-recettes-etat')).toBeVisible();
  await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
  await expect(page.locator('.entete__wordmark')).toHaveText('500 Signatures');
- await expect(page.locator('.brand-e')).toHaveCount(1);
- await expect(page.locator('.brand-e__light')).toBeVisible();
+ await expect(page.locator('.brand-e')).toHaveCount(0);
  await expect(page.locator('#theme-bascule')).toHaveCount(0);
  await expect(page.locator('body')).toHaveCSS('background-color','rgb(245, 244, 237)');
  await expect(page.locator('.entete')).toHaveCSS('background-color','rgb(255, 254, 250)');

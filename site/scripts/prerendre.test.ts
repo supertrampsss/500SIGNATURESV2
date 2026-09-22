@@ -1054,7 +1054,7 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
 test("12 bis. le pré-rendu sert les trois portes avant la simulation", async () => {
   const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
   const debutPortes = corps.indexOf('class="story-section story-doors"');
-  const finPortes = corps.indexOf('class="story-section story-questions"', debutPortes);
+  const finPortes = corps.indexOf('class="story-trust"', debutPortes);
   const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
     ["Comprendre<br>la France", "/bilan/"],
@@ -1067,6 +1067,7 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
     return position;
   });
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  assert.doesNotMatch(corps, /story-questions|Quelques questions pour commencer/);
   assert.ok(corps.indexOf("Prenez les rênes du pays.") > finPortes);
   assert.ok(corps.includes('href="/mandats/?mode=national"'));
 });
