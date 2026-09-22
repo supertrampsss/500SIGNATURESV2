@@ -81,7 +81,7 @@ function nationalPlayHeader(g: Game): string {
     <div><p class="eyebrow">MANDATS</p><h2>Faites les choix qui comptent.</h2><p>Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles.</p></div>
     <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
   </section>
-  <section class="mandat-play-status" aria-label="État du mandat">
+  <section class="mandat-play-status mobile-mandate-context" aria-label="État du mandat">
     <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
     <div><span>Déficit public</span><strong>${n(deficit)} Md€</strong></div>
     <div><span>Dette publique</span><strong>${n(debtRatio)} %</strong><small>du PIB</small></div>
