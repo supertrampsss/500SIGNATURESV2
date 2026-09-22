@@ -1572,3 +1572,18 @@ html[data-theme] body[data-vue="territoire"] .insights__methode a{
     grid-template-columns:1fr !important;
   }
 }
+
+html[data-theme] body[data-vue="territoire"] .insights--territoire .insight :is(
+  .chart-time,
+  .insight-chart,
+  .insight__share,
+  .insight__share-status
+){
+  display:none !important;
+}
+html[data-theme] body[data-vue="territoire"] .insights--territoire .insight{
+  min-height:0 !important;
+}
+html[data-theme] body[data-vue="territoire"] .insights--territoire .insight article{
+  min-height:0 !important;
+}
