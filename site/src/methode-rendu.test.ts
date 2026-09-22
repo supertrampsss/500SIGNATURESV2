@@ -430,7 +430,7 @@ test("la page Sources et méthode place la méthode avant le registre et garde l
     pages: ["/bilan"],
   }];
   const html = renduSourcesEtMethode(JEUX, fiches);
-  assert.match(html, /<section class="sources-methode" aria-labelledby="sources-methode-titre">/);
+  assert.match(html, /<section class="sources-methode sources-v2" aria-labelledby="sources-methode-titre">/);
   assert.doesNotMatch(html, /<main\b/);
   assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>/);
   assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
@@ -440,8 +440,9 @@ test("la page Sources et méthode place la méthode avant le registre et garde l
 
 test("la page Sources et méthode descend de h1 à h2 puis h3", () => {
   const html = renduSourcesEtMethode(JEUX, []);
-  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>[\s\S]*<h2>Les sources<\/h2>/);
-  assert.match(html, /<h2>La méthode<\/h2>[\s\S]*<h3>Les chiffres, du fichier du producteur au fichier publié<\/h3>/);
+  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>[\s\S]*<h2>Nos principes<\/h2>/);
+  assert.match(html, /<h2>Notre méthode<\/h2>/);
+  assert.match(html, /Consulter le registre et la méthode détaillée/);
   assert.match(html, /<h2>La grille de verdicts<\/h2>[\s\S]*<h3>Le verdict, en trois crans<\/h3>/);
   assert.doesNotMatch(html, /<h1[\s\S]*?<h3>Les sources<\/h3>/);
 });
