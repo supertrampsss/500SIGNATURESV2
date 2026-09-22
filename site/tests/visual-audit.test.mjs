@@ -7,9 +7,12 @@ const PAGES = [
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
   { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Comprendre la France' },
   { slug: 'ville-bordeaux', path: '/territoire?niveau=commune&territoire=33063', vue: 'territoire', heading: 'Bordeaux' },
+  { slug: 'dossiers', path: '/analyses/', vue: null, heading: 'Dossiers' },
+  { slug: 'sources', path: '/sources/', vue: null, heading: 'Sources et méthode' },
 ];
 
 const NAVIGATION = [
+  ['Accueil', '/accueil/'],
   ['France', '/bilan/'],
   ['Villes', '/territoire'],
   ['Dossiers', '/analyses/'],
@@ -163,7 +166,9 @@ for (const pageCible of PAGES) {
     await capturer(page, testInfo, `${pageCible.slug}-full.png`);
 
     expect.soft(audit.http.ok, `${pageCible.path} doit répondre en succès HTTP`).toBe(true);
-    expect.soft(audit.vue, `${pageCible.path} doit monter la bonne vue`).toBe(pageCible.vue);
+    if (pageCible.vue !== null) {
+      expect.soft(audit.vue, `${pageCible.path} doit monter la bonne vue`).toBe(pageCible.vue);
+    }
     expect.soft(audit.styles.h1?.text ?? '', 'le titre principal doit être visible').toContain(pageCible.heading);
     expect.soft(
       audit.document.scrollWidth,
@@ -192,7 +197,7 @@ test('navigation : contrat des destinations publiques depuis France', async ({ p
     expect.soft(actuel, `href de ${nom}`).toBe(href);
   }
 
-  const marque = page.getByRole('link', { name: '500signatures, accueil', exact: true });
+  const marque = page.getByRole('link', { name: '500 Signatures, accueil', exact: true });
   expect.soft(await marque.getAttribute('href'), 'la marque revient à Accueil').toBe('/accueil/');
 
   await ecrireJson(testInfo, 'navigation-france.json', { navigation: observee });
