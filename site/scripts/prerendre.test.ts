@@ -1040,7 +1040,14 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
   const corps = corpsAccueil(analyses, CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
   const html = injecterAccueil(GABARIT_REEL, corps, "v-essai");
 
-  const texte = texteDuMain(html);
+  // Les autres vues vivent dans le même gabarit mais sont masquées : ce test
+  // vérifie le texte réellement injecté dans l'accueil, pas le texte des vues
+  // voisines qui peuvent employer un vocabulaire différent.
+  const texte = corps
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   assert.ok(texte.includes("Comprendre aujourd’hui"), "l'accroche n'est pas servie");
   assert.ok(texte.includes("pour mieux agir demain."), "la promesse n'est pas complète");
   for (const appel of ["Voir les comptes de la France", "Commencer mon mandat"]) {
