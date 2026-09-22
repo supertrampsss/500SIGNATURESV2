@@ -1631,3 +1631,48 @@ html[data-theme] body[data-vue="accueil"] .story-trust__copy>span{
   }
   html[data-theme] body[data-vue="accueil"] .story-trust__icon{width:40px;height:40px}
 }
+
+
+/* Accueil clickable trust cards: the three commitments sit after Mandats. */
+html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  min-height:104px;
+  padding:18px 28px;
+  border-right:1px solid #d1e0e9;
+  color:var(--fr-ink);
+  text-decoration:none;
+  transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease;
+}
+html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:last-child{border-right:0}
+html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:hover{
+  position:relative;
+  z-index:2;
+  transform:translateY(-3px);
+  border-color:#bfd5e3;
+  background:#fff;
+  box-shadow:0 14px 34px rgba(31,55,74,.13);
+}
+html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:hover .story-trust__icon{
+  transform:scale(1.06);
+  background:#cfe7f6;
+}
+html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:focus-visible{
+  position:relative;
+  z-index:3;
+  outline:3px solid var(--ui-focus);
+  outline-offset:3px;
+}
+html[data-theme] body[data-vue="accueil"] .story-trust__icon{transition:transform .18s ease,background-color .18s ease}
+@media(max-width:700px){
+  html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item{
+    grid-template-columns:40px minmax(0,1fr);
+    min-height:0;
+    padding:16px 18px;
+    border-right:0;
+    border-bottom:1px solid #d1e0e9;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:last-child{border-bottom:0}
+}
