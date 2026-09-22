@@ -433,7 +433,7 @@ test("la page Sources et méthode place la méthode avant le registre et garde l
   assert.match(html, /<section class="sources-methode sources-v2" aria-labelledby="sources-methode-titre">/);
   assert.doesNotMatch(html, /<main\b/);
   assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>/);
-  assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
+  assert.ok(html.indexOf('class="sources-v2__methode-grid"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /id="source-essai"/);
   assert.ok(html.includes(JEUX[0]!.titre));
 });
