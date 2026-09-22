@@ -567,7 +567,7 @@ test("25. l'accueil ouvre les trois portes utiles sans atelier secondaire", () =
 test("26. France, territoires et dossiers précèdent Mandats", () => {
   const html = page();
   const france = html.indexOf("Comprendre<br>la France");
-  const territoires = html.indexOf("Explorer<br>les territoires");
+  const territoires = html.indexOf("Comprendre<br>les territoires");
   const dossiers = html.indexOf("Approfondir<br>un sujet");
   const mandats = html.indexOf("Prenez les rênes du pays.");
   assert.ok(france !== -1 && territoires !== -1 && dossiers !== -1 && mandats !== -1);
@@ -583,12 +583,14 @@ test("27. l'accueil reste court : trois portes, trois questions, confiance, puis
   assert.ok(!html.includes("Ce que vous pouvez faire sur 500 Signatures"));
 });
 
-test("28. la promesse d'accueil est brève et donne deux actions immédiates", () => {
+test("28. la promesse d'accueil est brève et garde une seule action principale", () => {
   const html = page();
   assert.ok(html.includes("Comprendre aujourd’hui"));
   assert.ok(html.includes("pour mieux agir demain."));
-  assert.ok(html.includes("Explorer la France"));
-  assert.ok(html.includes("Lire les dossiers"));
+  assert.ok(html.includes("Voir les comptes de la France"));
+  assert.doesNotMatch(html, /Explorez|Explorer/);
+  assert.doesNotMatch(html, /Voir tous les dossiers/);
+  assert.doesNotMatch(html, /→/);
 });
 
 test("28 bis. Mandats est explicitement une simulation présidentielle de cinq ans", () => {
