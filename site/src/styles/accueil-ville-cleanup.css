@@ -1,5 +1,6 @@
 /* Accueil + Villes cleanup validated from production screenshots. */
 .entete{box-sizing:border-box!important}
+html[data-theme] body[data-vue="accueil"] #vue-accueil{max-width:none!important;margin:0!important;padding-inline:0!important}
 html[data-theme] body[data-vue="accueil"] .accueil{box-sizing:border-box;width:min(1180px,calc(100% - 64px))!important;max-width:1180px!important}
 html[data-theme] body[data-vue="accueil"] .story-actions{margin-top:26px}
 html[data-theme] body[data-vue="accueil"] .story-door{transition:border-color .15s ease,background-color .15s ease}
@@ -51,4 +52,96 @@ html[data-theme] body[data-vue="territoire"] .fiche__preuve-source{display:none!
   html[data-theme] body[data-vue="territoire"] #detail .analyses__theme{padding:17px 14px}
   html[data-theme] body[data-vue="territoire"] #detail .analyses__table th[scope="row"]{min-width:175px}
   html[data-theme] body[data-vue="territoire"] .insights--territoire .insights__grille{grid-template-columns:1fr!important}
+}
+
+html[data-theme] body[data-vue="territoire"] #detail .davantage{
+  display:grid;
+  gap:12px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__theme,
+html[data-theme] body[data-vue="territoire"] #detail .davantage__theme:first-child{
+  margin:0;
+  padding:22px;
+  border:1px solid var(--fr-line);
+  border-radius:6px;
+  background:#fff;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__theme h3{
+  margin:0;
+  color:var(--fr-ink);
+  font:600 21px/1.12 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__affirmation{
+  max-width:72ch;
+  margin:8px 0 14px;
+  color:var(--fr-muted);
+  font-size:13px;
+  line-height:1.5;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__groupe{
+  margin-top:16px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__groupe h4{
+  margin:0 0 10px;
+  color:var(--fr-ink);
+  font:600 15px/1.2 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__cartes{
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__carte{
+  min-height:105px;
+  justify-content:center;
+  padding:15px 16px;
+  border:1px solid #dde4e8;
+  border-radius:5px;
+  background:#f9fbfb;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__v{
+  color:var(--fr-ink);
+  font-size:20px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__l{
+  margin-top:3px;
+  color:var(--fr-muted);
+  font-size:12px;
+  line-height:1.35;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__e{
+  margin-top:5px;
+  color:#6f879f;
+  font-size:10px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__rang{
+  grid-template-columns:minmax(150px,220px) minmax(110px,1fr) auto;
+  gap:12px;
+  padding:5px 0;
+  font-size:12px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__piste{
+  height:8px;
+  background:#e9eff2;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__source{
+  margin:14px 0 0;
+  padding-top:12px;
+  border-top:1px solid #edf0f1;
+  color:var(--fr-muted);
+  font-size:10px;
+}
+html[data-theme] body[data-vue="territoire"] #detail .davantage__note{
+  margin:12px 0 0;
+  padding:10px 12px;
+  border-left:0;
+  border-radius:4px;
+  background:var(--fr-pale-blue);
+  color:var(--fr-muted);
+  font-size:11px;
+}
+@media(max-width:700px){
+  html[data-theme] body[data-vue="territoire"] #detail .davantage__theme,
+  html[data-theme] body[data-vue="territoire"] #detail .davantage__theme:first-child{padding:17px 14px}
+  html[data-theme] body[data-vue="territoire"] #detail .davantage__cartes{grid-template-columns:1fr 1fr}
+  html[data-theme] body[data-vue="territoire"] #detail .davantage__rang{grid-template-columns:minmax(105px,1fr) minmax(70px,1fr) auto;gap:8px}
 }
