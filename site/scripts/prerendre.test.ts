@@ -1043,7 +1043,7 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
   const texte = texteDuMain(html);
   assert.ok(texte.includes("Comprendre aujourd’hui"), "l'accroche n'est pas servie");
   assert.ok(texte.includes("pour mieux agir demain."), "la promesse n'est pas complète");
-  for (const appel of ["Explorer la France", "Lire les dossiers", "Commencer mon mandat"]) {
+  for (const appel of ["Comprendre la France", "Commencer mon mandat"]) {
     assert.ok(texte.includes(appel), appel);
   }
   assert.ok(texte.length > 500, `<main> ne porte que ${texte.length} signes de texte`);
@@ -1056,9 +1056,9 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
   const finPortes = corps.indexOf('class="story-section story-questions"', debutPortes);
   const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
-    ["Comprendre<br>la France", "/bilan/"],
-    ["Explorer<br>les territoires", "/territoire"],
-    ["Approfondir<br>un sujet", "/analyses/"],
+    ["Les comptes<br>de la France", "/bilan/"],
+    ["Votre<br>territoire", "/territoire"],
+    ["Les<br>dossiers", "/analyses/"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {
     const position = portes.indexOf(`href="${href}"`);
