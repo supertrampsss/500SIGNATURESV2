@@ -43,8 +43,8 @@ export function selection(saved: Game | null, light = false): string {
     <section class="mandate-home-features" aria-label="Ce que vous ferez pendant le mandat">
       <article><span class="mandate-feature-icon">${icon("decision")}</span><div><h2>Prenez des décisions</h2><p>Réformes, fiscalité, services publics : arbitrez parmi des options documentées.</p></div></article>
       <article><span class="mandate-feature-icon mandate-feature-icon--red">${icon("finance")}</span><div><h2>Gérez les équilibres</h2><p>Chaque décision produit des effets croisés sur les comptes et la société.</p></div></article>
-      <article><span class="mandate-feature-icon">${icon("event")}</span><div><h2>Affrontez les crises</h2><p>Réagissez à des événements économiques, sociaux et internationaux.</p></div></article>
-      <article><span class="mandate-feature-icon mandate-feature-icon--red">${icon("indicator")}</span><div><h2>Voyez l’impact de vos choix</h2><p>Suivez l’évolution du déficit, de la dette et de la confiance au fil du mandat.</p></div></article>
+      <article><span class="mandate-feature-icon">${icon("journal")}</span><div><h2>Affrontez les crises</h2><p>Réagissez à des événements économiques, sociaux et internationaux.</p></div></article>
+      <article><span class="mandate-feature-icon mandate-feature-icon--red">${icon("plan")}</span><div><h2>Voyez l’impact de vos choix</h2><p>Suivez l’évolution du déficit, de la dette et de la confiance au fil du mandat.</p></div></article>
     </section>
     <section class="mandate-home-preview" id="mandate-concept" aria-labelledby="mandate-preview-title">
       <div class="mandate-home-preview-copy">
