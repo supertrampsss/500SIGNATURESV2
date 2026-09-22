@@ -628,9 +628,9 @@ function renduPortesAccueil(): string {
 
 function renduConfianceStory(): string {
   return `<section class="story-trust" aria-label="Nos engagements">
-    <div><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></div>
-    <div><strong>Données vérifiées</strong><span>Une méthode transparente.</span></div>
-    <div><strong>Accessible à tous</strong><span>Des explications claires.</span></div>
+    <div><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18M12 3l9 5H3l9-5Z"/></svg></span><span class="story-trust__copy"><strong>Sources officielles</strong><span>Insee, Eurostat, ministères…</span></span></div>
+    <div><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="story-trust__copy"><strong>Données vérifiées</strong><span>Une méthode transparente.</span></span></div>
+    <div><span class="story-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-3.5a5.5 5.5 0 0 1 11 0V20m2-7a4.5 4.5 0 0 1 6 4.2V20"/></svg></span><span class="story-trust__copy"><strong>Accessible à tous</strong><span>Des explications claires.</span></span></div>
   </section>`;
 }
 
