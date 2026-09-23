@@ -605,6 +605,9 @@ test("28 bis. Mandats est explicitement une simulation présidentielle de cinq a
   assert.ok(html.includes("mesurez l’impact de vos décisions"));
   assert.ok(html.includes('href="/mandats/?mode=national"'));
   assert.ok(html.includes("Commencer mon mandat"));
+  assert.ok(html.includes('class="story-mandats__dashboard"'));
+  assert.ok(html.includes("Année 1 sur 5"));
+  assert.equal([...html.matchAll(/class="story-button"/g)].length, 1);
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {
