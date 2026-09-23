@@ -615,7 +615,7 @@ function renduPortesAccueil(): string {
         <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/territoire">
-        <div class="story-door__copy"><span>VILLES / TERRITOIRES</span><strong>Comprendre<br>les territoires</strong><small>Budgets, population, services publics et réalités locales.</small></div>
+        <div class="story-door__copy"><span>VILLE</span><strong>Comprendre<br>votre ville</strong><small>Budget, population, services publics et réalités locales.</small></div>
         <img src="/france/logement.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
       <a class="story-door" href="/analyses/">
@@ -645,7 +645,7 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="story-hero__copy">
         <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
         <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
-        <p>Les chiffres publics, les territoires et les grands enjeux, dans une lecture claire et sourcée.</p>
+        <p>Les chiffres publics, les villes et les grands enjeux, dans une lecture claire et sourcée.</p>
       </div>
       <figure class="story-hero__media">
         <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">
@@ -665,7 +665,7 @@ export function rendu(donnees: DonneesAccueil): string {
     ${renduConfianceStory()}
     <footer class="story-footer">
       <a href="/accueil/">500 Signatures</a><span>Des données pour une démocratie plus proche.</span>
-      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Villes</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
+      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
       <a class="story-footer__credits" href="/france/credits.html">Crédits photographiques</a>
     </footer>
   </div>`;

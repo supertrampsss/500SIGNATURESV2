@@ -1979,7 +1979,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
               `<li><button type="button" data-code="${e.c}" data-niveau="${e.l}">${e.n}</button></li>`,
           )
           .join("")
-      : `<li class="suggestions__vide">Aucun territoire ne porte ce nom.</li>`;
+      : `<li class="suggestions__vide">Aucune ville ne porte ce nom.</li>`;
   });
   champ.addEventListener("keydown", (evenement) => {
     const touche = (evenement as KeyboardEvent).key;
@@ -2250,8 +2250,8 @@ async function peindreDetail(): Promise<void> {
     // il désignait une commande que le lecteur ne pouvait pas voir. Il nomme
     // désormais le champ de l'en-tête, qui, lui, y est.
     cible.innerHTML =
-      `<p class="etat etat--vide"><span class="etat__titre">Aucun territoire choisi</span>` +
-      `<span class="etat__quoi">Cherchez une commune, un département ou une région dans le` +
+      `<p class="etat etat--vide"><span class="etat__titre">Aucune ville choisie</span>` +
+      `<span class="etat__quoi">Recherchez une ville dans le` +
       ` champ en haut de page.</span></p>`;
     return;
   }

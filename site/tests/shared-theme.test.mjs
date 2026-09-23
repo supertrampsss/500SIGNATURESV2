@@ -35,7 +35,7 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
 test('Accueil presents the editorial path before the secondary simulation',async({page},info)=>{
  await page.goto('/accueil/');
  const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
- const navigationLabels=['Accueil','France','Villes','Dossiers','Mandats'];
+ const navigationLabels=['Accueil','France','Ville','Dossiers','Mandats'];
  await expect(navigation.getByRole('link')).toHaveText(navigationLabels);
  await expect(navigation.getByRole('link',{name:'Salaires',exact:true})).toHaveCount(0);
  await expect(page.locator('h1.accueil__message:visible')).toHaveText('Les chiffres publics expliqués.');
@@ -92,7 +92,7 @@ test('the shared header is identical across primary destinations',async({page})=
     await expect(page.locator('.brand-e')).toHaveCount(0);
     await expect(page.locator('#theme-bascule')).toHaveCount(0);
     const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
-    await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Villes','Dossiers','Mandats']);
+    await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Dossiers','Mandats']);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   }
 });

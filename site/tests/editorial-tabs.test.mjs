@@ -159,7 +159,7 @@ test('France: published accounts survive a network failure and chapters stay on 
  }
 });
 
-test('Villes: search and financial detail work without a map',async({page},info)=>{
+test('Ville: search and financial detail work without a map',async({page},info)=>{
  await publication(page,{demographie:true});
  await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Explorez les comptes de votre ville.');
  await expect(page.locator(".territoire-depart")).toHaveCount(0);
@@ -181,7 +181,7 @@ test('Salaires: dark mode, reduced motion and navigation and social links remain
  await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
 });
 
-test('France and Villes: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
+test('France and Ville: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
  await publication(page);
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/bilan/');
@@ -204,7 +204,7 @@ test('France and Villes: charts are the content, touch and keyboard change the a
  const key=page.locator('[data-waffle-key]').first();
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
  await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
- await page.getByRole('link',{name:'Villes',exact:true}).click();
+ await page.getByRole('link',{name:'Ville',exact:true}).click();
  await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Bordeaux');
  await activate(page.locator('#suggestions button[data-code="33063"]'),info);
  await expect(page.locator('.territory-charts')).toBeVisible();

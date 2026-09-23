@@ -567,7 +567,7 @@ test("25. l'accueil ouvre les trois portes utiles sans atelier secondaire", () =
 test("26. France, territoires et dossiers précèdent Mandats", () => {
   const html = page();
   const france = html.indexOf("Voir les comptes de la France");
-  const territoires = html.indexOf("Comprendre<br>les territoires");
+  const territoires = html.indexOf("Comprendre<br>votre ville");
   const dossiers = html.indexOf("Approfondir<br>un sujet");
   const mandats = html.indexOf("Prenez les rênes du pays.");
   assert.ok(france !== -1 && territoires !== -1 && dossiers !== -1 && mandats !== -1);
