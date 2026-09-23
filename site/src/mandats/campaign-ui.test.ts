@@ -61,8 +61,8 @@ test('observed city data remains available to the data layer while the public ma
     throw new Error(`Unexpected request ${url}`);
   }) as typeof fetch;
   t.after(()=>{globalThis.fetch=original;});
-  const city=await loadCity('33063'),initial=start('municipal',61,'services',3,city),setup=mandateSetup(start('national',61,'equilibre',8));
-  assert.doesNotMatch(setup,/Bordeaux|city-query|city-results|fictional-city|MANDAT MUNICIPAL/);assert.match(setup,/Gouverner la France/);
+  const city=await loadCity('33063'),initial=start('municipal',61,'services',3,city),setup=mandateSetup(start('national',61,'equilibre',9));
+  assert.doesNotMatch(setup,/Bordeaux|city-query|city-results|fictional-city|MANDAT MUNICIPAL/);assert.match(setup,/France · 5 années · 30 décisions/);assert.equal(count(setup,/data-action="choose-mission"/g),3);
   const scenery=world(initial);
   assert.equal(count(scenery,/data-city-map="33063"/g),1);assert.match(scenery,/COMPTES OBSERVÉS · 2025/);assert.match(scenery,/<progress/);
   assert.doesNotMatch(scenery,/city-model|building-height|world-pin|<img|<picture/);

@@ -17,7 +17,9 @@ test('Mandats : accueil éditorial lisible dans les deux thèmes',async({page},i
   await page.getByRole('button',{name:toggle,exact:true}).click();
  }
  await primary.click();
- await expect(page.locator('.campaign-position')).toContainText('Décision 1/45');
+ await expect(page.getByRole('heading',{name:'Quel cap voulez-vous tenir pendant cinq ans ?',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:/^Tenir le budget/}).click();
+ await expect(page.locator('.campaign-position')).toContainText('Année 1 · décision 1/6');
 });
 test('Mandats expose Accueil et le lien revient à la page d’accueil',async({page})=>{
  for(const path of ['/mandats/','/mandats/methode/','/mandats/comprendre/','/bilan/']){

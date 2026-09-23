@@ -5,17 +5,25 @@ import { nationalScene } from "./national-scene.ts";
 import { dossierCopy, choiceCopy, choiceCosts } from "./novice.ts";
 import { icon } from "./icons.ts";
 import { planner } from "./planner.ts";
-import { ambitionFor } from "./ambitions.ts";
+import { AMBITIONS, ambitionFor } from "./ambitions.ts";
 import { deliveryFeed, world, worldArt } from "./world.ts";
 import type { WorldOptions } from "./world.ts";
 import { choicesFor, domainFor, calendarFor, startingGame, preview, score } from "./engine.ts";
 import { escape as e } from "./sharing.ts";
 import type { Game } from "./types.ts";
-export type Screen = "select" | "mandate" | "play" | "result";
+export type Screen = "select" | "mandate" | "play" | "year" | "result";
 export type View = "decision" | "territory" | "finance" | "journal" | "plan";
 export const n = (v: number, digits = 1) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
 const button = (action: string, label: string, cls = "button") => `<button class="${cls}" data-action="${action}">${label}</button>`;
 const eyebrow = (text: string) => `<p class="eyebrow">${text}</p>`;
+const V9_CHAPTERS = [
+  { title: "Prise de fonctions", intro: "Vous fixez le cap et engagez les premières réformes. Les effets les plus lourds ne sont pas encore tous visibles." },
+  { title: "Premières conséquences", intro: "Les choix de la première année commencent à produire leurs effets. Les marges de manœuvre se déplacent." },
+  { title: "Le point de bascule", intro: "Les décisions accumulées transforment le scénario. Certaines tensions peuvent désormais devenir des crises." },
+  { title: "Les choix qui engagent", intro: "Le temps restant se réduit. Les arbitrages de cette année pèseront directement sur l’héritage du mandat." },
+  { title: "L’héritage", intro: "Dernière année. Vous arbitrez ce qui doit encore changer et ce qui sera transmis à la fin du mandat." },
+] as const;
+const v9Chapter = (g: Game) => V9_CHAPTERS[Math.max(0, Math.min(4, calendarFor(g).year - 1))];
 
 /** A schematic choropleth, not an illustration or a real district boundary. */
 export function territoryMap(g: Game, small = false): string {
@@ -64,7 +72,7 @@ export function selection(saved: Game | null, light = false): string {
             <h3>Année 2027</h3>
             <p>Vos priorités pour la première année de mandat.</p>
             <div class="mandate-preview-metrics"><div><span>Déficit public</span><strong>153 Md€</strong></div><div><span>Dette publique</span><strong>111 %</strong></div><div><span>Confiance</span><strong>48 / 100</strong></div></div>
-            <section class="mandate-preview-decision"><span>PROCHAINE DÉCISION</span><strong>Réformer l’assurance chômage</strong><small>Emploi & travail · décision 1/45</small></section>
+            <section class="mandate-preview-decision"><span>PROCHAINE DÉCISION</span><strong>Réformer l’assurance chômage</strong><small>Emploi & travail · décision 1/30</small></section>
           </div>
         </div>
       </div>
@@ -76,8 +84,9 @@ function nationalPlayHeader(g: Game): string {
   const calendar = calendarFor(g);
   const deficit = Math.abs(annualDeficit(g));
   const debtRatio = g.finance.gdp ? g.finance.debt / g.finance.gdp * 100 : 0;
-  return `<section class="mandat-play-hero" aria-label="Votre mandat">
-    <div><p class="eyebrow">MANDATS</p><h2>Faites les choix qui comptent.</h2><p>Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles.</p></div>
+  const chapter = g.version >= 9 ? v9Chapter(g) : null;
+  return `<section class="mandat-play-hero ${chapter ? `v9-chapter v9-chapter-${calendar.year}` : ""}" aria-label="Votre mandat">
+    <div><p class="eyebrow">${chapter ? `ANNÉE ${calendar.year}/5 · ${e(chapter.title).toLocaleUpperCase("fr")}` : "MANDATS"}</p><h2>${chapter ? e(chapter.title) : "Faites les choix qui comptent."}</h2><p>${chapter ? e(chapter.intro) : "Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles."}</p></div>
   </section>
   <section class="mandat-play-status mobile-mandate-context" aria-label="État du mandat">
     <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
@@ -93,15 +102,30 @@ export function pulse(g: Game): string {
   return `<div class="pulse" aria-label="État du mandat"><div><span>${g.mode === "municipal" ? "Trésorerie" : g.version < 6 ? "Dette / PIB" : annualDeficit(g) < 0 ? "Excédent annuel" : "Déficit annuel"}</span><strong>${financeValue}</strong></div>${g.mode === "municipal" ? `<div><span>Services</span><strong>${Math.round(g.metrics.services)}<small>/100</small></strong></div><div><span>Résilience</span><strong>${Math.round(g.metrics.resilience)}<small>/100</small></strong></div>` : ""}<div class="pulse-year"><span>${e(d.role.split(" et")[0])}</span><strong>${g.turn}/${d.turns}<small> décisions</small></strong></div></div>`;
 }
 export function mandateSetup(g: Game, opts: WorldOptions = {}): string {
-  const d = domainFor(g);
-  return `<section class="mandate-setup"><div class="mandate-portrait">${worldArt("national",opts)}<div><p>${e(d.role)}</p><strong>France</strong></div></div><article>${eyebrow("MANDAT NATIONAL")}<h1 tabindex="-1">Gouverner la France.</h1><p class="lead">Cinq années pour arbitrer le déficit, les services publics et les transformations du pays.</p>${button("new","Changer de mandat","text-button")}</article></section><section class="page-notes setup-notes"><h2>Avant de commencer</h2><p>Le mandat national part d’un déficit public de 153 Md€. Vos choix s’appliquent directement, puis leurs conséquences budgétaires et sociales se prolongent dans le temps.</p></section>`;
+  const missions=(Object.entries(AMBITIONS) as [keyof typeof AMBITIONS,(typeof AMBITIONS)[keyof typeof AMBITIONS]][]).map(([key,mission]) => `<button class="mission-card" data-action="choose-mission" data-ambition="${key}"><span class="mission-icon">${key==="equilibre"?icon("finance"):key==="services"?icon("decision"):icon("plan")}</span><strong>${e(mission.label)}</strong><span>${e(mission.description)}</span><small>Choisir cette mission</small></button>`).join("");
+  return `<section class="v9-mission">
+    <div class="v9-mission-visual">${worldArt("national",opts)}<div><p>Votre mandat commence ici</p><strong>France · 5 années · 30 décisions</strong></div></div>
+    <article class="v9-mission-copy">
+      ${eyebrow("CHOISISSEZ VOTRE MISSION")}
+      <h1 tabindex="-1">Quel cap voulez-vous tenir pendant cinq ans ?</h1>
+      <p class="lead">Le même pays, trois priorités de jeu. Votre mission change la lecture du bilan, pas les faits de départ ni les décisions disponibles.</p>
+      <div class="mission-grid" role="group" aria-label="Mission du mandat">${missions}</div>
+      <div class="mission-baseline">
+        <span><small>Déficit de départ</small><strong>153 Md€</strong></span>
+        <span><small>Services</small><strong>${Math.round(g.metrics.services)}/100</strong></span>
+        <span><small>Confiance</small><strong>${Math.round(g.metrics.trust)}/100</strong></span>
+        <span><small>Scénario</small><strong>#${g.seed}</strong></span>
+      </div>
+      <button class="text-button" data-action="new">Retour</button>
+    </article>
+  </section>`;
 }
 function decision(g: Game): string {
   const d = domainFor(g), dossier = d.dossiers[g.turn], copy=dossierCopy(g,dossier);
   // Les notes internes du dossier ne doivent pas apparaître dans le parcours.
   // Elles alourdissaient la lecture de la décision sans aider à choisir.
   const context = "";
-  return `<article class="dossier">${g.mode === "national" ? `<div class="mobile-decision-feedback" role="status">${nationalDecisionImpact(g).slice(0,2).map(item=>`<span>${e(item.label.replace(" cette année", ""))}</span>`).join("")}</div>` : ""}${eyebrow(`${g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">Décision ${g.turn + 1}/${d.turns}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p>${context}<div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), text=choiceCopy(g,dossier,c); const detail = [c.benefit !== "La décision modifie la trajectoire et les dossiers suivants." && c.benefit !== text.outcome ? `<span><b>Effet immédiat</b> ${e(c.benefit)}</span>` : "", c.sacrifice !== text.outcome ? `<span><b>Arbitrage</b> ${e(c.sacrifice)}</span>` : "", c.delayed ? `<span><b>Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""}</b> ${e(c.delayed.label)}</span>` : ""].filter(Boolean).join(""); const consequences = g.mode === "national" && detail ? `<span class="choice-consequences">${detail}</span>` : ""; return `<button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}><span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span>${consequences}<span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>`; }).join("")}</div></article>`;
+  return `<article class="dossier">${g.mode === "national" ? `<div class="mobile-decision-feedback" role="status">${nationalDecisionImpact(g).slice(0,2).map(item=>`<span>${e(item.label.replace(" cette année", ""))}</span>`).join("")}</div>` : ""}${eyebrow(`${g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">${g.version >= 9 ? `Année ${calendarFor(g).year} · décision ${calendarFor(g).slot}/${calendarFor(g).slots}` : `Décision ${g.turn + 1}/${d.turns}`}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p>${context}<div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), text=choiceCopy(g,dossier,c); const detail = [c.benefit !== "La décision modifie la trajectoire et les dossiers suivants." && c.benefit !== text.outcome ? `<span><b>Effet immédiat</b> ${e(c.benefit)}</span>` : "", c.sacrifice !== text.outcome ? `<span><b>Arbitrage</b> ${e(c.sacrifice)}</span>` : "", c.delayed ? `<span><b>Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""}</b> ${e(c.delayed.label)}</span>` : ""].filter(Boolean).join(""); const consequences = g.mode === "national" && detail ? `<span class="choice-consequences">${detail}</span>` : ""; return `<button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}><span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span>${consequences}<span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>`; }).join("")}</div></article>`;
 }
 export function finance(g: Game): string {
   const d = domainFor(g); const last = g.history.at(-1); const l = last?.ledger; const provisional = g.version >= 3 && last && !last.closed;
@@ -136,12 +160,54 @@ function turnFeedback(g: Game): string {
   return `<div class="turn-feedback"><span class="turn-confirmation">${icon("check")} ${g.version >= 3 && !last.closed ? `Décision ${g.turn} prise` : `Année ${last.year} terminée`}</span><button class="text-button" data-action="view" data-view="finance">Voir les effets</button></div>`;
 }
 
+export function yearRecap(g: Game): string {
+  const last=g.history.at(-1);
+  if(!last?.closed) return gameShell(g,"play","decision");
+  const previous=[...g.history].reverse().find(t=>t.closed&&t.year===last.year-1);
+  const initial=startingGame(g);
+  const beforeMetrics=previous?.metrics??initial.metrics;
+  const beforeDeficit=previous?.ledger.deficit??annualDeficit(initial);
+  const delta=(value:number) => `${value>0?"+":value<0?"−":""}${n(Math.abs(value))}`;
+  const yearDecisions=g.history.filter(t=>t.year===last.year);
+  const due=g.pending.filter(p=>p.due===last.year).slice(0,3);
+  const chapter=V9_CHAPTERS[last.year-1]!;
+  const nextChapter=last.year<5?V9_CHAPTERS[last.year]:null;
+  return `<section class="year-recap v9-chapter-${last.year}">
+    <header class="year-recap-hero">
+      ${eyebrow(`FIN DE L’ANNÉE ${last.year} · ${e(chapter.title).toLocaleUpperCase("fr")}`)}
+      <h1 tabindex="-1">Un an de décisions. Voici ce qui a changé.</h1>
+      <p>Les comptes de l’année sont clôturés. Les conséquences différées restent actives pour la suite du mandat.</p>
+    </header>
+    <div class="year-recap-grid">
+      <section class="year-recap-metrics" aria-label="Évolution de l'année">
+        <article><span>Solde annuel</span><strong>${last.ledger.deficit<0?"Excédent":"Déficit"} ${n(Math.abs(last.ledger.deficit))} Md€</strong><small>${delta(last.ledger.deficit-beforeDeficit)} Md€ sur l’année</small></article>
+        <article><span>Services publics</span><strong>${Math.round(last.metrics.services)}/100</strong><small>${delta(last.metrics.services-beforeMetrics.services)} pts</small></article>
+        <article><span>Confiance</span><strong>${Math.round(last.metrics.trust)}/100</strong><small>${delta(last.metrics.trust-beforeMetrics.trust)} pts</small></article>
+        <article><span>Résilience</span><strong>${Math.round(last.metrics.resilience)}/100</strong><small>${delta(last.metrics.resilience-beforeMetrics.resilience)} pts</small></article>
+      </section>
+      <section class="year-recap-story">
+        <h2>Les décisions de l’année</h2>
+        <ol>${yearDecisions.map(t=>`<li><span>${e(t.title)}</span>${t.event&&t===yearDecisions.at(-1)?`<small>${e(t.event)}</small>`:""}</li>`).join("")}</ol>
+      </section>
+      <section class="year-recap-next">
+        <h2>${last.year<5?`Année ${last.year+1} · ${e(nextChapter!.title)}`:"Votre héritage est prêt"}</h2>
+        ${last.year<5 ? (due.length?`<ul>${due.map(p=>`<li>${e(p.label)}</li>`).join("")}</ul>`:"<p>Les effets de vos choix continueront de modifier le scénario.</p>") : "<p>Cinq années sont terminées. Le bilan final rassemble votre trajectoire sans réduire le mandat à une note unique.</p>"}
+        <button class="button primary" data-action="${last.year<5?"next-year":"show-result"}">${last.year<5?`Passer à l’année ${last.year+1}`:"Voir mon héritage"}</button>
+      </section>
+    </div>
+  </section>`;
+}
+
 function deficitResult(g: Game): string {
   const initial = annualDeficit(startingGame(g)), final = annualDeficit(g), reduction = initial - final;
   return `<p class="lead deficit-result">Déficit de départ : ${n(initial)} Md€.<br>${final < 0 ? 'Excédent' : 'Déficit'} annuel en fin de mandat : <strong>${n(Math.abs(final))} Md€</strong>.<br>${reduction >= 0 ? 'Amélioration' : 'Dégradation'} du solde annuel : ${n(Math.abs(reduction))} Md€. ${final <= 0 ? 'Équilibre atteint.' : 'Objectif : revenir à 0 Md€ de déficit.'}</p>`;
 }
 export function result(g: Game, shared = false): string {
   const s = score(g); const d = domainFor(g);
+  if(g.version>=9){
+    const mission=ambitionFor(g);
+    return `<article class="result v9-result">${eyebrow(`${shared ? "HÉRITAGE PARTAGÉ" : "VOTRE HÉRITAGE"} · ${e(d.place.replace(" · scénario fictif", ""))}`)}<h1 tabindex="-1">Cinq années de choix, une trajectoire à relire.</h1><p class="lead">Mission de départ : <strong>${e(mission.label)}</strong>. Le bilan présente les résultats du scénario selon plusieurs dimensions, sans note globale.</p>${deficitResult(g)}<div class="score-dimensions"><div><span>Services publics</span><strong>${Math.round(g.metrics.services)}/100</strong><meter min="0" max="100" value="${g.metrics.services}"></meter></div><div><span>Cohésion</span><strong>${Math.round(g.metrics.cohesion)}/100</strong><meter min="0" max="100" value="${g.metrics.cohesion}"></meter></div><div><span>Confiance</span><strong>${Math.round(g.metrics.trust)}/100</strong><meter min="0" max="100" value="${g.metrics.trust}"></meter></div><div><span>Résilience</span><strong>${Math.round(g.metrics.resilience)}/100</strong><meter min="0" max="100" value="${g.metrics.resilience}"></meter></div></div>${societyPanel(g)}<div class="result-actions">${button("share", "Partager mon héritage", "button primary")}${button("replay", "Rejouer exactement ce défi", "button")}${button("open-plan", "Comparer une autre stratégie", "button")}${button("new-run", "Nouveau mandat", "button")}</div><section class="page-notes score-explanation"><h2>Relire le mandat</h2><p class="scope">Scénario #${g.seed}. Rejouer le même défi conserve ce contexte et les mêmes règles. Nouveau mandat crée un autre scénario. Les indicateurs sont ceux de la simulation et ne constituent ni une note de gouvernement ni une intention de vote.</p></section><section class="page-notes">${journal(g)}</section></article>`;
+  }
   return `<article class="result">${eyebrow(`${shared ? "RÉSULTAT PARTAGÉ" : "BILAN DU MANDAT"} · ${e(d.place.replace(" · scénario fictif", ""))}`)}<h1 tabindex="-1">${s.legacy}</h1>${g.mode === "national" && g.version >= 6 ? deficitResult(g) : ""}<p class="score-number">${s.total}<span>/100</span></p><p class="lead">Votre force : <strong>${s.strength.toLocaleLowerCase("fr")}</strong>.<br>Le prochain chantier : <strong>${s.weakness.toLocaleLowerCase("fr")}</strong>.</p><div class="score-dimensions">${Object.entries(s.dimensions).map(([key, v]) => `<div><span>${({ finances: "Finances durables", services: "Services", cohesion: g.version === 1 ? "Cohésion" : "Cohésion & confiance", resilience: "Résilience & patrimoine" })[key]}</span><strong>${Math.round(v)}/100</strong><meter min="0" max="100" value="${v}">${Math.round(v)}</meter></div>`).join("")}</div>${societyPanel(g)}<div class="result-actions">${button("share", "Partager mon héritage", "button primary")}${button("replay", "Rejouer le même défi", "button")}${button("open-plan", "Comparer une autre stratégie", "button")}${button("new", "Changer de mandat", "text-button")}</div><section class="page-notes score-explanation"><h2>Comprendre mon score</h2><p class="scope">${g.version === 1 ? "Chaque dimension pèse 25 %." : `${g.ambition && g.ambition !== "equilibre" ? `Ancienne priorité : ${ambitionFor(g).label}. ` : ""}Finances ${ambitionFor(g).weights.finances * 100} %, services ${ambitionFor(g).weights.services * 100} %, cohésion/confiance ${ambitionFor(g).weights.cohesion * 100} %, résilience ${ambitionFor(g).weights.resilience * 100} %.`} ${s.terminalPenalty ? `Charges non livrées : −${s.terminalPenalty} point.` : ""} Le score exprime les règles du jeu, pas la qualité réelle d'un gouvernement ni une intention de vote.</p></section><section class="page-notes">${journal(g)}</section></article>`;
 }
 export function gameShell(g: Game, screen: Screen, view: View, shared = false, opts: WorldOptions = {}, planIds: string[] = g.choices): string {

@@ -29,13 +29,14 @@ export function challengeFromURL(url: URL): Game | null {
   // A direct France entry starts the current mandate. Old seeded challenges
   // retain their original rules when they predate explicit version tags.
   const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
-  const version = url.searchParams.get("v") ?? (directFrance ? "8" : "1");
-  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8") throw new Error("Version de défi inconnue.");
+  const version = url.searchParams.get("v") ?? (directFrance ? "9" : "1");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9);
 }
 export function shareText(g: Game): string {
   const s = score(g); const d = domainFor(g);
+  if(g.version>=9) return `Mandats · ${d.place}. Cinq années, ${g.turn} décisions. Mission : ${ambitionFor(g).label}. Services ${Math.round(g.metrics.services)}/100, cohésion ${Math.round(g.metrics.cohesion)}/100, confiance ${Math.round(g.metrics.trust)}/100, résilience ${Math.round(g.metrics.resilience)}/100. Résultat de jeu, scénario ${g.seed}, simulation v${g.version}.`;
   return `Mandats · ${d.place}. ${s.legacy} : ${s.total}/100. ${g.version !== 1 ? `Priorité : ${ambitionFor(g).label}. ` : ""}Point fort : ${s.strength}. À améliorer : ${s.weakness}. Résultat de jeu, scénario simulé v${g.version}.`;
 }
 export const CARD_SIZES = { landscape: [1200, 630], square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920] } as const;
@@ -49,6 +50,6 @@ export function socialSVG(g: Game | null, format: keyof typeof CARD_SIZES = "lan
     const x = tall ? 75 : 735; const yy = tall ? y + 330 + i * 55 : 270 + i * 55;
     return line(labels[key as keyof typeof labels], x, yy, 20, "#b3c5cc") + line(`${Math.round(value)}/100`, w - 180, yy, 23, "#a6ddc5");
   }).join("") : "";
-  const mode = g ? `${g.mode === "municipal" ? "MANDAT MUNICIPAL" : "MANDAT NATIONAL"} · ${g.turn} TOURS${g.version !== 1 ? ` · PRIORITÉ ${ambitionFor(g).short.toLocaleUpperCase("fr")}` : ""}` : "UN JEU DE STRATÉGIE PUBLIQUE";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>${escape(g ? shareText(g) : "Mandats : gouverner une ville ou la France. Simulation fictive.")}</title><rect width="${w}" height="${h}" fill="#101e28"/><rect x="40" y="40" width="${w - 80}" height="${h - 80}" rx="20" fill="#172c35" stroke="#47747d"/><path d="M65 ${h - 115}H${w - 65}" stroke="#47747d"/>${line("500 SIGNATURES  /  MANDATS", 75, 105, 26, "#a6ddc5")}${line(mode, 75, 145, 18, "#b3c5cc")}${line(title, 75, y + 15, 45)}${line(s ? `${s.total}/100` : "Une ville. Un pays.", 75, y + 115, 84)}${line(s ? s.legacy : "45 décisions, des finances à tenir.", 75, y + 175, 30)}${s ? line(`Point fort : ${s.strength}`, 75, y + 235, 20, "#a6ddc5") + line(`À améliorer : ${s.weakness}`, 75, y + 275, 20, "#f1c484") : ""}${dimensions}${line("À vous de gouverner : 500signatures.fr/mandats/", 75, h - 135, 18, "#a6ddc5")}${line(`SIMULATION FICTIVE · MODÈLE V${g?.version ?? 2} · AUCUNE PRÉDICTION`, 75, h - 70, 19, "#b3c5cc")}</svg>`;
+  const mode = g ? `${g.mode === "municipal" ? "MANDAT MUNICIPAL" : "MANDAT NATIONAL"} · ${g.turn} DÉCISIONS${g.version !== 1 ? ` · ${g.version >= 9 ? "MISSION" : "PRIORITÉ"} ${ambitionFor(g).short.toLocaleUpperCase("fr")}` : ""}` : "UN JEU DE STRATÉGIE PUBLIQUE";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>${escape(g ? shareText(g) : "Mandats : gouverner une ville ou la France. Simulation fictive.")}</title><rect width="${w}" height="${h}" fill="#101e28"/><rect x="40" y="40" width="${w - 80}" height="${h - 80}" rx="20" fill="#172c35" stroke="#47747d"/><path d="M65 ${h - 115}H${w - 65}" stroke="#47747d"/>${line("500 SIGNATURES  /  MANDATS", 75, 105, 26, "#a6ddc5")}${line(mode, 75, 145, 18, "#b3c5cc")}${line(title, 75, y + 15, 45)}${line(g?.version && g.version >= 9 ? "5 ANNÉES" : s ? `${s.total}/100` : "Une ville. Un pays.", 75, y + 115, 84)}${line(g?.version && g.version >= 9 ? "Une trajectoire à comparer, pas une note globale." : s ? s.legacy : "30 décisions, cinq années à traverser.", 75, y + 175, 30)}${s && (!g || g.version < 9) ? line(`Point fort : ${s.strength}`, 75, y + 235, 20, "#a6ddc5") + line(`À améliorer : ${s.weakness}`, 75, y + 275, 20, "#f1c484") : ""}${dimensions}${line("À vous de gouverner : 500signatures.fr/mandats/", 75, h - 135, 18, "#a6ddc5")}${line(`SIMULATION FICTIVE · MODÈLE V${g?.version ?? 2} · AUCUNE PRÉDICTION`, 75, h - 70, 19, "#b3c5cc")}</svg>`;
 }

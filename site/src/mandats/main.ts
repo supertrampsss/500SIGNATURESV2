@@ -11,8 +11,8 @@ import { prepareOffline, removeOffline, updateOffline } from "./offline.ts";
 import { cardModel, cardSVG, cardURL } from "./cards.ts";
 import type { CardKind } from "./cards.ts";
 import { clearEntryLink, entrySession, localSession } from "./session.ts";
-import type { Game } from "./types.ts";
-import { gameShell, mandateSetup, selection } from "./render.ts";
+import type { Ambition, Game } from "./types.ts";
+import { gameShell, mandateSetup, selection, yearRecap } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY, MAX_SAVE_BYTES } from "./storage.ts";
 import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
@@ -28,6 +28,15 @@ function track(event: Parameters<typeof recordPilot>[1]) { try { recordPilot(loc
 let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
+function freshSeed(): number {
+  try {
+    const values = new Uint16Array(1);
+    crypto.getRandomValues(values);
+    return values[0] % 10000;
+  } catch {
+    return Date.now() % 10000;
+  }
+}
 function announce(message: string, quiet = false) {
   notice.classList.toggle("status-quiet",quiet);
   const activeNotice = dialog.open ? dialog.querySelector<HTMLElement>(".sheet-status") : notice;
@@ -64,7 +73,7 @@ function render(focus = true, restoreScroll?: number) {
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  root.innerHTML = screen === "select" ? selection(saved, light) : screen === "mandate" ? mandateSetup(g!, {light}) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  root.innerHTML = screen === "select" ? selection(saved, light) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
   syncNationalScene(root, g, { light, inherited });
   document.querySelector("#game-tools")!.removeAttribute("hidden");
   if (focus) {
@@ -144,14 +153,39 @@ async function action(target: HTMLElement) {
     return;
   }
   if (a === "close") { dialog.close(); return; }
-  if (a === "mode") { if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; } if (g) track("mode_switched"); g = start("national",42,"equilibre",8); shared = false; inherited = false; screen = "mandate"; clearEntryLink(history); track("mode_selected"); adopt(g); persist(); track("onboarding_completed"); }
+  if (a === "mode") {
+    if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
+    if (g) track("mode_switched");
+    g = start("national", freshSeed(), "equilibre", 9);
+    shared = false; inherited = false; screen = "mandate"; view = "decision"; planIds = null;
+    clearEntryLink(history); track("mode_selected");
+  }
+  else if (a === "choose-mission" && g) {
+    const ambition = target.dataset.ambition as Ambition;
+    if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
+    g = start("national", g.seed, ambition, 9);
+    shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null;
+    persist(); track("onboarding_completed");
+  }
   else if (a === "resume" && saved) { if (saved.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; } adopt(saved); }
-  else if (a === "choose" && g) { adopt(decide(g, target.dataset.choice!)); announce(`Décision ${g.turn} prise. ${g.turn === domainFor(g).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true); persist(); if (g.turn === 1) track("first_decision"); if (g.turn === domainFor(g).turns) track("game_completed"); }
+  else if (a === "choose" && g) {
+    const next = decide(g, target.dataset.choice!);
+    const yearClosed = next.version >= 9 && next.history.at(-1)?.closed;
+    adopt(next);
+    if (yearClosed) screen = "year";
+    announce(`Décision ${next.turn} prise. ${yearClosed ? "L’année est terminée." : next.turn === domainFor(next).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true);
+    persist();
+    if (next.turn === 1) track("first_decision");
+    if (next.turn === domainFor(next).turns) track("game_completed");
+  }
+  else if (a === "next-year" && g) { screen = "play"; view = "decision"; }
+  else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
   else if (a === "view") { view = target.dataset.view as View; }
-  else if (a === "new") { inherited = false; screen = "select"; shared = false; clearEntryLink(history); }
+  else if (a === "new") { inherited = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
+  else if (a === "new-run") { g = start("national", freshSeed(), "equilibre", 9); shared = false; inherited = false; screen = "mandate"; view = "decision"; planIds = null; clearEntryLink(history); }
   else if (a === "replay" && g) { track("replay_started"); adopt(startingGame(g)); persist(); }
-  else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. 45 décisions sur cinq années.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
-  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Le mandat long comporte 45 décisions. Le plan évolue à chaque dossier, mais intérêts, dette et déficit sont comptabilisés une seule fois en fin d’année. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>Le bilan des nouvelles parties compte les finances pour 40 %, les services pour 20 %, la cohésion et la confiance pour 20 %, puis la résilience et le patrimoine pour 20 %.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
+  else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. 30 décisions réparties en cinq chapitres annuels.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
+  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Les nouvelles parties comportent 30 décisions, six par année. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>La mission choisie au départ change la lecture du bilan. Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button><button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }

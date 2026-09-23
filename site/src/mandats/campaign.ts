@@ -1,4 +1,4 @@
-import { nationalAgendaDossiers } from './national-agenda.ts';
+import { nationalAgendaDossiers, nationalAgendaDossiersV9 } from './national-agenda.ts';
 import { nationalBranchDossiers } from './national-branches.ts';
 import { initialSociety, applySociety, socialYearEnd } from './national-society.ts';
 import { annualDeficit, deficitBaseline, INITIAL_DEFICIT } from './national-deficit.ts';
@@ -53,7 +53,8 @@ export function campaignDomain(g:Game):Domain {
   if(dossierCache.size>=32)dossierCache.delete(dossierCache.keys().next().value!);
   dossierCache.set(cacheKey,dossiers);
   }
-  if (g.version >= 8) dossiers = nationalAgendaDossiers(g);
+  if (g.version >= 9) dossiers = nationalAgendaDossiersV9(g);
+  else if (g.version >= 8) dossiers = nationalAgendaDossiers(g);
   else if (g.version >= 7) dossiers = nationalBranchDossiers(g);
   const current=dossiers[g.turn];
   const thread=CAMPAIGN_THREADS[g.mode].find(t=>t.followUps.includes(g.turn));
@@ -61,7 +62,8 @@ export function campaignDomain(g:Game):Domain {
     dossiers=dossiers.slice();
     dossiers[g.turn]={...current,story:`${g.choices.includes(thread.launchChoice)?thread.underway:thread.absent} ${current.story}`};
   }
-  return {...base,turns:45,duration:`45 décisions · ${g.mode==='municipal'?6:5} années`,place:g.city?.name??base.place,
+  const turns=g.version >= 9 && g.mode==='national'?30:45;
+  return {...base,turns,duration:`${turns} décisions · ${g.mode==='municipal'?6:5} années`,place:g.city?.name??base.place,
     intro:g.city?`Vous prenez les commandes de ${g.city.name}, à partir des comptes publiés de ${g.city.year}. Les décisions et leurs effets constituent une simulation.`:base.intro,
     scope:g.city?'Comptes de départ observés ; coûts, zones, indicateurs et conséquences hypothétiques. Aucun diagnostic des habitants ni prévision électorale.':base.scope,
     ...(g.version >= 6 ? { objectives: ["Réduire le déficit annuel jusqu’à l’équilibre", "Préserver les services et la cohésion", "Préparer les crises futures"] } : {}),
@@ -81,7 +83,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9=3):Game {
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};
@@ -147,7 +149,7 @@ export function campaignChoices(g:Game):Choice[] {
   return legal?choices:[...choices,recovery(g)];
 }
 export function decideCampaign(g:Game,id:string):Game {
-  if(g.turn>=45)throw new Error('Ce mandat est terminé.');
+  if(g.turn>=campaignDomain(g).turns)throw new Error('Ce mandat est terminé.');
   const choice=campaignChoices(g).find(c=>c.id===id);
   if(!choice)throw new Error("Cette décision n'appartient pas au dossier.");
   return transition(g,choice);

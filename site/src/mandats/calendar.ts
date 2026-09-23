@@ -1,7 +1,10 @@
 import type { Game, Mode } from './types.ts';
 export const YEAR_SLOTS: Record<Mode, readonly number[]> = { municipal: [8,8,8,7,7,7], national: [9,9,9,9,9] };
+export const V9_NATIONAL_YEAR_SLOTS = [6,6,6,6,6] as const;
 export function calendarFor(g: Pick<Game,'version'|'mode'|'turn'>) {
-  const slots = g.version >= 3 ? YEAR_SLOTS[g.mode] : Array(g.mode === 'municipal' ? 6 : 5).fill(1) as number[];
+  const slots = g.version >= 9 && g.mode === 'national'
+    ? V9_NATIONAL_YEAR_SLOTS
+    : g.version >= 3 ? YEAR_SLOTS[g.mode] : Array(g.mode === 'municipal' ? 6 : 5).fill(1) as number[];
   let start=0, completedYears=0;
   for (let i=0;i<slots.length;i++) {
     const end=start+slots[i];
