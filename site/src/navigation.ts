@@ -70,7 +70,18 @@ export function renduNavigation(pathname: string, simulateurDisponible: boolean)
 export function brancherMenuNavigation(): void {
   const entete=document.querySelector<HTMLElement>(".entete");
   const nav=document.querySelector<HTMLElement>(".entete__nav");
-  if(!entete||!nav||entete.querySelector(".fr-menu")) return;
+  if(!entete||!nav) return;
+  if(!entete.querySelector(".site-x-link")){
+    const social=document.createElement("a");
+    social.className="site-x-link";
+    social.href="https://x.com/500signaturesfr";
+    social.target="_blank";
+    social.rel="noreferrer noopener";
+    social.setAttribute("aria-label","500 Signatures sur X");
+    social.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg>';
+    entete.appendChild(social);
+  }
+  if(entete.querySelector(".fr-menu")) return;
   const bouton=document.createElement("button");
   bouton.type="button";
   bouton.className="fr-menu";

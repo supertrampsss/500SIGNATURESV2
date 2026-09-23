@@ -152,3 +152,16 @@ test('France keeps the approved background and shared header',async({page},info)
  for(const margin of margins){expect(margin.left).toBeGreaterThanOrEqual(minimumMargin);expect(margin.right).toBeGreaterThanOrEqual(minimumMargin);}
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
 });
+
+
+test('X est accessible depuis le header partagé et les footers principaux',async({page})=>{
+ for(const path of ['/accueil/','/bilan/','/territoire']){
+  await page.goto(path);
+  const headerX=page.locator('header .site-x-link').first();
+  await expect(headerX).toHaveAttribute('href','https://x.com/500signaturesfr');
+  await expect(headerX).toHaveAttribute('aria-label','500 Signatures sur X');
+ }
+ await page.goto('/mandats/');
+ await expect(page.locator('header .site-x-link')).toHaveAttribute('href','https://x.com/500signaturesfr');
+ await expect(page.locator('footer .site-x-link')).toHaveAttribute('href','https://x.com/500signaturesfr');
+});
