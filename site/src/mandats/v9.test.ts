@@ -1,0 +1,59 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { calendarFor, choicesFor, decide, domainFor, preview, start, startingGame } from './engine.ts';
+import { decode, encode } from './storage.ts';
+import { mandateSetup, result, yearRecap } from './render.ts';
+
+function legalNext(game: ReturnType<typeof start>) {
+  const choice=choicesFor(game).find(c=>preview(game,c.id).game);
+  assert.ok(choice, `No legal choice at turn ${game.turn}`);
+  return decide(game,choice.id);
+}
+
+test('v9 is a five chapter national campaign with six decisions per year',()=>{
+  let g=start('national',73,'services',9);
+  assert.equal(domainFor(g).turns,30);
+  assert.equal(domainFor(g).duration,'30 décisions · 5 années');
+  assert.equal(calendarFor(g).slots,6);
+  for(let turn=1;turn<=30;turn++){
+    g=legalNext(g);
+    const last=g.history.at(-1)!;
+    assert.equal(last.closed,turn%6===0);
+    if(turn%6===0)assert.equal(last.year,turn/6);
+  }
+  assert.equal(g.history.filter(t=>t.closed).length,5);
+  assert.equal(g.turn,30);
+  assert.equal(new Set(g.choices).size,30);
+  assert.deepEqual(decode(encode(g)),g);
+});
+
+test('v9 keeps mission and seed deterministic for exact replay',()=>{
+  let a=start('national',814,'resilience',9);
+  for(let i=0;i<12;i++)a=legalNext(a);
+  const replayed=a.choices.reduce((g,id)=>decide(g,id),startingGame(a));
+  assert.deepEqual(replayed,a);
+  assert.equal(replayed.seed,814);
+  assert.equal(replayed.ambition,'resilience');
+});
+
+test('v9 onboarding offers three missions and annual recap gates chapters',()=>{
+  let g=start('national',404,'equilibre',9);
+  const setup=mandateSetup(g);
+  assert.equal((setup.match(/data-action="choose-mission"/g)??[]).length,3);
+  assert.match(setup,/Tenir le budget/);
+  assert.match(setup,/Améliorer les services/);
+  assert.match(setup,/Prévenir les pannes et les crises/);
+  for(let i=0;i<6;i++)g=legalNext(g);
+  const recap=yearRecap(g);
+  assert.match(recap,/FIN DE L’ANNÉE 1/);
+  assert.match(recap,/Passer à l’année 2/);
+});
+
+test('v9 final result is multidimensional without a global government score',()=>{
+  let g=start('national',909,'equilibre',9);
+  while(g.turn<domainFor(g).turns)g=legalNext(g);
+  const html=result(g);
+  assert.match(html,/sans note globale/);
+  assert.match(html,/Rejouer exactement ce défi/);
+  assert.doesNotMatch(html,/class="score-number"/);
+});
