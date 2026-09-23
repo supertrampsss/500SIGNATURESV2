@@ -1,4 +1,5 @@
 import { territoireFinances } from "./territoire-finances.ts";
+import { rendrePartsBudgetVille } from "./parts-budget-ville.ts";
 /**
  * Fiche territoire. Règle du produit (docs/04) : un chiffre ne s'affiche jamais
  * seul. Il porte son unité, son millésime, son dénominateur quand c'est un
@@ -365,8 +366,8 @@ export function afficherFiche(
         <p class="fiche__intro">Population, finances locales, services publics : retrouvez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
       </div>
       <figure class="fiche__hero-scene">
-        <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg/1280px-Place_de_la_Bourse%2C_Bordeaux%2C_France.jpg" alt="Place de la Bourse à Bordeaux" width="1280" height="300">
-        <figcaption><a href="https://commons.wikimedia.org/wiki/File:Place_de_la_Bourse,_Bordeaux,_France.jpg" target="_blank" rel="noreferrer">Place de la Bourse · Xellery / Wikimedia Commons · CC BY-SA 3.0</a></figcaption>
+        <img src="/ville/panorama.svg" alt="Illustration générique d’un territoire français" width="1280" height="720">
+        <figcaption>Illustration générique</figcaption>
       </figure>
     ${
       territoire.maire && EXECUTIFS[niveau]
@@ -435,6 +436,7 @@ export function afficherFiche(
               ${territoire.population ? `<div class="territoire-population-card"><span>Population</span><strong>${new Intl.NumberFormat("fr-FR").format(territoire.population)}</strong><small>habitants</small></div>` : ""}
               ${ouvertureChiffree}
             </div>
+            ${niveau === "commune" ? rendrePartsBudgetVille(territoire) : ""}
           </section>
           <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
@@ -451,6 +453,7 @@ export function afficherFiche(
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
             <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} dans son environnement</h2>
             <p class="territoire-comparaison-section__intro">Des repères pour situer ce territoire sans réduire sa situation à un seul chiffre.</p>
+            <div id="fiche-villes-paires"></div>
             <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div><aside class="territoire-comparaison-note"><p class="territoire-section-kicker">LE TERRITOIRE</p><h3>Comprendre ${echapper(territoire.nom)} dans son contexte.</h3><p>Les comparaisons permettent de situer les finances locales sans réduire le territoire à un classement unique.</p></aside></div>
           </section>
           ${analysesCroisees}

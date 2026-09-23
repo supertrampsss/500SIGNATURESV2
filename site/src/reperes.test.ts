@@ -106,6 +106,17 @@ test("le rendu dit le rôle avant le terme, et l'unité en toutes lettres", () =
   // Aucun par-habitant dans un repère d'ouverture : la règle du site le réserve
   // aux tableaux dépliés.
   assert.doesNotMatch(html, /par habitant|hab\./);
+  assert.match(html, /class="repere__avant">2019 : 352\s?millions d&#39;euros<\/span>/u);
+});
+
+test("le repère prend le premier exercice réellement publié quand 2019 manque", () => {
+  const courts = { ofgl_recettes_fonctionnement: { "2022": 379_000_000, "2025": 417_000_000 } };
+  const [repere] = reperes(courts, "commune");
+  assert.equal(repere.exerciceOuverture, "2022");
+  assert.equal(repere.valeurOuverture, 379_000_000);
+  assert.ok(repere.variation !== null && repere.variation > 10);
+  assert.match(rendreReperes([repere]), /2022 : 379\s?millions d&#39;euros/);
+  assert.equal(reperes({ ofgl_recettes_fonctionnement: { "2025": 417_000_000 } }, "commune")[0].exerciceOuverture, null);
 });
 
 test("les trois états ne portent pas de filet d'accent vertical", () => {
