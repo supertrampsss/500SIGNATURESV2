@@ -102,3 +102,35 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
   return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
  });
 }
+
+
+/** V9 keeps the strongest twenty structural reforms, then uses ten adaptive slots.
+ * Every year contains four structural reforms and two adaptive dossiers.
+ * Crises stay conditional and deterministic for a given seed. */
+export function agendaEntryV9(g:Game):Entry {
+ if(g.turn>=30)throw new Error('Agenda V9 terminé.');
+ if(g.turn%3!==2)return reforms[Math.floor(g.turn/3)*2+g.turn%3];
+ const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id));
+ const crisisTurns=played.flatMap((e,i)=>e?.kind==='crisis'?[i]:[]);
+ const lastCrisis=crisisTurns.at(-1)??-100;
+ const eligible=crises.filter(e=>{
+  const sourceTurn=g.choices.indexOf(e.source+'a');
+  return !used.has(e.id)&&sourceTurn>=0&&g.turn-sourceTurn>=4&&g.turn>=4&&g.turn-lastCrisis>=4&&crisisTurns.length<5&&g.society![e.group!]<(e.group==='newcomers'?55:e.group==='pensioners'?50:45);
+ });
+ if(eligible.length)return eligible.sort((a,b)=>g.society![a.group!]-g.society![b.group!]||tie(g.seed,a.id)-tie(g.seed,b.id))[0];
+ const recent=played.slice(-2).map(e=>e?.dossier.category);
+ const candidates=unlocked.filter(e=>!used.has(e.id)&&(!e.source||used.has(e.source)));
+ const priority=(e:Entry)=>(e.source?(g.choices.includes(e.source+'a')?40:g.choices.includes(e.source+'b')?20:10):0)+(e.group?Math.max(0,60-g.society![e.group]):0)-(recent.includes(e.dossier.category)?50:0)+tie(g.seed,e.id);
+ const result=candidates.sort((a,b)=>priority(b)-priority(a))[0];
+ if(!result)throw new Error('Agenda V9 sans dossier disponible.');
+ return result;
+}
+export function nationalAgendaDossiersV9(g:Game):Dossier[] {
+ return Array.from({length:30},(_,slot)=>{
+  if(g.choices[slot]){const e=entryForChoice(g.choices[slot]);if(!e)throw new Error('Dossier historique inconnu.');return e.dossier;}
+  if(slot!==g.turn)return reforms[0].dossier;
+  const e=agendaEntryV9(g);
+  const origin=e.source?g.history.find(h=>h.choice.startsWith(e.source!)&&h.choice.length===e.source!.length+1)?.title:undefined;
+  return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
+ });
+}
