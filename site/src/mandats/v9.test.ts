@@ -57,6 +57,7 @@ test('v9 final result is multidimensional without a global government score',()=
   assert.match(html,/sans note globale/);
   assert.match(html,/Rejouer exactement ce défi/);
   assert.doesNotMatch(html,/class="score-number"/);
+  assert.match(html,/data-action="new-run"/);
 });
 
 
