@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calendarFor, choicesFor, decide, domainFor, preview, start, startingGame } from './engine.ts';
 import { decode, encode } from './storage.ts';
-import { gameShell, mandateSetup, result, selection, yearRecap } from './render.ts';
+import { gameShell, mandateSetup, result, selection, yearBriefing, yearRecap } from './render.ts';
 import { cardModel } from './cards.ts';
 
 function legalNext(game: ReturnType<typeof start>) {
@@ -45,6 +45,10 @@ test('v9 onboarding offers three missions and annual recap gates chapters',()=>{
   assert.match(setup,/Améliorer les services/);
   assert.match(setup,/Prévenir les pannes et les crises/);
   assert.equal((setup.match(/class="(?:[^"]* )?campaign-path__copy/g)??[]).length,5);
+  const briefing=yearBriefing(g);
+  assert.match(briefing,/Prise de fonctions/);
+  assert.match(briefing,/Commencer l’année 1/);
+  assert.match(briefing,/class="year-briefing__state"/);
   for(let i=0;i<6;i++)g=legalNext(g);
   const recap=yearRecap(g);
   assert.match(recap,/FIN DE L’ANNÉE 1/);
