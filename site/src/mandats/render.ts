@@ -13,7 +13,7 @@ import { escape as e } from "./sharing.ts";
 import type { Game } from "./types.ts";
 import { crisisCount } from "./progression.ts";
 import type { MandateProgression } from "./progression.ts";
-export type Screen = "select" | "mandate" | "play" | "year" | "result";
+export type Screen = "select" | "mandate" | "briefing" | "play" | "year" | "result";
 export type View = "decision" | "territory" | "finance" | "journal" | "plan";
 export const n = (v: number, digits = 1) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
 const button = (action: string, label: string, cls = "button") => `<button class="${cls}" data-action="${action}">${label}</button>`;
@@ -167,6 +167,45 @@ export function mandateSetup(g: Game, opts: WorldOptions = {}): string {
     </article>
   </section>`;
 }
+export function yearBriefing(g:Game):string {
+  const calendar=calendarFor(g), chapter=v9Chapter(g), d=domainFor(g);
+  const next=d.dossiers[g.turn];
+  const due=g.pending.filter(p=>p.due===calendar.year-1);
+  const deficit=Math.abs(annualDeficit(g));
+  const debtRatio=g.finance.gdp?g.finance.debt/g.finance.gdp*100:0;
+  return `<section class="year-briefing v9-chapter-${calendar.year}">
+    <header class="year-briefing__hero">
+      ${eyebrow(`ANNÉE ${calendar.year}/5 · ${e(chapter.title).toLocaleUpperCase("fr")}`)}
+      <h1 tabindex="-1">${e(chapter.title)}</h1>
+      <p>${e(chapter.intro)}</p>
+    </header>
+    ${campaignPath(g,true)}
+    ${missionPulse(g)}
+    <div class="year-briefing__grid">
+      <section class="year-briefing__state">
+        <p class="eyebrow">ÉTAT DU PAYS</p>
+        <h2>Votre point de départ pour l’année.</h2>
+        <dl>
+          <div><dt>Déficit annuel</dt><dd>${n(deficit)} Md€</dd></div>
+          <div><dt>Dette publique</dt><dd>${n(debtRatio)} % du PIB</dd></div>
+          <div><dt>Services</dt><dd>${Math.round(g.metrics.services)}/100</dd></div>
+          <div><dt>Confiance</dt><dd>${Math.round(g.metrics.trust)}/100</dd></div>
+          <div><dt>Résilience</dt><dd>${Math.round(g.metrics.resilience)}/100</dd></div>
+          <div><dt>Conséquences en attente</dt><dd>${g.pending.length}</dd></div>
+        </dl>
+      </section>
+      <section class="year-briefing__agenda">
+        <p class="eyebrow">LE CHAPITRE QUI S’OUVRE</p>
+        <h2>${e(next?.title??"Le prochain dossier vous attend.")}</h2>
+        <p>${e(next?.story??"Vos décisions précédentes continuent d’agir sur le scénario.")}</p>
+        ${due.length?`<div class="year-briefing__due"><strong>Effets qui arrivent cette année</strong><ul>${due.slice(0,3).map(p=>`<li>${e(p.label)}</li>`).join("")}</ul></div>`:""}
+        ${calendar.year>=3?`<p class="year-briefing__warning"><strong>À partir de maintenant :</strong> certaines tensions accumulées peuvent déclencher un dossier de crise.</p>`:""}
+        <button class="button primary year-briefing__start" data-action="start-year">Commencer l’année ${calendar.year}</button>
+      </section>
+    </div>
+  </section>`;
+}
+
 function decision(g: Game): string {
   const d = domainFor(g), dossier = d.dossiers[g.turn], copy=dossierCopy(g,dossier);
   const crisis=g.version>=9&&dossier.category==="Conséquence sociale";
