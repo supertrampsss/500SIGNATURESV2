@@ -5,7 +5,7 @@ import { selection, mandateSetup, gameShell } from "./render.ts";
 test("the public mandate entry offers the national campaign with direct choices", () => {
   const html = selection(null);
   assert.doesNotMatch(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
-  assert.doesNotMatch(html, /Gouverner une ville|Choisir ma ville/); assert.match(html, /Gouverner la France/);
+  assert.doesNotMatch(html, /Gouverner une ville|Choisir ma ville|Gouverner,<br>c’est choisir|→/); assert.match(html, /Gouverner la France/);
   for (const mode of ["national"] as const) {
     assert.doesNotMatch(gameShell(start(mode), "play", "decision"), /Le contexte en détail/);
     const g = start(mode);
