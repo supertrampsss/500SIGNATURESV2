@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 45 decisions over five years. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters in v9. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
