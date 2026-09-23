@@ -131,7 +131,7 @@ html[data-theme] body[data-vue="territoire"] .fiche {
 }
 
 html[data-theme] body[data-vue="territoire"] .fiche::before {
-  content:"LE TERRITOIRE";
+  content:"VILLE";
   grid-column:1;
   grid-row:1;
   align-self:end;
