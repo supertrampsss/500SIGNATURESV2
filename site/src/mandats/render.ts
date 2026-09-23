@@ -16,6 +16,14 @@ export type View = "decision" | "territory" | "finance" | "journal" | "plan";
 export const n = (v: number, digits = 1) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
 const button = (action: string, label: string, cls = "button") => `<button class="${cls}" data-action="${action}">${label}</button>`;
 const eyebrow = (text: string) => `<p class="eyebrow">${text}</p>`;
+const V9_CHAPTERS = [
+  { title: "Prise de fonctions", intro: "Vous fixez le cap et engagez les premières réformes. Les effets les plus lourds ne sont pas encore tous visibles." },
+  { title: "Premières conséquences", intro: "Les choix de la première année commencent à produire leurs effets. Les marges de manœuvre se déplacent." },
+  { title: "Le point de bascule", intro: "Les décisions accumulées transforment le scénario. Certaines tensions peuvent désormais devenir des crises." },
+  { title: "Les choix qui engagent", intro: "Le temps restant se réduit. Les arbitrages de cette année pèseront directement sur l’héritage du mandat." },
+  { title: "L’héritage", intro: "Dernière année. Vous arbitrez ce qui doit encore changer et ce qui sera transmis à la fin du mandat." },
+] as const;
+const v9Chapter = (g: Game) => V9_CHAPTERS[Math.max(0, Math.min(4, calendarFor(g).year - 1))];
 
 /** A schematic choropleth, not an illustration or a real district boundary. */
 export function territoryMap(g: Game, small = false): string {
@@ -76,8 +84,9 @@ function nationalPlayHeader(g: Game): string {
   const calendar = calendarFor(g);
   const deficit = Math.abs(annualDeficit(g));
   const debtRatio = g.finance.gdp ? g.finance.debt / g.finance.gdp * 100 : 0;
-  return `<section class="mandat-play-hero" aria-label="Votre mandat">
-    <div><p class="eyebrow">MANDATS</p><h2>Faites les choix qui comptent.</h2><p>Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles.</p></div>
+  const chapter = g.version >= 9 ? v9Chapter(g) : null;
+  return `<section class="mandat-play-hero ${chapter ? `v9-chapter v9-chapter-${calendar.year}` : ""}" aria-label="Votre mandat">
+    <div><p class="eyebrow">${chapter ? `ANNÉE ${calendar.year}/5 · ${e(chapter.title).toLocaleUpperCase("fr")}` : "MANDATS"}</p><h2>${chapter ? e(chapter.title) : "Faites les choix qui comptent."}</h2><p>${chapter ? e(chapter.intro) : "Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles."}</p></div>
   </section>
   <section class="mandat-play-status mobile-mandate-context" aria-label="État du mandat">
     <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
@@ -161,9 +170,11 @@ export function yearRecap(g: Game): string {
   const delta=(value:number) => `${value>0?"+":value<0?"−":""}${n(Math.abs(value))}`;
   const yearDecisions=g.history.filter(t=>t.year===last.year);
   const due=g.pending.filter(p=>p.due===last.year).slice(0,3);
-  return `<section class="year-recap">
+  const chapter=V9_CHAPTERS[last.year-1]!;
+  const nextChapter=last.year<5?V9_CHAPTERS[last.year]:null;
+  return `<section class="year-recap v9-chapter-${last.year}">
     <header class="year-recap-hero">
-      ${eyebrow(`FIN DE L’ANNÉE ${last.year} · CHAPITRE ${last.year}/5`)}
+      ${eyebrow(`FIN DE L’ANNÉE ${last.year} · ${e(chapter.title).toLocaleUpperCase("fr")}`)}
       <h1 tabindex="-1">Un an de décisions. Voici ce qui a changé.</h1>
       <p>Les comptes de l’année sont clôturés. Les conséquences différées restent actives pour la suite du mandat.</p>
     </header>
@@ -179,7 +190,7 @@ export function yearRecap(g: Game): string {
         <ol>${yearDecisions.map(t=>`<li><span>${e(t.title)}</span>${t.event&&t===yearDecisions.at(-1)?`<small>${e(t.event)}</small>`:""}</li>`).join("")}</ol>
       </section>
       <section class="year-recap-next">
-        <h2>${last.year<5?`Ce qui vous attend en année ${last.year+1}`:"Votre héritage est prêt"}</h2>
+        <h2>${last.year<5?`Année ${last.year+1} · ${e(nextChapter!.title)}`:"Votre héritage est prêt"}</h2>
         ${last.year<5 ? (due.length?`<ul>${due.map(p=>`<li>${e(p.label)}</li>`).join("")}</ul>`:"<p>Les effets de vos choix continueront de modifier le scénario.</p>") : "<p>Cinq années sont terminées. Le bilan final rassemble votre trajectoire sans réduire le mandat à une note unique.</p>"}
         <button class="button primary" data-action="${last.year<5?"next-year":"show-result"}">${last.year<5?`Passer à l’année ${last.year+1}`:"Voir mon héritage"}</button>
       </section>
