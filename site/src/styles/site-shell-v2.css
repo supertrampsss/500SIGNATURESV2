@@ -669,13 +669,13 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
   border-radius:999px!important;
   background:rgba(255,255,255,.965)!important;
   color:var(--site-ink)!important;
-  box-shadow:0 14px 36px rgba(22,43,60,.13)!important;
+  box-shadow:none!important;
   font-size:18px!important;
-  backdrop-filter:blur(7px)!important;
+  backdrop-filter:none!important;
 }
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__champ #recherche:focus{
   border-color:#7fa6c5!important;
-  box-shadow:0 16px 42px rgba(22,43,60,.15),0 0 0 4px rgba(197,36,56,.08)!important;
+  box-shadow:0 0 0 3px rgba(197,36,56,.08)!important;
 }
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-footer{
   display:grid!important;
