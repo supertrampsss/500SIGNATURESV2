@@ -492,9 +492,9 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-f
 }
 @media(max-width:700px){
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #contenu{
-    width:calc(100% - 32px)!important;
+    width:100%!important;
     max-width:none!important;
-    margin:0 auto 20px!important;
+    margin:0 0 20px!important;
   }
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche,
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
