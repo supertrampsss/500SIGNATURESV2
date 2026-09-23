@@ -1165,3 +1165,100 @@ body[data-mode="selection"] .mandate-home-preview{
   .mandate-archives__stats span:nth-child(2){border-right:0}
   .mandate-archives__stats span:nth-child(-n+2){border-bottom:1px solid #ffffff24}
 }
+
+
+.year-briefing{
+  max-width:1180px;
+  margin:0 auto;
+  padding:28px 0 52px;
+}
+.year-briefing__hero{
+  min-height:320px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:38px;
+  border:1px solid var(--line);
+  background:
+    linear-gradient(90deg,rgba(8,29,50,.92) 0%,rgba(8,29,50,.78) 46%,rgba(8,29,50,.18) 80%),
+    url('/mandats/art/national-relief-1536.webp') center 48%/cover no-repeat;
+  color:#fff;
+}
+.year-briefing__hero .eyebrow{margin:0 0 10px;color:#efbcc3}
+.year-briefing__hero h1{
+  max-width:13ch;
+  margin:0;
+  color:#fff;
+  font:500 clamp(3rem,5vw,5.6rem)/.92 Spectral,Georgia,serif;
+  letter-spacing:-.05em;
+}
+.year-briefing__hero p{
+  max-width:56ch;
+  margin:16px 0 0;
+  color:#dde7ef;
+  font-size:15px;
+  line-height:1.55;
+}
+.year-briefing__grid{
+  display:grid;
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);
+  gap:14px;
+  margin-top:14px;
+}
+.year-briefing__grid>section{
+  min-width:0;
+  padding:26px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.year-briefing__grid .eyebrow{margin:0 0 10px;color:var(--accent)}
+.year-briefing__grid h2{
+  margin:0 0 18px;
+  color:var(--ink);
+  font:600 28px/1.08 Spectral,Georgia,serif;
+}
+.year-briefing__state dl{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:0;
+}
+.year-briefing__state dl>div{
+  padding:13px;
+  border:1px solid #e2e8ec;
+  background:#fafbfb;
+}
+.year-briefing__state dt{color:var(--muted);font-size:10px}
+.year-briefing__state dd{
+  margin:5px 0 0;
+  color:var(--ink);
+  font:600 18px/1.08 Spectral,Georgia,serif;
+}
+.year-briefing__agenda>p:not(.eyebrow){
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.55;
+}
+.year-briefing__due,
+.year-briefing__warning{
+  margin-top:18px;
+  padding:14px 16px;
+  border-left:3px solid #174f8e;
+  background:#f1f5f8;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+.year-briefing__due strong,
+.year-briefing__warning strong{color:var(--ink)}
+.year-briefing__due ul{margin:8px 0 0;padding-left:18px}
+.year-briefing__warning{border-left-color:#b44a59;background:#fbf2f3}
+.year-briefing__start{margin-top:22px;width:100%;min-height:52px}
+
+@media(max-width:760px){
+  .year-briefing{padding-top:12px}
+  .year-briefing__hero{min-height:250px;padding:26px 18px}
+  .year-briefing__hero h1{font-size:2.8rem}
+  .year-briefing__grid{grid-template-columns:1fr}
+  .year-briefing__grid>section{padding:20px 18px}
+}
