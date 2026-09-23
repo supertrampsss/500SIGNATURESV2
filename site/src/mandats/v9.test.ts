@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { calendarFor, choicesFor, decide, domainFor, preview, start, startingGame } from './engine.ts';
 import { decode, encode } from './storage.ts';
 import { mandateSetup, result, yearRecap } from './render.ts';
+import { cardModel } from './cards.ts';
 
 function legalNext(game: ReturnType<typeof start>) {
   const choice=choicesFor(game).find(c=>preview(game,c.id).game);
@@ -56,4 +57,14 @@ test('v9 final result is multidimensional without a global government score',()=
   assert.match(html,/sans note globale/);
   assert.match(html,/Rejouer exactement ce défi/);
   assert.doesNotMatch(html,/class="score-number"/);
+});
+
+
+test('v9 challenge card carries the selected mission without player choices',()=>{
+  const g=start('national',712,'services',9);
+  const card=cardModel(g,'challenge');
+  assert.equal(card.fields[0][1],'Améliorer les services');
+  assert.match(card.fields[2][1],/sans note globale/);
+  assert.match(card.fields[3][1],/Scénario 712 · 30 décisions/);
+  assert.doesNotMatch(card.url,/#result=/);
 });
