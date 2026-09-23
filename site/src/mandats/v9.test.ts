@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calendarFor, choicesFor, decide, domainFor, preview, start, startingGame } from './engine.ts';
 import { decode, encode } from './storage.ts';
-import { mandateSetup, result, yearRecap } from './render.ts';
+import { gameShell, mandateSetup, result, selection, yearRecap } from './render.ts';
 import { cardModel } from './cards.ts';
 
 function legalNext(game: ReturnType<typeof start>) {
@@ -44,10 +44,14 @@ test('v9 onboarding offers three missions and annual recap gates chapters',()=>{
   assert.match(setup,/Tenir le budget/);
   assert.match(setup,/Améliorer les services/);
   assert.match(setup,/Prévenir les pannes et les crises/);
+  assert.equal((setup.match(/class="(?:[^"]* )?campaign-path__copy/g)??[]).length,5);
   for(let i=0;i<6;i++)g=legalNext(g);
   const recap=yearRecap(g);
   assert.match(recap,/FIN DE L’ANNÉE 1/);
   assert.match(recap,/Passer à l’année 2/);
+  assert.match(recap,/class="chapter-milestones"/);
+  assert.match(recap,/Chapitre 1\/5 terminé/);
+  assert.match(recap,/class="mission-pulse"/);
 });
 
 test('v9 final result is multidimensional without a global government score',()=>{
@@ -58,6 +62,8 @@ test('v9 final result is multidimensional without a global government score',()=
   assert.match(html,/Rejouer exactement ce défi/);
   assert.doesNotMatch(html,/class="score-number"/);
   assert.match(html,/data-action="new-run"/);
+  assert.match(html,/class="final-run-stats"/);
+  assert.match(html,/class="campaign-memory"/);
 });
 
 
@@ -68,4 +74,29 @@ test('v9 challenge card carries the selected mission without player choices',()=
   assert.match(card.fields[2][1],/sans note globale/);
   assert.match(card.fields[3][1],/Scénario 712 · 30 décisions/);
   assert.doesNotMatch(card.url,/#result=/);
+});
+
+
+test('v9 crisis dossiers break visually from ordinary decisions',()=>{
+  let g=start('national',42,'equilibre',9);
+  for(let i=0;i<5;i++)g=legalNext(g);
+  g.society!.pensioners=20;
+  const html=gameShell(g,'play','decision');
+  assert.match(html,/crisis-dossier/);
+  assert.match(html,/class="crisis-banner"/);
+  assert.match(html,/SITUATION DE CRISE/);
+});
+
+test('landing archives expose replay progress without storing political choices',()=>{
+  const html=selection(null,false,{
+    completedRuns:3,
+    seeds:[11,22,33],
+    missions:['equilibre','services'],
+    crisesEncountered:4,
+    archives:[{seed:33,ambition:'services',completedAt:'2026-09-23T12:00:00.000Z',crises:2,services:63,cohesion:57,trust:54,resilience:61}],
+  });
+  assert.match(html,/VOS ARCHIVES/);
+  assert.match(html,/3<\/strong><small>mandats terminés/);
+  assert.match(html,/Scénario #33/);
+  assert.doesNotMatch(html,/r01a|r02b|choices/);
 });
