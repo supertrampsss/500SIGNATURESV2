@@ -811,3 +811,357 @@ body[data-mode="selection"] .mandate-home-preview{
   .year-recap-metrics{grid-template-columns:1fr 1fr}
   .year-recap-grid>section{padding:18px}
 }
+
+
+/* V9.1 game feel: campaign path, mission tracking, crises and archives. */
+.campaign-path{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:0;
+  margin:14px 0;
+  padding:0;
+  list-style:none;
+  border:1px solid var(--line);
+  background:#fff;
+  overflow:hidden;
+}
+.campaign-path li{
+  position:relative;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  min-width:0;
+  min-height:74px;
+  padding:12px 14px;
+  border-right:1px solid var(--line);
+}
+.campaign-path li:last-child{border-right:0}
+.campaign-path__marker{
+  display:grid;
+  width:34px;
+  height:34px;
+  place-items:center;
+  border:1px solid #cad6df;
+  border-radius:50%;
+  background:#f5f7f8;
+  color:#60778b;
+  font-size:11px;
+  font-weight:700;
+}
+.campaign-path__marker .ui-icon{width:17px;height:17px}
+.campaign-path__copy{min-width:0}
+.campaign-path__copy small{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:.08em;
+}
+.campaign-path__copy strong{
+  display:block;
+  overflow:hidden;
+  margin-top:3px;
+  color:var(--ink);
+  font:600 14px/1.15 Spectral,Georgia,serif;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.campaign-path li.completed{background:#f1f7f3}
+.campaign-path li.completed .campaign-path__marker{
+  border-color:#b9dac8;
+  background:#dff0e7;
+  color:#287453;
+}
+.campaign-path li.current{
+  background:#eef4fa;
+  box-shadow:inset 0 -3px 0 #174f8e;
+}
+.campaign-path li.current .campaign-path__marker{
+  border-color:#174f8e;
+  background:#174f8e;
+  color:#fff;
+}
+.campaign-path li.locked{opacity:.48}
+.campaign-path li.locked .campaign-path__marker:after{content:"·"}
+.campaign-path--compact{margin:16px 0}
+.campaign-path--compact li{min-height:62px;padding:10px 12px}
+
+.mission-pulse{
+  display:grid;
+  grid-template-columns:minmax(180px,.8fr) minmax(150px,.55fr) minmax(220px,1fr);
+  align-items:center;
+  gap:16px;
+  margin:0 0 14px;
+  padding:14px 18px;
+  background:#0d315d;
+  color:#fff;
+}
+.mission-pulse__label{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.12em;
+}
+.mission-pulse strong{
+  font:600 20px/1.1 Spectral,Georgia,serif;
+}
+.mission-pulse small{
+  color:#d6e3ef;
+  font-size:12px;
+  text-align:right;
+}
+
+.mission-campaign-preview{
+  margin:20px 0 2px;
+  padding:16px;
+  border:1px solid var(--line);
+  background:#f7f8f8;
+}
+.mission-campaign-preview>span{
+  display:block;
+  margin-bottom:8px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.mission-campaign-preview .campaign-path{margin:0}
+.mission-campaign-preview .campaign-path li{grid-template-columns:30px minmax(0,1fr);min-height:56px;padding:8px}
+.mission-campaign-preview .campaign-path__marker{width:26px;height:26px}
+.mission-campaign-preview .campaign-path__copy strong{font-size:12px}
+
+.mobile-decision-feedback{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:0 0 14px;
+}
+.mobile-decision-feedback span{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#eef3f6;
+  color:#496277;
+  font-size:11px;
+  font-weight:600;
+}
+.choice-top{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.choice-key{
+  display:grid;
+  flex:0 0 28px;
+  width:28px;
+  height:28px;
+  place-items:center;
+  border:1px solid #cad8e2;
+  border-radius:50%;
+  color:#174f8e;
+  font-size:11px;
+  font-weight:800;
+}
+
+.crisis-dossier{
+  padding:26px!important;
+  border:1px solid #7d2733!important;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(185,42,55,.22),transparent 36%),
+    #10202c!important;
+  color:#f8f3ec!important;
+}
+.crisis-dossier>.eyebrow,
+.crisis-dossier h1,
+.crisis-dossier .story{color:#f8f3ec!important}
+.crisis-dossier>.eyebrow{opacity:.82}
+.crisis-banner{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:0 0 18px;
+  padding:12px 14px;
+  border-left:3px solid #d33248;
+  background:rgba(211,50,72,.12);
+}
+.crisis-banner span{
+  flex:0 0 auto;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#d33248;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+.crisis-banner strong{font-size:13px}
+.crisis-dossier .choice{
+  border-color:#ffffff26!important;
+  background:#172c3a!important;
+  color:#f8f3ec!important;
+}
+.crisis-dossier .choice:hover:not(:disabled){border-color:#e0a7ae!important;background:#1b3445!important}
+.crisis-dossier .choice-top strong,
+.crisis-dossier .choice-outcome,
+.crisis-dossier .choice-consequences{color:#eef3f6!important}
+.crisis-dossier .choice-key{border-color:#b84b59;color:#f4c7cc}
+.crisis-dossier .choice .cost{background:#243d4c!important;color:#dbe7ec!important}
+
+.chapter-milestones,
+.final-run-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  margin:14px 0;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.chapter-milestones>span,
+.final-run-stats>span{
+  min-width:0;
+  padding:16px 18px;
+  border-right:1px solid var(--line);
+}
+.chapter-milestones>span:last-child,
+.final-run-stats>span:last-child{border-right:0}
+.chapter-milestones strong,
+.final-run-stats strong{
+  display:block;
+  color:var(--ink);
+  font:600 20px/1.05 Spectral,Georgia,serif;
+}
+.chapter-milestones small,
+.final-run-stats small{
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.3;
+}
+
+.campaign-memory{
+  margin:24px 0;
+  padding:22px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.campaign-memory h2{
+  margin:0 0 16px;
+  color:var(--ink);
+  font:600 25px/1.1 Spectral,Georgia,serif;
+}
+.campaign-memory ol{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.campaign-memory li{
+  min-width:0;
+  padding:14px;
+  border:1px solid #e1e7eb;
+  background:#fafbfb;
+}
+.campaign-memory li span,
+.campaign-memory li small{display:block;color:var(--muted);font-size:10px}
+.campaign-memory li strong{
+  display:block;
+  margin:5px 0 8px;
+  color:var(--ink);
+  font:600 15px/1.15 Spectral,Georgia,serif;
+}
+.campaign-memory li small{line-height:1.4}
+
+.mandate-archives{
+  margin-top:20px;
+  padding:28px;
+  border:1px solid var(--line);
+  background:#0f2945;
+  color:#fff;
+}
+.mandate-archives__heading{
+  display:grid;
+  grid-template-columns:1fr minmax(260px,.75fr);
+  gap:28px;
+  align-items:end;
+}
+.mandate-archives__heading .eyebrow{margin:0 0 8px;color:#f2b7bf}
+.mandate-archives__heading h2{
+  margin:0;
+  color:#fff;
+  font:500 clamp(2rem,3vw,3rem)/1 Spectral,Georgia,serif;
+}
+.mandate-archives__heading p{
+  margin:0;
+  color:#cbd8e3;
+  font-size:13px;
+  line-height:1.5;
+}
+.mandate-archives__stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  margin-top:22px;
+  border:1px solid #ffffff24;
+}
+.mandate-archives__stats span{padding:16px;border-right:1px solid #ffffff24}
+.mandate-archives__stats span:last-child{border-right:0}
+.mandate-archives__stats strong{display:block;font-size:27px}
+.mandate-archives__stats small{display:block;margin-top:4px;color:#cbd8e3;font-size:10px}
+.mandate-archives__runs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.mandate-archives__runs article{
+  padding:14px;
+  border:1px solid #ffffff1f;
+  background:#ffffff0c;
+}
+.mandate-archives__runs span,
+.mandate-archives__runs small{display:block;color:#b9cad8;font-size:10px}
+.mandate-archives__runs strong{display:block;margin:5px 0 8px;color:#fff;font-size:14px}
+
+.v9-chapter-1 .mandat-play-hero{background-position:center 44%}
+.v9-chapter-2 .mandat-play-hero{background-position:center 49%}
+.v9-chapter-3 .mandat-play-hero{
+  background:
+    linear-gradient(90deg,#fff 0%,rgba(255,255,255,.9) 42%,rgba(255,255,255,.05) 76%),
+    url('/mandats/art/national-relief-1536.webp') center 54%/cover no-repeat;
+}
+.v9-chapter-4 .mandat-play-hero{background-position:center 58%}
+.v9-chapter-5 .mandat-play-hero{
+  background:
+    linear-gradient(90deg,#fff 0%,rgba(255,255,255,.9) 42%,rgba(255,255,255,.08) 76%),
+    url('/mandats/art/national-relief-1536.webp') center 61%/cover no-repeat;
+}
+
+@media(max-width:900px){
+  .campaign-path{display:flex;overflow-x:auto;scrollbar-width:none}
+  .campaign-path::-webkit-scrollbar{display:none}
+  .campaign-path li{flex:0 0 210px}
+  .mission-pulse{grid-template-columns:1fr 1fr}
+  .mission-pulse small{grid-column:1/-1;text-align:left}
+  .campaign-memory ol{grid-template-columns:1fr 1fr}
+  .mandate-archives__heading{grid-template-columns:1fr}
+  .mandate-archives__runs{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .campaign-path{margin:8px 0}
+  .campaign-path li{flex-basis:170px;min-height:58px;padding:9px}
+  .campaign-path__copy strong{font-size:12px}
+  .mission-pulse{margin-bottom:8px;padding:11px 12px}
+  .mission-pulse strong{font-size:16px}
+  .chapter-milestones,
+  .final-run-stats{grid-template-columns:1fr 1fr}
+  .chapter-milestones>span:nth-child(2),
+  .final-run-stats>span:nth-child(2){border-right:0}
+  .chapter-milestones>span:nth-child(-n+2),
+  .final-run-stats>span:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .campaign-memory ol{grid-template-columns:1fr}
+  .mandate-archives{padding:20px 16px}
+  .mandate-archives__stats{grid-template-columns:1fr 1fr}
+  .mandate-archives__stats span:nth-child(2){border-right:0}
+  .mandate-archives__stats span:nth-child(-n+2){border-bottom:1px solid #ffffff24}
+}
