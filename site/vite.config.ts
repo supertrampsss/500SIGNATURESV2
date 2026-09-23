@@ -33,5 +33,6 @@ export default defineConfig({
     hiver: fileURLToPath(new URL("./mandats/france/hiver/index.html", import.meta.url)),
     mandats: fileURLToPath(new URL("./mandats/index.html", import.meta.url)),
     methodeMandats: fileURLToPath(new URL("./mandats/methode/index.html", import.meta.url)),
+    confidentialite: fileURLToPath(new URL("./confidentialite/index.html", import.meta.url)),
   } } },
 });

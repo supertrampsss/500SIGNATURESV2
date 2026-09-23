@@ -680,7 +680,7 @@ export function rendu(donnees: DonneesAccueil): string {
     ${renduConfianceStory()}
     <footer class="story-footer">
       <a href="/accueil/">500 Signatures</a><span>Des données pour une démocratie plus proche.</span>
-      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a></nav>
+      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/confidentialite/">Confidentialité</a></nav>
       <a class="story-footer__credits" href="/france/credits.html">Crédits photographiques</a>
     </footer>
   </div>`;

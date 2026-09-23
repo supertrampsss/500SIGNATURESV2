@@ -11,6 +11,7 @@ test('Mandats : accueil éditorial lisible dans les deux thèmes',async({page},i
   await expect(page.getByRole('heading',{name:'Prenez des décisions',exact:true})).toBeVisible();
   await expect(primary).toBeVisible();
   await expect(page.locator('.mandate-home-primary')).toHaveCount(1);
+  await expect(page.getByText('Gouverner,', {exact:false})).toHaveCount(0);
   await page.screenshot({path:info.outputPath('mandats-selection-'+theme+'.png'),fullPage:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   await page.getByRole('button',{name:toggle,exact:true}).click();

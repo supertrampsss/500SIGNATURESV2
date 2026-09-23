@@ -30,13 +30,12 @@ export function selection(saved: Game | null, light = false): string {
         <h1 id="mandate-home-title" tabindex="-1">Prenez les rênes<br>du pays.</h1>
         <p class="lead">Incarnez le gouvernement et pilotez la France pendant cinq ans. Faites des choix, gérez les équilibres, affrontez les crises et voyez leurs effets.</p>
         <div class="mandate-home-actions">
-          <button class="mandate-home-primary" data-action="mode" data-mode="national" aria-label="Gouverner la France">Commencer mon mandat <span aria-hidden="true">→</span></button>
+          <button class="mandate-home-primary" data-action="mode" data-mode="national" aria-label="Gouverner la France">Commencer mon mandat</button>
           <a class="mandate-home-secondary" href="#mandate-concept">Découvrir le concept</a>
         </div>
       </div>
       <div class="mandate-home-visual">
         <div class="mandate-home-art">${worldArt("national", { light })}</div>
-        <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
       </div>
     </section>
     ${saved ? `<div class="resume mandate-home-resume"><span><strong>Partie sauvegardée.</strong> ${e(domainFor(saved).place.replace(" · scénario fictif", ""))} · ${saved.turn}/${domainFor(saved).turns} décisions</span>${button("resume", "Reprendre", "button compact")}</div>` : ""}
@@ -79,7 +78,6 @@ function nationalPlayHeader(g: Game): string {
   const debtRatio = g.finance.gdp ? g.finance.debt / g.finance.gdp * 100 : 0;
   return `<section class="mandat-play-hero" aria-label="Votre mandat">
     <div><p class="eyebrow">MANDATS</p><h2>Faites les choix qui comptent.</h2><p>Incarnez le gouvernement et relevez les défis du quinquennat. Des choix concrets, des conséquences visibles.</p></div>
-    <blockquote>« Gouverner,<br>c’est choisir. »<small>500 Signatures</small></blockquote>
   </section>
   <section class="mandat-play-status mobile-mandate-context" aria-label="État du mandat">
     <div class="mandat-play-year"><span>Progression</span><strong>Année ${calendar.year}/${calendar.years}</strong><i aria-hidden="true">${Array.from({length:calendar.years},(_,i)=>`<b class="${i < calendar.year ? "done" : ""}"></b>`).join("")}</i></div>
