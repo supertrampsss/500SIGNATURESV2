@@ -491,6 +491,11 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-f
   box-sizing:border-box;
 }
 @media(max-width:700px){
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #contenu{
+    width:calc(100% - 32px)!important;
+    max-width:none!important;
+    margin:0 auto 20px!important;
+  }
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche,
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
     min-height:560px!important;
@@ -551,9 +556,9 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-f
 
 /* Ville final full-bleed cleanup: no gutters, no search icon, local hero asset. */
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #contenu{
-  width:100%!important;
-  max-width:none!important;
-  margin:0!important;
+  width:min(1180px,calc(100% - 64px))!important;
+  max-width:1180px!important;
+  margin:0 auto 32px!important;
   padding:0!important;
   background:transparent!important;
   box-shadow:none!important;
