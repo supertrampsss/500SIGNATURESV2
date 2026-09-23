@@ -155,8 +155,7 @@ html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__
   background:none;
 }
 
-html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__nav a[href="/accueil/"],
-html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__nav a[href^="https://x.com"] {
+html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__nav a[href="/accueil/"] {
   display:none;
 }
 
@@ -1715,20 +1714,7 @@ html[data-theme] body[data-vue="accueil"] .story-mandats{
   border-radius:6px;
   background:#fffefa;
 }
-html[data-theme] body[data-vue="accueil"] .story-mandats::after{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  top:0;
-  right:0;
-  bottom:0;
-  width:46%;
-  background:
-    linear-gradient(90deg,#fffefa 0%,rgba(255,254,250,.88) 20%,rgba(234,244,251,.48) 58%,rgba(234,244,251,.12) 100%),
-    url("/brand/mandats-accueil-fond.webp") 74% 50%/cover no-repeat;
-  opacity:.48;
-  pointer-events:none;
-}
+html[data-theme] body[data-vue="accueil"] .story-mandats::after{content:none}
 html[data-theme] body[data-vue="accueil"] .story-mandats__copy{
   position:relative;
   z-index:2;
@@ -1896,11 +1882,6 @@ html[data-theme] body[data-vue="accueil"] .story-mandats__years span{
     grid-template-columns:1fr;
     min-height:0;
     padding:26px 18px;
-  }
-  html[data-theme] body[data-vue="accueil"] .story-mandats::after{
-    width:100%;
-    opacity:.2;
-    background-position:68% 100%;
   }
   html[data-theme] body[data-vue="accueil"] .story-mandats h2{
     max-width:9ch;
