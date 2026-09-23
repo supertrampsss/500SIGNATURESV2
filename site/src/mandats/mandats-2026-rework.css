@@ -1123,15 +1123,15 @@ body[data-mode="selection"] .mandate-home-preview{
 .mandate-archives__runs small{display:block;color:#b9cad8;font-size:10px}
 .mandate-archives__runs strong{display:block;margin:5px 0 8px;color:#fff;font-size:14px}
 
-.v9-chapter-1 .mandat-play-hero{background-position:center 44%}
-.v9-chapter-2 .mandat-play-hero{background-position:center 49%}
-.v9-chapter-3 .mandat-play-hero{
+.mandat-play-hero.v9-chapter-1{background-position:center 44%}
+.mandat-play-hero.v9-chapter-2{background-position:center 49%}
+.mandat-play-hero.v9-chapter-3{
   background:
     linear-gradient(90deg,#fff 0%,rgba(255,255,255,.9) 42%,rgba(255,255,255,.05) 76%),
     url('/mandats/art/national-relief-1536.webp') center 54%/cover no-repeat;
 }
-.v9-chapter-4 .mandat-play-hero{background-position:center 58%}
-.v9-chapter-5 .mandat-play-hero{
+.mandat-play-hero.v9-chapter-4{background-position:center 58%}
+.mandat-play-hero.v9-chapter-5{
   background:
     linear-gradient(90deg,#fff 0%,rgba(255,255,255,.9) 42%,rgba(255,255,255,.08) 76%),
     url('/mandats/art/national-relief-1536.webp') center 61%/cover no-repeat;
