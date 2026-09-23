@@ -16,6 +16,7 @@ import { gameShell, mandateSetup, selection, yearRecap } from "./render.ts";
 import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY, MAX_SAVE_BYTES } from "./storage.ts";
 import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
+import { readProgression, recordCompletedMandate } from "./progression.ts";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -28,6 +29,7 @@ function track(event: Parameters<typeof recordPilot>[1]) { try { recordPilot(loc
 let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
+let progression = (() => { try { return readProgression(localStorage); } catch { return readProgression({getItem:()=>null}); } })();
 function freshSeed(): number {
   try {
     const values = new Uint16Array(1);
@@ -73,7 +75,7 @@ function render(focus = true, restoreScroll?: number) {
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  root.innerHTML = screen === "select" ? selection(saved, light) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  root.innerHTML = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
   syncNationalScene(root, g, { light, inherited });
   document.querySelector("#game-tools")!.removeAttribute("hidden");
   if (focus) {
@@ -176,7 +178,10 @@ async function action(target: HTMLElement) {
     announce(`Décision ${next.turn} prise. ${yearClosed ? "L’année est terminée." : next.turn === domainFor(next).turns ? "Votre bilan est prêt." : "Dossier suivant."}`,true);
     persist();
     if (next.turn === 1) track("first_decision");
-    if (next.turn === domainFor(next).turns) track("game_completed");
+    if (next.turn === domainFor(next).turns) {
+      track("game_completed");
+      try { progression = recordCompletedMandate(localStorage,next); } catch {}
+    }
   }
   else if (a === "next-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
