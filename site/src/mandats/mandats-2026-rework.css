@@ -644,3 +644,170 @@ body[data-mode="selection"] .mandate-home-preview{
     padding:0 16px 36px;
   }
 }
+
+
+/* V9: five annual chapters, mission-first onboarding and annual payoff. */
+.v9-mission{
+  display:grid;
+  grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr);
+  min-height:650px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.v9-mission-visual{
+  position:relative;
+  min-height:650px;
+  overflow:hidden;
+  background:#dfe8ee;
+}
+.v9-mission-visual picture,
+.v9-mission-visual img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.v9-mission-visual>div:last-child{
+  position:absolute;
+  left:28px;
+  right:28px;
+  bottom:26px;
+  padding:18px 20px;
+  background:rgba(7,31,55,.86);
+  color:#fff;
+}
+.v9-mission-visual p{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.v9-mission-visual strong{font:500 24px/1.15 Spectral,Georgia,serif}
+.v9-mission-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:42px;
+}
+.v9-mission-copy .eyebrow{margin:0 0 12px;color:var(--accent)}
+.v9-mission-copy h1{
+  margin:0;
+  max-width:13ch;
+  font:500 clamp(2.6rem,4vw,4.6rem)/.96 Spectral,Georgia,serif;
+  letter-spacing:-.045em;
+  color:var(--ink);
+}
+.v9-mission-copy>.lead{max-width:58ch;margin:18px 0 24px;color:var(--muted);line-height:1.55}
+.mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mission-card{
+  display:flex;
+  min-width:0;
+  min-height:230px;
+  flex-direction:column;
+  align-items:flex-start;
+  padding:20px 18px;
+  border:1px solid #d8e2e8;
+  border-radius:5px;
+  background:#fff;
+  color:var(--ink);
+  text-align:left;
+}
+.mission-card:hover{border-color:#7aa4c5;background:#f8fbfd}
+.mission-icon{
+  display:grid;
+  width:42px;
+  height:42px;
+  place-items:center;
+  margin-bottom:28px;
+  border:1px solid #cbd8e2;
+  border-radius:50%;
+}
+.mission-icon .ui-icon{width:20px;height:20px}
+.mission-card>strong{font:600 22px/1.05 Spectral,Georgia,serif}
+.mission-card>span:not(.mission-icon){margin-top:10px;color:var(--muted);font-size:13px;line-height:1.45}
+.mission-card>small{margin-top:auto;padding-top:18px;color:#174f8e;font-weight:650}
+.mission-baseline{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  margin:18px 0 8px;
+  border:1px solid var(--line);
+}
+.mission-baseline>span{padding:12px 14px;border-right:1px solid var(--line)}
+.mission-baseline>span:last-child{border-right:0}
+.mission-baseline small{display:block;color:var(--muted);font-size:10px}
+.mission-baseline strong{display:block;margin-top:4px;color:var(--ink);font-size:16px}
+
+.year-recap{max-width:1180px;margin:0 auto;padding:40px 0 54px}
+.year-recap-hero{
+  min-height:270px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:36px;
+  border:1px solid var(--line);
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.88) 48%,rgba(255,255,255,.18) 78%),
+    url('/mandats/art/national-relief-1536.webp') center 46%/cover no-repeat;
+}
+.year-recap-hero .eyebrow{margin:0 0 12px;color:var(--accent)}
+.year-recap-hero h1{
+  max-width:15ch;
+  margin:0;
+  color:var(--ink);
+  font:500 clamp(2.5rem,4.4vw,4.6rem)/.96 Spectral,Georgia,serif;
+  letter-spacing:-.045em;
+}
+.year-recap-hero p{max-width:57ch;margin:16px 0 0;color:var(--muted);line-height:1.5}
+.year-recap-grid{
+  display:grid;
+  grid-template-columns:1.15fr .95fr .9fr;
+  gap:14px;
+  margin-top:14px;
+}
+.year-recap-grid>section{
+  min-width:0;
+  padding:22px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.year-recap-grid h2{
+  margin:0 0 16px;
+  color:var(--ink);
+  font:600 23px/1.1 Spectral,Georgia,serif;
+}
+.year-recap-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.year-recap-metrics article{padding:14px;border:1px solid #e2e8ec;background:#fafbfb}
+.year-recap-metrics span,
+.year-recap-metrics small{display:block;color:var(--muted);font-size:11px}
+.year-recap-metrics strong{display:block;margin:5px 0;color:var(--ink);font:600 20px/1.1 Spectral,Georgia,serif}
+.year-recap-story ol{display:grid;gap:9px;margin:0;padding:0;list-style:none}
+.year-recap-story li{padding:10px 0;border-bottom:1px solid #e6ebee;color:var(--ink);font-size:13px}
+.year-recap-story li:last-child{border-bottom:0}
+.year-recap-story small{display:block;margin-top:5px;color:var(--muted)}
+.year-recap-next{display:flex;flex-direction:column}
+.year-recap-next p,
+.year-recap-next li{color:var(--muted);font-size:13px;line-height:1.5}
+.year-recap-next ul{margin:0 0 18px;padding-left:18px}
+.year-recap-next .button{margin-top:auto}
+.v9-result>.lead{max-width:66ch}
+.v9-result .score-dimensions{margin-top:24px}
+
+@media(max-width:900px){
+  .v9-mission{grid-template-columns:1fr}
+  .v9-mission-visual{min-height:250px;height:250px}
+  .v9-mission-copy{padding:28px 22px 34px}
+  .mission-grid{grid-template-columns:1fr}
+  .mission-card{min-height:0}
+  .mission-icon{margin-bottom:14px}
+  .mission-baseline{grid-template-columns:repeat(2,1fr)}
+  .mission-baseline>span:nth-child(2){border-right:0}
+  .mission-baseline>span:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .year-recap{padding:20px 0 40px}
+  .year-recap-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  body[data-mode="national"] #mandats{padding-left:14px;padding-right:14px}
+  .v9-mission-copy h1,
+  .year-recap-hero h1{font-size:2.35rem}
+  .v9-mission-visual>div:last-child{left:14px;right:14px;bottom:14px}
+  .mission-baseline{grid-template-columns:1fr 1fr}
+  .year-recap-hero{min-height:240px;padding:24px 18px}
+  .year-recap-metrics{grid-template-columns:1fr 1fr}
+  .year-recap-grid>section{padding:18px}
+}
