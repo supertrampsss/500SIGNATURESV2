@@ -14,7 +14,7 @@ test("la navigation expose l’accueil et les cinq destinations utiles", () => {
     [
       { cle: "accueil", href: "/accueil/", libelle: "Accueil" },
       { cle: "france", href: "/bilan/", libelle: "France" },
-      { cle: "territoires", href: "/territoire", libelle: "Villes" },
+      { cle: "territoires", href: "/territoire", libelle: "Ville" },
       { cle: "salaires", href: "/salaires/", libelle: "Salaires" },
       { cle: "analyses", href: "/analyses/", libelle: "Dossiers" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
