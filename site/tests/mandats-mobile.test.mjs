@@ -3,22 +3,22 @@ import {readFile} from 'node:fs/promises';
 const HOME='/mandats/';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
-async function begin(page,info){await page.goto(HOME);await activate(page.getByRole('button',{name:/Gouverner la France/}),info);await expect(page.locator('.initial-cap-card')).toHaveCount(0);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(8);}
-async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
+async function begin(page,info){await page.goto(HOME);await activate(page.getByRole('button',{name:/Gouverner la France/}),info);await expect(page.getByRole('heading',{name:'Quel cap voulez-vous tenir pendant cinq ans ?',exact:true})).toBeVisible();await activate(page.getByRole('button',{name:/^Tenir le budget/}),info);await expect(page.locator('.dossier')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(9);}
+async function choose(page,info){await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);await expect(page.locator('.dossier,.year-recap,.result').first()).toBeVisible();if(await page.locator('.year-recap').count()){await expect(page.locator('.year-recap')).toBeVisible();await activate(page.locator('.year-recap [data-action="next-year"],.year-recap [data-action="show-result"]').first(),info);await expect(page.locator('.dossier,.result').first()).toBeVisible();}await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
 test('national: complete touch campaign, sharing and replay',async({page},info)=>{
  test.setTimeout(120000);
  await begin(page,info);
- for(let decision=0;decision<45;decision++){
+ for(let decision=0;decision<30;decision++){
   await expect(page.locator('h1')).toBeFocused();
   if(info.project.use.viewport?.height>600&&info.project.name!=='desktop-chromium'){const box=await page.locator('h1').boundingBox();expect(box.y+box.height).toBeLessThan(info.project.use.viewport.height);}
   await choose(page,info);
  }
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length)).toBe(45);
- await expect(page.locator('.result')).toBeVisible();await expect(page.locator('[data-action="replay-ambition"]')).toHaveCount(0);await expect(page.locator('.score-number')).toContainText('/100');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length)).toBe(30);
+ await expect(page.locator('.result')).toBeVisible();await expect(page.locator('[data-action="replay-ambition"]')).toHaveCount(0);await expect(page.locator('.score-number')).toHaveCount(0);await expect(page.locator('.v9-result')).toContainText('sans note globale');
  await activate(page.getByRole('button',{name:'Partager mon héritage',exact:true}),info);await expect(page.getByRole('dialog')).toHaveAccessibleName('Partager votre mandat');
  const downloadEvent=page.waitForEvent('download');await activate(page.getByRole('button',{name:'1200 × 630',exact:true}),info);const download=await downloadEvent;const bytes=await readFile(await download.path());expect(bytes.subarray(1,4).toString()).toBe('PNG');expect(bytes.readUInt32BE(16)).toBe(1200);expect(bytes.readUInt32BE(20)).toBe(630);
  await activate(page.getByRole('button',{name:'Défi',exact:true}),info);await expect(page.locator('.share-preview')).toContainText('SANS VOS CHOIX');await noOverflow(page);await activate(page.getByRole('button',{name:'Fermer',exact:true}),info);
- await activate(page.getByRole('button',{name:'Rejouer le même défi',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
+ await activate(page.getByRole('button',{name:'Rejouer exactement ce défi',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
 });
 test('fresh-device national import, invalid files, export and resume',async({page,browser},info)=>{
  await begin(page,info);await choose(page,info);await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);
@@ -81,12 +81,12 @@ test('national scene keeps one living SVG across decisions and offers an accessi
  await noOverflow(page);
 });
 
-test('national living scene and all 45 decisions work without WebGL',async({page},info)=>{
+test('national living scene and all 30 v9 decisions work without WebGL',async({page},info)=>{
  test.skip(info.project.name!=='android-chromium','The national living scene does not require a GPU renderer');
  await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return original.call(this,type,...args);};});
  await begin(page,info);
  await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
  await expect(page.locator('[data-national-scene]:visible img')).toBeVisible();
- for(let i=0;i<45;i++) await choose(page,info);
+ for(let i=0;i<30;i++) await choose(page,info);
  await expect(page.locator('.result')).toBeVisible();
 });
