@@ -654,13 +654,28 @@ export function rendu(donnees: DonneesAccueil): string {
     </section>
     ${renduPortesAccueil()}
     <section class="story-mandats" aria-labelledby="story-mandats">
-      <div>
+      <div class="story-mandats__copy">
         <p class="story-kicker">ET ENSUITE…</p>
         <h2 id="story-mandats">Prenez les rênes du pays.</h2>
         <p>Simulez un mandat présidentiel sur cinq ans et mesurez l’impact de vos décisions.</p>
         <a class="story-button" href="/mandats/?mode=national">Commencer mon mandat</a>
       </div>
-      <div class="story-mandats__visual" aria-hidden="true"><strong>5 ans</strong><span>Vos choix.<br>Leurs conséquences.</span></div>
+      <div class="story-mandats__dashboard" aria-label="Aperçu du mandat">
+        <header><strong>Mon mandat</strong><span>Année 1 sur 5</span></header>
+        <ol class="story-mandats__timeline" aria-label="Progression sur cinq ans">
+          <li aria-current="step"><span>1</span><small>Année 1</small></li>
+          <li><span>2</span><small>Année 2</small></li>
+          <li><span>3</span><small>Année 3</small></li>
+          <li><span>4</span><small>Année 4</small></li>
+          <li><span>5</span><small>Année 5</small></li>
+        </ol>
+        <div class="story-mandats__metrics">
+          <div><span>Emploi</span><strong>+0,8 %</strong><i style="--value:64%"></i></div>
+          <div><span>Climat</span><strong>-12 %</strong><i style="--value:48%"></i></div>
+          <div><span>Finances publiques</span><strong>-2,4 %</strong><i style="--value:58%"></i></div>
+        </div>
+      </div>
+      <div class="story-mandats__years" aria-hidden="true"><strong>5<br>ans</strong><span>pour arbitrer,<br>décider,<br>mesurer.</span></div>
     </section>
     ${renduConfianceStory()}
     <footer class="story-footer">

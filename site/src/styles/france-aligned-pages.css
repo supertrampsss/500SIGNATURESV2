@@ -1676,3 +1676,247 @@ html[data-theme] body[data-vue="accueil"] .story-trust__icon{transition:transfor
   }
   html[data-theme] body[data-vue="accueil"] .story-trust > .story-trust__item:last-child{border-bottom:0}
 }
+
+
+/* Accueil Mandats editorial preview + restrained clickable-card motion. */
+html[data-theme] body[data-vue="accueil"] .story-door{
+  transition:border-color .18s ease,background-color .18s ease;
+}
+html[data-theme] body[data-vue="accueil"] .story-door img{
+  transition:transform .28s cubic-bezier(.2,.7,.2,1),filter .28s ease;
+}
+html[data-theme] body[data-vue="accueil"] .story-door:hover,
+html[data-theme] body[data-vue="accueil"] .story-door:focus-visible{
+  border-color:#b8c9d6;
+  background:#fffefa;
+}
+html[data-theme] body[data-vue="accueil"] .story-door:hover img,
+html[data-theme] body[data-vue="accueil"] .story-door:focus-visible img{
+  transform:scale(1.025);
+  filter:saturate(.94) contrast(1.02);
+}
+html[data-theme] body[data-vue="accueil"] .story-door:focus-visible{
+  outline:3px solid var(--ui-focus);
+  outline-offset:3px;
+}
+
+html[data-theme] body[data-vue="accueil"] .story-mandats{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(280px,.86fr) minmax(390px,1.22fr) 145px;
+  gap:28px;
+  align-items:center;
+  min-height:350px;
+  margin:24px 0 0;
+  padding:38px 34px;
+  overflow:hidden;
+  border:1px solid var(--fr-line);
+  border-radius:6px;
+  background:#fffefa;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  top:0;
+  right:0;
+  bottom:0;
+  width:46%;
+  background:
+    linear-gradient(90deg,#fffefa 0%,rgba(255,254,250,.88) 20%,rgba(234,244,251,.48) 58%,rgba(234,244,251,.12) 100%),
+    url("/brand/mandats-accueil-fond.webp") 74% 50%/cover no-repeat;
+  opacity:.48;
+  pointer-events:none;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__copy{
+  position:relative;
+  z-index:2;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats h2{
+  max-width:10ch;
+  margin:0 0 12px;
+  color:var(--fr-ink);
+  font:500 clamp(38px,3.4vw,52px)/.98 "Spectral",Georgia,serif;
+  letter-spacing:-2px;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__copy>p:not(.story-kicker){
+  max-width:39ch;
+  margin:0 0 22px;
+  color:var(--fr-muted);
+  font-size:15px;
+  line-height:1.5;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__dashboard{
+  position:relative;
+  z-index:2;
+  padding:20px 22px 22px;
+  border:1px solid #d9e4eb;
+  border-radius:7px;
+  background:rgba(255,254,250,.96);
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__dashboard>header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid #e0e8ed;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__dashboard>header strong{
+  color:var(--fr-ink);
+  font:600 19px/1.1 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__dashboard>header span{
+  color:var(--fr-muted);
+  font-size:11px;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:0;
+  margin:18px 0 0;
+  padding:0;
+  list-style:none;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  left:8%;
+  right:8%;
+  top:14px;
+  height:1px;
+  background:#d9e3ea;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline li{
+  position:relative;
+  z-index:1;
+  display:grid;
+  justify-items:center;
+  gap:6px;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline span{
+  display:grid;
+  width:29px;
+  height:29px;
+  place-items:center;
+  margin:0;
+  border:1px solid #d7e1e8;
+  border-radius:50%;
+  background:#eef3f6;
+  color:#587087;
+  font-size:11px;
+  font-weight:650;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline [aria-current="step"] span{
+  border-color:var(--fr-ink);
+  background:var(--fr-ink);
+  color:#fff;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__timeline small{
+  color:var(--fr-muted);
+  font-size:9px;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics{
+  display:grid;
+  gap:10px;
+  margin-top:20px;
+  padding-top:17px;
+  border-top:1px solid #e0e8ed;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics>div{
+  display:grid;
+  grid-template-columns:120px 1fr auto;
+  gap:10px;
+  align-items:center;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics span{
+  margin:0;
+  color:var(--fr-ink);
+  font-size:11px;
+  font-weight:600;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics strong{
+  grid-column:3;
+  grid-row:1;
+  color:var(--fr-ink);
+  font:600 14px/1.1 "Spectral",Georgia,serif;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics i{
+  position:relative;
+  grid-column:2;
+  grid-row:1;
+  display:block;
+  height:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e8ecee;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics i::after{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:var(--value);
+  border-radius:inherit;
+  background:#7fa7c7;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics>div:nth-child(2) i::after{background:#93b79d}
+html[data-theme] body[data-vue="accueil"] .story-mandats__metrics>div:nth-child(3) i::after{background:#c7727d}
+html[data-theme] body[data-vue="accueil"] .story-mandats__years{
+  position:relative;
+  z-index:2;
+  align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding-left:26px;
+  border-left:1px solid #cbdbe5;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__years strong{
+  color:var(--fr-ink);
+  font:600 58px/.82 "Spectral",Georgia,serif;
+  letter-spacing:-2px;
+}
+html[data-theme] body[data-vue="accueil"] .story-mandats__years span{
+  margin:18px 0 0;
+  color:var(--fr-muted);
+  font:500 17px/1.35 "Spectral",Georgia,serif;
+}
+@media(max-width:920px){
+  html[data-theme] body[data-vue="accueil"] .story-mandats{
+    grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats__years{display:none}
+}
+@media(max-width:700px){
+  html[data-theme] body[data-vue="accueil"] .story-mandats{
+    display:grid;
+    grid-template-columns:1fr;
+    min-height:0;
+    padding:26px 18px;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats::after{
+    width:100%;
+    opacity:.2;
+    background-position:68% 100%;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats h2{
+    max-width:9ch;
+    font-size:38px;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats__dashboard{
+    padding:17px 14px 18px;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats__metrics>div{
+    grid-template-columns:86px 1fr auto;
+  }
+  html[data-theme] body[data-vue="accueil"] .story-mandats__timeline small{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-theme] body[data-vue="accueil"] .story-door,
+  html[data-theme] body[data-vue="accueil"] .story-door img{
+    transition:none!important;
+  }
+}

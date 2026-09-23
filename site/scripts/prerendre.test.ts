@@ -1077,6 +1077,7 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
   assert.doesNotMatch(corps, /story-questions|Quelques questions pour commencer/);
   assert.ok(corps.indexOf("Prenez les rênes du pays.") >= finPortes);
   assert.ok(corps.includes('href="/mandats/?mode=national"'));
+  assert.ok(corps.includes('class="story-mandats__dashboard"'));
   assert.ok(corps.indexOf('class="story-trust"') > corps.indexOf("Commencer mon mandat"));
 });
 
