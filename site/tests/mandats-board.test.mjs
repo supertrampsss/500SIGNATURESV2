@@ -33,7 +33,7 @@ async function beginDefault(page) {
   await expect(board(page).locator('[data-board-hud]')).toBeVisible();
   await expect(board(page).locator('[data-board-scene]')).toBeVisible();
   await expect(board(page).locator('[data-board-decision]')).toBeVisible();
-  await expect(board(page).locator('[data-board-feedback]')).toBeVisible();
+  await expect(board(page).locator('[data-board-feedback]')).toHaveCount(1);
   await expect(board(page).locator('.campaign-position')).toContainText('Année 1');
   const nestedControls = await board(page).evaluate((root) =>
     [...root.querySelectorAll('button')].filter((button) =>
@@ -45,7 +45,10 @@ async function beginDefault(page) {
 
 async function capture(page, info, label) {
   const path = info.outputPath(`${label}-${info.project.name}.png`);
+  const scroll = await page.evaluate(() => window.scrollY);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await page.screenshot({ path, fullPage: true, animations: 'disabled' });
+  await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scroll);
   await info.attach(`${label}-${info.project.name}`, { path, contentType: 'image/png' });
 }
 
@@ -92,7 +95,10 @@ test('default v9 board completes the five-year route and can replay a chosen tur
       await board(page).locator('[data-board-scene]').evaluate((node) => { node.dataset.testIdentity = 'stable-board-scene'; });
     }
     await pick(page, turn, expectedCount);
-    if (turn === 0) await capture(page, test.info(), 'after-first-decision');
+    if (turn === 0) {
+      await expect(board(page).locator('[data-board-feedback]')).toBeVisible();
+      await capture(page, test.info(), 'after-first-decision');
+    }
     const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY);
     expect(save.choices).toHaveLength(expectedCount);
     expect(save.version).toBe(9);
@@ -100,6 +106,7 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     await noHorizontalOverflow(page);
     if (expectedCount % 6 === 0) {
       await expect(page.locator('.year-recap')).toBeVisible();
+      await expect(page.locator('.year-recap [data-action="next-year"], .year-recap [data-action="show-result"]').first()).toBeInViewport({ ratio: 1 });
       await noHorizontalOverflow(page);
       await capture(page, test.info(), `year-recap-${expectedCount / 6}`);
       await finishAnnualRecap(page, expectedCount / 6);
@@ -110,6 +117,8 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   }
 
   await expect(page.locator('.result.v9-result')).toBeVisible();
+  await expect(page.locator('.result .result-actions [data-action="branch-replay"]')).toBeInViewport({ ratio: 1 });
+  await noHorizontalOverflow(page);
   await capture(page, test.info(), 'result');
   await expect(page.locator('.living-result h1')).toHaveText('Votre mandat a changé le pays.');
   expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(30);

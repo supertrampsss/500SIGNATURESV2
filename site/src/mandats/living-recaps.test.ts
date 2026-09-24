@@ -13,7 +13,7 @@ test('annual recap remains unavailable before a year is closed',()=>assert.equal
 test('final recap compares start with finish and links replay from preserved decision counts',()=>{
  const g=through(30),html=livingResult(g);
  assert.match(html,/DU POINT DE DÉPART À L’HÉRITAGE/);assert.match(html,/Excédent|Déficit/);assert.match(html,/décisions prises|→/);assert.match(html,/TROIS DÉCISIONS À REJOUER/);assert.match(html,/data-action="branch-replay" data-turn="\d+"/);assert.match(html,/data-action="new-run"/);assert.doesNotMatch(html,/score-number|\/100<\/p>/);
- const indices=[...html.matchAll(/data-action="branch-replay" data-turn="(\d+)"/g)].map(m=>Number(m[1]));assert.equal(new Set(indices.slice(0,3)).size,3);assert.equal(indices[3],indices[0]);assert.ok(indices.every(i=>i>=0&&i<30));
+ const indices=[...html.matchAll(/data-action="branch-replay" data-turn="(\d+)"/g)].map(m=>Number(m[1]));assert.equal(indices.length,4);assert.equal(new Set(indices.slice(1)).size,3);assert.ok(indices.slice(1).includes(indices[0]));assert.ok(indices.every(i=>i>=0&&i<30));
 });
 test('rendered history and decisions are escaped',()=>{const g=through(30);g.history[0].title='<script>';assert.doesNotMatch(livingResult(g),/<script>/);});
 

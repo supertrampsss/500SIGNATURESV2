@@ -330,7 +330,7 @@ export function gameShell(g: Game, screen: Screen, view: View, shared = false, o
       <section class="board-scene" data-board-scene aria-label="La France, au cœur du mandat">
         <div class="board-scene-heading"><span>LA FRANCE · SCÉNARIO #${g.seed}</span><strong>Chaque décision laisse une trace.</strong></div>
         <div class="board-map">${nationalScene(g, opts)}</div>
-        <div class="board-scene-caption"><span>${e(domainFor(g).place)}</span><span>Scène illustrative · effets détaillés dans le bilan</span></div>
+        <div class="board-scene-caption"><span>${e(domainFor(g).place.replace(" · scénario fictif", ""))}</span><span>${g.turn ? `${g.turn} décision${g.turn > 1 ? "s" : ""} inscrite${g.turn > 1 ? "s" : ""} au mandat` : "À vous de décider"}</span></div>
       </section>
       <section class="board-decision" data-board-decision aria-label="Décision à prendre">${decision(g)}
         <footer class="board-decision-footer"><span>${calendar.slot}e décision de l’année · ${g.turn + 1}/30 au total</span><span>Choisissez une mesure pour continuer</span></footer>

@@ -29,6 +29,7 @@ jobs:
           path: |
             site/board-audit-artifacts/**/*.png
             site/board-audit-artifacts/**/error-context.md
+            !site/board-audit-artifacts/**/attachments/**
           retention-days: 14
       - name: Publish failure traces
         if: failure()

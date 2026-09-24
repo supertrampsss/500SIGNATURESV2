@@ -191,7 +191,7 @@ function render(focus = true, restoreScroll?: number) {
     if (nextBoard) {
       const oldValues = new Map([...liveBoard.querySelectorAll<HTMLElement>("[data-animated-value]")].map(el => [el.dataset.animatedValue ?? "", el.textContent ?? ""]));
       // Keep the board and country scene host mounted between decisions.
-      for (const selector of ["[data-board-hud]", "[data-board-decision]", "[data-board-feedback]"]) {
+      for (const selector of ["[data-board-hud]", "[data-board-decision]", "[data-board-feedback]", ".board-scene-caption"]) {
         const live = liveBoard.querySelector<HTMLElement>(selector);
         const fresh = nextBoard.querySelector<HTMLElement>(selector);
         if (live && fresh) {
