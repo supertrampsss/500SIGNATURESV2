@@ -38,6 +38,9 @@ test("compare les euros par habitant au même exercice et explique l'écart en p
   assert.match(html, /référentiel 2023/);
   assert.doesNotMatch(html, /Lointaine|Autre catégorie/);
   assert.match(html, /<li>A · 900 hab\.<\/li>/);
+  assert.match(html, /<select data-villes-comparer>/);
+  assert.match(html, /<option value="a">A<\/option>/);
+  assert.match(html, /data-ville-compare="a" hidden/);
 });
 
 test("ne fabrique pas de comparaison quand trop peu de pairs publient", () => {

@@ -109,7 +109,12 @@ export function reperes(series: Series, niveau: string): Repere[] {
     const exercices = Object.keys(serie).filter((annee) => Number.isFinite(serie[annee])).sort();
     const dernier = exercices[exercices.length - 1];
     if (dernier === undefined) continue;
-    const debut = exercices.find((annee) => annee < dernier) ?? null;
+    // Les analyses des départements et régions prennent 2019 pour référence.
+    // Les communes dont la publication débute plus tard utilisent leur premier
+    // exercice réellement disponible, visible à côté de la variation.
+    const debut = niveau === "commune"
+      ? (exercices.find((annee) => annee < dernier) ?? null)
+      : (exercices.includes(OUVERTURE) && OUVERTURE < dernier ? OUVERTURE : null);
     sortie.push({
       role,
       id,

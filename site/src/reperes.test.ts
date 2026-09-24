@@ -71,6 +71,17 @@ test("une variation ne traverse pas zéro", () => {
   assert.equal(OUVERTURE, "2019");
 });
 
+test("départements et régions gardent la borne 2019 des analyses détaillées", () => {
+  const serie = { ofgl_recettes_fonctionnement: { "2018": 80, "2019": 100, "2025": 120 } };
+  for (const niveau of ["departement", "region"]) {
+    const [repere] = reperes(serie, niveau);
+    assert.equal(repere.exerciceOuverture, "2019");
+    assert.equal(repere.variation, 20);
+  }
+  assert.equal(reperes(serie, "commune")[0].exerciceOuverture, "2018");
+  assert.equal(reperes({ ofgl_recettes_fonctionnement: { "2018": 80, "2025": 120 } }, "region")[0].variation, null);
+});
+
 test("un repère garde sa décimale sur un compte rond", () => {
   // Sur la fiche de la Nouvelle-Aquitaine, le repère des dépenses affichait
   // « +10 % » quand la colonne « 2019 → 2025 », plus bas sur la MÊME page,

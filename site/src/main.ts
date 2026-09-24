@@ -1744,6 +1744,14 @@ async function choisirIndicateur(id: string): Promise<void> {
 }
 
 function brancherCommandes(): void {
+  $("fiche").addEventListener("change", (evenement) => {
+    const menu = evenement.target as HTMLSelectElement;
+    if (!menu.matches("[data-villes-comparer]")) return;
+    const section = menu.closest(".villes-paires");
+    section?.querySelectorAll<HTMLElement>("[data-ville-compare]").forEach((ligne) => {
+      ligne.hidden = !menu.value || ligne.dataset.villeCompare !== menu.value;
+    });
+  });
   // Le cadrage est devenu un menu : c'est un `change`, plus un clic sur une
   // pastille. Le menu se reconstruit seul à chaque rendu, sans réécrire son
   // propre HTML sous le doigt du lecteur.

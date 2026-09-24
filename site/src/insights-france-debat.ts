@@ -33,7 +33,7 @@ const OFFICIELLES: Insight[] = [
     id: "tres-hauts-revenus",
     famille: "fiscalite",
     surtitre: "Revenus · tout en haut de l'échelle",
-    titre: "Les revenus du 0,1 % ont augmenté de 119 % depuis 2003",
+    titre: "Les revenus moyens du 0,1 % ont augmenté de 119 % entre 2003 et 2022",
     texte: "Pour les autres foyers, la hausse atteint 46 %. Les 40 700 foyers concernés acquittent 13 % de l'impôt sur le revenu.",
     reserve: "",
     sourceIds: ["insee-tres-hauts-revenus"],

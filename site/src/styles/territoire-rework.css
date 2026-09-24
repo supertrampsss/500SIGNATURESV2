@@ -1832,6 +1832,27 @@ html[data-theme] body[data-vue="territoire"] .villes-paires__grille{
   gap:10px;
   margin-top:18px;
 }
+html[data-theme] body[data-vue="territoire"] .villes-paires__select{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px 14px;
+  margin-top:16px;
+  color:var(--fr-ink);
+  font-size:13px;
+  font-weight:600;
+}
+html[data-theme] body[data-vue="territoire"] .villes-paires__select select{
+  min-height:40px;
+  max-width:100%;
+  padding:7px 28px 7px 10px;
+  border:1px solid var(--fr-line);
+  border-radius:4px;
+  background:var(--fr-paper);
+  color:var(--fr-ink);
+  font:inherit;
+}
+html[data-theme] body[data-vue="territoire"] .villes-paires__select select:focus-visible{outline:3px solid var(--fr-blue);outline-offset:2px}
 html[data-theme] body[data-vue="territoire"] .villes-paires__carte{
   min-width:0;
   padding:17px;
@@ -1855,6 +1876,17 @@ html[data-theme] body[data-vue="territoire"] .villes-paires__montants p{
   font-size:11px;
 }
 html[data-theme] body[data-vue="territoire"] .villes-paires__montants strong{white-space:nowrap;color:var(--fr-ink)}
+html[data-theme] body[data-vue="territoire"] .villes-paires__choisie:not([hidden]){
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin:12px 0 0;
+  padding-top:10px;
+  border-top:1px solid var(--fr-line);
+  color:var(--fr-ink);
+  font-size:11px;
+}
+html[data-theme] body[data-vue="territoire"] .villes-paires__choisie strong{white-space:nowrap}
 html[data-theme] body[data-vue="territoire"] .villes-paires__ecart{
   margin:15px 0 0;
   padding-top:10px;

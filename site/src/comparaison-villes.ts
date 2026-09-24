@@ -76,6 +76,10 @@ export function rendreComparaisonVilles(
     return `<article class="villes-paires__carte">
       <h3>${libelle}</h3>
       <div class="villes-paires__montants"><p><span>Cette ville · par hab.</span><strong>${echapper(euros.format(ville))}</strong></p><p><span>Médiane de ${entier.format(pairs.length)} villes · par hab.</span><strong>${echapper(euros.format(reference))}</strong></p></div>
+      ${proches.map((autre) => {
+        const valeur = couche[autre] / habitants[autre];
+        return `<p class="villes-paires__choisie" data-ville-compare="${echapper(autre)}" hidden><span>${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)} · par hab.</span><strong>${Number.isFinite(valeur) && valeur >= 0 ? echapper(euros.format(valeur)) : "Non publié"}</strong></p>`;
+      }).join("")}
       <p class="villes-paires__ecart">${echapper(sens)}</p>
     </article>`;
   }).filter(Boolean);
@@ -87,8 +91,11 @@ export function rendreComparaisonVilles(
   return `<section class="villes-paires" aria-label="Comparaison avec des villes de taille proche">
     <h3>Face à des villes de taille proche</h3>
     <p>${entier.format(proches.length)} communes retenues, dans la catégorie ${echapper(intituleGroupe(groupe))}, avec une population à ± 35 % de celle de cette ville.</p>
+    <label class="villes-paires__select">Comparer avec une ville du groupe
+      <select data-villes-comparer><option value="">Choisir une ville</option>${proches.map((autre) => `<option value="${echapper(autre)}">${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)}</option>`).join("")}</select>
+    </label>
     <div class="villes-paires__grille">${cartes.join("")}</div>
-    <p class="villes-paires__methode">Montants en euros par habitant, exercice ${echapper(exercice)}. Écart calculé par rapport à la médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; population de référence des ratios et comptes : OFGL. Les compétences et l’intercommunalité peuvent différer. <a href="/sources/">Sources et méthode</a>.</p>
+    <p class="villes-paires__methode">Montants en euros par habitant, exercice ${echapper(exercice)}. Écart calculé par rapport à la médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; population de référence des ratios et comptes : OFGL. <a href="/sources/">Sources et méthode</a>.</p>
     <details><summary>Voir les villes retenues</summary><ul>${noms}</ul></details>
   </section>`;
 }
