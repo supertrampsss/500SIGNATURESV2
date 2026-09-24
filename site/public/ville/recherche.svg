@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 900" role="img" aria-labelledby="title desc">
+  <title id="title">Territoires à explorer</title>
+  <desc id="desc">Illustration abstraite de plusieurs communes reliées par des routes et une rivière.</desc>
+  <rect width="1280" height="900" fill="#e7f0f2"/>
+  <path d="M0 165q252 88 445-22t432 4q221 90 403-15v768H0z" fill="#d2e5dc"/>
+  <path d="M0 424q209-71 445 26t478-30q175-80 357 6v474H0z" fill="#b9d9ce"/>
+  <path d="M-90 693q218-44 315 3t195-28q135-111 300-61t257 7q158-54 372 9" fill="none" stroke="#83baca" stroke-width="94"/>
+  <path d="M-80 331q278 14 397 155t333 72q185-48 284-231t390-116" fill="none" stroke="#fff9e8" stroke-width="28"/>
+  <path d="M224 901q104-174 224-298t153-368q86-175 270-237" fill="none" stroke="#fff9e8" stroke-width="22"/>
+  <g fill="#315879">
+    <circle cx="256" cy="295" r="20"/><circle cx="623" cy="426" r="26"/>
+    <circle cx="976" cy="278" r="19"/><circle cx="961" cy="744" r="24"/>
+    <circle cx="337" cy="757" r="17"/>
+  </g>
+  <g fill="#fffefa" stroke="#315879" stroke-width="8">
+    <circle cx="256" cy="295" r="9"/><circle cx="623" cy="426" r="12"/>
+    <circle cx="976" cy="278" r="8"/><circle cx="961" cy="744" r="11"/>
+    <circle cx="337" cy="757" r="7"/>
+  </g>
+  <circle cx="623" cy="426" r="58" fill="none" stroke="#bf3041" stroke-width="7"/>
+</svg>

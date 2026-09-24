@@ -26,6 +26,7 @@ import {
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
+import { rendreComparaisonVilles } from "./comparaison-villes.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { renduFrancePage, brancherFrancePage } from "./france-page.ts";
@@ -1221,6 +1222,14 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       niveau,
       exercice,
     );
+    const pairs = document.getElementById("fiche-villes-paires");
+    if (niveau === "commune" && pairs) {
+      pairs.innerHTML = rendreComparaisonVilles(index, code, exercice, {
+        ofgl_depenses_fonctionnement: couches[0],
+        ofgl_recettes_fonctionnement: couches[1],
+        ofgl_encours_dette: couches[2],
+      });
+    }
     // Un rang appelle « et les autres ? ». Chaque place du pli ouvre la fiche
     // du territoire, à la maille où le classement a été calculé. Délégué et
     // posé une seule fois, comme le groupe de semblables — voir la note là-bas.
@@ -1735,6 +1744,14 @@ async function choisirIndicateur(id: string): Promise<void> {
 }
 
 function brancherCommandes(): void {
+  $("fiche").addEventListener("change", (evenement) => {
+    const menu = evenement.target as HTMLSelectElement;
+    if (!menu.matches("[data-villes-comparer]")) return;
+    const section = menu.closest(".villes-paires");
+    section?.querySelectorAll<HTMLElement>("[data-ville-compare]").forEach((ligne) => {
+      ligne.hidden = !menu.value || ligne.dataset.villeCompare !== menu.value;
+    });
+  });
   // Le cadrage est devenu un menu : c'est un `change`, plus un clic sur une
   // pastille. Le menu se reconstruit seul à chaque rendu, sans réécrire son
   // propre HTML sous le doigt du lecteur.

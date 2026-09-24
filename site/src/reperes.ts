@@ -80,15 +80,17 @@ export type Repere = {
   valeur: number;
   /** L'exercice qui porte ce montant. */
   exercice: string;
-  /** La variation depuis la borne d'ouverture, ou `null` si elle ne se calcule
-   *  pas : série trop courte, ou passage par zéro. */
+  /** Premier montant publié avant le dernier exercice. */
+  valeurOuverture: number | null;
+  exerciceOuverture: string | null;
+  /** La variation depuis le premier exercice disponible, ou `null` si elle ne se
+   *  calcule pas : série trop courte, ou passage par zéro. */
   variation: number | null;
 };
 
 type Series = Record<string, Record<string, number>>;
 
-/** La borne d'ouverture de la fenêtre de comparaison. Elle se lit sur les
- *  exercices publiés, jamais sur un calendrier électoral. */
+/** Borne conventionnelle des analyses qui disposent effectivement de 2019. */
 export const OUVERTURE = "2019";
 
 /**
@@ -104,23 +106,33 @@ export function reperes(series: Series, niveau: string): Repere[] {
   for (const { role, id, terme } of roles) {
     const serie = series[id];
     if (!serie) continue;
-    const exercices = Object.keys(serie).sort();
+    const exercices = Object.keys(serie).filter((annee) => Number.isFinite(serie[annee])).sort();
     const dernier = exercices[exercices.length - 1];
     if (dernier === undefined) continue;
+    // Les analyses des départements et régions prennent 2019 pour référence.
+    // Les communes dont la publication débute plus tard utilisent leur premier
+    // exercice réellement disponible, visible à côté de la variation.
+    const debut = niveau === "commune"
+      ? (exercices.find((annee) => annee < dernier) ?? null)
+      : (exercices.includes(OUVERTURE) && OUVERTURE < dernier ? OUVERTURE : null);
     sortie.push({
       role,
       id,
       terme,
       valeur: serie[dernier],
       exercice: dernier,
-      variation: variationDepuis(serie, dernier),
+      valeurOuverture: debut === null ? null : serie[debut],
+      exerciceOuverture: debut,
+      variation: debut === null ? null : variationEntre(serie, debut, dernier),
     });
   }
   return sortie;
 }
 
 /**
- * La variation entre la borne d'ouverture et le dernier exercice.
+ * La variation entre 2019 et le dernier exercice, pour les analyses qui
+ * disposent de cette borne. Les repères affichés utilisent leur première année
+ * réellement publiée via `variationEntre`.
  *
  * Elle se tait dans deux cas, et les deux comptent. Sans borne d'ouverture
  * publiée, il n'y a rien à comparer. Et **si les deux bornes n'ont pas le même
@@ -132,7 +144,15 @@ export function variationDepuis(
   serie: Record<string, number>,
   arrivee: string,
 ): number | null {
-  const depart = serie[OUVERTURE];
+  return variationEntre(serie, OUVERTURE, arrivee);
+}
+
+function variationEntre(
+  serie: Record<string, number>,
+  ouverture: string,
+  arrivee: string,
+): number | null {
+  const depart = serie[ouverture];
   const fin = serie[arrivee];
   if (depart === undefined || fin === undefined || depart === 0) return null;
   if (Math.sign(depart) !== Math.sign(fin)) return null;
@@ -157,7 +177,7 @@ function echapper(texte: string): string {
 export function rendreReperes(liste: Repere[]): string {
   if (!liste.length) return "";
   const cases = liste
-    .map(({ role, terme, valeur, variation, exercice }) => {
+    .map(({ role, terme, valeur, valeurOuverture, exerciceOuverture, variation, exercice }) => {
       // `montantLisible` rend « 417,14 millions d'euros » ou « 380,39 milliards
       // d'euros » selon la taille du montant. Le nombre porte le corps de
       // titre, l'unité rejoint la ligne du terme : « 380,39 » puis
@@ -175,6 +195,7 @@ export function rendreReperes(liste: Repere[]): string {
         <span class="repere__role">${echapper(role)}</span><span class="repere__date">${echapper(exercice)}</span>
         <span class="repere__valeur">${echapper(nombre)}</span>
         <span class="repere__terme">${echapper(`${unite} ${de(terme)}${terme}${evolution}`)}</span>
+        ${valeurOuverture === null || exerciceOuverture === null ? "" : `<span class="repere__avant">${echapper(exerciceOuverture)} : ${echapper(montantLisible(valeurOuverture))}</span>`}
       </div>`;
     })
     .join("");

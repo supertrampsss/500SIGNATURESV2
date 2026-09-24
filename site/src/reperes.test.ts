@@ -71,6 +71,17 @@ test("une variation ne traverse pas zéro", () => {
   assert.equal(OUVERTURE, "2019");
 });
 
+test("départements et régions gardent la borne 2019 des analyses détaillées", () => {
+  const serie = { ofgl_recettes_fonctionnement: { "2018": 80, "2019": 100, "2025": 120 } };
+  for (const niveau of ["departement", "region"]) {
+    const [repere] = reperes(serie, niveau);
+    assert.equal(repere.exerciceOuverture, "2019");
+    assert.equal(repere.variation, 20);
+  }
+  assert.equal(reperes(serie, "commune")[0].exerciceOuverture, "2018");
+  assert.equal(reperes({ ofgl_recettes_fonctionnement: { "2018": 80, "2025": 120 } }, "region")[0].variation, null);
+});
+
 test("un repère garde sa décimale sur un compte rond", () => {
   // Sur la fiche de la Nouvelle-Aquitaine, le repère des dépenses affichait
   // « +10 % » quand la colonne « 2019 → 2025 », plus bas sur la MÊME page,
@@ -106,6 +117,17 @@ test("le rendu dit le rôle avant le terme, et l'unité en toutes lettres", () =
   // Aucun par-habitant dans un repère d'ouverture : la règle du site le réserve
   // aux tableaux dépliés.
   assert.doesNotMatch(html, /par habitant|hab\./);
+  assert.match(html, /class="repere__avant">2019 : 352\s?millions d&#39;euros<\/span>/u);
+});
+
+test("le repère prend le premier exercice réellement publié quand 2019 manque", () => {
+  const courts = { ofgl_recettes_fonctionnement: { "2022": 379_000_000, "2025": 417_000_000 } };
+  const [repere] = reperes(courts, "commune");
+  assert.equal(repere.exerciceOuverture, "2022");
+  assert.equal(repere.valeurOuverture, 379_000_000);
+  assert.ok(repere.variation !== null && repere.variation > 10);
+  assert.match(rendreReperes([repere]), /2022 : 379\s?millions d&#39;euros/);
+  assert.equal(reperes({ ofgl_recettes_fonctionnement: { "2025": 417_000_000 } }, "commune")[0].exerciceOuverture, null);
 });
 
 test("les trois états ne portent pas de filet d'accent vertical", () => {
