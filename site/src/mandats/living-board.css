@@ -51,13 +51,14 @@
 .board-scene-heading,.board-scene-caption { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .board-scene-heading > span { color: #e7b1a9; }
 .board-scene-heading strong { color: #d8e0e2; font-size: .77rem; font-weight: 500; }
-.board-map { position: relative; min-height: 180px; display: grid; place-items: center; }
+.board-map { position: relative; min-height: 150px; display: grid; place-items: center; }
 .board-map .national-world { width: min(100%, 980px); margin: auto; }
-.board-map .national-stage { height: clamp(150px, 27vh, 290px); min-height: 150px; }
-.board-map .national-world-controls { min-height: 44px; font-size: .75rem; }
-.board-map .national-areas { grid-template-columns: repeat(4,minmax(0,1fr)); }
-.board-map .national-areas button { min-height: 44px; font-size: .75rem; }
-.board-map .national-world-note { margin: 5px 0 0; font-size: .6875rem; }
+.board-map .national-stage { height: clamp(120px, 20vh, 200px); min-height: 120px; }
+/* Controls and area links remain available in the Bilan view. The play board
+   reserves its limited scene space for the illustration and current feedback. */
+.board-map .national-world-controls,
+.board-map .national-areas,
+.board-map .national-world-note { display: none; }
 .board-map svg { max-height: 100%; }
 .board-scene-caption { color: #b6c4cb; font-size: .68rem; }
 .board-scene-caption span:first-child { color: white; font-weight: 700; font-size: .82rem; }
@@ -103,12 +104,11 @@
   .board-tools { grid-column: 3; grid-row: 1 / 3; flex-direction: column; }
   .board-tools button { width: 78px; }
   .board-scene { margin-inline: -18px; padding-inline: 18px; }
-  .board-map .national-stage { height: clamp(140px, 25vh, 230px); }
-  .board-map .national-areas { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .board-map .national-stage { height: clamp(120px, 18vh, 170px); }
   .board-feedback { width: min(100%, 520px); }
 }
 @media (max-width: 560px) {
-  .mandate-board { margin: -15px -18px 0; padding: 0 12px 20px; min-height: calc(100dvh - 54px); grid-template-rows: auto auto auto auto; overflow: visible; }
+  .mandate-board { margin: -15px -14px 0; padding: 0 12px 20px; min-height: calc(100dvh - 54px); grid-template-rows: auto auto auto auto; overflow: visible; }
   .board-hud { min-height: 0; grid-template-columns: minmax(100px,.85fr) minmax(128px,1.15fr) 66px; gap: 8px; padding: 10px 0 8px; }
   .board-mark { width: 29px; height: 29px; }
   .board-brand { gap: 6px; }
@@ -130,9 +130,7 @@
   .board-scene-heading > span { font-size: .6875rem; }
   .board-scene-heading strong { font-size: .75rem; }
   .board-map { min-height: 120px; }
-  .board-map .national-stage { height: clamp(120px, 20vh, 190px); min-height: 120px; }
-  .board-map .national-world-controls { font-size: .6875rem; }
-  .board-map .national-areas button { min-height: 44px; padding: 7px; font-size: .6875rem; }
+  .board-map .national-stage { height: clamp(120px, 17vh, 150px); min-height: 120px; }
   .board-scene-caption { font-size: .6875rem; }
   .board-scene-caption span:first-child { font-size: .69rem; }
   .board-scene-caption span:last-child { text-align: right; max-width: 52%; }

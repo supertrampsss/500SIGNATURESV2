@@ -21,12 +21,19 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Verify decisions, persistence and branch replay
         run: npx playwright test --config playwright.board.config.ts
-      - name: Publish board captures and traces
+      - name: Publish board captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mandats-board-review
+          name: mandats-board-captures
           path: |
-            site/board-audit-artifacts/
-            site/playwright-report-board/
+            site/board-audit-artifacts/**/*.png
+            site/board-audit-artifacts/**/error-context.md
           retention-days: 14
+      - name: Publish failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandats-board-debug
+          path: site/playwright-report-board/
+          retention-days: 7

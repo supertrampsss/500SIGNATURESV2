@@ -381,6 +381,7 @@ async function action(target: HTMLElement) {
       }
       decisionTransition.finish(token, () => {
         render(false);
+        if (yearClosed) window.scrollTo({ top: 0, behavior: "instant" });
         (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 150);
       return;
@@ -434,7 +435,8 @@ async function action(target: HTMLElement) {
   } else if (a === "png") { await png(target.dataset.format as keyof typeof CARD_SIZES); return; }
   else return;
   if (dialog.open) dialog.close();
-  render(true, a === "choose" ? actionScroll : undefined);
+  const newChapter = ["mode", "next-year", "show-result", "new-run", "replay", "branch-replay", "resume"].includes(a ?? "");
+  render(true, a === "choose" ? actionScroll : newChapter ? 0 : undefined);
   if(a === "choose" && g?.mode === "national" && g.version >= 8 && matchMedia("(max-width:820px) and (min-height:501px)").matches) {
     const question=root.querySelector<HTMLElement>(".dossier");
     if(question && question.getBoundingClientRect().top < 0) window.scrollTo({top:window.scrollY+question.getBoundingClientRect().top-12,behavior:"instant"});
@@ -449,7 +451,9 @@ document.addEventListener("click", event => {
 window.addEventListener("pagehide", () => {
   decisionTransition.cancel();
   clearBoardMotion();
-  clearBoardMotion();
+});
+window.addEventListener("pageshow", event => {
+  if (event.persisted) render(false);
 });
 document.addEventListener("change", async event => {
   const input = event.target as HTMLInputElement;

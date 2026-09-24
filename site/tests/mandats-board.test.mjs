@@ -8,8 +8,22 @@ async function noHorizontalOverflow(page) {
   const sizes = await page.evaluate(() => ({
     document: document.documentElement.scrollWidth,
     viewport: document.documentElement.clientWidth,
+    offenders: [...document.querySelectorAll('body *')]
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          tag: node.tagName.toLowerCase(),
+          id: node.id || undefined,
+          className: typeof node.className === 'string' ? node.className : undefined,
+          left: Math.round(rect.left * 10) / 10,
+          right: Math.round(rect.right * 10) / 10,
+          width: Math.round(rect.width * 10) / 10,
+        };
+      })
+      .filter((rect) => rect.width > 0 && (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1))
+      .slice(0, 8),
   }));
-  expect(sizes.document).toBeLessThanOrEqual(sizes.viewport + 1);
+  expect(sizes.document, `Horizontal overflow: ${JSON.stringify(sizes.offenders)}`).toBeLessThanOrEqual(sizes.viewport + 1);
 }
 
 async function beginDefault(page) {
