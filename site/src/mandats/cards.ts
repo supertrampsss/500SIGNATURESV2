@@ -1,5 +1,5 @@
 import { choiceCopy } from "./novice.ts";
-import { choicesFor, domainFor, replayGame, calendarFor, score } from "./engine.ts";
+import { choicesFor, domainFor, replayGame, calendarFor, score, isFinished } from "./engine.ts";
 import { CARD_SIZES, challengeURL, escape as e, resultURL, shareText } from "./sharing.ts";
 import { decode, encode } from "./storage.ts";
 import { ambitionFor } from "./ambitions.ts";
@@ -22,7 +22,7 @@ export function cardModel(g: Game, kind: CardKind) {
     return { label:'DÉFI JOUABLE · SANS VOS CHOIX', title:g.mode === 'municipal' ? `Quel avenir pour ${d.place} ?` : 'Quel cap pour le pays ?', fields: [['Votre mission', mission], ['Durée', d.duration], ['Bilan', bilan], ['Même point de départ', `Scénario ${g.seed} · ${d.turns} décisions`]], url:challengeURL(g, 'https://500signatures.fr'), alt:`Défi de jeu, ${d.place}. Mission : ${mission}. ${d.duration}. ${bilan}. Scénario ${g.seed}, simulation fictive v${g.version}. Le lien ne contient aucune décision du joueur.` };
   }
   const s = score(g);
-  if(g.version>=9) return { label:'HÉRITAGE SIMULÉ · CINQ ANNÉES', title:'Votre trajectoire de mandat', fields: [['Mission', ambitionFor(g).label], ['Services', `${Math.round(g.metrics.services)}/100`], ['Cohésion et confiance', `${Math.round(.7*g.metrics.cohesion+.3*g.metrics.trust)}/100`], ['Résilience et patrimoine', `${Math.round((g.metrics.resilience+g.metrics.assets)/2)}/100`]], url:resultURL(g, 'https://500signatures.fr'), alt:shareText(g) };
+  if(g.version>=9) return { label: g.politics?.ending && g.politics.ending.kind !== "term_complete" ? 'MANDAT INTERROMPU · HÉRITAGE SIMULÉ' : 'HÉRITAGE SIMULÉ · CINQ ANNÉES', title: g.politics?.ending && g.politics.ending.kind !== "term_complete" ? g.politics.ending.title : 'Votre trajectoire de mandat', fields: [['Mission', ambitionFor(g).label], ['Services', `${Math.round(g.metrics.services)}/100`], ['Cohésion et confiance', `${Math.round(.7*g.metrics.cohesion+.3*g.metrics.trust)}/100`], ['Résilience et patrimoine', `${Math.round((g.metrics.resilience+g.metrics.assets)/2)}/100`]], url:resultURL(g, 'https://500signatures.fr'), alt:shareText(g) };
   return { label:`HÉRITAGE SIMULÉ · ${s.total}/100`, title:s.legacy, fields: [['Finances', `${Math.round(s.dimensions.finances)}/100`], ['Services', `${Math.round(s.dimensions.services)}/100`], ['Cohésion et confiance', `${Math.round(s.dimensions.cohesion)}/100`], ['Résilience et patrimoine', `${Math.round(s.dimensions.resilience)}/100`]], url:resultURL(g, 'https://500signatures.fr'), alt:shareText(g) };
 }
 export function cardURL(g: Game, kind: CardKind, origin: string) {
@@ -32,7 +32,7 @@ export function cardURL(g: Game, kind: CardKind, origin: string) {
 export function dilemmaFromHash(hash: string): Game | null {
   if (!hash.startsWith('#dilemma=')) return null;
   const game = decode(decodeURIComponent(hash.slice(9)));
-  if (game.turn >= domainFor(game).turns) throw new Error("Ce dilemme est déjà terminé.");
+  if (isFinished(game)) throw new Error("Ce dilemme est déjà terminé.");
   return game;
 }
 function wrap(text: string, max: number): string[] {

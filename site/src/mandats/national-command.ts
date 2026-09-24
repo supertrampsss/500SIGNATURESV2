@@ -14,6 +14,13 @@ const metricLabels: [keyof Pick<Effect, 'services' | 'cohesion' | 'resilience' |
 /** A short, factual trace of the committed measure. Never more than three items. */
 export function nationalDecisionImpact(game: Game): Impact[] {
   if (!game.turn) return [];
+  const lastTurn = game.history.at(-1);
+  if (game.version >= 10 && lastTurn?.vote?.kind === 'law' && !lastTurn.vote.passed) {
+    return [
+      { label: 'Texte rejeté · effets non appliqués', direction: 'down' },
+      { label: 'Aucune recette, dépense ni livraison inscrite', direction: 'neutral' },
+    ];
+  }
   const dossier = domainFor(game).dossiers[game.turn - 1];
   const choice = dossier?.choices.find(item => item.id === game.history.at(-1)?.choice);
   if (!choice) return [];

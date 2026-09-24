@@ -1,4 +1,4 @@
-import { domainFor, replayGame, startingGame } from "./engine.ts";
+import { domainFor, replayGame, startingGame, isFinished } from "./engine.ts";
 import { annualDeficit } from "./national-deficit.ts";
 import { artForDossier } from "./cinema-art.ts";
 import { decode, encode, MAX_SAVE_BYTES } from "./storage.ts";
@@ -106,8 +106,8 @@ export function comparisonMarkup(current: Game, reference: Game): string {
   const financialRow = a.mode === "national"
     ? `<li><span>Déficit annuel</span><strong>${escapeHtml(point.format(Math.round((deficitAt(a) - deficitAt(b)) * 10) / 10))} Md€</strong></li>`
     : "";
-  const title = a.turn === b.turn && a.turn === domainFor(a).turns
-    ? "Écart au résultat d’origine"
+  const title = isFinished(a) && isFinished(b) && a.turn === b.turn
+    ? "Écart aux deux héritages simulés"
     : `Écart au même point du mandat (${progress} décisions)`;
   return `<aside class="branch-comparison" aria-label="Comparaison avec la trajectoire d’origine"><h3>${escapeHtml(title)}</h3><p>Écarts au même stade de la trajectoire d’origine.</p><ul>${rows}${financialRow}</ul></aside>`;
 }
@@ -148,6 +148,6 @@ export function renderTrajectoryComparison(current: Game, reference: Game): stri
   const originalDeficit = progress ? b.history[progress - 1]?.ledger.deficit ?? annualDeficit(b) : annualDeficit(startingGame(b));
   const newDeficit = progress ? a.history[progress - 1]?.ledger.deficit ?? annualDeficit(a) : annualDeficit(startingGame(a));
   const cards = [...metrics.map(([label, x, y]) => row(label, x, y)), row("Déficit annuel", originalDeficit, newDeficit, " Md€")].join("");
-  const closed = progress === domainFor(a).turns;
-  return `<section class="trajectory-comparison" aria-labelledby="trajectory-comparison-title"><header><span>COMPARAISON À LA MÊME ÉTAPE</span><h1 id="trajectory-comparison-title">Un choix. Deux trajectoires.</h1><p>Décision ${progress} / ${domainFor(a).turns} · indicateurs observés au même nombre de décisions.</p></header><div class="trajectory-comparison__columns"><section class="trajectory-panel trajectory-panel--origin"><h2>Mandat d’origine</h2><p>${escapeHtml(progress ? b.history[progress - 1]?.title ?? "État initial" : "État initial")}</p></section><section class="trajectory-panel trajectory-panel--new"><h2>Nouvelle trajectoire</h2><p>${escapeHtml(progress ? a.history[progress - 1]?.title ?? "État initial" : "État initial")}</p></section></div><div class="trajectory-comparison__metrics">${cards}</div><p class="trajectory-comparison__note">Écarts calculés à partir des indicateurs et comptes enregistrés dans la simulation.</p><div class="trajectory-comparison__actions"><button type="button" data-action="${closed ? "open-replay-selection" : "continue-branch"}">${closed ? "Rejouer une autre décision" : "Continuer la simulation"}</button><button type="button" data-action="restore-origin">Retrouver mon mandat d’origine</button></div></section>`;
+  const closed = isFinished(a);
+  return `<section class="trajectory-comparison" aria-labelledby="trajectory-comparison-title"><header><span>COMPARAISON À LA MÊME ÉTAPE</span><h1 id="trajectory-comparison-title">Un choix. Deux trajectoires.</h1><p>Décision ${progress} / ${domainFor(a).turns} · indicateurs observés au même nombre de décisions.${a.politics?.ending && a.politics.ending.kind !== "term_complete" ? ` Mandat interrompu : ${escapeHtml(a.politics.ending.title)}.` : ""}</p></header><div class="trajectory-comparison__columns"><section class="trajectory-panel trajectory-panel--origin"><h2>Mandat d’origine</h2><p>${escapeHtml(progress ? b.history[progress - 1]?.title ?? "État initial" : "État initial")}</p></section><section class="trajectory-panel trajectory-panel--new"><h2>Nouvelle trajectoire</h2><p>${escapeHtml(progress ? a.history[progress - 1]?.title ?? "État initial" : "État initial")}</p></section></div><div class="trajectory-comparison__metrics">${cards}</div><p class="trajectory-comparison__note">Écarts calculés à partir des indicateurs et comptes enregistrés dans la simulation.</p><div class="trajectory-comparison__actions"><button type="button" data-action="${closed ? "open-replay-selection" : "continue-branch"}">${closed ? "Rejouer une autre décision" : "Continuer la simulation"}</button><button type="button" data-action="restore-origin">Retrouver mon mandat d’origine</button></div></section>`;
 }

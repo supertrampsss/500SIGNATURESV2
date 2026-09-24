@@ -11,11 +11,17 @@ const ART: Record<string, CinemaArt> = {
   chapter: { src: '/mandats/art/chapter.webp', alt: 'Vue d’ensemble d’un territoire français.', mood: 'chapter' },
   legacy: { src: '/mandats/art/legacy.webp', alt: 'Paysage français au terme du mandat.', mood: 'legacy' },
   energy: { src: '/mandats/art/energy.webp', alt: 'Paysage industriel et énergétique français.', mood: 'energy' },
+  parliament: { src: '/mandats/art/parliament.webp', alt: 'Vue miniature de l’Assemblée nationale.', mood: 'parliament' },
+  council: { src: '/mandats/art/council.webp', alt: 'Conseil institutionnel dans une salle républicaine.', mood: 'council' },
+  rupture: { src: '/mandats/art/rupture.webp', alt: 'Paysage institutionnel français à un tournant du mandat.', mood: 'rupture' },
 };
 
 /** Stable editorial mapping: the picture follows the dossier theme, never its simulated outcome. */
 export function artForDossier(category: string, turn = 0, total = 0): CinemaArt {
   const normalized = category.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
+  if (/assemblee|parlement|scrutin|censure|coalition|cohabitation|gouvernement/.test(normalized)) return ART.parliament;
+  if (/scandale|destitution|conseil|president/.test(normalized)) return ART.council;
+  if (/rupture|demission|dissolution|crise institutionnelle/.test(normalized)) return ART.rupture;
   if (total > 0 && turn >= total) return ART.legacy;
   if (/heritage|bilan|successeur/.test(normalized)) return ART.legacy;
   if (/crise.*(energet|energie)|energet|energie/.test(normalized)) return ART.energy;

@@ -11,8 +11,7 @@ async function continueAfterAnnualRecap(page){
 }
 
 test('ten v9 national decisions cross the first annual chapter and preserve the mobile navigation',async({page},info)=>{
- await page.goto('/mandats/');
- await page.getByRole('button',{name:'Gouverner la France'}).click();
+ await page.goto('/mandats/?mode=national&v=9&seed=42&ambition=equilibre');
  await expect(page.locator('.mandate-board[data-mandate-board]')).toBeVisible();
  await expect(page.locator('.campaign-position')).toContainText('Année 1 · décision 1/6');
  await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');

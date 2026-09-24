@@ -11,7 +11,7 @@ test("the public mandate entry offers the national campaign with direct choices"
     const g = start(mode);
     const setup = mandateSetup(start("national",42,"equilibre",9));
     assert.doesNotMatch(setup,/city-query|fictional-city|Quelle ville/);
-    assert.match(setup,/France · 5 années · 30 décisions/);
+    assert.match(setup,/France · jusqu’à 5 années · 30 décisions maximum/);
     assert.equal((setup.match(/data-action="choose-mission"/g) ?? []).length,3);
     assert.doesNotMatch(gameShell(g,"play","decision"),/data-action="choose-cap"|data-action="ambition"|Cap :/);
     for (const view of ["decision", "territory", "finance", "journal"] as const) {
