@@ -100,14 +100,15 @@ function turningPoints(g: Game) {
   g.history.forEach((turn, index) => {
     const choice = dossiers.flatMap(dossier => dossier.choices).find(item => item.id === turn.choice);
     if (!choice) return;
-    const effect = choice.effect;
-    const effects = [
+    const rejectedLaw = g.version === 10 && turn.vote?.kind === 'law' && !turn.vote.passed;
+    const effect = rejectedLaw ? {} : choice.effect;
+    const effects = rejectedLaw ? 'Texte rejeté · effets proposés non appliqués' : [
       effect.services && `services ${delta(effect.services)} pts`, effect.trust && `confiance ${delta(effect.trust)} pts`,
       effect.cohesion && `cohésion ${delta(effect.cohesion)} pts`, effect.resilience && `résilience ${delta(effect.resilience)} pts`,
       effect.assets && `patrimoine ${delta(effect.assets)} pts`, effect.revenue && `recettes ${delta(effect.revenue)} Md€/an`,
       effect.operating && `charges ${delta(effect.operating)} Md€/an`, choice.delayed && `effet différé : ${choice.delayed.label}`,
     ].filter(Boolean).join(' · ');
-    const weight = Math.abs(effect.revenue ?? 0) * 4 + Math.abs(effect.operating ?? 0) * 4 + Math.abs(effect.investment ?? 0) * 4 + Math.abs(effect.grants ?? 0) * 4
+    const weight = rejectedLaw ? 100 : Math.abs(effect.revenue ?? 0) * 4 + Math.abs(effect.operating ?? 0) * 4 + Math.abs(effect.investment ?? 0) * 4 + Math.abs(effect.grants ?? 0) * 4
       + Math.abs(effect.services ?? 0) + Math.abs(effect.trust ?? 0) + Math.abs(effect.cohesion ?? 0) + Math.abs(effect.resilience ?? 0) + Math.abs(effect.assets ?? 0)
       + (choice.delayed ? Math.abs(choice.delayed.effect.operating ?? 0) * 4 + Math.abs(choice.delayed.effect.revenue ?? 0) * 4 + 3 : 0);
     points.push({ turn, index, effects, weight });

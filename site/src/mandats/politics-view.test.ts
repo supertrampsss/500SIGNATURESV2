@@ -56,6 +56,30 @@ test('political HUD reports coalition, legitimacy, tension, group seats, and pen
   assert.equal(politicalHud(game({version:9, politics})), '');
 });
 
+test('election HUD uses the saved seat allocation and current coalition instead of a zero-vote verdict', () => {
+  const election:VoteRecord={...vote,kind:'election',title:'Élections législatives',chamber:'Élections législatives',total:577,for:0,against:0,abstain:0,threshold:0,passed:true,groups:[
+    {id:'presidential',label:'Présidentiels',for:0,against:0,abstain:0,seats:220},
+    {id:'reformist',label:'Réformistes',for:0,against:0,abstain:0,seats:126},
+    {id:'social',label:'Sociaux',for:0,against:0,abstain:0,seats:105},
+    {id:'conservative',label:'Conservateurs',for:0,against:0,abstain:0,seats:92},
+    {id:'regional',label:'Régionaux',for:0,against:0,abstain:0,seats:34},
+  ]};
+  const afterElection:PoliticalState={...politics,blocs:politics.blocs.map((bloc,index)=>({...bloc,seats:[220,126,105,92,34][index],inGovernment:index<2})),lastVote:election};
+  const markup=politicalHud(game({politics:afterElection}));
+  assert.match(markup,/Dernier vote · Élections législatives/);
+  assert.match(markup,/Nouvelle répartition des sièges/);
+  assert.match(markup,/Coalition actuelle : Majorité de coalition, 346 sièges/);
+  assert.match(markup,/Présidentiels 220 · Réformistes 126 · Sociaux 105 · Conservateurs 92 · Régionaux 34/);
+  assert.doesNotMatch(markup,/Adopté · 0 pour/);
+});
+
+test('HUD last vote names the real censure outcome', () => {
+  const censure:VoteRecord={...vote,kind:'censure',title:'Motion de censure',passed:true};
+  const marked=politicalHud(game({politics:{...politics,cabinet:'fallen',lastVote:censure}}));
+  assert.match(marked,/Gouvernement renversé/);
+  assert.doesNotMatch(marked,/Adopté ·/);
+});
+
 test('early ending explains actual causes and period played without claiming five years', () => {
   const markup = politicalEnding(game({pending:[{due:2,label:'Livraison école',effect:{services:3}}],politics:{...politics,commitments:[{id:'health',label:'Maintenir le financement hospitalier',dueTurn:11,status:'pending'}],ending:{kind:'rupture',title:'Départ négocié',reason:'La crise institutionnelle ne se résout pas.',turn:9,causes:['Légitimité effondrée','Cabinet sans majorité']}}}));
   assert.match(markup, /MANDAT INTERROMPU/);

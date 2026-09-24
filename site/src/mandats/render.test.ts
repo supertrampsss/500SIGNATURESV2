@@ -76,3 +76,14 @@ test("cinematic national entry and decision board expose stable, accessible brow
  assert.match(yearBriefing(g),/class="living-briefing__state"/);
  assert.match(yearBriefing(g),/data-action="start-year"/);
 });
+
+test("landing archives show and distinguish interrupted-only mandates",()=>{
+  const html=selection(null,false,{
+    completedRuns:0,endedRuns:1,seeds:[27],missions:['equilibre'],crisesEncountered:3,
+    archives:[{seed:27,ambition:'equilibre',completedAt:'2026-09-24T12:00:00.000Z',crises:3,outcome:'ended',endingTitle:'Destitution',services:48,cohesion:43,trust:39,resilience:51}],
+  });
+  assert.match(html,/VOS ARCHIVES/);
+  assert.match(html,/1<\/strong><small>mandats archivés · 0 terminés · 1 interrompus/);
+  assert.match(html,/Scénario #27 · Mandat interrompu · Destitution/);
+  assert.doesNotMatch(html,/undefined|NaN/);
+});

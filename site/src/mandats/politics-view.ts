@@ -1,6 +1,7 @@
 import type { Game } from './types.ts';
 import type { PoliticalEnding, VoteGroup, VoteRecord } from './politics-types.ts';
 import { annualDeficit } from './national-deficit.ts';
+import { politicalVoteOutcome } from './political-motion.ts';
 
 const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 const number = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
@@ -81,12 +82,22 @@ export function politicalHud(game: Game): string {
   const obligations = politics.commitments.filter(item=>item.status==='pending').sort((a,b)=>a.dueTurn-b.dueTurn);
   const coalitionSeats=politics.blocs.filter(bloc=>bloc.inGovernment).reduce((sum,bloc)=>sum+bloc.seats,0);
   const cabinetStatus=politics.cabinet==='cohabitation'?cabinet:politics.cabinet==='fallen'?cabinet:coalitionSeats>=289?'Majorité de coalition':'Majorité relative';
+  const lastVote=politics.lastVote;
+  const lastVoteMarkup=lastVote?(()=>{
+    const outcome=politicalVoteOutcome(lastVote);
+    const details=lastVote.kind==='election'
+      ? `Coalition actuelle : ${cabinetStatus}, ${number(coalitionSeats)} sièges. Répartition enregistrée : ${lastVote.groups.map(group=>`${escapeHtml(group.label)} ${number(group.seats??0)}`).join(' · ')}.`
+      : lastVote.stages?.length
+        ? lastVote.stages.map(stage=>`${escapeHtml(stage.chamber)} : ${number(stage.for)} pour, ${number(stage.against)} contre, ${number(stage.abstain)} abstentions`).join(' · ')
+        : `${number(lastVote.for)} pour · ${number(lastVote.against)} contre · ${number(lastVote.abstain)} abstentions`;
+    return `<p class="political-hud__last-vote"><span>Dernier vote · ${escapeHtml(lastVote.title)}</span><strong>${escapeHtml(outcome.label)}<small>${details}</small></strong></p>`;
+  })():'<p class="political-hud__last-vote">Aucun vote enregistré.</p>';
   return `<section class="political-hud" aria-label="État politique du mandat">
     <header class="political-hud__summary"><strong>${cabinetStatus}</strong><span><b>${number(coalitionSeats)}</b> sièges</span><span><b>${number(politics.legitimacy)}</b> légitimité</span><span><b>${number(politics.unrest)}</b> tension</span></header>
     <details class="political-hud__details"><summary>Groupes, engagements et dernier vote</summary>
       <div class="political-hud__detail-grid"><section class="political-hud__groups"><h3>Assemblée · ${number(politics.blocs.reduce((sum,bloc)=>sum+bloc.seats,0))} sièges</h3><ul>${politics.blocs.map(bloc=>`<li><span>${escapeHtml(bloc.label)}${bloc.inGovernment?' · soutien':' · opposition'}</span><strong>${number(bloc.seats)}</strong></li>`).join('')}</ul></section>
       <section class="political-hud__obligations"><h3>Engagements à tenir · ${number(obligations.length)}</h3>${obligations.length?`<ul>${obligations.map(item=>`<li><span>${escapeHtml(item.label)}</span><small>Échéance : décision ${item.dueTurn+1}</small></li>`).join('')}</ul>`:`<p>Aucun engagement en attente.</p>`}</section>
-      ${politics.lastVote?`<p class="political-hud__last-vote"><span>Dernier vote</span><strong>${politics.lastVote.passed?'Adopté':'Rejeté'} · ${number(politics.lastVote.for)} pour</strong></p>`:'<p class="political-hud__last-vote">Aucun vote enregistré.</p>'}</div>
+      ${lastVoteMarkup}</div>
     </details>
   </section>`;
 }

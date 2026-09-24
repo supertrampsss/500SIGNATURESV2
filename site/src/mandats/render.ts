@@ -57,17 +57,20 @@ function campaignPath(g:Game, compact=false):string {
 }
 
 function archivesBlock(progression?:MandateProgression):string {
-  if(!progression?.completedRuns)return "";
+  if(!progression)return "";
+  const endedRuns=progression.endedRuns ?? progression.archives.filter(a=>a.outcome==="ended").length;
+  const totalRuns=progression.completedRuns+endedRuns;
+  if(!totalRuns&&!progression.archives.length)return "";
   const recent=[...progression.archives].reverse().slice(0,3);
   return `<section class="mandate-archives" aria-labelledby="mandate-archives-title">
-    <div class="mandate-archives__heading"><div>${eyebrow("VOS ARCHIVES")}<h2 id="mandate-archives-title">Vos mandats laissent une trace.</h2></div><p>Chaque campagne terminée enrichit vos archives locales et vous permet d’explorer d’autres scénarios.</p></div>
+    <div class="mandate-archives__heading"><div>${eyebrow("VOS ARCHIVES")}<h2 id="mandate-archives-title">Vos mandats laissent une trace.</h2></div><p>Les mandats terminés ou interrompus restent dans vos archives locales pour explorer d’autres scénarios.</p></div>
     <div class="mandate-archives__stats">
-      <span><strong>${progression.completedRuns}</strong><small>mandat${progression.completedRuns>1?"s":""} terminé${progression.completedRuns>1?"s":""}</small></span>
+      <span><strong>${totalRuns}</strong><small>mandats archivés · ${progression.completedRuns} terminés · ${endedRuns} interrompus</small></span>
       <span><strong>${progression.seeds.length}</strong><small>scénario${progression.seeds.length>1?"s":""} exploré${progression.seeds.length>1?"s":""}</small></span>
       <span><strong>${progression.crisesEncountered}</strong><small>crise${progression.crisesEncountered>1?"s":""} rencontrée${progression.crisesEncountered>1?"s":""}</small></span>
       <span><strong>${progression.missions.length}/3</strong><small>missions jouées</small></span>
     </div>
-    <div class="mandate-archives__runs">${recent.map(a=>`<article><span>Scénario #${a.seed}</span><strong>${e(AMBITIONS[a.ambition].label)}</strong><small>${a.crises} crise${a.crises>1?"s":""} · services ${a.services}/100 · résilience ${a.resilience}/100</small></article>`).join("")}</div>
+    <div class="mandate-archives__runs">${recent.map(a=>{const interrupted=a.outcome==="ended";const outcome=interrupted?`Mandat interrompu${a.endingTitle?` · ${e(a.endingTitle)}`:""}`:"Mandat terminé";return `<article><span>Scénario #${a.seed} · ${outcome}</span><strong>${e(AMBITIONS[a.ambition].label)}</strong><small>${a.crises} crise${a.crises>1?"s":""} · services ${a.services}/100 · résilience ${a.resilience}/100</small></article>`}).join("")}</div>
   </section>`;
 }
 

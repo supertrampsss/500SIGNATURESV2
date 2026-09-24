@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { start, choicesFor, decide } from './engine.ts';
+import { start, choicesFor, decide, isFinished } from './engine.ts';
 import { livingResult, livingYearBriefing, livingYearRecap } from './living-recaps.ts';
 import { gameShell, result, yearRecap } from './render.ts';
 
@@ -19,6 +19,19 @@ test('final recap compares start with finish and links replay from preserved dec
 });
 test('annual balance uses the signed deficit direction',()=>{const g=through(6);g.history.at(-1)!.ledger.deficit=-12.3;assert.match(livingYearRecap(g),/Excédent 12,3 Md€/);g.history.at(-1)!.ledger.deficit=12.3;assert.match(livingYearRecap(g),/Déficit 12,3 Md€/);});
 test('rendered history and decisions are escaped',()=>{const g=through(30);g.history[0].title='<script>';assert.doesNotMatch(livingResult(g),/<script>/);});
+test('a rejected law in the completed seed 1 route is replayable without claiming its proposed effects',()=>{
+ let g=start('national',1,'equilibre',10);
+ while(g.turn<30&&!isFinished(g))g=decide(g,choicesFor(g)[0].id);
+ assert.equal(g.turn,30);
+ const rejectedIndex=g.history.findIndex(turn=>turn.vote?.kind==='law'&&!turn.vote.passed);
+ assert.ok(rejectedIndex>=0);
+ const html=livingResult(g),marker=`data-turn="${rejectedIndex}"`;
+ const markerAt=html.indexOf(marker);assert.notEqual(markerAt,-1,'the rejected vote remains one of the replayable turning points');
+ const itemStart=html.lastIndexOf('<li>',markerAt),itemEnd=html.indexOf('</li>',markerAt);
+ const item=html.slice(itemStart,itemEnd);
+ assert.match(item,/Texte rejeté · effets proposés non appliqués/);
+ assert.doesNotMatch(item,/services|confiance|cohésion|recettes|charges|effet différé/);
+});
 
 test('render routes v9 year and final screens to the standalone living panels while preserving plan access',()=>{
  const year=through(6),final=through(30);
