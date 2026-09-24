@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {start,choicesFor,decide,domainFor} from './engine.ts';
-import {agendaEntry,NATIONAL_AGENDA} from './national-agenda.ts';
+import {agendaEntry,agendaEntryV9,nationalAgendaDossiersV9,NATIONAL_AGENDA} from './national-agenda.ts';
 import {annualDeficit} from './national-deficit.ts';
 import {encode,decode} from './storage.ts';
 import {projectPlan} from './planner.ts';
+import type {VoteRecord} from './politics-types.ts';
 const begin=(seed=42)=>start('national',seed,'equilibre',8);
 const next=(g:ReturnType<typeof begin>,rank=0)=>decide(g,choicesFor(g)[rank].id);
 test('agenda contains thirty reforms, twenty-five opportunities and fifteen substantive crises',()=>{
@@ -62,4 +63,25 @@ test('residence is committed once with a delayed implementation and no confirmat
  g=next(g);assert.ok(g.pending.some(p=>p.effect.operating===-2));
  assert.notEqual(agendaEntry(g).source,'r07');assert.equal(agendaEntry(g).kind,'reform');
  assert.deepEqual(decode(encode(g)),g);
+});
+test('v10 political history restores its actual dossier without unlocking a fake reform',()=>{
+ let g=start('national',42,'equilibre',10);
+ const politicalTitle=domainFor(g).dossiers[0].title;
+ g=decide(g,choicesFor(g)[0].id);
+ g=decide(g,choicesFor(g)[0].id);
+ assert.equal(nationalAgendaDossiersV9(g)[0].title,politicalTitle);
+ assert.equal(g.history[0].dossier?.title,politicalTitle);
+ assert.notEqual(agendaEntryV9(g).source,'r01');
+});
+test('a rejected v10 law is seen but cannot unlock a reform opportunity or social crisis',()=>{
+ const enacted=decide(begin(), 'r01a');
+ enacted.version=10;enacted.turn=5;enacted.choices=['r01a','x','x','x','x'];
+ enacted.history=Array.from({length:5},()=>structuredClone(enacted.history[0]));
+ Object.assign(enacted.society!,{workers:100,pensioners:100,vulnerable:100,businesses:100,newcomers:100,publicStaff:100,affluent:100});
+ assert.equal(agendaEntryV9(enacted).source,'r01');
+ const rejected=structuredClone(enacted);
+ rejected.history[0].vote={kind:'law',passed:false} as VoteRecord;
+ assert.notEqual(agendaEntryV9(rejected).source,'r01');
+ rejected.society!.pensioners=0;
+ assert.notEqual(agendaEntryV9(rejected).kind,'crisis');
 });

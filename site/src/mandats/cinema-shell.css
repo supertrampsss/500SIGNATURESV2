@@ -44,9 +44,11 @@ html body[data-cinema="true"] #mandats .board-decision .choice {
   background: #faf6ed; border: 1px solid #ddd2be; box-shadow: 0 3px 8px #49371912;
 }
 html body[data-cinema="true"] #mandats .board-decision .cinema-choice__art { grid-column: 1; grid-row: 1 / 5; width: 100%; height: 100%; min-height: 110px; max-height: 160px; margin: 0; object-fit: cover; border-radius: 4px; }
-html body[data-cinema="true"] #mandats .board-decision :is(.choice-top,.choice-outcome,.choice-facts,.choice-error) { grid-column: 2; margin: 0; }
+html body[data-cinema="true"] #mandats .board-decision :is(.choice-top,.choice-outcome,.choice-political-sacrifice,.choice-facts,.choice-error) { grid-column: 2; margin: 0; }
 html body[data-cinema="true"] #mandats .board-decision .choice-top strong { font: 500 1.2rem/1.1 Georgia,serif; }
 html body[data-cinema="true"] #mandats .board-decision .choice-outcome { font-size: .8rem; line-height: 1.3; color: #52616b; }
+html body[data-cinema="true"] #mandats .board-decision .choice-political-sacrifice { grid-column: 2; font-size: .74rem; line-height: 1.3; color: #8b3d43; }
+html body[data-cinema="true"] #mandats .board-decision .choice-political-sacrifice b { font-weight: 700; }
 html body[data-cinema="true"] #mandats .board-decision .choice-facts .cost { font-size: .7rem; }
 html body[data-cinema="true"] #mandats .board-kpis strong { font-family: Georgia,serif; font-size: 1.25rem; }
 html body[data-cinema="true"] .site-header { display: none !important; }

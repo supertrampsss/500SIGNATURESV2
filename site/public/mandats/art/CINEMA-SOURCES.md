@@ -1,6 +1,6 @@
 # Mandats miniature scenes
 
-Seven original production illustrations generated with OpenAI ImageGen on
+Ten original production illustrations generated with OpenAI ImageGen on
 24 September 2026, using the ten mobile concept images approved by the owner
 in the project conversation as art-direction references.
 
@@ -13,6 +13,9 @@ in the project conversation as art-direction references.
 | chapter.webp | Landscape rising from an open book |
 | legacy.webp | Landscape on the five pages of a mandate |
 | energy.webp | Railway, renewable energy and countryside |
+| parliament.webp | Miniature parliamentary chamber for legislative votes |
+| council.webp | Council room for coalition and government dilemmas |
+| rupture.webp | Palace gates and civic gathering at dawn |
 
 1536 × 1024 pixels, WebP quality 87. Each file contains illustration only;
 controls, labels, financial values and consequences are rendered by the app.

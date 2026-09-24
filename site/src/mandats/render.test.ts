@@ -11,7 +11,7 @@ test("the public mandate entry offers the national campaign with direct choices"
     const g = start(mode);
     const setup = mandateSetup(start("national",42,"equilibre",9));
     assert.doesNotMatch(setup,/city-query|fictional-city|Quelle ville/);
-    assert.match(setup,/France · 5 années · 30 décisions/);
+    assert.match(setup,/France · jusqu’à 5 années · 30 décisions maximum/);
     assert.equal((setup.match(/data-action="choose-mission"/g) ?? []).length,3);
     assert.doesNotMatch(gameShell(g,"play","decision"),/data-action="choose-cap"|data-action="ambition"|Cap :/);
     for (const view of ["decision", "territory", "finance", "journal"] as const) {
@@ -75,4 +75,15 @@ test("cinematic national entry and decision board expose stable, accessible brow
  assert.match(yearBriefing(g),/class="living-briefing v9-chapter-1"/);
  assert.match(yearBriefing(g),/class="living-briefing__state"/);
  assert.match(yearBriefing(g),/data-action="start-year"/);
+});
+
+test("landing archives show and distinguish interrupted-only mandates",()=>{
+  const html=selection(null,false,{
+    completedRuns:0,endedRuns:1,seeds:[27],missions:['equilibre'],crisesEncountered:3,
+    archives:[{seed:27,ambition:'equilibre',completedAt:'2026-09-24T12:00:00.000Z',crises:3,outcome:'ended',endingTitle:'Destitution',services:48,cohesion:43,trust:39,resilience:51}],
+  });
+  assert.match(html,/VOS ARCHIVES/);
+  assert.match(html,/1<\/strong><small>mandats archivés · 0 terminés · 1 interrompus/);
+  assert.match(html,/Scénario #27 · Mandat interrompu · Destitution/);
+  assert.doesNotMatch(html,/undefined|NaN/);
 });

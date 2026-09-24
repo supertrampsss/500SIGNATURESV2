@@ -1,5 +1,5 @@
 import { ambitionFor } from "./ambitions.ts";
-import { DOMAINS, domainFor, startingGame, score, start } from "./engine.ts";
+import { DOMAINS, domainFor, startingGame, score, start, isFinished } from "./engine.ts";
 import { decode, encode } from "./storage.ts";
 import type { Ambition, Game, Mode } from "./types.ts";
 export const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -16,7 +16,7 @@ export function resultURL(g: Game, origin: string): string { return `${new URL("
 export function sharedResult(hash: string): Game | null {
   if (!hash.startsWith("#result=")) return null;
   const g = decode(decodeURIComponent(hash.slice(8)));
-  if (g.turn !== domainFor(g).turns) throw new Error("Le résultat partagé n'est pas un mandat terminé.");
+  if (!isFinished(g)) throw new Error("Le résultat partagé n'est pas un mandat terminé.");
   return g;
 }
 export function challengeFromURL(url: URL): Game | null {
@@ -29,14 +29,14 @@ export function challengeFromURL(url: URL): Game | null {
   // A direct France entry starts the current mandate. Old seeded challenges
   // retain their original rules when they predate explicit version tags.
   const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
-  const version = url.searchParams.get("v") ?? (directFrance ? "9" : "1");
-  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9") throw new Error("Version de défi inconnue.");
+  const version = url.searchParams.get("v") ?? (directFrance ? "10" : "1");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9" && version !== "10") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);
 }
 export function shareText(g: Game): string {
   const s = score(g); const d = domainFor(g);
-  if(g.version>=9) return `Mandats · ${d.place}. Cinq années, ${g.turn} décisions. Mission : ${ambitionFor(g).label}. Services ${Math.round(g.metrics.services)}/100, cohésion ${Math.round(g.metrics.cohesion)}/100, confiance ${Math.round(g.metrics.trust)}/100, résilience ${Math.round(g.metrics.resilience)}/100. Résultat de jeu, scénario ${g.seed}, simulation v${g.version}.`;
+  if(g.version>=9) return `Mandats · ${d.place}. ${g.politics?.ending && g.politics.ending.kind !== "term_complete" ? `Mandat interrompu après ${g.turn} décisions (${g.politics.ending.title}).` : `Cinq années, ${g.turn} décisions.`} Mission : ${ambitionFor(g).label}. Services ${Math.round(g.metrics.services)}/100, cohésion ${Math.round(g.metrics.cohesion)}/100, confiance ${Math.round(g.metrics.trust)}/100, résilience ${Math.round(g.metrics.resilience)}/100. Résultat de jeu, scénario ${g.seed}, simulation v${g.version}.`;
   return `Mandats · ${d.place}. ${s.legacy} : ${s.total}/100. ${g.version !== 1 ? `Priorité : ${ambitionFor(g).label}. ` : ""}Point fort : ${s.strength}. À améliorer : ${s.weakness}. Résultat de jeu, scénario simulé v${g.version}.`;
 }
 export const CARD_SIZES = { landscape: [1200, 630], square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920] } as const;

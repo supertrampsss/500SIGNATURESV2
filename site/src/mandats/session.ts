@@ -1,5 +1,5 @@
 import { dilemmaFromHash } from "./cards.ts";
-import { domainFor } from "./engine.ts";
+import { isFinished } from "./engine.ts";
 import { challengeFromURL, sharedResult } from "./sharing.ts";
 import type { Game } from "./types.ts";
 
@@ -15,7 +15,7 @@ export function localSession(game: Game, browserHistory: Pick<History, "replaceS
     g: game,
     shared: false,
     inherited: false,
-    screen: game.turn === domainFor(game).turns ? "result" as const : "play" as const,
+    screen: isFinished(game) ? "result" as const : "play" as const,
     view: "decision" as const,
   };
 }

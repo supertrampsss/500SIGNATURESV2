@@ -12,6 +12,8 @@ import { financeForCity, validateCityBaseline } from './cities.ts';
 import { clamp } from './types.ts';
 import type { Ambition, Choice, Domain, Effect, Finance, Game, Mode } from './types.ts';
 import type { CityBaseline } from './cities.ts';
+import { initialPolitics, resolvePoliticalChoice, applyPoliticalResolution } from './politics.ts';
+import { politicalDossier } from './political-dilemmas.ts';
 
 const BASE = { municipal, national };
 const compiled = { municipal: longDossiers("municipal"), national: longDossiers("national") };
@@ -62,6 +64,10 @@ export function campaignDomain(g:Game):Domain {
     dossiers=dossiers.slice();
     dossiers[g.turn]={...current,story:`${g.choices.includes(thread.launchChoice)?thread.underway:thread.absent} ${current.story}`};
   }
+  if(g.version===10 && g.mode==='national'){
+    const political=politicalDossier(g);
+    if(political){dossiers=dossiers.slice();dossiers[g.turn]=political;}
+  }
   const turns=g.version >= 9 && g.mode==='national'?30:45;
   return {...base,turns,duration:`${turns} décisions · ${g.mode==='municipal'?6:5} années`,place:g.city?.name??base.place,
     intro:g.city?`Vous prenez les commandes de ${g.city.name}, à partir des comptes publiés de ${g.city.year}. Les décisions et leurs effets constituent une simulation.`:base.intro,
@@ -83,10 +89,11 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10=3):Game {
+  if(version===10&&mode!=='national')throw new Error('La version politique concerne uniquement le mandat national.');
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
-  const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{})};
+  const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{}),...(version===10?{politics:initialPolitics(seed)}:{})};
   Object.assign(g,campaignDomain(g).initial());
   return g;
 }
@@ -112,9 +119,11 @@ function recovery(game:Game):Choice {
   return {id:'redressement-v3',title:'Réorganiser les services pour rétablir le budget',description:'Réduire durablement les charges du plan annuel. Le service et la confiance en subissent le coût.',cost:`−${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:3}).format(reduction)} M€/an de charges`,benefit:'Un budget à nouveau finançable',sacrifice:'Services −5 · confiance −4',effect:{operating:-Math.min(g.finance.operating,reduction),services:-5,trust:-4,cohesion:-2}};
 }
 function transition(game:Game,choice:Choice):Game {
+  let activeChoice=choice,politicalResolution;
+  if(game.version===10){politicalResolution=resolvePoliticalChoice(game.politics!,choice,game.seed,game.turn,game.society?.workers??50);activeChoice=politicalResolution.choice;}
   const {g,cal,messages}=prepared(game),d=campaignDomain(game);
-  apply(g,choice.effect);
-  if(choice.delayed)g.pending.push({due:cal.year-1+choice.delayed.after,label:choice.delayed.label,effect:{...choice.delayed.effect}});
+  apply(g,activeChoice.effect);
+  if(activeChoice.delayed)g.pending.push({due:cal.year-1+activeChoice.delayed.after,label:activeChoice.delayed.label,effect:{...activeChoice.delayed.effect}});
   let event='Le plan annuel évolue. Les comptes ne sont pas encore clôturés.';
   if(cal.isYearEnd){
     // The original annual event schedule is retained, with annual rather than decision time.
@@ -136,19 +145,25 @@ function transition(game:Game,choice:Choice):Game {
     if(g.finance.cash < -1e-8)throw new Error('Financement incomplet.');
     messages.push(`Exercice ${cal.year} clôturé. Intérêts, dette et trésorerie comptabilisés une seule fois.`);
   }
-  messages.push(choice.benefit,`Compromis : ${choice.sacrifice}.`);
-  if(choice.delayed)messages.push(`${choice.delayed.effect.revenue ? 'Échéance fiscale prévue' : g.version >= 7 && !choice.effect.investment ? 'Mise en œuvre prévue' : 'Livraison prévue'} en année ${cal.year+choice.delayed.after}.`);
-  g.history.push({year:cal.year,closed:cal.isYearEnd,choice:choice.id,title:choice.title,messages,event,ledger,metrics:structuredClone(g.metrics),areas:structuredClone(g.areas)});
+  if(!(politicalResolution?.vote?.kind==='law'&&!politicalResolution.vote.passed))messages.push(activeChoice.benefit,`Compromis : ${activeChoice.sacrifice}.`);
+  if(activeChoice.delayed)messages.push(`${activeChoice.delayed.effect.revenue ? 'Échéance fiscale prévue' : g.version >= 7 && !activeChoice.effect.investment ? 'Mise en œuvre prévue' : 'Livraison prévue'} en année ${cal.year+activeChoice.delayed.after}.`);
+  if(politicalResolution)messages.push(...politicalResolution.consequences);
+  const record={year:cal.year,closed:cal.isYearEnd,choice:choice.id,title:choice.title,messages,event,ledger,metrics:structuredClone(g.metrics),areas:structuredClone(g.areas),...(game.version===10?{dossier:structuredClone(d.dossiers[game.turn])}:{}),...(politicalResolution?.vote?{vote:politicalResolution.vote}:{}),...(politicalResolution?.consequences.length?{politicalConsequences:politicalResolution.consequences}:{})};
+  g.history.push(record);
   g.choices.push(choice.id);g.turn++;
+  if(game.version===10){g.politics=applyPoliticalResolution(game.politics!,g,choice,politicalResolution!,game.seed,game.turn);if(g.politics.ending)g.politics.ending.turn=g.turn;}
   return g;
 }
 export function campaignChoices(g:Game):Choice[] {
-  const choices=campaignDomain(g).dossiers[g.turn]?.choices??[];
+  if(g.version===10&&(g.politics?.ending||g.turn>=30))return [];
+  let choices=campaignDomain(g).dossiers[g.turn]?.choices??[];
+  if(g.version===10&&g.politics?.lastDissolutionTurn!==undefined&&g.turn-g.politics.lastDissolutionTurn<6)choices=choices.filter(c=>c.political?.action!=='dissolve');
   if(!choices.length)return [];
   const legal=choices.some(c=>{try{transition(g,c);return true;}catch{return false;}});
   return legal?choices:[...choices,recovery(g)];
 }
 export function decideCampaign(g:Game,id:string):Game {
+  if(g.version===10&&g.politics?.ending)throw new Error('Ce mandat est terminé.');
   if(g.turn>=campaignDomain(g).turns)throw new Error('Ce mandat est terminé.');
   const choice=campaignChoices(g).find(c=>c.id===id);
   if(!choice)throw new Error("Cette décision n'appartient pas au dossier.");

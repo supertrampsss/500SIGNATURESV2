@@ -16,7 +16,7 @@ function next(game:ReturnType<typeof start>){
 test("progression starts empty and ignores unfinished games",()=>{
   const storage=memory();
   const g=start("national",42,"equilibre",9);
-  assert.deepEqual(readProgression(storage),{completedRuns:0,seeds:[],missions:[],crisesEncountered:0,archives:[]});
+  assert.deepEqual(readProgression(storage),{completedRuns:0,endedRuns:0,seeds:[],missions:[],crisesEncountered:0,archives:[]});
   recordCompletedMandate(storage,g);
   assert.equal(storage.data.has(PROGRESSION_KEY),false);
 });
@@ -27,6 +27,8 @@ test("completed v9 mandates create a compact local archive",()=>{
   while(g.turn<30)g=next(g);
   const p=recordCompletedMandate(storage,g,new Date("2026-09-23T12:00:00Z"));
   assert.equal(p.completedRuns,1);
+  assert.equal(p.endedRuns,0);
+  assert.equal(p.archives[0].outcome,"completed");
   assert.deepEqual(p.seeds,[73]);
   assert.deepEqual(p.missions,["services"]);
   assert.equal(p.archives[0].seed,73);

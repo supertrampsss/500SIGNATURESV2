@@ -102,13 +102,14 @@ test('v9 crisis dossiers break visually from ordinary decisions',()=>{
 test('landing archives expose replay progress without storing political choices',()=>{
   const html=selection(null,false,{
     completedRuns:3,
+    endedRuns:0,
     seeds:[11,22,33],
     missions:['equilibre','services'],
     crisesEncountered:4,
     archives:[{seed:33,ambition:'services',completedAt:'2026-09-23T12:00:00.000Z',crises:2,services:63,cohesion:57,trust:54,resilience:61}],
   });
   assert.match(html,/VOS ARCHIVES/);
-  assert.match(html,/3<\/strong><small>mandats terminés/);
+  assert.match(html,/3<\/strong><small>mandats archivés · 3 terminés · 0 interrompus/);
   assert.match(html,/Scénario #33/);
   assert.doesNotMatch(html,/r01a|r02b|choices/);
 });

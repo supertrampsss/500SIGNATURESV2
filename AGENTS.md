@@ -9,14 +9,14 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters in v9. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings in v10. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
 - France comparisons use France, Germany, Spain and Italy only when comparable data exist.
   Reuse `PAYS_VISIBLES`; do not restore an all-countries control or an outer Europe frame.
 - Keep essential controls accessible without hover; respect reduced motion.
-- Preserve saved games, deep links and offline use. Do not clear storage to hide a bug.
+- Preserve new-game saves, deep links and offline use. Historical prelaunch saves are not a compatibility requirement. Do not clear storage to hide a bug.
 - No advertising in gameplay. Do not activate social publishing or tracking as a side effect.
 
 ## Business decisions
@@ -52,6 +52,20 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: political consequences (24 September 2026)
+
+The owner approved consequential Assembly votes, coalition bargains, government
+censure, dissolution, misconduct proceedings and rare institutional rupture.
+Follow [the political contract](docs/mandats-political-contract.md). A rejected
+law grants none of its implementation effects; elections change subsequent votes;
+political obligations and early endings survive export, reload and replay.
+Censure concerns the government, not presidential removal. Keep all calculations
+in the deterministic versioned engine. Use `politics.ts`, `political-dilemmas.ts`,
+`politics-view.ts` and `political-motion.ts`; artwork adds parliament, council and
+rupture scenes. Render votes from their saved results, with skip and reduced motion.
+Do not replace concrete sacrifices with generic “maintain course” options.
+
+
 ### Mandats: approved ten-screen visual reference (24 September 2026)
 
 The owner approved the ten image-generated mobile compositions as the visual
@@ -67,7 +81,7 @@ The visual journey covers entry, choice, feedback, crisis, annual recap, next
 chapter, exploration, final legacy, replay selection and trajectory comparison.
 `cinema-board.css`, `cinema-shell.css`, `living-recaps.css` and `branch-replay.css`
 own these compositions. Inspect actual desktop and phone renders before delivery.
-Keep the entire measure card clickable and preserve archives, old saves, export,
+Keep the entire measure card clickable and preserve new-game archives, export,
 import and opt-in offline play. The site's ordinary navigation remains reachable.
 
 ### France: approved full-page visual reference (21 September 2026)

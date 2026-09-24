@@ -6,9 +6,9 @@ const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(d
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
 const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
 // These editorial images appear in the national game and its replay journey.
-// Keep the full-resolution seven-image set opt-in with the game cache; the
+// Keep the full-resolution illustration set opt-in with the game cache; the
 // generated service worker is only installed when the player requests offline use.
-const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy']
+const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture']
   .map(name => `/mandats/art/${name}.webp`);
 const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow static dependencies recursively; optional dynamic map imports stay online-only.

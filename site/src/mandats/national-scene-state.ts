@@ -13,7 +13,9 @@ export function nationalSceneState(game: Game, inherited = false, reducedMotion 
   const snapshot = inherited ? startingGame(game) : game;
   const domain = domainFor(game);
   const lastDossier = snapshot.turn ? domain.dossiers[snapshot.turn - 1] : undefined;
-  const lastChoice = lastDossier?.choices.find(choice => choice.id === snapshot.history.at(-1)?.choice);
+  const lastTurn = snapshot.history.at(-1);
+  const rejectedLaw = game.version >= 10 && lastTurn?.vote?.kind === 'law' && !lastTurn.vote.passed;
+  const lastChoice = rejectedLaw ? undefined : lastDossier?.choices.find(choice => choice.id === lastTurn?.choice);
   const dossier = domain.dossiers[snapshot.turn];
   const area = lastChoice?.delayed?.effect.area ?? lastChoice?.effect.area ?? dossier?.choices.map(c => c.delayed?.effect.area ?? c.effect.area).find(Boolean);
   const focus: NationalArea | 'national' = area === 'metropoles' || area === 'industrie' || area === 'rural' || area === 'littoraux' ? area : 'national';

@@ -72,23 +72,48 @@ const crises:Entry[]=crisisTitles.map((title,i)=>{
 });
 export const NATIONAL_AGENDA:readonly Entry[]=[...reforms,...unlocked,...crises];
 const entryForChoice=(id:string)=>NATIONAL_AGENDA.find(e=>e.dossier.choices.some(c=>c.id===id));
+const lawWasRejected=(g:Game,slot:number)=>g.version===10&&g.history[slot]?.vote?.kind==='law'&&!g.history[slot]?.vote?.passed;
+function enactedHistory(g:Game) {
+ const choices=new Set(g.choices.filter((_,i)=>!lawWasRejected(g,i)));
+ const ids=new Set(g.choices.flatMap((id,i)=>lawWasRejected(g,i)?[]:[entryForChoice(id)?.id].filter((v):v is string=>!!v)));
+ return {choices,ids};
+}
+function sourceTurn(g:Game, source:string) {
+ return g.choices.findIndex((choice,i)=>choice===source+'a'&&!lawWasRejected(g,i));
+}
+function enactedOrigin(g:Game, source:string) {
+ const slot=g.choices.findIndex((choice,i)=>choice.startsWith(source)&&choice.length===source.length+1&&!lawWasRejected(g,i));
+ return slot<0?undefined:g.history[slot]?.title;
+}
+function historicalDossier(g:Game, slot:number):Dossier {
+ const id=g.choices[slot];
+ const entry=id?entryForChoice(id):undefined;
+ const snapshot=g.version===10?g.history[slot]?.dossier:undefined;
+ if(snapshot)return snapshot;
+ if(entry)return entry.dossier;
+ // V10 political dossiers are conditional and are not part of the v9 agenda.
+ // Their exact replayed source is archived on the turn; they must not be
+ // misclassified as a reform or unlock an unrelated follow-up.
+ throw new Error('Dossier historique inconnu.');
+}
 const tie=(seed:number,id:string)=>{let n=seed>>>0;for(const c of id)n=Math.imul(n^c.charCodeAt(0),16777619)>>>0;return n/4294967296;};
 /** 30 reforms occupy two slots out of three. The 15 remaining slots have 0–5 crises.
  * No queue is persisted: eligibility is recomputed, so recovery cancels a latent crisis.
  * IDs preserve history; importing and planning replay decisions through the same selector. */
 export function agendaEntry(g:Game):Entry {
  if(g.turn%3!==2)return reforms[Math.floor(g.turn/3)*2+g.turn%3];
- const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id));
+ const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id)),enacted=enactedHistory(g);
  const crisisTurns=played.flatMap((e,i)=>e?.kind==='crisis'?[i]:[]);
  const lastCrisis=crisisTurns.at(-1)??-100;
  const eligible=crises.filter(e=>{
-  const sourceTurn=g.choices.indexOf(e.source+'a');
-  return !used.has(e.id)&&sourceTurn>=0&&g.turn-sourceTurn>=5&&g.turn>=5&&g.turn-lastCrisis>=5&&crisisTurns.length<5&&g.society![e.group!]<(e.group==='newcomers'?55:e.group==='pensioners'?50:45);
+  if(!e.source)return false;
+  const source=sourceTurn(g,e.source);
+  return !used.has(e.id)&&source>=0&&g.turn-source>=5&&g.turn>=5&&g.turn-lastCrisis>=5&&crisisTurns.length<5&&g.society![e.group!]<(e.group==='newcomers'?55:e.group==='pensioners'?50:45);
  });
  if(eligible.length)return eligible.sort((a,b)=>g.society![a.group!]-g.society![b.group!]||tie(g.seed,a.id)-tie(g.seed,b.id))[0];
  const recent=played.slice(-2).map(e=>e?.dossier.category);
- const candidates=unlocked.filter(e=>!used.has(e.id)&&(!e.source||used.has(e.source)));
- const priority=(e:Entry)=>(e.source?(g.choices.includes(e.source+'a')?40:g.choices.includes(e.source+'b')?20:10):0)+(e.group?Math.max(0,60-g.society![e.group]):0)-(recent.includes(e.dossier.category)?50:0)+tie(g.seed,e.id);
+ const candidates=unlocked.filter(e=>!used.has(e.id)&&(!e.source||enacted.ids.has(e.source)));
+ const priority=(e:Entry)=>(e.source?(enacted.choices.has(e.source+'a')?40:enacted.choices.has(e.source+'b')?20:10):0)+(e.group?Math.max(0,60-g.society![e.group]):0)-(recent.includes(e.dossier.category)?50:0)+tie(g.seed,e.id);
  const result=candidates.sort((a,b)=>priority(b)-priority(a))[0];
  if(!result)throw new Error('Agenda sans dossier disponible.');
  return result;
@@ -98,7 +123,7 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
   if(g.choices[slot]){const e=entryForChoice(g.choices[slot]);if(!e)throw new Error('Dossier historique inconnu.');return e.dossier;}
   if(slot!==g.turn)return reforms[0].dossier; // Non-actionable future previews are hidden by the planner.
   const e=agendaEntry(g);
-  const origin=e.source?g.history.find(h=>h.choice.startsWith(e.source!)&&h.choice.length===e.source!.length+1)?.title:undefined;
+  const origin=e.source?enactedOrigin(g,e.source):undefined;
   return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
  });
 }
@@ -110,27 +135,28 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
 export function agendaEntryV9(g:Game):Entry {
  if(g.turn>=30)throw new Error('Agenda V9 terminé.');
  if(g.turn%3!==2)return reforms[Math.floor(g.turn/3)*2+g.turn%3];
- const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id));
+ const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id)),enacted=enactedHistory(g);
  const crisisTurns=played.flatMap((e,i)=>e?.kind==='crisis'?[i]:[]);
  const lastCrisis=crisisTurns.at(-1)??-100;
  const eligible=crises.filter(e=>{
-  const sourceTurn=g.choices.indexOf(e.source+'a');
-  return !used.has(e.id)&&sourceTurn>=0&&g.turn-sourceTurn>=4&&g.turn>=4&&g.turn-lastCrisis>=4&&crisisTurns.length<5&&g.society![e.group!]<(e.group==='newcomers'?55:e.group==='pensioners'?50:45);
+  if(!e.source)return false;
+  const source=sourceTurn(g,e.source);
+  return !used.has(e.id)&&source>=0&&g.turn-source>=4&&g.turn>=4&&g.turn-lastCrisis>=4&&crisisTurns.length<5&&g.society![e.group!]<(e.group==='newcomers'?55:e.group==='pensioners'?50:45);
  });
  if(eligible.length)return eligible.sort((a,b)=>g.society![a.group!]-g.society![b.group!]||tie(g.seed,a.id)-tie(g.seed,b.id))[0];
  const recent=played.slice(-2).map(e=>e?.dossier.category);
- const candidates=unlocked.filter(e=>!used.has(e.id)&&(!e.source||used.has(e.source)));
- const priority=(e:Entry)=>(e.source?(g.choices.includes(e.source+'a')?40:g.choices.includes(e.source+'b')?20:10):0)+(e.group?Math.max(0,60-g.society![e.group]):0)-(recent.includes(e.dossier.category)?50:0)+tie(g.seed,e.id);
+ const candidates=unlocked.filter(e=>!used.has(e.id)&&(!e.source||enacted.ids.has(e.source)));
+ const priority=(e:Entry)=>(e.source?(enacted.choices.has(e.source+'a')?40:enacted.choices.has(e.source+'b')?20:10):0)+(e.group?Math.max(0,60-g.society![e.group]):0)-(recent.includes(e.dossier.category)?50:0)+tie(g.seed,e.id);
  const result=candidates.sort((a,b)=>priority(b)-priority(a))[0];
  if(!result)throw new Error('Agenda V9 sans dossier disponible.');
  return result;
 }
 export function nationalAgendaDossiersV9(g:Game):Dossier[] {
  return Array.from({length:30},(_,slot)=>{
-  if(g.choices[slot]){const e=entryForChoice(g.choices[slot]);if(!e)throw new Error('Dossier historique inconnu.');return e.dossier;}
+  if(g.choices[slot])return historicalDossier(g,slot);
   if(slot!==g.turn)return reforms[0].dossier;
   const e=agendaEntryV9(g);
-  const origin=e.source?g.history.find(h=>h.choice.startsWith(e.source!)&&h.choice.length===e.source!.length+1)?.title:undefined;
+  const origin=e.source?enactedOrigin(g,e.source):undefined;
   return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
  });
 }

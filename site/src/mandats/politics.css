@@ -1,0 +1,141 @@
+:root {
+  --politics-navy: #102b43;
+  --politics-paper: #f7f1e5;
+  --politics-brass: #b89862;
+  --politics-ink: #172d3c;
+  --politics-muted: #68747a;
+  --politics-red: #a9363c;
+  --politics-green: #346e58;
+}
+.political-hud,.political-vote__paper,.political-ending__copy{color:var(--politics-ink);background:var(--politics-paper)}
+.political-hud{position:relative;overflow:hidden;margin:16px 0;padding:18px clamp(16px,3vw,28px);border:1px solid #bba477;border-radius:5px;box-shadow:0 8px 30px #102b4312}
+.political-hud:before{content:"";position:absolute;top:0;left:0;width:5px;height:100%;background:var(--politics-brass)}
+.political-hud header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid #d9cebc;padding-bottom:10px}
+.political-hud header p,.political-vote__eyebrow,.political-ending__eyebrow{margin:0;color:#8c7041;font:700 .7rem/1.3 "Source Sans 3",sans-serif;letter-spacing:.12em}
+.political-hud header strong{font:500 1.3rem/1.1 Georgia,serif}
+.political-hud dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.political-hud dl div{display:grid;gap:4px;padding:9px;background:#eee7da;border-radius:3px}
+.political-hud dt{color:var(--politics-muted);font-size:.72rem}.political-hud dd{margin:0;font:600 1rem Georgia,serif}
+.political-hud__groups,.political-hud__obligations{border-top:1px solid #d9cebc;padding-top:10px;margin-top:10px}
+.political-hud__groups summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:650}
+.political-hud__groups ul,.political-hud__obligations ul{list-style:none;padding:0;margin:4px 0}
+.political-hud__groups li,.political-hud__obligations li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e2d9ca;font-size:.88rem}
+.political-hud__obligations h3{margin:2px 0 6px;font:600 1rem Georgia,serif}.political-hud__obligations small{color:var(--politics-muted);white-space:nowrap}
+.political-hud__quiet{color:var(--politics-muted);font-size:.85rem}.political-hud__last-vote{display:flex;justify-content:space-between;gap:10px;margin:12px 0 0;font-size:.82rem}.political-hud__last-vote span{color:var(--politics-muted)}
+.political-vote{position:relative;isolation:isolate;min-height:100vh;background:var(--politics-navy);display:grid;align-items:center;padding:clamp(14px,3vw,42px);overflow:hidden}
+.political-vote__art,.political-ending__art{position:absolute;inset:0;z-index:-1;overflow:hidden;background:var(--politics-navy)}
+.political-vote__art img,.political-ending__art img{width:100%;height:100%;object-fit:cover;opacity:.32;filter:saturate(.72) contrast(1.05)}
+.political-vote:after,.political-ending__art:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#08182770,#081827e8)}
+.political-vote__paper{width:min(100%,900px);margin:auto;padding:clamp(18px,4vw,42px);border:1px solid var(--politics-brass);box-shadow:0 22px 75px #0007;border-radius:4px}
+.political-vote__paper h2{margin:6px 0 4px;font:500 clamp(1.8rem,5vw,3.3rem)/1.05 Georgia,serif;color:var(--politics-navy)}
+.political-vote__threshold{margin:0;color:var(--politics-muted);font-size:.88rem}
+.vote-hemicycle{display:block;width:min(100%,710px);height:auto;margin:10px auto 0;overflow:visible}
+.hemicycle-floor{fill:#eee7da;stroke:#c7b68f;stroke-width:1.5}
+.hemicycle-label{fill:#7e725f;font:700 11px "Source Sans 3",sans-serif;letter-spacing:.13em}
+.vote-seat{opacity:0;transition:opacity 180ms ease,transform 180ms ease;transform-box:fill-box;transform-origin:center;transform:scale(.55)}
+.vote-seat[data-revealed="true"]{opacity:1;transform:scale(1)}
+.vote-seat.seat--for{fill:#32785d;stroke:#184c37;stroke-width:.8}.vote-seat.seat--against{fill:#aa3840;stroke:#701d26;stroke-width:.8}.vote-seat.seat--abstain{fill:#bd9850;stroke:#816332;stroke-width:.8}.vote-seat.seat--undetailed{fill:#b7b2a7;stroke:#898477;stroke-width:.8}
+.vote-tally{display:flex;justify-content:center;gap:clamp(16px,5vw,56px);padding:8px 0 15px;border-bottom:1px solid #d6cbb8;text-align:center}
+.vote-tally span{display:grid;gap:1px}.vote-tally b{font:500 clamp(1.7rem,5vw,2.6rem)/1 Georgia,serif}.vote-tally small{color:var(--politics-muted);text-transform:uppercase;letter-spacing:.08em;font-size:.7rem}
+.vote-tally span:nth-child(1) b{color:var(--politics-green)}.vote-tally span:nth-child(2) b{color:var(--politics-red)}.vote-tally span:nth-child(3) b{color:#92723e}
+.political-vote__verdict{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0}.political-vote__verdict strong{font:600 1.25rem Georgia,serif}.political-vote__verdict[data-passed="true"] strong{color:var(--politics-green)}.political-vote__verdict[data-passed="false"] strong{color:var(--politics-red)}.political-vote__verdict span{color:var(--politics-muted);font-size:.83rem}
+.political-vote__consequences{padding:10px 15px;margin:0 0 12px;background:#eee7da;border-left:3px solid var(--politics-brass);font-size:.92rem}.political-vote__consequences li+li{margin-top:5px}
+.political-vote__controls{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}.political-vote__controls button,.political-ending__replay{min-height:46px;padding:9px 15px;border:1px solid #a68d62;border-radius:3px;background:transparent;color:var(--politics-navy);font:600 .9rem "Source Sans 3",sans-serif;cursor:pointer}.political-vote__controls [data-political-action="continue"],.political-ending__replay{background:var(--politics-navy);border-color:var(--politics-navy);color:var(--politics-paper)}.political-vote__controls button:disabled{opacity:.45;cursor:not-allowed}.political-vote__controls button:focus-visible,.political-ending__replay:focus-visible{outline:3px solid #c49b50;outline-offset:3px}
+.political-vote__detail-note{font-size:.76rem;color:var(--politics-muted);text-align:center;margin:-7px 0 4px}.political-vote__sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.political-ending{position:relative;isolation:isolate;min-height:min(820px,100vh);display:grid;align-items:end;background:var(--politics-navy);padding:clamp(16px,4vw,52px);overflow:hidden}.political-ending__art{inset:0 0 auto;height:100%;}.political-ending__art img{object-position:center 40%;opacity:.54}.political-ending__copy{width:min(100%,800px);margin:0 auto;padding:clamp(20px,4vw,42px);border:1px solid var(--politics-brass);box-shadow:0 20px 60px #0006}.political-ending__copy h1{font:500 clamp(2.2rem,7vw,4.4rem)/1.02 Georgia,serif;margin:8px 0 12px;color:var(--politics-navy)}.political-ending__copy>p{line-height:1.5}.political-ending__duration{padding:10px 12px;background:#eee7da;border-left:3px solid var(--politics-brass)}.political-ending__copy h2{font:600 1.25rem Georgia,serif}.political-ending__copy li+li{margin-top:6px}.political-ending__replay{margin-top:10px}
+@media(max-width:600px){.political-hud dl{gap:5px}.political-hud dl div{padding:8px 6px}.political-hud dd{font-size:.88rem}.political-hud dt{font-size:.66rem}.political-hud__obligations li{display:grid;gap:2px}.political-vote{padding:0;align-items:stretch}.political-vote__paper{align-self:stretch;padding:22px 16px;border:0}.vote-hemicycle{margin-top:17px}.political-vote__verdict{display:grid;gap:3px}.political-ending{padding:0;align-items:end}.political-ending__copy{border-left:0;border-right:0;padding:24px 18px 32px}}
+@media(prefers-reduced-motion:reduce){.vote-seat{transition:none;transform:none}.vote-seat[data-revealed="true"]{transform:none}}
+
+/* Vote reveals keep the approved miniature visible above the paper dossier. */
+.political-vote__art{z-index:0;height:clamp(205px,34vh,340px)}
+.political-vote__art img{opacity:.92;object-position:center 43%;filter:saturate(.82) contrast(1.04)}
+.political-vote__paper{position:relative;z-index:1}
+.political-vote__stages{display:grid;gap:22px}
+.vote-stage{padding:14px 0 0;border-top:1px solid #d6cbb8}
+.vote-stage:first-child{border-top:0;padding-top:4px}
+.vote-stage h3{margin:0;text-align:center;font:500 clamp(1.15rem,3vw,1.55rem)/1.1 Georgia,serif;color:var(--politics-navy)}
+.vote-stage__threshold{display:flex;justify-content:center;gap:8px;margin:0 0 8px;color:var(--politics-muted);font-size:.8rem;text-align:center}
+.vote-stage__threshold [data-stage-verdict]{font-weight:700;color:var(--politics-brass)}
+.vote-bloc-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 15px;margin:8px auto 2px;max-width:720px}
+.vote-bloc-grid>span{display:flex;align-items:center;gap:5px;color:var(--politics-muted);font-size:.78rem}
+.vote-bloc-grid b{color:var(--politics-ink);font:600 .95rem Georgia,serif}
+.seat-swatch{width:9px;height:9px;border-radius:50%;background:#98856c}
+.seat-swatch--presidential{background:#274e65}.seat-swatch--reformist{background:#55836f}.seat-swatch--social{background:#ac4148}.seat-swatch--conservative{background:#9b8259}.seat-swatch--regional{background:#9588ad}
+.vote-seat.seat--bloc-presidential{fill:#274e65;stroke:#163447;stroke-width:.8}.vote-seat.seat--bloc-reformist{fill:#55836f;stroke:#305a45;stroke-width:.8}.vote-seat.seat--bloc-social{fill:#ac4148;stroke:#70242b;stroke-width:.8}.vote-seat.seat--bloc-conservative{fill:#9b8259;stroke:#685533;stroke-width:.8}.vote-seat.seat--bloc-regional{fill:#9588ad;stroke:#655c7b;stroke-width:.8}
+.political-vote__verdict{margin-top:8px}
+.political-vote__consequences[hidden]{display:none}
+.political-ending__snapshot{margin:18px 0;padding:12px 14px;background:#eee7da;border-left:3px solid var(--politics-brass)}
+.political-ending__snapshot h2{margin:0 0 10px!important}
+.political-ending__snapshot dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.political-ending__snapshot dl div{display:grid;gap:3px;padding:8px;background:#f8f3e9}
+.political-ending__snapshot dt{color:var(--politics-muted);font-size:.76rem}.political-ending__snapshot dd{margin:0;font:600 1.05rem Georgia,serif}
+@media(max-width:600px){
+  .political-vote{display:block;min-height:100vh;padding:0 0 22px;background:var(--politics-navy)}
+  .political-vote__art{inset:0 0 auto;height:clamp(205px,30vh,255px)}
+  .political-vote__art img{object-position:center 39%;opacity:.96}
+  .political-vote:after{background:linear-gradient(180deg,#08182712 0,#08182733 90%,#081827d9 100%)}
+  .political-vote__paper{width:100%;margin:clamp(150px,22vh,190px) auto 0;padding:20px 16px 24px;border:1px solid #bba477;border-radius:5px 5px 0 0;background:#f7f1e5f5;box-shadow:0 -10px 30px #06111b55}
+  .political-vote__stages{gap:14px}.vote-stage{padding-top:11px}
+  .vote-hemicycle{margin:7px auto 0}
+}
+.political-ending__pending{margin:14px 0;padding:12px 14px;background:#eee7da;border-left:3px solid var(--politics-brass)}
+.political-ending__pending h2{margin:0 0 6px!important;font:600 1.08rem Georgia,serif}
+.political-ending__pending p{margin:0 0 8px;color:var(--politics-muted);font-size:.84rem}
+.political-ending__pending ul{margin:0;padding-left:19px}.political-ending__pending li+li{margin-top:5px}.political-ending__pending small{display:block;color:var(--politics-muted)}
+.political-hud{grid-column:1/-1;width:100%;min-width:0;margin:7px 0;padding:10px 15px}
+.political-hud__summary{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;border-bottom:0;padding:0}
+.political-hud__summary p{font-size:.64rem;flex:0 0 auto}
+.political-hud__summary strong{font:600 1.02rem Georgia,serif;white-space:nowrap}
+.political-hud__summary>span{font-size:.78rem;color:var(--politics-muted);white-space:nowrap}
+.political-hud__summary>span b{color:var(--politics-navy);font-size:.94rem}
+.political-hud__details{border-top:1px solid #d9cebc;margin-top:8px}
+.political-hud__details>summary{min-height:36px;display:flex;align-items:center;cursor:pointer;color:#52616b;font-size:.78rem;font-weight:650}
+.political-hud__detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;padding-top:6px}
+.political-hud__groups,.political-hud__obligations{border:0;margin:0;padding:0}
+.political-hud__groups h3,.political-hud__obligations h3{margin:2px 0 5px;font:600 .9rem Georgia,serif}
+.political-hud__detail-grid .political-hud__last-vote{grid-column:1/-1;margin:0;padding-top:6px;border-top:1px solid #d9cebc}
+@media(max-width:600px){
+  .political-hud{grid-column:1/-1!important;width:100%;margin:5px 0 9px;padding:9px 11px}
+  .political-hud__summary{justify-content:flex-start;gap:5px 13px}
+  .political-hud__summary p{width:100%;margin:0 0 1px}
+  .political-hud__summary strong{font-size:.92rem;margin-right:auto}
+  .political-hud__summary>span{font-size:.7rem}
+  .political-hud__summary>span b{font-size:.82rem}
+  .political-hud__details>summary{min-height:32px;font-size:.74rem}
+  .political-hud__detail-grid{grid-template-columns:1fr;gap:8px}
+  .political-hud__detail-grid .political-hud__last-vote{grid-column:auto}
+}
+.political-hud__summary{justify-content:flex-start;gap:7px 15px;border:0;padding:0}
+.political-hud__summary strong{font:600 .94rem/1.1 Georgia,serif}
+.political-hud__summary>span{font-size:.72rem}
+.political-hud__summary>span b{font-size:.86rem}
+.political-hud__details{margin-top:5px;border-top:1px solid #d9cebc}
+.political-hud__details>summary{min-height:32px}
+@media(max-width:600px){
+  .political-hud{padding:8px 11px}
+  .political-hud__summary{justify-content:flex-start;gap:5px 12px}
+  .political-hud__summary strong{font-size:.84rem;margin-right:auto}
+  .political-hud__summary>span{font-size:.68rem}
+  .political-hud__summary>span b{font-size:.8rem}
+  .political-hud__details{margin-top:4px}
+  .political-hud__details>summary{min-height:30px}
+}
+.political-hud header.political-hud__summary{border:0!important;padding:0!important;justify-content:space-between;flex-wrap:wrap}
+.political-hud header.political-hud__summary strong{font:600 .82rem/1.15 Georgia,serif;white-space:nowrap}
+.political-hud__details>summary{min-height:44px}
+@media(max-width:600px){
+  .political-hud header.political-hud__summary{justify-content:space-between;gap:5px 8px}
+  .political-hud header.political-hud__summary strong{font-size:.8rem;margin:0}
+  .political-hud__summary>span{font-size:.74rem}
+  .political-hud__summary>span b{font-size:.86rem}
+  .political-hud__details>summary{min-height:44px}
+}
+.political-ending__actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+.political-ending__actions .political-ending__replay{margin:0}
+.political-ending__replay--primary{background:var(--politics-navy)!important;border-color:var(--politics-navy)!important;color:var(--politics-paper)!important}
+.political-ending__tools{min-height:44px;padding:8px 10px;border:0;background:transparent;color:var(--politics-navy);font:600 .88rem "Source Sans 3",sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.political-ending__tools:focus-visible{outline:3px solid #c49b50;outline-offset:3px}
+@media(max-width:600px){.political-ending__actions{display:grid;grid-template-columns:1fr 1fr}.political-ending__actions .political-ending__replay--primary{grid-column:1/-1}.political-ending__actions .political-ending__tools{grid-column:1/-1}}
+.political-vote__verdict[data-adverse="true"] strong{color:var(--politics-red)}
+.political-vote[data-vote-kind="law"] .political-vote__verdict[data-adverse="false"] strong,
+.political-vote[data-vote-kind="censure"] .political-vote__verdict[data-adverse="false"] strong{color:var(--politics-green)}

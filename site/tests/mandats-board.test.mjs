@@ -26,9 +26,8 @@ async function noHorizontalOverflow(page) {
   expect(sizes.document, `Horizontal overflow: ${JSON.stringify(sizes.offenders)}`).toBeLessThanOrEqual(sizes.viewport + 1);
 }
 
-async function beginDefault(page) {
-  await page.goto('/mandats/');
-  await page.getByRole('button', { name: 'Gouverner la France' }).click();
+async function beginV9Challenge(page) {
+  await page.goto('/mandats/?mode=national&v=9&seed=42&ambition=equilibre');
   await expect(board(page)).toBeVisible();
   await expect(board(page).locator('[data-board-hud]')).toBeVisible();
   await expect(board(page).locator('[data-board-scene]')).toBeVisible();
@@ -103,7 +102,7 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   test.setTimeout(120_000);
   await page.goto('/mandats/');
   await capture(page, test.info(), 'campaign-entry');
-  await beginDefault(page);
+  await beginV9Challenge(page);
   const sceneIdentity = await board(page).locator('[data-board-scene]').evaluate((node) => {
     node.dataset.testIdentity = 'stable-board-scene';
     return true;
@@ -163,7 +162,9 @@ test('default v9 board completes the five-year route and can replay a chosen tur
       crisisCaptured = true;
     }
     await noHorizontalOverflow(page);
-    if (expectedCount % 6 === 0) {
+    if (expectedCount === 30) {
+      await expect(page.locator('.living-result')).toBeVisible();
+    } else if (expectedCount % 6 === 0) {
       await expect(page.locator('.year-recap')).toBeVisible();
       const recapAction = page.locator('.year-recap [data-action="next-year"], .year-recap [data-action="show-result"]').first();
       await expect(recapAction).toBeVisible();
@@ -236,7 +237,7 @@ test('default v9 board completes the five-year route and can replay a chosen tur
 });
 
 test('one choice is one turn, and a saved game resumes after reload', async ({ page }) => {
-  await beginDefault(page);
+  await beginV9Challenge(page);
   const choice = turns(page).first();
   await choice.dblclick();
   await expect.poll(async () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(1);
@@ -251,7 +252,7 @@ test('one choice is one turn, and a saved game resumes after reload', async ({ p
 });
 
 test('one choice is one turn when the first choice click carries touch detail two', async ({ page }) => {
-  await beginDefault(page);
+  await beginV9Challenge(page);
   await turns(page).first().evaluate((button) => {
     button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
   });
@@ -261,7 +262,7 @@ test('one choice is one turn when the first choice click carries touch detail tw
 
 test('reduced motion removes transition duration and both mobile widths fit', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await beginDefault(page);
+  await beginV9Challenge(page);
   await pick(page, 0, 1);
   await expect(board(page)).toBeVisible();
   expect(await board(page).evaluate((node) => node.classList.contains('is-transitioning'))).toBe(false);

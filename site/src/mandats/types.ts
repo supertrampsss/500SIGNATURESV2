@@ -1,3 +1,4 @@
+import type { PoliticalChoice, PoliticalState, VoteRecord } from './politics-types.ts';
 export type Ambition = "equilibre" | "services" | "resilience";
 export type Mode = "municipal" | "national";
 export type Society = Record<'workers' | 'pensioners' | 'vulnerable' | 'businesses' | 'newcomers' | 'publicStaff' | 'affluent', number>;
@@ -15,15 +16,15 @@ export type Effect = {
 };
 export type Choice = {
   id: string; title: string; description: string; cost: string; benefit: string; sacrifice: string;
-  effect: Effect; physicalProject?: false; delayed?: { after: number; label: string; effect: Effect };
+  effect: Effect; physicalProject?: false; delayed?: { after: number; label: string; effect: Effect }; political?: PoliticalChoice;
 };
 export type Dossier = { category: string; title: string; story: string; advisor: string; choices: Choice[] };
 export type Ledger = { revenue: number; operating: number; interest: number; savings: number; repayment: number; investment: number; grants: number; borrowing: number; cashChange: number; deficit: number; debt: number; gdp: number };
 export type Pending = { due: number; label: string; effect: Effect };
-export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[] };
+export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[]; vote?: VoteRecord; politicalConsequences?: string[]; dossier?: Dossier };
 export type Game = {
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
-  areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[];
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[]; politics?: PoliticalState;
 };
 export type Domain = {
   id: Mode; label: string; place: string; role: string; duration: string; turns: number; unit: string;
