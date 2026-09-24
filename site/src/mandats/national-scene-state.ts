@@ -6,7 +6,7 @@ export type NationalArea = 'metropoles' | 'industrie' | 'rural' | 'littoraux';
 export type NationalSceneState = {
   turn: number; year: number; inherited: boolean; focus: NationalArea | 'national';
   areas: { id: string; services: number; resilience: number }[];
-  projects: { id: string; area: string; state: 'planned' | 'delivered' | 'risk'; title: string }[];
+  projects: { id: string; area: string; state: 'planned' | 'delivered' | 'risk'; title: string; due: number }[];
   assets: number; reducedMotion: boolean; visual: VisualState;
 };
 export function nationalSceneState(game: Game, inherited = false, reducedMotion = false): NationalSceneState {

@@ -1,0 +1,17 @@
+.branch-comparison {
+  border: 1px solid #d8dee8;
+  border-radius: .75rem;
+  background: #fff;
+  color: #17243a;
+  padding: .9rem 1rem;
+}
+
+.branch-comparison h3 { margin: 0 0 .25rem; font-size: 1rem; }
+.branch-comparison p { margin: 0 0 .65rem; color: #596579; font-size: .875rem; }
+.branch-comparison ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem .8rem; margin: 0; padding: 0; list-style: none; }
+.branch-comparison li { display: flex; justify-content: space-between; gap: .5rem; font-variant-numeric: tabular-nums; }
+.branch-comparison strong { color: #183b67; }
+
+@media (max-width: 420px) {
+  .branch-comparison ul { grid-template-columns: 1fr; }
+}
