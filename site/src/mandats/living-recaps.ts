@@ -77,7 +77,6 @@ export function livingYearRecap(g: Game): string {
     </section>
       <details class="living-details"><summary>Voir la dette, le PIB et les autres indicateurs</summary>${changes(before, after, previousDeficit, last.ledger.deficit)}</details>
     ${recapProgress(year, progress.completedYears)}
-    <details class="living-details"><summary>Voir la dette, le PIB et les autres indicateurs</summary>${changes(before, after, previousDeficit, last.ledger.deficit)}</details>
     <details class="living-recap__accomplished"><summary>CE QUE VOUS AVEZ ACCOMPLI · ${decisions.length} décisions inscrites · ${crises} crise${crises === 1 ? '' : 's'} · ${g.pending.length} effet${g.pending.length === 1 ? '' : 's'} en attente</summary><p>${accomplishments}</p><span class="living-recap__scenario">Scénario #${g.seed}</span></details>
   </article>`;
 }

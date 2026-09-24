@@ -167,7 +167,11 @@ function render(focus = true, restoreScroll?: number) {
     if (g.turn < domainFor(g).turns) {
       const feedback = withComparison.content.querySelector<HTMLElement>("[data-board-feedback]");
       const comparison = comparisonMarkup(g, branchReference);
-      if (comparison && feedback) feedback.insertAdjacentHTML("beforeend", comparison);
+      if (comparison && feedback) {
+        if (feedback.classList.contains("board-feedback--welcome")) feedback.innerHTML = "";
+        feedback.classList.remove("board-feedback--welcome");
+        feedback.insertAdjacentHTML("beforeend", comparison);
+      }
     } else if (g.turn === domainFor(g).turns) {
       const comparison = comparisonMarkup(g, branchReference);
       if (comparison) withComparison.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);

@@ -126,3 +126,6 @@
 .living-recap > .button.primary { display:flex; width:100%; min-height:48px; margin:10px 0; font-size:.875rem; }
 .living-recap__next { display:block; }
 .living-recap__next h2 { margin:4px 0; }
+
+body[data-mode="national"] .living-recap > .button.primary { background:#bd2536; border-color:#bd2536; color:#fff; }
+body[data-mode="national"] .living-recap > .button.primary:hover { background:#a51e2d; border-color:#a51e2d; color:#fff; }
