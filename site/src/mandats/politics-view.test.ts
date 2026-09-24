@@ -37,7 +37,7 @@ test('vote sequence renders all 577 seats and labels the committed result and co
   assert.match(markup, /data-vote="abstain"/);
   assert.match(markup, /Le budget de transition/);
   assert.match(markup, /Le financement hospitalier est voté\./);
-  assert.match(markup, /political-vote__consequences" hidden/);
+  assert.match(markup, /political-vote__consequences" role="list" hidden/);
   assert.match(markup, /data-vote-kind="law"/);
   assert.match(markup, /id="political-vote-title" tabindex="-1"/);
   assert.match(markup, /Scrutin en cours/);
