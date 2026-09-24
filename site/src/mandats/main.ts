@@ -488,10 +488,17 @@ async function action(target: HTMLElement) {
     if(question && question.getBoundingClientRect().top < 0) window.scrollTo({top:window.scrollY+question.getBoundingClientRect().top-12,behavior:"instant"});
   }
 }
+let lastAcceptedClickAction: string | null = null;
 document.addEventListener("click", event => {
   const target = (event.target as Element).closest<HTMLElement>("[data-action]");
-  if (target?.dataset.action === "choose" && (event as MouseEvent).detail > 1) return;
   if (!target || (target as HTMLButtonElement).disabled) return;
+  const actionName = target.dataset.action;
+  const canStartDuringTransition = !decisionTransition.locked || actionName === "new" || actionName === "replay";
+  // Browsers increment click.detail across different touch targets too. Only suppress
+  // a repeated choice after another choice was accepted; the first choice after the
+  // entry action can otherwise arrive with detail > 1 and be lost.
+  if (actionName === "choose" && (event as MouseEvent).detail > 1 && lastAcceptedClickAction === "choose" && canStartDuringTransition) return;
+  if (canStartDuringTransition) lastAcceptedClickAction = actionName === "choose" ? "choose" : null;
   action(target).catch(err => announce(err instanceof Error ? err.message : "Cette action n'a pas pu aboutir."));
 });
 window.addEventListener("pagehide", () => {

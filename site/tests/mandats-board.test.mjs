@@ -250,6 +250,15 @@ test('one choice is one turn, and a saved game resumes after reload', async ({ p
   await expect(board(page).locator('.campaign-position')).toContainText('décision 2/6');
 });
 
+test('one choice is one turn when the first choice click carries touch detail two', async ({ page }) => {
+  await beginDefault(page);
+  await turns(page).first().evaluate((button) => {
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
+  });
+  await expect.poll(async () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(1);
+  await expect(board(page).locator('.campaign-position')).toContainText('décision 2/6');
+});
+
 test('reduced motion removes transition duration and both mobile widths fit', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await beginDefault(page);
