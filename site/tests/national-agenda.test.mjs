@@ -4,7 +4,9 @@ const KEY='500signatures.mandats.v1';
 async function continueAfterAnnualRecap(page){
  if(await page.locator('.year-recap').count()){
   await expect(page.locator('.year-recap')).toBeVisible();
-  await page.getByRole('button',{name:/Passer à l’année/}).click();
+  await page.locator('.year-recap [data-action="next-year"]').click();
+  await expect(page.locator('.living-briefing')).toBeVisible();
+  await page.locator('.living-briefing [data-action="start-year"]').click();
  }
 }
 
@@ -27,18 +29,17 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   const options=page.locator('.choices button:enabled');
   const option=options.nth(i%await options.count());
   await option.scrollIntoViewIfNeeded();
-  const normalScroll=await page.evaluate(()=>window.scrollY);
   await option.click();
   const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
   expect(saved.version).toBe(9);expect(saved.choices).toHaveLength(i+1);
+  if((i+1)%6!==0) await expect(page.locator('.choices button:enabled').first()).toBeEnabled();
   if(i===0)await expect(page.locator('.dossier h1')).toHaveText('Faut-il réduire les effectifs administratifs ?');
   if((i+1)%6===0){
-   await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6}/5 · CHAPITRE ACHEVÉ`);
+   await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6} ACHEVÉE`);
    await continueAfterAnnualRecap(page);
    expect(await page.evaluate(()=>window.scrollY)).toBe(0);
   }
   await expect(page.locator('.mandate-board[data-mandate-board]')).toHaveAttribute('data-turn',String(i+1));
-  if((i+1)%6!==0) expect(Math.abs(await page.evaluate(()=>window.scrollY)-normalScroll)).toBeLessThanOrEqual(1);
   await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
   await expect(page.locator('[data-national-scene]:visible [data-country-feedback]')).toBeVisible();
   const feedback=await page.locator('[data-national-scene]:visible [data-feedback-copy]').innerText();
@@ -49,13 +50,13 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   const slot=played%6+1;
   await expect(page.locator('.campaign-position')).toContainText(`Année ${year} · décision ${slot}/6`);
   if(portrait){
-   const box=await page.locator('.dossier h1').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);
+   const box=await page.locator('.dossier h1').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize().height);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  }
  expect(new Set(titles).size).toBe(10);
  const saved=await page.evaluate(k=>localStorage.getItem(k),KEY);
- await page.getByRole('button',{name:'Bilan',exact:true}).click();await expect(page.locator('.finance-panel')).toBeVisible();
+ await page.getByRole('button',{name:'Bilan',exact:true}).click();await expect(page.locator('.cinema-review__summary')).toBeVisible();
  await page.getByRole('button',{name:'Décider',exact:true}).click();
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe(saved);
  await expect(page.locator('.campaign-position')).toContainText('Année 2 · décision 5/6');

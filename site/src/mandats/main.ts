@@ -18,12 +18,15 @@ import { decode, encode, save, STORAGE_KEY, MAX_SAVE_BYTES } from "./storage.ts"
 import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
 import { readProgression, recordCompletedMandate } from "./progression.ts";
 import { createDecisionTransition } from "./decision-transition.ts";
-import { comparisonMarkup, createBranch, readBranchReference, saveBranchReference } from "./branch-replay.ts";
+import { nationalSceneState } from "./national-scene-state.ts";
+import { comparisonMarkup, createBranch, readBranchReference, renderReplaySelection, renderTrajectoryComparison, saveBranchReference } from "./branch-replay.ts";
 import "./living-board.css";
 import "./country-feedback.css";
 import "./branch-replay.css";
 import "./living-recaps.css";
 import "./decision-motion.css";
+import "./cinema-board.css";
+import "./cinema-shell.css";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -58,7 +61,11 @@ function branchMarkerMatches(game: Game): boolean {
   } catch { return false; }
 }
 function attachBranchReference(game: Game) {
-  branchReference = branchMarkerMatches(game) ? readBranchReference(localStorage) : null;
+  const reference = branchMarkerMatches(game) ? readBranchReference(localStorage) : null;
+  branchReference = reference && sameBranchScenario(reference, game) ? reference : null;
+}
+function sameBranchScenario(a: Game, b: Game): boolean {
+  return a.mode === b.mode && a.version === b.version && a.seed === b.seed && a.ambition === b.ambition && JSON.stringify(a.city) === JSON.stringify(b.city);
 }
 function clearBoardMotion() {
   if (boardMotionTimer !== undefined) window.clearTimeout(boardMotionTimer);
@@ -156,11 +163,18 @@ function render(focus = true, restoreScroll?: number) {
   clearBoardMotion();
   document.body.dataset.screen = screen;
   document.body.dataset.view = view;
+  // The cinematic shell is active throughout the national journey, including
+  // the entry/selection screens. Scene focus remains a separate, data-driven hook.
+  const nationalCinema = !g || g.mode === "national";
+  document.body.dataset.art = nationalCinema ? "cinema" : "default";
+  document.body.dataset.cinema = String(nationalCinema);
+  const sceneState = g?.mode === "national" ? nationalSceneState(g, inherited) : null;
+  document.body.dataset.scene = sceneState?.focus ?? (screen === "select" ? "selection" : screen);
   const lightControl = document.querySelector<HTMLElement>('.header-actions [data-action="light-mode"]');
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  let markup = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  let markup = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? yearRecap(g!) : screen === "replay" ? renderReplaySelection(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
   if (branchReference && g && screen === "play" && view === "decision" && g.version >= 9 && g.mode === "national") {
     const withComparison = document.createElement("template");
     withComparison.innerHTML = markup;
@@ -173,13 +187,20 @@ function render(focus = true, restoreScroll?: number) {
         feedback.insertAdjacentHTML("beforeend", comparison);
       }
     } else if (g.turn === domainFor(g).turns) {
-      const comparison = comparisonMarkup(g, branchReference);
+      const comparison = renderTrajectoryComparison(g, branchReference);
       if (comparison) withComparison.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);
     }
     markup = withComparison.innerHTML;
   }
+  if (branchReference && g && screen === "play" && view === "finance" && g.version >= 9 && g.mode === "national") {
+    const withComparison = document.createElement("template");
+    withComparison.innerHTML = markup;
+    const comparison = renderTrajectoryComparison(g, branchReference);
+    withComparison.content.querySelector<HTMLElement>(".cinema-review > .game-tabs")?.insertAdjacentHTML("afterend", comparison);
+    markup = withComparison.innerHTML;
+  }
   if (branchReference && g && screen === "result") {
-    const comparison = comparisonMarkup(g, branchReference);
+    const comparison = renderTrajectoryComparison(g, branchReference);
     if (comparison) {
       const resultTemplate = document.createElement("template");
       resultTemplate.innerHTML = markup;
@@ -386,8 +407,17 @@ async function action(target: HTMLElement) {
       decisionTransition.finish(token, () => {
         render(false);
         if (yearClosed) window.scrollTo({ top: 0, behavior: "instant" });
+        else {
+          const question = root.querySelector<HTMLElement>("[data-board-decision] h1");
+          if (question) {
+            const box = question.getBoundingClientRect();
+            if (box.top < 12 || box.bottom > window.innerHeight - 24) {
+              window.scrollTo({ top: Math.max(0, window.scrollY + box.top - 24), behavior: "instant" });
+            }
+          }
+        }
         (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
-      }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 150);
+      }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 110);
       return;
     }
     const next = decide(g, target.dataset.choice!);
@@ -402,20 +432,31 @@ async function action(target: HTMLElement) {
       try { progression = recordCompletedMandate(localStorage,next); } catch {}
     }
   }
-  else if (a === "next-year" && g) { screen = "play"; view = "decision"; }
+  else if (a === "next-year" && g) { screen = "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
   else if (a === "view") { view = target.dataset.view as View; }
   else if (a === "new") { clearBranchReference(); inherited = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
   else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 9); shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
+  else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
+  else if (a === "restore-origin" && g) {
+    if (branchReference) {
+      const original = branchReference;
+      branchReference = null; clearBranchReference();
+      adopt(original);
+      persist();
+    } else screen = "result";
+  }
+  else if (a === "continue-branch" && g) { screen = "play"; view = "decision"; planIds = null; persist(); }
   else if ((a === "branch-replay" || a === "replay-branch") && g) {
     try {
-      const original = g;
-      g = createBranch(original, Number(target.dataset.turn));
+      const source = g;
+      const reference = branchReference && sameBranchScenario(branchReference, source) ? branchReference : source;
+      g = createBranch(source, Number(target.dataset.turn));
       let archived = false;
-      try { archived = saveBranchReference(localStorage, original); } catch {}
-      branchReference = original;
+      try { archived = saveBranchReference(localStorage, reference); } catch {}
+      branchReference = reference;
       try {
         if (archived) localStorage.setItem(BRANCH_ACTIVE_KEY, JSON.stringify({ schema: 1, seed: g.seed, version: g.version, mode: g.mode, ambition: g.ambition, prefix: g.choices }));
         else localStorage.removeItem(BRANCH_ACTIVE_KEY);
@@ -440,17 +481,24 @@ async function action(target: HTMLElement) {
   } else if (a === "png") { await png(target.dataset.format as keyof typeof CARD_SIZES); return; }
   else return;
   if (dialog.open) dialog.close();
-  const newChapter = ["mode", "next-year", "show-result", "new-run", "replay", "branch-replay", "resume"].includes(a ?? "");
+  const newChapter = ["mode", "next-year", "start-year", "show-result", "new-run", "replay", "branch-replay", "resume", "open-replay-selection", "restore-origin"].includes(a ?? "");
   render(true, a === "choose" ? actionScroll : newChapter ? 0 : undefined);
   if(a === "choose" && g?.mode === "national" && g.version >= 8 && matchMedia("(max-width:820px) and (min-height:501px)").matches) {
     const question=root.querySelector<HTMLElement>(".dossier");
     if(question && question.getBoundingClientRect().top < 0) window.scrollTo({top:window.scrollY+question.getBoundingClientRect().top-12,behavior:"instant"});
   }
 }
+let lastAcceptedClickAction: string | null = null;
 document.addEventListener("click", event => {
   const target = (event.target as Element).closest<HTMLElement>("[data-action]");
-  if (target?.dataset.action === "choose" && (event as MouseEvent).detail > 1) return;
   if (!target || (target as HTMLButtonElement).disabled) return;
+  const actionName = target.dataset.action;
+  const canStartDuringTransition = !decisionTransition.locked || actionName === "new" || actionName === "replay";
+  // Browsers increment click.detail across different touch targets too. Only suppress
+  // a repeated choice after another choice was accepted; the first choice after the
+  // entry action can otherwise arrive with detail > 1 and be lost.
+  if (actionName === "choose" && (event as MouseEvent).detail > 1 && lastAcceptedClickAction === "choose" && canStartDuringTransition) return;
+  if (canStartDuringTransition) lastAcceptedClickAction = actionName === "choose" ? "choose" : null;
   action(target).catch(err => announce(err instanceof Error ? err.message : "Cette action n'a pas pu aboutir."));
 });
 window.addEventListener("pagehide", () => {

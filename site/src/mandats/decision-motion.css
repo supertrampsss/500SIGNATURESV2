@@ -5,16 +5,22 @@
   from { opacity: .72; transform: translateY(9px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.mandate-board [data-action="choose"].is-committing { animation: decision-card-commit 150ms ease-out both; pointer-events: none; }
+.mandate-board [data-action="choose"].is-committing { animation: decision-card-commit 110ms ease-out both; pointer-events: none; }
 .mandate-board.is-transitioning [data-board-decision] { animation: decision-prompt-enter 260ms ease-out both; }
 .mandate-board [data-animated-value].is-value-changing { color: var(--accent); }
 .mandate-board [data-metric].is-changing { animation: decision-prompt-enter 400ms ease-out both; }
 .mandate-board [data-board-feedback] .board-impact.is-arriving { animation: decision-prompt-enter 280ms ease-out both; }
 .mandate-board [data-national-scene].is-focus-response { animation: decision-prompt-enter 420ms ease-out both; }
+@keyframes cinema-page-enter {
+  from { opacity: .45; transform: perspective(1000px) rotateY(-2deg) translateY(8px); transform-origin: left center; }
+  to { opacity: 1; transform: perspective(1000px) rotateY(0) translateY(0); }
+}
+.living-recap__hero, .living-briefing__hero { animation: cinema-page-enter 380ms cubic-bezier(.2,.75,.25,1) both; }
 @media (prefers-reduced-motion: reduce) {
   .mandate-board [data-action="choose"].is-committing,
   .mandate-board.is-transitioning [data-board-decision],
   .mandate-board [data-metric].is-changing,
   .mandate-board [data-board-feedback] .board-impact.is-arriving,
-  .mandate-board [data-national-scene].is-focus-response { animation: none !important; }
+  .mandate-board [data-national-scene].is-focus-response,
+  .living-recap__hero, .living-briefing__hero { animation: none !important; }
 }

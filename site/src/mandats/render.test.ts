@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { start, decide, DOMAINS } from "./engine.ts";
-import { selection, mandateSetup, gameShell } from "./render.ts";
+import { selection, mandateSetup, gameShell, yearBriefing } from "./render.ts";
 test("the public mandate entry offers the national campaign with direct choices", () => {
   const html = selection(null);
   assert.doesNotMatch(html, /data-mode="municipal"/); assert.match(html, /data-mode="national"/);
@@ -61,4 +61,18 @@ test('trois entrées donnent accès au vote, au bilan complet et à la partie',(
  for(const label of ['Décider','Bilan','Ma partie'])assert.ok(tabs.includes(label));
  for(const cls of ['finance-panel','territory-panel','journal'])assert.ok(html.includes(cls));
  assert.doesNotMatch(gameShell(g,'play','decision'),/Le contexte en détail/);
+});
+
+test("cinematic national entry and decision board expose stable, accessible browser hooks",()=>{
+ const home=selection(null);
+ assert.match(home,/class="cinema-entry__image"[^>]+src="\/mandats\/art\/office\.webp"/);
+ assert.match(home,/data-action="tools"[^>]*>Ma partie<\/button>/);
+ const g=start('national',42,'equilibre',9);
+ const board=gameShell(g,'play','decision');
+ for(const hook of ['data-mandate-board','data-board-hud','data-board-scene','data-board-decision','data-board-feedback'])assert.ok(board.includes(hook),`missing ${hook}`);
+ assert.equal((board.match(/class="cinema-choice__art"/g)??[]).length,3);
+ assert.doesNotMatch(board,/class="choice-key"|>\s*[ABC]\s*</);
+ assert.match(yearBriefing(g),/class="living-briefing v9-chapter-1"/);
+ assert.match(yearBriefing(g),/class="living-briefing__state"/);
+ assert.match(yearBriefing(g),/data-action="start-year"/);
 });
