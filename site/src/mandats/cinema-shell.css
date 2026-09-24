@@ -136,3 +136,12 @@ html body[data-cinema="true"] #mandats .replay-selection__all>summary { color:#f
 html body[data-cinema="true"] #mandats .cinema-review { padding-bottom:80px; }
 html body[data-cinema="true"] #mandats .board-feedback:has(.branch-comparison) { display:flex; flex-wrap:wrap; gap:10px; }
 html body[data-cinema="true"] #mandats .board-feedback .branch-comparison { width:100%; background:#f6f0e5; border-color:#d7caba; }
+html body[data-cinema="true"] #mandats .board-decision:has(.crisis-dossier) { background:#102b43; color:#f8f3ec; }
+html body[data-cinema="true"] #mandats .board-decision:has(.crisis-dossier) :is(.crisis-banner,.choice-detail summary,.board-decision-footer,.board-decision-footer span:first-child) { color:#f8f3ec; }
+html body[data-cinema="true"] #mandats .board-decision:has(.crisis-dossier) .crisis-banner { border-color:#e64f62; background:#d3324826; }
+html body[data-cinema="true"] #mandats .board-decision:has(.crisis-dossier) .choice-detail { color:#e6edf2; }
+html body[data-cinema="true"] #mandats .crisis-dossier .campaign-position { color:#c9d5df; }
+@media(min-width:601px) {
+ html body[data-cinema="true"] #mandats :is(.living-result__diorama,.living-recap__diorama) img { max-height:32svh; }
+ html body[data-cinema="true"] #mandats :is(.living-result__hero,.living-recap__hero) h1 { font-size:clamp(3.5rem,6vw,5rem); }
+}

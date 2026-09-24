@@ -154,6 +154,11 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     expect(save.version).toBe(9);
     expect(save.ambition).toBe('equilibre');
     if (!crisisCaptured && await board(page).locator('.crisis-dossier').count()) {
+      const colors = await board(page).locator('.crisis-dossier h1').evaluate((heading) => ({
+        foreground: getComputedStyle(heading).color,
+        background: getComputedStyle(heading.closest('[data-board-decision]')).backgroundColor,
+      }));
+      expect(colors.foreground).not.toBe(colors.background);
       await capture(page, test.info(), 'crisis-decision');
       crisisCaptured = true;
     }

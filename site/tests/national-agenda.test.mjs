@@ -33,6 +33,7 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   await option.click();
   const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
   expect(saved.version).toBe(9);expect(saved.choices).toHaveLength(i+1);
+  if((i+1)%6!==0) await expect(page.locator('.choices button:enabled').first()).toBeEnabled();
   if(i===0)await expect(page.locator('.dossier h1')).toHaveText('Faut-il réduire les effectifs administratifs ?');
   if((i+1)%6===0){
    await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6} ACHEVÉE`);
@@ -57,7 +58,7 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
  }
  expect(new Set(titles).size).toBe(10);
  const saved=await page.evaluate(k=>localStorage.getItem(k),KEY);
- await page.getByRole('button',{name:'Bilan',exact:true}).click();await expect(page.locator('.finance-panel')).toBeVisible();
+ await page.getByRole('button',{name:'Bilan',exact:true}).click();await expect(page.locator('.cinema-review__summary')).toBeVisible();
  await page.getByRole('button',{name:'Décider',exact:true}).click();
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe(saved);
  await expect(page.locator('.campaign-position')).toContainText('Année 2 · décision 5/6');

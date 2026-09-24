@@ -407,6 +407,15 @@ async function action(target: HTMLElement) {
       decisionTransition.finish(token, () => {
         render(false);
         if (yearClosed) window.scrollTo({ top: 0, behavior: "instant" });
+        else {
+          const question = root.querySelector<HTMLElement>("[data-board-decision] h1");
+          if (question) {
+            const box = question.getBoundingClientRect();
+            if (box.top < 12 || box.bottom > window.innerHeight - 24) {
+              window.scrollTo({ top: Math.max(0, window.scrollY + box.top - 24), behavior: "instant" });
+            }
+          }
+        }
         (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 110);
       return;
