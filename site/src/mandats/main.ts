@@ -196,7 +196,7 @@ function render(focus = true, restoreScroll?: number) {
     const withComparison = document.createElement("template");
     withComparison.innerHTML = markup;
     const comparison = renderTrajectoryComparison(g, branchReference);
-    withComparison.content.querySelector<HTMLElement>(".mandate-review")?.insertAdjacentHTML("beforeend", comparison);
+    withComparison.content.querySelector<HTMLElement>(".cinema-review > .game-tabs")?.insertAdjacentHTML("afterend", comparison);
     markup = withComparison.innerHTML;
   }
   if (branchReference && g && screen === "result") {

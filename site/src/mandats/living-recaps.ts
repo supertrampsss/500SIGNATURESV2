@@ -24,17 +24,14 @@ function changes(before: Snapshot, after: Snapshot, deficitBefore: number, defic
   return `<div class="living-country-grid" aria-label="Évolution des comptes et indicateurs">${rows.map(([label, from, to, change]) => `<div><span>${label}</span><strong>${from} → ${to}</strong><small>${change}</small></div>`).join('')}</div>`;
 }
 function yearEssentials(before: Snapshot, after: Snapshot, deficitBefore: number, deficitAfter: number) {
+  const sameSide = (deficitBefore < 0) === (deficitAfter < 0);
+  const financeLabel = sameSide ? deficitAfter < 0 ? 'Excédent' : 'Déficit' : 'Solde annuel';
+  const financeValues = sameSide ? `${fmt(Math.abs(deficitBefore))} → ${fmt(Math.abs(deficitAfter))}` : `${balance(deficitBefore)} → ${balance(deficitAfter)}`;
   return `<div class="living-essentials">
-    <div><span>Solde annuel</span><strong>${balance(deficitBefore)} → ${balance(deficitAfter)}</strong><small>${delta(deficitAfter - deficitBefore)} Md€</small></div>
-    <div><span>Services publics</span><strong>${Math.round(before.metrics.services)} → ${Math.round(after.metrics.services)}/100</strong><small>${delta(after.metrics.services - before.metrics.services)} pts</small></div>
-    <div><span>Confiance</span><strong>${Math.round(before.metrics.trust)} → ${Math.round(after.metrics.trust)}/100</strong><small>${delta(after.metrics.trust - before.metrics.trust)} pts</small></div>
+    <div><span>${financeLabel}</span><strong>${financeValues}</strong><small>Md€ · ${delta(deficitAfter - deficitBefore)} Md€</small></div>
+    <div><span>Services publics</span><strong>${Math.round(before.metrics.services)} → ${Math.round(after.metrics.services)}</strong><small>sur 100 · ${delta(after.metrics.services - before.metrics.services)} pts</small></div>
+    <div><span>Confiance</span><strong>${Math.round(before.metrics.trust)} → ${Math.round(after.metrics.trust)}</strong><small>sur 100 · ${delta(after.metrics.trust - before.metrics.trust)} pts</small></div>
   </div>`;
-}
-function nextTension(g: Game, year: number) {
-  const pending = g.pending.filter(item => item.due >= year).sort((a, b) => a.due - b.due)[0];
-  if (pending) return `<p>À venir en année ${pending.due + 1} : <strong>${e(pending.label)}</strong></p>`;
-  const dossier = domainFor(g).dossiers[g.turn];
-  return dossier ? `<p>Prochain dossier : <strong>${e(dossier.title)}</strong></p>` : '<p>Le bilan final de votre mandat est prêt.</p>';
 }
 function recapProgress(year: number, completedYears: number) {
   return `<ol class="living-recap__chapters" aria-label="Avancement du mandat, ${completedYears} année${completedYears > 1 ? 's' : ''} terminée${completedYears > 1 ? 's' : ''}">${chapters.map((chapter, index) => {
@@ -65,16 +62,11 @@ export function livingYearRecap(g: Game): string {
       <h1 tabindex="-1">Une année<br>de décisions.</h1>
       <p>${e(chapters[year - 1] ?? `Année ${year}`)} · ${decisions.length} décisions prises.</p>
       <span class="living-recap__seal" aria-label="Année ${year} sur 5"><strong>${year}</strong><span>/ 5</span></span>
-      <div class="living-recap__diorama"><img src="/mandats/art/chapter.webp" alt="La France en miniature au coucher du soleil, dans un livre ouvert"></div>
+      <div class="living-recap__diorama"><img src="/mandats/art/legacy.webp" alt="La France en miniature au coucher du soleil, sur les cinq pages du mandat"></div>
     </header>
     <section class="living-recap__changes">
       <p class="eyebrow">LES EFFETS DE L’ANNÉE</p>
       ${yearEssentials(before, after, previousDeficit, last.ledger.deficit)}
-    </section>
-    <section class="living-recap__next">
-      <p class="eyebrow">LA SUITE DU MANDAT</p>
-      <h2>${year < 5 ? `Année ${year + 1} · ${e(chapters[year])}` : 'Votre bilan final est prêt'}</h2>
-      ${nextTension(g, year)}
     </section>
     ${recapProgress(year, progress.completedYears)}
     <button class="button primary" data-action="${year < 5 ? 'next-year' : 'show-result'}">${year < 5 ? `Entrer dans l’année ${year + 1}` : 'Explorer mon bilan'}</button>

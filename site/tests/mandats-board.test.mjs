@@ -109,6 +109,11 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     return true;
   });
   expect(sceneIdentity).toBe(true);
+  const cinematicArt = board(page).locator('[data-cinema-art]');
+  let latestArt = await cinematicArt.getAttribute('src');
+  let artChanged = false;
+  let artIdentity = 'stable-cinematic-art';
+  await cinematicArt.evaluate((image) => { image.dataset.testIdentity = 'stable-cinematic-art'; });
   let crisisCaptured = false;
   await capture(page, test.info(), 'first-decision');
 
@@ -116,17 +121,34 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     const expectedCount = turn + 1;
     if (turn > 0 && turn % 6 === 0) {
       await board(page).locator('[data-board-scene]').evaluate((node) => { node.dataset.testIdentity = 'stable-board-scene'; });
+      artIdentity = `stable-year-${turn / 6 + 1}`;
+      const yearArt = board(page).locator('[data-cinema-art]');
+      await yearArt.evaluate((image, identity) => { image.dataset.testIdentity = identity; }, artIdentity);
+      latestArt = await yearArt.getAttribute('src');
     }
     await pick(page, turn, expectedCount);
+    if (expectedCount % 6 !== 0) {
+      const currentArt = board(page).locator('[data-cinema-art]');
+      await expect(currentArt).toHaveAttribute('data-test-identity', artIdentity);
+      const source = await currentArt.getAttribute('src');
+      if (source !== latestArt) artChanged = true;
+      latestArt = source;
+    }
     if (turn === 0) {
+      await expect(cinematicArt).toHaveAttribute('data-test-identity', 'stable-cinematic-art');
     await expect(board(page).locator('[data-board-feedback]')).toBeVisible();
     await capture(page, test.info(), 'after-first-decision');
     await page.getByRole('button', { name: 'Bilan', exact: true }).click();
-    await expect(page.locator('.finance-panel')).toBeVisible();
+    await expect(page.locator('.cinema-review__summary')).toBeVisible();
     await capture(page, test.info(), 'first-decision-bilan');
     await page.getByRole('button', { name: 'Décider', exact: true }).click();
     await expect(board(page)).toBeVisible();
-  }
+    await board(page).locator('[data-board-scene]').evaluate((node) => { node.dataset.testIdentity = 'stable-board-scene'; });
+    artIdentity = 'stable-after-bilan';
+    const afterBilanArt = board(page).locator('[data-cinema-art]');
+    await afterBilanArt.evaluate((image, identity) => { image.dataset.testIdentity = identity; }, artIdentity);
+    latestArt = await afterBilanArt.getAttribute('src');
+    }
     const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY);
     expect(save.choices).toHaveLength(expectedCount);
     expect(save.version).toBe(9);
@@ -150,11 +172,18 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     }
   }
 
+  expect(artChanged, 'the cinematic scene changes image when the next dossier theme changes').toBe(true);
+
   await expect(page.locator('.result.v9-result')).toBeVisible();
-  await expect(page.locator('.result [data-action="open-replay-selection"]')).toBeInViewport({ ratio: 1 });
-  await noHorizontalOverflow(page);
   await capture(page, test.info(), 'result');
-  await expect(page.locator('.living-result h1')).toHaveText(/Vous avez changé\s+le paysage\./);
+  expect(await page.evaluate(() => window.scrollY), 'the final result opens at its beginning').toBe(0);
+  const resultAction = page.locator('.result [data-action="open-replay-selection"]');
+  const resultActionBox = await resultAction.boundingBox();
+  expect(resultActionBox).not.toBeNull();
+  expect(resultActionBox.height).toBeGreaterThanOrEqual(44);
+  await expect(resultAction).toBeInViewport({ ratio: 1 });
+  await noHorizontalOverflow(page);
+  await expect(page.locator('.living-result h1')).toHaveText(/Vous avez changé\s*le paysage\./);
   expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(30);
 
   const originalRaw = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
@@ -162,8 +191,9 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   await page.locator('.result [data-action="open-replay-selection"]').click();
   await expect(page.locator('.replay-selection')).toBeVisible();
   await expect(page.locator('.replay-card')).toHaveCount(30);
+  await page.locator('.replay-selection__all summary').click();
   await capture(page, test.info(), 'replay-selection');
-  const branch = page.locator('.replay-card [data-action="branch-replay"][data-turn]').first();
+  const branch = page.locator('.replay-selection .replay-card[data-action="branch-replay"][data-turn]').first();
   await expect(branch).toBeVisible();
   const replayTurn = Number(await branch.getAttribute('data-turn'));
   await branch.click();
@@ -179,16 +209,25 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   const changedChoice = board(page).locator(`[data-board-decision] [data-action="choose"][data-choice="${changedId}"]`);
   await expect(changedChoice).toBeVisible();
   await changedChoice.click();
-  await expect(board(page).locator('.trajectory-comparison')).toBeVisible();
-  await expect(board(page).locator('.trajectory-comparison')).toContainText('Mandat d’origine');
+  await expect(board(page).locator('.branch-comparison')).toBeVisible();
+  await expect(board(page).locator('.branch-comparison')).toContainText('Écart au même point du mandat');
+  // The visual branch feedback appears before the 110 ms scene transition lock ends.
+  await expect(board(page).locator('[data-action="choose"]').first()).toBeEnabled();
+  await page.getByRole('button', { name: 'Bilan', exact: true }).click();
+  await expect(page.locator('.cinema-review__summary')).toBeVisible();
+  await expect(page.locator('.trajectory-comparison')).toBeVisible();
+  await expect(page.locator('.trajectory-comparison')).toContainText('Mandat d’origine');
   await capture(page, test.info(), 'trajectory-comparison');
   await page.reload();
   await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
-  await expect(board(page).locator('.trajectory-comparison')).toBeVisible();
-  await board(page).locator('[data-action="restore-origin"]').click();
+  await expect(board(page).locator('.branch-comparison')).toBeVisible();
+  await page.getByRole('button', { name: 'Bilan', exact: true }).click();
+  await expect(page.locator('.trajectory-comparison')).toBeVisible();
+  await page.locator('.trajectory-comparison [data-action="restore-origin"]').click();
   await expect(page.locator('.result.v9-result')).toBeVisible();
   expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY)).toEqual(original);
-  expect(await page.evaluate(() => localStorage.getItem('500signatures.mandats.branch-reference.v1'))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem('500signatures.mandats.branch-active.v1'))).toBeNull();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('500signatures.mandats.branch-reference.v1')).game)).toBe(originalRaw);
 });
 
 test('one choice is one turn, and a saved game resumes after reload', async ({ page }) => {
