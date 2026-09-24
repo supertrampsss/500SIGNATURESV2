@@ -37,6 +37,10 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 ## Find the right code
 
 - `site/src/mandats/`: game engine, domain rules, session persistence and rendering.
+- `site/src/mandats/living-board.css`: national board layout and responsive command zone.
+- `site/src/mandats/decision-transition.ts`: decision lock and cancellable visual hand-off.
+- `site/src/mandats/branch-replay.ts`: validated branches and original trajectory archive.
+- `site/src/mandats/living-recaps.ts`: annual milestones and end-of-mandate replay.
 - `site/src/mandats/national-command.ts`: concise national status and decision effects.
 - `site/src/mandats/national-scene-state.ts`: game state to scene state.
 - `site/src/mandats/winter/`: scene rendering; historical folder name, not product scope.

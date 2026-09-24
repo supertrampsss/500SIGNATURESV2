@@ -17,3 +17,7 @@ site/shot-*.mjs
 .claude/worktrees/
 .worktrees/
 *.egg-info/
+
+# Captures et rapports de validation Mandats.
+site/board-audit-artifacts/
+site/playwright-report-board/

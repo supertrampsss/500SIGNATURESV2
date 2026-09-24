@@ -51,23 +51,31 @@ test('v9 onboarding offers three missions and annual recap gates chapters',()=>{
   assert.match(briefing,/class="year-briefing__state"/);
   for(let i=0;i<6;i++)g=legalNext(g);
   const recap=yearRecap(g);
-  assert.match(recap,/FIN DE L’ANNÉE 1/);
+  assert.match(recap,/Année 1 accomplie/);
   assert.match(recap,/Passer à l’année 2/);
-  assert.match(recap,/class="chapter-milestones"/);
-  assert.match(recap,/Chapitre 1\/5 terminé/);
-  assert.match(recap,/class="mission-pulse"/);
+  assert.match(recap,/LES EFFETS DE L’ANNÉE/);
+  assert.match(recap,/Services publics/);
+  assert.match(recap,/Confiance/);
+  assert.match(recap,/data-action="next-year"/);
+  assert.match(recap,/CE QUE VOUS AVEZ ACCOMPLI/);
 });
 
 test('v9 final result is multidimensional without a global government score',()=>{
   let g=start('national',909,'equilibre',9);
   while(g.turn<domainFor(g).turns)g=legalNext(g);
   const html=result(g);
-  assert.match(html,/sans note globale/);
-  assert.match(html,/Rejouer exactement ce défi/);
-  assert.doesNotMatch(html,/class="score-number"/);
+  assert.match(html,/Votre mandat a changé le pays/);
+  assert.match(html,/Services/);
+  assert.match(html,/Confiance/);
+  assert.match(html,/Résilience/);
+  assert.match(html,/data-action="branch-replay" data-turn="\d+"/);
+  assert.match(html,/data-action="share"/);
+  assert.match(html,/data-action="replay"/);
+  assert.match(html,/data-action="open-plan"/);
   assert.match(html,/data-action="new-run"/);
-  assert.match(html,/class="final-run-stats"/);
-  assert.match(html,/class="campaign-memory"/);
+  assert.match(html,/Journal du mandat · 30 décisions/);
+  assert.match(html,/Simulation · scénario #909 · version 9/);
+  assert.doesNotMatch(html,/class="score-number"|sans note globale/);
 });
 
 

@@ -7,6 +7,7 @@
     "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/mandats-offline.ts",
     "test": "node scripts/test-unit.mjs",
     "preview": "vite preview",
+    "test:board": "playwright test --config playwright.board.config.ts",
     "test:mandats": "playwright test --config playwright.mandats.config.ts",
     "test:mandats:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort",
     "check": "npm test && npm run build",

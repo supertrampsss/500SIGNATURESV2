@@ -1,0 +1,32 @@
+name: Mandats board review
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  mandats-board:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify decisions, persistence and branch replay
+        run: npx playwright test --config playwright.board.config.ts
+      - name: Publish board captures and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandats-board-review
+          path: |
+            site/board-audit-artifacts/
+            site/playwright-report-board/
+          retention-days: 14

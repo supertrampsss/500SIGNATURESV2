@@ -1,0 +1,20 @@
+@keyframes decision-card-commit {
+  to { border-color: var(--accent); background-color: #304b51; transform: scale(.985); }
+}
+@keyframes decision-prompt-enter {
+  from { opacity: .72; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mandate-board [data-action="choose"].is-committing { animation: decision-card-commit 150ms ease-out both; pointer-events: none; }
+.mandate-board.is-transitioning [data-board-decision] { animation: decision-prompt-enter 260ms ease-out both; }
+.mandate-board [data-animated-value].is-value-changing { color: var(--accent); }
+.mandate-board [data-metric].is-changing { animation: decision-prompt-enter 400ms ease-out both; }
+.mandate-board [data-board-feedback] .board-impact.is-arriving { animation: decision-prompt-enter 280ms ease-out both; }
+.mandate-board [data-national-scene].is-focus-response { animation: decision-prompt-enter 420ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .mandate-board [data-action="choose"].is-committing,
+  .mandate-board.is-transitioning [data-board-decision],
+  .mandate-board [data-metric].is-changing,
+  .mandate-board [data-board-feedback] .board-impact.is-arriving,
+  .mandate-board [data-national-scene].is-focus-response { animation: none !important; }
+}

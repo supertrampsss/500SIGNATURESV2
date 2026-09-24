@@ -17,6 +17,13 @@ import type { Screen, View } from "./render.ts";
 import { decode, encode, save, STORAGE_KEY, MAX_SAVE_BYTES } from "./storage.ts";
 import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
 import { readProgression, recordCompletedMandate } from "./progression.ts";
+import { createDecisionTransition } from "./decision-transition.ts";
+import { comparisonMarkup, createBranch, readBranchReference, saveBranchReference } from "./branch-replay.ts";
+import "./living-board.css";
+import "./country-feedback.css";
+import "./branch-replay.css";
+import "./living-recaps.css";
+import "./decision-motion.css";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -30,6 +37,78 @@ let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).c
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
 let progression = (() => { try { return readProgression(localStorage); } catch { return readProgression({getItem:()=>null}); } })();
+const decisionTransition = createDecisionTransition();
+let boardMotionTimer: number | undefined;
+let hudAnimationFrame: number | undefined;
+let hudAnimationTargets: Array<{ numberNode: Node; target: string; el: HTMLElement; metric?: HTMLElement }> = [];
+let temporarilyDisabledChoices = new Map<HTMLButtonElement, boolean>();
+let branchReference: Game | null = null;
+const BRANCH_ACTIVE_KEY = "500signatures.mandats.branch-active.v1";
+function clearBranchReference() {
+  branchReference = null;
+  try { localStorage.removeItem(BRANCH_ACTIVE_KEY); } catch {}
+}
+function branchMarkerMatches(game: Game): boolean {
+  try {
+    const raw = localStorage.getItem(BRANCH_ACTIVE_KEY);
+    if (!raw) return false;
+    const marker = JSON.parse(raw) as { schema?: unknown; seed?: unknown; version?: unknown; mode?: unknown; ambition?: unknown; prefix?: unknown };
+    return marker.schema === 1 && marker.seed === game.seed && marker.version === game.version && marker.mode === game.mode &&
+      marker.ambition === game.ambition && Array.isArray(marker.prefix) && marker.prefix.every((id, i) => typeof id === "string" && game.choices[i] === id);
+  } catch { return false; }
+}
+function attachBranchReference(game: Game) {
+  branchReference = branchMarkerMatches(game) ? readBranchReference(localStorage) : null;
+}
+function clearBoardMotion() {
+  if (boardMotionTimer !== undefined) window.clearTimeout(boardMotionTimer);
+  boardMotionTimer = undefined;
+  if (hudAnimationFrame !== undefined) cancelAnimationFrame(hudAnimationFrame);
+  hudAnimationFrame = undefined;
+  for (const { numberNode, target, el, metric } of hudAnimationTargets) {
+    numberNode.textContent = target;
+    el.classList.remove("is-value-changing");
+    metric?.classList.remove("is-changing");
+  }
+  hudAnimationTargets = [];
+  const board = root.querySelector<HTMLElement>("[data-mandate-board]");
+  board?.classList.remove("is-transitioning", "is-focus-response");
+  board?.querySelectorAll(".is-value-changing, .is-arriving, [data-metric].is-changing").forEach(node => node.classList.remove("is-value-changing", "is-arriving", "is-changing"));
+  board?.querySelectorAll<HTMLButtonElement>('[data-action="choose"]').forEach(button => button.classList.remove("is-committing"));
+  temporarilyDisabledChoices.forEach((disabled, button) => { button.disabled = disabled; });
+  temporarilyDisabledChoices.clear();
+}
+function animateHudValues(board: HTMLElement, oldValues: Map<string, string>) {
+  const formatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+  const entries = [...board.querySelectorAll<HTMLElement>("[data-animated-value]")].flatMap(el => {
+    const key = el.dataset.animatedValue ?? "";
+    const numberNode = el.firstChild;
+    const parse = (text: string) => Number(text.replace(/[\u00a0\u202f\s]/g, "").replace(",", ".").match(/-?\d+(?:\.\d+)?/)?.[0]);
+    const from = parse(oldValues.get(key) ?? "");
+    const to = parse(el.textContent ?? "");
+    if (!numberNode || !Number.isFinite(from) || !Number.isFinite(to) || from === to) return [];
+    return [{ el, numberNode, from, to, target: numberNode.textContent ?? "", metric: el.closest<HTMLElement>("[data-metric]") ?? undefined }];
+  });
+  if (!entries.length) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  hudAnimationTargets = entries;
+  const start = performance.now();
+  entries.forEach(({ el, metric }) => { el.classList.add("is-value-changing"); metric?.classList.add("is-changing"); });
+  const frame = (now: number) => {
+    const t = Math.min(1, (now - start) / 400);
+    const eased = 1 - (1 - t) ** 3;
+    for (const { numberNode, from, to, target } of entries) {
+      numberNode.textContent = t === 1 ? target : `${formatter.format(from + (to - from) * eased)} `;
+    }
+    if (t < 1) hudAnimationFrame = requestAnimationFrame(frame);
+    else {
+      entries.forEach(({ el, metric }) => { el.classList.remove("is-value-changing"); metric?.classList.remove("is-changing"); });
+      hudAnimationTargets = [];
+      hudAnimationFrame = undefined;
+    }
+  };
+  hudAnimationFrame = requestAnimationFrame(frame);
+}
 function freshSeed(): number {
   try {
     const values = new Uint16Array(1);
@@ -60,27 +139,123 @@ function openEntry() {
   catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
 }
 openEntry();
+if (g && saved && encode(g) === encode(saved)) attachBranchReference(g);
 window.addEventListener("hashchange", event => {
   // Ordinary in-page anchors (including the skip link) must not reset a game.
   if (![event.oldURL, event.newURL].some(url => /^#(result|dilemma|challenge)=/.test(new URL(url).hash))) return;
   if (dialog.open) dialog.close();
+  decisionTransition.cancel();
+  clearBoardMotion();
+  branchReference = null;
   announce("");
   openEntry();
+  if (g && saved && encode(g) === encode(saved)) attachBranchReference(g);
   render();
 });
 function render(focus = true, restoreScroll?: number) {
+  clearBoardMotion();
   document.body.dataset.screen = screen;
   document.body.dataset.view = view;
   const lightControl = document.querySelector<HTMLElement>('.header-actions [data-action="light-mode"]');
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  root.innerHTML = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  let markup = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? yearRecap(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  if (branchReference && g && screen === "play" && view === "decision" && g.version >= 9 && g.mode === "national") {
+    const withComparison = document.createElement("template");
+    withComparison.innerHTML = markup;
+    if (g.turn < domainFor(g).turns) {
+      const feedback = withComparison.content.querySelector<HTMLElement>("[data-board-feedback]");
+      const comparison = comparisonMarkup(g, branchReference);
+      if (comparison && feedback) feedback.insertAdjacentHTML("beforeend", comparison);
+    } else if (g.turn === domainFor(g).turns) {
+      const comparison = comparisonMarkup(g, branchReference);
+      if (comparison) withComparison.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);
+    }
+    markup = withComparison.innerHTML;
+  }
+  if (branchReference && g && screen === "result") {
+    const comparison = comparisonMarkup(g, branchReference);
+    if (comparison) {
+      const resultTemplate = document.createElement("template");
+      resultTemplate.innerHTML = markup;
+      resultTemplate.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);
+      markup = resultTemplate.innerHTML;
+    }
+  }
+  const liveBoard = root.querySelector<HTMLElement>("[data-mandate-board]");
+  if (liveBoard && screen === "play" && view === "decision" && g?.mode === "national" && g.version >= 9) {
+    const template = document.createElement("template");
+    template.innerHTML = markup;
+    const nextBoard = template.content.querySelector<HTMLElement>("[data-mandate-board]");
+    if (nextBoard) {
+      const oldValues = new Map([...liveBoard.querySelectorAll<HTMLElement>("[data-animated-value]")].map(el => [el.dataset.animatedValue ?? "", el.textContent ?? ""]));
+      // Keep the board and country scene host mounted between decisions.
+      for (const selector of ["[data-board-hud]", "[data-board-decision]", "[data-board-feedback]"]) {
+        const live = liveBoard.querySelector<HTMLElement>(selector);
+        const fresh = nextBoard.querySelector<HTMLElement>(selector);
+        if (live && fresh) {
+          live.innerHTML = fresh.innerHTML;
+          live.className = fresh.className;
+          const label = fresh.getAttribute("aria-label");
+          if (label === null) live.removeAttribute("aria-label"); else live.setAttribute("aria-label", label);
+        }
+      }
+      const liveWorld = liveBoard.querySelector<HTMLElement>(".board-map .national-world");
+      const freshWorld = nextBoard.querySelector<HTMLElement>(".board-map .national-world");
+      // Keep the scene host (and the mounted country illustration) alive;
+      // refresh its surrounding controls and labels from the new game state.
+      if (liveWorld && freshWorld) {
+        for (const selector of [".national-world-controls", ".national-areas", ".national-world-note"]) {
+          const live = liveWorld.querySelector<HTMLElement>(selector);
+          const fresh = freshWorld.querySelector<HTMLElement>(selector);
+          if (live && fresh) live.innerHTML = fresh.innerHTML;
+        }
+        const freshStage = freshWorld.querySelector<HTMLElement>("[data-national-scene]");
+        const liveStage = liveWorld.querySelector<HTMLElement>("[data-national-scene]");
+        const label = freshStage?.querySelector<HTMLElement>(".national-scene-label small")?.textContent;
+        const model = freshStage?.querySelector<HTMLElement>(".national-model-label")?.textContent;
+        const liveLabel = liveStage?.querySelector<HTMLElement>(".national-scene-label small");
+        const liveModel = liveStage?.querySelector<HTMLElement>(".national-model-label");
+        if (label && liveLabel) liveLabel.textContent = label;
+        if (model && liveModel) liveModel.textContent = model;
+        const feedbackFields = ["[data-feedback-title]", "[data-feedback-copy]", "[data-feedback-progress-label]"];
+        for (const selector of feedbackFields) {
+          const live = liveStage?.querySelector<HTMLElement>(selector);
+          const fresh = freshStage?.querySelector<HTMLElement>(selector);
+          if (live && fresh) live.textContent = fresh.textContent;
+        }
+        const liveProgress = liveStage?.querySelector<HTMLElement>("[data-feedback-progress-bar]");
+        const freshProgress = freshStage?.querySelector<HTMLElement>("[data-feedback-progress-bar]");
+        if (liveProgress && freshProgress) liveProgress.style.width = freshProgress.style.width;
+        const liveCountryFeedback = liveStage?.querySelector<HTMLElement>("[data-country-feedback]");
+        const freshCountryFeedback = freshStage?.querySelector<HTMLElement>("[data-country-feedback]");
+        if (liveCountryFeedback && freshCountryFeedback) liveCountryFeedback.dataset.focus = freshCountryFeedback.dataset.focus ?? "";
+      }
+      liveBoard.dataset.year = nextBoard.dataset.year ?? "";
+      liveBoard.dataset.turn = String(g.turn);
+      liveBoard.querySelectorAll<HTMLElement>("[data-metric]").forEach(metric => metric.classList.remove("is-changing"));
+      animateHudValues(liveBoard, oldValues);
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        if (boardMotionTimer !== undefined) window.clearTimeout(boardMotionTimer);
+        liveBoard.classList.add("is-transitioning");
+        liveBoard.classList.add("is-focus-response");
+        liveBoard.querySelector<HTMLElement>("[data-national-scene]")?.classList.add("is-focus-response");
+        boardMotionTimer = window.setTimeout(() => {
+          liveBoard.classList.remove("is-transitioning", "is-focus-response");
+          liveBoard.querySelector<HTMLElement>("[data-national-scene]")?.classList.remove("is-focus-response");
+          liveBoard.querySelectorAll(".is-value-changing, .is-arriving, [data-metric].is-changing").forEach(node => node.classList.remove("is-value-changing", "is-arriving", "is-changing"));
+          boardMotionTimer = undefined;
+        }, 450);
+        liveBoard.querySelectorAll<HTMLElement>(".board-impact").forEach(item => item.classList.add("is-arriving"));
+      } else liveBoard.classList.remove("is-transitioning", "is-focus-response");
+    } else root.innerHTML = markup;
+  } else root.innerHTML = markup;
   syncNationalScene(root, g, { light, inherited });
   document.querySelector("#game-tools")!.removeAttribute("hidden");
   if (focus) {
     root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
-    window.scrollTo({ top: restoreScroll ?? 0, behavior: "instant" });
+    if (restoreScroll !== undefined) window.scrollTo({ top: restoreScroll, behavior: "instant" });
   }
 }
 function persist() {
@@ -123,6 +298,10 @@ function sharingSheet() {
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
+  if (decisionTransition.locked) {
+    if (a !== "new" && a !== "replay") return;
+    decisionTransition.cancel();
+  }
   const actionScroll = window.scrollY;
   if (a === "light-mode") {
     const inDialog = dialog.contains(target), inPanel = root.contains(target);
@@ -159,18 +338,53 @@ async function action(target: HTMLElement) {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
     g = start("national", freshSeed(), "equilibre", 9);
-    shared = false; inherited = false; screen = "mandate"; view = "decision"; planIds = null;
-    clearEntryLink(history); track("mode_selected");
+    clearBranchReference();
+    // Equilibre is the default mission so new play starts with a decision.
+    shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null;
+    clearEntryLink(history); track("mode_selected"); persist();
   }
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
     g = start("national", g.seed, ambition, 9);
+    clearBranchReference();
     shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
     persist(); track("onboarding_completed");
   }
-  else if (a === "resume" && saved) { if (saved.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; } adopt(saved); }
+  else if (a === "resume" && saved) { if (saved.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; } adopt(saved); attachBranchReference(g!); }
   else if (a === "choose" && g) {
+    if (g.mode === "national" && g.version >= 9 && screen === "play" && view === "decision") {
+      const token = decisionTransition.begin();
+      if (token === null) return;
+      temporarilyDisabledChoices = new Map([...root.querySelectorAll<HTMLButtonElement>('[data-action="choose"]')].map(button => [button, button.disabled]));
+      target.classList.add("is-committing");
+      root.querySelectorAll<HTMLButtonElement>('[data-action="choose"]').forEach(button => { button.disabled = true; });
+      let next: Game;
+      try { next = decide(g, target.dataset.choice!); }
+      catch (error) {
+        decisionTransition.cancel();
+        target.classList.remove("is-committing");
+        temporarilyDisabledChoices.forEach((disabled, button) => { button.disabled = disabled; });
+        temporarilyDisabledChoices.clear();
+        announce(error instanceof Error ? error.message : "Cette décision n’a pas pu être appliquée.");
+        return;
+      }
+      const yearClosed = next.version >= 9 && next.history.at(-1)?.closed;
+      adopt(next);
+      if (yearClosed) screen = "year";
+      announce(`Décision ${next.turn} prise. ${yearClosed ? "L’année est terminée." : next.turn === domainFor(next).turns ? "Votre bilan est prêt." : "Dossier suivant."}`, true);
+      persist();
+      if (next.turn === 1) track("first_decision");
+      if (next.turn === domainFor(next).turns) {
+        track("game_completed");
+        try { progression = recordCompletedMandate(localStorage, next); } catch {}
+      }
+      decisionTransition.finish(token, () => {
+        render(false);
+        (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
+      }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 150);
+      return;
+    }
     const next = decide(g, target.dataset.choice!);
     const yearClosed = next.version >= 9 && next.history.at(-1)?.closed;
     adopt(next);
@@ -183,13 +397,28 @@ async function action(target: HTMLElement) {
       try { progression = recordCompletedMandate(localStorage,next); } catch {}
     }
   }
-  else if (a === "next-year" && g) { screen = "briefing"; view = "decision"; }
+  else if (a === "next-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
   else if (a === "view") { view = target.dataset.view as View; }
-  else if (a === "new") { inherited = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { g = start("national", freshSeed(), "equilibre", 9); shared = false; inherited = false; screen = "mandate"; view = "decision"; planIds = null; clearEntryLink(history); }
-  else if (a === "replay" && g) { track("replay_started"); adopt(startingGame(g)); persist(); }
+  else if (a === "new") { clearBranchReference(); inherited = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 9); shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
+  else if ((a === "branch-replay" || a === "replay-branch") && g) {
+    try {
+      const original = g;
+      g = createBranch(original, Number(target.dataset.turn));
+      const archived = saveBranchReference(localStorage, original);
+      branchReference = original;
+      try {
+        if (archived) localStorage.setItem(BRANCH_ACTIVE_KEY, JSON.stringify({ schema: 1, seed: g.seed, version: g.version, mode: g.mode, ambition: g.ambition, prefix: g.choices }));
+        else localStorage.removeItem(BRANCH_ACTIVE_KEY);
+      } catch {}
+      shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null;
+      clearEntryLink(history);
+      persist();
+    } catch (error) { announce(error instanceof Error ? error.message : "Ce parcours ne peut pas être rejoué."); return; }
+  }
   else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. 30 décisions réparties en cinq chapitres annuels.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
   else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Les nouvelles parties comportent 30 décisions, six par année. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>La mission choisie au départ change la lecture du bilan. Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button><button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
@@ -213,8 +442,14 @@ async function action(target: HTMLElement) {
 }
 document.addEventListener("click", event => {
   const target = (event.target as Element).closest<HTMLElement>("[data-action]");
+  if (target?.dataset.action === "choose" && (event as MouseEvent).detail > 1) return;
   if (!target || (target as HTMLButtonElement).disabled) return;
   action(target).catch(err => announce(err instanceof Error ? err.message : "Cette action n'a pas pu aboutir."));
+});
+window.addEventListener("pagehide", () => {
+  decisionTransition.cancel();
+  clearBoardMotion();
+  clearBoardMotion();
 });
 document.addEventListener("change", async event => {
   const input = event.target as HTMLInputElement;
@@ -229,7 +464,8 @@ document.addEventListener("change", async event => {
     return;
   }
   if (input.id !== "save-file" || !input.files?.[0]) return;
-  try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); adopt(decode(await input.files[0].text())); dialog.close(); render(); announce("Partie importée et recalculée."); persist(); }
+  decisionTransition.cancel();
+  try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); const imported = decode(await input.files[0].text()); clearBranchReference(); adopt(imported); dialog.close(); render(); announce("Partie importée et recalculée."); persist(); }
   catch (err) { announce(err instanceof Error ? err.message : "Import impossible."); }
 });
 render(false);
