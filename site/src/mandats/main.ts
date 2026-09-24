@@ -409,7 +409,8 @@ async function action(target: HTMLElement) {
     try {
       const original = g;
       g = createBranch(original, Number(target.dataset.turn));
-      const archived = saveBranchReference(localStorage, original);
+      let archived = false;
+      try { archived = saveBranchReference(localStorage, original); } catch {}
       branchReference = original;
       try {
         if (archived) localStorage.setItem(BRANCH_ACTIVE_KEY, JSON.stringify({ schema: 1, seed: g.seed, version: g.version, mode: g.mode, ambition: g.ambition, prefix: g.choices }));

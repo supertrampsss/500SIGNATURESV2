@@ -44,10 +44,9 @@ async function beginDefault(page) {
 }
 
 async function capture(page, info, label) {
-  await info.attach(`${label}-${info.project.name}`, {
-    body: await page.screenshot({ fullPage: true, animations: 'disabled' }),
-    contentType: 'image/png',
-  });
+  const path = info.outputPath(`${label}-${info.project.name}.png`);
+  await page.screenshot({ path, fullPage: true, animations: 'disabled' });
+  await info.attach(`${label}-${info.project.name}`, { path, contentType: 'image/png' });
 }
 
 async function pick(page, index = 0, expectedTurn) {
@@ -100,7 +99,9 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     expect(save.ambition).toBe('equilibre');
     await noHorizontalOverflow(page);
     if (expectedCount % 6 === 0) {
-      await capture(page, test.info(), 'year-recap');
+      await expect(page.locator('.year-recap')).toBeVisible();
+      await noHorizontalOverflow(page);
+      await capture(page, test.info(), `year-recap-${expectedCount / 6}`);
       await finishAnnualRecap(page, expectedCount / 6);
     } else if (expectedCount < 30) {
       await expect(board(page)).toBeVisible();

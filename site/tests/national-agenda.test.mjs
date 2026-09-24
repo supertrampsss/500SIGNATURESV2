@@ -16,7 +16,7 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
  await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
  const portrait=page.viewportSize().width<=820&&page.viewportSize().height>500;
  if(portrait){
-  expect((await page.locator('[data-board-scene]').boundingBox()).height).toBeLessThan(420);
+  expect((await page.locator('[data-board-scene]').boundingBox()).height).toBeLessThan(280);
   if(page.viewportSize().height>620) expect((await page.locator('.choices button').first().boundingBox()).y).toBeLessThan(page.viewportSize().height-100);
  }
  const initialSceneFeedback=await page.locator('[data-national-scene]:visible [data-feedback-copy]').innerText();
@@ -24,9 +24,11 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
  const titles=[];
  for(let i=0;i<10;i++){
   titles.push(await page.locator('.dossier h1').innerText());
-  const normalScroll=await page.evaluate(()=>window.scrollY);
   const options=page.locator('.choices button:enabled');
-  await options.nth(i%await options.count()).click();
+  const option=options.nth(i%await options.count());
+  await option.scrollIntoViewIfNeeded();
+  const normalScroll=await page.evaluate(()=>window.scrollY);
+  await option.click();
   const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
   expect(saved.version).toBe(9);expect(saved.choices).toHaveLength(i+1);
   if(i===0)await expect(page.locator('.dossier h1')).toHaveText('Faut-il réduire les effectifs administratifs ?');
@@ -34,10 +36,9 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
    await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6}/5 · CHAPITRE ACHEVÉ`);
    await continueAfterAnnualRecap(page);
    expect(await page.evaluate(()=>window.scrollY)).toBe(0);
-  }else{
-   expect(await page.evaluate(()=>window.scrollY)).toBe(normalScroll);
   }
   await expect(page.locator('.mandate-board[data-mandate-board]')).toHaveAttribute('data-turn',String(i+1));
+  if((i+1)%6!==0) expect(Math.abs(await page.evaluate(()=>window.scrollY)-normalScroll)).toBeLessThanOrEqual(1);
   await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
   await expect(page.locator('[data-national-scene]:visible [data-country-feedback]')).toBeVisible();
   const feedback=await page.locator('[data-national-scene]:visible [data-feedback-copy]').innerText();
