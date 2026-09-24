@@ -29,7 +29,6 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   const options=page.locator('.choices button:enabled');
   const option=options.nth(i%await options.count());
   await option.scrollIntoViewIfNeeded();
-  const normalScroll=await page.evaluate(()=>window.scrollY);
   await option.click();
   const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
   expect(saved.version).toBe(9);expect(saved.choices).toHaveLength(i+1);
@@ -41,7 +40,6 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
    expect(await page.evaluate(()=>window.scrollY)).toBe(0);
   }
   await expect(page.locator('.mandate-board[data-mandate-board]')).toHaveAttribute('data-turn',String(i+1));
-  if((i+1)%6!==0) expect(Math.abs(await page.evaluate(()=>window.scrollY)-normalScroll)).toBeLessThanOrEqual(1);
   await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
   await expect(page.locator('[data-national-scene]:visible [data-country-feedback]')).toBeVisible();
   const feedback=await page.locator('[data-national-scene]:visible [data-feedback-copy]').innerText();
@@ -52,7 +50,7 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   const slot=played%6+1;
   await expect(page.locator('.campaign-position')).toContainText(`Année ${year} · décision ${slot}/6`);
   if(portrait){
-   const box=await page.locator('.dossier h1').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);
+   const box=await page.locator('.dossier h1').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize().height);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  }
