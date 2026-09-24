@@ -44,10 +44,10 @@ test('municipal mandate stays unavailable and keeps an existing save',async({pag
  await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).toEqual(municipalSave);
 });
-test('opt-in offline preparation survives network loss',async({page,context},info)=>{
+test('opt-in offline preparation survives network loss with the cinematic game art',async({page,context},info)=>{
  test.skip(info.project.name!=='android-chromium','One service-worker lifecycle check is sufficient; other projects cover the game.');
  await begin(page,info);await choose(page,info);await activate(page.getByRole('button',{name:'Ma partie',exact:true}),info);await activate(page.getByRole('button',{name:'Préparer le jeu hors connexion',exact:true}),info);await expect(page.getByRole('dialog').getByRole('status')).toContainText('prêt hors connexion',{timeout:45000});
- await context.setOffline(true);await page.goto(HOME);await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toBeVisible();await choose(page,info);await activate(page.getByRole('button',{name:'Bilan',exact:true}),info);await expect.poll(()=>page.locator('.mobile-territory-world img').evaluateAll(images=>images.length>0&&images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);await context.setOffline(false);
+ await context.setOffline(true);await page.goto(HOME);await activate(page.getByRole('button',{name:/Reprendre/}),info);await expect(page.locator('.dossier h1')).toBeVisible();await choose(page,info);await expect.poll(()=>page.locator('[data-cinema-art]').evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);await activate(page.getByRole('button',{name:'Bilan',exact:true}),info);await expect.poll(()=>page.locator('.mobile-territory-world img').evaluateAll(images=>images.length>0&&images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);await context.setOffline(false);
 });
 
 test('source-backed guides are readable and lead to the matching mode',async({page},info)=>{

@@ -5,7 +5,12 @@ const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
 const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
-const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
+// These editorial images appear in the national game and its replay journey.
+// Keep the full-resolution seven-image set opt-in with the game cache; the
+// generated service worker is only installed when the player requests offline use.
+const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy']
+  .map(name => `/mandats/art/${name}.webp`);
+const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow static dependencies recursively; optional dynamic map imports stay online-only.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {

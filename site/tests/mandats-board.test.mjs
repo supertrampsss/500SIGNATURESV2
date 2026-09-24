@@ -45,6 +45,12 @@ async function beginDefault(page) {
 
 async function capture(page, info, label) {
   const path = info.outputPath(`${label}-${info.project.name}.png`);
+  await page.locator('img[src^="/mandats/art/"]').evaluateAll((images) => {
+    for (const image of images) image.loading = 'eager';
+  });
+  await expect.poll(() => page.locator('img[src^="/mandats/art/"]').evaluateAll((images) =>
+    images.every((image) => image.complete && image.naturalWidth > 0),
+  )).toBe(true);
   const scroll = await page.evaluate(() => window.scrollY);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await page.screenshot({ path, fullPage: true, animations: 'disabled' });
@@ -66,14 +72,28 @@ async function pick(page, index = 0, expectedTurn) {
   }
 }
 
-async function finishAnnualRecap(page, year) {
+async function finishAnnualRecap(page, year, info) {
   await expect(page.locator('.year-recap')).toBeVisible();
   await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${year}`);
   if (year === 5) {
-    await page.locator('.year-recap [data-action="show-result"]').click();
+    const resultButton = page.locator('.year-recap [data-action="show-result"]');
+    await expect(resultButton).toBeVisible();
+    const resultBox = await resultButton.boundingBox();
+    expect(resultBox).not.toBeNull();
+    expect(resultBox.height).toBeGreaterThanOrEqual(44);
+    if (info.project.use.viewport?.width === 390) {
+      expect(resultBox.y + resultBox.height).toBeLessThanOrEqual(info.project.use.viewport.height + 60);
+    }
+    await resultButton.click();
     await expect(page.locator('.result.v9-result')).toBeVisible();
   } else {
     await page.locator('.year-recap [data-action="next-year"]').click();
+    await expect(page.locator('.living-briefing')).toBeVisible();
+    await capture(page, info, `year-briefing-${year + 1}`);
+    const startYear = page.locator('.living-briefing [data-action="start-year"]');
+    await expect(startYear).toBeVisible();
+    expect((await startYear.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await startYear.click();
     await expect(board(page)).toBeVisible();
     await expect(board(page)).toHaveAttribute('data-year', String(year + 1));
   }
@@ -81,12 +101,15 @@ async function finishAnnualRecap(page, year) {
 
 test('default v9 board completes the five-year route and can replay a chosen turn', async ({ page }) => {
   test.setTimeout(120_000);
+  await page.goto('/mandats/');
+  await capture(page, test.info(), 'campaign-entry');
   await beginDefault(page);
   const sceneIdentity = await board(page).locator('[data-board-scene]').evaluate((node) => {
     node.dataset.testIdentity = 'stable-board-scene';
     return true;
   });
   expect(sceneIdentity).toBe(true);
+  let crisisCaptured = false;
   await capture(page, test.info(), 'first-decision');
 
   for (let turn = 0; turn < 30; turn += 1) {
@@ -96,20 +119,31 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     }
     await pick(page, turn, expectedCount);
     if (turn === 0) {
-      await expect(board(page).locator('[data-board-feedback]')).toBeVisible();
-      await capture(page, test.info(), 'after-first-decision');
-    }
+    await expect(board(page).locator('[data-board-feedback]')).toBeVisible();
+    await capture(page, test.info(), 'after-first-decision');
+    await page.getByRole('button', { name: 'Bilan', exact: true }).click();
+    await expect(page.locator('.finance-panel')).toBeVisible();
+    await capture(page, test.info(), 'first-decision-bilan');
+    await page.getByRole('button', { name: 'Décider', exact: true }).click();
+    await expect(board(page)).toBeVisible();
+  }
     const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY);
     expect(save.choices).toHaveLength(expectedCount);
     expect(save.version).toBe(9);
     expect(save.ambition).toBe('equilibre');
+    if (!crisisCaptured && await board(page).locator('.crisis-dossier').count()) {
+      await capture(page, test.info(), 'crisis-decision');
+      crisisCaptured = true;
+    }
     await noHorizontalOverflow(page);
     if (expectedCount % 6 === 0) {
       await expect(page.locator('.year-recap')).toBeVisible();
-      await expect(page.locator('.year-recap [data-action="next-year"], .year-recap [data-action="show-result"]').first()).toBeInViewport({ ratio: 1 });
+      const recapAction = page.locator('.year-recap [data-action="next-year"], .year-recap [data-action="show-result"]').first();
+      await expect(recapAction).toBeVisible();
+      expect((await recapAction.boundingBox()).height).toBeGreaterThanOrEqual(44);
       await noHorizontalOverflow(page);
       await capture(page, test.info(), `year-recap-${expectedCount / 6}`);
-      await finishAnnualRecap(page, expectedCount / 6);
+      await finishAnnualRecap(page, expectedCount / 6, test.info());
     } else if (expectedCount < 30) {
       await expect(board(page)).toBeVisible();
       await expect(board(page).locator('[data-board-scene]')).toHaveAttribute('data-test-identity', 'stable-board-scene');
@@ -117,13 +151,19 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   }
 
   await expect(page.locator('.result.v9-result')).toBeVisible();
-  await expect(page.locator('.result .result-actions [data-action="branch-replay"]')).toBeInViewport({ ratio: 1 });
+  await expect(page.locator('.result [data-action="open-replay-selection"]')).toBeInViewport({ ratio: 1 });
   await noHorizontalOverflow(page);
   await capture(page, test.info(), 'result');
-  await expect(page.locator('.living-result h1')).toHaveText('Votre mandat a changé le pays.');
+  await expect(page.locator('.living-result h1')).toHaveText(/Vous avez changé\s+le paysage\./);
   expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(30);
 
-  const branch = page.locator('.result [data-action="branch-replay"][data-turn]').first();
+  const originalRaw = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
+  const original = JSON.parse(originalRaw);
+  await page.locator('.result [data-action="open-replay-selection"]').click();
+  await expect(page.locator('.replay-selection')).toBeVisible();
+  await expect(page.locator('.replay-card')).toHaveCount(30);
+  await capture(page, test.info(), 'replay-selection');
+  const branch = page.locator('.replay-card [data-action="branch-replay"][data-turn]').first();
   await expect(branch).toBeVisible();
   const replayTurn = Number(await branch.getAttribute('data-turn'));
   await branch.click();
@@ -131,10 +171,24 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   const replaySave = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY);
   expect(replaySave.choices).toHaveLength(replayTurn);
   await expect(board(page).locator('[data-board-decision]')).toBeVisible();
-  await expect(board(page).locator('.branch-comparison')).toBeVisible();
+  // The branch starts immediately before the archived choice; choose a different
+  // available measure so the comparison represents a changed trajectory.
+  const availableIds = await turns(page).evaluateAll((buttons) => buttons.map((button) => button.dataset.choice));
+  const changedId = availableIds.find((id) => id !== original.choices[replayTurn]);
+  expect(changedId).toBeTruthy();
+  const changedChoice = board(page).locator(`[data-board-decision] [data-action="choose"][data-choice="${changedId}"]`);
+  await expect(changedChoice).toBeVisible();
+  await changedChoice.click();
+  await expect(board(page).locator('.trajectory-comparison')).toBeVisible();
+  await expect(board(page).locator('.trajectory-comparison')).toContainText('Mandat d’origine');
+  await capture(page, test.info(), 'trajectory-comparison');
   await page.reload();
   await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
-  await expect(board(page).locator('.branch-comparison')).toBeVisible();
+  await expect(board(page).locator('.trajectory-comparison')).toBeVisible();
+  await board(page).locator('[data-action="restore-origin"]').click();
+  await expect(page.locator('.result.v9-result')).toBeVisible();
+  expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), SAVE_KEY)).toEqual(original);
+  expect(await page.evaluate(() => localStorage.getItem('500signatures.mandats.branch-reference.v1'))).toBeNull();
 });
 
 test('one choice is one turn, and a saved game resumes after reload', async ({ page }) => {

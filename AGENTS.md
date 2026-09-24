@@ -52,6 +52,24 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: approved ten-screen visual reference (24 September 2026)
+
+The owner approved the ten image-generated mobile compositions as the visual
+target, including their detailed architectural miniatures, paper materials,
+navy/ivory/red palette and large editorial serif typography. Do not simplify
+them back into administrative panels. Use the production art in
+`site/public/mandats/art/{office,school,hospital,nation,chapter,legacy,energy}.webp`
+with real HTML controls, state and text. The artwork follows dossier themes;
+only the game engine supplies quantitative consequences. Never bake game text
+or metrics into a screenshot used as the interface.
+
+The visual journey covers entry, choice, feedback, crisis, annual recap, next
+chapter, exploration, final legacy, replay selection and trajectory comparison.
+`cinema-board.css`, `cinema-shell.css`, `living-recaps.css` and `branch-replay.css`
+own these compositions. Inspect actual desktop and phone renders before delivery.
+Keep the entire measure card clickable and preserve archives, old saves, export,
+import and opt-in offline play. The site's ordinary navigation remains reachable.
+
 ### France: approved full-page visual reference (21 September 2026)
 
 The owner's full desktop/mobile mockup `codex-clipboard-38fe691f-cbf0-4957-adf1-75a44ccb8736.png`

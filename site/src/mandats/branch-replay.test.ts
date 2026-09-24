@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { choicesFor, decide, preview, start } from "./engine.ts";
-import { BRANCH_REFERENCE_KEY, comparisonMarkup, createBranch, readBranchReference, saveBranchReference } from "./branch-replay.ts";
+import { BRANCH_REFERENCE_KEY, comparisonMarkup, createBranch, readBranchReference, renderReplaySelection, renderTrajectoryComparison, saveBranchReference } from "./branch-replay.ts";
 import { STORAGE_KEY, encode } from "./storage.ts";
 import type { Game } from "./types.ts";
 
@@ -88,4 +88,34 @@ test("comparison at turn zero uses the original starting state, not its final in
   assert.match(markup, /même point du mandat \(0 décisions\)/);
   assert.equal((markup.match(/\+0 points/g) ?? []).length, 4);
   assert.match(markup, /\+0 Md€/);
+});
+
+test("replay selection shows real historical dossiers, choices, and a zero-based branch turn", () => {
+  const original = complete(143);
+  const markup = renderReplaySelection(original);
+  assert.match(markup, /Où tout aurait pu changer \?/);
+  assert.match(markup, /data-action="branch-replay" data-turn="0"/);
+  assert.match(markup, /Choix d’origine/);
+  assert.match(markup, /school\.webp|hospital\.webp|energy\.webp|nation\.webp|chapter\.webp|legacy\.webp/);
+  assert.equal((markup.match(/class="replay-card" data-action="branch-replay"/g) ?? []).length, 3);
+  assert.match(markup, /<details class="replay-selection__all"><summary>Toutes mes décisions/);
+  assert.doesNotMatch(markup, /Rejouer depuis ce choix/);
+  assert.match(markup, /data-action="show-result"/);
+  assert.equal(renderReplaySelection(start("national", 143, "services", 9)), "");
+});
+
+test("full comparison uses equal progress and offers continuation or original restoration", () => {
+  const original = complete(381);
+  let branch = createBranch(original, 10);
+  const alternative = choicesFor(branch).find(choice => choice.id !== original.choices[10] && preview(branch, choice.id).game);
+  assert.ok(alternative);
+  branch = decide(branch, alternative.id);
+  const markup = renderTrajectoryComparison(branch, original);
+  assert.match(markup, /Décision 11 \/ 30/);
+  assert.match(markup, /Mandat d’origine/);
+  assert.match(markup, /Nouvelle trajectoire/);
+  assert.match(markup, /Déficit annuel/);
+  assert.match(markup, /data-action="continue-branch"/);
+  assert.match(markup, /data-action="restore-origin"/);
+  assert.equal(renderTrajectoryComparison(branch, complete(382)), "");
 });

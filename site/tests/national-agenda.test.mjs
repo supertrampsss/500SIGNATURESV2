@@ -4,7 +4,9 @@ const KEY='500signatures.mandats.v1';
 async function continueAfterAnnualRecap(page){
  if(await page.locator('.year-recap').count()){
   await expect(page.locator('.year-recap')).toBeVisible();
-  await page.getByRole('button',{name:/Passer à l’année/}).click();
+  await page.locator('.year-recap [data-action="next-year"]').click();
+  await expect(page.locator('.living-briefing')).toBeVisible();
+  await page.locator('.living-briefing [data-action="start-year"]').click();
  }
 }
 
@@ -33,7 +35,7 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   expect(saved.version).toBe(9);expect(saved.choices).toHaveLength(i+1);
   if(i===0)await expect(page.locator('.dossier h1')).toHaveText('Faut-il réduire les effectifs administratifs ?');
   if((i+1)%6===0){
-   await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6}/5 · CHAPITRE ACHEVÉ`);
+   await expect(page.locator('.year-recap')).toContainText(`ANNÉE ${(i+1)/6} ACHEVÉE`);
    await continueAfterAnnualRecap(page);
    expect(await page.evaluate(()=>window.scrollY)).toBe(0);
   }

@@ -48,11 +48,11 @@ test('v9 onboarding offers three missions and annual recap gates chapters',()=>{
   const briefing=yearBriefing(g);
   assert.match(briefing,/Prise de fonctions/);
   assert.match(briefing,/Commencer l’année 1/);
-  assert.match(briefing,/class="year-briefing__state"/);
+  assert.match(briefing,/class="living-briefing__state"/);
   for(let i=0;i<6;i++)g=legalNext(g);
   const recap=yearRecap(g);
-  assert.match(recap,/Année 1 accomplie/);
-  assert.match(recap,/Passer à l’année 2/);
+  assert.match(recap,/ANNÉE 1 ACHEVÉE/);
+  assert.match(recap,/Entrer dans l’année 2/);
   assert.match(recap,/LES EFFETS DE L’ANNÉE/);
   assert.match(recap,/Services publics/);
   assert.match(recap,/Confiance/);
@@ -64,7 +64,7 @@ test('v9 final result is multidimensional without a global government score',()=
   let g=start('national',909,'equilibre',9);
   while(g.turn<domainFor(g).turns)g=legalNext(g);
   const html=result(g);
-  assert.match(html,/Votre mandat a changé le pays/);
+  assert.match(html.replace(/<[^>]+>/g, ' '),/Vous avez changé\s+le paysage/);
   assert.match(html,/Services/);
   assert.match(html,/Confiance/);
   assert.match(html,/Résilience/);

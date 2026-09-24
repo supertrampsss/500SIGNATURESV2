@@ -1,0 +1,65 @@
+/* The approved game has its own compact masthead inside each scene. */
+html body[data-cinema="true"] {
+  --ink: #102b43;
+  --muted: #52616b;
+  --bg: #f4efe5;
+  --panel: #fbf6ec;
+  --surface: #eee5d7;
+  --accent: #bb2438;
+  --gold: #9b713b;
+  --line: #d7caba;
+  margin: 0;
+  background: #f4efe5;
+  color: #102b43;
+  font-family: "Source Sans 3", Arial, sans-serif;
+}
+html body[data-cinema="true"] #mandats {
+  width: 100% !important;
+  max-width: 1440px !important;
+  min-width: 0;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent;
+}
+html body[data-cinema="true"] :is(h1,h2,h3) {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -.035em;
+}
+html body[data-cinema="true"] .site-header { display: none !important; }
+html body[data-cinema="true"] .game-utility-bar {
+  max-width: 1120px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 16px;
+  background: #f4efe5;
+  border: 0;
+}
+html body[data-cinema="true"][data-screen="select"] .game-utility-bar,
+html body[data-cinema="true"][data-screen="play"] .game-utility-bar { display: none !important; }
+html body[data-cinema="true"] #notice:empty { display: none; }
+html body[data-cinema="true"] #notice:not(:empty) { margin: 0 auto; padding: 10px 16px; max-width: 1120px; }
+html body[data-cinema="true"] .site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 18px max(24px,env(safe-area-inset-bottom));
+  background: #f4efe5;
+  color: #52616b;
+  font-size: .75rem;
+  border-top: 1px solid #d7caba;
+}
+html body[data-cinema="true"] .site-footer a { color: #102b43; min-height: 44px; display: inline-flex; align-items: center; }
+html body[data-cinema="true"] .site-footer .site-x-link { width: 44px; }
+html body[data-cinema="true"] :is(button,a,summary):focus-visible { outline: 3px solid #b17932; outline-offset: 4px; }
+html body[data-cinema="true"] button { touch-action: manipulation; }
+html body[data-cinema="true"] dialog { background: #faf5eb; color: #102b43; border-color: #c6b99f; }
+html body[data-cinema="true"] dialog::backdrop { background: #091d32b8; }
+@media (max-width:600px) {
+  html body[data-cinema="true"] .mandate-board { margin: 0; }
+  html body[data-cinema="true"] .site-footer { gap: 4px 14px; font-size: .6875rem; }
+}
