@@ -30,10 +30,10 @@ jobs:
             site/board-audit-artifacts/**/*.png
             site/board-audit-artifacts/**/*.json
             site/board-audit-artifacts/**/error-context.md
-            !site/board-audit-artifacts/**/attachments/**
+            !site/board-audit-artifacts/**/attachments/**/*.png
           retention-days: 14
-      - name: Publish failure traces
-        if: failure()
+      - name: Publish browser report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mandats-board-debug
