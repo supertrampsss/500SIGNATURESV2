@@ -80,7 +80,7 @@ test('an explicit v9 challenge remains on the frozen legacy journey',async({page
 });
 
 test('an early destitution save opens the full result and restores the same ended mandate',async({page})=>{
- const choices=['pol-wealth-hospital-package','pol-coalition-compromise','u24c','r03c','r04c','u03c','r05c','r06c','u02c','r07c','r08c','u05c',
+ const choices=['pol-wealth-hospital-package','pol-coalition-compromise','r01c','r02c','r03c','r04c','u01c','r05c','r06c','r07c','r08c','u00c',
   'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-publish','pol-censure-vote','pol-destitution-vote'];
  const save={version:10,mode:'national',seed:27,ambition:'equilibre',choices};
  await page.addInitScript(value=>localStorage.setItem('500signatures.mandats.v1',JSON.stringify(value)),save);

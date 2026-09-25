@@ -13,7 +13,7 @@ test('annual recap remains unavailable before a year is closed',()=>assert.equal
 test('annual briefing preserves next dossier context and enters the year in one action',()=>{const html=livingYearBriefing(through(6));assert.match(html,/LE CHAPITRE QUI S’OUVRE/);assert.match(html,/data-action="start-year"/);assert.match(html,/Déficit annuel/);});
 test('final recap compares start with finish and links replay from preserved decision counts',()=>{
  const g=through(30),html=livingResult(g);
- assert.match(html,/DU POINT DE DÉPART À L’HÉRITAGE/);assert.match(html,/Excédent|Déficit/);assert.match(html,/décisions prises|→/);assert.match(html,/TROIS DÉCISIONS À REJOUER/);assert.match(html,/data-action="branch-replay" data-turn="\d+"/);assert.match(html,/data-action="new-run"/);assert.doesNotMatch(html,/score-number|\/100<\/p>/);
+ assert.match(html,/DU POINT DE DÉPART À L’HÉRITAGE/);assert.match(html,/Excédent|Déficit/);assert.match(html,/décisions prises| à /);assert.match(html,/TROIS DÉCISIONS À REJOUER/);assert.match(html,/data-action="branch-replay" data-turn="\d+"/);assert.match(html,/data-action="new-run"/);assert.doesNotMatch(html,/score-number|\/100<\/p>/);
  assert.match(html,/data-action="open-replay-selection"/);
  const indices=[...html.matchAll(/data-action="branch-replay" data-turn="(\d+)"/g)].map(m=>Number(m[1]));assert.equal(indices.length,3);assert.equal(new Set(indices).size,3);assert.ok(indices.every(i=>i>=0&&i<30));
 });

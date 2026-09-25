@@ -139,7 +139,7 @@ function insightTauxEpargne(series: Series, catalogue: Indicateur[]): Insight | 
   return {
     id: "taux-epargne",
     famille: "budget",
-    surtitre: "Budget local · la marge pour investir",
+    surtitre: "Baisser les impôts ou financer les équipements ?",
     titre,
     texte: `En ${periode}, l'épargne brute atteint ${formater(epargne, "EUR", false)} sur ${formater(recettes, "EUR", false)} de recettes de fonctionnement.`,
     reserve: "",
@@ -163,9 +163,9 @@ function insightDetteSurEpargne(series: Series, catalogue: Indicateur[]): Insigh
   return {
     id: "dette-sur-epargne",
     famille: "budget",
-    surtitre: "Dette locale · la capacité de désendettement",
+    surtitre: "Emprunter pour investir ou reporter les chantiers ?",
     titre: `La dette représente ${nombre.format(annees)} années d'épargne brute`,
-    texte: `En ${periode}, ${formater(dette, "EUR", false)} de dette sont rapportés à ${formater(epargne, "EUR", false)} d'épargne brute.`,
+    texte: `En ${periode}, ${formater(dette, "EUR", false)} de dette sont rapportés à ${formater(epargne, "EUR", false)} d'épargne brute. Accélérer le remboursement mobilise des moyens qui ne financent alors ni les équipements ni les services.`,
     reserve: "",
     preuves: [
       preuve(detteId, periode, dette, "Encours de dette"),
@@ -187,9 +187,9 @@ function insightPoidsPersonnel(series: Series, catalogue: Indicateur[]): Insight
   return {
     id: "poids-personnel",
     famille: "services",
-    surtitre: "Services publics · le poids de la masse salariale",
+    surtitre: "Moins d’agents ou plus d’impôts ?",
     titre: `Le personnel représente ${pct(part)} des dépenses de fonctionnement`,
-    texte: `En ${periode}, les frais de personnel atteignent ${formater(personnel, "EUR", false)} sur ${formater(depenses, "EUR", false)} de dépenses courantes.`,
+    texte: `En ${periode}, les frais de personnel atteignent ${formater(personnel, "EUR", false)} sur ${formater(depenses, "EUR", false)} de dépenses courantes. Réduire la masse salariale peut réduire les horaires d’accueil ou les effectifs sur le terrain ; préserver ces moyens suppose de les financer.`,
     reserve: "",
     preuves: [
       preuve(personnelId, periode, personnel, "Frais de personnel"),
@@ -288,7 +288,7 @@ function insightVacance(series: Series, catalogue: Indicateur[]): Insight | null
   return {
     id: "logements-vacants",
     famille: "logement",
-    surtitre: "Logement · la réserve invisible",
+    surtitre: "Taxer les logements vacants ou aider leur remise en location ?",
     titre: `${pct(fin)} des logements sont vacants`,
     texte: `La part calculée à partir du recensement a ${direction} de ${nombre.format(Math.abs(points))} points entre ${bornes.debut} et ${bornes.fin}.`,
     reserve: "Un logement recensé vacant n'est pas nécessairement disponible immédiatement à la location.",
@@ -315,7 +315,7 @@ function insightPartLogementsSociaux(series: Series, catalogue: Indicateur[]): I
   return {
     id: "part-logements-sociaux",
     famille: "logement",
-    surtitre: "Logement · la place du parc social",
+    surtitre: "Construire davantage de logements sociaux : où et pour qui ?",
     titre: `${pct(part)} des résidences principales sont des logements sociaux`,
     texte: `Le parc social ${sociauxPublies.periode} compte ${entier.format(sociaux)} logements, rapportés aux ${entier.format(residences)} résidences principales recensées en ${residencesPubliees.periode}.`,
     reserve: "",

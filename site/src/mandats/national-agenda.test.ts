@@ -75,7 +75,7 @@ test('v10 political history restores its actual dossier without unlocking a fake
 });
 test('a rejected v10 law is seen but cannot unlock a reform opportunity or social crisis',()=>{
  const enacted=decide(begin(), 'r01a');
- enacted.version=10;enacted.turn=5;enacted.choices=['r01a','x','x','x','x'];
+ enacted.version=10;enacted.turn=5;enacted.choices=['r01a','r02c','r03c','r04c','x'];
  enacted.history=Array.from({length:5},()=>structuredClone(enacted.history[0]));
  Object.assign(enacted.society!,{workers:100,pensioners:100,vulnerable:100,businesses:100,newcomers:100,publicStaff:100,affluent:100});
  assert.equal(agendaEntryV9(enacted).source,'r01');
