@@ -159,3 +159,7 @@ body[data-cinema="true"] #mandats summary::marker { content: ''; }
   html body[data-cinema="true"] #mandats .living-result__hero { padding-top: 12px; }
   html body[data-cinema="true"] #mandats .living-result__diorama img { max-height: 26svh; object-fit: cover; }
 }
+html body[data-cinema="true"] #mandats :is(.living-result__actions,.living-recap,.living-briefing) .button.primary:hover {
+  background: #a91930;
+  color: #fff;
+}
