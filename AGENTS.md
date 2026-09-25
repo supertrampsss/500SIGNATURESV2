@@ -101,9 +101,22 @@ visual completion. A passing build is not evidence of visual fidelity.
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for commands and checks by change type.
 Inspect the working tree before edits and preserve other people's changes.
 Keep domain rules outside UI code; use the existing stack before adding dependencies.
-Write meaningful regression tests for behavior changes. All `*.test.ts` under
-`site/src` and `site/scripts` are discovered automatically; do not maintain import lists.
-For UI changes inspect the resulting screens as well as automated checks.
+
+### Testing policy
+
+- Highly prefer end-to-end (E2E) tests as the sole testing mechanism. Exercise complex
+  features through real user journeys, including their consequential state changes.
+- At the end of E2E runs, produce a verifiable, repeatable artifact: retain the test
+  report and relevant screenshots, traces, exports, or captured outputs. Record the
+  inputs needed to reproduce the journey, such as its seed, browser, and viewport.
+- Never write unit tests after writing the code they test. If a system must be tested
+  in isolation, first document the realistic ways it could fail, then write focused
+  unit tests from that failure list before writing the implementation. Keep those tests
+  only for failure modes the E2E suite cannot reliably expose; do not test constants,
+  implementation details, or mirror the code path without a concrete defect scenario.
+- All retained `*.test.ts` under `site/src` and `site/scripts` are discovered
+  automatically; do not maintain import lists. For UI changes inspect the resulting
+  screens as well as automated checks.
 Report what changed, what was tested, and remaining limits. Never equate unit tests
 with visual validation or a successful build with a successful production deployment.
 Use a reviewable branch/PR. Respect existing merge gates and user authorization.
