@@ -84,8 +84,8 @@ function assertEndedPoliticalCompatibility(ended: Game) {
 test("canonical early ending survives a shared result, local restore, and branch archive", () => {
   const game = start("national", 27, "equilibre", 10);
   const ids = [
-    "pol-wealth-hospital-package", "pol-coalition-compromise", "u24c", "r03c", "r04c", "u03c",
-    "r05c", "r06c", "u02c", "r07c", "r08c", "u05c",
+    "pol-wealth-hospital-package", "pol-coalition-compromise", "r01c", "r02c", "r03c", "r04c",
+    "u01c", "r05c", "r06c", "r07c", "r08c", "u00c",
     "pol-scandal-cover-up", "pol-scandal-cover-up", "pol-scandal-cover-up", "pol-scandal-cover-up",
     "pol-scandal-publish", "pol-censure-vote", "pol-destitution-vote",
   ];

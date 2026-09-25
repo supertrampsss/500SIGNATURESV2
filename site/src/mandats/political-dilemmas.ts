@@ -72,8 +72,15 @@ const coalition = (g: Game): Dossier | null => {
     ]);
 };
 
-const censure = (): Dossier => dossier('Assemblée nationale', 'L’Assemblée veut faire tomber le gouvernement.',
-  'La motion de censure sera votée à la majorité absolue. Son adoption fait tomber le gouvernement, pas le mandat présidentiel.',
+const censure = (g: Game): Dossier => {
+ const previous=g.history.filter(turn=>turn.choice.startsWith('pol-censure-')).length;
+ const lastRejected=[...g.history].reverse().find(turn=>turn.vote?.kind==='law'&&!turn.vote.passed);
+ const title=g.politics?.failedBills && lastRejected
+  ? ['Deux textes rejetés. Le gouvernement peut-il tenir ?', 'Le blocage parlementaire devient une motion de censure.', 'Un nouveau rejet ravive la menace de censure.'][previous % 3]
+  : previous ? ['La censure revient. Qui soutient encore le gouvernement ?', 'Une nouvelle motion met votre majorité à l’épreuve.', 'Vos opposants tentent à nouveau de renverser le gouvernement.'][(previous - 1) % 3]
+  : 'Votre allié retire son soutien. Le gouvernement joue sa survie.';
+ return dossier('Assemblée nationale', title,
+  `${g.politics?.failedBills && lastRejected ? `Le rejet de « ${lastRejected.title} » a aggravé le blocage. ` : ''}Il faut 289 voix pour renverser le gouvernement. Une censure adoptée impose de nommer un nouveau gouvernement ; vous restez président.`,
   'La motion est adoptée à la majorité absolue des membres. Le décompte par groupe détermine le résultat.', [
     option('pol-censure-vote', 'Défendre la ligne et soumettre la motion au vote',
       'L’Assemblée se prononce sur la motion de censure.',
@@ -86,6 +93,7 @@ const censure = (): Dossier => dossier('Assemblée nationale', 'L’Assemblée v
       'Les moyens de fonctionnement de l’exécutif diminuent durablement.',
       { operating: -2, trust: -1 }, { action: 'coalition_bargain', legitimacy: -1, supportDelta: { reformist: 10 }, targetBloc: 'reformist' }),
   ]);
+};
 
 const cabinet = (g: Game): Dossier => {
   const packageActive = !!activePackage(g);
@@ -176,12 +184,12 @@ export function politicalDossier(g: Game): Dossier | null {
   const promise = activePackage(g);
   if (!g.politics?.pendingCrisis && !promise && g.turn === 0) return establishWealthHospital(g);
   if (!g.politics?.pendingCrisis && g.turn >= 12 && g.seed % 3 === 0 && !g.choices.some(id => id.startsWith('pol-scandal-'))) return scandal(g);
-  if (!g.politics?.pendingCrisis && (g.politics?.scandalExposure ?? 0) >= 2 && (g.politics?.misconduct ?? 0) >= 3) return scandal();
+  if (!g.politics?.pendingCrisis && (g.politics?.scandalExposure ?? 0) >= 2 && (g.politics?.misconduct ?? 0) >= 3) return scandal(g);
   const pending: PendingCrisis | undefined = g.politics?.pendingCrisis;
   if (!pending) return null;
   switch (pending) {
     case 'coalition': return coalition(g);
-    case 'censure': return censure();
+    case 'censure': return censure(g);
     case 'cabinet': return cabinet(g);
     case 'scandal': return scandal(g);
     case 'destitution': return destitution();

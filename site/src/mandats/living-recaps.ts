@@ -21,16 +21,16 @@ function changes(before: Snapshot, after: Snapshot, deficitBefore: number, defic
       `${Math.round(before.metrics[key])}/100`, `${Math.round(after.metrics[key])}/100`, `${delta(after.metrics[key] - before.metrics[key])} pts`,
     ]),
   ];
-  return `<div class="living-country-grid" aria-label="Évolution des comptes et indicateurs">${rows.map(([label, from, to, change]) => `<div><span>${label}</span><strong>${from} → ${to}</strong><small>${change}</small></div>`).join('')}</div>`;
+  return `<div class="living-country-grid" aria-label="Évolution des comptes et indicateurs">${rows.map(([label, from, to, change]) => `<div><span>${label}</span><strong>${from} à ${to}</strong><small>${change}</small></div>`).join('')}</div>`;
 }
 function yearEssentials(before: Snapshot, after: Snapshot, deficitBefore: number, deficitAfter: number) {
   const sameSide = (deficitBefore < 0) === (deficitAfter < 0);
   const financeLabel = sameSide ? deficitAfter < 0 ? 'Excédent' : 'Déficit' : 'Solde annuel';
-  const financeValues = sameSide ? `${fmt(Math.abs(deficitBefore))} → ${fmt(Math.abs(deficitAfter))}` : `${balance(deficitBefore)} → ${balance(deficitAfter)}`;
+  const financeValues = sameSide ? `${fmt(Math.abs(deficitBefore))} à ${fmt(Math.abs(deficitAfter))}` : `${balance(deficitBefore)} à ${balance(deficitAfter)}`;
   return `<div class="living-essentials">
     <div><span>${financeLabel}</span><strong>${financeValues}</strong><small>Md€ · ${delta(deficitAfter - deficitBefore)} Md€</small></div>
-    <div><span>Services publics</span><strong>${Math.round(before.metrics.services)} → ${Math.round(after.metrics.services)}</strong><small>sur 100 · ${delta(after.metrics.services - before.metrics.services)} pts</small></div>
-    <div><span>Confiance</span><strong>${Math.round(before.metrics.trust)} → ${Math.round(after.metrics.trust)}</strong><small>sur 100 · ${delta(after.metrics.trust - before.metrics.trust)} pts</small></div>
+    <div><span>Services publics</span><strong>${Math.round(before.metrics.services)} à ${Math.round(after.metrics.services)}</strong><small>sur 100 · ${delta(after.metrics.services - before.metrics.services)} pts</small></div>
+    <div><span>Confiance</span><strong>${Math.round(before.metrics.trust)} à ${Math.round(after.metrics.trust)}</strong><small>sur 100 · ${delta(after.metrics.trust - before.metrics.trust)} pts</small></div>
   </div>`;
 }
 function recapProgress(year: number, completedYears: number) {
@@ -51,15 +51,22 @@ export function livingYearRecap(g: Game): string {
   const after: Snapshot = { finance: g.finance, metrics: g.metrics };
   const previousDeficit = previous?.ledger.deficit ?? annualDeficit(initial);
   const decisions = g.history.filter(turn => turn.year === year);
-  const crises = decisions.filter(turn => /^k\d+[abc]$/.test(turn.choice)).length;
+  const crises = decisions.filter(turn => /^k\d+[abc]$/.test(turn.choice) || /^pol-(censure|scandal|destitution|rupture|cabinet)/.test(turn.choice)).length;
   const progress = calendarFor(g);
+  const titles = last.ledger.deficit <= 0
+    ? ['Les comptes à l’équilibre.', 'L’équilibre tient.', 'Un budget sans déficit.', 'Le désendettement commence.', 'Des comptes redressés.']
+    : crises > 0
+      ? ['Le pouvoir à l’épreuve.', 'La majorité sous pression.', 'L’année des fractures.', 'Gouverner malgré la crise.', 'Un mandat disputé.']
+      : last.ledger.deficit < previousDeficit
+        ? ['Les premiers choix paient.', 'Le déficit recule.', 'Le redressement avance.', 'L’équilibre se rapproche.', 'Un budget transformé.']
+        : ['Les promesses ont un prix.', 'La facture s’alourdit.', 'Les comptes sous tension.', 'Le temps des comptes.', 'L’héritage de vos choix.'];
   const accomplishments = decisions.map(turn => e(turn.title)).join(' · ');
 
   return `<article class="year-recap living-recap living-recap--year v9-chapter-${year}">
     <header class="living-recap__hero">
       <div class="living-recap__brand"><strong>500</strong><span>Signatures</span><small>MANDATS</small></div>
       <p class="eyebrow">ANNÉE ${year} ACHEVÉE</p>
-      <h1 tabindex="-1">Une année<br>de décisions.</h1>
+      <h1 tabindex="-1">${e(titles[year - 1])}</h1>
       <p>${e(chapters[year - 1] ?? `Année ${year}`)} · ${decisions.length} décisions prises.</p>
       <span class="living-recap__seal" aria-label="Année ${year} sur 5"><strong>${year}</strong><span>/ 5</span></span>
       <div class="living-recap__diorama"><img src="/mandats/art/legacy.webp" alt="La France en miniature au coucher du soleil, sur les cinq pages du mandat"></div>

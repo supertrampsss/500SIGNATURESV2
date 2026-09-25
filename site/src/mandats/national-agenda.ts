@@ -9,9 +9,9 @@ const advisor = 'Enveloppes distinctes et rendements hypothétiques du jeu. Les 
 const option=(id:string,title:string,effect:Effect,sacrifice:string):Choice=>({id,title,effect,sacrifice,description:sacrifice,benefit:'La mesure est appliquée.',cost:campaignCost(effect,undefined,'Md€')});
 function topic(id:string,t:Topic,kind:Entry['kind'],source?:string):Entry {
  const [category,title,group,cut,saving,harm,tax,yieldValue,payer,service]=t;
- return {id,kind,source,group,dossier:{category,title,story:`Vous arbitrez les moyens consacrés à ${service}. Chaque option engage le budget et les personnes concernées.`,advisor,choices:[
+ return {id,kind,source,group,dossier:{category,title,story:`${cut} permettrait d’économiser ${saving} Md€ par an. ${harm} L’autre levier : ${tax.charAt(0).toLowerCase() + tax.slice(1)}. À qui demander l’effort ?`,advisor,choices:[
   option(id+'a',cut,{operating:-saving,society:{[group]:-3},services:-1},harm),
-  option(id+'b',tax,{revenue:yieldValue,society:{[payer]:-2},trust:-1},'Les contributeurs ciblés disposent de moins de revenus.'),
+  option(id+'b',tax,{revenue:yieldValue,society:{[payer]:-2},trust:-1},`${({workers:'Les salariés',pensioners:'Les retraités concernés',vulnerable:'Les ménages modestes',businesses:'Les entreprises concernées',newcomers:'Les nouveaux résidents',publicStaff:'Les agents publics',affluent:'Les ménages aisés'})[payer]} paient ${yieldValue} Md€ de plus par an pour préserver les moyens actuels.`),
   option(id+'c','Renforcer '+service,{operating:2,society:{[group]:4},services:1},'Le service progresse, pour 2 Md€/an de dépenses supplémentaires.'),
  ]}};
 }
@@ -55,6 +55,33 @@ const opportunities:Topic[]=[
  ['Sécurité','Comment répartir les moyens de sécurité ?','publicStaff','Réduire les fonctions de soutien non prioritaires',2,'Les équipes disposent de moins de soutien.','Relever les prélèvements sur les grands contrats de sécurité privée',2,'businesses','la présence des services de sécurité'],
 ];
 const reforms:Entry[]=NATIONAL_CATALOGUE.slice(0,20).map((d,i)=>({id:REFORMS[i].id,kind:'reform',group:REFORMS[i].group,dossier:{...structuredClone(d),advisor}}));
+// Concrete protection options: their cost and affected groups stay in the engine.
+const protectionOptions: [string,string][] = [
+ ['Préserver les pensions et financer l’aide à domicile','Les pensions restent intactes et les personnes dépendantes reçoivent davantage d’aide. Le budget doit financer 2 Md€ de plus chaque année.'],
+ ['Remplacer les départs et ouvrir davantage de guichets','Les postes sont préservés et l’accueil est renforcé. Les contribuables financent 2 Md€ de dépenses annuelles supplémentaires.'],
+ ['Maintenir les aides et soutenir les achats essentiels','Les ménages modestes sont mieux protégés face aux prix. Aucun effort n’est demandé sur la TVA ; les dépenses augmentent de 2 Md€/an.'],
+ ['Préserver les aides et soutenir les petites entreprises','Les aides existantes restent en place et les petites entreprises reçoivent 2 Md€/an supplémentaires. Le redressement devra venir d’autres budgets.'],
+ ['Préserver les remboursements et financer les soins de proximité','Les patients gardent leur prise en charge. L’accès aux soins reçoit 2 Md€/an supplémentaires, sans recette nouvelle.'],
+ ['Garder les droits ouverts et renforcer l’accompagnement','Les ménages conservent leurs prestations et sont davantage accompagnés. Il faut financer 2 Md€/an de plus.'],
+ ['Renoncer au délai de résidence et financer l’insertion','Les droits existants sont préservés. L’accompagnement vers l’emploi coûte 2 Md€/an supplémentaires.'],
+ ['Maintenir les subventions et financer les activités locales','Les associations gardent leurs soutiens et développent leurs activités. La dépense augmente de 2 Md€/an.'],
+ ['Préserver l’âge de départ et accompagner l’emploi des seniors','Les salariés ne travaillent pas plus longtemps pour leur retraite. L’accompagnement des seniors coûte 2 Md€/an de plus.'],
+ ['Maintenir les sites et ouvrir des consultations','Les patients conservent leurs hôpitaux de proximité. Les consultations supplémentaires coûtent 2 Md€/an.'],
+ ['Préserver les salaires et former davantage d’agents','Les agents évitent le gel de leur rémunération. La formation ajoute 2 Md€/an de charges.'],
+ ['Préserver la durée d’indemnisation et financer les reconversions','Les demandeurs d’emploi conservent leurs droits. Les parcours de retour à l’emploi coûtent 2 Md€/an de plus.'],
+ ['Maintenir les aides fossiles et financer leur remplacement','Les usagers gardent leurs soutiens pendant la conversion. Les nouvelles aides coûtent 2 Md€/an.'],
+ ['Maintenir les aides aux locataires et financer la remise en location','Les locataires gardent leurs aides. Les logements remis sur le marché mobilisent 2 Md€/an supplémentaires.'],
+ ['Préserver les dotations et les permanences locales','Les communes gardent leurs moyens et renforcent leur accueil. Il faut financer 2 Md€/an supplémentaires.'],
+ ['Maintenir les crédits et financer les jeunes entreprises','Les projets existants gardent leur soutien et de nouvelles entreprises reçoivent une aide. Coût supplémentaire : 2 Md€/an.'],
+ ['Maintenir les aides familiales et financer l’accueil des enfants','Les familles gardent leurs droits. L’accueil des enfants reçoit 2 Md€/an sans recette nouvelle.'],
+ ['Préserver les financements et soutenir la création','Les programmes existants restent financés. La création culturelle reçoit 2 Md€/an supplémentaires.'],
+ ['Maintenir les engagements et financer de nouveaux projets','Les programmes de coopération continuent. Les nouveaux projets coûtent 2 Md€/an supplémentaires.'],
+ ['Maintenir les grands projets et financer les équipements locaux','Les programmes nationaux sont préservés. Les projets territoriaux ajoutent 2 Md€/an de charges.'],
+];
+reforms.forEach((entry,i)=>{
+ const [title,sacrifice]=protectionOptions[i];
+ entry.dossier.choices[2]={...entry.dossier.choices[2],title,sacrifice,description:sacrifice};
+});
 // The hypothetical residence reform is committed in one vote, with a delayed yield.
 const residence=reforms[6].dossier;
 residence.story='Dans ce scénario, le cadre juridique serait modifié avec exemptions avant application. Le rendement retenu est une hypothèse de jeu, sans attribution de 9 Md€ à cette seule règle.';
@@ -134,7 +161,14 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
  * Crises stay conditional and deterministic for a given seed. */
 export function agendaEntryV9(g:Game):Entry {
  if(g.turn>=30)throw new Error('Agenda V9 terminé.');
- if(g.turn%3!==2)return reforms[Math.floor(g.turn/3)*2+g.turn%3];
+ if(g.version===10){
+  // Political interruptions consume time, never an unseen structural reform.
+  const played=g.choices.map(entryForChoice).filter((entry):entry is Entry=>!!entry);
+  const used=new Set(played.map(entry=>entry.id));
+  const next=reforms.slice(0,20).find(entry=>!used.has(entry.id));
+  const remaining=reforms.slice(0,20).filter(entry=>!used.has(entry.id)).length;
+  if(next&&(played.length%5!==4||30-g.turn<=remaining))return next;
+ } else if(g.turn%3!==2)return reforms[Math.floor(g.turn/3)*2+g.turn%3];
  const played=g.choices.map(entryForChoice),used=new Set(played.map(e=>e?.id)),enacted=enactedHistory(g);
  const crisisTurns=played.flatMap((e,i)=>e?.kind==='crisis'?[i]:[]);
  const lastCrisis=crisisTurns.at(-1)??-100;
