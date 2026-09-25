@@ -73,7 +73,7 @@ const coalition = (g: Game): Dossier | null => {
 };
 
 const censure = (g: Game): Dossier => {
- const previous=g.politics?.votes.filter(vote=>vote.kind==='censure').length??0;
+ const previous=g.history.filter(turn=>turn.choice.startsWith('pol-censure-')).length;
  const lastRejected=[...g.history].reverse().find(turn=>turn.vote?.kind==='law'&&!turn.vote.passed);
  const title=g.politics?.failedBills && lastRejected
   ? ['Deux textes rejetés. Le gouvernement peut-il tenir ?', 'Le blocage parlementaire devient une motion de censure.', 'Un nouveau rejet ravive la menace de censure.'][previous % 3]
