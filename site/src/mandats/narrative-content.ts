@@ -30,7 +30,7 @@ export type NarrativeOpening = {
 export const NARRATIVE_OPENINGS: Record<NarrativeContext, NarrativeOpening> = {
   coalition: {
     id: 'coalition', title: 'La majorité réclame deux signatures',
-    body: 'À Val-des-Forges, l’accord de coalition promet à la fois de préserver les équipes de l’hôpital et de garantir le démarrage de la nouvelle ligne de bus. Les deux textes arrivent au même vote budgétaire. Luc Morel exige un calendrier; Samira Benali refuse une annonce sans recrutements financés.',
+    body: 'La majorité doit choisir comment financer deux promesses à Val-des-Forges : des renforts à l’hôpital et un bus pour les salariés. Les deux projets passent au même vote budgétaire.',
     promises: [], promiseCandidates: [
       { id: 'renforts-nuit', label: 'Aucune unité de soins ne fermera faute de renfort.' },
       { id: 'desservir-usine', label: 'Le premier bus pour l’usine circulera avant l’hiver.' },
@@ -38,7 +38,7 @@ export const NARRATIVE_OPENINGS: Record<NarrativeContext, NarrativeOpening> = {
   },
   hospital: {
     id: 'hospital', title: 'La nuit où les urgences débordent',
-    body: 'À l’Hôpital des Rives, Samira Benali décrit des gardes impossibles à compléter. Le ministère peut financer une équipe de renfort, mais le même crédit devait rénover le service. Inès Vidal attend aussi des soins accessibles pour les salariés du bassin. Les coûts et rendements sont des hypothèses du jeu pour des enveloppes nationales; les lieux donnent un visage à ces arbitrages.',
+    body: 'À l’hôpital des Rives, les gardes manquent de personnel et les locaux doivent être rénovés. Le budget ne permet pas de financer les deux projets en même temps.',
     promises: [], promiseCandidates: [
       { id: 'renforts-nuit', label: 'Des renforts seront présents aux gardes les plus fragiles.' },
       { id: 'service-rives', label: 'Le service de soins sera rénové avant la fin du mandat.' },
@@ -46,7 +46,7 @@ export const NARRATIVE_OPENINGS: Record<NarrativeContext, NarrativeOpening> = {
   },
   redress: {
     id: 'redress', title: 'Le redressement a déjà ses perdants',
-    body: 'À la Gare-des-Tilleuls, la baisse de dépenses envisagée menace des permanences d’accès au logement. Claire Dumas demande que les marchés publics soient contrôlés avant toute nouvelle coupe. Inès Vidal avertit que retarder l’aide à la conversion repousserait des commandes. Le redressement peut avancer, mais ses conditions restent à voter.',
+    body: 'Réduire les dépenses pourrait supprimer l’aide aux familles menacées d’expulsion. Dans le même temps, des marchés publics et une aide à l’usine attendent une décision.',
     promises: [], promiseCandidates: [
       { id: 'prevenir-expulsions', label: 'Les habitants garderont un guichet pour prévenir les expulsions.' },
       { id: 'audit-marche', label: 'Les contrats publics à risque seront contrôlés et publiés.' },
@@ -79,7 +79,7 @@ const P = (id: string, kind: string, label: string, place: string, dueAfter: num
 export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   event({
     id: 'soins-garde-nuit', familyId: 'soins-hospitaliers', title: 'Une garde sans équipe complète',
-    body: 'Samira Benali a rappelé deux infirmiers d’astreinte. Ils peuvent couvrir les prochaines nuits, mais pas toute la saison. La direction propose soit des postes de renfort, soit des heures supplémentaires; les patients des communes éloignées demandent une garantie d’accès.',
+    body: 'À l’hôpital des Rives, les équipes de nuit manquent de personnel et les locaux vieillissent. Les renforts aideraient tout de suite; les travaux réduiraient temporairement l’accueil.',
     turns: [0, 1, 2, 3], contexts: ['hospital', 'coalition'],
     choices: [
       choice({ id: 'financer-renforts', title: 'Financer six mois de renfort', description: 'Ouvrir une enveloppe temporaire pour les gardes de nuit et publier les postes à pourvoir.', cost: '0,4 Md€ pour six mois', benefit: 'Davantage de gardes couvertes pendant six mois.', sacrifice: 'La mesure s’arrête si les recrutements durables n’aboutissent pas.', effect: effect({ operating: 0.4, services: 3, cohesion: 1 }), delayed: { after: 1, label: 'Le renfort de six mois prend fin; toute prolongation doit être revotée.', effect: effect({ operating: -0.4 }) }, promise: { id: 'renforts-nuit', label: 'Des renforts seront présents aux gardes les plus fragiles.', dueAfter: 2, keepWhen: 'services_improved' }, relationships: { social: 2, regional: 1 }, press: 'La Gazette des Rives : « Six mois de renfort votés, le recrutement durable reste à faire. »' }),
@@ -89,7 +89,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'soins-lits-aval', familyId: 'soins-hospitaliers', title: 'Des lits occupés faute de relais',
-    body: 'Des patients ne peuvent quitter l’hôpital faute de soins de suite disponibles. Samira demande des équipes à domicile; Luc Morel propose d’ouvrir des places temporaires dans le bassin. Les deux solutions demandent du personnel et un accord des partenaires.',
+    body: 'Des patients restent à l’hôpital faute de soins de suite ou d’aide à domicile. Faut-il financer une équipe mobile ou ouvrir des places temporaires dans le bassin ?',
     turns: [7, 8, 9, 10],
     choices: [
       choice({ id: 'equipe-domicile', title: 'Financer une équipe de sortie', description: 'Créer une équipe mobile qui coordonne retour à domicile et soins de suite.', cost: '0,5 Md€ par an', benefit: 'Des sorties mieux accompagnées dans le bassin.', sacrifice: 'Une dépense durable et des recrutements difficiles.', effect: effect({ operating: 0.5, services: 2, cohesion: 1 }), promise: { id: 'retour-accompagne', label: 'Les patients sortants auront un relais de soins identifié.', dueAfter: 3, keepWhen: 'services_improved' }, relationships: { social: 2 } }),
@@ -99,7 +99,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'soins-desert-medical', familyId: 'soins-hospitaliers', title: 'La consultation est à cinquante kilomètres',
-    body: 'À Val-des-Forges, plusieurs spécialités n’ont plus de consultation régulière. Samira propose une antenne hospitalière; Luc défend une équipe mobile. Le choix porte sur une enveloppe nouvelle de coordination et d’accès, distincte des arbitrages de remboursements de santé.',
+    body: 'À Val-des-Forges, certains patients doivent parcourir cinquante kilomètres pour consulter un spécialiste. Faut-il rapprocher les consultations avec une antenne, une équipe mobile ou la téléconsultation ?',
     turns: [13, 14, 15, 16],
     choices: [
       choice({ id: 'antenne-soins', title: 'Cofinancer une antenne de consultation', description: 'Préparer des locaux partagés et une convention de présence médicale.', cost: '1,3 Md€ d’investissement', benefit: 'Un point d’accès régulier après livraison.', sacrifice: 'La présence dépendra encore des professionnels disponibles.', effect: effect({ investment: 1.3 }), project: P('antenne-forges', 'hospital', 'Antenne de consultation hospitalière', 'val-des-forges', 2, { funded: 'Le Courrier des Forges : « L’antenne de soins est financée, les praticiens restent à recruter. »', blocked: 'Le Courrier des Forges : « L’antenne attend sa convention hospitalière. »', delivered: 'Le Courrier des Forges : « L’antenne ouvre deux jours par semaine. »', withdrawn: 'Le Courrier des Forges : « Le projet d’antenne est retiré du budget. »' }), relationships: { regional: 2 } }),
@@ -110,7 +110,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'industrie-aide-contre-emplois', familyId: 'industrie-conditionnalite', title: 'L’aide arrive avant les embauches',
-    body: 'Inès Vidal réclame le versement d’une aide à l’usine de Val-des-Forges; le contrat promet des emplois mais les recrutements n’ont pas commencé. Les sous-traitants demandent une part des commandes. Le financement ci-dessous est une enveloppe distincte des aides générales aux entreprises.',
+    body: 'L’usine de Val-des-Forges demande une aide alors que les embauches promises n’ont pas commencé. Faut-il verser l’argent par étapes vérifiées ou payer tout de suite et négocier les engagements plus tard ?',
     turns: [1, 2, 3, 4], contexts: ['coalition', 'redress'],
     choices: [
       choice({ id: 'tranche-contre-emplois', title: 'Verser par tranches vérifiées', description: 'Débloquer la première tranche après publication des postes et des achats locaux.', cost: '0,9 Md€ d’aide', benefit: 'Le projet démarre avec des conditions vérifiables.', sacrifice: 'L’administration contrôle les preuves à chaque étape.', effect: effect({ investment: 0.9, services: 1 }), project: P('filiere-forges', 'industry', 'Filière industrielle à engagements vérifiés', 'val-des-forges', 2, { funded: 'Le Courrier des Forges : « La première tranche est conditionnée aux emplois publiés. »', blocked: 'Le Courrier des Forges : « Faute de preuve d’embauche, le versement reste suspendu. »', delivered: 'Le Courrier des Forges : « Les engagements de la filière sont vérifiés, les postes sont ouverts. »', withdrawn: 'Le Courrier des Forges : « L’aide conditionnelle est retirée après l’échec du contrat. »' }), relationships: { reformist: 2, regional: 1 }, press: 'Le Courrier des Forges : « L’aide industrielle ne partira qu’avec ses preuves d’emploi. »' }),
@@ -120,7 +120,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'industrie-commandes-locales', familyId: 'industrie-conditionnalite', title: 'Les sous-traitants ne voient pas les commandes',
-    body: 'Les grands marchés de modernisation sont attribués, mais les entreprises du bassin ne savent pas comment y répondre. Inès demande une avance; Luc réclame des lots accessibles aux PME. La commande publique reste ouverte et contrôlable.',
+    body: 'Les PME de Val-des-Forges peinent à accéder aux marchés publics de modernisation. Faut-il les aider à préparer leurs offres ou découper les marchés en lots plus petits ?',
     turns: [8, 9, 10, 11],
     choices: [
       choice({ id: 'lots-pme', title: 'Découper les marchés en lots accessibles', description: 'Financer une cellule d’appui aux candidatures et publier le calendrier des marchés.', cost: '0,2 Md€ de fonctionnement', benefit: 'Des PME peuvent se positionner avant la clôture des appels.', sacrifice: 'Le suivi de plusieurs lots coûte du temps aux acheteurs.', effect: effect({ operating: 0.2, cohesion: 1, trust: 1 }), promise: { id: 'acces-commandes-pme', label: 'Les petits fournisseurs auront accès aux marchés annoncés.', dueAfter: 2, keepWhen: 'programme_executed' }, relationships: { regional: 2, reformist: 1 } }),
@@ -130,7 +130,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'industrie-site-pollue', familyId: 'industrie-conditionnalite', title: 'Réouvrir le site ou dépolluer d’abord ?',
-    body: 'Une ancienne emprise industrielle pourrait accueillir une nouvelle activité. Inès veut annoncer le chantier; Claire demande une étude publique du sol et une garantie financière avant les travaux. Les coûts et délais présentés sont des paramètres de simulation.',
+    body: 'Un ancien site industriel pourrait accueillir de nouvelles activités, mais son sol doit être vérifié. Faut-il lancer la dépollution sous contrôle indépendant ou attendre les résultats avant d’annoncer le chantier ?',
     turns: [14, 15, 16, 17],
     choices: [
       choice({ id: 'diagnostic-depollution', title: 'Financer le diagnostic et la dépollution', description: 'Payer l’étude indépendante, puis traiter les zones confirmées avant d’ouvrir le site.', cost: '1,2 Md€ d’investissement', benefit: 'Une réouverture conditionnée à des contrôles publics.', sacrifice: 'Les emplois attendent les résultats et le chantier.', effect: effect({ investment: 1.2, trust: 1 }), project: P('site-depollue', 'industry', 'Diagnostic et dépollution de l’emprise', 'val-des-forges', 2, { funded: 'Le Courrier des Forges : « Le diagnostic du site est financé, les travaux attendent les prélèvements. »', blocked: 'Le Courrier des Forges : « La dépollution est bloquée, les garanties manquent. »', delivered: 'Le Courrier des Forges : « Le site dépollué ouvre après contrôle indépendant. »', withdrawn: 'Le Courrier des Forges : « Le projet de réouverture est abandonné. »' }), relationships: { reformist: 2, regional: 1 } }),
@@ -141,7 +141,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'energie-bus-usine', familyId: 'transition-energetique-mobilite', title: 'Le bus promis n’a pas de conducteur',
-    body: 'La ligne entre la Gare-des-Tilleuls et Val-des-Forges est prête sur la carte, mais la desserte du soir manque de chauffeurs et de recharge. Luc veut un service immédiat; Inès demande des horaires compatibles avec les équipes. Les économies éventuelles ne sont pas comptées comme recettes certaines.',
+    body: 'À Val-des-Forges, les salariés qui finissent tard n’ont pas de bus pour rentrer. Lancer la ligne exige des véhicules, des chauffeurs et des bornes de recharge.',
     turns: [0, 1, 2, 3], contexts: ['coalition'],
     choices: [
       choice({ id: 'bus-soir', title: 'Financer les bus du soir', description: 'Signer une année de service avec les horaires d’équipe et un suivi des fréquentations.', cost: '0,35 Md€ par an', benefit: 'Les salariés disposent d’un trajet après leur poste.', sacrifice: 'La dépense revient chaque année même si l’usage fluctue.', effect: effect({ operating: 0.35, cohesion: 2, services: 1 }), promise: { id: 'desservir-usine', label: 'Le premier bus pour l’usine circulera avant l’hiver.', dueAfter: 1, keepWhen: 'services_improved' }, relationships: { regional: 2, conservative: -1 }, press: 'Le Courrier des Forges : « Le bus du soir est financé; les premiers départs sont annoncés avant l’hiver. »' }),
@@ -151,7 +151,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'energie-menages-captifs', familyId: 'transition-energetique-mobilite', title: 'Changer de chauffage sans autre solution ?',
-    body: 'Des ménages de la Gare-des-Tilleuls utilisent encore des équipements polluants. Une aide universelle coûte vite cher; une aide ciblée exige un guichet et des artisans disponibles. Les décisions fiscales sur les carburants restent dans le cadre r13, sans être reprises ici.',
+    body: 'À la Gare-des-Tilleuls, des familles doivent remplacer leur chauffage polluant mais n’en ont pas les moyens. Sans aide ni artisan disponible, l’obligation reste impossible à tenir.',
     turns: [7, 8, 9, 10],
     choices: [
       choice({ id: 'aide-ciblee-renovation', title: 'Cibler les ménages sans alternative', description: 'Aider les foyers modestes à remplacer leur équipement avec avance de frais.', cost: '0,7 Md€ d’aide', benefit: 'La transition ne dépend pas uniquement de l’épargne disponible.', sacrifice: 'Les dossiers et contrôles ralentissent les premiers chantiers.', effect: effect({ investment: 0.7, cohesion: 2, resilience: 1 }), promise: { id: 'aide-menages-captifs', label: 'Les ménages sans solution immédiate pourront demander une aide de remplacement.', dueAfter: 2, keepWhen: 'programme_executed' }, amendment: A('amend-accompagnement-renovation', 'Ajouter un accompagnateur énergie dans chaque secteur', { operating: 0.12, services: 1, cohesion: 1 }, 2), relationships: { social: 2, regional: 1 } }),
@@ -161,7 +161,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'energie-reseau-partage', familyId: 'transition-energetique-mobilite', title: 'Qui paie le raccordement ?',
-    body: 'Le réseau du bassin peut accueillir une nouvelle production, mais le raccordement doit être renforcé. Inès accepte d’investir si les petites communes ne paient pas seules; Luc refuse un chèque sans accès garanti au réseau.',
+    body: 'Le réseau électrique de Val-des-Forges doit être renforcé pour accueillir de nouveaux producteurs. Qui doit payer les travaux, et quelles communes auront accès au réseau ?',
     turns: [14, 15, 16, 17],
     choices: [
       choice({ id: 'raccordement-partage', title: 'Partager le coût avec le producteur', description: 'Financer le renforcement public contre une contribution et un accès ouvert.', cost: '1,4 Md€ de financement public', benefit: 'Le réseau sert plusieurs projets du bassin.', sacrifice: 'Les travaux prennent deux décisions et le partage doit être contrôlé.', effect: effect({ investment: 1.4, resilience: 1 }), project: P('reseau-ouvert', 'energy', 'Raccordement ouvert du bassin', 'val-des-forges', 2, { funded: 'Le Courrier des Forges : « Le raccordement partagé est financé, accès ouvert inscrit au contrat. »', blocked: 'Le Courrier des Forges : « Le réseau attend sa convention d’accès ouvert. »', delivered: 'Le Courrier des Forges : « Le raccordement ouvert dessert les premiers projets. »', withdrawn: 'Le Courrier des Forges : « Le raccordement partagé est retiré du plan. »' }), relationships: { regional: 2, reformist: 1 } }),
@@ -172,7 +172,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'recrutement-postes-vacants', familyId: 'recrutement-integration', title: 'Des postes vacants, des horaires réduits',
-    body: 'L’hôpital et les services d’accueil ont publié des postes sans recevoir assez de candidatures. Samira demande des conditions de travail plus prévisibles; Claire propose de simplifier le recrutement sans supprimer les qualifications nécessaires.',
+    body: 'L’hôpital et les guichets publics manquent d’agents, et les postes restent vacants. Faut-il améliorer les conditions de travail ou simplifier les recrutements tout en gardant les qualifications requises ?',
     turns: [2, 3, 4, 5], contexts: ['hospital', 'coalition'],
     choices: [
       choice({ id: 'prime-installation', title: 'Financer une prime d’installation', description: 'Verser une prime annuelle aux personnels qui prennent les postes vacants.', cost: '0,3 Md€ par an', benefit: 'Les postes prioritaires deviennent plus attractifs.', sacrifice: 'Les équipes déjà en place demandent le même traitement.', effect: effect({ operating: 0.3, services: 2 }), promise: { id: 'pourvoir-postes', label: 'Les postes prioritaires seront publiés avec une aide d’installation.', dueAfter: 2, keepWhen: 'services_improved' }, amendment: A('amend-equipe-en-place', 'Inclure les équipes déjà en poste dans la prime', { operating: 0.18, cohesion: 2 }, 2), relationships: { social: 2, reformist: 1 } }),
@@ -182,7 +182,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'integration-diplomes', familyId: 'recrutement-integration', title: 'Un diplôme reconnu, un poste toujours fermé',
-    body: 'Des professionnels récemment arrivés attendent l’évaluation de leurs qualifications. Claire défend un parcours transparent; Samira insiste sur l’encadrement nécessaire. Le choix ajoute un dispositif de reconnaissance et d’accompagnement, sans reproduire la réforme des conditions de résidence.',
+    body: 'Des professionnels formés à l’étranger attendent la reconnaissance de leurs diplômes avant de pouvoir exercer. Faut-il accélérer l’évaluation ou financer un parcours de mise à niveau et d’accompagnement ?',
     turns: [9, 10, 11, 12], contexts: ['redress'],
     choices: [
       choice({ id: 'parcours-reconnaissance', title: 'Financer un parcours de reconnaissance', description: 'Créer des sessions d’évaluation et des stages rémunérés encadrés.', cost: '0,25 Md€ par an', benefit: 'Des candidats qualifiés peuvent accéder aux postes plus vite.', sacrifice: 'Le tutorat retire du temps aux équipes en place.', effect: effect({ operating: 0.25, services: 2, cohesion: 2 }), promise: { id: 'parcours-diplomes', label: 'Les candidats disposeront d’un parcours lisible de reconnaissance des qualifications.', dueAfter: 2, keepWhen: 'services_improved' }, amendment: A('amend-tuteurs', 'Financer du temps protégé pour les tuteurs', { operating: 0.1, services: 1, cohesion: 1 }, 2), relationships: { social: 2, reformist: 1 } }),
@@ -192,7 +192,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'integration-logement-travail', familyId: 'recrutement-integration', title: 'Un contrat signé, aucun logement disponible',
-    body: 'Les recrutements de Val-des-Forges échouent parfois faute de logement temporaire. Luc veut des places réservées près de l’usine; Claire demande que l’accès repose sur des critères publics et une durée limitée.',
+    body: 'Des salariés recrutés à Val-des-Forges renoncent parfois au poste faute de logement proche. Faut-il financer une résidence temporaire, avec des règles publiques d’accès et une durée limitée ?',
     turns: [18, 19, 20, 21],
     choices: [
       choice({ id: 'residence-mobilite', title: 'Ouvrir une résidence temporaire', description: 'Cofinancer des logements temporaires attribués selon des règles publiées.', cost: '1,0 Md€ d’investissement', benefit: 'Les nouvelles recrues peuvent s’installer le temps de trouver un logement.', sacrifice: 'Les logements ne répondent pas aux besoins des familles sur la durée.', effect: effect({ investment: 1.0 }), project: P('residence-travail', 'housing', 'Résidence temporaire pour salariés recrutés', 'val-des-forges', 2, { funded: 'Le Courrier des Forges : « La résidence temporaire est financée, critères d’accès publiés. »', blocked: 'Le Courrier des Forges : « Le permis de la résidence temporaire manque. »', delivered: 'Le Courrier des Forges : « La résidence accueille les premières recrues. »', withdrawn: 'Le Courrier des Forges : « Le projet de résidence temporaire est abandonné. »' }), relationships: { regional: 2, social: 1 } }),
@@ -203,7 +203,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'integrite-interets', familyId: 'integrite-ministerielle', title: 'Un marché attribué à un proche',
-    body: 'Claire Dumas signale qu’un membre du cabinet a participé à une réunion avec une entreprise candidate. Aucun favoritisme n’est établi, mais le dossier de déport n’est pas complet. La décision engage la crédibilité du contrôle, pas la culpabilité d’une personne.',
+    body: 'Un membre du cabinet a rencontré une entreprise candidate à un marché, et sa déclaration d’intérêts est incomplète. Aucun favoritisme n’est établi : faut-il publier les échanges et confier le contrôle à une instance indépendante ?',
     turns: [4, 5, 6, 7], contexts: ['redress', 'coalition'],
     choices: [
       choice({ id: 'audit-independant', title: 'Confier le dossier à un audit indépendant', description: 'Publier les pièces autorisées et suspendre l’attribution jusqu’au rapport.', cost: '0,08 Md€ de contrôle', benefit: 'La décision repose sur un examen vérifiable.', sacrifice: 'Le marché et les fournisseurs attendent le rapport.', effect: effect({ operating: 0.08, trust: 3 }), promise: { id: 'audit-marche', label: 'Le contrôle indépendant du marché sera publié.', dueAfter: 1, targetProject: 'audit-marche', keepWhen: 'project_delivered' }, project: P('audit-marche', 'integrity', 'Audit indépendant du marché public', 'gare-des-tilleuls', 1, { funded: 'L’Écho des Tilleuls : « L’audit indépendant est financé; l’attribution attend ses conclusions. »', blocked: 'L’Écho des Tilleuls : « L’audit est bloqué faute d’accès aux pièces. »', delivered: 'L’Écho des Tilleuls : « L’audit publié ne conclut à aucun favoritisme établi; les règles sont corrigées. »', withdrawn: 'L’Écho des Tilleuls : « L’audit est retiré, le doute demeure. »' }), relationships: { reformist: 2, presidential: -1 }, press: 'L’Écho des Tilleuls : « L’attribution est suspendue le temps d’un audit indépendant. »' }),
@@ -213,7 +213,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'integrite-alerte', familyId: 'integrite-ministerielle', title: 'Une alerte interne reste sans réponse',
-    body: 'Une agente signale une possible modification tardive de critères dans un marché. Elle demande que son identité soit protégée. Claire propose un canal indépendant; le cabinet craint de retarder les contrats de rénovation.',
+    body: 'Une agente affirme que les critères d’un marché public ont peut-être été modifiés au dernier moment. Comment protéger son identité et vérifier les faits sans bloquer inutilement les travaux ?',
     turns: [11, 12, 13, 14],
     choices: [
       choice({ id: 'canal-alerte', title: 'Ouvrir un canal indépendant protégé', description: 'Financer un tiers de réception et des règles de confidentialité contrôlées.', cost: '0,06 Md€ par an', benefit: 'Les alertes peuvent être examinées sans exposer leur auteur.', sacrifice: 'Les enquêtes et protections ralentissent certains achats.', effect: effect({ operating: 0.06, trust: 3 }), promise: { id: 'proteger-alertes', label: 'Les alertes sur les marchés auront un canal indépendant et protégé.', dueAfter: 2, keepWhen: 'programme_executed' }, relationships: { reformist: 2, presidential: -1 } }),
@@ -223,7 +223,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'integrite-pieces', familyId: 'integrite-ministerielle', title: 'Publier le contrat ou protéger les secrets légitimes ?',
-    body: 'La commission demande les annexes d’un contrat de rénovation. Certaines pièces contiennent des secrets industriels, d’autres expliquent le prix retenu. Claire réclame une publication lisible et une justification pour chaque occultation.',
+    body: 'Le public veut comprendre le prix d’un marché de rénovation, mais certaines annexes contiennent des secrets industriels. Faut-il publier le contrat avec des passages masqués ou laisser la commission décider pièce par pièce ?',
     turns: [20, 21, 22, 23],
     choices: [
       choice({ id: 'publication-annexes', title: 'Publier le contrat avec occultations justifiées', description: 'Faire relire les annexes et publier les motifs de chaque passage masqué.', cost: '0,05 Md€ d’examen', benefit: 'Les citoyens peuvent comparer prix, critères et engagements.', sacrifice: 'L’examen prend du temps aux équipes d’achat.', effect: effect({ operating: 0.05, trust: 3 }), promise: { id: 'publier-contrats', label: 'Les contrats majeurs seront publiés avec les occultations expliquées.', dueAfter: 2, keepWhen: 'programme_executed' }, relationships: { reformist: 2, presidential: -1 } }),
@@ -234,7 +234,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'logement-expulsions', familyId: 'logement', title: 'Le bail se termine dans dix jours',
-    body: 'À la Gare-des-Tilleuls, plusieurs familles risquent de quitter leur logement avant qu’une solution soit trouvée. Luc demande des places temporaires; Claire insiste sur une médiation avant les départs. Cette enveloppe d’accompagnement ne modifie pas les aides au logement du cadre r14.',
+    body: 'À la Gare-des-Tilleuls, des familles risquent l’expulsion dans les prochains jours. Faut-il financer des hébergements temporaires ou une médiation pour trouver un accord avec les propriétaires ?',
     turns: [3, 4, 5, 6], contexts: ['redress', 'hospital'],
     choices: [
       choice({ id: 'mediation-impayes', title: 'Financer une médiation avant expulsion', description: 'Payer une équipe qui négocie un échéancier avec locataires et bailleurs.', cost: '0,14 Md€ par an', benefit: 'Les ménages ont un interlocuteur avant l’échéance.', sacrifice: 'Une médiation ne peut annuler toutes les dettes.', effect: effect({ operating: 0.14, cohesion: 2, services: 1 }), amendment: A('amend-logement-mediations', 'Ajouter un accompagnement juridique aux médiations', { operating: 0.04, cohesion: 1 }, 2), promise: { id: 'prevenir-expulsions', label: 'Un guichet proposera une médiation avant les expulsions du scénario.', dueAfter: 1, keepWhen: 'services_improved' }, relationships: { social: 2, regional: 1 } }),
@@ -244,7 +244,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'logement-vacants', familyId: 'logement', title: 'Des logements vides, des listes d’attente',
-    body: 'Des logements restent vacants après des travaux inachevés. Luc propose de cofinancer la remise en état avec les bailleurs; Claire exige que le calendrier, les loyers et les critères d’attribution soient connus avant le premier versement.',
+    body: 'Des logements restent vides après des travaux interrompus alors que des familles attendent. Faut-il aider les bailleurs à les remettre en état, à condition de publier les loyers et les règles d’attribution ?',
     turns: [10, 11, 12, 13],
     choices: [
       choice({ id: 'remise-en-location', title: 'Cofinancer la remise en location', description: 'Verser par étapes après travaux constatés et publication des loyers.', cost: '1,2 Md€ d’investissement', benefit: 'Des logements supplémentaires peuvent être attribués après chantier.', sacrifice: 'Le budget est engagé avant de connaître le nombre final de logements.', effect: effect({ investment: 1.2 }), project: P('logements-remis', 'housing', 'Remise en état de logements vacants', 'gare-des-tilleuls', 2, { funded: 'L’Écho des Tilleuls : « La remise en état est financée, loyers publiés avant les attributions. »', blocked: 'L’Écho des Tilleuls : « Les travaux de remise en location n’ont pas commencé. »', delivered: 'L’Écho des Tilleuls : « Les premiers logements remis en état sont attribués. »', withdrawn: 'L’Écho des Tilleuls : « Le programme de remise en location est retiré. »' }), relationships: { regional: 2, social: 1 } }),
@@ -254,7 +254,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'logement-construction', familyId: 'logement', title: 'Construire près de la gare ou préserver les abords ?',
-    body: 'Un terrain près de la gare pourrait accueillir des logements à loyers maîtrisés. Les riverains demandent des espaces de fraîcheur; Luc veut éviter que le projet soit repoussé de plusieurs années. Les partenaires sociaux et locaux doivent accepter le plan.',
+    body: 'Un terrain près de la gare peut accueillir des logements abordables ou un espace ombragé. Quel projet répond le mieux aux besoins du quartier, et peut obtenir l’accord des habitants et partenaires ?',
     turns: [17, 18, 19, 20],
     choices: [
       choice({ id: 'logements-gare', title: 'Cofinancer le programme près de la gare', description: 'Engager les études et réserver des logements à loyers maîtrisés.', cost: '1,8 Md€ d’investissement', benefit: 'Une offre de logement peut arriver près des transports.', sacrifice: 'Les travaux commencent après les études et l’accord des partenaires.', effect: effect({ investment: 1.8 }), project: P('programme-gare', 'housing', 'Logements à loyers maîtrisés près de la gare', 'gare-des-tilleuls', 3, { funded: 'L’Écho des Tilleuls : « Le programme de la gare est financé, les études commencent. »', blocked: 'L’Écho des Tilleuls : « Le programme de la gare reste bloqué sans accord local. »', delivered: 'L’Écho des Tilleuls : « Les logements de la gare sont livrés avec leurs loyers publiés. »', withdrawn: 'L’Écho des Tilleuls : « Le projet de logements près de la gare est retiré. »' }), relationships: { regional: 2, social: 1 } }),
@@ -265,7 +265,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
 
   event({
     id: 'suite-soins-service-bloque', familyId: 'soins-hospitaliers', title: 'Le service des Rives attend toujours ses travaux',
-    body: 'La rénovation financée n’a pas été livrée. Samira demande une tranche limitée pour reprendre le chantier. Vous pouvez remettre des moyens, conserver le chantier en attente ou annoncer son abandon.',
+    body: 'Les travaux de l’hôpital des Rives sont bloqués : les patients et les équipes attendent toujours. Faut-il ajouter des crédits, revoir le chantier ou y renoncer ?',
     requiresProject: 'service-rives', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandonner-service-rives', title: 'Renoncer à la rénovation des Rives', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'service-rives', kind: 'hospital', label: 'Rénovation du service de soins', place: 'hopital-des-rives', dueAfter: 1, action: 'withdraw' } }),
@@ -275,7 +275,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'suite-industrie-site-bloque', familyId: 'industrie-conditionnalite', title: 'Le site reste fermé, les emplois attendent',
-    body: 'La remise en service de Val-des-Forges a manqué son échéance. Les salariés attendent une date. Vous devez décider si le programme reçoit une tranche de reprise ou si le gouvernement renonce à la réouverture.',
+    body: 'La dépollution de Val-des-Forges est en retard et les salariés attendent la réouverture du site. Faut-il financer une nouvelle tranche, réduire le chantier ou l’abandonner ?',
     requiresProject: 'site-depollue', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandonner-site-depollue', title: 'Abandonner la réouverture du site', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'site-depollue', kind: 'industry', label: 'Diagnostic et dépollution de l’emprise', place: 'val-des-forges', dueAfter: 1, action: 'withdraw' } }),
@@ -285,7 +285,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'suite-energie-recharge-bloquee', familyId: 'transition-energetique-mobilite', title: 'Les bus électriques ne sont toujours pas en service',
-    body: 'Le programme de recharge n’a pas été livré. Les salariés n’ont pas la desserte annoncée. Une tranche de reprise, des bus loués ou l’abandon de l’équipement engagent des coûts et des services différents.',
+    body: 'La borne de recharge prévue n’est pas prête et les salariés n’ont toujours pas le bus du soir. Faut-il financer les travaux, louer des bus provisoires ou abandonner l’équipement ?',
     requiresProject: 'recharge-bus', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandonner-recharge-bus', title: 'Renoncer aux équipements de recharge', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'recharge-bus', kind: 'energy', label: 'Recharge électrique de la ligne de bus', place: 'gare-des-tilleuls', dueAfter: 1, action: 'withdraw' } }),
@@ -295,7 +295,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'suite-recrutement-residence-bloquee', familyId: 'recrutement-integration', title: 'Les nouvelles recrues attendent leur logement',
-    body: 'La résidence financée n’a pas ouvert. Les contrats commencent pourtant bientôt. Luc demande une reprise du programme, tandis que les recrues cherchent déjà un logement ailleurs.',
+    body: 'La résidence prévue pour les nouvelles recrues n’a pas ouvert, et leur prise de poste approche. Faut-il reprendre les travaux ou financer des trajets temporaires depuis les communes voisines ?',
     requiresProject: 'residence-travail', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandon-residence', title: 'Abandonner la résidence des recrues', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'residence-travail', kind: 'housing', label: 'Résidence temporaire pour salariés recrutés', place: 'val-des-forges', dueAfter: 1, action: 'withdraw' } }),
@@ -305,7 +305,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'suite-integrite-audit-bloque', familyId: 'integrite-ministerielle', title: 'L’audit du marché n’est toujours pas rendu',
-    body: 'Le contrôle indépendant financé n’a pas abouti à son échéance. Claire demande les moyens de reprendre le travail. Renoncer au contrôle laisserait le marché sans la vérification promise.',
+    body: 'L’audit indépendant du marché public est en retard : le contrat reste sans vérification. Faut-il donner à l’auditeur les pièces manquantes, demander au Parlement de trancher ou arrêter l’audit ?',
     requiresProject: 'audit-marche', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandonner-audit-marche', title: 'Mettre fin à l’audit indépendant', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'audit-marche', kind: 'integrity', label: 'Audit indépendant du marché public', place: 'gare-des-tilleuls', dueAfter: 1, action: 'withdraw' } }),
@@ -315,7 +315,7 @@ export const NARRATIVE_EVENTS: readonly NarrativeEvent[] = [
   }),
   event({
     id: 'suite-logement-programme-bloque', familyId: 'logement', title: 'Les familles attendent toujours les logements',
-    body: 'Le programme près de la gare a été financé mais n’a pas été livré. Les familles inscrites sur les listes attendent. Luc propose de financer une tranche de reprise ; vous pouvez aussi renoncer publiquement au programme.',
+    body: 'Les logements abordables prévus près de la gare ne sont pas livrés, et les familles inscrites attendent. Faut-il financer une première tranche réduite, négocier un nouvel accord ou abandonner le programme ?',
     requiresProject: 'programme-gare', requiresProjectStatus: 'blocked',
     choices: [
       choice({ id: 'abandonner-programme-gare', title: 'Abandonner le programme de la gare', description: 'Clore le programme et informer les personnes qui attendaient sa livraison.', cost: 'Aucun crédit nouveau', benefit: 'Aucune tranche supplémentaire ne sera engagée.', sacrifice: 'La réalisation ne sera pas livrée ; les sommes déjà engagées ne sont pas récupérées.', effect: effect({ trust: -2, cohesion: -1 }), project: { id: 'programme-gare', kind: 'housing', label: 'Logements à loyers maîtrisés près de la gare', place: 'gare-des-tilleuls', dueAfter: 1, action: 'withdraw' } }),

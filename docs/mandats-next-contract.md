@@ -12,8 +12,10 @@ Décision propriétaire du 26 septembre 2026 : réaliser le brainstorm approuvé
 - Promesses, personnages et réalisations persistants ; conséquences immédiates et différées, accomplissements possibles, causes identifiables.
 - Six familles de scènes controversées : soins, industrie, énergie/mobilité, recrutement/intégration, intégrité du gouvernement, logement.
 - Décor qui montre les réalisations effectivement financées, bloquées, livrées ou abandonnées.
-- Une séquence continue : situation, carte cliquée, résultat, conséquence, prochain dossier. Pas de confirmation avant décision.
-- Vote courant bref, scrutin crucial mis en scène, mouvement réduit respecté.
+- Une séquence continue : situation, choix validé, verdict bref superposé, prochain dossier déjà prêt derrière. Aucun écran de résultat intermédiaire ni bouton « Continuer » après un choix ordinaire.
+- Le verdict indique le résultat réel (« Texte adopté » / « Texte rejeté » ou l’issue politique précise), puis disparaît seul après environ 1,8 s. Un bouton accessible permet de le fermer immédiatement. Sa fermeture ne modifie jamais la partie; une navigation l’annule. La sauvegarde intervient dès le choix et un double clic ne compte qu’une décision.
+- Tous les votes v11 utilisent le même verdict bref, y compris la censure et la destitution, dont l’issue est nommée précisément. Le détail reste dans le bilan. Mouvement réduit respecté; Tab suspend la fermeture automatique pour lire le résultat au clavier.
+- L’introduction nomme clairement le problème et les personnes concernées. Le contexte technique et les rappels de non-effet ne précèdent pas le choix; les conséquences n’emploient pas de phrase générique répétée sur tous les dossiers.
 - Récap et ouverture de l'année suivante réunis. Bilan individualisé et vrai tournant à rejouer.
 - Partage d'un dilemme jouable, même contexte extérieur au replay, sauvegarde locale protégée avant adoption d'un lien.
 - Défis contextualisés et objectifs vérifiables, épilogue électoral déterministe reposant sur le mandat, presse fictive et personnages identifiés comme tels.
@@ -59,8 +61,9 @@ Le moteur peut enrichir ces structures en concertation ; les vues lisent cet ét
 10. Choix essentiels hors écran, débordements à 320 px, résultat illisible, absence de navigation clavier.
 11. Presse fictive ou personnages interprétés comme témoignages/observations réels.
 12. Replay promettant un résultat contrefactuel non calculé.
+13. Verdict périmé ou répété après un nouveau choix, fermeture clavier impossible, transition réduite qui bloque, ou clic sur le verdict qui inscrit une seconde décision.
 
 ## Validation et preuves
 
-Parcours E2E : entrée et reprise ; deux ordres d'agenda ; amendement adopté/rejeté ; projet livré/bloqué/réparé ; promesse tenue/rompue ; trente décisions avec équilibre atteignable ; crise et fin anticipée ; export/reprise ; partage protégé ; replay causal ; contexte/défi ; épilogue final ; petit mobile, mobile, bureau et mouvement réduit.
+Parcours E2E : entrée et reprise ; deux ordres d'agenda ; amendement adopté/rejeté avec verdict exact ; progression immédiate sans « Continuer » ; fermeture clavier et automatique du verdict ; double clic et mouvement réduit ; introduction compréhensible sans rappel générique périmé ; projet livré/bloqué/réparé ; promesse tenue/rompue ; trente décisions avec équilibre atteignable ; crise et fin anticipée ; export/reprise ; partage depuis le Bilan vers le journal ; replay causal ; contexte/défi ; épilogue final ; petit mobile, mobile, bureau et mouvement réduit.
 Conserver scénarios, sauvegardes rejouables, captures et rapports. Inspecter les vrais écrans. Ne pas ajouter de tests unitaires après le code. Exécuter les tests existants et la compilation. Le workflow de livraison exige une PR vérifiée avant fusion.
