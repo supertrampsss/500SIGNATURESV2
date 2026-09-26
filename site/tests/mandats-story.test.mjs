@@ -172,13 +172,13 @@ async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = tr
   // Observe the transient receipt before the potentially expensive save replay.
   await waitForDecisionSurface(page);
   const verdict = page.locator('[data-decision-verdict]');
+  // Pause the transient receipt through the real keyboard interaction while inspecting it.
+  // The dedicated auto-close journey below verifies the unpaused timer independently.
+  await page.keyboard.press('Tab');
   const verdictText = await verdict.innerText();
   if (dismiss) {
     await page.locator('[data-action="dismiss-verdict"]').click();
     await expect(verdict).toBeHidden();
-  } else {
-    // A keyboard reader can keep the receipt open to inspect it.
-    await page.keyboard.press('Tab');
   }
   const after = await stored(page);
   expect(after.version).toBe(11);
