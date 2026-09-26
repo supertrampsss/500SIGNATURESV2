@@ -16,6 +16,7 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .f
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .fiche__hero-copy {
   position:relative; z-index:2; width:min(55%,600px); padding:0;
 }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .fiche__hero-copy > * { order:0; }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .fiche__hero .territoire-section-kicker {
   margin:0 0 13px; color:var(--fr-muted); font-size:12px; letter-spacing:1.6px;
 }
