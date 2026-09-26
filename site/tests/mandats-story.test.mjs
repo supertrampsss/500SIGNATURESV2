@@ -123,13 +123,14 @@ async function pickFront(page, index = 0) {
   const chosen = await button.getAttribute('data-story-id');
   await button.click();
   await expect(page.locator('.story-scene[data-stage="decision"]')).toBeVisible();
+  const title = await page.locator('.dossier h1').innerText();
   const after = await stored(page);
   expect(after.choices).toEqual(before.choices);
   expect(after.turn).toBe(before.turn);
   expect(after.finance).toEqual(before.finance);
   expect(after.metrics).toEqual(before.metrics);
   expect(await page.locator('.story-agenda').count()).toBe(0);
-  return { ids, chosen };
+  return { ids, chosen, title };
 }
 
 async function pickFrontId(page, id) {
@@ -156,6 +157,10 @@ async function chooseById(page, id) {
   await button.click();
 }
 
+async function waitForDecisionSurface(page) {
+  await expect(page.locator('[data-political-vote], .story-result, .year-recap, .living-result').first()).toBeVisible();
+}
+
 async function decide(page, choiceIndex = 0, { doubleClick = false } = {}) {
   const before = await stored(page);
   const choices = frontChoices(page);
@@ -168,6 +173,7 @@ async function decide(page, choiceIndex = 0, { doubleClick = false } = {}) {
   expect(after.choices).toHaveLength(before.choices.length + 1);
   expect(after.choices.at(-1)).toBe(choiceId);
   expect(after.turn).toBe(before.turn + 1);
+  await waitForDecisionSurface(page);
   const politicalVote = page.locator('[data-political-vote]');
   if (await politicalVote.count()) {
     await politicalVote.locator('[data-political-action="show-result"]').click();
@@ -396,6 +402,7 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   const abandonChoice = await frontChoices(abandonPage).evaluateAll((items) => items.map((item) => item.dataset.choice).find((id) => /abandonner/.test(id)));
   expect(abandonChoice).toBeTruthy();
   await chooseById(abandonPage, abandonChoice);
+  await waitForDecisionSurface(abandonPage);
   const abandonAfter = await stored(abandonPage);
   expect(abandonAfter.turn).toBe(abandonBefore.turn + 1);
   expect(abandonAfter.politics.votes.at(-1)).toMatchObject({ kind: 'law', passed: false });
@@ -405,6 +412,36 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   expect(abandonAfter.narrative.events.some((event) => event.kind === 'project' && event.causeTurn === 16 && /livr|réalisation/i.test(event.title))).toBe(false);
   await capture(abandonPage, info, 'v11-project-abandonment-rejected');
   await persistEvidence(abandonPage, info, 'v11-project-abandonment-inputs', { expectedStatus: 'blocked', expectedNoRefundOrDelivery: true });
+
+  // A rejected exit leaves the project in the agenda. The same motion is voted
+  // again on the next decision; this seed passes it, producing a real withdrawn
+  // status without refunding the already-spent investment.
+  const firstVote = abandonPage.locator('[data-political-vote]');
+  if (await firstVote.count()) {
+    await firstVote.locator('[data-political-action="show-result"]').click();
+    await firstVote.locator('[data-political-action="continue"]').click();
+  }
+  await continueStory(abandonPage);
+  const retryFront = abandonPage.locator('.story-agenda [data-action="story-select"]').filter({ hasText: /Raccordement ouvert du bassin/ });
+  await expect(retryFront).toBeVisible();
+  await pickFrontId(abandonPage, await retryFront.getAttribute('data-story-id'));
+  const retryId = await frontChoices(abandonPage).evaluateAll((items) => items.map((item) => item.dataset.choice).find((id) => /n11-20-.*abandonner/.test(id)));
+  expect(retryId).toBeTruthy();
+  const retryIndex = await frontChoices(abandonPage).evaluateAll((items, id) => items.findIndex((item) => item.dataset.choice === id), retryId);
+  const withdrawnResult = await decide(abandonPage, retryIndex);
+  const withdrawn = withdrawnResult.after;
+  const withdrawnProject = withdrawn.narrative.projects.find((item) => item.id === route.projectId);
+  expect(withdrawn.turn).toBe(21);
+  expect(withdrawn.politics.votes.at(-1)).toMatchObject({ kind: 'law', passed: true });
+  expect(withdrawnProject).toMatchObject({ status: 'withdrawn', startedTurn: 16 });
+  expect(withdrawnProject.note).toMatch(/crédits déjà dépensés ne sont pas récupérés/i);
+  expect(withdrawn.finance.cash).toBe(0);
+  expect(withdrawn.finance.investment).toBe(abandonAfter.finance.investment);
+  expect(withdrawn.metrics.assets).toBe(abandonAfter.metrics.assets);
+  expect(withdrawn.metrics.services).toBe(abandonAfter.metrics.services);
+  expect(withdrawn.narrative.events.some((event) => event.kind === 'project' && event.title === 'Le chantier est abandonné' && event.causeTurn === 20)).toBe(true);
+  await capture(abandonPage, info, 'v11-project-abandoned-without-refund');
+  await persistEvidence(abandonPage, info, 'v11-project-withdrawn-inputs', { expectedStatus: 'withdrawn', expectedRefund: 0, expectedDelivery: false });
   await abandonContext.close();
 });
 
@@ -480,12 +517,17 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   await expect(dilemmaRecipient.locator('.dossier h1')).toContainText(firstFrontTitle);
   expect(await rawSave(dilemmaRecipient)).toBe(existingSave);
   expect((await stored(dilemmaRecipient)).choices).toHaveLength(1);
-  const dilemmaChoice = dilemmaRecipient.locator('[data-action="choose"][data-choice]:not([disabled])').first();
+  const dilemmaChoices = await frontChoices(dilemmaRecipient).evaluateAll((items) => items.map((item) => item.dataset.choice));
+  const dilemmaAlternative = dilemmaChoices.find((id) => id !== firstDecision.choiceId);
+  expect(dilemmaAlternative).toBeTruthy();
+  const dilemmaChoice = dilemmaRecipient.locator(`[data-action="choose"][data-choice="${dilemmaAlternative}"]:not([disabled])`);
   await dilemmaChoice.click();
+  await waitForDecisionSurface(dilemmaRecipient);
   const adoptedDilemma = decodeExport(await rawSave(dilemmaRecipient));
   expect(adoptedDilemma.version).toBe(11);
   expect(adoptedDilemma.seed).toBe(start.seed);
   expect(adoptedDilemma.choices).toHaveLength(1);
+  expect(adoptedDilemma.choices.at(-1)).toBe(dilemmaAlternative);
   expect(await rawSave(dilemmaRecipient)).not.toBe(existingSave);
   await capture(dilemmaRecipient, info, 'v11-shared-dilemma-adopted');
   await persistEvidence(dilemmaRecipient, info, 'v11-shared-dilemma-inputs', { sharedFocus: sharedDilemma.narrative.focus });
@@ -550,11 +592,13 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   await expect(recipient.locator('.story-scene[data-stage="decision"]')).toBeVisible();
   expect(await rawSave(recipient)).toBe(originalRaw);
   await recipient.locator('[data-action="choose"][data-choice]:not([disabled])').first().click();
+  await waitForDecisionSurface(recipient);
   if (await recipient.locator('[data-political-vote]').count()) {
     const vote = recipient.locator('[data-political-vote]');
     await vote.locator('[data-political-action="show-result"]').click();
     await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
     await vote.locator('[data-political-action="continue"]').click();
+    await expect(vote).toBeHidden();
   }
   await expect(recipient.locator('.story-result, .year-recap, .living-result')).toBeVisible();
   const adoptedChallenge = decodeExport(await rawSave(recipient));
@@ -649,6 +693,7 @@ test('a shared decision restores exact focus and protects the local save until a
   const alternative = candidates.find((id) => id !== senderDecision.choiceId);
   expect(alternative).toBeTruthy();
   await recipient.locator(`[data-action="choose"][data-choice="${alternative}"]:not([disabled])`).click();
+  await waitForDecisionSurface(recipient);
   const adopted = decodeExport(await rawSave(recipient));
   expect(adopted.version).toBe(11);
   expect(adopted.seed).toBe(seed);
@@ -679,6 +724,7 @@ test('reduced motion and a rapid double click commit one decision', async ({ pag
     await vote.locator('[data-political-action="show-result"]').click();
     await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
     await vote.locator('[data-political-action="continue"]').click();
+    await expect(vote).toBeHidden();
   }
   await expect(page.locator('.story-result, .year-recap, .living-result')).toBeVisible();
   const motion = await page.locator('.story-result').evaluate((node) => getComputedStyle(node).animationDuration);
@@ -711,6 +757,7 @@ test('reduced-motion 320, 390 and desktop layouts keep all decision controls ins
   await keyboardChoice.focus();
   await expect(keyboardChoice).toBeFocused();
   await page.keyboard.press('Enter');
+  await waitForDecisionSurface(page);
   await expect(page.locator('.story-result, .year-recap, .living-result')).toBeVisible();
   const afterKeyboard = await stored(page);
   expect(afterKeyboard.turn).toBe(1);
