@@ -169,34 +169,38 @@ async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = tr
   const choiceId = await choices.nth(choiceIndex % await choices.count()).getAttribute('data-choice');
   if (doubleClick) await choices.nth(choiceIndex % await choices.count()).dblclick();
   else await choices.nth(choiceIndex % await choices.count()).click();
+  // Observe the transient receipt before the potentially expensive save replay.
+  await waitForDecisionSurface(page);
+  const verdict = page.locator('[data-decision-verdict]');
+  const verdictText = await verdict.innerText();
+  if (dismiss) {
+    await page.locator('[data-action="dismiss-verdict"]').click();
+    await expect(verdict).toBeHidden();
+  } else {
+    // A keyboard reader can keep the receipt open to inspect it.
+    await page.keyboard.press('Tab');
+  }
   const after = await stored(page);
   expect(after.version).toBe(11);
   expect(after.choices).toHaveLength(before.choices.length + 1);
   expect(after.choices.at(-1)).toBe(choiceId);
   expect(after.turn).toBe(before.turn + 1);
-  await waitForDecisionSurface(page);
-  const verdict = page.locator('[data-decision-verdict]');
   const vote = after.history.at(-1).vote;
   if (vote) {
-    expect(vote).toBeTruthy();
     if (vote.kind === 'election') {
       const stages = vote.stages?.length ? vote.stages : [vote];
       for (const stage of stages) expect(stage.groups.reduce((sum, group) => sum + (group.seats ?? 0), 0)).toBe(stage.total);
-      await expect(verdict).toContainText('Nouvelle répartition des sièges');
+      expect(verdictText).toContain('Nouvelle répartition des sièges');
     } else {
       const stages = vote.stages?.length ? vote.stages : [vote];
       for (const stage of stages) expect(stage.for + stage.against + stage.abstain).toBe(stage.total);
       const expected = vote.kind === 'law' ? (vote.passed ? 'Texte adopté' : 'Texte rejeté') : politicalVoteOutcome(vote).label;
-      await expect(verdict).toContainText(expected);
+      expect(verdictText).toContain(expected);
     }
   }
   if (after.turn === 30 || after.politics?.ending) await expect(page.locator('.living-result')).toBeVisible();
   else if (after.turn % 6 === 0) await expect(page.locator('.year-recap')).toBeVisible();
   else await expect(agenda(page)).toBeVisible();
-  if (dismiss) {
-    await page.locator('[data-action="dismiss-verdict"]').click();
-    await expect(verdict).toBeHidden();
-  }
   return { before, after, choiceId };
 }
 
