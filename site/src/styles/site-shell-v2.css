@@ -799,6 +799,7 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
   font-size:clamp(42px,5vw,68px)!important;
 }
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{
+  align-self:flex-start!important;
   margin:24px 0 0!important;
 }
 @media(max-width:700px){
