@@ -3,6 +3,7 @@ import { readFile, copyFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import fixture from './fixtures/mandats-v11.json' with { type: 'json' };
 import equilibriumFixture from './fixtures/mandats-equilibre.json' with { type: 'json' };
+import { politicalVoteOutcome } from '../src/mandats/political-motion.ts';
 
 const HOME = '/mandats/';
 const SAVE_KEY = fixture.evidence.storageKey;
@@ -158,10 +159,10 @@ async function chooseById(page, id) {
 }
 
 async function waitForDecisionSurface(page) {
-  await expect(page.locator('[data-political-vote], .story-result, .year-recap, .living-result').first()).toBeVisible();
+  await expect(page.locator('[data-decision-verdict]')).toBeVisible();
 }
 
-async function decide(page, choiceIndex = 0, { doubleClick = false } = {}) {
+async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = true } = {}) {
   const before = await stored(page);
   const choices = frontChoices(page);
   await expect(choices.first()).toBeVisible();
@@ -174,29 +175,28 @@ async function decide(page, choiceIndex = 0, { doubleClick = false } = {}) {
   expect(after.choices.at(-1)).toBe(choiceId);
   expect(after.turn).toBe(before.turn + 1);
   await waitForDecisionSurface(page);
-  const politicalVote = page.locator('[data-political-vote]');
-  if (await politicalVote.count()) {
-    await politicalVote.locator('[data-political-action="show-result"]').click();
-    await expect(politicalVote.locator('[data-political-action="continue"]')).toBeEnabled();
-    const vote = after.history.at(-1).vote;
+  const verdict = page.locator('[data-decision-verdict]');
+  const vote = after.history.at(-1).vote;
+  if (vote) {
     expect(vote).toBeTruthy();
     if (vote.kind === 'election') {
       const stages = vote.stages?.length ? vote.stages : [vote];
       for (const stage of stages) expect(stage.groups.reduce((sum, group) => sum + (group.seats ?? 0), 0)).toBe(stage.total);
-      await expect(politicalVote.locator('[data-vote-verdict]')).toContainText('Nouvelle répartition des sièges');
+      await expect(verdict).toContainText('Nouvelle répartition des sièges');
     } else {
       const stages = vote.stages?.length ? vote.stages : [vote];
       for (const stage of stages) expect(stage.for + stage.against + stage.abstain).toBe(stage.total);
-      const verdict = vote.kind === 'law' ? /Adopté|Rejeté/
-        : vote.kind === 'censure' ? /Gouvernement (?:renversé|maintenu)/
-          : /(?:Destitution prononcée|Procédure arrêtée)/;
-      await expect(politicalVote.locator('[data-vote-verdict]')).toContainText(verdict);
+      const expected = vote.kind === 'law' ? (vote.passed ? 'Texte adopté' : 'Texte rejeté') : politicalVoteOutcome(vote).label;
+      await expect(verdict).toContainText(expected);
     }
-    await politicalVote.locator('[data-political-action="continue"]').click();
   }
   if (after.turn === 30 || after.politics?.ending) await expect(page.locator('.living-result')).toBeVisible();
   else if (after.turn % 6 === 0) await expect(page.locator('.year-recap')).toBeVisible();
-  else await expect(page.locator('.story-result')).toBeVisible();
+  else await expect(agenda(page)).toBeVisible();
+  if (dismiss) {
+    await page.locator('[data-action="dismiss-verdict"]').click();
+    await expect(verdict).toBeHidden();
+  }
   return { before, after, choiceId };
 }
 
@@ -206,11 +206,16 @@ async function continueStory(page) {
     await expect(page.locator('.year-recap')).toBeVisible();
     await page.locator('.year-recap [data-action="next-year"]').click();
   } else {
-    const next = page.locator('.story-result [data-action="story-continue"]');
-    await expect(next).toBeVisible();
-    await next.click();
+    await expect(page.locator('.story-result')).toHaveCount(0);
   }
   await expect(agenda(page)).toBeVisible();
+}
+
+async function openDecisionJournal(page) {
+  await page.locator('[data-action="view"][data-view="finance"]').first().click();
+  const journal = page.locator('.cinema-review__summary details').filter({ hasText: 'Le journal de vos décisions' });
+  await expect(journal).toBeVisible();
+  await journal.locator('summary').click();
 }
 
 test('v11 contexts are deterministic and agenda selection changes focus without spending a turn', async ({ browser }, info) => {
@@ -386,7 +391,7 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   expect(delivered.turn).toBe(route.deliveryAfterDecision);
   expect(completedProject).toMatchObject({ status: 'delivered', deliveredTurn: 21, startedTurn: 16 });
   expect(delivered.narrative.events.some((event) => event.kind === 'project' && event.causeTurn === 16 && event.turn === 21)).toBe(true);
-  await expect(page.locator('.story-result')).toContainText(/mise en service|réalisation|livraison/i);
+  expect(delivered.history.at(-1).messages.join(' ')).toMatch(/Mise en service|livraison|réalisation/i);
   await capture(page, info, 'v11-project-recovered-delivery');
   await persistEvidence(page, info, 'v11-project-recovery-inputs', { blockedProject: project, repairedProject: completedProject });
 
@@ -416,11 +421,6 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   // A rejected exit leaves the project in the agenda. The same motion is voted
   // again on the next decision; this seed passes it, producing a real withdrawn
   // status without refunding the already-spent investment.
-  const firstVote = abandonPage.locator('[data-political-vote]');
-  if (await firstVote.count()) {
-    await firstVote.locator('[data-political-action="show-result"]').click();
-    await firstVote.locator('[data-political-action="continue"]').click();
-  }
   await continueStory(abandonPage);
   const retryFront = abandonPage.locator('.story-agenda [data-action="story-select"]').filter({ hasText: /Raccordement ouvert du bassin/ });
   await expect(retryFront).toBeVisible();
@@ -486,14 +486,17 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   const firstFrontTitle = await page.locator('.story-agenda [data-story-id]').first().locator('strong').innerText();
   expect(firstFronts).toHaveLength(3);
   await pickFront(page, 0);
-  const firstDecision = await decide(page, 0);
-  await expect(page.locator('.story-result')).toContainText(/Texte rejeté|Compromis adopté|promesse|projet|conséquence/i);
+  const firstDecision = await decide(page, 0, { dismiss: false });
+  await expect(page.locator('[data-decision-verdict]')).toContainText(/Texte rejeté|Texte adopté|Gouvernement|Procédure/);
   await capture(page, info, 'v11-first-outcome');
   await persistEvidence(page, info, 'v11-first-decision', { selectedFront: firstFronts[0], selectedChoice: firstDecision.choiceId });
+  await page.locator('[data-action="dismiss-verdict"]').click();
+  await expect(page.locator('[data-decision-verdict]')).toBeHidden();
 
   // Share an actual decision card, not a reconstructed URL. Its fragment must
   // restore the exact replay focus before the shared choice is adopted.
-  await page.locator('.story-result [data-action="share-decision"]').click();
+  await openDecisionJournal(page);
+  await page.locator('[data-action="share-decision"]').first().click();
   const decisionDialog = page.getByRole('dialog');
   await expect(decisionDialog).toContainText('Partager votre mandat');
   await decisionDialog.getByRole('button', { name: 'Copier le lien', exact: true }).click();
@@ -507,6 +510,8 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   expect(sharedDilemma.narrative.focus).toBe(firstFronts[0]);
   const existingSave = await rawSave(page);
   await decisionDialog.getByRole('button', { name: 'Fermer' }).click();
+  await page.getByRole('button', { name: 'Décider', exact: true }).click();
+  await expect(agenda(page)).toBeVisible();
 
   const dilemmaContext = await page.context().browser().newContext({ viewport: info.project.use.viewport, baseURL: new URL(page.url()).origin });
   await dilemmaContext.addInitScript(([key, value]) => localStorage.setItem(key, value), [SAVE_KEY, existingSave]);
@@ -593,14 +598,10 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   expect(await rawSave(recipient)).toBe(originalRaw);
   await recipient.locator('[data-action="choose"][data-choice]:not([disabled])').first().click();
   await waitForDecisionSurface(recipient);
-  if (await recipient.locator('[data-political-vote]').count()) {
-    const vote = recipient.locator('[data-political-vote]');
-    await vote.locator('[data-political-action="show-result"]').click();
-    await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
-    await vote.locator('[data-political-action="continue"]').click();
-    await expect(vote).toBeHidden();
-  }
-  await expect(recipient.locator('.story-result, .year-recap, .living-result')).toBeVisible();
+  await expect(recipient.locator('[data-decision-verdict]')).toBeVisible();
+  await recipient.keyboard.press('Escape');
+  await expect(recipient.locator('[data-decision-verdict]')).toBeHidden();
+  await expect(recipient.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
   const adoptedChallenge = decodeExport(await rawSave(recipient));
   expect(adoptedChallenge).toMatchObject({ version: 11, seed: start.seed, turn: 1 });
   await capture(recipient, info, 'v11-challenge-adopted');
@@ -667,7 +668,8 @@ test('a shared decision restores exact focus and protects the local save until a
   const senderState = decodeExport(senderSave);
   expect(senderState.choices).toHaveLength(2);
 
-  await page.locator('.story-result [data-action="share-decision"]').click();
+  await openDecisionJournal(page);
+  await page.locator('[data-action="share-decision"]').first().click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('Le lien restitue les décisions antérieures');
   await dialog.getByRole('button', { name: 'Copier le lien', exact: true }).click();
@@ -699,7 +701,7 @@ test('a shared decision restores exact focus and protects the local save until a
   expect(adopted.seed).toBe(seed);
   expect(adopted.choices).toEqual([...replayPrefix.choices, alternative]);
   expect(adopted.turn).toBe(replayPrefix.turn + 1);
-  await expect(recipient.locator('.story-result, .year-recap, .living-result')).toBeVisible();
+  await expect(recipient.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
   await capture(recipient, info, `v11-shared-decision-${info.project.name}`);
   await persistEvidence(recipient, info, `v11-shared-decision-${info.project.name}`, { focus: replayPrefix.narrative.focus, adoptedChoice: alternative });
   await recipientContext.close();
@@ -712,24 +714,15 @@ test('reduced motion and a rapid double click commit one decision', async ({ pag
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await openSeed(page, seed, { reducedMotion: true });
   await pickFront(page, 0);
-  const firstChoice = frontChoices(page).first();
   // Agenda control itself cannot move the turn; a rapid repeated decision is still one act.
-  const before = await stored(page);
-  await firstChoice.dblclick();
-  const after = await stored(page);
-  expect(after.turn).toBe(before.turn + 1);
+  const { after } = await decide(page, 0, { doubleClick: true, dismiss: false });
   expect(after.choices).toHaveLength(1);
-  if (await page.locator('[data-political-vote]').count()) {
-    const vote = page.locator('[data-political-vote]');
-    await vote.locator('[data-political-action="show-result"]').click();
-    await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
-    await vote.locator('[data-political-action="continue"]').click();
-    await expect(vote).toBeHidden();
-  }
-  await expect(page.locator('.story-result, .year-recap, .living-result')).toBeVisible();
-  const motion = await page.locator('.story-result').evaluate((node) => getComputedStyle(node).animationDuration);
+  const verdict = page.locator('[data-decision-verdict]');
+  const motion = await verdict.evaluate((node) => getComputedStyle(node).animationDuration);
   expect(motion.split(',').every((duration) => Number.parseFloat(duration) === 0)).toBe(true);
-  await expect(page.locator('.story-result [data-action="story-continue"]')).toBeVisible();
+  await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(verdict).toBeHidden();
   const overflow = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
   expect(overflow.width).toBeLessThanOrEqual(overflow.viewport + 1);
   await capture(page, info, `v11-reduced-motion-${info.project.name}`);
@@ -752,17 +745,66 @@ test('reduced-motion 320, 390 and desktop layouts keep all decision controls ins
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
   await pickFront(page, 0);
+  const introTitle = page.locator('.dossier h1');
+  const introduction = page.locator('.dossier > .story');
+  await expect(introTitle).not.toBeEmpty();
+  await expect(introduction).toBeVisible();
+  expect((await introduction.innerText()).trim().length).toBeGreaterThan(30);
+  await expect(page.locator('.dossier')).not.toContainText(/scénario politique fictif|aucun crédit ni projet.*engagé/i);
+  await expect(page.locator('.story-scene__lead, .story-scene__details, .mobile-decision-feedback')).toHaveCount(0);
+  await capture(page, info, `v11-clear-decision-${info.project.name}`);
   await expect(frontChoices(page)).toHaveCount(3);
   const keyboardChoice = frontChoices(page).first();
   await keyboardChoice.focus();
   await expect(keyboardChoice).toBeFocused();
   await page.keyboard.press('Enter');
   await waitForDecisionSurface(page);
-  await expect(page.locator('.story-result, .year-recap, .living-result')).toBeVisible();
+  await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
+  await capture(page, info, `v11-verdict-${info.project.name}`);
   const afterKeyboard = await stored(page);
   expect(afterKeyboard.turn).toBe(1);
+  const verdict = page.locator('[data-decision-verdict]');
+  await page.keyboard.press('Escape');
+  await expect(verdict).toBeHidden();
   const overflow = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
   expect(overflow.width).toBeLessThanOrEqual(overflow.viewport + 1);
   await capture(page, info, `v11-layout-${info.project.name}`);
   await persistEvidence(page, info, `v11-layout-${info.project.name}`);
+});
+
+test('the decision verdict auto-closes, advances immediately and never leaves stale feedback', async ({ page }, info) => {
+  test.skip(info.project.name !== 'chromium-desktop', 'Timed verdict transitions are checked once on desktop.');
+  await openSeed(page, fixture.journeys.interaction.seed);
+  await pickFront(page, 0);
+  const intro = page.locator('.dossier > .story');
+  await expect(intro).toBeVisible();
+  expect((await intro.innerText()).trim().length).toBeGreaterThan(30);
+  await expect(page.locator('.dossier')).not.toContainText(/scénario politique fictif|aucun crédit ni projet.*engagé/i);
+
+  const before = await stored(page);
+  const firstChoice = frontChoices(page).first();
+  const firstId = await firstChoice.getAttribute('data-choice');
+  await firstChoice.click();
+  const committed = await stored(page);
+  expect(committed.choices).toEqual([...before.choices, firstId]);
+  const verdict = page.locator('[data-decision-verdict]');
+  await expect(verdict).toBeVisible();
+  await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
+  await expect(verdict).toBeHidden({ timeout: 3000 });
+  await expect(page.locator('.story-result')).toHaveCount(0);
+  await expect(agenda(page)).toBeVisible();
+
+  const secondBefore = await stored(page);
+  await pickFront(page, 0);
+  const secondChoice = frontChoices(page).first();
+  const secondId = await secondChoice.getAttribute('data-choice');
+  await secondChoice.click();
+  const secondAfter = await stored(page);
+  expect(secondAfter.choices).toEqual([...secondBefore.choices, secondId]);
+  await expect(verdict).toBeVisible();
+  await expect(page.locator('.story-agenda')).toBeVisible();
+  await expect(page.locator('.story-agenda')).not.toContainText('Le mandat avance entre plusieurs fronts');
+  await expect(verdict).toContainText(/Texte adopté|Texte rejeté|Gouvernement|Procédure|Nouvelle répartition/);
+  await page.locator('[data-action="dismiss-verdict"]').click();
+  await expect(verdict).toBeHidden();
 });

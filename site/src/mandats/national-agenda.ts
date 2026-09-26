@@ -6,10 +6,47 @@ import type { Choice, Dossier, Effect, Game, Society } from './types.ts';
 type Topic = [string, string, keyof Society, string, number, string, string, number, keyof Society, string];
 type Entry = { id: string; kind: 'reform'|'opportunity'|'crisis'; dossier: Dossier; source?: string; group?: keyof Society };
 const advisor = 'Enveloppes distinctes et rendements hypothétiques du jeu. Les conséquences sociales continuent de modifier le budget, même sans carte de crise.';
-const option=(id:string,title:string,effect:Effect,sacrifice:string):Choice=>({id,title,effect,sacrifice,description:sacrifice,benefit:'La mesure est appliquée.',cost:campaignCost(effect,undefined,'Md€')});
+const option=(id:string,title:string,effect:Effect,sacrifice:string):Choice=>({id,title,effect,sacrifice,description:sacrifice,benefit:sacrifice,cost:campaignCost(effect,undefined,'Md€')});
+const topicIntros:Record<string,string>={
+ 'Achats publics':'L’État achète du matériel et des services pour faire fonctionner les écoles, hôpitaux et administrations. La façon de passer les marchés détermine quels fournisseurs peuvent candidater.',
+ 'Apprentissage':'L’apprentissage alterne cours et travail en entreprise. Les aides publiques réduisent le coût pour l’employeur et facilitent l’accès des jeunes à une qualification.',
+ 'Formation':'La formation aide les personnes à trouver un emploi ou à changer de métier. Les financements peuvent viser les parcours qui répondent aux besoins des employeurs.',
+ 'Transport':'Les subventions aident à maintenir des lignes de transport et à limiter le prix des trajets. Les réduire peut laisser certains voyageurs sans solution pratique.',
+ 'Agriculture':'Les aides agricoles soutiennent les revenus et les investissements des exploitations. Leur répartition détermine quelles fermes peuvent moderniser leur activité.',
+ 'Numérique':'Les administrations utilisent des logiciels et des infrastructures numériques pour rendre leurs services. Des outils qui se recoupent coûtent plus cher et compliquent le travail des agents.',
+ 'Patrimoine public':'L’État paie des loyers et l’entretien des bâtiments où travaillent ses services. Des locaux peu utilisés peuvent coûter cher, mais les regrouper éloigne parfois les services.',
+ 'Sport':'Les aides publiques financent la construction et le fonctionnement des équipements sportifs. Leur fréquentation varie selon les territoires et les installations.',
+ 'Administration':'Plusieurs organismes publics peuvent intervenir sur des missions proches. Les regrouper réduit les doublons, mais peut aussi supprimer des équipes ou des compétences spécialisées.',
+ 'Fiscalité patrimoniale':'Les avantages fiscaux liés au patrimoine réduisent l’impôt de certains propriétaires et héritiers. Les modifier change la répartition de l’effort entre contribuables.',
+ 'Autonomie':'L’aide à domicile permet aux personnes âgées ou handicapées de rester chez elles. Elle finance notamment les visites et l’accompagnement pour les gestes du quotidien.',
+ 'Guichets':'Les guichets publics aident les habitants à remplir leurs démarches et à accéder à leurs droits. Leur regroupement peut réduire les coûts, mais impose parfois de plus longs déplacements.',
+ 'Pouvoir d’achat':'Les tarifs sociaux donnent accès à des produits essentiels à prix réduit. Réduire le nombre de bénéficiaires économiserait de l’argent, mais exclurait des ménages modestes.',
+ 'Industrie':'Les aides à la relocalisation soutiennent les entreprises qui produisent de nouveau en France. Leur attribution peut dépendre de projets déjà engagés ou d’engagements d’investissement.',
+ 'Prévention':'La prévention vise à éviter les maladies avant qu’elles ne nécessitent des soins. Les campagnes d’information et de dépistage touchent des publics différents selon leur organisation.',
+ 'Prestations':'Les prestations sociales apportent un revenu ou une aide aux personnes qui remplissent les critères. Simplifier les démarches peut faciliter l’accès, mais une transition mal préparée peut le compliquer.',
+ 'Intégration':'Les cours de français aident les personnes nouvellement arrivées à communiquer et à faire leurs démarches. Les critères d’accès déterminent qui bénéficie des places financées.',
+ 'Vie locale':'Les subventions aux associations et événements financent des activités accessibles dans les quartiers et les communes. Leur réduction peut faire disparaître des activités de proximité.',
+ 'Seniors':'Les dispositifs de fin de carrière aident les salariés âgés à rester en emploi ou à se reconvertir. Les règles déterminent quels employeurs et quels salariés peuvent en bénéficier.',
+ 'Soins':'Les transports sanitaires conduisent les patients à leurs rendez-vous et à leurs soins. Regrouper les trajets peut économiser des moyens, mais rallonger l’attente de certains patients.',
+ 'Carrières':'Les métiers publics en tension manquent de candidats, notamment dans les soins et l’accueil. Les dispositifs de recrutement cherchent à pourvoir ces postes durablement.',
+ 'Emploi':'L’accompagnement vers l’emploi aide les demandeurs à chercher un poste, se former et répondre aux offres. L’intensité du suivi peut varier selon leur situation.',
+ 'Énergie':'Les aides à la conversion énergétique financent le remplacement d’équipements polluants. Les limiter aux projets les plus rentables peut laisser certains ménages ou entreprises sans solution.',
+ 'Logement':'Les aides à la remise en location financent les travaux nécessaires dans des logements vacants. Elles peuvent augmenter l’offre, à condition que les propriétaires remettent les biens sur le marché.',
+ 'Communes':'Les communes partagent parfois des équipements coûteux, comme des salles ou du matériel. La mutualisation réduit les dépenses, mais peut éloigner ces services des habitants.',
+ 'Innovation':'Les aides aux jeunes entreprises innovantes financent des projets risqués qui peinent à obtenir des prêts. Les limiter aux projets déjà cofinancés réduit le risque pour les finances publiques.',
+ 'Petite enfance':'Les crèches offrent aux jeunes enfants un accueil pendant que leurs parents travaillent ou se forment. Leur coût et leur emplacement déterminent le nombre de familles qui peuvent y accéder.',
+ 'Information':'Les aides à la presse soutiennent les médias qui informent les habitants, y compris dans les zones où peu de journaux sont distribués. Leur réduction peut fragiliser la couverture locale.',
+ 'Coopération':'Les programmes internationaux financent des projets menés avec d’autres pays. Les concentrer sur ceux dont les résultats sont évalués change les actions qui reçoivent un soutien.',
+ 'Infrastructures':'Les infrastructures de transport et de services demandent de gros investissements et servent des territoires différents. Choisir les projets prioritaires détermine où les nouveaux équipements seront construits.',
+ 'Justice':'L’aide juridictionnelle paie tout ou partie des frais d’avocat des personnes qui n’en ont pas les moyens. Les plafonds de ressources déterminent qui peut être défendu avec ce soutien.',
+ 'Éducation':'Le soutien scolaire aide les élèves qui rencontrent des difficultés à suivre les cours. Le ciblage des moyens détermine quels établissements et quels élèves reçoivent un accompagnement.',
+ 'Eau':'Les réseaux d’eau acheminent l’eau potable et évacuent les eaux usées. Leur rénovation limite les fuites et les pannes, mais les travaux sont coûteux et ne peuvent pas tous être menés en même temps.',
+ 'Handicap':'L’accessibilité permet aux personnes handicapées d’utiliser les bâtiments et services publics. Les aménagements concernent les entrées, les déplacements et l’accès à l’information.',
+ 'Sécurité':'Les services de sécurité assurent la protection des personnes et des biens. Leur fonctionnement dépend aussi des équipes qui les équipent, les organisent et les soutiennent.',
+};
 function topic(id:string,t:Topic,kind:Entry['kind'],source?:string):Entry {
  const [category,title,group,cut,saving,harm,tax,yieldValue,payer,service]=t;
- return {id,kind,source,group,dossier:{category,title,story:`${cut} permettrait d’économiser ${saving} Md€ par an. ${harm} L’autre levier : ${tax.charAt(0).toLowerCase() + tax.slice(1)}. À qui demander l’effort ?`,advisor,choices:[
+ return {id,kind,source,group,dossier:{category,title,story:topicIntros[category],advisor,choices:[
   option(id+'a',cut,{operating:-saving,society:{[group]:-3},services:-1},harm),
   option(id+'b',tax,{revenue:yieldValue,society:{[payer]:-2},trust:-1},`${({workers:'Les salariés',pensioners:'Les retraités concernés',vulnerable:'Les ménages modestes',businesses:'Les entreprises concernées',newcomers:'Les nouveaux résidents',publicStaff:'Les agents publics',affluent:'Les ménages aisés'})[payer]} paient ${yieldValue} Md€ de plus par an pour préserver les moyens actuels.`),
   option(id+'c','Renforcer '+service,{operating:2,society:{[group]:4},services:1},'Le service progresse, pour 2 Md€/an de dépenses supplémentaires.'),
@@ -84,14 +121,31 @@ reforms.forEach((entry,i)=>{
 });
 // The hypothetical residence reform is committed in one vote, with a delayed yield.
 const residence=reforms[6].dossier;
-residence.story='Dans ce scénario, le cadre juridique serait modifié avec exemptions avant application. Le rendement retenu est une hypothèse de jeu, sans attribution de 9 Md€ à cette seule règle.';
+residence.story='Le texte propose de réserver certaines aides aux personnes ayant résidé en France pendant une durée définie, avec des exceptions. Son application demanderait d’abord une année de préparation.';
 residence.choices[0]={...residence.choices[0],title:'Instaurer le délai dans un cadre juridique modifié',effect:{investment:.2,operating:.5,trust:-2},sacrifice:'Préparation : 0,2 Md€ ponctuels, gestion : 0,5 Md€/an. La restriction réduit ensuite les aides.',description:'La transition dure un an. Les personnes exemptées conservent leurs droits.',delayed:{after:1,label:'La restriction des aides entre en vigueur : 2 Md€/an de charges en moins, avec 0,5 Md€/an de gestion maintenus. Hypothèse du jeu.',effect:{operating:-2,society:{newcomers:-8,vulnerable:-2},cohesion:-2}}};
 residence.choices[0].cost=campaignCost(residence.choices[0].effect,residence.choices[0].delayed,'Md€');
 reforms.push(...extra.map((t,i)=>topic('r'+(21+i),t,'reform')));
 const unlocked=opportunities.map((t,i)=>topic('u'+String(i).padStart(2,'0'),t,'opportunity',i<20?REFORMS[i].id:undefined));
 const crisisTitles=['Les retraités réduisent leurs dépenses essentielles : comment intervenir ?','Les délais aux guichets s’allongent : comment assurer l’accueil ?','Les ménages réduisent leurs achats essentiels : quelle réponse ?','Des entreprises suspendent leurs projets : quel soutien cibler ?','Le renoncement aux soins progresse : quelle réponse apporter ?','Les demandes d’aide d’urgence augmentent : comment intervenir ?','L’accès aux aides se dégrade pour les nouveaux résidents : quelle réponse ?','Des activités associatives ferment : comment maintenir les services essentiels ?','Des seniors restent sans emploi : comment les accompagner ?','L’accès à l’hôpital se dégrade : quels moyens de proximité financer ?','Des postes publics restent vacants : comment attirer des candidats ?','Des chômeurs arrivent en fin de droits : quelle protection financer ?','Des entreprises peinent à convertir leur énergie : quelle réponse ?','Les impayés de loyer augmentent : comment intervenir ?','Des communes perdent des accueils de proximité : quelle réponse ?'];
+const crisisStories=[
+ 'Certains retraités réduisent leurs achats de nourriture ou de chauffage. Ce renoncement fragilise leur santé et leur autonomie.',
+ 'Les agents disponibles ne suffisent plus pour répondre aux usagers. Les démarches prennent du retard et certains habitants renoncent au service.',
+ 'La hausse des prix oblige des ménages à renoncer à des produits essentiels. Les foyers aux revenus modestes ont peu de marge pour absorber ces hausses.',
+ 'Des entreprises reportent leurs investissements et leurs embauches. Les projets industriels et les emplois attendus risquent de prendre du retard.',
+ 'Des patients retardent des soins faute de moyens ou de rendez-vous accessibles. Une prise en charge tardive peut aggraver leur état de santé.',
+ 'Les demandes d’aide d’urgence dépassent les moyens disponibles. Des ménages risquent de rester sans réponse au moment où ils en ont le plus besoin.',
+ 'Des nouveaux résidents peinent à accéder aux aides et aux services. Sans accompagnement, leurs démarches et leur accès à l’emploi se compliquent.',
+ 'Des associations arrêtent leurs activités faute de financement. Les habitants perdent des lieux d’entraide et des services de proximité.',
+ 'Des salariés âgés restent sans emploi et ont du mal à retrouver un poste. Leur expérience est perdue et leur période sans revenu peut s’allonger.',
+ 'Des patients doivent parcourir davantage de distance pour être soignés. L’éloignement retarde les consultations et complique le suivi médical.',
+ 'Des postes publics restent vacants et les délais de service s’allongent. Les équipes en place doivent absorber les demandes supplémentaires.',
+ 'Des demandeurs d’emploi arrivent au terme de leurs droits sans avoir retrouvé de poste. Ils risquent de perdre leur revenu avant d’avoir une nouvelle solution.',
+ 'Des entreprises n’ont pas les moyens de remplacer leurs équipements énergétiques. Elles restent dépendantes d’installations polluantes ou retardent leur conversion.',
+ 'Des locataires accumulent des impayés et risquent de perdre leur logement. Une dette de loyer peut rapidement conduire à une procédure d’expulsion.',
+ 'Des habitants doivent aller plus loin pour faire leurs démarches en personne. Les personnes sans accès numérique sont les plus dépendantes des permanences locales.',
+];
 const crises:Entry[]=crisisTitles.map((title,i)=>{
- const r=REFORMS[i];return {id:'k'+i,kind:'crisis',source:r.id,group:r.group,dossier:{category:'Conséquence sociale',title,story:'Les effets de plusieurs décisions se cumulent. Une intervention ciblée devient possible ; la réforme votée reste appliquée.',advisor,choices:[
+ const r=REFORMS[i];return {id:'k'+i,kind:'crisis',source:r.id,group:r.group,dossier:{category:'Conséquence sociale',title,story:crisisStories[i],advisor,choices:[
   option('k'+i+'a','Cibler l’urgence dans les moyens existants',{society:{[r.group]:1},trust:-1},'Certains besoins restent sans réponse. Aucun nouveau gain budgétaire.'),
   option('k'+i+'b','Financer une aide ciblée par une contribution des hauts revenus',{operating:2,revenue:3,society:{[r.group]:4,affluent:-2}},'Les ménages aisés financent l’intervention.'),
   option('k'+i+'c','Renforcer immédiatement les moyens',{operating:3,society:{[r.group]:6},services:1},'L’intervention ajoute 3 Md€/an au budget.'),
@@ -107,10 +161,6 @@ function enactedHistory(g:Game) {
 }
 function sourceTurn(g:Game, source:string) {
  return g.choices.findIndex((choice,i)=>choice===source+'a'&&!lawWasRejected(g,i));
-}
-function enactedOrigin(g:Game, source:string) {
- const slot=g.choices.findIndex((choice,i)=>choice.startsWith(source)&&choice.length===source.length+1&&!lawWasRejected(g,i));
- return slot<0?undefined:g.history[slot]?.title;
 }
 function historicalDossier(g:Game, slot:number):Dossier {
  const id=g.choices[slot];
@@ -150,8 +200,7 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
   if(g.choices[slot]){const e=entryForChoice(g.choices[slot]);if(!e)throw new Error('Dossier historique inconnu.');return e.dossier;}
   if(slot!==g.turn)return reforms[0].dossier; // Non-actionable future previews are hidden by the planner.
   const e=agendaEntry(g);
-  const origin=e.source?enactedOrigin(g,e.source):undefined;
-  return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
+  return e.dossier;
  });
 }
 
@@ -190,7 +239,6 @@ export function nationalAgendaDossiersV9(g:Game):Dossier[] {
   if(g.choices[slot])return historicalDossier(g,slot);
   if(slot!==g.turn)return reforms[0].dossier;
   const e=agendaEntryV9(g);
-  const origin=e.source?enactedOrigin(g,e.source):undefined;
-  return origin?{...e.dossier,story:`Après « ${origin} ». ${e.dossier.story}`}:e.dossier;
+  return e.dossier;
  });
 }

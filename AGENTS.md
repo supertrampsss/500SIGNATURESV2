@@ -52,6 +52,16 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: direct decision flow (26 September 2026)
+
+- A v11 decision saves immediately, renders its next agenda/year/ending, then overlays
+  the recorded verdict for 1.8 seconds. No result page or mandatory Continue action.
+- `decision-verdict.ts` owns only transient presentation. Closing, cancelling or
+  interrupting it never calls the engine. Keep Escape, reduced motion and double-click protection.
+- Each introduction explains the concrete problem in plain French. Do not repeat
+  the previous outcome or list all choices again. Keep projects, promises and detailed
+  vote history in Bilan, away from the next decision.
+
 ### Mandats: consequential narrative campaign (26 September 2026)
 
 Follow [the narrative contract](docs/mandats-next-contract.md). `narrative-content.ts`

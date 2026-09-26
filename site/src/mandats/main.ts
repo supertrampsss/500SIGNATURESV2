@@ -31,6 +31,8 @@ import { voteSequenceMarkup } from "./politics-view.ts";
 import { mountPoliticalMotion } from "./political-motion.ts";
 import "./politics.css";
 import "./narrative.css";
+import "./decision-verdict.css";
+import { showDecisionVerdict } from "./decision-verdict.ts";
 import type { VoteRecord } from "./politics-types.ts";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
@@ -51,6 +53,15 @@ let hudAnimationFrame: number | undefined;
 let hudAnimationTargets: Array<{ numberNode: Node; target: string; el: HTMLElement; metric?: HTMLElement }> = [];
 let temporarilyDisabledChoices = new Map<HTMLButtonElement, boolean>();
 let activeVoteReveal: VoteRecord | null = null;
+let decisionVerdict: ReturnType<typeof showDecisionVerdict>;
+function clearDecisionVerdict() { decisionVerdict?.dispose(); decisionVerdict = undefined; }
+function revealDecisionVerdict(game: Game) {
+  clearDecisionVerdict();
+  decisionVerdict = showDecisionVerdict(game, () => {
+    decisionVerdict = undefined;
+    root.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+  });
+}
 let politicalMotionCleanup: (() => void) | undefined;
 let branchReference: Game | null = null;
 const BRANCH_ACTIVE_KEY = "500signatures.mandats.branch-active.v1";
@@ -173,6 +184,7 @@ window.addEventListener("hashchange", event => {
   render();
 });
 function render(focus = true, restoreScroll?: number) {
+  clearDecisionVerdict();
   clearBoardMotion();
   document.body.dataset.screen = screen;
   document.body.dataset.view = view;
@@ -209,13 +221,6 @@ function render(focus = true, restoreScroll?: number) {
       const comparison = renderTrajectoryComparison(g, branchReference);
       if (comparison) withComparison.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);
     }
-    markup = withComparison.innerHTML;
-  }
-  if (branchReference && g?.version === 11 && screen === "story-result") {
-    const withComparison = document.createElement("template");
-    withComparison.innerHTML = markup;
-    const comparison = comparisonMarkup(g, branchReference);
-    if (comparison) withComparison.content.querySelector<HTMLElement>(".story-result")?.insertAdjacentHTML("beforeend", comparison);
     markup = withComparison.innerHTML;
   }
   if (branchReference && g && screen === "play" && view === "finance" && g.version >= 9 && g.mode === "national") {
@@ -375,7 +380,7 @@ async function png(format: keyof typeof CARD_SIZES) {
   } finally { URL.revokeObjectURL(url); }
 }
 function shouldRevealPoliticalVote(game: Game, choiceId: string, vote?: VoteRecord): boolean {
-  if (!vote) return false;
+  if (!vote || game.version === 11) return false;
   if (vote.kind !== "law") return true;
   const choice = choicesFor(game).find(item => item.id === choiceId);
   // Keep full seat-by-seat reveals for authored political pivots; routine laws
@@ -389,6 +394,9 @@ function sharingSheet() {
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
+  if (a === "dismiss-verdict") { decisionVerdict?.dismiss(); return; }
+  if (decisionVerdict && (a === "choose" || a === "story-select")) return;
+  if (decisionVerdict) clearDecisionVerdict();
   if (decisionTransition.locked) {
     if (a !== "new" && a !== "replay") return;
     decisionTransition.cancel();
@@ -465,7 +473,6 @@ async function action(target: HTMLElement) {
       const finished = isFinished(next);
       if (finished) screen = "result";
       else if (yearClosed) screen = "year";
-      else if (next.version === 11 && next.mode === "national") screen = "story-result";
       announce(`Décision ${next.turn} prise. ${finished ? "Votre mandat est terminé." : yearClosed ? "L’année est terminée." : "Dossier suivant."}`, true);
       persist();
       activeVoteReveal = voteToReveal;
@@ -476,7 +483,7 @@ async function action(target: HTMLElement) {
       }
       decisionTransition.finish(token, () => {
         render(false);
-        if (yearClosed) window.scrollTo({ top: 0, behavior: "instant" });
+        if (yearClosed || next.version === 11) window.scrollTo({ top: 0, behavior: "instant" });
         else {
           const question = root.querySelector<HTMLElement>("[data-board-decision] h1");
           if (question) {
@@ -486,7 +493,8 @@ async function action(target: HTMLElement) {
             }
           }
         }
-        (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
+        if (next.version === 11) revealDecisionVerdict(next);
+        else (root.querySelector<HTMLElement>("[data-mandate-board] [data-board-decision] h1, .dossier h1") ?? root.querySelector<HTMLElement>("h1"))?.focus({ preventScroll: true });
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 110);
       return;
     }
@@ -497,7 +505,6 @@ async function action(target: HTMLElement) {
     const finished = isFinished(next);
     if (finished) screen = "result";
     else if (yearClosed) screen = "year";
-    else if (next.version === 11 && next.mode === "national") screen = "story-result";
     announce(`Décision ${next.turn} prise. ${finished ? "Votre mandat est terminé." : yearClosed ? "L’année est terminée." : "Dossier suivant."}`,true);
     persist();
     activeVoteReveal = voteToReveal;
@@ -511,7 +518,6 @@ async function action(target: HTMLElement) {
     try { g = selectStoryAgenda(g, target.dataset.storyId ?? ""); screen = "play"; view = "decision"; persist(); }
     catch (error) { announce(error instanceof Error ? error.message : "Ce dossier n’est plus disponible."); return; }
   }
-  else if (a === "story-continue" && g?.version === 11 && g.mode === "national") { screen = "play"; view = "decision"; }
   else if (a === "start-context" && g === null) {
     const context = target.dataset.context;
     const option = storyContextOptions().find(item => item.context === context);
@@ -521,7 +527,7 @@ async function action(target: HTMLElement) {
   else if (a === "next-year" && g) { screen = g.version === 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
-  else if (a === "view") { view = target.dataset.view as View; if (g?.version === 11 && g.mode === "national" && view === "finance" && (screen === "story-result" || screen === "year")) screen = "play"; }
+  else if (a === "view") { view = target.dataset.view as View; if (g?.version === 11 && g.mode === "national" && view === "finance" && screen === "year") screen = "play"; }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
   else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 11); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
@@ -588,6 +594,7 @@ document.addEventListener("click", event => {
   action(target).catch(err => announce(err instanceof Error ? err.message : "Cette action n'a pas pu aboutir."));
 });
 window.addEventListener("pagehide", () => {
+  clearDecisionVerdict();
   decisionTransition.cancel();
   clearBoardMotion();
   activeVoteReveal = null;

@@ -12,13 +12,15 @@ import { artForDossier } from "./cinema-art.ts";
 import type { WorldOptions } from "./world.ts";
 import { choicesFor, domainFor, calendarFor, startingGame, preview, score, isFinished } from "./engine.ts";
 import { politicalHud, politicalEnding } from "./politics-view.ts";
+import { politicalVoteOutcome } from "./political-motion.ts";
+import type { VoteRecord } from "./politics-types.ts";
 import { escape as e } from "./sharing.ts";
 import type { Game } from "./types.ts";
 import { crisisCount } from "./progression.ts";
 import type { MandateProgression } from "./progression.ts";
 import { storyAgenda, storyPhase, storyContextOptions } from "./engine.ts";
-import { renderStoryScene, renderStoryOutcome } from "./narrative-view.ts";
-export type Screen = "select" | "mandate" | "briefing" | "play" | "year" | "result" | "story-result" | "replay";
+import { renderStoryScene, renderStoryJournal } from "./narrative-view.ts";
+export type Screen = "select" | "mandate" | "briefing" | "play" | "year" | "result" | "replay";
 export type View = "decision" | "territory" | "finance" | "journal" | "plan";
 export const n = (v: number, digits = 1) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
 const button = (action: string, label: string, cls = "button") => `<button class="${cls}" data-action="${action}">${label}</button>`;
@@ -200,7 +202,7 @@ function decision(g: Game): string {
   // Les notes internes du dossier ne doivent pas apparaître dans le parcours.
   // Elles alourdissaient la lecture de la décision sans aider à choisir.
   const context = "";
-  return `<article class="${crisis?"dossier crisis-dossier":"dossier"}">${crisis?`<div class="crisis-banner"><span>CRISE</span><strong>Les conséquences de vos choix reviennent dans le jeu.</strong></div>`:""}${g.mode === "national" ? `<div class="mobile-decision-feedback" role="status" aria-live="polite">${nationalDecisionImpact(g).map(item=>`<span data-direction="${item.direction}">${e(item.label.replace(" cette année", ""))}</span>`).join("")}</div>` : ""}${eyebrow(`${crisis?"SITUATION DE CRISE":g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">${g.version >= 9 ? `Année ${calendarFor(g).year} · décision ${calendarFor(g).slot}/${calendarFor(g).slots}` : `Décision ${g.turn + 1}/${d.turns}`}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p>${context}<div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), novice=choiceCopy(g,dossier,c), text=c.political?{title:c.title,outcome:c.benefit}:novice, art=g.version>=9&&g.version<11&&g.mode==="national"?artForDossier(`${dossier.category} ${text.title}`):null; const affected=Object.entries(c.effect.society??{}).filter(([,value])=>value<0).map(([key])=>({workers:"salariés",pensioners:"retraités",vulnerable:"ménages précaires",businesses:"entreprises",newcomers:"personnes immigrées",publicStaff:"agents publics",affluent:"foyers aisés"}[key]??key)); const detail = [c.benefit !== "La décision modifie la trajectoire et les dossiers suivants." && c.benefit !== text.outcome ? `<span><b>${c.political?"Gain politique":"Effet immédiat"}</b> ${e(c.benefit)}</span>` : "", c.sacrifice !== text.outcome && !c.political ? `<span><b>${g.version===11?"Arbitrage assumé":"Arbitrage"}</b> ${e(c.sacrifice)}</span>` : "", affected.length ? `<span><b>Groupes concernés</b> ${e(affected.join(", "))}</span>` : "", c.delayed ? `<span><b>Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""}</b> ${e(c.delayed.label)}</span>` : ""].filter(Boolean).join(""); const consequences = g.mode === "national" && g.version < 9 && detail ? `<div class="choice-consequences">${detail}</div>` : ""; return `<div class="choice-option"><button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}>${art?`<img class="cinema-choice__art" src="${art.src}" alt="" loading="lazy" decoding="async">`:""}<span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span>${c.political?`<span class="choice-political-sacrifice"><b>Prix politique</b> ${e(c.sacrifice)}</span>`:""}<span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${g.version===11&&detail?`<span class="choice-consequences">${detail}</span>`:""}${c.delayed && g.version >= 9 && g.version !== 11 ? `<span class="choice-outcome">Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""} : ${e(c.delayed.label)}</span>` : ""}${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>${consequences}</div>`; }).join("")}</div></article>`;
+  return `<article class="${crisis?"dossier crisis-dossier":"dossier"}">${crisis?`<div class="crisis-banner"><span>CRISE</span><strong>Les conséquences de vos choix reviennent dans le jeu.</strong></div>`:""}${g.mode === "national" && g.version !== 11 ? `<div class="mobile-decision-feedback" role="status" aria-live="polite">${nationalDecisionImpact(g).map(item=>`<span data-direction="${item.direction}">${e(item.label.replace(" cette année", ""))}</span>`).join("")}</div>` : ""}${eyebrow(`${crisis?"SITUATION DE CRISE":g.mode === "national" ? e(dossier.category) : "Situation de jeu"} <span class="campaign-position">${g.version >= 9 ? `Année ${calendarFor(g).year} · décision ${calendarFor(g).slot}/${calendarFor(g).slots}` : `Décision ${g.turn + 1}/${d.turns}`}</span>`)}<h1 tabindex="-1">${e(copy[0])}</h1><p class="story">${e(copy[1])}</p>${context}<div class="choices">${choicesFor(g).map(c => { const p=preview(g,c.id), novice=choiceCopy(g,dossier,c), text=c.political?{title:c.title,outcome:c.benefit}:novice, art=g.version>=9&&g.version<11&&g.mode==="national"?artForDossier(`${dossier.category} ${text.title}`):null; const affected=Object.entries(c.effect.society??{}).filter(([,value])=>value<0).map(([key])=>({workers:"salariés",pensioners:"retraités",vulnerable:"ménages précaires",businesses:"entreprises",newcomers:"personnes immigrées",publicStaff:"agents publics",affluent:"foyers aisés"}[key]??key)); const immediate=c.benefit !== "La décision modifie la trajectoire et les dossiers suivants." && c.benefit !== text.outcome && !/^La mesure est appliquée\.?$/i.test(c.benefit); const detail = [immediate ? `<span><b>${c.political?"Gain politique":"Effet immédiat"}</b> ${e(c.benefit)}</span>` : "", c.sacrifice !== text.outcome && !c.political ? `<span><b>${g.version===11?"Arbitrage assumé":"Arbitrage"}</b> ${e(c.sacrifice)}</span>` : "", g.version !== 11 && affected.length ? `<span><b>Groupes concernés</b> ${e(affected.join(", "))}</span>` : "", c.delayed ? `<span><b>Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""}</b> ${e(c.delayed.label)}</span>` : ""].filter(Boolean).join(""); const consequences = g.mode === "national" && g.version < 9 && detail ? `<div class="choice-consequences">${detail}</div>` : ""; return `<div class="choice-option"><button class="choice" data-action="choose" data-choice="${c.id}" ${p.error ? "disabled" : ""}>${art?`<img class="cinema-choice__art" src="${art.src}" alt="" loading="lazy" decoding="async">`:""}<span class="choice-top"><strong>${e(text.title)}</strong></span><span class="choice-outcome">${e(text.outcome)}</span>${c.political?`<span class="choice-political-sacrifice"><b>Prix politique</b> ${e(c.sacrifice)}</span>`:""}<span class="choice-facts">${choiceCosts(c,g.mode).map(cost=>`<span class="cost">${e(cost)}</span>`).join("")}</span>${g.version===11&&detail?`<span class="choice-consequences">${detail}</span>`:""}${c.delayed && g.version >= 9 && g.version !== 11 ? `<span class="choice-outcome">Dans ${c.delayed.after} an${c.delayed.after > 1 ? "s" : ""} : ${e(c.delayed.label)}</span>` : ""}${p.error ? `<span class="choice-error">${e(p.error)}</span>` : ""}</button>${consequences}</div>`; }).join("")}</div></article>`;
 }
 
 /** A bounded agenda that never advances the mandate clock. */
@@ -210,8 +212,8 @@ function storyAgendaView(g: Game): string {
   const openingCopy = opening?.detail.split(/(?<=[.!?])\s+/).filter(sentence => !/hypoth[eè]se|fictif|fictive/i.test(sentence)).slice(0, 2).join(" ");
   return `<section class="story-agenda" aria-labelledby="story-agenda-title">
     ${eyebrow(opening ? "VOTRE PREMIÈRE SITUATION" : "DOSSIERS À ARBITRER")}
-    <h1 id="story-agenda-title" tabindex="-1">${e(opening?.title ?? "Le mandat avance entre plusieurs fronts.")}</h1>
-    <p>${e(openingCopy || (opening ? "Trois fronts s’ouvrent. Choisir un dossier ne consomme pas de décision." : g.narrative?.events.at(-1)?.detail || "Choisir un dossier ne consomme pas de décision. Les autres fronts resteront accessibles."))}</p>
+    <h1 id="story-agenda-title" tabindex="-1">${e(opening?.title ?? "Choisir un dossier")}</h1>
+    ${openingCopy ? `<p>${e(openingCopy)}</p>` : ""}
     <div class="story-agenda__cards">${agenda.map(item => { const timing=typeof item.urgency==="string"?item.urgency:item.urgency>=90?"Priorité élevée":item.urgency>=60?"À suivre":"À surveiller"; return `<button class="story-agenda__card" data-action="story-select" data-story-id="${e(item.id)}">
       <span class="story-agenda__meta">${e(item.category)} · ${e(timing)}</span>
       <strong>${e(item.title)}</strong><span>${e(item.summary)}</span>
@@ -220,19 +222,8 @@ function storyAgendaView(g: Game): string {
   </section>`;
 }
 
-function storyFlow(g: Game, stage: "agenda" | "decision" | "result" | "year", content: string): string {
+function storyFlow(g: Game, stage: "agenda" | "decision" | "year", content: string): string {
   return `<section class="story-flow story-flow--${stage}"><nav class="story-flow__nav" aria-label="Actions du mandat"><button data-action="view" data-view="finance">Bilan</button><button data-action="tools">Ma partie</button></nav>${content}</section>`;
-}
-
-function storyResult(g: Game): string {
-  const latest = g.history.at(-1);
-  return `<article class="story-result" aria-labelledby="story-result-title">
-    ${eyebrow("CONSÉQUENCES DE LA DÉCISION")}
-    <h1 id="story-result-title" tabindex="-1">${e(latest?.title ?? "Le dossier avance.")}</h1>
-    ${renderStoryOutcome(g)}
-    <button class="button primary" data-action="story-continue">Continuer</button>
-    <button class="text-button" data-action="share-decision">Partager ce dilemme</button>
-  </article>`;
 }
 
 export function finance(g: Game): string {
@@ -257,9 +248,19 @@ export function governanceIndicators(g: Game): string {
 export function territory(g: Game, opts: WorldOptions = {}): string {
   return `<article class="territory-panel">${eyebrow("LE TERRITOIRE EN DÉTAIL")}<h1 tabindex="-1">Les services et les équipements.</h1><p>${g.city ? "Les effets de vos choix sur les quartiers du mandat." : g.mode === "municipal" ? "Trois quartiers, des besoins différents. Les effets d'un projet ciblé apparaissent à sa livraison." : "Les effets de vos choix sur quatre profils territoriaux."}</p><div class="mobile-territory-world">${g.mode === "national" ? nationalScene(g, opts) : world(g, opts)}</div>${governanceIndicators(g)}${societyPanel(g)}${g.mode === "municipal" ? territoryMap(g) : ""}<div class="area-list">${g.areas.map(a => `<section><h2>${e(a.name)}</h2><p>${e(a.need)}</p><div class="area-meters"><label>Services <strong>${Math.round(a.services)}/100</strong><meter min="0" max="100" value="${a.services}">${Math.round(a.services)}</meter></label><label>Résilience <strong>${Math.round(a.resilience)}/100</strong><meter min="0" max="100" value="${a.resilience}">${Math.round(a.resilience)}</meter></label></div></section>`).join("")}</div></article>`;
 }
+function journalVote(vote?: VoteRecord): string {
+  if (!vote) return "";
+  const outcome = politicalVoteOutcome(vote);
+  const stages = vote.stages?.length ? vote.stages : [vote];
+  const tally = vote.kind === "election"
+    ? vote.groups.map(group => `${e(group.label)} : ${n(group.seats ?? 0, 0)} sièges`).join(" · ")
+    : stages.map(stage => `${e(stage.chamber)} : ${n(stage.for, 0)} pour, ${n(stage.against, 0)} contre, ${n(stage.abstain, 0)} abstentions`).join(" · ");
+  return `<p class="journal-vote"><strong>${e(outcome.label)}</strong> · ${tally}</p>`;
+}
+
 function journal(g: Game): string {
   const years = [...new Set(g.history.map(t => t.year))];
-  return `<article class="journal">${eyebrow("DÉCISIONS PRISES")}<h1 tabindex="-1">Vos décisions.</h1>${g.turn ? button("share-decision","Partager cette décision","text-button") : ""}${years.map(year => `<details class="journal-year" ${year === years.at(-1) ? 'open' : ''}><summary>Année ${year}<span>${g.history.filter(t=>t.year===year).length} décision(s)</span></summary>${g.history.filter(t=>t.year===year).map(t=>`<section><h2>${e(domainFor(g).dossiers.flatMap(d=>d.choices.some(c=>c.id===t.choice)?[choiceCopy(g,d,d.choices.find(c=>c.id===t.choice)!).title]:[])[0] ?? t.title)}</h2>${t.event ? `<p class="event-label">${e(t.event)}</p>` : ''}<ul>${t.messages.map(m=>`<li>${e(m)}</li>`).join('')}</ul></section>`).join('')}</details>`).join('') || '<p>Le premier dossier vous attend. Chaque décision sera conservée ici.</p>'}<h2>Prochaines échéances</h2>${g.pending.length ? `<ul>${g.pending.map(p => `<li>Année ${p.due + 1} : ${e(p.label)}</li>`).join("")}</ul>` : "<p>Aucun effet différé en attente.</p>"}</article>`;
+  return `<article class="journal">${eyebrow("DÉCISIONS PRISES")}<h1 tabindex="-1">Vos décisions.</h1>${g.turn ? button("share-decision","Partager cette décision","text-button") : ""}${years.map(year => `<details class="journal-year" ${year === years.at(-1) ? 'open' : ''}><summary>Année ${year}<span>${g.history.filter(t=>t.year===year).length} décision(s)</span></summary>${g.history.filter(t=>t.year===year).map(t=>`<section><h2>${e(domainFor(g).dossiers.flatMap(d=>d.choices.some(c=>c.id===t.choice)?[choiceCopy(g,d,d.choices.find(c=>c.id===t.choice)!).title]:[])[0] ?? t.title)}</h2>${journalVote(t.vote)}${t.event ? `<p class="event-label">${e(t.event)}</p>` : ''}<ul>${t.messages.map(m=>`<li>${e(m)}</li>`).join('')}</ul></section>`).join('')}</details>`).join('') || '<p>Le premier dossier vous attend. Chaque décision sera conservée ici.</p>'}<h2>Prochaines échéances</h2>${g.pending.length ? `<ul>${g.pending.map(p => `<li>Année ${p.due + 1} : ${e(p.label)}</li>`).join("")}</ul>` : "<p>Aucun effet différé en attente.</p>"}${renderStoryJournal(g)}</article>`;
 }
 
 function turnFeedback(g: Game): string {
@@ -330,7 +331,6 @@ export function result(g: Game, shared = false): string {
 export function gameShell(g: Game, screen: Screen, view: View, shared = false, opts: WorldOptions = {}, planIds: string[] = g.choices): string {
   if(g.version>=9 && g.mode==="national" && (screen==="result" || (screen==="play" && view==="decision" && isFinished(g)))) return g.version >= 10 && g.version < 11 && g.politics?.ending?.kind !== 'term_complete' ? politicalEnding(g) : livingResult(g,shared);
   if (g.version === 11 && g.mode === "national") {
-    if (screen === "story-result") return storyFlow(g, "result", `${renderStoryScene(g, "result")}${storyResult(g)}`);
     if (screen === "year") return storyFlow(g, "year", `${renderStoryScene(g, "result")}${yearRecap(g)}`);
     if (screen === "play" && view === "decision") return storyFlow(g, storyPhase(g), `${renderStoryScene(g)}${storyPhase(g) === "agenda" ? storyAgendaView(g) : decision(g)}`);
   }

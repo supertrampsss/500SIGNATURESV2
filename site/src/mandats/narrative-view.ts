@@ -107,17 +107,14 @@ function castAndPress(game: Game) {
   </aside>`;
 }
 
-function sceneDetails(game: Game) {
-  const projects = game.narrative?.projects ?? [];
-  const promises = game.narrative?.promises ?? [];
-  const summary = projects.length || promises.length
-    ? `Repères · ${projects.length} réalisation${projects.length === 1 ? '' : 's'} · ${promises.length} promesse${promises.length === 1 ? '' : 's'}`
-    : 'Suivre mon mandat';
-  return `<details class="story-scene__details">
-    <summary>${escape(summary)}</summary>
+/** Longitudinal story tracking lives in the journal, away from the decision. */
+export function renderStoryJournal(game: Game): string {
+  if (game.version !== 11 || !game.narrative) return '';
+  return `<section class="story-journal" aria-label="Suivi du mandat">
+    <h2>Suivi du mandat</h2>
     <div class="story-scene__details-grid"><div class="story-scene__main">${activity(game)}</div>${castAndPress(game)}</div>
     <p class="story-scene__fiction-note">${escape(NARRATIVE_FICTION_NOTE)}</p>
-  </details>`;
+  </section>`;
 }
 
 function sceneMetrics(game: Game) {
@@ -137,37 +134,20 @@ function sceneMetrics(game: Game) {
   </dl>`;
 }
 
-/** Consequence strip for the pause between a resolved dossier and the next one. */
-export function renderStoryOutcome(game: Game): string {
-  if (game.version !== 11 || !game.narrative) return '';
-  const consequences = game.narrative.lastConsequences;
-  const latest = game.narrative.events.at(-1);
-  const currentProjects = game.narrative.projects.filter(project => project.causeTurn === game.turn - 1 || project.startedTurn === game.turn - 1 || project.resolvedTurn === game.turn - 1);
-  const projects = currentProjects.slice(-2).map(project => `<li data-project-status="${project.status}"><span>${escape(PROJECT_STATUS[project.status])}</span><strong>${escape(project.label)}</strong>${project.place ? `<small>${escape(placeName(project.place))}</small>` : ''}</li>`).join('');
-  return `<section class="story-outcome" aria-label="Conséquences simulées">
-    <div class="story-outcome__copy"><p class="story-outcome__label">${icon('check')} Effets inscrits dans le scénario</p>
-      ${consequences.length ? `<ul>${consequences.map(item => `<li>${escape(item)}</li>`).join('')}</ul>` : `<p>${escape(latest?.detail ?? 'La décision est inscrite dans la trajectoire du scénario.')}</p>`}
-    </div>${projects ? `<ul class="story-outcome__projects" aria-label="État des réalisations">${projects}</ul>` : ''}
-  </section>`;
-}
-
 /** A compact, state-grounded scene that can precede agenda, decision, or result content. */
 export function renderStoryScene(game: Game, requestedStage?: 'agenda' | 'decision' | 'result'): string {
   if (game.version < 11 || game.mode !== 'national' || !game.narrative) return '';
   const phase = storyPhase(game);
   const stage = requestedStage ?? (phase === 'agenda' ? 'agenda' : 'decision');
   const scene = sceneArt(game, stage);
-  const leadConsequence = stage !== 'agenda' && game.turn > 0 ? game.narrative.lastConsequences.at(-1) : undefined;
   return `<section class="story-scene" data-stage="${stage}" data-scene-kind="${scene.kind}" aria-label="Scène du mandat national">
     <figure class="story-scene__visual" data-mood="${escape(scene.mood)}">
       <img class="story-scene__image" src="${escape(scene.src)}" alt="${escape(scene.alt)}" decoding="async" fetchpriority="high" draggable="false">
-      <figcaption class="story-scene__caption"><span>${escape(scene.title)}</span><small class="story-scene__fiction-label">Scénario politique · fictif</small></figcaption>
+      <figcaption class="story-scene__caption"><span>${escape(scene.title)}</span></figcaption>
       ${scene.statusProject ? `<span class="story-scene__stamp" data-project-status="${scene.statusProject.status}" aria-label="Réalisation ${escape(PROJECT_STATUS[scene.statusProject.status])} dans le scénario"><small>${escape(PROJECT_STATUS[scene.statusProject.status])} · scénario</small><strong>${escape(scene.statusProject.label)}</strong></span>` : ''}
     </figure>
     <div class="story-scene__body">
       ${sceneMetrics(game)}
-      ${leadConsequence ? `<p class="story-scene__lead" aria-label="Conséquence la plus récente" title="${escape(leadConsequence)}">${icon('check')}<span>${escape(leadConsequence)}</span></p>` : ''}
-      ${sceneDetails(game)}
     </div>
   </section>`;
 }
