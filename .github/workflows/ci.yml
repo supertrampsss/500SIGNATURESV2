@@ -35,6 +35,8 @@ jobs:
       - run: npm run build
       - name: Install mobile browser engines
         run: npx playwright install --with-deps chromium webkit
+      - name: Shared header responsive browser test
+        run: npx playwright test --config playwright.header.config.ts
       - name: Game and editorial mobile and desktop browser tests
         run: npm run test:mandats
       - name: Browser validation artifacts
@@ -45,6 +47,7 @@ jobs:
           path: |
             site/playwright-report-mandats/
             site/test-results/
+            site/header-artifacts/
           retention-days: 7
 
   database:
