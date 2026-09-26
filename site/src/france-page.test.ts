@@ -89,14 +89,6 @@ test('France : toutes les analyses calculées restent accessibles et leurs ancre
   assert.equal(new Set(images).size,images.length);
 });
 
-test('France : les débats sont accessibles dès le premier écran et renvoient aux analyses',()=>{
-  const html=renduFrancePage(donnees(),[]);
-  assert.match(html,/class="fr-button" href="#france-debats">Voir les débats/);
-  assert.match(html,/href="#france-debats"[^>]*>.*Débats/s);
-  assert.match(html,/id="france-debats"/);
-  assert.match(html,/href="#insight-tres-hauts-revenus"/);
-});
-
 test('France : les liens de sources pointent les fiches réellement indexées',()=>{
   const index=indexerSources([{id:'source-france-test',nom:'Comptes publics',institution:'Eurostat',url:'https://example.test/comptes',statut:'publie',pages:['/bilan'],indicateurs:['eurostat_apu_recettes','eurostat_depenses_publiques_pib']}]);
   const html=renduFrancePage(donnees(),[],[],index);

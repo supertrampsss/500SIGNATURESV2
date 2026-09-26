@@ -52,6 +52,15 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Shared mobile header
+
+`site/src/navigation.ts` owns the compact menu and its grouped controls. Do not
+create a second controller in a page module. Scope the compact grid to headers
+with `.entete__actions`; static headers, including Mandats, keep their visible
+navigation. Verify with `npx playwright test --config playwright.header.config.ts`
+after building `site/`; retain the report, open/closed captures and replay inputs
+under `site/header-artifacts/`.
+
 ### Mandats: direct decision flow (26 September 2026)
 
 - A v11 decision saves immediately, renders its next agenda/year/ending, then overlays

@@ -9,7 +9,6 @@ import { chiffres } from './ouverture.ts';
 import { lignes as recettesEtat } from './recettes-etat.ts';
 import { PROJECTION_DETTE, SOURCE_PROJECTION } from './tenable.ts';
 import { insightsFrance } from './insights-france.ts';
-import { questionsFrance } from './france-debats.ts';
 import { cartesAvecSuite } from './insights-rendu.ts';
 import { echapper as esc } from './texte.ts';
 import { lienSource, type IndexSources } from './registre-sources.ts';
@@ -118,7 +117,7 @@ export function renduFrancePage(pays:Record<string,Territoire>,catalogue:Indicat
   const france=pays.FR;if(!france)return '';const c=chiffres(france);if(!c)return '';
   const s=france.series, dette=dernier(s.insee_dette_apu_montant), rec=recettesEtat(france), dist=distribution(france);
   const valeurs=[['recettes','Recettes',c.recettes,`en ${c.fin}`],['depenses','Dépenses',c.depenses,`en ${c.fin}`],['solde','Solde public',c.recettes-c.depenses,`en ${c.fin}`],['dette','Dette publique',dette?.[1],dette?.[0].replace(/(\d{4})-Q(\d)/,'T$2 $1')??'']] as const;
-  const navigation=[['france-verdict','france','Point de départ'],['france-entrees','recettes','Recettes'],['france-sorties','depenses','Dépenses'],['france-complements','redistribution','Redistribution'],['france-dette','dette','Dette'],['bloc-europe','europe','Europe'],['france-debats','question','Débats'],['insights-france','arbitrages','Arbitrages']];
+  const navigation=[['france-verdict','france','Point de départ'],['france-entrees','recettes','Recettes'],['france-sorties','depenses','Dépenses'],['france-complements','redistribution','Redistribution'],['france-dette','dette','Dette'],['bloc-europe','europe','Europe'],['insights-france','arbitrages','Arbitrages']];
   const secuAn=commun(['eurostat_secu_recettes_pib','eurostat_secu_depenses_pib','eurostat_secu_solde_pib','eurostat_pib_montant'].map(id=>s[id]??{}));
   const detteAn=commun(Object.keys(paysNoms).map(code=>pays[code]?.series.eurostat_dette_pib??{}));
   const detteObservee=extrait(s.eurostat_dette_pib,'2010');
@@ -132,7 +131,7 @@ export function renduFrancePage(pays:Record<string,Territoire>,catalogue:Indicat
   const insights=insightsFrance(france,catalogue,pays);
   const formatCourt=(nom:string)=>nom==='Taxe sur la valeur ajoutée'?'TVA':nom==='Taxe sur les produits énergétiques (TICPE)'?'TICPE':nom.startsWith('Recettes sans impôt')?'Recettes non fiscales':nom==='Autres recettes fiscales'?'Autres impôts':nom;
   return `<div class="fr-page" data-france-design="maquette-complete-20260921">
-    <section class="fr-hero" id="france-verdict"><img class="fr-hero-photo" src="/france/assemblee.jpg" alt="Façade de l'Assemblée nationale à Paris, surmontée du drapeau français" width="1280" height="850" fetchpriority="high"><div class="fr-hero-copy"><p class="fr-eyebrow">Comptes publics français · ${c.fin}</p><h1>Les comptes<br>de la France.</h1><p class="fr-hero-statement">La France ${c.emprunte>=0?'dépense':'encaisse'} ${nombre(Math.abs(c.emprunte)/1e9)} milliards<br class="fr-desktop-break"> d’euros de plus qu’elle ${c.emprunte>=0?'n’encaisse':'ne dépense'}.</p><p class="fr-hero-scope">État, collectivités et Sécurité sociale réunis.</p><a class="fr-button" href="#france-debats">Voir les débats</a></div><p class="fr-hero-note">Une démocratie<br>éclairée par<br>les chiffres.</p><a class="fr-photo-credit" href="#france-credits">Assemblée nationale, Paris</a></section>
+    <section class="fr-hero" id="france-verdict"><img class="fr-hero-photo" src="/france/assemblee.jpg" alt="Façade de l'Assemblée nationale à Paris, surmontée du drapeau français" width="1280" height="850" fetchpriority="high"><div class="fr-hero-copy"><p class="fr-eyebrow">Comptes publics français · ${c.fin}</p><h1>Les comptes<br>de la France.</h1><p class="fr-hero-statement">La France ${c.emprunte>=0?'dépense':'encaisse'} ${nombre(Math.abs(c.emprunte)/1e9)} milliards<br class="fr-desktop-break"> d’euros de plus qu’elle ${c.emprunte>=0?'n’encaisse':'ne dépense'}.</p><p class="fr-hero-scope">État, collectivités et Sécurité sociale réunis.</p></div><p class="fr-hero-note">Une démocratie<br>éclairée par<br>les chiffres.</p><a class="fr-photo-credit" href="#france-credits">Assemblée nationale, Paris</a></section>
     <nav class="fr-chapters" aria-label="Chapitres des comptes publics">${navigation.filter(([id])=>id!=='france-sorties'||!!dist).filter(([id])=>id!=='france-complements'||!!redistribution(france)).filter(([id])=>id!=='bloc-europe'||!!anEurope||!!anFonctions).map(([id,ico,label])=>`<a href="#${id}">${icone(ico)}<span>${label}</span></a>`).join('')}</nav>
     <section class="fr-keyfigures"><h2>Les chiffres clés de ${c.fin}</h2><div class="fr-keygrid">${valeurs.map(([ico,label,v,annee])=>`<article><span class="fr-icon fr-icon--${ico}">${icone(ico)}</span><div><h3>${label}</h3><strong>${v===undefined?'Non publié':milliards(v)}</strong><small>${annee}</small></div></article>`).join('')}</div></section>
     <div class="fr-content">
@@ -144,7 +143,6 @@ export function renduFrancePage(pays:Record<string,Territoire>,catalogue:Indicat
         <section class="fr-panel" id="france-dette"><div id="bloc-dette"><h2>La dette publique</h2><p class="fr-unit">En pourcentage du PIB${detteAn?` · ${detteAn}`:''} </p>${detteAn?`<div class="fr-metrics fr-metrics--four">${Object.entries(paysNoms).map(([code,nom])=>`<div><span>${nom}</span><strong>${nombre(pays[code].series.eurostat_dette_pib[detteAn],1)} %</strong><small>en ${detteAn}</small></div>`).join('')}</div>`:''}${courbes('Dette publique française et projection à politique inchangée',[{nom:'France',valeurs:detteObservee,couleur:ROUGE},...(Object.keys(projection).length?[{nom:'Projection 2030',valeurs:projection,couleur:ROUGE,pointilles:true}]:[])],{max:160,unite:' %'})}${Object.keys(projection).length?`<p class="fr-projection"><strong>${nombre(PROJECTION_DETTE['2030'],1)} % en 2030</strong><a href="${SOURCE_PROJECTION}">Projection à politique inchangée · juillet 2026</a></p>`:''}<a class="fr-source" href="${source(indexSources,'eurostat_dette_pib')}">Sources : Eurostat, INSEE, Direction du budget</a></div></section>
       </div>
       ${anEurope||anFonctions?`<section class="fr-panel fr-split fr-europe" id="bloc-europe"><div><h2>La France en Europe ${anEurope?`(${anEurope})`:''}</h2><p class="fr-unit">En pourcentage du PIB</p>${anEurope?`<div class="fr-europe-switch" role="group" aria-label="Comparaison européenne"><button type="button" data-fr-europe-tab="eurostat_depenses_publiques_pib" aria-pressed="true">Dépenses</button><button type="button" data-fr-europe-tab="eurostat_prelevements_obligatoires_pib" aria-pressed="false">Prélèvements</button></div><div class="fr-histograms">${histogramme(pays,'eurostat_depenses_publiques_pib',anEurope,'Dépenses publiques')}${histogramme(pays,'eurostat_prelevements_obligatoires_pib',anEurope,'Prélèvements obligatoires')}</div>`:''}<a class="fr-source" href="${source(indexSources,'eurostat_depenses_publiques_pib')}">Source : Eurostat</a></div><aside id="bloc-fonctions"${anFonctions?'':' hidden'}><h3>Dépenses publiques par fonction ${anFonctions?`(${anFonctions})`:''}</h3><p class="fr-unit">En pourcentage du PIB</p>${anFonctions?`<ul class="fr-functions">${fonctions.map(([id,nom],i)=>{const v=s[`eurostat_fonction_${id}`][anFonctions];return `<li><span>${nom}</span><div><i style="width:${v/25*100}%;background:${i===0?ROUGE:'#83b5de'}"></i></div><strong>${nombre(v,1)} %</strong></li>`;}).join('')}</ul>`:''}</aside></section>`:''}
-      ${questionsFrance(insights)}
       ${arbitrages(insights,pays,catalogue)}
       ${dossier?`<section class="fr-feature" id="bilan-dossier-section"><a class="fr-feature-story" href="/analyses/${esc(dossier.slug)}/"><img src="/dossiers/groenland.jpg" alt="Montagnes et fjord au Groenland" width="400" height="300" loading="lazy"><div><p class="fr-eyebrow">Un dossier pour éclairer les chiffres</p><h2>${esc(dossier.titre)}</h2><p>Ressources, géopolitique, environnement : comprendre les enjeux d’aujourd’hui et de demain.</p><span class="fr-text-link">Lire le dossier</span></div></a><aside><span class="fr-icon">${icone('europe')}</span><h3>Des données pour<br>une démocratie plus proche.</h3><p>Comprendre les finances publiques pour un débat plus juste et plus serein.</p><a class="fr-button" href="/analyses/">Voir les dossiers</a></aside></section>`:''}
     </div>
@@ -161,25 +159,6 @@ export function brancherFrancePage(): void {
     document.querySelectorAll<HTMLButtonElement>('[data-fr-europe-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.frEuropeTab===id)));
     document.querySelectorAll<HTMLElement>('[data-fr-europe-chart]').forEach(g=>g.dataset.frActive=String(g.dataset.frEuropeChart===id));
   });
-  const entete=document.querySelector<HTMLElement>('.entete');
-  const nav=entete?.querySelector<HTMLElement>('.entete__nav');
-  if(entete && nav && !entete.querySelector('.fr-menu')) {
-    const bouton=document.createElement('button');
-    bouton.className='fr-menu';
-    bouton.type='button';
-    bouton.setAttribute('aria-label','Ouvrir le menu');
-    bouton.setAttribute('aria-controls',nav.id);
-    bouton.setAttribute('aria-expanded','false');
-    bouton.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
-    const fermer=()=>{bouton.setAttribute('aria-expanded','false');bouton.setAttribute('aria-label','Ouvrir le menu');delete entete.dataset.frMenu;};
-    bouton.addEventListener('click',()=>{
-      if(bouton.getAttribute('aria-expanded')==='true'){fermer();return;}
-      bouton.setAttribute('aria-expanded','true');bouton.setAttribute('aria-label','Fermer le menu');entete.dataset.frMenu='ouvert';
-    });
-    entete.insertBefore(bouton,nav);
-    nav.addEventListener('click',fermer);
-    entete.addEventListener('keydown',e=>{if(e.key==='Escape'){fermer();bouton.focus();}});
-  }
   const ouvrirAncre=()=>{
     let id:string;try{id=decodeURIComponent(location.hash.slice(1));}catch{return;}
     if(!id.startsWith('insight-') && !id.startsWith('arbitrages-'))return;
