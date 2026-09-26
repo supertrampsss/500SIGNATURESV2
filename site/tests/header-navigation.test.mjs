@@ -6,6 +6,7 @@ const ROUTES = [
   { path: '/bilan/', page: 'france' },
   { path: '/territoire', page: 'territory' },
   { path: '/analyses/', page: 'dossiers' },
+  { path: '/mandats/', page: 'mandats' },
 ];
 
 const header = (page) => page.locator('header.entete');
@@ -23,6 +24,7 @@ async function waitForPage(page, route) {
   if (route.page === 'france') await expect(page.locator('#vue-bilan .fr-page')).toBeVisible();
   if (route.page === 'territory') await expect(page.locator('.vue--territoire')).toBeVisible();
   if (route.page === 'dossiers') await expect(page.locator('body')).toHaveAttribute('data-page', 'editorial');
+  if (route.page === 'mandats') await expect(page.locator('#mandats')).toBeVisible();
 }
 
 async function noHorizontalOverflow(page) {
@@ -84,13 +86,21 @@ test('shared header works across public pages, viewports, and repeated SPA navig
     await waitForPage(page, route);
     await checkHeaderGeometry(page, viewport.width, mobile);
     await noHorizontalOverflow(page);
+    if (route.page === 'mandats' && mobile) {
+      await expect(nav(page)).toBeHidden();
+      await capture(page, info, 'header-mandats-closed');
+      await menuButton(page).click();
+      await expect(nav(page)).toBeVisible();
+      await capture(page, info, 'header-mandats-open');
+      await page.keyboard.press('Escape');
+      await expect(nav(page)).toBeHidden();
+    }
     observedRoutes.push({ ...route, pathname: new URL(page.url()).pathname });
   }
 
-  // These fallback pages import the shared shell but do not install the compact
-  // menu. They must keep the ordinary links visible at every viewport width.
+  // This fallback page imports the shared shell without the compact menu.
   const fallbackScreenshots = [];
-  for (const path of ['/mandats/', '/confidentialite/']) {
+  for (const path of ['/confidentialite/']) {
     await page.goto(path, { waitUntil: 'domcontentloaded' });
     await expect(header(page)).toBeVisible();
     await expect(nav(page)).toBeVisible();
