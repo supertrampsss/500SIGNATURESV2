@@ -33,7 +33,7 @@ export function mountPoliticalMotion(root: ParentNode, record: VoteRecord, optio
   const stages = record.stages?.length ? record.stages : [{chamber:record.chamber,total:record.total,for:record.for,against:record.against,abstain:record.abstain,threshold:record.threshold,passed:record.passed,groups:record.groups}];
   const election = record.kind === 'election';
   const controls = (action:string) => section.querySelector<HTMLButtonElement>(`[data-political-action="${action}"]`);
-  const accelerate = controls('accelerate'), skip = controls('skip'), proceed = controls('continue');
+  const showResult = controls('show-result'), proceed = controls('continue');
   const announcement = section.querySelector<HTMLElement>('[data-vote-announcement]');
   const verdict = section.querySelector<HTMLElement>('[data-vote-verdict]');
   let cursor = 0, timer: unknown, disposed = false, completed = false, settling = false;
@@ -55,8 +55,7 @@ export function mountPoliticalMotion(root: ParentNode, record: VoteRecord, optio
       const stageVerdict=section.querySelector<HTMLElement>(`[data-vote-stage="${index}"] [data-stage-verdict]`);
       if(stageVerdict)stageVerdict.textContent=stage.passed?'Seuil atteint':'Seuil non atteint';
     });
-    if (accelerate) accelerate.hidden = true;
-    if (skip) skip.hidden = true;
+    if (showResult) showResult.hidden = true;
     if (proceed) proceed.disabled = false;
     const title=verdict?.querySelector('strong'), detail=verdict?.querySelector('span');
     const outcome=politicalVoteOutcome(record);
@@ -101,8 +100,7 @@ export function mountPoliticalMotion(root: ParentNode, record: VoteRecord, optio
     const target = event.target;
     if (!(target instanceof Element)) return;
     const action = target.closest<HTMLButtonElement>('[data-political-action]')?.dataset.politicalAction;
-    if (action === 'accelerate' && !completed) { delay = 2; settling=false; if (timer !== undefined) clock.clear(timer); timer = clock.set(revealBatch, 0); }
-    if (action === 'skip' && !completed) { if (timer !== undefined) clock.clear(timer); revealFinish(); }
+    if (action === 'show-result' && !completed) { if (timer !== undefined) clock.clear(timer); revealFinish(); }
     if (action === 'continue' && completed) options.onContinue?.();
   };
   section.addEventListener('click', onClick);

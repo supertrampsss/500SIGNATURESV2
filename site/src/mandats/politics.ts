@@ -41,6 +41,9 @@ function tallyGroups(before:PoliticalState,choice:Choice,seed:number,turn:number
   };
   return before.blocs.map((b,i)=>{
     let probability=(b.inGovernment?.63:.39)+(b.loyalty-50)/300+Math.max(-.18,Math.min(.18,pain(b.id)*.025));
+    // v11 negotiated amendments and named relationships affect this vote itself.
+    // Earlier versions retain their frozen ballot model.
+    if(choice.narrative)probability+=(choice.political?.supportDelta?.[b.id]??0)/100;
     probability+=(choice.effect.services??0)*.009+(choice.effect.cohesion??0)*.006+(choice.effect.trust??0)*.004;
     if(action==='coalition_bargain'&&b.id==='reformist')probability+=.25;
     if(action==='reject_bargain'&&b.id==='reformist')probability-=.28;
@@ -122,7 +125,8 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   const adopted=!resolution.vote||resolution.vote.passed;
   if(m.commitment&&adopted)p.commitments.push({...m.commitment,status:'pending'});
   if(m.breakCommitment&&adopted){const c=p.commitments.find(x=>x.id===m.breakCommitment&&(x.status==='pending'||x.status==='honored'));if(c){c.status='broken';p.legitimacy=clamp(p.legitimacy-7);p.unrest=clamp(p.unrest+6);}}
-  p.blocs=p.blocs.map(b=>({...b,loyalty:clamp(b.loyalty+(m.supportDelta?.[b.id]??0))}));
+  const rejectedV11Law=after.version===11&&resolution.vote?.kind==='law'&&!resolution.vote.passed;
+  if(!rejectedV11Law)p.blocs=p.blocs.map(b=>({...b,loyalty:clamp(b.loyalty+(m.supportDelta?.[b.id]??0))}));
   if(m.action==='coalition_bargain'&&resolution.vote?.passed){const ally=p.blocs.find(b=>b.id==='reformist');if(ally)ally.loyalty=clamp(ally.loyalty+12);if(before.pendingCrisis==='censure')p.failedBills=0;p.pendingCrisis=undefined;}
   if(m.commitment?.id==='wealth-hospital'&&resolution.vote?.passed)p.pendingCrisis='coalition';
   if(m.action==='reject_bargain'&&(!resolution.vote||resolution.vote.passed)){const ally=p.blocs.find(b=>b.id==='reformist');if(ally){ally.loyalty=clamp(ally.loyalty-20);ally.inGovernment=false;}p.commitments=p.commitments.map(c=>c.id==='wealth-hospital'&&c.status==='pending'?{...c,status:'honored'}:c);p.pendingCrisis='censure';}

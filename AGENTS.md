@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings in v10. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. The current narrative campaign uses v11; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -51,6 +51,23 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: consequential narrative campaign (26 September 2026)
+
+Follow [the narrative contract](docs/mandats-next-contract.md). `narrative-content.ts`
+owns authored situations; `narrative-engine.ts` owns their eligibility, agenda,
+promises and projects; the views render calculated state. Opening a front never
+spends a decision. Rejected laws cannot finance a project or apply an amendment.
+Project delivery and missed promises must keep their originating decision so a
+causal replay can actually return to it. Rebuild derived state from versioned
+inputs, never from imported balances or display labels. Shared dilemmas preserve
+the local save until the player adopts them by making a decision.
+
+Use `npm run test:story` for the narrative journeys and `npm run test:board` for
+the existing journeys. Retain `site/story-artifacts/` reports, screenshots and
+replay inputs, and inspect the 320 px, 390 px and desktop compositions. Keep the
+site navigation and game balance accessible. Secondary history must not push
+the decision cards several screens below the mobile scene.
 
 ### Mandats: political consequences (24 September 2026)
 

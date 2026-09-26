@@ -21,3 +21,4 @@ site/shot-*.mjs
 # Captures et rapports de validation Mandats.
 site/board-audit-artifacts/
 site/playwright-report-board/
+site/story-artifacts/

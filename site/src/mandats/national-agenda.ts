@@ -99,7 +99,7 @@ const crises:Entry[]=crisisTitles.map((title,i)=>{
 });
 export const NATIONAL_AGENDA:readonly Entry[]=[...reforms,...unlocked,...crises];
 const entryForChoice=(id:string)=>NATIONAL_AGENDA.find(e=>e.dossier.choices.some(c=>c.id===id));
-const lawWasRejected=(g:Game,slot:number)=>g.version===10&&g.history[slot]?.vote?.kind==='law'&&!g.history[slot]?.vote?.passed;
+const lawWasRejected=(g:Game,slot:number)=>g.version>=10&&g.history[slot]?.vote?.kind==='law'&&!g.history[slot]?.vote?.passed;
 function enactedHistory(g:Game) {
  const choices=new Set(g.choices.filter((_,i)=>!lawWasRejected(g,i)));
  const ids=new Set(g.choices.flatMap((id,i)=>lawWasRejected(g,i)?[]:[entryForChoice(id)?.id].filter((v):v is string=>!!v)));
@@ -115,10 +115,10 @@ function enactedOrigin(g:Game, source:string) {
 function historicalDossier(g:Game, slot:number):Dossier {
  const id=g.choices[slot];
  const entry=id?entryForChoice(id):undefined;
- const snapshot=g.version===10?g.history[slot]?.dossier:undefined;
+ const snapshot=g.version>=10?g.history[slot]?.dossier:undefined;
  if(snapshot)return snapshot;
  if(entry)return entry.dossier;
- // V10 political dossiers are conditional and are not part of the v9 agenda.
+ // Political and narrative dossiers are conditional and are not part of the v9 agenda.
  // Their exact replayed source is archived on the turn; they must not be
  // misclassified as a reform or unlock an unrelated follow-up.
  throw new Error('Dossier historique inconnu.');
@@ -161,7 +161,7 @@ export function nationalAgendaDossiers(g:Game):Dossier[] {
  * Crises stay conditional and deterministic for a given seed. */
 export function agendaEntryV9(g:Game):Entry {
  if(g.turn>=30)throw new Error('Agenda V9 terminé.');
- if(g.version===10){
+ if(g.version>=10){
   // Political interruptions consume time, never an unseen structural reform.
   const played=g.choices.map(entryForChoice).filter((entry):entry is Entry=>!!entry);
   const used=new Set(played.map(entry=>entry.id));

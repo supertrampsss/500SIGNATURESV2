@@ -69,7 +69,7 @@ export function voteSequenceMarkup(record: VoteRecord): string {
       <div class="political-vote__stages">${stages.map((stage,index)=>oneChamberMarkup(stage,index,election)).join('')}</div>
       <div class="political-vote__verdict" data-vote-verdict aria-live="polite"><strong>${election?'Résultats en cours':'Scrutin en cours'}</strong><span></span></div>
       <ul class="political-vote__consequences" role="list" hidden>${record.consequences.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul>
-      <div class="political-vote__controls"><button type="button" data-political-action="accelerate">Accélérer</button><button type="button" data-political-action="skip">Passer l’animation</button><button type="button" data-political-action="continue" disabled>Continuer</button></div>
+      <div class="political-vote__controls"><button type="button" data-political-action="show-result">Afficher le résultat</button><button type="button" data-political-action="continue" disabled>Continuer</button></div>
       <p class="political-vote__sr" data-vote-announcement role="status"></p>
     </div>
   </section>`;

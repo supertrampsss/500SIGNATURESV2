@@ -31,12 +31,12 @@ async function castFirstVote(page,info){
  return record;
 }
 
-test('a fresh national game defaults to v10',async({page},info)=>{
+test('a fresh national game defaults to v11',async({page},info)=>{
  await page.goto('/mandats/');
  await activate(page.getByRole('button',{name:/Gouverner la France/}),info);
- await expect(page.locator('.political-hud')).toBeVisible();
+ await expect(page.locator('.story-agenda')).toBeVisible();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
- expect(saved.version).toBe(10);
+ expect(saved.version).toBe(11);
  expect(saved.choices).toEqual([]);
 });
 

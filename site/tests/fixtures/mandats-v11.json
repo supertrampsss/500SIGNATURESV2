@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "version": 11,
+  "mode": "national",
+  "ambition": "equilibre",
+  "contexts": [
+    { "seed": 0, "context": "coalition", "purpose": "agenda-discovery-and-reordering" },
+    { "seed": 1, "context": "hospital", "purpose": "funded-project-and-repair" },
+    { "seed": 2, "context": "redress", "purpose": "broken-promise-and-early-crisis" }
+  ],
+  "journeys": {
+    "fullTerm": { "seed": 0, "decisions": 30, "years": 5 },
+    "projectRecovery": {
+      "seed": 0,
+      "blockedAfterDecision": 19,
+      "projectId": "reseau-ouvert",
+      "blockedChoices": [
+        "r01a", "r02a", "pol-censure-vote", "r03a", "r04a", "u03a", "r05a", "r06a", "r07a", "r08a",
+        "k4a", "r09a", "r10a", "r11a", "r12a", "k5a", "n11-16-energie-reseau-partage-raccordement-partage", "r13a", "r14a"
+      ],
+      "repairChoicePrefix": "n11-19-suivi-",
+      "deliveryAfterDecision": 22
+    },
+    "protectedChallenge": { "seed": 1, "preserveExistingSave": true },
+    "replay": { "seed": 0, "replayDecisionIndex": 4, "requireRestoredFocus": true },
+    "interaction": { "seed": 2, "reducedMotion": true, "doubleClick": true }
+  },
+  "viewports": [
+    { "name": "compact", "width": 320, "height": 640 },
+    { "name": "mobile", "width": 390, "height": 844 },
+    { "name": "desktop", "width": 1365, "height": 900 }
+  ],
+  "evidence": {
+    "include": ["inputs", "version", "seed", "viewport", "export", "screenshots", "trace", "report"],
+    "storageKey": "500signatures.mandats.v1"
+  }
+}
