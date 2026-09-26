@@ -219,7 +219,7 @@ async function openDecisionJournal(page) {
   await page.locator('[data-action="view"][data-view="finance"]').first().click();
   const journal = page.locator('.cinema-review__summary details').filter({ hasText: 'Le journal de vos décisions' });
   await expect(journal).toBeVisible();
-  await journal.locator('summary').click();
+  await journal.locator(':scope > summary').click();
 }
 
 test('v11 contexts are deterministic and agenda selection changes focus without spending a turn', async ({ browser }, info) => {
