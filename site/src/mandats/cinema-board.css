@@ -104,7 +104,6 @@ body[data-cinema="true"] .site-header .site-navigation a { color: white; }
   .cinema-entry__intro { width: calc(100% - 34px); }
 }
 @media (max-width: 560px) {
-  body[data-cinema="true"] .site-header { display: none !important; }
   .cinema-entry__photo { height: clamp(320px,47svh,520px); }
   .cinema-entry__image { object-position: 52% center; }
   .cinema-entry__brand { top: 18px; }

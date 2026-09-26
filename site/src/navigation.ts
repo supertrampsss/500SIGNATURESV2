@@ -71,8 +71,9 @@ export function brancherMenuNavigation(): void {
   const entete=document.querySelector<HTMLElement>(".entete");
   const nav=document.querySelector<HTMLElement>(".entete__nav");
   if(!entete||!nav) return;
-  if(!entete.querySelector(".site-x-link")){
-    const social=document.createElement("a");
+  let social=entete.querySelector<HTMLAnchorElement>(".site-x-link");
+  if(!social){
+    social=document.createElement("a");
     social.className="site-x-link";
     social.href="https://x.com/500signaturesfr";
     social.target="_blank";
@@ -81,17 +82,50 @@ export function brancherMenuNavigation(): void {
     social.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg>';
     entete.appendChild(social);
   }
-  if(entete.querySelector(".fr-menu")) return;
-  const bouton=document.createElement("button");
-  bouton.type="button";
-  bouton.className="fr-menu";
-  bouton.setAttribute("aria-expanded","false");
-  bouton.setAttribute("aria-label","Ouvrir le menu");
-  bouton.innerHTML='<span aria-hidden="true"></span><span aria-hidden="true"></span>';
-  entete.insertBefore(bouton,nav);
-  bouton.addEventListener("click",()=>{
-    const ouvert=entete.dataset.frMenu==="ouvert";
-    if(ouvert){ delete entete.dataset.frMenu; bouton.setAttribute("aria-expanded","false"); bouton.setAttribute("aria-label","Ouvrir le menu"); }
-    else { entete.dataset.frMenu="ouvert"; bouton.setAttribute("aria-expanded","true"); bouton.setAttribute("aria-label","Fermer le menu"); }
-  });
+  let bouton=entete.querySelector<HTMLButtonElement>(".fr-menu");
+  if(!bouton){
+    bouton=document.createElement("button");
+    bouton.type="button";
+    bouton.className="fr-menu";
+    bouton.setAttribute("aria-expanded","false");
+    bouton.setAttribute("aria-label","Ouvrir le menu");
+    bouton.innerHTML='<span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>';
+  }
+  if(!nav.id) nav.id="navigation-principale";
+  bouton.setAttribute("aria-controls",nav.id);
+
+  let actions=entete.querySelector<HTMLElement>(".entete__actions");
+  if(!actions){
+    actions=document.createElement("div");
+    actions.className="entete__actions";
+  }
+  actions.append(bouton,social!);
+  if(actions.parentElement!==entete) entete.insertBefore(actions,nav.nextSibling);
+
+  const fermer=()=>{
+    delete entete.dataset.frMenu;
+    bouton!.setAttribute("aria-expanded","false");
+    bouton!.setAttribute("aria-label","Ouvrir le menu");
+  };
+  if(!bouton.dataset.menuBound){
+    bouton.dataset.menuBound="true";
+    bouton.addEventListener("click",()=>{
+      if(entete.dataset.frMenu==="ouvert") fermer();
+      else {
+        entete.dataset.frMenu="ouvert";
+        bouton!.setAttribute("aria-expanded","true");
+        bouton!.setAttribute("aria-label","Fermer le menu");
+      }
+    });
+    nav.addEventListener("click",fermer);
+    document.addEventListener("click",event=>{
+      if(entete.dataset.frMenu==="ouvert"&&!entete.contains(event.target as Node)) fermer();
+    });
+    document.addEventListener("keydown",event=>{
+      if(event.key==="Escape"&&entete.dataset.frMenu==="ouvert"){
+        fermer();
+        bouton!.focus();
+      }
+    });
+  }
 }
