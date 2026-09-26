@@ -8,7 +8,9 @@ test('budget equilibrium is reached by thirty real decisions and survives naviga
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto(`/mandats/?mode=national&v=10&seed=${route.seed}&ambition=equilibre`);
  await expect(page.locator('.site-header')).toBeVisible();
+ if(info.project.use.viewport.width<=700)await page.locator('.site-header .fr-menu').click();
  await expect(page.locator('.site-header a[href="/bilan/"]')).toBeVisible();
+ if(info.project.use.viewport.width<=700)await page.locator('.site-header .fr-menu').click();
  const recaps=[];
  for(let index=0;index<route.choices.length;index++){
   const choice=page.locator(`[data-choice="${route.choices[index]}"]`);
@@ -32,6 +34,7 @@ test('budget equilibrium is reached by thirty real decisions and survives naviga
  expect(exported.choices).toEqual(route.choices);
  await info.attach('replayable-mandate.json',{body:JSON.stringify(exported,null,2),contentType:'application/json'});
  await page.screenshot({path:info.outputPath('balanced-result.png'),fullPage:true});
+ if(info.project.use.viewport.width<=700)await page.locator('.site-header .fr-menu').click();
  await page.locator('.site-header a[href="/bilan/"]').click();
  await expect(page).toHaveURL(/\/bilan\/?$/);
  await page.goto('/mandats/');
