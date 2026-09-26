@@ -52,7 +52,7 @@ test('opt-in offline preparation survives network loss with the cinematic game a
 
 test('source-backed guides are readable and lead to the matching mode',async({page},info)=>{
  await page.goto('/mandats/comprendre/');await expect(page.locator('.guide-list article')).toHaveCount(4);await noOverflow(page);
- await page.locator('.guide-list article').filter({hasText:'FINANCES NATIONALES'}).first().locator('a').click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex,follow');await noOverflow(page);
+ await page.locator('.guide-list article').filter({hasText:'FINANCES NATIONALES'}).first().locator('a').click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','index,follow');await noOverflow(page);
  await activate(page.getByRole('link',{name:'Tester ce type d’arbitrage',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
 });
 

@@ -29,6 +29,7 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
   border:0!important;
   background:var(--site-paper)!important;
 }
+
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__photo{
   position:absolute;
   z-index:0;
@@ -779,3 +780,41 @@ footer .site-x-link{width:30px!important;height:30px!important;min-width:30px!im
   .entete:has(.entete__actions) .entete__nav a{min-width:0;min-height:44px!important;justify-content:flex-start!important;padding:10px 2px!important;font-size:14px!important;text-align:left!important;}
 }
 @media(prefers-reduced-motion:reduce){.entete:has(.entete__actions) .entete__actions .fr-menu span{transition:none}}
+
+/* City search is an editorial entry point, without a decorative map or full-screen hero. */
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche{
+  min-height:0!important;
+  background:var(--site-paper)!important;
+  border-bottom:1px solid var(--site-line)!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+  min-height:0!important;
+  width:min(1180px,calc(100% - 64px))!important;
+  padding:52px 36px 64px!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche #territoire-recherche-titre{
+  max-width:16ch!important;
+  font-size:clamp(42px,5vw,68px)!important;
+}
+body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{
+  margin-top:24px!important;
+}
+@media(max-width:700px){
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche,
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+    min-height:0!important;
+  }
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
+    width:100%!important;
+    padding:36px 18px 52px!important;
+  }
+}
+
+/* A short source directory replaces the former methodology landing page. */
+.sources-v2--compact .sources-v2__hero{display:block;min-height:0}
+.sources-v2--compact .sources-v2__hero>div{max-width:850px;padding:50px 44px 42px}
+.sources-v2--compact .sources-v2__lead{max-width:50ch}
+.sources-v2--compact .sources-v2__references{margin:24px 36px}
+.sources-v2--compact .sources-v2__references h2{font:500 30px/1.1 "Spectral",Georgia,serif}
+.sources-v2--compact .sources-v2__detail{margin:0 36px 24px}
+@media(max-width:700px){.sources-v2--compact .sources-v2__hero>div{padding:36px 18px}.sources-v2--compact .sources-v2__references{margin:18px}.sources-v2--compact .sources-v2__detail{margin:0 18px 20px}}

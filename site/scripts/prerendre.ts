@@ -534,8 +534,8 @@ const PAGE_BILAN = {
 };
 
 const PAGE_SOURCES = {
-  titre: "Sources et méthode — Où va l'argent public",
-  description: "L’origine des chiffres, leurs définitions et les contrôles appliqués par le site.",
+  titre: "Sources des données publiques | 500 Signatures",
+  description: "Les jeux de données et publications utilisés pour les comptes publics, les villes, les dossiers et Mandats.",
   canonique: "/sources/",
   image: "/sources/carte.png",
 };
