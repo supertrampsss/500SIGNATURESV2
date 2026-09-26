@@ -797,9 +797,14 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
   font-size:clamp(42px,5vw,68px)!important;
 }
 body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__outil{
-  margin-top:24px!important;
+  margin:24px 0 0!important;
 }
 @media(max-width:700px){
+  body[data-vue="territoire"]:not([data-territoire-selection="oui"]) #contenu{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+  }
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche,
   body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-recherche__introduction{
     min-height:0!important;
