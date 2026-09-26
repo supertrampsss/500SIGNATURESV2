@@ -1,7 +1,8 @@
-import { domainFor, replayGame, startingGame, isFinished } from "./engine.ts";
+import { domainFor, startingGame, isFinished } from "./engine.ts";
 import { annualDeficit } from "./national-deficit.ts";
 import { artForDossier } from "./cinema-art.ts";
 import { decode, encode, MAX_SAVE_BYTES } from "./storage.ts";
+import { focusForRecordedDecision, narrativeTurningPoints } from "./narrative-outcomes.ts";
 import type { Game } from "./types.ts";
 
 /** Kept apart from the active save, progression counters, and imported scenarios. */
@@ -39,7 +40,7 @@ export function createBranch(game: Game, turn: number, storage?: StorageWriter):
   if (!original || !Number.isInteger(turn) || turn < 0 || turn >= original.turn || original.choices.length !== original.turn) {
     throw new Error("Ce choix ne peut pas être rejoué depuis cette partie.");
   }
-  const branch = replayGame(original, original.choices.slice(0, turn));
+  const branch = focusForRecordedDecision(original, turn);
   if (storage) saveBranchReference(storage, original);
   return branch;
 }
@@ -116,10 +117,11 @@ export function comparisonMarkup(current: Game, reference: Game): string {
 export function renderReplaySelection(game: Game): string {
   const g = canonicalGame(game);
   if (!g || g.mode !== "national" || g.version < 9 || g.turn === 0) return "";
-  const selected = [...new Set([0, Math.floor((g.turn - 1) / 2), g.turn - 1])];
+  const causal = g.version === 11 ? narrativeTurningPoints(g, 3).map(point => point.index) : [];
+  const selected = [...new Set(causal.length ? causal : [0, Math.floor((g.turn - 1) / 2), g.turn - 1])];
   const card = (index: number, compact = false) => {
     const turn = g.history[index]!;
-    const before = replayGame(g, g.choices.slice(0, index));
+    const before = focusForRecordedDecision(g, index);
     const dossier = domainFor(before).dossiers[index];
     const actual = dossier?.choices.find(c => c.id === turn.choice);
     const art = index === g.history.length - 1 ? artForDossier("Héritage", index, g.history.length) : artForDossier(dossier?.category ?? "Chapitre", index, g.history.length);
@@ -128,7 +130,8 @@ export function renderReplaySelection(game: Game): string {
   };
   const cards = selected.map(index => card(index)).join("");
   const remaining = g.history.map((_, index) => index).filter(index => !selected.includes(index)).map(index => card(index, true)).join("");
-  return `<section class="replay-selection" aria-labelledby="replay-selection-title"><header class="replay-selection__header"><span>RELIRE VOTRE MANDAT</span><h1 id="replay-selection-title">Où tout aurait pu changer ?</h1><p>Reprenez avant une décision et explorez une autre trajectoire.</p><p class="replay-selection__archive">Votre mandat d’origine reste conservé.</p></header><div class="replay-selection__grid">${cards}</div><details class="replay-selection__all"><summary>Toutes mes décisions (${g.turn})</summary><div>${remaining}</div></details><button type="button" class="replay-selection__back" data-action="show-result">Revenir à mon héritage</button></section>`;
+  const v11 = g.version === 11;
+  return `<section class="replay-selection" aria-labelledby="replay-selection-title"><header class="replay-selection__header"><span>${v11 ? 'DÉCISIONS MARQUANTES' : 'RELIRE VOTRE MANDAT'}</span><h1 id="replay-selection-title">${v11 ? 'Rejouer un tournant.' : 'Où tout aurait pu changer ?'}</h1><p>${v11 ? 'Ces décisions sont reliées aux événements qui ont réellement marqué votre partie.' : 'Reprenez avant une décision et explorez une autre trajectoire.'}</p><p class="replay-selection__archive">Votre mandat d’origine reste conservé.</p></header><div class="replay-selection__grid">${cards}</div><details class="replay-selection__all"><summary>Toutes mes décisions (${g.turn})</summary><div>${remaining}</div></details><button type="button" class="replay-selection__back" data-action="show-result">Revenir à mon héritage</button></section>`;
 }
 
 /** Full comparison at equal decision progress, with the original run on the left. */

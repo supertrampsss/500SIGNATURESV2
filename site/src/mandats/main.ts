@@ -5,7 +5,7 @@ import "../styles/shared-design.css";
 import "../styles/site-shell-v2.css";
 import "./approved-decision-room.css";
 import "./mandats-2026-rework.css";
-import { decide, domainFor, startingGame, start, isFinished, choicesFor } from "./engine.ts";
+import { decide, domainFor, startingGame, start, isFinished, choicesFor, selectStoryAgenda, storyContextOptions } from "./engine.ts";
 import { pilotEnabled, readPilot, recordPilot, setPilotConsent } from "./telemetry.ts";
 import { prepareOffline, removeOffline, updateOffline } from "./offline.ts";
 import { cardModel, cardSVG, cardURL } from "./cards.ts";
@@ -30,6 +30,7 @@ import "./cinema-shell.css";
 import { voteSequenceMarkup } from "./politics-view.ts";
 import { mountPoliticalMotion } from "./political-motion.ts";
 import "./politics.css";
+import "./narrative.css";
 import type { VoteRecord } from "./politics-types.ts";
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
@@ -42,7 +43,7 @@ function pilotOn() { try { return pilotEnabled(localStorage); } catch { return f
 function track(event: Parameters<typeof recordPilot>[1]) { try { recordPilot(localStorage,event,g?.mode ?? null); } catch {} }
 let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
-let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false;
+let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false, ephemeralChallenge = false;
 let progression = (() => { try { return readProgression(localStorage); } catch { return readProgression({getItem:()=>null}); } })();
 const decisionTransition = createDecisionTransition();
 let boardMotionTimer: number | undefined;
@@ -140,13 +141,16 @@ function announce(message: string, quiet = false) {
 function adopt(game: Game) {
   announce("");
   ({ g, shared, inherited, screen, view } = localSession(game, history));
+  ephemeralChallenge = false;
   planIds = null;
 }
 try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const candidate = decode(raw); saved = candidate.mode === "national" ? candidate : null; } } catch { announce("La sauvegarde locale est indisponible ou incompatible. Vous pouvez commencer une nouvelle partie."); }
 function openEntry() {
-  g = null; shared = false; inherited = false; screen = "select"; view = "decision"; planIds = null;
+  g = null; shared = false; inherited = false; ephemeralChallenge = false; screen = "select"; view = "decision"; planIds = null;
   try {
     ({ g, shared, inherited, screen, view } = entrySession(new URL(location.href)));
+    const entryUrl = new URL(location.href);
+    ephemeralChallenge = !!g && !shared && (entryUrl.hash.startsWith("#dilemma=") || entryUrl.hash.startsWith("#challenge=") || (entryUrl.searchParams.has("mode") && entryUrl.searchParams.has("seed")));
     if (g?.mode === "municipal") { g = null; shared = false; inherited = false; screen = "select"; view = "decision"; announce("Le mandat communal est temporairement indisponible."); }
   }
   catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
@@ -183,7 +187,13 @@ function render(focus = true, restoreScroll?: number) {
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  let markup = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? yearRecap(g!) : screen === "replay" ? renderReplaySelection(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  let markup = screen === "select" ? selection(saved, light, progression) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? (g?.version === 11 ? gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices) : yearRecap(g!)) : screen === "replay" ? renderReplaySelection(g!) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  if (ephemeralChallenge && g?.version === 11 && markup.includes('class="story-flow')) {
+    const challengeMarkup = document.createElement("template");
+    challengeMarkup.innerHTML = markup;
+    challengeMarkup.content.querySelector<HTMLElement>(".story-flow")?.insertAdjacentHTML("afterbegin", '<p class="story-flow__challenge-note" role="status">Dilemme partagé · votre partie sauvegardée reste intacte jusqu’à votre choix.</p>');
+    markup = challengeMarkup.innerHTML;
+  }
   if (branchReference && g && screen === "play" && view === "decision" && g.version >= 9 && g.mode === "national") {
     const withComparison = document.createElement("template");
     withComparison.innerHTML = markup;
@@ -199,6 +209,13 @@ function render(focus = true, restoreScroll?: number) {
       const comparison = renderTrajectoryComparison(g, branchReference);
       if (comparison) withComparison.content.querySelector<HTMLElement>(".result")?.insertAdjacentHTML("beforeend", comparison);
     }
+    markup = withComparison.innerHTML;
+  }
+  if (branchReference && g?.version === 11 && screen === "story-result") {
+    const withComparison = document.createElement("template");
+    withComparison.innerHTML = markup;
+    const comparison = comparisonMarkup(g, branchReference);
+    if (comparison) withComparison.content.querySelector<HTMLElement>(".story-result")?.insertAdjacentHTML("beforeend", comparison);
     markup = withComparison.innerHTML;
   }
   if (branchReference && g && screen === "play" && view === "finance" && g.version >= 9 && g.mode === "national") {
@@ -285,6 +302,22 @@ function render(focus = true, restoreScroll?: number) {
         liveBoard.querySelectorAll<HTMLElement>(".board-impact").forEach(item => item.classList.add("is-arriving"));
       } else liveBoard.classList.remove("is-transitioning", "is-focus-response");
     } else root.innerHTML = markup;
+  } else if (!activeVoteReveal && g?.version === 11 && g.mode === "national" && root.querySelector<HTMLElement>(".story-scene") && markup.includes('class="story-flow')) {
+    const template = document.createElement("template");
+    template.innerHTML = markup;
+    const liveScene = root.querySelector<HTMLElement>(".story-scene");
+    const freshScene = template.content.querySelector<HTMLElement>(".story-scene");
+    if (liveScene && freshScene) {
+      const previousImage = liveScene.querySelector<HTMLImageElement>(".story-scene__image");
+      const previousSrc = previousImage?.getAttribute("src");
+      liveScene.className = freshScene.className;
+      liveScene.dataset.stage = freshScene.dataset.stage ?? "";
+      liveScene.innerHTML = freshScene.innerHTML;
+      const nextImage = liveScene.querySelector<HTMLImageElement>(".story-scene__image");
+      if (previousImage && nextImage && previousSrc === nextImage.getAttribute("src")) nextImage.replaceWith(previousImage);
+      freshScene.replaceWith(liveScene);
+      root.replaceChildren(template.content);
+    } else root.innerHTML = markup;
   } else root.innerHTML = markup;
   politicalMotionCleanup?.();
   politicalMotionCleanup = undefined;
@@ -309,7 +342,7 @@ function render(focus = true, restoreScroll?: number) {
   }
 }
 function persist() {
-  if (!g || shared) return;
+  if (!g || shared || ephemeralChallenge) return;
   saved = g;
   try { if (!save(g, localStorage)) announce("Votre navigateur ne peut pas sauvegarder. Exportez la partie depuis le menu."); } catch { announce("Sauvegarde indisponible. Exportez votre partie depuis le menu."); }
 }
@@ -395,16 +428,15 @@ async function action(target: HTMLElement) {
   if (a === "mode") {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
-    g = start("national", freshSeed(), "equilibre", 10);
+    g = start("national", freshSeed(), "equilibre", 11);
     clearBranchReference();
-    // Equilibre is the default mission so new play starts with a decision.
-    shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null;
+    shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null;
     clearEntryLink(history); track("mode_selected"); persist();
   }
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
-    g = start("national", g.seed, ambition, g.version >= 10 ? 10 : 9);
+    g = start("national", g.seed, ambition, g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
     clearBranchReference();
     shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
     persist(); track("onboarding_completed");
@@ -433,6 +465,7 @@ async function action(target: HTMLElement) {
       const finished = isFinished(next);
       if (finished) screen = "result";
       else if (yearClosed) screen = "year";
+      else if (next.version === 11 && next.mode === "national") screen = "story-result";
       announce(`Décision ${next.turn} prise. ${finished ? "Votre mandat est terminé." : yearClosed ? "L’année est terminée." : "Dossier suivant."}`, true);
       persist();
       activeVoteReveal = voteToReveal;
@@ -464,6 +497,7 @@ async function action(target: HTMLElement) {
     const finished = isFinished(next);
     if (finished) screen = "result";
     else if (yearClosed) screen = "year";
+    else if (next.version === 11 && next.mode === "national") screen = "story-result";
     announce(`Décision ${next.turn} prise. ${finished ? "Votre mandat est terminé." : yearClosed ? "L’année est terminée." : "Dossier suivant."}`,true);
     persist();
     activeVoteReveal = voteToReveal;
@@ -473,12 +507,23 @@ async function action(target: HTMLElement) {
       try { progression = recordCompletedMandate(localStorage,next); } catch {}
     }
   }
-  else if (a === "next-year" && g) { screen = "briefing"; view = "decision"; }
+  else if (a === "story-select" && g?.version === 11 && g.mode === "national") {
+    try { g = selectStoryAgenda(g, target.dataset.storyId ?? ""); screen = "play"; view = "decision"; persist(); }
+    catch (error) { announce(error instanceof Error ? error.message : "Ce dossier n’est plus disponible."); return; }
+  }
+  else if (a === "story-continue" && g?.version === 11 && g.mode === "national") { screen = "play"; view = "decision"; }
+  else if (a === "start-context" && g === null) {
+    const context = target.dataset.context;
+    const option = storyContextOptions().find(item => item.context === context);
+    if (!option) { announce("Ce contexte n’est plus disponible."); return; }
+    clearBranchReference(); g = start("national", option.seed, "equilibre", 11); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
+  }
+  else if (a === "next-year" && g) { screen = g.version === 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
-  else if (a === "view") { view = target.dataset.view as View; }
-  else if (a === "new") { clearBranchReference(); inherited = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 10); shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "view") { view = target.dataset.view as View; if (g?.version === 11 && g.mode === "national" && view === "finance" && (screen === "story-result" || screen === "year")) screen = "play"; }
+  else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 11); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
   else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
   else if (a === "restore-origin" && g) {
@@ -508,7 +553,7 @@ async function action(target: HTMLElement) {
     } catch (error) { announce(error instanceof Error ? error.message : "Ce parcours ne peut pas être rejoué."); return; }
   }
   else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. Le parcours peut compter jusqu’à 30 décisions sur cinq années, et une issue politique peut l’interrompre plus tôt.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
-  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Une partie comporte jusqu’à 30 décisions sur cinq années. Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>La mission choisie au départ change la lecture du bilan. Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
+  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Une partie comporte jusqu’à 30 décisions sur cinq années. Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>${g?.version===11?"Le contexte choisi au départ donne une situation initiale au mandat; les décisions et leurs effets restent calculés par le moteur de simulation.":"La mission choisie au départ change la lecture du bilan."} Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button><button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }
@@ -523,7 +568,7 @@ async function action(target: HTMLElement) {
   else return;
   if (dialog.open) dialog.close();
   const newChapter = ["mode", "next-year", "start-year", "show-result", "new-run", "replay", "branch-replay", "resume", "open-replay-selection", "restore-origin"].includes(a ?? "");
-  render(true, a === "choose" ? actionScroll : newChapter ? 0 : undefined);
+  render(true, a === "choose" ? actionScroll : newChapter || a === "story-select" ? 0 : undefined);
   if(a === "choose" && g?.mode === "national" && g.version >= 8 && matchMedia("(max-width:820px) and (min-height:501px)").matches) {
     const question=root.querySelector<HTMLElement>(".dossier");
     if(question && question.getBoundingClientRect().top < 0) window.scrollTo({top:window.scrollY+question.getBoundingClientRect().top-12,behavior:"instant"});

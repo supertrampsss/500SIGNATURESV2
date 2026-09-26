@@ -2,6 +2,9 @@ import { annualDeficit } from './national-deficit.ts';
 import { calendarFor, domainFor, startingGame } from './engine.ts';
 import { escape as e } from './sharing.ts';
 import type { Game, Metrics, Turn } from './types.ts';
+import { narrativeOutcomeMarkup } from './narrative-outcomes.ts';
+import { storyAgenda } from './engine.ts';
+import { renderStoryScene } from './narrative-view.ts';
 
 const fmt = (value: number, digits = 1) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: digits }).format(value);
 const delta = (value: number, digits = 1) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${fmt(Math.abs(value), digits)}`;
@@ -40,6 +43,7 @@ function recapProgress(year: number, completedYears: number) {
   }).join('')}</ol>`;
 }
 export function livingYearRecap(g: Game): string {
+  if (g.version === 11) return livingYearRecapV11(g);
   const last = g.history.at(-1);
   if (!last?.closed) return '';
   const year = last.year;
@@ -82,8 +86,42 @@ export function livingYearRecap(g: Game): string {
   </article>`;
 }
 
+function livingYearRecapV11(g: Game): string {
+  const last = g.history.at(-1);
+  if (!last?.closed) return '';
+  const year = last.year;
+  const previous = closedAt(g, year - 1);
+  const initial = startingGame(g);
+  const before = previous?.metrics ?? (year === 1 ? initial.metrics : g.history.find(turn => turn.year === year - 1)?.metrics ?? initial.metrics);
+  const decisionCount = g.history.filter(turn => turn.year === year).length;
+  const context = g.narrative?.context ?? 'coalition';
+  const contextLabels = { coalition: 'Coalition fragile', hospital: 'Hôpital prioritaire', redress: 'Redressement' };
+  const agenda = storyAgenda(g).slice(0, 3);
+  const projects = g.narrative?.projects ?? [];
+  const promises = g.narrative?.promises ?? [];
+  const people = g.narrative?.relationships ?? [];
+  const sceneImage = context === 'hospital' ? 'hospital.webp' : context === 'redress' ? 'nation.webp' : 'chapter.webp';
+  return `<article class="year-recap living-recap living-recap--year living-recap--v11 v9-chapter-${year}">
+    <header class="living-recap__hero"><div class="living-recap__brand"><strong>500</strong><span>Signatures</span><small>MANDATS</small></div>
+      <p class="eyebrow">ANNÉE ${year} ACHEVÉE · ${e(contextLabels[context])}</p><h1 tabindex="-1">${e(chapters[year - 1] ?? `Année ${year}`)}</h1>
+      <p>${decisionCount} décisions · les effets réellement inscrits cette année.</p><span class="living-recap__seal"><strong>${year}</strong><span>/ 5</span></span>
+      <div class="living-recap__diorama"><img src="/mandats/art/${sceneImage}" alt="Décor de chapitre ; les réalisations financées et leur état sont listés juste en dessous."></div>
+      <div class="living-recap__state-tags" aria-label="État des engagements">${projects.slice(0, 4).map(project => `<span class="is-${e(project.status)}"><strong>${e(project.label)}</strong><small>${({ funded: 'Financé', blocked: 'Bloqué', delivered: 'Livré', withdrawn: 'Abandonné' } as const)[project.status]}</small></span>`).join('') || '<span>Aucune réalisation enregistrée.</span>'}</div>
+    </header>
+    <section class="living-recap__changes"><p class="eyebrow">ÉTAT DU PAYS · ${e(contextLabels[context])}</p>${yearEssentials(
+      { finance: { ...initial.finance, debt: previous?.ledger.debt ?? initial.finance.debt, gdp: previous?.ledger.gdp ?? initial.finance.gdp }, metrics: before },
+      { finance: g.finance, metrics: g.metrics },
+      previous?.ledger.deficit ?? annualDeficit(initial), last.ledger.deficit,
+    )}</section>
+    <section class="living-recap__register"><h2>Engagements et soutiens</h2><p>${promises.filter(p => p.status === 'kept').length} promesse(s) tenue(s) · ${promises.filter(p => p.status === 'active').length} en cours · ${promises.filter(p => p.status === 'broken').length} rompue(s).</p>${projects.length ? `<ul>${projects.slice(0, 4).map(project => `<li>${e(project.label)} · ${({ funded: 'financé', blocked: 'bloqué', delivered: 'livré', withdrawn: 'abandonné' } as const)[project.status]}</li>`).join('')}</ul>` : '<p>Aucun projet engagé.</p>'}<ul aria-label="Interlocuteurs fictifs suivis">${people.slice(-3).map(person => `<li><strong>${e(person.name)}</strong>, ${e(person.role)} · ${e(person.stance)} · loyauté ${Math.round(person.loyalty)}/100</li>`).join('')}</ul><small>Personnages fictifs du scénario.</small></section>
+    <section class="living-recap__next"><p class="eyebrow">REPRISE DIRECTE · ANNÉE ${year + 1}</p><h2>Dossiers disponibles à la reprise</h2>${agenda.length ? `<ul>${agenda.map(item => `<li><strong>${e(item.title)}</strong><small>${e(item.summary)}</small></li>`).join('')}</ul>` : `<p>${e(g.narrative?.lastConsequences.at(-1) ?? 'Vos engagements continuent leur trajectoire.')}</p>`}<button class="button primary" data-action="next-year">Reprendre le mandat</button></section>
+    <details class="living-recap__accomplished"><summary>Décisions de l’année · ${decisionCount} inscrites · ${promises.filter(p => p.status === 'active').length} promesse(s) en cours</summary><p>${g.history.filter(turn => turn.year === year).map(turn => e(turn.title)).join(' · ')}</p></details>
+  </article>`;
+}
+
 /** Annual entry surface; used by render.ts after the recap advances to a new year. */
 export function livingYearBriefing(g: Game): string {
+  if (g.version === 11) return '';
   const calendar = calendarFor(g);
   const year = calendar.year;
   const dossier = domainFor(g).dossiers[g.turn];
@@ -139,6 +177,7 @@ function profileDetails(g: Game) {
   return `<details class="living-result__profiles"><summary>Voir les indices par profil</summary><div>${Object.entries(labels).map(([key, label]) => `<span>${label}<strong>${Math.round(g.society![key as keyof typeof labels])}/100</strong></span>`).join('')}</div></details>`;
 }
 export function livingResult(g: Game, shared = false): string {
+  if (g.version === 11) return livingResultV11(g, shared);
   const start = startingGame(g);
   const deficitStart = annualDeficit(start);
   const deficitEnd = g.history.at(-1)?.ledger.deficit ?? annualDeficit(g);
@@ -180,5 +219,26 @@ export function livingResult(g: Game, shared = false): string {
     ${moreActions}
     <p class="living-result__scope">Simulation · scénario #${g.seed} · version ${g.version}.</p>
     <details class="living-result__journal"><summary>Journal du mandat · ${g.history.length} décisions</summary><ol>${g.history.map(turn => `<li><span>Année ${turn.year}</span><strong>${e(turn.title)}</strong>${turn.closed ? `<small>${e(turn.event)}</small>` : ''}</li>`).join('')}</ol></details>
+  </article>`;
+}
+
+function livingResultV11(g: Game, shared: boolean): string {
+  const context = g.narrative?.context ?? 'coalition';
+  const label = ({ coalition: 'Coalition fragile', hospital: 'Hôpital prioritaire', redress: 'Redressement' } as const)[context];
+  const actions = `<div class="result-actions living-result__actions"><button class="button primary" data-action="open-replay-selection">Rejouer un tournant du mandat</button><button class="button" data-action="share">Partager cet héritage</button></div>`;
+  const projects = g.narrative?.projects ?? [];
+  const promises = g.narrative?.promises ?? [];
+  const ending = g.politics?.ending?.title;
+  const incomplete = g.turn < 30 || !!g.politics?.ending && g.politics.ending.kind !== 'term_complete';
+  return `<article class="result v9-result living-result living-result--v11"><header class="living-result__hero">
+    <div class="living-recap__brand"><strong>500</strong><span>Signatures</span><small>MANDATS</small></div><p class="eyebrow">${shared ? 'MANDAT PARTAGÉ' : incomplete ? 'MANDAT INTERROMPU' : 'CINQ ANNÉES'}</p>
+    <h1 tabindex="-1">${ending ? e(ending) : 'Les choix ont laissé des traces.'}</h1><p>Contexte : <strong>${e(label)}</strong> · ${incomplete ? `interrompu après ${g.turn} décisions` : `${g.turn} décisions inscrites`}. Simulation fictive.</p>
+    <div class="living-result__diorama living-result__diorama--scene">${renderStoryScene(g, 'result')}</div>
+    <div class="living-recap__state-tags">${projects.slice(0, 5).map(project => `<span class="is-${e(project.status)}"><strong>${e(project.label)}</strong><small>${({ funded: 'Financé', blocked: 'Bloqué', delivered: 'Livré', withdrawn: 'Abandonné' } as const)[project.status]}</small></span>`).join('') || '<span>Aucune réalisation enregistrée.</span>'}</div>
+  </header>${actions}${narrativeOutcomeMarkup(g)}
+  <section class="living-result__tension"><p class="eyebrow">ENGAGEMENTS À LA CLÔTURE</p><h2>Ce qui reste à transmettre</h2>${promises.length ? `<ul>${promises.map(promise => `<li><strong>${({ active: 'En cours', kept: 'Tenue', broken: 'Rompue' } as const)[promise.status]}</strong> · ${e(promise.label)}</li>`).join('')}</ul>` : '<p>Aucune promesse enregistrée.</p>'}</section>
+  <div class="living-result__more-actions"><button class="button" data-action="replay">Rejouer exactement ce défi</button><button class="button" data-action="open-plan">Comparer une autre stratégie</button><button class="button" data-action="new-run">Nouveau mandat</button></div>
+  <p class="living-result__scope">Scénario #${g.seed} · bilan multidimensionnel, sans note globale.</p>
+  <details class="living-result__journal"><summary>Journal du mandat · ${g.history.length} décisions</summary><ol>${g.history.map(turn => `<li><span>Année ${turn.year}</span><strong>${e(turn.title)}</strong>${turn.closed ? `<small>${e(turn.event)}</small>` : ''}</li>`).join('')}</ol></details>
   </article>`;
 }

@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: './tests',
   testMatch: ['mandats-board.test.mjs', 'mandats-mobile.test.mjs', 'national-agenda.test.mjs', 'mandats-politics.test.mjs', 'mandats-equilibre.test.mjs'],
   // Reuse the export/import and planning journeys for changes to session handling.
-  grep: /budget equilibrium is reached|default v9 board|one choice is one turn|reduced motion removes|fresh-device national|territory, sandbox|ten v9 national decisions|fresh national game defaults to v10|v10 saves the actual 577-seat tally|reduced motion presents the same saved vote outcome|an explicit v9 challenge|an early destitution save/,
+  grep: /budget equilibrium is reached|default v9 board|one choice is one turn|reduced motion removes|fresh-device national|territory, sandbox|ten v9 national decisions|fresh national game defaults to v11|v10 saves the actual 577-seat tally|reduced motion presents the same saved vote outcome|an explicit v9 challenge|an early destitution save/,
   timeout: 90_000,
   expect: { timeout: 12_000 },
   fullyParallel: true,
