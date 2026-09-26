@@ -722,6 +722,17 @@ test('reduced motion and a rapid double click commit one decision', async ({ pag
   const { after } = await decide(page, 0, { doubleClick: true, dismiss: false });
   expect(after.choices).toHaveLength(1);
   const verdict = page.locator('[data-decision-verdict]');
+  const recordedVote = after.history.at(-1).vote;
+  if (recordedVote) {
+    const finalStage = recordedVote.stages?.at(-1) ?? recordedVote;
+    await expect(verdict.locator('.decision-verdict__seat')).toHaveCount(finalStage.total);
+    await expect(verdict.locator('.decision-verdict__assembly')).toBeVisible();
+    if (recordedVote.kind !== 'election') {
+      const shown = await verdict.locator('.decision-verdict__tally b').allTextContents();
+      expect(shown.map(value => Number(value.replace(/\D/g, '')))).toEqual([finalStage.for, finalStage.against, finalStage.abstain]);
+    }
+    await capture(page, info, `v11-assembly-verdict-${info.project.name}`);
+  }
   const motion = await verdict.evaluate((node) => getComputedStyle(node).animationDuration);
   expect(motion.split(',').every((duration) => Number.parseFloat(duration) === 0)).toBe(true);
   await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();

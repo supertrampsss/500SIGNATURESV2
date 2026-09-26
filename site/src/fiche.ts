@@ -366,8 +366,8 @@ export function afficherFiche(
         <p class="fiche__intro">Population, finances locales, services publics : retrouvez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
       </div>
       <figure class="fiche__hero-scene">
-        <img src="/ville/panorama.svg" alt="Illustration générique d’un territoire français" width="1280" height="720">
-        <figcaption>Illustration générique</figcaption>
+        <img src="/ville/cite-civique.webp" alt="Vue illustrative d’une ville française et de son hôtel de ville" width="1600" height="900">
+        <figcaption>Vue illustrative, sans lien avec la ville sélectionnée</figcaption>
       </figure>
     ${
       territoire.maire && EXECUTIFS[niveau]
@@ -428,7 +428,7 @@ export function afficherFiche(
       // La comparaison vient ensuite ; le détail brut reste visible plus bas
       // dans « Toutes les données du territoire ».
       (() => {
-        return `<div class="fiche__essentiel">
+        return `<nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Comptes</a><a href="#territoire-lecture">Lecture</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav><div class="fiche__essentiel">
           <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
             <h2>Les chiffres clés de ${echapper(territoire.nom)}</h2>
@@ -438,13 +438,13 @@ export function afficherFiche(
             </div>
             ${niveau === "commune" ? rendrePartsBudgetVille(territoire) : ""}
           </section>
-          <section class="territoire-comptes-section" aria-label="Les comptes de ${echapper(territoire.nom)}">
+          <section class="territoire-comptes-section" id="territoire-comptes" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
             <h2>Des comptes à lire dans le temps.</h2>
             <p class="territoire-comptes-section__intro">Recettes, dépenses, dette et investissement : suivez les principaux équilibres financiers sur les derniers exercices publiés.</p>
             ${territoireFinances(territoire)}
           </section>
-          <section class="territoire-lecture-section" aria-label="Lecture des comptes">
+          <section class="territoire-lecture-section" id="territoire-lecture" aria-label="Lecture des comptes">
             <p class="territoire-section-kicker">EN CLAIR</p>
             <h2>Ce que disent les comptes</h2>
             <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
