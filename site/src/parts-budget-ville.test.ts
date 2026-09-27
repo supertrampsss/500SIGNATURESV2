@@ -14,8 +14,8 @@ test("rapporte dépenses et épargne brute aux recettes du même exercice sans r
     ofgl_epargne_brute: { "2024": 30, "2025": 50 },
   }));
   assert.match(html, /Fonctionnement · 2025/);
-  assert.match(html, /75,0 €.*Fonctionnement/s);
-  assert.match(html, /25,0 €.*Épargne brute avant remboursement/s);
+  assert.match(html, /75,00 €.*Fonctionnement/s);
+  assert.match(html, /25,00 €.*Épargne brute avant remboursement/s);
   assert.doesNotMatch(html, /parts-budget__capital/);
 });
 
@@ -59,8 +59,8 @@ test("déduit le capital et l'épargne nette avant de parler de l'argent disponi
     ofgl_remboursements_d_emprunts_hors_gad: { "2025": 15 },
     ofgl_epargne_nette: { "2025": 5 },
   }));
-  assert.match(html, /80,0 €.*Fonctionnement/s);
-  assert.match(html, /15,0 €.*Capital de la dette remboursé/s);
-  assert.match(html, /5,0 €.*Épargne nette/s);
-  assert.doesNotMatch(html, /20,0 €/);
+  assert.match(html, /80,00 €.*Fonctionnement/s);
+  assert.match(html, /15,00 €.*Capital de la dette remboursé/s);
+  assert.match(html, /5,00 €.*Épargne nette/s);
+  assert.doesNotMatch(html, /20,00 €/);
 });
