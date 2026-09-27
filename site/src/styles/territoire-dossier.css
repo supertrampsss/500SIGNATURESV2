@@ -253,3 +253,226 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
 @media (max-width:410px) {
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__cartes { grid-template-columns:1fr; }
 }
+
+/* Ville : même rythme de lecture que France, du cadrage aux chiffres puis aux chapitres. */
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville {
+  position:relative; display:block; min-height:330px; padding:58px 48px 30px; overflow:hidden;
+  background:var(--fr-paper);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville::before {
+  content:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo {
+  position:absolute; inset:0 0 0 auto; width:59%; height:100%; margin:0; overflow:hidden;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo::after {
+  content:""; position:absolute; inset:0; background:linear-gradient(90deg,var(--fr-paper),#fffefaed 12%,#fffefab0 27%,transparent 58%); pointer-events:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo img {
+  display:block; width:100%; height:100%; max-width:none; object-fit:cover; object-position:center;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo figcaption {
+  position:absolute; z-index:1; right:0; bottom:0; padding:5px 10px; background:#fffefae8; color:var(--fr-muted); font-size:11px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__hero-copy {
+  position:relative; z-index:1; display:flex; width:min(700px,63%); padding:0; grid-column:auto; grid-row:auto;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__titre {
+  font-size:clamp(58px,6.5vw,78px); margin:0 0 14px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__intro {
+  order:0; max-width:630px; margin:0 0 14px; font-size:clamp(23px,2.5vw,30px);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__meta { order:1; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__maire {
+  position:relative; z-index:1; width:auto; max-width:660px; margin:27px 0 0; padding:11px 0 0;
+  grid-column:auto; grid-row:auto; font-size:12px; background:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__precedent { display:block; margin-top:4px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__chapitres {
+  justify-content:flex-start; gap:0 26px; padding:0 42px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__chapitres a {
+  display:inline-flex; align-items:center; min-height:56px; font-size:14px; text-decoration:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__ouverture {
+  padding:0 30px 15px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-section {
+  padding:25px 0 17px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-section h2 {
+  margin:0 16px 14px; font-size:30px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid { margin:0; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid .reperes { gap:13px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid .repere {
+  min-height:130px; padding:19px 17px; gap:7px; border-radius:7px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .repere__role {
+  font:600 17px/1.2 'Spectral',Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .repere__valeur {
+  display:block; font-size:27px; white-space:nowrap;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .repere__date { order:3; font-size:12px; margin:0; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-source {
+  display:block; margin:10px 0 0; color:var(--fr-muted); font-size:12px; line-height:1.35;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-source a { color:var(--fr-muted); }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-section > .ville-source { margin:11px 16px 0; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__essentiel {
+  gap:18px; padding:4px 30px 24px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__essentiel > .ville-panel,
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-duo > .ville-panel {
+  margin:0; padding:25px 23px; border:1px solid var(--fr-line); border-radius:8px; background:var(--fr-paper);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-panel h2 {
+  margin:0 0 5px; color:var(--fr-ink); font:600 30px/1.1 'Spectral',Georgia,serif; letter-spacing:-.045em;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-subtitle {
+  margin:0 0 11px; color:var(--fr-muted); font:400 18px/1.3 'Spectral',Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-fonctionnement {
+  display:grid !important; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:28px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes {
+  min-width:0; border-left:1px solid var(--fr-line); padding:7px 0 0 23px; background:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes h3 {
+  color:var(--fr-ink); font:600 23px/1.1 'Spectral',Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-unit { color:var(--fr-muted); font-size:12px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes ul {
+  list-style:none; margin:21px 0 7px; padding:0;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes li {
+  display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--fr-line); font-size:14px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes li strong { white-space:nowrap; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes > a { color:var(--fr-muted); font-size:12px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-panel .chart-time {
+  max-width:none; width:100%; margin:7px 0; padding:0; background:none; border:0;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-repartition { padding:26px 23px !important; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-repartition .parts-budget {
+  margin:0; padding:0; border:0;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget figcaption strong {
+  font-size:30px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__barre {
+  height:53px; margin:24px 0 21px; gap:2px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__depenses { background:#3489bb; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__capital { background:#103d6b; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__epargne { background:#c52438; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; list-style:none; padding:0; margin:0;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende li {
+  display:grid; grid-template-columns:11px auto; grid-template-rows:auto auto; gap:0 9px;
+  padding:10px 0; color:var(--fr-muted); font-size:14px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende i {
+  display:block; grid-row:1/3; width:10px; height:10px; margin-top:8px; border-radius:50%;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende strong {
+  color:var(--fr-ink); font:600 25px/1.1 'Spectral',Georgia,serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__source {
+  max-width:75ch; margin:10px 0 0; color:var(--fr-muted); font-size:12px; line-height:1.4;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-duo {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement {
+  margin:16px 0 0; border-top:1px solid var(--fr-line);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement p {
+  display:flex; justify-content:space-between; gap:10px; padding:9px 0; margin:0; border-bottom:1px solid var(--fr-line);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement p:last-child { color:var(--fr-red); font-weight:700; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement strong { white-space:nowrap; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-classement {
+  margin-top:18px; border-top:1px solid var(--fr-line);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-classement > summary {
+  cursor:pointer; padding:15px 0; color:var(--fr-ink); font-weight:700; font-size:14px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__theme {
+  display:block; padding:0; border:0; border-top:1px solid var(--fr-line); border-radius:0; background:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary {
+  cursor:pointer; padding:17px 0; list-style:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary::-webkit-details-marker { display:none; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary h3 {
+  margin:0; font-size:21px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary h3::after {
+  content:" +"; float:right; color:var(--fr-red); font-family:'Source Sans 3',Arial,sans-serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre[open] > summary h3::after { content:" −"; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre[open] > :not(summary) { margin-bottom:16px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujets {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; margin-top:18px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet {
+  min-width:0; border:1px solid var(--fr-line); border-radius:6px; background:#fffefa;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary {
+  display:grid; gap:8px; min-height:145px; padding:17px; cursor:pointer; list-style:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary::-webkit-details-marker { display:none; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary span { color:var(--fr-red); font-size:13px; font-weight:700; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary strong {
+  font:600 20px/1.15 'Spectral',Georgia,serif; color:var(--fr-ink);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary small { color:var(--fr-muted); }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet[open] { grid-column:1/-1; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet[open] summary { min-height:0; border-bottom:1px solid var(--fr-line); }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet__contenu { padding:0 17px 17px; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet__contenu .insights__grille {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; padding:0; list-style:none;
+}
+@media (max-width:900px) {
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid .reperes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-duo { grid-template-columns:1fr; }
+}
+@media (max-width:700px) {
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville { min-height:0; padding:31px 20px 26px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo {
+    position:relative; width:calc(100% + 40px); height:180px; margin:20px -20px 0;
+  }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo::after { content:none; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo img { object-position:center 66%; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__hero-copy { width:100%; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__titre { font-size:54px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__intro { font-size:22px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__maire { margin:0; padding:14px 0 0; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__chapitres {
+    display:flex; flex-wrap:nowrap; gap:20px; overflow-x:auto; padding:0 17px;
+  }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__chapitres a { flex:none; min-height:47px; font-size:13px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__ouverture { padding:0 12px 12px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-section h2 { margin:0 7px 13px; font-size:29px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid .reperes { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-reperes-grid .repere {
+    min-height:126px; padding:13px 11px;
+  }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .repere__role { font-size:15px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .repere__valeur { font-size:24px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__essentiel { gap:12px; padding:0 12px 12px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__essentiel > .ville-panel,
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-duo > .ville-panel { padding:20px 17px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-panel h2 { font-size:27px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-fonctionnement { grid-template-columns:1fr; gap:12px; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-recettes { border:0; border-top:1px solid var(--fr-line); padding:19px 0 0; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende { grid-template-columns:1fr; gap:0; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .parts-budget__legende li { border-bottom:1px solid var(--fr-line); }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujets,
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet__contenu .insights__grille { grid-template-columns:1fr; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujet summary { min-height:0; }
+}

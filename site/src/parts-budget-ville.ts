@@ -1,29 +1,48 @@
-/** Une lecture des seuls flux de fonctionnement, sur un même exercice OFGL. */
+/** Une année de fonctionnement, puis le remboursement du capital : même périmètre OFGL. */
 import type { Territoire } from "./donnees.ts";
 
-const pourcent = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+const nombre = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function rendrePartsBudgetVille(territoire: Territoire): string {
-  const series = territoire.series ?? {};
-  const recettes = series.ofgl_recettes_fonctionnement ?? {};
-  const depenses = series.ofgl_depenses_fonctionnement ?? {};
-  const epargne = series.ofgl_epargne_brute ?? {};
-  const exercice = Object.keys(recettes).filter((annee) =>
-    Number.isFinite(recettes[annee]) && recettes[annee] > 0 &&
-    Number.isFinite(depenses[annee]) && depenses[annee] >= 0 &&
-    Number.isFinite(epargne[annee]) && epargne[annee] >= 0 &&
-    Math.abs(recettes[annee] - depenses[annee] - epargne[annee]) <= recettes[annee] * 0.001,
+  const s = territoire.series ?? {};
+  const recettes = s.ofgl_recettes_fonctionnement ?? {};
+  const depenses = s.ofgl_depenses_fonctionnement ?? {};
+  const brute = s.ofgl_epargne_brute ?? {};
+  const capital = s.ofgl_remboursements_d_emprunts_hors_gad ?? {};
+  const nette = s.ofgl_epargne_nette ?? {};
+  const exercice = Object.keys(recettes).filter((an) =>
+    Number.isFinite(recettes[an]) && recettes[an] > 0 &&
+    Number.isFinite(depenses[an]) && Number.isFinite(brute[an]) &&
+    Math.abs(recettes[an] - depenses[an] - brute[an]) < Math.max(1, recettes[an] * .00001),
   ).sort().at(-1);
   if (!exercice) return "";
-  const partDepenses = depenses[exercice] / recettes[exercice] * 100;
-  const partEpargne = epargne[exercice] / recettes[exercice] * 100;
-  if (partDepenses > 100.01 || partEpargne > 100.01) return "";
-  return `<figure class="parts-budget" aria-label="Répartition des recettes de fonctionnement en ${exercice} : ${pourcent.format(partDepenses)} % de dépenses et ${pourcent.format(partEpargne)} % d’épargne brute">
-    <figcaption><span>Recettes de fonctionnement · ${exercice}</span><strong>Ce qui est dépensé, ce qui reste.</strong></figcaption>
-    <div class="parts-budget__barre" role="img" aria-label="${pourcent.format(partDepenses)} % de dépenses de fonctionnement ; ${pourcent.format(partEpargne)} % d’épargne brute">
-      <span class="parts-budget__depenses" style="width:${partDepenses.toFixed(3)}%"></span><span class="parts-budget__epargne" style="width:${partEpargne.toFixed(3)}%"></span>
+  const r = recettes[exercice];
+  const d = depenses[exercice];
+  const b = brute[exercice];
+  const remboursement = capital[exercice];
+  const net = nette[exercice];
+  const complet = d >= 0 && b >= 0 && remboursement >= 0 && net >= 0 &&
+    Number.isFinite(remboursement) && Number.isFinite(net) &&
+    Math.abs(b - remboursement - net) < Math.max(1, r * .00001);
+  const parties = complet
+    ? [
+        { nom: "Fonctionnement", montant: d, classe: "depenses" },
+        { nom: "Capital de la dette remboursé", montant: remboursement, classe: "capital" },
+        { nom: "Épargne nette", montant: net, classe: "epargne" },
+      ]
+    : d >= 0 && b >= 0
+      ? [
+          { nom: "Fonctionnement", montant: d, classe: "depenses" },
+          { nom: "Épargne brute avant remboursement", montant: b, classe: "epargne" },
+        ]
+      : [];
+  if (!parties.length) return `<p class="parts-budget__limite">En ${exercice}, les dépenses de fonctionnement dépassent les recettes. Source : <a href="/sources/">OFGL</a>.</p>`;
+  return `<figure class="parts-budget" aria-label="Répartition de 100 euros de recettes de fonctionnement en ${exercice}">
+    <figcaption><span>Fonctionnement · ${exercice}</span><strong>Sur 100 € encaissés par la ville</strong></figcaption>
+    <div class="parts-budget__barre" role="img" aria-label="${parties.map(p => `${nombre.format(p.montant / r * 100)} euros : ${p.nom.toLowerCase()}`).join(' ; ')}">
+      ${parties.map(p => `<span class="parts-budget__${p.classe}" style="flex:${(p.montant / r).toFixed(8)}"></span>`).join("")}
     </div>
-    <div class="parts-budget__legende"><p><i aria-hidden="true"></i><strong>${pourcent.format(partDepenses)} %</strong><span>dépensés pour le fonctionnement</span></p><p><i aria-hidden="true"></i><strong>${pourcent.format(partEpargne)} %</strong><span>d’épargne brute</span></p></div>
-    <p class="parts-budget__source">Rapportés aux recettes de fonctionnement du même exercice. Source : <a href="/sources/">OFGL</a>.</p>
+    <ul class="parts-budget__legende">${parties.map(p => `<li><i class="parts-budget__${p.classe}" aria-hidden="true"></i><strong>${nombre.format(p.montant / r * 100)} €</strong><span>${p.nom}</span></li>`).join("")}</ul>
+    <p class="parts-budget__source">${complet ? "L’épargne nette reste après le fonctionnement et le remboursement du capital ; elle peut contribuer aux investissements. Les nouveaux emprunts sont présentés avec la dette." : "L’épargne brute est calculée avant le remboursement du capital de la dette et avant les investissements."} <a href="/sources/">Source : OFGL</a>.</p>
   </figure>`;
 }

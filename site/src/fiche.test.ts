@@ -167,18 +167,16 @@ function ficheDeBordeaux(
   });
   return cible.innerHTML;
 }
-test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () => {
+test("la fiche communale s'ouvre sur une lecture séparant fonctionnement et dette", () => {
   const html = ficheDeBordeaux();
   const rang = (classe: string) => html.indexOf(`class="${classe}`);
-  assert.ok(rang("reperes") > -1 && rang("reperes") < rang("bloc-lecture"));
-  // Le titre du bloc est un h3 en Spectral, jamais un micro-label gris.
-  assert.match(html, /<section class="bloc-lecture">\s*<h3>Dépenses de fonctionnement<\/h3>/);
-  // Trois blocs ici, pas quatre : le jeu d'essai ne publie pas les dépenses
-  // d'investissement, et la rubrique ne s'écrit pas sans elles.
-  assert.deepEqual(
-    [...html.matchAll(/<section class="bloc-lecture">\s*<h3>([^<]*)<\/h3>/g)].map((m) => m[1]),
-    ["Dépenses de fonctionnement", "Origine des recettes", "Dette et épargne"],
-  );
+  assert.ok(rang("fiche__chapitres") > -1 && rang("fiche__chapitres") < rang("reperes"));
+  assert.match(html, /La dette reste à rembourser/);
+  assert.match(html, /En 2025, les recettes couvrent les dépenses courantes ; la dette augmente/);
+  assert.match(html, /Illustration de la vie municipale/);
+  assert.match(html, /Sur 100 € encaissés par la ville/);
+  assert.doesNotMatch(html, /class="bloc-lecture"/);
+  assert.doesNotMatch(html, /fiche__hero-figure/);
 });
 
 test("la fiche ne répète plus un lien source sous les comptes", () => {
@@ -232,12 +230,13 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche locale hiérarchise repères, comptes, lecture puis comparaison sans détail annuel redondant", () => {
+test("la fiche communale hiérarchise repères, fonctionnement, dette et comparaison", () => {
   const html = ficheDeBordeaux();
   const ordre = [
     'territoire-reperes-section',
-    'territoire-comptes-section',
-    'territoire-lecture-section',
+    'ville-fonctionnement',
+    'ville-repartition',
+    'ville-dette',
     'fiche__situation',
   ].map((classe) => {
     const position = html.indexOf(classe);
@@ -316,8 +315,13 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
     const blocs = [...rendue(niveau).matchAll(/<section class="bloc-lecture">([\s\S]*?)<\/section>/g)]
       .map(([, corps]) => corps)
       .join(" ");
-    assert.match(blocs, /(qu'en|en) 2019/, niveau);
-    assert.doesNotMatch(blocs, /(qu'en|contre [^<]*en) 2020/, niveau);
+    if (niveau === "commune") {
+      assert.doesNotMatch(rendue(niveau), /bloc-lecture|mandature|mandat ouvert/i);
+      assert.match(rendue(niveau), /Comptes exécutés, en millions d’euros/);
+    } else {
+      assert.match(blocs, /(qu'en|en) 2019/, niveau);
+      assert.doesNotMatch(blocs, /(qu'en|contre [^<]*en) 2020/, niveau);
+    }
   }
 });
 test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => {
