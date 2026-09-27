@@ -201,16 +201,24 @@ for (const pageCible of PAGES) {
   });
 }
 
-test('ville : quatre repères lisibles et un seul calcul de fonctionnement', async ({ page }) => {
+test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon', async ({ page }, testInfo) => {
   await page.goto('/territoire?niveau=commune&territoire=33063', { waitUntil: 'domcontentloaded' });
   await stabiliser(page);
   const fiche = page.locator('#fiche');
   await expect(fiche.locator('.repere')).toHaveCount(4);
-  await expect(fiche.locator('.repere').nth(2)).toContainText('épargne');
+  await expect(fiche.locator('.repere').nth(2)).toContainText('Épargne brute');
+  await expect(fiche.locator('.repere').nth(3)).toContainText('Dette au 31 décembre');
+  await expect(fiche.locator('.fiche__hero')).not.toContainText('48 millions');
   await expect(fiche.locator('.parts-budget')).toBeVisible();
-  await expect(fiche.locator('.parts-budget__legende p')).toHaveCount(2);
+  await expect(fiche.locator('.parts-budget__legende li')).toHaveCount(3);
+  await expect(fiche.locator('.parts-budget__legende')).toContainText('8,1 €');
+  await expect(fiche.locator('.parts-budget__legende')).toContainText('3,5 €');
+  await expect(fiche.locator('.ville-dette__mouvement')).toContainText('91 M€');
+  await expect(fiche.locator('.ville-dette__mouvement')).toContainText('33,7 M€');
+  await expect(fiche.locator('.ville-dette__mouvement')).toContainText('57,3 M€');
+  await expect(fiche.locator('.ville-investissement')).toContainText('136 M€');
   await expect(fiche.locator('.fiche__hero-scene')).toHaveCount(0);
-  await expect(fiche).not.toContainText('SUR 100 € ENCAISSÉS');
+  await expect(fiche.locator('.territoire-lecture-section')).toHaveCount(0);
   const positions = await fiche.evaluate((element) => ({
     titre: element.querySelector('.fiche__titre')?.getBoundingClientRect().top,
     maire: element.querySelector('.fiche__maire')?.getBoundingClientRect().top,
@@ -218,14 +226,17 @@ test('ville : quatre repères lisibles et un seul calcul de fonctionnement', asy
     sommaire: element.querySelector('.fiche__chapitres')?.getBoundingClientRect().top,
   }));
   expect(positions.maire).toBeGreaterThan(positions.titre);
-  expect(positions.sommaire).toBeGreaterThan(positions.reperes);
+  expect(positions.reperes).toBeGreaterThan(positions.sommaire);
   const parts = await fiche.locator('.parts-budget__barre > span').evaluateAll((items) =>
-    items.map((item) => Number.parseFloat(item.style.width)));
-  expect(parts).toHaveLength(2);
-  expect(parts.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 1);
-  await fiche.locator('[data-chart-tab="dette"]').click();
-  await expect(fiche.locator('[data-chart-panel="dette"]')).toBeVisible();
-  await expect(fiche.locator('[data-chart-panel="budget"]')).toBeHidden();
+    items.map((item) => Number.parseFloat(item.style.flex)));
+  expect(parts).toHaveLength(3);
+  expect(parts.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 3);
+  await expect(fiche.locator('.ville-dette .chart-time')).toBeVisible();
+  await expect(fiche.locator('.ville-investissement .chart-time')).toBeVisible();
+  const sujet = fiche.locator('.ville-sujet').first();
+  await sujet.locator('summary').click();
+  await expect(sujet).toHaveAttribute('open');
+  await capturer(page, testInfo, 'ville-analyse-ouverte.png');
   const donnees = page.locator('.territoire-donnees-completes__contenu');
   await expect(donnees).not.toHaveAttribute('open');
   await donnees.locator('summary').first().click();
