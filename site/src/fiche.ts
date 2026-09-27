@@ -1,5 +1,5 @@
 import { territoireFinances } from "./territoire-finances.ts";
-import { rendreVillePage } from "./ville-page.ts";
+import { ouvertureVille, rendreVillePage } from "./ville-page.ts";
 /**
  * Fiche territoire. Règle du produit (docs/04) : un chiffre ne s'affiche jamais
  * seul. Il porte son unité, son millésime, son dénominateur quand c'est un
@@ -361,7 +361,7 @@ export function afficherFiche(
   cible.innerHTML = `
     <section class="fiche__hero${niveau === "commune" ? " fiche__hero--ville" : ""}" aria-labelledby="fiche-titre">
       <div class="fiche__hero-copy">
-        <p class="territoire-section-kicker">${niveau === "commune" ? "LES COMPTES DE LA VILLE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
+        <p class="territoire-section-kicker">${niveau === "commune" ? `COMPTES DE LA VILLE · ${echapper(epargneRepere?.exercice ?? "")}` : echapper(NIVEAUX[niveau] ?? niveau)}</p>
         <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
         <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
@@ -374,8 +374,9 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
-        <p class="fiche__intro">${niveau === "commune" ? "La ville finance ses services, investit et porte une dette. Voici comment ces comptes se relient." : `Recettes, dépenses, épargne et dette : les comptes de ${echapper(territoire.nom)} en clair.`}</p>
+        <p class="fiche__intro">${niveau === "commune" ? echapper(ouvertureVille(territoire)) : `Recettes, dépenses, épargne et dette : les comptes de ${echapper(territoire.nom)} en clair.`}</p>
       </div>
+      ${niveau === "commune" ? `<figure class="ville-hero-photo"><img src="/ville/conseil-illustration.webp" alt="" width="1280" height="720"><figcaption>Illustration de la vie municipale</figcaption></figure>` : ""}
       ${niveau === "commune" ? "" : `
       <aside class="fiche__hero-figure" aria-label="Le premier repère financier">
         <span class="fiche__hero-figure-eyebrow">${epargneRepere ? `EXERCICE ${echapper(epargneRepere.exercice)}` : "LES FINANCES LOCALES"}</span>

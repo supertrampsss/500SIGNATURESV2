@@ -209,6 +209,8 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await expect(fiche.locator('.repere').nth(2)).toContainText('Épargne brute');
   await expect(fiche.locator('.repere').nth(3)).toContainText('Dette au 31 décembre');
   await expect(fiche.locator('.fiche__hero')).not.toContainText('48 millions');
+  await expect(fiche.locator('.ville-hero-photo img')).toBeVisible();
+  await expect(fiche.locator('.ville-hero-photo figcaption')).toHaveText('Illustration de la vie municipale');
   await expect(fiche.locator('.parts-budget')).toBeVisible();
   await expect(fiche.locator('.parts-budget__legende li')).toHaveCount(3);
   await expect(fiche.locator('.parts-budget__legende')).toContainText('88,46 €');
@@ -218,6 +220,7 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('33,7 M€');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('57,3 M€');
   await expect(fiche.locator('.ville-investissement')).toContainText('136 M€');
+  await expect(fiche.locator('.ville-classement')).not.toHaveAttribute('open');
   await expect(fiche.locator('.fiche__hero-scene')).toHaveCount(0);
   await expect(fiche.locator('.territoire-lecture-section')).toHaveCount(0);
   const positions = await fiche.evaluate((element) => ({

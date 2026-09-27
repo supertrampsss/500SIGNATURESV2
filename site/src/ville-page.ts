@@ -14,6 +14,21 @@ function dernier(serie?: Record<string, number>): [string, number] | null {
   return an ? [an, serie![an]] : null;
 }
 
+export function ouvertureVille(territoire: Territoire): string {
+  const s = territoire.series ?? {};
+  const epargne = dernier(s.ofgl_epargne_brute);
+  const dette = dernier(s.ofgl_encours_dette);
+  const avant = dette ? s.ofgl_encours_dette?.[String(Number(dette[0]) - 1)] : undefined;
+  if (epargne && dette && epargne[0] === dette[0] && Number.isFinite(avant)) {
+    const fonctionnement = epargne[1] >= 0
+      ? "Les recettes couvrent les dépenses courantes"
+      : "Les dépenses courantes dépassent les recettes";
+    const mouvement = dette[1] > avant! ? "augmente" : dette[1] < avant! ? "diminue" : "reste stable";
+    return `En ${epargne[0]}, ${fonctionnement.toLowerCase()} ; la dette ${mouvement}.`;
+  }
+  return "Les recettes, les dépenses et la dette de la ville, exercice après exercice.";
+}
+
 function graphe(titre: string, description: string, series: { name: string; id: string; color: string }[], donnees: Territoire["series"]): string {
   const disponibles = series.map(l => ({ name: l.name, color: l.color, values: donnees[l.id] ?? {} }))
     .filter(l => Object.values(l.values).some(Number.isFinite));
@@ -55,7 +70,7 @@ function recettes(territoire: Territoire): string {
   if (!postes.length) return "";
   return `<aside class="ville-recettes"><h3>Trois sources de recettes</h3><p class="ville-unit">En ${an} · sélection de postes, non exhaustive</p>
     <ul>${postes.map(([id, label]) => `<li><span>${label}</span><strong>${esc(court(s[id][an]))}</strong></li>`).join("")}</ul>
-    <a href="/sources/">Source : OFGL</a></aside>`;
+    </aside>`;
 }
 
 function dette(territoire: Territoire): string {
@@ -83,7 +98,7 @@ function investissement(territoire: Territoire): string {
   if (!v) return "";
   return `<section class="ville-panel ville-investissement" id="territoire-investissement">
     <h2>Les investissements</h2>
-    <p class="ville-subtitle">${esc(court(v[1]))} en ${v[0]} pour les dépenses d’investissement hors remboursement de la dette.</p>
+    <p class="ville-subtitle">Dépenses annuelles d’investissement, hors remboursement de la dette.</p>
     ${graphe("Investissement de la ville", "Dépenses annuelles hors remboursement du capital", [{ name: "Investissement", id: "ofgl_depenses_d_investissement_hors_remb", color: "#2776ac" }], s)}
     <p class="ville-source">L’épargne de fonctionnement est une ressource parmi d’autres ; elle ne mesure pas à elle seule le financement de ces investissements. <a href="/sources/">Source : OFGL</a>.</p>
   </section>`;
@@ -138,7 +153,9 @@ export function rendreVillePage(territoire: Territoire, catalogue: Indicateur[])
         <h2 id="territoire-comparaison-titre">${nom} parmi les autres villes</h2>
         <p class="ville-subtitle">Des communes de taille proche, puis la situation de ${nom} en France.</p>
         <div id="fiche-villes-paires"></div>
-        <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div></div>
+        <details class="ville-classement"><summary>Voir sa place parmi les communes françaises</summary>
+          <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div></div>
+        </details>
       </section>
       ${analyses(territoire, catalogue)}
     </div>`;

@@ -260,12 +260,22 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
   background:var(--fr-paper);
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville::before {
-  content:""; position:absolute; right:6%; top:28px; width:30%; height:215px;
-  border:1px solid #d8e3eb; border-radius:50%; box-shadow:0 0 0 35px #eaf1f61c,0 0 0 70px #eaf1f61c;
-  pointer-events:none;
+  content:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo {
+  position:absolute; inset:0 0 0 auto; width:59%; height:100%; margin:0; overflow:hidden;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo::after {
+  content:""; position:absolute; inset:0; background:linear-gradient(90deg,var(--fr-paper),#fffefaed 12%,#fffefab0 27%,transparent 58%); pointer-events:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo img {
+  display:block; width:100%; height:100%; max-width:none; object-fit:cover; object-position:center;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo figcaption {
+  position:absolute; z-index:1; right:0; bottom:0; padding:5px 10px; background:#fffefae8; color:var(--fr-muted); font-size:11px;
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__hero-copy {
-  position:relative; display:flex; width:min(700px,80%); padding:0; grid-column:auto; grid-row:auto;
+  position:relative; z-index:1; display:flex; width:min(700px,63%); padding:0; grid-column:auto; grid-row:auto;
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__titre {
   font-size:clamp(58px,6.5vw,78px); margin:0 0 14px;
@@ -275,7 +285,7 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__meta { order:1; }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__maire {
-  position:relative; width:auto; max-width:700px; margin:27px 0 0; padding:11px 0 0;
+  position:relative; z-index:1; width:auto; max-width:660px; margin:27px 0 0; padding:11px 0 0;
   grid-column:auto; grid-row:auto; font-size:12px; background:none;
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__precedent { display:block; margin-top:4px; }
@@ -385,6 +395,12 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
 }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement p:last-child { color:var(--fr-red); font-weight:700; }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-dette__mouvement strong { white-space:nowrap; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-classement {
+  margin-top:18px; border-top:1px solid var(--fr-line);
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-classement > summary {
+  cursor:pointer; padding:15px 0; color:var(--fr-ink); font-weight:700; font-size:14px;
+}
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujets {
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; margin-top:18px;
 }
@@ -412,11 +428,15 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
 }
 @media (max-width:700px) {
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville { min-height:0; padding:31px 20px 26px; }
-  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville::before { right:-24%; width:65%; opacity:.5; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo {
+    position:relative; width:calc(100% + 40px); height:180px; margin:20px -20px 0;
+  }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo::after { content:none; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-hero-photo img { object-position:center 66%; }
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__hero-copy { width:100%; }
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__titre { font-size:54px; }
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__intro { font-size:22px; }
-  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__maire { margin:19px 0 0; padding:10px 0 0; }
+  html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__hero--ville .fiche__maire { margin:0; padding:14px 0 0; }
   html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .fiche__chapitres {
     display:flex; flex-wrap:nowrap; gap:20px; overflow-x:auto; padding:0 17px;
   }

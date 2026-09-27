@@ -172,6 +172,8 @@ test("la fiche communale s'ouvre sur une lecture séparant fonctionnement et det
   const rang = (classe: string) => html.indexOf(`class="${classe}`);
   assert.ok(rang("fiche__chapitres") > -1 && rang("fiche__chapitres") < rang("reperes"));
   assert.match(html, /La dette reste à rembourser/);
+  assert.match(html, /En 2025, les recettes couvrent les dépenses courantes ; la dette augmente/);
+  assert.match(html, /Illustration de la vie municipale/);
   assert.match(html, /Sur 100 € encaissés par la ville/);
   assert.doesNotMatch(html, /class="bloc-lecture"/);
   assert.doesNotMatch(html, /fiche__hero-figure/);
