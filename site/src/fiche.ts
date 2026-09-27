@@ -12,6 +12,7 @@ import type { Indicateur, Territoire } from "./donnees.ts";
 import type { IndexSources } from "./registre-sources.ts";
 import { insightsTerritoire } from "./insights-territoire.ts";
 import { renduInsights } from "./insights-rendu.ts";
+import { montantLisible } from "./echelle.ts";
 
 /** L'intitulé de chaque maille. Exporté pour que le partage d'une fiche
  *  nomme la maille avec le mot que la fiche affiche, et pas un autre. */
@@ -332,6 +333,15 @@ export function afficherFiche(
     series: territoire.series ?? {},
     catalogue: options.indicateurs,
   });
+  const titresCommune: Record<string, string> = {
+    "Le train de vie": "Dépenses de fonctionnement",
+    "Qui règle l'addition": "Origine des recettes",
+    "L'ardoise": "Dette et épargne",
+    "Ce qui sort de terre": "Investissement",
+  };
+  const lecture = niveau === "commune"
+    ? blocsDeLecture.map((bloc) => ({ ...bloc, titre: titresCommune[bloc.titre] ?? bloc.titre }))
+    : blocsDeLecture;
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
   // Ce sont les repères qu'on vient chercher, et ils étaient noyés au milieu de
@@ -340,6 +350,7 @@ export function afficherFiche(
   // blocs partent de là et disent ce qu'un nombre posé ne dit pas : d'où vient
   // le mouvement.
   const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
+  const epargneRepere = reperesDOuverture(territoire.series ?? {}, niveau).find((repere) => repere.id === "ofgl_epargne_brute");
   const analysesCroisees = niveau === "pays"
     ? ""
     : renduInsights(insightsTerritoire(territoire, options.indicateurs), options.indicateurs, {
@@ -350,7 +361,7 @@ export function afficherFiche(
   cible.innerHTML = `
     <section class="fiche__hero" aria-labelledby="fiche-titre">
       <div class="fiche__hero-copy">
-        <p class="territoire-section-kicker">${niveau === "commune" ? "VILLE · TERRITOIRE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
+        <p class="territoire-section-kicker">${niveau === "commune" ? "LES COMPTES DE LA VILLE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
         <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
         <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
@@ -363,12 +374,13 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
-        <p class="fiche__intro">Population, finances locales, services publics : retrouvez les grands équilibres de ${echapper(territoire.nom)} et situez-les dans leur environnement.</p>
+        <p class="fiche__intro">Recettes, dépenses, épargne et dette : les comptes de ${echapper(territoire.nom)} en clair.</p>
       </div>
-      <figure class="fiche__hero-scene">
-        <img src="/ville/cite-civique.webp" alt="Vue illustrative d’une ville française et de son hôtel de ville" width="1600" height="900">
-        <figcaption>Vue illustrative, sans lien avec la ville sélectionnée</figcaption>
-      </figure>
+      <aside class="fiche__hero-figure" aria-label="Le premier repère financier">
+        <span class="fiche__hero-figure-eyebrow">${epargneRepere ? `EXERCICE ${echapper(epargneRepere.exercice)}` : "LES FINANCES LOCALES"}</span>
+        ${epargneRepere ? `<strong>${echapper(montantLisible(epargneRepere.valeur))}</strong><span>d’épargne brute, après les dépenses de fonctionnement.</span>` : `<strong>Les chiffres publics,<br>à hauteur de ville.</strong>`}
+        <a href="#territoire-chiffres-cles">Lire les chiffres clés</a>
+      </aside>
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? (() => {
@@ -428,33 +440,35 @@ export function afficherFiche(
       // La comparaison vient ensuite ; le détail brut reste visible plus bas
       // dans « Toutes les données du territoire ».
       (() => {
-        return `<nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Comptes</a><a href="#territoire-lecture">Lecture</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav><div class="fiche__essentiel">
+        return `<div class="fiche__ouverture">
           <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
-            <p class="territoire-section-kicker">EN UN COUP D’ŒIL</p>
-            <h2>Les chiffres clés de ${echapper(territoire.nom)}</h2>
+            <p class="territoire-section-kicker">LES CHIFFRES CLÉS</p>
+            <h2>Ce qui entre, ce qui sort, ce qui reste.</h2>
             <div class="territoire-reperes-grid">
-              ${territoire.population ? `<div class="territoire-population-card"><span>Population</span><strong>${new Intl.NumberFormat("fr-FR").format(territoire.population)}</strong><small>habitants</small></div>` : ""}
               ${ouvertureChiffree}
             </div>
             ${niveau === "commune" ? rendrePartsBudgetVille(territoire) : ""}
           </section>
+        </div>
+        <nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Évolution</a><a href="#territoire-lecture">En clair</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav>
+        <div class="fiche__essentiel">
           <section class="territoire-comptes-section" id="territoire-comptes" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
-            <h2>Des comptes à lire dans le temps.</h2>
-            <p class="territoire-comptes-section__intro">Recettes, dépenses, dette et investissement : suivez les principaux équilibres financiers sur les derniers exercices publiés.</p>
+            <h2>Comment les comptes ont évolué.</h2>
+            <p class="territoire-comptes-section__intro">Recettes et dépenses de fonctionnement, dette et investissement, exercice après exercice.</p>
             ${territoireFinances(territoire)}
           </section>
           <section class="territoire-lecture-section" id="territoire-lecture" aria-label="Lecture des comptes">
             <p class="territoire-section-kicker">EN CLAIR</p>
-            <h2>Ce que disent les comptes</h2>
-            <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
+            <h2>Ce que racontent les chiffres.</h2>
+            <div class="territory-reading">${rendreBlocs(lecture)}</div>
           </section>
           <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
-            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} dans son environnement</h2>
-            <p class="territoire-comparaison-section__intro">Situez les finances de ${echapper(territoire.nom)} face à des villes de taille proche et parmi les communes françaises.</p>
+            <h2 id="territoire-comparaison-titre">${echapper(territoire.nom)} face aux autres villes.</h2>
+            <p class="territoire-comparaison-section__intro">Des villes de taille proche, puis la place de ${echapper(territoire.nom)} parmi les communes françaises.</p>
             <div id="fiche-villes-paires"></div>
-            <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div><aside class="territoire-comparaison-note"><p class="territoire-section-kicker">LE TERRITOIRE</p><h3>Comprendre ${echapper(territoire.nom)} dans son contexte.</h3><p>Comparez les recettes, les dépenses et la dette avec les autres villes, en euros par habitant.</p></aside></div>
+            <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div></div>
           </section>
           ${analysesCroisees}
         </div>`;

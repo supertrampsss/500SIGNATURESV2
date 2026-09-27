@@ -13,9 +13,10 @@ test("rapporte dépenses et épargne aux recettes du même exercice", () => {
     ofgl_depenses_fonctionnement: { "2024": 70, "2025": 150 },
     ofgl_epargne_brute: { "2024": 30, "2025": 50 },
   }));
-  assert.match(html, /SUR 100 € ENCAISSÉS · 2025/);
-  assert.match(html, /75 %.*en dépenses de fonctionnement/s);
-  assert.match(html, /25 %.*en épargne brute/s);
+  assert.match(html, /Recettes de fonctionnement · 2025/);
+  assert.match(html, /75 %.*dépensés pour le fonctionnement/s);
+  assert.match(html, /25 %.*d’épargne brute/s);
+  assert.doesNotMatch(html, /SUR 100 € ENCAISSÉS/);
 });
 
 test("n'affiche aucune part quand les recettes ou une composante manquent", () => {
@@ -25,7 +26,7 @@ test("n'affiche aucune part quand les recettes ou une composante manquent", () =
   })), "");
 });
 
-test("affiche deux repères supplémentaires calculés sur le même exercice", () => {
+test("ne mélange pas la dette et l'investissement avec la répartition du fonctionnement", () => {
   const html = rendrePartsBudgetVille(ville({
     ofgl_recettes_fonctionnement: { "2025": 200 },
     ofgl_depenses_fonctionnement: { "2025": 150 },
@@ -34,17 +35,17 @@ test("affiche deux repères supplémentaires calculés sur le même exercice", (
     ofgl_depenses_d_investissement_hors_remb: { "2025": 100_000 },
     ofgl_population_reference: { "2025": 1_000 },
   }));
-  assert.match(html, /5 ans.*de dette rapportée à l’épargne annuelle/s);
-  assert.match(html, /100\s?€.*investis par habitant/su);
-  assert.doesNotMatch(html, /18 ans/);
+  assert.doesNotMatch(html, /dette|investis par habitant|ans<\/strong>/);
+  assert.match(html, /width:75\.000%/);
+  assert.match(html, /width:25\.000%/);
 });
 
-test("omet la durée de désendettement quand l'épargne n'est pas positive", () => {
+test("omet le diagramme quand les chiffres du même exercice ne se réconcilient pas", () => {
   const html = rendrePartsBudgetVille(ville({
     ofgl_recettes_fonctionnement: { "2025": 200 },
     ofgl_depenses_fonctionnement: { "2025": 210 },
     ofgl_epargne_brute: { "2025": -10 },
     ofgl_encours_dette: { "2025": 250 },
   }));
-  assert.doesNotMatch(html, /ans<\/strong>/);
+  assert.equal(html, "");
 });

@@ -172,12 +172,12 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
   const rang = (classe: string) => html.indexOf(`class="${classe}`);
   assert.ok(rang("reperes") > -1 && rang("reperes") < rang("bloc-lecture"));
   // Le titre du bloc est un h3 en Spectral, jamais un micro-label gris.
-  assert.match(html, /<section class="bloc-lecture">\s*<h3>Le train de vie<\/h3>/);
+  assert.match(html, /<section class="bloc-lecture">\s*<h3>Dépenses de fonctionnement<\/h3>/);
   // Trois blocs ici, pas quatre : le jeu d'essai ne publie pas les dépenses
-  // d'investissement, et « Ce qui sort de terre » ne s'écrit pas sans elles.
+  // d'investissement, et la rubrique ne s'écrit pas sans elles.
   assert.deepEqual(
     [...html.matchAll(/<section class="bloc-lecture">\s*<h3>([^<]*)<\/h3>/g)].map((m) => m[1]),
-    ["Le train de vie", "Qui règle l&#39;addition", "L&#39;ardoise"],
+    ["Dépenses de fonctionnement", "Origine des recettes", "Dette et épargne"],
   );
 });
 

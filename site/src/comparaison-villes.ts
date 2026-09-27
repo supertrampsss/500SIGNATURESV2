@@ -90,12 +90,12 @@ export function rendreComparaisonVilles(
   }).join("");
   return `<section class="villes-paires" aria-label="Comparaison avec des villes de taille proche">
     <h3>Face à des villes de taille proche</h3>
-    <p>${entier.format(proches.length)} communes retenues, dans la catégorie ${echapper(intituleGroupe(groupe))}, avec une population à ± 35 % de celle de cette ville.</p>
+    <p>${entier.format(proches.length)} villes de même catégorie et de population comparable · exercice ${echapper(exercice)}.</p>
     <label class="villes-paires__select">Comparer avec une ville du groupe
       <select data-villes-comparer><option value="">Choisir une ville</option>${proches.map((autre) => `<option value="${echapper(autre)}">${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)}</option>`).join("")}</select>
     </label>
     <div class="villes-paires__grille">${cartes.join("")}</div>
-    <p class="villes-paires__methode">Montants en euros par habitant, exercice ${echapper(exercice)}. Écart calculé par rapport à la médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; population de référence des ratios et comptes : OFGL. <a href="/sources/">Sources et méthode</a>.</p>
-    <details><summary>Voir les villes retenues</summary><ul>${noms}</ul></details>
+    <p class="villes-paires__methode">Montants en euros par habitant · Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
+    <details><summary>Voir les villes retenues</summary><p>Catégorie ${echapper(intituleGroupe(groupe))} ; population à ± 35 % de cette ville. Écart par rapport à la médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; comptes et population de référence : OFGL.</p><ul>${noms}</ul></details>
   </section>`;
 }

@@ -95,6 +95,6 @@ export function renduInsights(
     ${estFrance
       ? renduFranceParThemes(insights, catalogue, options.series)
       : renduTerritoireAvecSuite(insights, catalogue, options.series)}
-    <p class="insights__methode"><a href="/sources/">Sources et méthode</a></p>
+    <p class="insights__methode"><a href="/sources/">${estFrance ? "Sources et méthode" : "Sources"}</a></p>
   </section>`;
 }
