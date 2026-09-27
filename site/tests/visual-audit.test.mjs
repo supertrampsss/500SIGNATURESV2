@@ -211,6 +211,14 @@ test('ville : quatre repères lisibles et un seul calcul de fonctionnement', asy
   await expect(fiche.locator('.parts-budget__legende p')).toHaveCount(2);
   await expect(fiche.locator('.fiche__hero-scene')).toHaveCount(0);
   await expect(fiche).not.toContainText('SUR 100 € ENCAISSÉS');
+  const positions = await fiche.evaluate((element) => ({
+    titre: element.querySelector('.fiche__titre')?.getBoundingClientRect().top,
+    maire: element.querySelector('.fiche__maire')?.getBoundingClientRect().top,
+    reperes: element.querySelector('.fiche__ouverture')?.getBoundingClientRect().top,
+    sommaire: element.querySelector('.fiche__chapitres')?.getBoundingClientRect().top,
+  }));
+  expect(positions.maire).toBeGreaterThan(positions.titre);
+  expect(positions.sommaire).toBeGreaterThan(positions.reperes);
   const parts = await fiche.locator('.parts-budget__barre > span').evaluateAll((items) =>
     items.map((item) => Number.parseFloat(item.style.width)));
   expect(parts).toHaveLength(2);
@@ -218,6 +226,11 @@ test('ville : quatre repères lisibles et un seul calcul de fonctionnement', asy
   await fiche.locator('[data-chart-tab="dette"]').click();
   await expect(fiche.locator('[data-chart-panel="dette"]')).toBeVisible();
   await expect(fiche.locator('[data-chart-panel="budget"]')).toBeHidden();
+  const donnees = page.locator('.territoire-donnees-completes__contenu');
+  await expect(donnees).not.toHaveAttribute('open');
+  await donnees.locator('summary').click();
+  await expect(donnees).toHaveAttribute('open');
+  await expect(donnees.locator('#detail')).toBeVisible();
 });
 
 test('navigation : contrat des destinations publiques depuis France', async ({ page }, testInfo) => {

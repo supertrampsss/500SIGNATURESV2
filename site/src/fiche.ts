@@ -333,6 +333,15 @@ export function afficherFiche(
     series: territoire.series ?? {},
     catalogue: options.indicateurs,
   });
+  const titresCommune: Record<string, string> = {
+    "Le train de vie": "Dépenses de fonctionnement",
+    "Qui règle l'addition": "Origine des recettes",
+    "L'ardoise": "Dette et épargne",
+    "Ce qui sort de terre": "Investissement",
+  };
+  const lecture = niveau === "commune"
+    ? blocsDeLecture.map((bloc) => ({ ...bloc, titre: titresCommune[bloc.titre] ?? bloc.titre }))
+    : blocsDeLecture;
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
   // Ce sont les repères qu'on vient chercher, et ils étaient noyés au milieu de
@@ -431,7 +440,7 @@ export function afficherFiche(
       // La comparaison vient ensuite ; le détail brut reste visible plus bas
       // dans « Toutes les données du territoire ».
       (() => {
-        return `<nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Évolution</a><a href="#territoire-lecture">En clair</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav><div class="fiche__essentiel">
+        return `<div class="fiche__ouverture">
           <section class="territoire-reperes-section" id="territoire-chiffres-cles" aria-label="Les grands repères de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">LES CHIFFRES CLÉS</p>
             <h2>Ce qui entre, ce qui sort, ce qui reste.</h2>
@@ -440,6 +449,9 @@ export function afficherFiche(
             </div>
             ${niveau === "commune" ? rendrePartsBudgetVille(territoire) : ""}
           </section>
+        </div>
+        <nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Évolution</a><a href="#territoire-lecture">En clair</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav>
+        <div class="fiche__essentiel">
           <section class="territoire-comptes-section" id="territoire-comptes" aria-label="Les comptes de ${echapper(territoire.nom)}">
             <p class="territoire-section-kicker">FINANCES LOCALES</p>
             <h2>Comment les comptes ont évolué.</h2>
@@ -449,7 +461,7 @@ export function afficherFiche(
           <section class="territoire-lecture-section" id="territoire-lecture" aria-label="Lecture des comptes">
             <p class="territoire-section-kicker">EN CLAIR</p>
             <h2>Ce que racontent les chiffres.</h2>
-            <div class="territory-reading">${rendreBlocs(blocsDeLecture)}</div>
+            <div class="territory-reading">${rendreBlocs(lecture)}</div>
           </section>
           <section class="territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
             <p class="territoire-section-kicker">DANS SON ENVIRONNEMENT</p>
