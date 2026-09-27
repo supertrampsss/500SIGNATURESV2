@@ -168,8 +168,7 @@ test('Ville: search and financial detail work without a map',async({page},info)=
  await expect(page.locator('.fiche__titre')).toHaveText('Bordeaux');await expect(page.locator('#fiche .reperes .repere')).toHaveCount(4);await noOverflow(page);
  await expect(page.locator('.ville-fonctionnement .chart-time')).toBeVisible();
  const donnees=page.locator('.territoire-donnees-completes__contenu');
- await expect(donnees).not.toHaveAttribute('open','');
- await activate(donnees.locator(':scope > summary'),info);
+ await expect(donnees.locator('#detail')).toBeVisible();
  const population=page.locator('#detail #davantage-population');
  await expect(population.locator('.davantage__chapitre > summary')).toBeVisible();
  await activate(population.locator('.davantage__chapitre > summary'),info);

@@ -61,9 +61,9 @@ function insightFoncier(series: Series, catalogue: Indicateur[]): Insight | null
     id: "foncier",
     famille: "fiscalite",
     surtitre: "Fiscalité locale · le taux voté",
-    titre: `Taxe foncière : ${pct(evolution.arrivee)}`,
-    texte: `Le taux global a ${direction} de ${nombre.format(Math.abs(points))} points entre ${evolution.de} et ${evolution.a}. Le montant payé dépend aussi de la valeur cadastrale du bien.`,
-    reserve: "Le taux n'est pas la facture : les bases cadastrales évoluent séparément.",
+    titre: `Taux global de taxe foncière sur le bâti : ${pct(evolution.arrivee)}`,
+    texte: `Ce taux s'applique à la base cadastrale imposable des propriétés bâties, pas à leur prix de vente. Il a ${direction} de ${nombre.format(Math.abs(points))} points entre ${evolution.de} et ${evolution.a}. Le montant payé dépend aussi de la base et des exonérations propres à chaque bien.`,
+    reserve: "Le taux global comprend les collectivités et taxes annexes du territoire ; ce n'est pas la part des recettes de la ville ni le pourcentage de la valeur du logement.",
     preuves: [
       preuve(id, evolution.de, evolution.depart, "Taux initial"),
       preuve(id, evolution.a, evolution.arrivee, "Dernier taux"),

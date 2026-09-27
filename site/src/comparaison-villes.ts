@@ -6,16 +6,15 @@ import { groupeDe, intituleGroupe, type Groupe } from "./semblables.ts";
 type Comptes = Record<string, Record<string, number>>;
 
 const INDICATEURS = [
-  { id: "ofgl_recettes_fonctionnement", libelle: "Recettes de fonctionnement" },
-  { id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement" },
-  { id: "ofgl_encours_dette", libelle: "Dette en fin d’année" },
+  { id: "ofgl_recettes_fonctionnement", libelle: "Recettes de fonctionnement", objet: "les recettes de fonctionnement" },
+  { id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement", objet: "les dépenses de fonctionnement" },
+  { id: "ofgl_encours_dette", libelle: "Dette en fin d’année", objet: "la dette en fin d’année" },
 ] as const;
 
 const euros = new Intl.NumberFormat("fr-FR", {
   style: "currency", currency: "EUR", maximumFractionDigits: 0,
 });
 const entier = new Intl.NumberFormat("fr-FR");
-const pourcent = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 function echapper(texte: string): string {
   return texte.replace(/[&<>"']/g, (c) => ({
@@ -59,43 +58,47 @@ export function rendreComparaisonVilles(
   const proches = selectionVillesProches(index, code, groupe);
   if (proches.length < 3) return '<p class="villes-paires__vide">Moins de trois communes de la même catégorie ont une population à ± 35 % : la comparaison chiffrée n’est pas disponible.</p>';
   const habitants = populationsDuRepertoire(index, exercice);
-  const cartes = INDICATEURS.map(({ id, libelle }) => {
+  const nom = index.noms[index.codes.indexOf(code)] ?? "Cette ville";
+  const comparaisons = INDICATEURS.map(({ id, libelle, objet }) => {
     const couche = comptes[id] ?? {};
     const courant = couche[code];
-    if (!Number.isFinite(courant) || !habitants[code] || courant < 0) return "";
+    if (!Number.isFinite(courant) || !habitants[code] || courant < 0) return null;
     const pairs = proches
       .map((autre) => ({ code: autre, valeur: couche[autre] / habitants[autre] }))
       .filter(({ valeur }) => Number.isFinite(valeur) && valeur >= 0);
-    if (pairs.length < 3) return "";
+    if (pairs.length < 3) return null;
     const ville = courant / habitants[code];
     const reference = mediane(pairs.map(({ valeur }) => valeur));
-    if (reference <= 0) return "";
+    if (reference <= 0) return null;
     const ecart = (ville / reference - 1) * 100;
-    const sens = Math.abs(ecart) < 0.05 ? "Au même niveau que la médiane" :
-      `${pourcent.format(Math.abs(ecart))} % ${ecart > 0 ? "au-dessus" : "en dessous"} de la médiane`;
-    return `<article class="villes-paires__carte">
+    const difference = Math.round(ville) - Math.round(reference);
+    return { id, libelle, objet, couche, pairs, ville, reference, ecart, difference };
+  }).filter((valeur): valeur is NonNullable<typeof valeur> => valeur !== null);
+  if (!comparaisons.length) return '<p class="villes-paires__vide">Les comptes publiés ne permettent pas de calculer une médiane pour ces villes proches.</p>';
+  const marquante = [...comparaisons].sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))[0];
+  const variation = marquante.difference === 0 ? "un montant proche de la médiane" :
+    `${euros.format(Math.abs(marquante.difference))} ${marquante.difference > 0 ? "de plus" : "de moins"} par habitant`;
+  const cartes = comparaisons.map(({ libelle, couche, pairs, ville, reference, difference }) => `<article class="villes-paires__carte">
       <h3>${libelle}</h3>
-      <div class="villes-paires__montants"><p><span>Cette ville · par hab.</span><strong>${echapper(euros.format(ville))}</strong></p><p><span>Médiane de ${entier.format(pairs.length)} villes · par hab.</span><strong>${echapper(euros.format(reference))}</strong></p></div>
+      <div class="villes-paires__montants"><p><span>${echapper(nom)} · par hab.</span><strong>${echapper(euros.format(ville))}</strong></p><p><span>Médiane de ${entier.format(pairs.length)} villes</span><strong>${echapper(euros.format(reference))}</strong></p></div>
       ${proches.map((autre) => {
         const valeur = couche[autre] / habitants[autre];
         return `<p class="villes-paires__choisie" data-ville-compare="${echapper(autre)}" hidden><span>${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)} · par hab.</span><strong>${Number.isFinite(valeur) && valeur >= 0 ? echapper(euros.format(valeur)) : "Non publié"}</strong></p>`;
       }).join("")}
-      <p class="villes-paires__ecart">${echapper(sens)}</p>
-    </article>`;
-  }).filter(Boolean);
-  if (!cartes.length) return '<p class="villes-paires__vide">Les comptes publiés ne permettent pas de calculer une médiane pour ces villes proches.</p>';
+      <p class="villes-paires__ecart">Écart : ${difference === 0 ? "0 €" : `${difference > 0 ? "+" : "−"}${echapper(euros.format(Math.abs(difference)))}`} par habitant</p>
+    </article>`);
   const noms = proches.map((autre) => {
     const rang = index.codes.indexOf(autre);
     return `<li>${echapper(index.noms[rang] ?? autre)} · ${entier.format(index.population_municipale[rang] ?? 0)} hab.</li>`;
   }).join("");
   return `<section class="villes-paires" aria-label="Comparaison avec des villes de taille proche">
-    <h3>Face à des villes de taille proche</h3>
-    <p>${entier.format(proches.length)} villes de même catégorie et de population comparable · exercice ${echapper(exercice)}.</p>
-    <label class="villes-paires__select">Comparer avec une ville du groupe
+    <p class="villes-paires__groupe">${entier.format(proches.length)} communes de même catégorie et de population proche · comptes ${echapper(exercice)}.</p>
+    <div class="villes-paires__lecture"><span>Ce que montre la comparaison</span><p>À ${echapper(nom)}, l’écart le plus marqué concerne ${echapper(marquante.objet)} : ${echapper(euros.format(marquante.ville))} contre ${echapper(euros.format(marquante.reference))} pour la médiane, soit ${echapper(variation)}.</p></div>
+    <label class="villes-paires__select">Comparer directement avec une ville
       <select data-villes-comparer><option value="">Choisir une ville</option>${proches.map((autre) => `<option value="${echapper(autre)}">${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)}</option>`).join("")}</select>
     </label>
     <div class="villes-paires__grille">${cartes.join("")}</div>
-    <p class="villes-paires__methode">Montants en euros par habitant · Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
-    <details><summary>Voir les villes retenues</summary><p>Catégorie ${echapper(intituleGroupe(groupe))} ; population à ± 35 % de cette ville. Écart par rapport à la médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; comptes et population de référence : OFGL.</p><ul>${noms}</ul></details>
+    <p class="villes-paires__methode">La dette est un stock accumulé ; recettes et dépenses sont des flux de ${echapper(exercice)}. Le montant « par habitant » sert à comparer les villes : il ne s’agit pas d’une dette personnelle. Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
+    <details><summary>Quelles villes sont comparées ?</summary><p>Catégorie ${echapper(intituleGroupe(groupe))} ; population à ± 35 % de cette ville. Médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; comptes et population de référence : OFGL.</p><ul>${noms}</ul></details>
   </section>`;
 }
