@@ -118,7 +118,7 @@ function analyses(territoire: Territoire, catalogue: Indicateur[]): string {
     .filter(f => f.cartes.length).slice(0, 4);
   return `<section class="ville-panel ville-analyses" id="territoire-analyses">
     <h2>Les enjeux derrière les comptes</h2><p class="ville-subtitle">Fiscalité, services, logement et vie des habitants : des faits à examiner au-delà du budget.</p>
-    <div class="ville-sujets">${retenues.map(({ id, titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong>${cartes[0].id === "foncier" ? '<small>Un taux appliqué à une base cadastrale, pas à la valeur du logement.</small>' : ''}</summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
+    <div class="ville-sujets">${retenues.map(({ id, titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong>${cartes[0].id === "foncier" ? '<small>Total des taux locaux appliqués à la base cadastrale des biens bâtis, pas à leur prix de vente.</small>' : ''}</summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
     <a class="ville-source" href="/sources/">Sources des analyses</a>
   </section>`;
 }
