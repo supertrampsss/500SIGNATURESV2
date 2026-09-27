@@ -112,6 +112,7 @@ test("insightsTerritoire ajoute les arbitrages financiers aux lectures de contex
   );
   const parId = new Map(resultat.map((insight) => [insight.id, insight]));
   assert.match(parId.get("foncier")?.texte ?? "", /4 points/);
+  assert.match(parId.get("foncier")?.titre ?? "", /Taux global de taxe foncière sur le bâti/);
   assert.match(parId.get("impots-face-depenses")?.titre ?? "", /Impôts locaux \+33,3 % · dépenses \+28,6 %/);
   assert.match(parId.get("impot-revenu-par-foyer")?.titre ?? "", /1\s?800 € par foyer fiscal/);
   assert.match(parId.get("taux-epargne")?.titre ?? "", /10 % des recettes/);
