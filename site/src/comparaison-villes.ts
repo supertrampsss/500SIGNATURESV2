@@ -94,10 +94,10 @@ export function rendreComparaisonVilles(
   return `<section class="villes-paires" aria-label="Comparaison avec des villes de taille proche">
     <p class="villes-paires__groupe">${entier.format(proches.length)} communes de même catégorie et de population proche · comptes ${echapper(exercice)}.</p>
     <div class="villes-paires__lecture"><span>Ce que montre la comparaison</span><p>À ${echapper(nom)}, l’écart le plus marqué concerne ${echapper(marquante.objet)} : ${echapper(euros.format(marquante.ville))} contre ${echapper(euros.format(marquante.reference))} pour la médiane, soit ${echapper(variation)}.</p></div>
-    <div class="villes-paires__grille">${cartes.join("")}</div>
     <label class="villes-paires__select">Comparer directement avec une ville
       <select data-villes-comparer><option value="">Choisir une ville</option>${proches.map((autre) => `<option value="${echapper(autre)}">${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)}</option>`).join("")}</select>
     </label>
+    <div class="villes-paires__grille">${cartes.join("")}</div>
     <p class="villes-paires__methode">Une dette plus élevée ne suffit pas à juger la capacité de remboursement. Montants en euros par habitant · Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
     <details><summary>Quelles villes sont comparées ?</summary><p>Catégorie ${echapper(intituleGroupe(groupe))} ; population à ± 35 % de cette ville. Médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; comptes et population de référence : OFGL.</p><ul>${noms}</ul></details>
   </section>`;
