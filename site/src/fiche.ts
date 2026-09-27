@@ -1,5 +1,5 @@
 import { territoireFinances } from "./territoire-finances.ts";
-import { rendrePartsBudgetVille } from "./parts-budget-ville.ts";
+import { rendreVillePage } from "./ville-page.ts";
 /**
  * Fiche territoire. Règle du produit (docs/04) : un chiffre ne s'affiche jamais
  * seul. Il porte son unité, son millésime, son dénominateur quand c'est un
@@ -359,7 +359,7 @@ export function afficherFiche(
         series: territoire.series,
       });
   cible.innerHTML = `
-    <section class="fiche__hero" aria-labelledby="fiche-titre">
+    <section class="fiche__hero${niveau === "commune" ? " fiche__hero--ville" : ""}" aria-labelledby="fiche-titre">
       <div class="fiche__hero-copy">
         <p class="territoire-section-kicker">${niveau === "commune" ? "LES COMPTES DE LA VILLE" : echapper(NIVEAUX[niveau] ?? niveau)}</p>
         <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
@@ -374,13 +374,14 @@ export function afficherFiche(
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
-        <p class="fiche__intro">Recettes, dépenses, épargne et dette : les comptes de ${echapper(territoire.nom)} en clair.</p>
+        <p class="fiche__intro">${niveau === "commune" ? "La ville finance ses services, investit et porte une dette. Voici comment ces comptes se relient." : `Recettes, dépenses, épargne et dette : les comptes de ${echapper(territoire.nom)} en clair.`}</p>
       </div>
+      ${niveau === "commune" ? "" : `
       <aside class="fiche__hero-figure" aria-label="Le premier repère financier">
         <span class="fiche__hero-figure-eyebrow">${epargneRepere ? `EXERCICE ${echapper(epargneRepere.exercice)}` : "LES FINANCES LOCALES"}</span>
         ${epargneRepere ? `<strong>${echapper(montantLisible(epargneRepere.valeur))}</strong><span>d’épargne brute, après les dépenses de fonctionnement.</span>` : `<strong>Les chiffres publics,<br>à hauteur de ville.</strong>`}
         <a href="#territoire-chiffres-cles">Lire les chiffres clés</a>
-      </aside>
+      </aside>`}
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? (() => {
@@ -435,7 +436,7 @@ export function afficherFiche(
         : ""
     }
     </section>
-    ${
+    ${niveau === "commune" ? rendreVillePage(territoire, options.indicateurs) : (
       // Les repères, les comptes et leur lecture forment un seul parcours.
       // La comparaison vient ensuite ; le détail brut reste visible plus bas
       // dans « Toutes les données du territoire ».
@@ -447,7 +448,6 @@ export function afficherFiche(
             <div class="territoire-reperes-grid">
               ${ouvertureChiffree}
             </div>
-            ${niveau === "commune" ? rendrePartsBudgetVille(territoire) : ""}
           </section>
         </div>
         <nav class="fiche__chapitres" aria-label="Sommaire de la fiche"><a href="#territoire-chiffres-cles">Chiffres clés</a><a href="#territoire-comptes">Évolution</a><a href="#territoire-lecture">En clair</a><a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-donnees-completes-titre">Toutes les données</a></nav>
@@ -473,6 +473,6 @@ export function afficherFiche(
           ${analysesCroisees}
         </div>`;
       })()
-    }
+    )}
   `;
 }
