@@ -361,7 +361,7 @@ export function afficherFiche(
   cible.innerHTML = `
     <section class="fiche__hero${niveau === "commune" ? " fiche__hero--ville" : ""}" aria-labelledby="fiche-titre">
       <div class="fiche__hero-copy">
-        <p class="territoire-section-kicker">${niveau === "commune" ? `COMPTES DE LA VILLE · ${echapper(epargneRepere?.exercice ?? "")}` : echapper(NIVEAUX[niveau] ?? niveau)}</p>
+        <p class="territoire-section-kicker">${niveau === "commune" ? `COMPTES DE LA VILLE${epargneRepere ? ` · ${echapper(epargneRepere.exercice)}` : ""}` : echapper(NIVEAUX[niveau] ?? niveau)}</p>
         <h1 class="fiche__titre" id="fiche-titre">${echapper(territoire.nom)}</h1>
         <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       // La population porte sa définition en infobulle et rien d'autre : elle
