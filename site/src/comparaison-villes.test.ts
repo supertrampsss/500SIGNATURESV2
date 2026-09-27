@@ -23,24 +23,26 @@ test("retient des communes de même catégorie et à population proche", () => {
   assert.deepEqual(villesProches(index, "ville"), ["a", "b", "c", "d"]);
 });
 
-test("compare les euros par habitant au même exercice et explique l'écart en pourcentage", () => {
+test("met en avant l'écart marquant en euros par habitant au même exercice", () => {
   const comptes = {
     ofgl_recettes_fonctionnement: { ville: 150_000, a: 90_000, b: 132_000, c: 96_000, d: 130_000 },
     ofgl_depenses_fonctionnement: { ville: 120_000, a: 72_000, b: 99_000, c: 108_000, d: 130_000 },
     ofgl_encours_dette: { ville: 50_000, a: 45_000, b: 55_000, c: 60_000, d: 65_000 },
   };
   const html = rendreComparaisonVilles(index, "ville", "2025", comptes);
-  assert.match(html, /50 % au-dessus de la médiane/);
+  assert.match(html, /l’écart le plus marqué concerne les recettes de fonctionnement : 150\s?€ contre 100\s?€ pour la médiane, soit 50\s?€ de plus par habitant/u);
+  assert.match(html, /Écart : \+50\s?€ par habitant/u);
   assert.match(html, /150\s?€/u);
   assert.match(html, /100\s?€/u);
   assert.match(html, /par hab\./);
-  assert.match(html, /exercice 2025/);
+  assert.match(html, /comptes 2025/);
   assert.match(html, /référentiel 2023/);
   assert.doesNotMatch(html, /Lointaine|Autre catégorie/);
   assert.match(html, /<li>A · 900 hab\.<\/li>/);
   assert.match(html, /<select data-villes-comparer>/);
   assert.match(html, /<option value="a">A<\/option>/);
   assert.match(html, /data-ville-compare="a" hidden/);
+  assert.doesNotMatch(html, /Face à des villes de taille proche/);
 });
 
 test("ne fabrique pas de comparaison quand trop peu de pairs publient", () => {
