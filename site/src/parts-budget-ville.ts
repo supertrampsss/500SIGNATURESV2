@@ -1,7 +1,7 @@
 /** Une année de fonctionnement, puis le remboursement du capital : même périmètre OFGL. */
 import type { Territoire } from "./donnees.ts";
 
-const nombre = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nombre = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function rendrePartsBudgetVille(territoire: Territoire): string {
   const s = territoire.series ?? {};
