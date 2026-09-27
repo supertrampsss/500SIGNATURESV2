@@ -228,7 +228,7 @@ test('ville : quatre repères lisibles et un seul calcul de fonctionnement', asy
   await expect(fiche.locator('[data-chart-panel="budget"]')).toBeHidden();
   const donnees = page.locator('.territoire-donnees-completes__contenu');
   await expect(donnees).not.toHaveAttribute('open');
-  await donnees.locator('summary').click();
+  await donnees.locator('summary').first().click();
   await expect(donnees).toHaveAttribute('open');
   await expect(donnees.locator('#detail')).toBeVisible();
 });
