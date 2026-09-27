@@ -175,7 +175,7 @@ test('Ville: search and financial detail work without a map',async({page},info)=
  await activate(population.locator('.davantage__chapitre > summary'),info);
  await expect(population).toContainText(/267\s991/);
  await expect(population.locator('.davantage__cartes')).toBeVisible();
- await expect(page.locator('#fiche').getByRole('link',{name:'Sources',exact:true})).toBeVisible();await noOverflow(page);
+ await expect(page.locator('#fiche .ville-source a[href="/sources/"]').first()).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
