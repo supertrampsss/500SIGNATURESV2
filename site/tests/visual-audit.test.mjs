@@ -249,7 +249,7 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   const chapitres = donnees.locator('.davantage__chapitre');
   await expect(chapitres.first()).toBeVisible();
   await expect(chapitres.first()).not.toHaveAttribute('open');
-  await chapitres.first().locator('summary').click();
+  await chapitres.first().locator(':scope > summary').click();
   await expect(chapitres.first()).toHaveAttribute('open');
   await expect(chapitres.nth(1)).not.toHaveAttribute('open');
   await capturer(page, testInfo, 'ville-donnees-ouvertes.png');
