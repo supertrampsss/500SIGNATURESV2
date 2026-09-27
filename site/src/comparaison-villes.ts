@@ -98,7 +98,7 @@ export function rendreComparaisonVilles(
       <select data-villes-comparer><option value="">Choisir une ville</option>${proches.map((autre) => `<option value="${echapper(autre)}">${echapper(index.noms[index.codes.indexOf(autre)] ?? autre)}</option>`).join("")}</select>
     </label>
     <div class="villes-paires__grille">${cartes.join("")}</div>
-    <p class="villes-paires__methode">Une dette plus élevée ne suffit pas à juger la capacité de remboursement. Montants en euros par habitant · Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
+    <p class="villes-paires__methode">La dette est un stock accumulé ; recettes et dépenses sont des flux de ${echapper(exercice)}. Le montant « par habitant » sert à comparer les villes : il ne s’agit pas d’une dette personnelle. Sources : <a href="/sources/">INSEE et OFGL</a>.</p>
     <details><summary>Quelles villes sont comparées ?</summary><p>Catégorie ${echapper(intituleGroupe(groupe))} ; population à ± 35 % de cette ville. Médiane des communes ayant publié chaque montant. Population municipale : INSEE${index.millesime_geographique ? `, référentiel ${index.millesime_geographique}` : ""} ; comptes et population de référence : OFGL.</p><ul>${noms}</ul></details>
   </section>`;
 }
