@@ -211,8 +211,9 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await expect(fiche.locator('.fiche__hero')).not.toContainText('48 millions');
   await expect(fiche.locator('.parts-budget')).toBeVisible();
   await expect(fiche.locator('.parts-budget__legende li')).toHaveCount(3);
-  await expect(fiche.locator('.parts-budget__legende')).toContainText('8,1 €');
-  await expect(fiche.locator('.parts-budget__legende')).toContainText('3,5 €');
+  await expect(fiche.locator('.parts-budget__legende')).toContainText('88,46 €');
+  await expect(fiche.locator('.parts-budget__legende')).toContainText('8,09 €');
+  await expect(fiche.locator('.parts-budget__legende')).toContainText('3,45 €');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('91 M€');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('33,7 M€');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('57,3 M€');
