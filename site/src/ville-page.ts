@@ -117,8 +117,8 @@ function analyses(territoire: Territoire, catalogue: Indicateur[]): string {
   const retenues = familles.map(([id, titre]) => ({ id, titre, cartes: liste.filter(i => i.famille === id) }))
     .filter(f => f.cartes.length).slice(0, 4);
   return `<section class="ville-panel ville-analyses" id="territoire-analyses">
-    <h2>Les enjeux derrière les comptes</h2><p class="ville-subtitle">Quatre portes d’entrée pour explorer d’autres données locales.</p>
-    <div class="ville-sujets">${retenues.map(({ id, titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong><small>${cartes.length} analyse${cartes.length > 1 ? "s" : ""}</small></summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
+    <h2>Les enjeux derrière les comptes</h2><p class="ville-subtitle">Fiscalité, services, logement et vie des habitants : des faits à examiner au-delà du budget.</p>
+    <div class="ville-sujets">${retenues.map(({ id, titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong>${cartes[0].id === "foncier" ? '<small>Un taux appliqué à une base cadastrale, pas à la valeur du logement.</small>' : ''}</summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
     <a class="ville-source" href="/sources/">Sources des analyses</a>
   </section>`;
 }
@@ -151,7 +151,7 @@ export function rendreVillePage(territoire: Territoire, catalogue: Indicateur[])
       <div class="ville-duo">${dette(territoire)}${investissement(territoire)}</div>
       <section class="ville-panel territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
         <h2 id="territoire-comparaison-titre">${nom} parmi les autres villes</h2>
-        <p class="ville-subtitle">Des communes de taille proche, puis la situation de ${nom} en France.</p>
+        <p class="ville-subtitle">Ce que les recettes, les dépenses courantes et la dette représentent par habitant face à des communes comparables.</p>
         <div id="fiche-villes-paires"></div>
         <details class="ville-classement"><summary>Voir sa place parmi les communes françaises</summary>
           <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div></div>
