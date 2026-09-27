@@ -401,6 +401,21 @@ html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #v
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-classement > summary {
   cursor:pointer; padding:15px 0; color:var(--fr-ink); font-weight:700; font-size:14px;
 }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__theme {
+  display:block; padding:0; border:0; border-top:1px solid var(--fr-line); border-radius:0; background:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary {
+  cursor:pointer; padding:17px 0; list-style:none;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary::-webkit-details-marker { display:none; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary h3 {
+  margin:0; font-size:21px;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre > summary h3::after {
+  content:" +"; float:right; color:var(--fr-red); font-family:'Source Sans 3',Arial,sans-serif;
+}
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre[open] > summary h3::after { content:" −"; }
+html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .territoire-donnees-completes .davantage__chapitre[open] > :not(summary) { margin-bottom:16px; }
 html[data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] #vue-territoire .ville-sujets {
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; margin-top:18px;
 }

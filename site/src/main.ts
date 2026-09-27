@@ -2311,6 +2311,20 @@ async function peindreDetail(): Promise<void> {
   // ailleurs `associations[code]` n'a jamais de clé, ce qui est le comportement
   // voulu : le thème garde alors son seul agrégat.
   cible.innerHTML = davantageRendu(territoire, indicateursDeLaFiche(niveau), associations[code]);
+  // Sur la fiche Ville, ouvrir « Toutes les données » ne doit pas déployer
+  // simultanément tous les thèmes. Chaque titre reste un h3 navigable au clavier.
+  if (document.body.dataset.vue === "territoire" && niveau === "commune") {
+    cible.querySelectorAll<HTMLElement>(".davantage__theme").forEach((theme) => {
+      const titre = theme.querySelector("h3");
+      if (!titre) return;
+      const detail = document.createElement("details");
+      detail.className = "davantage__chapitre";
+      const summary = document.createElement("summary");
+      summary.append(titre);
+      detail.append(summary, ...Array.from(theme.childNodes));
+      theme.append(detail);
+    });
+  }
   // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
   // `etat.comparaison`, que l'adresse porte déjà.
   await majComparateur();

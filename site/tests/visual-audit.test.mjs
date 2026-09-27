@@ -246,6 +246,13 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await donnees.locator('summary').first().click();
   await expect(donnees).toHaveAttribute('open');
   await expect(donnees.locator('#detail')).toBeVisible();
+  const chapitres = donnees.locator('.davantage__chapitre');
+  await expect(chapitres.first()).toBeVisible();
+  await expect(chapitres.first()).not.toHaveAttribute('open');
+  await chapitres.first().locator('summary').click();
+  await expect(chapitres.first()).toHaveAttribute('open');
+  await expect(chapitres.nth(1)).not.toHaveAttribute('open');
+  await capturer(page, testInfo, 'ville-donnees-ouvertes.png');
 });
 
 test('navigation : contrat des destinations publiques depuis France', async ({ page }, testInfo) => {
