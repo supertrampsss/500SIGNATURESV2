@@ -417,34 +417,17 @@ test("le bilan ne porte plus le cadre d'attribution et la méthode reste éditor
   assert.doesNotMatch(main, /methode-sources|methode-methode|methode-grille/);
 });
 
-test("la page Sources et méthode place la méthode avant le registre et garde les ancres des fiches", () => {
-  // Ce test échouerait si la page redevenait un registre seul, si l'ordre des
-  // deux documents était inversé, ou si l'identifiant de la fiche était perdu :
-  // chacun de ces défauts casse un lien profond ou sa promesse éditoriale.
+test("la page Sources garde les jeux, les études et les ancres des fiches", () => {
   const fiches: FicheSource[] = [{
-    id: "source-essai",
-    nom: "Publication d'essai",
-    statut: "publie",
-    institution: "Institution d'essai",
-    url: "https://exemple.test/publication",
-    pages: ["/bilan"],
+    id: "source-essai", nom: "Publication d'essai", statut: "publie",
+    institution: "Institution d'essai", url: "https://exemple.test/publication", pages: ["/bilan"],
   }];
   const html = renduSourcesEtMethode(JEUX, fiches);
-  assert.match(html, /<section class="sources-methode sources-v2" aria-labelledby="sources-methode-titre">/);
-  assert.doesNotMatch(html, /<main\b/);
-  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>/);
-  assert.ok(html.indexOf('class="sources-v2__methode-grid"') < html.indexOf('id="registre-sources-titre"'));
+  assert.match(html, /<h1 id="sources-methode-titre">Sources<\/h1>/);
+  assert.doesNotMatch(html, /<h2>Notre méthode<\/h2>|<h2>La grille de verdicts<\/h2>/);
+  assert.ok(html.indexOf('id="sources-arbitrages"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /id="source-essai"/);
   assert.ok(html.includes(JEUX[0]!.titre));
-});
-
-test("la page Sources et méthode descend de h1 à h2 puis h3", () => {
-  const html = renduSourcesEtMethode(JEUX, []);
-  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>[\s\S]*<h2>Nos principes<\/h2>/);
-  assert.match(html, /<h2>Notre méthode<\/h2>/);
-  assert.match(html, /Consulter le registre et la méthode détaillée/);
-  assert.match(html, /<h2>La grille de verdicts<\/h2>[\s\S]*<h3>Le verdict, en trois crans<\/h3>/);
-  assert.doesNotMatch(html, /<h1[\s\S]*?<h3>Les sources<\/h3>/);
 });
 
 test("la page Sources regroupe les études officielles utilisées par les arbitrages", () => {

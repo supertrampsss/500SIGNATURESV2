@@ -1,6 +1,7 @@
 import type { Game } from './types.ts';
 import { politicalVoteOutcome } from './political-motion.ts';
 import { escape } from './sharing.ts';
+import { voteReceiptHemicycle } from './politics-view.ts';
 
 /** A transient receipt of an already saved decision. Closing it never advances the game. */
 export function showDecisionVerdict(game: Game, onDismiss: () => void) {
@@ -12,16 +13,19 @@ export function showDecisionVerdict(game: Game, onDismiss: () => void) {
   const stage = vote?.stages?.at(-1) ?? vote;
   const fmt = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
   const tally = stage && vote?.kind !== 'election'
-    ? `<p class="decision-verdict__tally"><span><b>${fmt(stage.for)}</b> pour</span><span><b>${fmt(stage.against)}</b> contre</span><span><b>${fmt(stage.abstain)}</b> abst.</span></p>` : '';
+    ? `<p class="decision-verdict__tally"><span><b>${fmt(stage.for)}</b> pour</span><span><b>${fmt(stage.against)}</b> contre</span><span><b>${fmt(stage.abstain)}</b> abstentions</span></p>` : '';
   const element = document.createElement('dialog');
   element.className = 'decision-verdict';
+  if (vote) element.classList.add('decision-verdict--vote');
   element.dataset.decisionVerdict = outcome?.adverse ? 'rejected' : 'accepted';
   element.setAttribute('aria-labelledby', 'decision-verdict-title');
   element.setAttribute('aria-describedby', 'decision-verdict-subject');
   element.innerHTML = `<button class="decision-verdict__close" type="button" data-action="dismiss-verdict" aria-label="Fermer le résultat">Fermer</button>
+    ${vote ? `<p class="decision-verdict__eyebrow">SCRUTIN PUBLIC · RÉSULTAT ENREGISTRÉ</p><div class="decision-verdict__image" aria-hidden="true"></div>` : ''}
     <p class="decision-verdict__chamber">${escape(vote?.kind === 'election' ? 'Élections législatives' : stage?.chamber ?? 'Votre décision')}</p>
     <h2 id="decision-verdict-title" tabindex="-1" autofocus>${escape(label)}</h2>
-    <p class="decision-verdict__subject" id="decision-verdict-subject">${escape(last.title)}</p>${tally}`;
+    <p class="decision-verdict__subject" id="decision-verdict-subject">${escape(last.title)}</p>
+    ${vote ? voteReceiptHemicycle(vote) : ''}${tally}`;
   document.body.append(element);
   let timer: number | undefined;
   let disposed = false;

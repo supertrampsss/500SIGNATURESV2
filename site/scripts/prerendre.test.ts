@@ -727,8 +727,8 @@ test("8 quater. Sources et méthode est pré-rendue avec sa canonique et son ima
   );
   assert.match(html, /data-page="editorial"/);
   assert.equal([...html.matchAll(/<main\b/g)].length, 1, "la page servie ne contient qu'un landmark main");
-  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>/);
-  assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
+  assert.match(html, /<h1 id="sources-methode-titre">Sources<\/h1>/);
+  assert.ok(html.indexOf('id="sources-arbitrages"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /registre-sources__fiche/);
   assert.match(html, /id="source-essai"/);
   assert.match(html, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}/sources/"`));
@@ -1123,7 +1123,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   // servi, et les cinq chemins de vues. Son titre et sa description valent donc
   // pour toutes — « carte des finances locales » décrivait la carte, qui a
   // quitté la racine pour `/territoire`.
-  assert.equal(titreDuGabarit(GABARIT_REEL), "Les chiffres publics expliqués · 500 signatures");
+  assert.equal(titreDuGabarit(GABARIT_REEL), "Comptes publics, villes et décisions | 500 Signatures");
   assert.equal(marqueDuGabarit(GABARIT_REEL), "500 SIGNATURES");
   // Et sa description est le message du site, arrêté à la conception (spec §8).
   // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui

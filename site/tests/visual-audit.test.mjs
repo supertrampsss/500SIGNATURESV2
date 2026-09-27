@@ -5,10 +5,10 @@ import { dirname } from 'node:path';
 const PAGES = [
   { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Comprendre aujourd’hui' },
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
-  { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Explorez les comptes de votre ville' },
+  { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Les comptes de votre ville, en clair.' },
   { slug: 'ville-bordeaux', path: '/territoire?niveau=commune&territoire=33063', vue: 'territoire', heading: 'Bordeaux' },
   { slug: 'dossiers', path: '/analyses/', vue: null, heading: 'Dossiers' },
-  { slug: 'sources', path: '/sources/', vue: null, heading: 'Sources et méthode' },
+  { slug: 'sources', path: '/sources/', vue: null, heading: 'Sources' },
 ];
 
 const NAVIGATION = [

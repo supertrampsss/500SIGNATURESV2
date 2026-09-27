@@ -55,6 +55,21 @@ export function hemicycleMarkup(record: VoteRecord): string {
   return stages.map((stage,index)=>oneChamberMarkup(stage,index,record.kind==='election')).join('');
 }
 
+/** Compact Assembly view for the transient v11 receipt, using the saved ballot. */
+export function voteReceiptHemicycle(record: VoteRecord): string {
+  const stage = record.stages?.at(-1) ?? record;
+  const election = record.kind === 'election';
+  if (election && !stage.groups.every(group => Number.isFinite(group.seats))) return '';
+  const voters = voteSeats(stage, election);
+  const seats = seatCoordinates(stage.total).map(({x,y,index}) => {
+    const vote = voters[index];
+    const status = vote ? election ? `bloc-${vote.group.id}` : vote.status : 'undetailed';
+    const description = vote ? `${vote.group.label} · ${election ? 'siège obtenu' : statusName(vote.status)}` : 'Vote non détaillé';
+    return `<circle class="decision-verdict__seat decision-verdict__seat--${escapeHtml(status)}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${stage.total>700?3:4.1}" style="--seat-delay:${Math.floor(index / Math.max(1,stage.total) * 850)}ms"><title>${escapeHtml(description)}</title></circle>`;
+  }).join('');
+  return `<figure class="decision-verdict__assembly"><svg viewBox="0 0 800 430" role="img" aria-label="${number(stage.total)} sièges, ${escapeHtml(stage.chamber)}. Répartition du scrutin enregistré."><path class="decision-verdict__floor" d="M60 394 A340 340 0 0 1 740 394 Z"/><path class="decision-verdict__tier" d="M85 394 A315 315 0 0 1 715 394 M122 394 A278 278 0 0 1 678 394 M166 394 A234 234 0 0 1 634 394 M210 394 A190 190 0 0 1 590 394 M258 394 A142 142 0 0 1 542 394"/>${seats}<path class="decision-verdict__tribune" d="M348 377 H452 L463 409 H337 Z"/></svg><figcaption>${escapeHtml(stage.chamber)} · ${number(stage.total)} sièges</figcaption></figure>`;
+}
+
 /** Reveal saved vote counts, or actual post-election bloc seat totals. */
 export function voteSequenceMarkup(record: VoteRecord): string {
   const election = record.kind === 'election';
