@@ -237,14 +237,14 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   expect(parts.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 3);
   await expect(fiche.locator('.ville-dette .chart-time')).toBeVisible();
   await expect(fiche.locator('.ville-investissement .chart-time')).toBeVisible();
+  await expect(fiche.locator('.villes-paires__lecture')).toContainText(/l’écart le plus marqué concerne la dette en fin d’année/);
+  await expect(fiche.locator('.villes-paires__lecture')).toContainText(/de plus par habitant/);
+  await expect(fiche.locator('.ville-sujet').first().locator('summary')).toContainText('Taux global de taxe foncière sur le bâti');
   const sujet = fiche.locator('.ville-sujet').first();
   await sujet.locator('summary').click();
   await expect(sujet).toHaveAttribute('open');
   await capturer(page, testInfo, 'ville-analyse-ouverte.png');
   const donnees = page.locator('.territoire-donnees-completes__contenu');
-  await expect(donnees).not.toHaveAttribute('open');
-  await donnees.locator('summary').first().click();
-  await expect(donnees).toHaveAttribute('open');
   await expect(donnees.locator('#detail')).toBeVisible();
   const chapitres = donnees.locator('.davantage__chapitre');
   await expect(chapitres.first()).toBeVisible();
