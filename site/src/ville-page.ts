@@ -107,7 +107,7 @@ function investissement(territoire: Territoire): string {
 function analyses(territoire: Territoire, catalogue: Indicateur[]): string {
   // Le fonctionnement, l'épargne et le désendettement sont déjà expliqués au-dessus.
   const excludes = new Set(["taux-epargne", "dette-sur-epargne"]);
-  const liste = insightsTerritoire(territoire, catalogue).filter(i => !excludes.has(i.id));
+  const liste = insightsTerritoire(territoire, catalogue).filter(i => !excludes.has(i.id) && i.id !== "foncier");
   if (!liste.length) return "";
   const familles = [
     ["fiscalite", "Fiscalité locale"], ["services", "Services publics"],
@@ -118,7 +118,7 @@ function analyses(territoire: Territoire, catalogue: Indicateur[]): string {
     .filter(f => f.cartes.length).slice(0, 4);
   return `<section class="ville-panel ville-analyses" id="territoire-analyses">
     <h2>Les enjeux derrière les comptes</h2><p class="ville-subtitle">Fiscalité, services, logement et vie des habitants : des faits à examiner au-delà du budget.</p>
-    <div class="ville-sujets">${retenues.map(({ id, titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong>${cartes[0].id === "foncier" ? '<small>Total des taux locaux appliqués à la base cadastrale des biens bâtis, pas à leur prix de vente.</small>' : ''}</summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
+    <div class="ville-sujets">${retenues.map(({ titre, cartes }) => `<details class="ville-sujet"><summary><span>${titre}</span><strong>${esc(cartes[0].titre)}</strong></summary><div class="ville-sujet__contenu">${cartesAvecSuite(cartes, 4, catalogue, territoire.series)}</div></details>`).join("")}</div>
     <a class="ville-source" href="/sources/">Sources des analyses</a>
   </section>`;
 }
@@ -129,7 +129,7 @@ export function rendreVillePage(territoire: Territoire, catalogue: Indicateur[])
   return `<nav class="fiche__chapitres" aria-label="Chapitres des comptes de ${nom}">
       <a href="#territoire-chiffres-cles">Repères</a><a href="#territoire-comptes">Fonctionnement</a>
       <a href="#territoire-dette">Dette</a><a href="#territoire-investissement">Investissement</a>
-      <a href="#territoire-comparaison-titre">Comparaisons</a><a href="#territoire-analyses">Analyses</a>
+      <a href="#territoire-analyses">Analyses</a>
       <a href="#territoire-donnees-completes-titre">Données</a>
     </nav>
     <div class="fiche__ouverture">${cartes(territoire)}</div>
@@ -149,14 +149,6 @@ export function rendreVillePage(territoire: Territoire, catalogue: Indicateur[])
         ${rendrePartsBudgetVille(territoire)}
       </section>
       <div class="ville-duo">${dette(territoire)}${investissement(territoire)}</div>
-      <section class="ville-panel territoire-comparaison-section" aria-labelledby="territoire-comparaison-titre">
-        <h2 id="territoire-comparaison-titre">${nom} parmi les autres villes</h2>
-        <p class="ville-subtitle">Ce que les recettes, les dépenses courantes et la dette représentent par habitant face à des communes comparables.</p>
-        <div id="fiche-villes-paires"></div>
-        <details class="ville-classement"><summary>Voir sa place parmi les communes françaises</summary>
-          <div class="territoire-comparaison-grid"><div class="fiche__situation" id="fiche-situation"></div></div>
-        </details>
-      </section>
       ${analyses(territoire, catalogue)}
     </div>`;
 }
