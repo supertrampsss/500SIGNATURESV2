@@ -230,14 +230,13 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche communale hiérarchise repères, fonctionnement, dette et comparaison", () => {
+test("la fiche communale hiérarchise les comptes sans bloc de comparaison", () => {
   const html = ficheDeBordeaux();
   const ordre = [
     'territoire-reperes-section',
     'ville-fonctionnement',
     'ville-repartition',
     'ville-dette',
-    'fiche__situation',
   ].map((classe) => {
     const position = html.indexOf(classe);
     assert.ok(position !== -1, `${classe} manque à la fiche`);
@@ -248,7 +247,7 @@ test("la fiche communale hiérarchise repères, fonctionnement, dette et compara
   assert.doesNotMatch(html, /Explorer les données/);
   assert.doesNotMatch(html, /Gestion financière/);
   assert.doesNotMatch(html, /class="note"/);
-  assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
+  assert.doesNotMatch(html, /territoire-comparaison-section|fiche__situation|villes-paires/);
 });
 
 test("la suite des données reprend l'alignement de la fiche", () => {
