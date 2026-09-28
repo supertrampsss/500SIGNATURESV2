@@ -220,7 +220,7 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('33,7 M€');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('57,3 M€');
   await expect(fiche.locator('.ville-investissement')).toContainText('136 M€');
-  await expect(fiche.locator('.ville-classement')).not.toHaveAttribute('open');
+  await expect(fiche.locator('.ville-classement')).toHaveCount(0);
   await expect(fiche.locator('.fiche__hero-scene')).toHaveCount(0);
   await expect(fiche.locator('.territoire-lecture-section')).toHaveCount(0);
   const positions = await fiche.evaluate((element) => ({
@@ -237,9 +237,9 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   expect(parts.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 3);
   await expect(fiche.locator('.ville-dette .chart-time')).toBeVisible();
   await expect(fiche.locator('.ville-investissement .chart-time')).toBeVisible();
-  await expect(fiche.locator('.villes-paires__lecture')).toContainText(/l’écart le plus marqué concerne la dette en fin d’année/);
-  await expect(fiche.locator('.villes-paires__lecture')).toContainText(/de plus par habitant/);
-  await expect(fiche.locator('.ville-sujet').first().locator('summary')).toContainText('Taux global de taxe foncière sur le bâti');
+  await expect(fiche.locator('.territoire-comparaison-section, .villes-paires, .ville-classement')).toHaveCount(0);
+  await expect(fiche.locator('.fiche__chapitres a[href="#territoire-comparaison-titre"]')).toHaveCount(0);
+  await expect(fiche.locator('.ville-analyses')).not.toContainText(/taxe foncière/i);
   const sujet = fiche.locator('.ville-sujet').first();
   await sujet.locator('summary').click();
   await expect(sujet).toHaveAttribute('open');
