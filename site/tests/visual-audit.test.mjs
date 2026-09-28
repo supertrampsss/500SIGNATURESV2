@@ -175,6 +175,21 @@ for (const pageCible of PAGES) {
       `débordement horizontal : ${JSON.stringify(audit.debordements)}`,
     ).toBeLessThanOrEqual(audit.document.clientWidth + 1);
 
+    if (pageCible.slug === 'villes' || pageCible.slug === 'ville-bordeaux') {
+      const recherche = await page.locator('#recherche').evaluate((input) => {
+        const rect = input.getBoundingClientRect();
+        return { width: rect.width, radius: parseFloat(getComputedStyle(input).borderTopLeftRadius) };
+      });
+      expect.soft(recherche.radius, 'la recherche ne doit plus être une pilule').toBeLessThanOrEqual(6);
+      if (testInfo.project.name.includes('desktop')) {
+        expect.soft(recherche.width, 'la recherche reste proportionnée sur ordinateur').toBeLessThanOrEqual(pageCible.slug === 'villes' ? 520 : 380);
+      }
+      if (pageCible.slug === 'ville-bordeaux') {
+        await expect(page.getByText('Changer de ville')).toBeVisible();
+        await expect(page.getByText('Rechercher une autre ville')).toHaveCount(0);
+      }
+    }
+
     if (pageCible.slug === 'accueil') {
       const accueil = await page.evaluate(() => {
         const header = document.querySelector('.entete')?.getBoundingClientRect();
