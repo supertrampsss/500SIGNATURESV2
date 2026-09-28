@@ -220,7 +220,7 @@ test('ville : fonctionnement, remboursement et dette sont lisibles sans doublon'
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('33,7 M€');
   await expect(fiche.locator('.ville-dette__mouvement')).toContainText('57,3 M€');
   await expect(fiche.locator('.ville-investissement')).toContainText('136 M€');
-  await expect(fiche.locator('.ville-classement')).not.toHaveAttribute('open');
+  await expect(fiche.locator('.ville-classement')).toHaveCount(0);
   await expect(fiche.locator('.fiche__hero-scene')).toHaveCount(0);
   await expect(fiche.locator('.territoire-lecture-section')).toHaveCount(0);
   const positions = await fiche.evaluate((element) => ({
