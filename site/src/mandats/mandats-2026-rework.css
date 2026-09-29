@@ -962,18 +962,20 @@ body[data-mode="selection"] .mandate-home-preview{
   font-weight:800;
 }
 
-.crisis-dossier{
+/* The national dossier reset above uses !important; the crisis panel must win it. */
+body[data-mode="national"] .dossier.crisis-dossier{
   padding:26px!important;
   border:1px solid #7d2733!important;
-  background:
-    radial-gradient(circle at 90% 0%,rgba(185,42,55,.22),transparent 36%),
-    #10202c!important;
+  background-color:#10202c!important;
+  background-image:radial-gradient(circle at 90% 0%,rgba(185,42,55,.22),transparent 36%)!important;
   color:#f8f3ec!important;
 }
 .crisis-dossier>.eyebrow,
 .crisis-dossier h1,
 .crisis-dossier .story{color:#f8f3ec!important}
 .crisis-dossier>.eyebrow{opacity:.82}
+.crisis-dossier .campaign-position{color:#d7e1e8!important}
+.crisis-dossier .crisis-banner{color:#f8f3ec!important}
 .crisis-banner{
   display:flex;
   align-items:center;

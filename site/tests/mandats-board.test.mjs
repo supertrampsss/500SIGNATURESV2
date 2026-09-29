@@ -98,6 +98,37 @@ async function finishAnnualRecap(page, year, info) {
   }
 }
 
+test('a saved crisis dossier keeps its story and banner readable', async ({ page }) => {
+  const save = {
+    version: 9, mode: 'national', seed: 0, ambition: 'equilibre',
+    choices: ['r01a', 'r02a', 'u00a', 'r03a', 'r04a'],
+  };
+  await page.addInitScript(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, save]);
+  await page.goto('/mandats/');
+  await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+  const dossier = board(page).locator('.crisis-dossier');
+  await expect(dossier).toBeVisible();
+  await expect(dossier.locator('h1')).toBeVisible();
+  await expect(dossier.locator('.story')).toBeVisible();
+  const contrast = await dossier.evaluate((element) => {
+    const rgb = (node, property) => getComputedStyle(node)[property].match(/\d+/g).slice(0, 3).map(Number);
+    const luminance = (channels) => channels.map((value) => {
+      const normalized = value / 255;
+      return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
+    }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+    const background = luminance(rgb(element, 'backgroundColor'));
+    return ['h1', '.story', '.eyebrow', '.campaign-position', '.crisis-banner strong'].map((selector) => {
+      const foreground = luminance(rgb(element.querySelector(selector), 'color'));
+      return (Math.max(background, foreground) + .05) / (Math.min(background, foreground) + .05);
+    });
+  });
+  expect(Math.min(...contrast), `Crisis text contrast: ${contrast.join(', ')}`).toBeGreaterThanOrEqual(4.5);
+  await noHorizontalOverflow(page);
+  await capture(page, test.info(), 'crisis-decision');
+  await turns(page).first().click();
+  await expect.poll(async () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)).choices.length, SAVE_KEY)).toBe(6);
+});
+
 test('default v9 board completes the five-year route and can replay a chosen turn', async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto('/mandats/');
@@ -113,7 +144,6 @@ test('default v9 board completes the five-year route and can replay a chosen tur
   let artChanged = false;
   let artIdentity = 'stable-cinematic-art';
   await cinematicArt.evaluate((image) => { image.dataset.testIdentity = 'stable-cinematic-art'; });
-  let crisisCaptured = false;
   await capture(page, test.info(), 'first-decision');
 
   for (let turn = 0; turn < 30; turn += 1) {
@@ -152,15 +182,6 @@ test('default v9 board completes the five-year route and can replay a chosen tur
     expect(save.choices).toHaveLength(expectedCount);
     expect(save.version).toBe(9);
     expect(save.ambition).toBe('equilibre');
-    if (!crisisCaptured && await board(page).locator('.crisis-dossier').count()) {
-      const colors = await board(page).locator('.crisis-dossier h1').evaluate((heading) => ({
-        foreground: getComputedStyle(heading).color,
-        background: getComputedStyle(heading.closest('[data-board-decision]')).backgroundColor,
-      }));
-      expect(colors.foreground).not.toBe(colors.background);
-      await capture(page, test.info(), 'crisis-decision');
-      crisisCaptured = true;
-    }
     await noHorizontalOverflow(page);
     if (expectedCount === 30) {
       await expect(page.locator('.living-result')).toBeVisible();
