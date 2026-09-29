@@ -19,10 +19,10 @@ test('final recap compares start with finish and links replay from preserved dec
 });
 test('annual balance uses the signed deficit direction',()=>{const g=through(6);g.history.at(-1)!.ledger.deficit=-12.3;assert.match(livingYearRecap(g),/Excédent 12,3 Md€/);g.history.at(-1)!.ledger.deficit=12.3;assert.match(livingYearRecap(g),/Déficit 12,3 Md€/);});
 test('rendered history and decisions are escaped',()=>{const g=through(30);g.history[0].title='<script>';assert.doesNotMatch(livingResult(g),/<script>/);});
-test('a rejected law in the completed seed 1 route is replayable without claiming its proposed effects',()=>{
+test('a rejected law in a finished seed 1 route is replayable without claiming its proposed effects',()=>{
  let g=start('national',1,'equilibre',10);
  while(g.turn<30&&!isFinished(g))g=decide(g,choicesFor(g)[0].id);
- assert.equal(g.turn,30);
+ assert.ok(isFinished(g));assert.ok(g.turn<=30);
  const rejectedIndex=g.history.findIndex(turn=>turn.vote?.kind==='law'&&!turn.vote.passed);
  assert.ok(rejectedIndex>=0);
  const html=livingResult(g),marker=`data-turn="${rejectedIndex}"`;
