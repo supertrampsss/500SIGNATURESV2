@@ -174,9 +174,9 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   const applied=resolution.choice.effect;
   const socialPain=Object.values(applied.society??{}).reduce((sum,n)=>sum+n,0);
   const servicesPain=applied.services??0,trustPain=applied.trust??0;
-  const structuralCut=Math.max(0,-(applied.operating??0)-10);
-  const exceptionalTax=Math.max(0,(applied.revenue??0)-15);
-  const fiscalShock=structuralCut*.35+exceptionalTax*.12;
+  const structuralCut=Math.max(0,-(applied.operating??0)-20);
+  const exceptionalTax=Math.max(0,(applied.revenue??0)-20);
+  const fiscalShock=structuralCut*.25+exceptionalTax*.08;
   const unrestDelta=(-socialPain/3)-servicesPain*.45-trustPain*.3+fiscalShock;
   p.unrest=clamp(p.unrest+unrestDelta);
   if(resolution.vote?.kind==='law'){
