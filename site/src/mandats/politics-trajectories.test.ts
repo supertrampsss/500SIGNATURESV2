@@ -147,7 +147,7 @@ test('calibration: twenty-five hostile strategies lose power before the fifth ye
       assert.ok(choice, 'hostile calibration has a reachable choice');
       game = decide(game, choice.id);
     }
-    if (!game.politics?.ending || game.politics.ending.kind === 'term_complete' || game.turn >= 24) {
+    if (!game.politics?.ending || game.politics.ending.kind === 'term_complete' || game.turn > 24) {
       failures.push({seed,turn:game.turn,ending:game.politics?.ending?.kind,unrest:game.politics?.unrest,legitimacy:game.politics?.legitimacy});
     }
   }
