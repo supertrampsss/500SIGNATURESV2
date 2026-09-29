@@ -135,7 +135,7 @@ test('the institutional repair window is respected even when legitimacy and unre
   politics.unrest = 95;
   politics.pendingCrisis = 'scandal';
 
-  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'enact' } };
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
   politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 11, 5), 11, 5);
   assert.equal(politics.institutionalCrisis?.stage, 'national');
   assert.equal(politics.institutionalCrisis?.remaining, 2);
@@ -172,7 +172,9 @@ test('term completion happens after decision 30, never after decision 29, and an
   assert.equal(completed.ending?.kind, 'term_complete');
 
   const unresolved = initialPolitics(3);
-  unresolved.pendingCrisis = 'censure';
+  unresolved.institutionalBreaches = 2;
+  unresolved.ruleOfLaw = 30;
+  unresolved.institutionalCrisis = { stage: 'national', remaining: 2, openedTurn: 28, lastBreachTurn: 28 };
   const forced = applyPoliticalResolution(unresolved, game, neutral, resolvePoliticalChoice(unresolved, neutral, 3, 30), 3, 30);
   assert.equal(forced.ending?.kind, 'rupture');
   assert.match(forced.ending?.reason ?? '', /crise politique ou institutionnelle reste ouverte/i);
