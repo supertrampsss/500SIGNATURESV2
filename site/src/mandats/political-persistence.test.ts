@@ -87,15 +87,15 @@ test("canonical early ending survives a shared result, local restore, and branch
     "pol-wealth-hospital-package", "pol-coalition-compromise", "r01c", "r02c", "r03c", "r04c",
     "u01c", "r05c", "r06c", "r07c", "r08c", "u00c",
     "pol-scandal-cover-up", "pol-scandal-cover-up", "pol-scandal-cover-up", "pol-scandal-cover-up",
-    "pol-rupture-negotiate",
+    "pol-scandal-publish", "pol-censure-vote", "pol-destitution-vote",
   ];
   let ended = game;
   for (const id of ids) {
     assert.ok(choicesFor(ended).some(choice => choice.id === id), `choice ${id} is reachable at turn ${ended.turn}`);
     ended = decide(ended, id);
   }
-  assert.equal(ended.turn, 17);
-  assert.equal(ended.politics?.ending?.kind, "rupture");
+  assert.equal(ended.turn, 19);
+  assert.equal(ended.politics?.ending?.kind, "destitution");
   assert.ok(ended.turn < 30);
   assertEndedPoliticalCompatibility(ended);
 });
