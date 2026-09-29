@@ -110,3 +110,38 @@ test('v9 remains politically frozen while v10 can continue to an early ending', 
   assert.ok(political.politics);
   assert.equal(political.version, 10);
 });
+
+
+test('calibration: twenty-five hostile strategies lose power before the fifth year', () => {
+  const politicalPriority = [
+    'pol-scandal-cover-up',
+    'pol-institution-defy',
+    'pol-rupture-emergency',
+    'pol-destitution-vote',
+    'pol-coalition-refuse',
+    'pol-censure-vote',
+    'pol-cabinet-dissolve',
+  ];
+  const failures: Array<{seed:number;turn:number;ending?:string;unrest?:number;legitimacy?:number}> = [];
+  for (let seed = 0; seed < 25; seed++) {
+    let game = start('national', seed, 'equilibre', 10);
+    while (!isFinished(game) && game.turn < 30) {
+      const available = choicesFor(game);
+      const political = politicalPriority.map(id => available.find(choice => choice.id === id)).find(Boolean);
+      const choice = political ?? [...available].sort((a,b) => {
+        const harm = (choice: typeof a) => {
+          const society = Object.values(choice.effect.society ?? {}).reduce((sum,value)=>sum+value,0);
+          return society*3 + (choice.effect.services ?? 0)*2 + (choice.effect.cohesion ?? 0)*2
+            + (choice.effect.trust ?? 0)*2 + (choice.effect.operating ?? 0)*.2 - (choice.effect.revenue ?? 0)*.05;
+        };
+        return harm(a)-harm(b);
+      })[0];
+      assert.ok(choice, 'hostile calibration has a reachable choice');
+      game = decide(game, choice.id);
+    }
+    if (!game.politics?.ending || game.politics.ending.kind === 'term_complete' || game.turn >= 24) {
+      failures.push({seed,turn:game.turn,ending:game.politics?.ending?.kind,unrest:game.politics?.unrest,legitimacy:game.politics?.legitimacy});
+    }
+  }
+  assert.deepEqual(failures, [], 'hostile calibration failures: ' + JSON.stringify(failures));
+});
