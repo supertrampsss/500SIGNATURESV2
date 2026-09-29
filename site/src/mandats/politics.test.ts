@@ -96,7 +96,7 @@ test('a high-pressure scandal can end early and disables every later choice', ()
 
 
 test('two grave institutional breaches open a three-decision repair window and another breach accelerates it', () => {
-  const game = start('national', 9, 'equilibre', 10);
+  const game = start('national', 9, 'equilibre', 11);
   const breach = (id: string): Choice => ({
     id, title: id, description: '', cost: '', benefit: '', sacrifice: '', effect: {},
     political: { action: 'cover_up', misconduct: 2, ruleOfLaw: -18, institutionalBreach: true },
@@ -125,7 +125,7 @@ test('two grave institutional breaches open a three-decision repair window and a
 });
 
 test('the institutional repair window is respected even when legitimacy and unrest are already critical', () => {
-  const game = start('national', 11, 'equilibre', 10);
+  const game = start('national', 11, 'equilibre', 11);
   let politics = initialPolitics(11);
   politics.institutionalBreaches = 2;
   politics.ruleOfLaw = 32;
@@ -143,7 +143,7 @@ test('the institutional repair window is respected even when legitimacy and unre
 });
 
 test('publishing the scandal can repair the independent institutional crisis without erasing political consequences', () => {
-  const game = start('national', 5, 'equilibre', 10);
+  const game = start('national', 5, 'equilibre', 11);
   let politics = initialPolitics(5);
   politics.institutionalBreaches = 2;
   politics.ruleOfLaw = 36;
@@ -163,8 +163,8 @@ test('publishing the scandal can repair the independent institutional crisis wit
 });
 
 test('term completion happens after decision 30, never after decision 29, and an unresolved crisis cannot masquerade as a normal ending', () => {
-  const game = start('national', 3, 'equilibre', 10);
-  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'enact' } };
+  const game = start('national', 3, 'equilibre', 11);
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
   let politics = initialPolitics(3);
   politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 29), 3, 29);
   assert.equal(politics.ending, undefined);
