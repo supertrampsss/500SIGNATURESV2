@@ -135,7 +135,7 @@ test('the institutional repair window is respected even when legitimacy and unre
   politics.unrest = 95;
   politics.pendingCrisis = 'scandal';
 
-  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'enact' } };
   politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 11, 5), 11, 5);
   assert.equal(politics.institutionalCrisis?.stage, 'national');
   assert.equal(politics.institutionalCrisis?.remaining, 2);
@@ -164,7 +164,7 @@ test('publishing the scandal can repair the independent institutional crisis wit
 
 test('term completion happens after decision 30, never after decision 29, and an unresolved crisis cannot masquerade as a normal ending', () => {
   const game = start('national', 3, 'equilibre', 10);
-  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'enact' } };
   let politics = initialPolitics(3);
   politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 29), 3, 29);
   assert.equal(politics.ending, undefined);
