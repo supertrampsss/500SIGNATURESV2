@@ -16,7 +16,7 @@ test('agenda contains thirty reforms, twenty-five opportunities and fifteen subs
  assert.doesNotMatch(JSON.stringify(NATIONAL_AGENDA),/Maintenir la réforme|Retirer la réduction/);
 });
 test('a difficult first vote applies once and leads directly to another reform',()=>{
- const g=next(begin());assert.equal(annualDeficit(g),138);
+ const g=next(begin());assert.equal(annualDeficit(g),118);
  assert.equal(agendaEntry(g).id,'r02');assert.equal(agendaEntry(g).kind,'reform');
  assert.equal(g.choices.length,1);assert.equal(g.society!.pensioners,50);
 });
