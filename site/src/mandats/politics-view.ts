@@ -107,13 +107,14 @@ export function politicalHud(game: Game): string {
         : `${number(lastVote.for)} pour · ${number(lastVote.against)} contre · ${number(lastVote.abstain)} abstentions`;
     return `<p class="political-hud__last-vote"><span>Dernier vote · ${escapeHtml(lastVote.title)}</span><strong>${escapeHtml(outcome.label)}<small>${details}</small></strong></p>`;
   })():'<p class="political-hud__last-vote">Aucun vote enregistré.</p>';
-  const institutional=politics.institutionalCrisis?.stage==='national'
+  const institutional=game.version===11&&politics.institutionalCrisis?.stage==='national'
     ? `<p class="political-hud__last-vote"><span>Crise institutionnelle</span><strong>${number(politics.institutionalCrisis.remaining)} décision${politics.institutionalCrisis.remaining>1?'s':''} pour réparer<small>Un nouveau manquement raccourcit ce délai.</small></strong></p>`
-    : politics.institutionalCrisis?.stage==='regime'
+    : game.version===11&&politics.institutionalCrisis?.stage==='regime'
       ? '<p class="political-hud__last-vote"><span>Crise institutionnelle</span><strong>Stade régime<small>La continuité du mandat est engagée.</small></strong></p>'
       : '';
+  const ruleOfLaw=game.version===11?`<span><b>${number(politics.ruleOfLaw)}</b> contre-pouvoirs</span>`:'';
   return `<section class="political-hud" aria-label="État politique du mandat">
-    <header class="political-hud__summary"><strong>${cabinetStatus}</strong><span><b>${number(coalitionSeats)}</b> sièges</span><span><b>${number(politics.legitimacy)}</b> légitimité</span><span><b>${number(politics.unrest)}</b> tension</span><span><b>${number(politics.ruleOfLaw)}</b> contre-pouvoirs</span></header>
+    <header class="political-hud__summary"><strong>${cabinetStatus}</strong><span><b>${number(coalitionSeats)}</b> sièges</span><span><b>${number(politics.legitimacy)}</b> légitimité</span><span><b>${number(politics.unrest)}</b> tension</span>${ruleOfLaw}</header>
     ${institutional}
     <details class="political-hud__details"><summary>Groupes, engagements et dernier vote</summary>
       <div class="political-hud__detail-grid"><section class="political-hud__groups"><h3>Assemblée · ${number(politics.blocs.reduce((sum,bloc)=>sum+bloc.seats,0))} sièges</h3><ul>${politics.blocs.map(bloc=>`<li><span>${escapeHtml(bloc.label)}${bloc.inGovernment?' · soutien':' · opposition'}</span><strong>${number(bloc.seats)}</strong></li>`).join('')}</ul></section>
