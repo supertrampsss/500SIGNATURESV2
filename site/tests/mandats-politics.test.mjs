@@ -79,9 +79,9 @@ test('an explicit v9 challenge remains on the frozen legacy journey',async({page
  await expect(page.locator('.campaign-position')).toContainText('Année 1 · décision 1/6');
 });
 
-test('an early regime rupture save opens the full result and restores the same ended mandate',async({page})=>{
+test('an early destitution save opens the full result and restores the same ended mandate',async({page})=>{
  const choices=['pol-wealth-hospital-package','pol-coalition-compromise','r01c','r02c','r03c','r04c','u01c','r05c','r06c','r07c','r08c','u00c',
-  'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-rupture-negotiate'];
+  'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-publish','pol-censure-vote','pol-destitution-vote'];
  const save={version:10,mode:'national',seed:27,ambition:'equilibre',choices};
  await page.addInitScript(value=>localStorage.setItem('500signatures.mandats.v1',JSON.stringify(value)),save);
  await page.goto('/mandats/');
@@ -90,29 +90,28 @@ test('an early regime rupture save opens the full result and restores the same e
  await resume.click();
  const ending=page.locator('.political-ending');
  await expect(ending).toBeVisible();
- await expect(ending).toContainText('Transition anticipée');
- await expect(ending).toContainText(/rupture|transition/i);
+ await expect(ending).toContainText('Destitution');
+ await expect(ending).toContainText('La Haute Cour');
  await expect(page.locator('.mandate-board [data-action="choose"]')).toHaveCount(0);
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
  expect(stored.choices).toEqual(choices);
  await ending.locator('[data-action="open-replay-selection"]').click();
  await expect(page.locator('.replay-selection')).toBeVisible();
- const branch=page.locator('.replay-card[data-action="branch-replay"][data-turn="16"]');
+ const branch=page.locator('.replay-card[data-action="branch-replay"][data-turn="18"]');
  await expect(branch).toBeVisible();
  await branch.click();
  await expect(page.locator('.mandate-board')).toBeVisible();
- await expect(page.locator('[data-action="choose"][data-choice="pol-rupture-emergency"]')).toBeVisible();
- await page.locator('[data-action="choose"][data-choice="pol-rupture-emergency"]').click();
- await expect(page.locator('.mandate-board')).toBeVisible();
- await page.locator('[data-action="choose"][data-choice="pol-rupture-emergency"]').click();
- await expect(page.locator('.political-ending')).toContainText('Rupture institutionnelle');
+ await expect(page.locator('[data-action="choose"][data-choice="pol-destitution-transition"]')).toBeVisible();
+ await page.locator('[data-action="choose"][data-choice="pol-destitution-transition"]').click();
+ await expect(page.locator('.political-ending')).toContainText('Transition');
  const restore=page.locator('.trajectory-comparison [data-action="restore-origin"]');
  await expect(restore).toBeVisible();
  await restore.click();
- await expect(page.locator('.political-ending')).toContainText('Transition anticipée');
+ await expect(page.locator('.political-ending')).toContainText('Destitution');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).toEqual(stored);
  await page.reload();
  await page.getByRole('button',{name:'Reprendre',exact:true}).click();
- await expect(page.locator('.political-ending')).toContainText('Transition anticipée');
+ await expect(page.locator('.political-ending')).toContainText('Destitution');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices)).toEqual(choices);
 });
+
