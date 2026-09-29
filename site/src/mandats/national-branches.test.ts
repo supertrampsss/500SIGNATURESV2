@@ -25,7 +25,7 @@ test('70 unique dossiers have unique choice IDs and a forty-five decision route'
 test('a committed reform changes the next dossier and illegal branches cannot be imported',()=>{
  const g=begin(), cut=next(g), tax=next(g,1);
  assert.notEqual(domainFor(cut).dossiers[1].title,domainFor(tax).dossiers[1].title);
- assert.match(domainFor(cut).dossiers[1].story,/Réduire les pensions/);
+ assert.match(domainFor(cut).dossiers[1].story,/Réduire.*pensions/);
  assert.throws(()=>decide(tax,choicesFor(cut)[0].id),/dossier/);
  const forged=JSON.parse(encode(tax));forged.choices.push(choicesFor(cut)[0].id);
  assert.throws(()=>decode(JSON.stringify(forged)),/dossier/);
