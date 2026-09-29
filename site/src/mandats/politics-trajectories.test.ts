@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { choicesFor, decide, isFinished, replay, start } from './engine.ts';
+import { choicesFor, decide, isFinished, replay, start, storyAgenda, selectStoryAgenda } from './engine.ts';
 import { encode, decode } from './storage.ts';
 import type { VoteRecord } from './politics-types.ts';
 
@@ -83,25 +83,25 @@ test('a refused ally bargain leads to a real censure, cabinet change and electio
   assert.deepEqual(decode(encode(game)),game);
 });
 
-test('repeated cover-ups escalate to a forced regime rupture that ends early and survives replay', () => {
+test('cover-ups escalate to a distinct destitution route that ends early and survives replay', () => {
   const ids = ['pol-wealth-hospital-package','pol-coalition-compromise','r01c','r02c','r03c','r04c','u01c','r05c','r06c','r07c','r08c','u00c',
-    'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-rupture-negotiate'];
+    'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-publish','pol-censure-vote','pol-destitution-vote'];
   let game = replay('national',27,ids,10,'equilibre');
-  assert.equal(game.turn,17);
+  assert.equal(game.turn,19);
   assert.equal(isFinished(game),true);
-  assert.equal(game.politics!.ending?.kind,'rupture');
-  assert.equal(game.politics!.ending?.turn,17);
+  assert.equal(game.politics!.ending?.kind,'destitution');
+  assert.equal(game.politics!.ending?.turn,19);
   assert.equal(game.politics!.misconduct,8);
-  assert.equal(game.politics!.institutionalCrisis?.stage,'regime');
-  assert.equal(game.politics!.pendingCrisis,'rupture');
-  assert.equal(game.politics!.votes.some(vote=>vote.kind==='destitution'),false);
+  const procedure=game.politics!.lastVote!;
+  assert.equal(procedure.kind,'destitution');
+  assert.equal(procedure.passed,true);
+  assert.deepEqual(procedure.stages?.map(stage=>[stage.total,stage.threshold,stage.for,stage.passed]),[[577,385,413,true],[348,232,255,true],[925,617,663,true]]);
   assert.deepEqual(choicesFor(game),[]);
   assert.throws(()=>decide(game,'pol-destitution-vote'));
   const restored=decode(encode(game));
   assert.deepEqual(restored,game);
   assert.deepEqual(replay('national',27,restored.choices,10,'equilibre'),game);
 });
-
 test('v9 remains politically frozen while v10 can continue to an early ending', () => {
   const legacy = start('national', 42, 'equilibre', 9);
   assert.equal(legacy.politics, undefined);
@@ -124,8 +124,16 @@ test('calibration: twenty-five hostile strategies lose power before the fifth ye
   ];
   const failures: Array<{seed:number;turn:number;ending?:string;unrest?:number;legitimacy?:number}> = [];
   for (let seed = 0; seed < 25; seed++) {
-    let game = start('national', seed, 'equilibre', 10);
+    let game = start('national', seed, 'equilibre', 11);
     while (!isFinished(game) && game.turn < 30) {
+      if (!game.narrative?.focus) {
+        const agenda = storyAgenda(game);
+        const target = agenda.find(item => item.id.startsWith('institutional:'))
+          ?? agenda.find(item => item.id.startsWith('policy:'))
+          ?? agenda[0];
+        assert.ok(target, 'hostile calibration has an agenda item');
+        game = selectStoryAgenda(game, target.id);
+      }
       const available = choicesFor(game);
       const political = politicalPriority.map(id => available.find(choice => choice.id === id)).find(Boolean);
       const choice = political ?? [...available].sort((a,b) => {
