@@ -449,12 +449,12 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   await abandonContext.close();
 });
 
-test('a censure and destitution crisis interrupts v11 with its votes and replay still available', async ({ page }, info) => {
+test('repeated institutional breaches force a regime crisis before the player can keep cycling the scandal', async ({ page }, info) => {
   test.skip(info.project.name !== 'desktop-chromium', 'The deterministic institutional ending is verified once on desktop.');
   const choices = [
     'pol-wealth-hospital-package', 'pol-coalition-compromise', 'r01c', 'r02c', 'r03c', 'r04c', 'u01c',
     'r05c', 'r06c', 'r07c', 'r08c', 'u00c', 'pol-scandal-cover-up', 'pol-scandal-cover-up',
-    'pol-scandal-cover-up', 'pol-scandal-cover-up', 'pol-scandal-publish', 'pol-censure-vote', 'pol-destitution-vote',
+    'pol-scandal-cover-up', 'pol-scandal-cover-up', 'pol-rupture-negotiate',
   ];
   const replayInputs = { version: 11, mode: 'national', seed: 27, ambition: 'equilibre', choices };
   await page.addInitScript((value) => localStorage.setItem('500signatures.mandats.v1', JSON.stringify(value)), replayInputs);
@@ -465,17 +465,17 @@ test('a censure and destitution crisis interrupts v11 with its votes and replay 
   expect(ended.version).toBe(11);
   expect(ended.seed).toBe(27);
   expect(ended.choices).toEqual(choices);
-  expect(ended.turn).toBe(19);
-  expect(ended.politics.ending).toMatchObject({ kind: 'destitution' });
-  expect(ended.history.some((turn) => turn.vote?.kind === 'censure')).toBe(true);
-  expect(ended.history.at(-1).vote).toMatchObject({ kind: 'destitution', passed: true });
+  expect(ended.turn).toBe(17);
+  expect(ended.politics.institutionalCrisis).toMatchObject({ stage: 'regime', remaining: 0 });
+  expect(ended.politics.ending).toMatchObject({ kind: 'rupture' });
+  expect(ended.history.some((turn) => turn.vote?.kind === 'destitution')).toBe(false);
   await expect(page.locator('.living-result')).toBeVisible();
-  await expect(page.locator('.living-result')).toContainText(/Destitution|Haute Cour/);
+  await expect(page.locator('.living-result')).toContainText(/Transition anticipée|Rupture/);
   await expect(page.locator('.narrative-outcome__election')).toHaveCount(0);
   await expect(page.locator('[data-action="choose"][data-choice]')).toHaveCount(0);
   await expect(page.locator('.living-result [data-action="open-replay-selection"]')).toBeVisible();
-  await capture(page, info, 'v11-destitution-ending');
-  await persistEvidence(page, info, 'v11-destitution-inputs', { censureRecorded: true, epilogueExpected: false });
+  await capture(page, info, 'v11-regime-crisis-ending');
+  await persistEvidence(page, info, 'v11-regime-crisis-inputs', { regimeStageReached: true, epilogueExpected: false });
 });
 
 test('one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue', async ({ page }, info) => {
