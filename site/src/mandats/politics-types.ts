@@ -2,7 +2,7 @@ import type { Choice } from './types.ts';
 
 export type PoliticalBlocId = 'presidential' | 'reformist' | 'social' | 'conservative' | 'regional';
 export type PendingCrisis = 'coalition' | 'censure' | 'cabinet' | 'scandal' | 'destitution' | 'rupture';
-export type PoliticalAction = 'enact' | 'coalition_bargain' | 'reject_bargain' | 'confidence' | 'censure' | 'coalition_government' | 'dissolve' | 'publish_scandal' | 'cover_up' | 'destitute' | 'negotiate_rupture' | 'emergency_rule';
+export type PoliticalAction = 'enact' | 'coalition_bargain' | 'reject_bargain' | 'confidence' | 'censure' | 'coalition_government' | 'dissolve' | 'publish_scandal' | 'cover_up' | 'destitute' | 'negotiate_rupture' | 'emergency_rule' | 'institutional_repair' | 'defy_institutions';
 export type PoliticalChoice = {
   action: PoliticalAction;
   targetBloc?: PoliticalBlocId;
@@ -12,6 +12,10 @@ export type PoliticalChoice = {
   commitment?: { id: string; label: string; dueTurn: number };
   breakCommitment?: string;
   misconduct?: number;
+  /** Fictional institutional-pressure mechanics used by the game, not a legal rating. */
+  ruleOfLaw?: number;
+  institutionalBreach?: boolean;
+  repairInstitutions?: number;
   /** Specific vote kind when an action needs a parliamentary decision. */
   vote?: 'law' | 'censure' | 'election' | 'destitution';
 };
@@ -28,5 +32,7 @@ export type PoliticalState = {
   blocs: PoliticalBloc[]; legitimacy: number; unrest: number; cabinet: 'stable' | 'fallen' | 'cohabitation';
   commitments: Commitment[]; lastVote?: VoteRecord; votes: VoteRecord[]; pendingCrisis?: PendingCrisis;
   scandalExposure: number; misconduct: number; failedBills: number; emergencyUses: number; lastDissolutionTurn?: number; ending?: PoliticalEnding;
+  ruleOfLaw: number; institutionalBreaches: number;
+  institutionalCrisis?: { stage: 'national' | 'regime'; remaining: number; openedTurn: number; lastBreachTurn: number };
 };
 export type PoliticalResolution = { choice: Choice; vote?: VoteRecord; consequences: string[]; ending?: PoliticalEnding };

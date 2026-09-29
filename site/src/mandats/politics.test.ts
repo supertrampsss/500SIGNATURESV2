@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { choicesFor, decide, isFinished, replay, start } from './engine.ts';
-import { initialPolitics, resolvePoliticalChoice } from './politics.ts';
+import { initialPolitics, resolvePoliticalChoice, applyPoliticalResolution } from './politics.ts';
 import type { Choice } from './types.ts';
 
 test('v10 begins with 577 seats and repeats the same vote from the same seed and choices', () => {
@@ -92,4 +92,90 @@ test('a high-pressure scandal can end early and disables every later choice', ()
   assert.equal(game.turn < 30, true);
   assert.deepEqual(choicesFor(game), []);
   assert.throws(() => decide(game, 'pol-rupture-negotiate'), /terminé/);
+});
+
+
+test('two grave institutional breaches open a three-decision repair window and another breach accelerates it', () => {
+  const game = start('national', 9, 'equilibre', 11);
+  const breach = (id: string): Choice => ({
+    id, title: id, description: '', cost: '', benefit: '', sacrifice: '', effect: {},
+    political: { action: 'cover_up', misconduct: 2, ruleOfLaw: -18, institutionalBreach: true },
+  });
+  let politics = initialPolitics(9);
+  const first = breach('breach-1');
+  politics = applyPoliticalResolution(politics, game, first, resolvePoliticalChoice(politics, first, 9, 1), 9, 1);
+  assert.equal(politics.institutionalBreaches, 1);
+  assert.equal(politics.institutionalCrisis, undefined);
+
+  const second = breach('breach-2');
+  politics = applyPoliticalResolution(politics, game, second, resolvePoliticalChoice(politics, second, 9, 2), 9, 2);
+  assert.equal(politics.institutionalBreaches, 2);
+  assert.deepEqual(politics.institutionalCrisis, { stage: 'national', remaining: 3, openedTurn: 2, lastBreachTurn: 2 });
+
+  const third = breach('breach-3');
+  politics = applyPoliticalResolution(politics, game, third, resolvePoliticalChoice(politics, third, 9, 3), 9, 3);
+  assert.equal(politics.institutionalCrisis?.stage, 'national');
+  assert.equal(politics.institutionalCrisis?.remaining, 1, 'a fresh breach consumes the normal step plus an extra step');
+
+  const fourth = breach('breach-4');
+  politics = applyPoliticalResolution(politics, game, fourth, resolvePoliticalChoice(politics, fourth, 9, 4), 9, 4);
+  assert.equal(politics.institutionalCrisis?.stage, 'regime');
+  assert.equal(politics.pendingCrisis, 'rupture');
+  assert.equal(politics.cabinet, 'fallen');
+});
+
+test('the institutional repair window is respected even when legitimacy and unrest are already critical', () => {
+  const game = start('national', 11, 'equilibre', 11);
+  let politics = initialPolitics(11);
+  politics.institutionalBreaches = 2;
+  politics.ruleOfLaw = 32;
+  politics.institutionalCrisis = { stage: 'national', remaining: 3, openedTurn: 4, lastBreachTurn: 4 };
+  politics.cabinet = 'fallen';
+  politics.legitimacy = 10;
+  politics.unrest = 95;
+  politics.pendingCrisis = 'scandal';
+
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
+  politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 11, 5), 11, 5);
+  assert.equal(politics.institutionalCrisis?.stage, 'national');
+  assert.equal(politics.institutionalCrisis?.remaining, 2);
+  assert.notEqual(politics.pendingCrisis, 'rupture', 'the old generic rupture trigger must not bypass the announced repair delay');
+});
+
+test('publishing the scandal can repair the independent institutional crisis without erasing political consequences', () => {
+  const game = start('national', 5, 'equilibre', 11);
+  let politics = initialPolitics(5);
+  politics.institutionalBreaches = 2;
+  politics.ruleOfLaw = 36;
+  politics.misconduct = 4;
+  politics.scandalExposure = 4;
+  politics.pendingCrisis = 'scandal';
+  politics.institutionalCrisis = { stage: 'national', remaining: 3, openedTurn: 2, lastBreachTurn: 2 };
+  const publish: Choice = {
+    id: 'publish', title: 'publish', description: '', cost: '', benefit: '', sacrifice: '', effect: { trust: 3 },
+    political: { action: 'publish_scandal', legitimacy: 7, ruleOfLaw: 12, repairInstitutions: 1 },
+  };
+  politics = applyPoliticalResolution(politics, game, publish, resolvePoliticalChoice(politics, publish, 5, 3), 5, 3);
+  assert.equal(politics.institutionalBreaches, 1);
+  assert.equal(politics.institutionalCrisis, undefined);
+  assert.equal(politics.pendingCrisis, 'censure');
+  assert.equal(politics.scandalExposure, 0);
+});
+
+test('term completion happens after decision 30, never after decision 29, and an unresolved crisis cannot masquerade as a normal ending', () => {
+  const game = start('national', 3, 'equilibre', 11);
+  const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
+  let politics = initialPolitics(3);
+  politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 28), 3, 28);
+  assert.equal(politics.ending, undefined);
+  const completed = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 29), 3, 29);
+  assert.equal(completed.ending?.kind, 'term_complete');
+
+  const unresolved = initialPolitics(3);
+  unresolved.institutionalBreaches = 2;
+  unresolved.ruleOfLaw = 30;
+  unresolved.institutionalCrisis = { stage: 'national', remaining: 2, openedTurn: 28, lastBreachTurn: 28 };
+  const forced = applyPoliticalResolution(unresolved, game, neutral, resolvePoliticalChoice(unresolved, neutral, 3, 29), 3, 29);
+  assert.equal(forced.ending?.kind, 'rupture');
+  assert.match(forced.ending?.reason ?? '', /crise politique ou institutionnelle reste ouverte/i);
 });

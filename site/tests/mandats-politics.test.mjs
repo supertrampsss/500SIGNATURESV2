@@ -114,3 +114,4 @@ test('an early destitution save opens the full result and restores the same ende
  await expect(page.locator('.political-ending')).toContainText('Destitution');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices)).toEqual(choices);
 });
+

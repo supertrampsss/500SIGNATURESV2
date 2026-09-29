@@ -19,7 +19,7 @@ function allocate(seed:number,social=50,legitimacy=55):number[]{
   return out;
 }
 export function initialPolitics(seed:number):PoliticalState {
-  return {blocs:IDS.map((id,i)=>({id,label:LABELS[i],seats:SEATS[i],loyalty:[78,60,46,38,45][i],inGovernment:i<2})),legitimacy:58,unrest:18,cabinet:'stable',commitments:[],votes:[],scandalExposure:0,misconduct:0,failedBills:0,emergencyUses:0};
+  return {blocs:IDS.map((id,i)=>({id,label:LABELS[i],seats:SEATS[i],loyalty:[78,60,46,38,45][i],inGovernment:i<2})),legitimacy:58,unrest:18,cabinet:'stable',commitments:[],votes:[],scandalExposure:0,misconduct:0,failedBills:0,emergencyUses:0,ruleOfLaw:72,institutionalBreaches:0};
 }
 function apportion(blocs:PoliticalState['blocs'],total:number):number[] {
   const denominator=blocs.reduce((n,b)=>n+b.seats,0),raw=blocs.map(b=>total*b.seats/denominator),seats=raw.map(Math.floor);
@@ -112,17 +112,26 @@ export function resolvePoliticalChoice(before:PoliticalState, choice:Choice, see
   if(action==='dissolve')consequences.push('Une élection redistribue les 577 sièges ; la majorité peut changer.');
   if(action==='negotiate_rupture')consequences.push('Une transition négociée met fin au mandat avant son terme.');
   if(action==='emergency_rule')consequences.push('Les pouvoirs d’urgence réduisent les contre-pouvoirs et aggravent la contestation.');
+  if(action==='institutional_repair')consequences.push('Le recul institutionnel restaure une partie des contre-pouvoirs, sans effacer automatiquement les fautes déjà documentées.');
+  if(action==='defy_institutions')consequences.push('Le passage en force ajoute un manquement institutionnel et raccourcit le délai avant une crise de régime.');
   if(record)record.consequences=[...consequences];
   return {choice:effective,...(record?{vote:record}:{}),consequences};
 }
 export function applyPoliticalResolution(before:PoliticalState, after:Game, originalChoice:Choice, resolution:PoliticalResolution, seed=0, turn=0):PoliticalState {
   const p=structuredClone(before),m:PoliticalChoice=originalChoice.political??{action:'enact'};
+  const institutionalMechanics=after.version===11;
+  const institutionalBefore=institutionalMechanics&&before.institutionalCrisis?structuredClone(before.institutionalCrisis):undefined;
   if(resolution.vote){p.lastVote=resolution.vote;p.votes.push(resolution.vote);}
   const expired=before.commitments.filter(c=>c.status==='pending'&&c.dueTurn<=turn&&before.pendingCrisis===undefined);
   p.commitments=p.commitments.map(c=>expired.some(e=>e.id===c.id)?{...c,status:'broken'}:c);
   if(expired.length){p.legitimacy=clamp(p.legitimacy-4*expired.length);p.unrest=clamp(p.unrest+4*expired.length);p.blocs=p.blocs.map(b=>({...b,loyalty:clamp(b.loyalty-4*expired.length)}));}
   p.legitimacy=clamp(p.legitimacy+(m.legitimacy??0));p.unrest=clamp(p.unrest+(m.unrest??0));p.misconduct=clamp(p.misconduct+(m.misconduct??0),0,10);
+  if(institutionalMechanics)p.ruleOfLaw=clamp(p.ruleOfLaw+(m.ruleOfLaw??0));
   const adopted=!resolution.vote||resolution.vote.passed;
+  const institutionalBreach=institutionalMechanics&&adopted&&!!m.institutionalBreach;
+  const institutionalRepair=institutionalMechanics&&adopted?(m.repairInstitutions??0):0;
+  if(institutionalBreach)p.institutionalBreaches++;
+  if(institutionalRepair)p.institutionalBreaches=Math.max(0,p.institutionalBreaches-institutionalRepair);
   if(m.commitment&&adopted)p.commitments.push({...m.commitment,status:'pending'});
   if(m.breakCommitment&&adopted){const c=p.commitments.find(x=>x.id===m.breakCommitment&&(x.status==='pending'||x.status==='honored'));if(c){c.status='broken';p.legitimacy=clamp(p.legitimacy-7);p.unrest=clamp(p.unrest+6);}}
   const rejectedV11Law=after.version===11&&resolution.vote?.kind==='law'&&!resolution.vote.passed;
@@ -136,6 +145,8 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   if(m.action==='dissolve'&&resolution.vote?.passed){const old=p.blocs.map(b=>b.seats),ns=p.blocs.map(b=>resolution.vote!.groups.find(g=>g.id===b.id)?.seats??b.seats),governmentHasMajority=ns[0]+ns[1]>=289;p.blocs=p.blocs.map((b,i)=>({...b,seats:ns[i],inGovernment:i===0||i===1,loyalty:clamp(b.loyalty+(ns[i]>old[i]?6:-5))}));p.lastDissolutionTurn=turn;p.cabinet=governmentHasMajority?'stable':'fallen';p.pendingCrisis=governmentHasMajority?undefined:'cabinet';}
   if(m.action==='publish_scandal'){p.scandalExposure=0;p.pendingCrisis='censure';}
   if(m.action==='cover_up'){p.scandalExposure=clamp(p.scandalExposure+2,0,10);p.pendingCrisis='scandal';}
+  if(institutionalMechanics&&m.action==='institutional_repair'&&institutionalRepair){p.legitimacy=clamp(p.legitimacy-2);p.unrest=clamp(p.unrest-8);}
+  if(institutionalMechanics&&m.action==='defy_institutions'){p.legitimacy=clamp(p.legitimacy-8);p.unrest=clamp(p.unrest+12);}
   if(m.action==='destitute'&&resolution.vote?.passed)p.ending={kind:'destitution',title:'Destitution',reason:'La Haute Cour a adopté la destitution aux deux tiers de ses membres.',turn,causes:['Manquement institutionnel grave','Votes des deux assemblées','Décision de la Haute Cour']};
   if(m.action==='negotiate_rupture')p.ending={kind:'rupture',title:'Transition anticipée',reason:'La rupture a été négociée avec les institutions.',turn,causes:[`Légitimité ${p.legitimacy}`,`Contestations ${p.unrest}`,'Transition négociée']};
   if(m.action==='emergency_rule'){
@@ -143,20 +154,55 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
     if(p.emergencyUses>=2)p.ending={kind:'rupture',title:'Rupture institutionnelle',reason:'Après deux décisions d’urgence, les institutions ne parviennent plus à maintenir un gouvernement.',turn,causes:[`Légitimité ${p.legitimacy}`,`Contestations ${p.unrest}`,'Pouvoirs d’urgence répétés']};
     else p.pendingCrisis=undefined;
   }
+  if(institutionalBefore?.stage==='national'&&!p.ending){
+    const crisis=p.institutionalCrisis??structuredClone(institutionalBefore);
+    if(institutionalRepair){
+      crisis.remaining=Math.min(3,crisis.remaining+institutionalRepair);
+      if(p.institutionalBreaches<2&&p.ruleOfLaw>=45)p.institutionalCrisis=undefined;
+      else p.institutionalCrisis=crisis;
+    }else{
+      crisis.remaining=Math.max(0,crisis.remaining-1-(institutionalBreach?1:0));
+      if(institutionalBreach)crisis.lastBreachTurn=turn;
+      p.institutionalCrisis=crisis;
+    }
+  }
+  if(institutionalMechanics&&!p.institutionalCrisis&&p.institutionalBreaches>=2&&!p.ending){
+    p.institutionalCrisis={stage:'national',remaining:3,openedTurn:turn,lastBreachTurn:turn};
+  }
+  if(institutionalMechanics&&p.institutionalCrisis?.stage==='national'&&p.institutionalCrisis.remaining<=0&&!p.ending){
+    p.institutionalCrisis={...p.institutionalCrisis,stage:'regime',remaining:0};
+    p.cabinet='fallen';p.pendingCrisis='rupture';
+  }
   const applied=resolution.choice.effect;
   const socialPain=Object.values(applied.society??{}).reduce((sum,n)=>sum+n,0);
   const servicesPain=applied.services??0,trustPain=applied.trust??0;
-  const unrestDelta=(-socialPain/3)-servicesPain*.45-trustPain*.3;
+  const structuralCut=Math.max(0,-(applied.operating??0)-20);
+  const exceptionalTax=Math.max(0,(applied.revenue??0)-20);
+  const fiscalShock=institutionalMechanics?(structuralCut*.25+exceptionalTax*.08):0;
+  const unrestDelta=(-socialPain/3)-servicesPain*.45-trustPain*.3+fiscalShock;
   p.unrest=clamp(p.unrest+unrestDelta);
   if(resolution.vote?.kind==='law'){
     if(!resolution.vote.passed){p.failedBills++;p.legitimacy=clamp(p.legitimacy-2);p.unrest=clamp(p.unrest+3);}
     else p.failedBills=0;
   }
+  const institutionalWindow=institutionalMechanics&&p.institutionalCrisis?.stage==='national'&&p.institutionalCrisis.remaining>0;
   if(p.failedBills>=2&&p.pendingCrisis===undefined)p.pendingCrisis='censure';
   if(p.cabinet==='stable'&&p.unrest>=70&&p.legitimacy<=35&&p.pendingCrisis===undefined)p.pendingCrisis='censure';
-  if(p.cabinet==='fallen'&&p.unrest>=88&&p.legitimacy<=18&&p.pendingCrisis!==undefined)p.pendingCrisis='rupture';
-  if(p.misconduct>=6&&p.pendingCrisis===undefined)p.pendingCrisis='destitution';
-  if(p.unrest>=88&&p.legitimacy<=18&&p.cabinet==='fallen')p.pendingCrisis='rupture';
-  if(turn>=29&&!p.ending)p.ending={kind:'term_complete',title:'Fin du mandat',reason:'Les trente décisions prévues ont été jouées.',turn,causes:[]};
+  if(!institutionalWindow&&p.cabinet==='fallen'&&p.unrest>=88&&p.legitimacy<=18&&p.pendingCrisis!==undefined)p.pendingCrisis='rupture';
+  if(p.misconduct>=6&&p.pendingCrisis===undefined&&!institutionalWindow)p.pendingCrisis='destitution';
+  if(!institutionalWindow&&p.unrest>=88&&p.legitimacy<=18&&p.cabinet==='fallen')p.pendingCrisis='rupture';
+  const severeNationalBlockade=after.version===11&&(
+    (p.unrest>=96&&p.legitimacy<=35)
+    || (turn>=23&&p.unrest>=80&&p.legitimacy<=45)
+  );
+  if(severeNationalBlockade&&!p.ending){
+    p.ending={kind:'rupture',title:'Paralysie nationale',reason:'La tension a atteint un niveau extrême alors que la légitimité du pouvoir s’est effondrée. Les soutiens se désagrègent et le mandat s’interrompt.',turn,causes:[`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`,'Blocage national durable']};
+  }
+  if(turn>=29&&!p.ending){
+    const unresolved=after.version===11&&(!!p.pendingCrisis||!!p.institutionalCrisis);
+    p.ending=unresolved
+      ? {kind:'rupture',title:'Crise non résolue à l’issue du quinquennat',reason:'Le calendrier arrive à son terme alors qu’une crise politique ou institutionnelle reste ouverte. Le mandat ne peut pas être classé comme terminé normalement.',turn,causes:[p.pendingCrisis?`Crise ouverte : ${p.pendingCrisis}`:'Crise institutionnelle ouverte',`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`]}
+      : {kind:'term_complete',title:'Fin du mandat',reason:'Les trente décisions prévues ont été jouées.',turn,causes:[]};
+  }
   return p;
 }

@@ -132,13 +132,41 @@ const scandal = (g?: Game): Dossier => {
       'Transmettre les justificatifs et mettre fin aux fonctions du ministre.',
       'L’institution ouvre une procédure transparente et réduit l’exposition au scandale.',
       'Le groupe qui protégeait le ministre retire une partie de son soutien ; le gouvernement peut être censuré.',
-      { trust: 3 }, { action: 'publish_scandal', targetBloc: 'presidential', supportDelta: { presidential: -12, regional: -8 }, legitimacy: 7 }),
+      { trust: 3 }, { action: 'publish_scandal', targetBloc: 'presidential', supportDelta: { presidential: -12, regional: -8 }, legitimacy: 7, ruleOfLaw: 12, repairInstitutions: 1 }),
     option('pol-scandal-cover-up', 'Garder le ministre pour faire passer le budget',
       'Retenir les pièces et conserver l’appui du groupe pivot pour le prochain vote budgétaire.',
       'La coalition garde ses voix à court terme.',
       'La dissimulation accroît les fautes enregistrées et l’exposition ; une révélation ultérieure ouvre une nouvelle crise.',
-      { trust: -4 }, { action: 'cover_up', targetBloc: 'reformist', supportDelta: { reformist: 5 }, legitimacy: -12, unrest: 18, misconduct: 2 }),
+      { trust: -4 }, { action: 'cover_up', targetBloc: 'reformist', supportDelta: { reformist: 5 }, legitimacy: -12, unrest: 18, misconduct: 2, ruleOfLaw: -18, institutionalBreach: true }),
   ]);
+};
+
+
+const institutionalPressure = (g: Game): Dossier => {
+  const crisis = g.politics?.institutionalCrisis;
+  const remaining = crisis?.remaining ?? 0;
+  return dossier('Institutions', 'Les contre-pouvoirs vous donnent un délai pour réparer.',
+    `Deux manquements graves ont convergé. La crise reste au stade national pendant encore ${remaining} décision${remaining > 1 ? 's' : ''}. Une nouvelle atteinte aux institutions raccourcira ce délai ; des mesures de réparation peuvent refermer la crise.`,
+    'Cette jauge est un mécanisme fictif de gameplay. Elle distingue les fautes institutionnelles de la popularité et des motions de censure.', [
+      option('pol-institution-repair', 'Revenir sur les mesures contestées et publier les pièces',
+        'Retirer les décisions qui affaiblissent les contre-pouvoirs, transmettre les documents demandés et accepter un contrôle indépendant.',
+        'La crise institutionnelle peut être refermée si les manquements restants repassent sous le seuil.',
+        'Le recul politique coûte de la légitimité et impose des concessions visibles.',
+        { operating: 1, trust: 4, cohesion: 3 },
+        { action: 'institutional_repair', legitimacy: -4, unrest: -8, ruleOfLaw: 22, repairInstitutions: 2 }),
+      option('pol-institution-mediation', 'Accepter une médiation et suspendre les décisions litigieuses',
+        'Geler les mesures les plus contestées et accepter un calendrier de contrôle avant toute nouvelle décision institutionnelle.',
+        'Le délai de réparation est prolongé et un manquement est retiré du compteur.',
+        'La crise n’est pas effacée ; une nouvelle faute peut la relancer immédiatement.',
+        { trust: 2, cohesion: 1 },
+        { action: 'institutional_repair', legitimacy: -2, unrest: -4, ruleOfLaw: 10, repairInstitutions: 1 }),
+      option('pol-institution-defy', 'Passer outre les contrôles et maintenir le cap',
+        'Refuser les demandes de contrôle et imposer la décision malgré l’opposition institutionnelle.',
+        'Vous conservez votre ligne politique à très court terme.',
+        'Un nouveau manquement grave est enregistré ; le délai avant la crise de régime est fortement raccourci.',
+        { trust: -8, cohesion: -8 },
+        { action: 'defy_institutions', legitimacy: -12, unrest: 18, misconduct: 2, ruleOfLaw: -24, institutionalBreach: true }),
+    ]);
 };
 
 
@@ -175,7 +203,7 @@ const rupture = (g: Game): Dossier => {
         secondUse ? 'Mobiliser une nouvelle fois les crédits d’urgence ; cette seconde utilisation met fin au mandat.' : 'Affecter 4 Md€/an de crédits supplémentaires aux services de continuité.',
         secondUse ? 'Les services disposent de 4 Md€/an supplémentaires avant la fin du mandat.' : 'Les services essentiels disposent de 4 Md€/an supplémentaires.',
         secondUse ? 'Le mandat s’achève et les contre-pouvoirs restent fragilisés.' : 'Les contre-pouvoirs reculent, la légitimité chute et la contestation s’intensifie.',
-        { operating: 4, services: 3, trust: -5, cohesion: -5 }, { action: 'emergency_rule', legitimacy: -22, unrest: 12 }),
+        { operating: 4, services: 3, trust: -5, cohesion: -5 }, { action: 'emergency_rule', legitimacy: -22, unrest: 12, ruleOfLaw: -22, institutionalBreach: true }),
     ]);
 };
 
@@ -183,22 +211,26 @@ const rupture = (g: Game): Dossier => {
 export function politicalDossier(g: Game): Dossier | null {
   const promise = activePackage(g);
   if (!g.politics?.pendingCrisis && !promise && g.turn === 0) return establishWealthHospital(g);
-  if (!g.politics?.pendingCrisis && g.turn >= 12 && g.seed % 3 === 0 && !g.choices.some(id => id.startsWith('pol-scandal-'))) return scandal(g);
-  if (!g.politics?.pendingCrisis && (g.politics?.scandalExposure ?? 0) >= 2 && (g.politics?.misconduct ?? 0) >= 3) return scandal(g);
   const pending: PendingCrisis | undefined = g.politics?.pendingCrisis;
-  if (!pending) return null;
-  switch (pending) {
-    case 'coalition': return coalition(g);
-    case 'censure': return censure(g);
-    case 'cabinet': return cabinet(g);
-    case 'scandal': return scandal(g);
-    case 'destitution': return destitution();
-    case 'rupture': return rupture(g);
+  if (pending) {
+    switch (pending) {
+      case 'coalition': return coalition(g);
+      case 'censure': return censure(g);
+      case 'cabinet': return cabinet(g);
+      case 'scandal': return scandal(g);
+      case 'destitution': return destitution();
+      case 'rupture': return rupture(g);
+    }
   }
+  if (g.politics?.institutionalCrisis?.stage === 'national') return institutionalPressure(g);
+  if (g.turn >= 12 && g.seed % 3 === 0 && !g.choices.some(id => id.startsWith('pol-scandal-'))) return scandal(g);
+  if ((g.politics?.scandalExposure ?? 0) >= 2 && (g.politics?.misconduct ?? 0) >= 3) return scandal(g);
+  return null;
 }
 
 /** Keep the exact action union visible to content tests and future dossier authors. */
 export const POLITICAL_ACTIONS: readonly PoliticalAction[] = [
   'enact', 'coalition_bargain', 'reject_bargain', 'confidence', 'censure', 'coalition_government',
   'dissolve', 'publish_scandal', 'cover_up', 'destitute', 'negotiate_rupture', 'emergency_rule',
+  'institutional_repair', 'defy_institutions',
 ];
