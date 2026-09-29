@@ -166,16 +166,16 @@ test('term completion happens after decision 30, never after decision 29, and an
   const game = start('national', 3, 'equilibre', 11);
   const neutral: Choice = { id: 'neutral', title: 'neutral', description: '', cost: '', benefit: '', sacrifice: '', effect: {}, political: { action: 'confidence' } };
   let politics = initialPolitics(3);
-  politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 29), 3, 29);
+  politics = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 28), 3, 28);
   assert.equal(politics.ending, undefined);
-  const completed = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 30), 3, 30);
+  const completed = applyPoliticalResolution(politics, game, neutral, resolvePoliticalChoice(politics, neutral, 3, 29), 3, 29);
   assert.equal(completed.ending?.kind, 'term_complete');
 
   const unresolved = initialPolitics(3);
   unresolved.institutionalBreaches = 2;
   unresolved.ruleOfLaw = 30;
   unresolved.institutionalCrisis = { stage: 'national', remaining: 2, openedTurn: 28, lastBreachTurn: 28 };
-  const forced = applyPoliticalResolution(unresolved, game, neutral, resolvePoliticalChoice(unresolved, neutral, 3, 30), 3, 30);
+  const forced = applyPoliticalResolution(unresolved, game, neutral, resolvePoliticalChoice(unresolved, neutral, 3, 29), 3, 29);
   assert.equal(forced.ending?.kind, 'rupture');
   assert.match(forced.ending?.reason ?? '', /crise politique ou institutionnelle reste ouverte/i);
 });
