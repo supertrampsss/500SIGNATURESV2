@@ -191,7 +191,10 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   if(!institutionalWindow&&p.cabinet==='fallen'&&p.unrest>=88&&p.legitimacy<=18&&p.pendingCrisis!==undefined)p.pendingCrisis='rupture';
   if(p.misconduct>=6&&p.pendingCrisis===undefined&&!institutionalWindow)p.pendingCrisis='destitution';
   if(!institutionalWindow&&p.unrest>=88&&p.legitimacy<=18&&p.cabinet==='fallen')p.pendingCrisis='rupture';
-  if(turn>=30&&!p.ending){
+  if(after.version===11&&p.unrest>=96&&p.legitimacy<=35&&!p.ending){
+    p.ending={kind:'rupture',title:'Paralysie nationale',reason:'La tension a atteint un niveau extrême alors que la légitimité du pouvoir s’est effondrée. Les soutiens se désagrègent et le mandat s’interrompt.',turn,causes:[`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`,'Blocage national durable']};
+  }
+  if(turn>=29&&!p.ending){
     const unresolved=after.version===11&&(!!p.pendingCrisis||!!p.institutionalCrisis);
     p.ending=unresolved
       ? {kind:'rupture',title:'Crise non résolue à l’issue du quinquennat',reason:'Le calendrier arrive à son terme alors qu’une crise politique ou institutionnelle reste ouverte. Le mandat ne peut pas être classé comme terminé normalement.',turn,causes:[p.pendingCrisis?`Crise ouverte : ${p.pendingCrisis}`:'Crise institutionnelle ouverte',`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`]}
