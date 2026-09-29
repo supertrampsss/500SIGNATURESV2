@@ -223,11 +223,11 @@ async function openDecisionJournal(page) {
 }
 
 test('v11 contexts are deterministic and agenda selection changes focus without spending a turn', async ({ browser }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'The three seeded contexts are verified once; responsive journeys cover other browser projects.');
+  test.skip(info.project.name !== 'desktop-chromium', 'The three seeded contexts are verified once; responsive journeys cover other browser projects.');
   for (const { seed, context } of fixture.contexts) {
     // Each direct URL is an incoming challenge. Keep each seed in its own
     // browser storage so a previous adopted challenge cannot shadow the next.
-    const browserContext = await browser.newContext({ baseURL: 'http://127.0.0.1:4181', viewport: info.project.use.viewport });
+    const browserContext = await browser.newContext({ baseURL: 'http://127.0.0.1:4180', viewport: info.project.use.viewport });
     const journey = await browserContext.newPage();
     await openSeed(journey, seed);
     await expect(journey.locator('.story-scene')).toContainText({ coalition: 'Coalition fragile', hospital: 'Hôpital prioritaire', redress: 'Redressement' }[context]);
@@ -257,7 +257,7 @@ test('v11 contexts are deterministic and agenda selection changes focus without 
 });
 
 test('a reproducible 30-decision v11 policy route can reach and report a real annual surplus', async ({ page }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'The deterministic fiscal route runs once on desktop.');
+  test.skip(info.project.name !== 'desktop-chromium', 'The deterministic fiscal route runs once on desktop.');
   test.setTimeout(240_000);
   const seed = equilibriumFixture.seed;
   await openSeed(page, seed);
@@ -288,7 +288,7 @@ test('a reproducible 30-decision v11 policy route can reach and report a real an
 });
 
 test('an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect', async ({ page, browser }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'Targeted vote evidence uses one deterministic browser journey.');
+  test.skip(info.project.name !== 'desktop-chromium', 'Targeted vote evidence uses one deterministic browser journey.');
   const seed = 0;
   await openSeed(page, seed);
   await pickFrontId(page, 'soins-garde-nuit');
@@ -318,7 +318,7 @@ test('an adopted amendment changes the ledger once, while a rejected amendment h
 });
 
 test('a funded hospital project is delivered once and fulfils its linked promise', async ({ page }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'Project lifecycle evidence uses one deterministic seed.');
+  test.skip(info.project.name !== 'desktop-chromium', 'Project lifecycle evidence uses one deterministic seed.');
   await openSeed(page, 1);
   await pickFrontId(page, 'soins-garde-nuit');
   await chooseByTitle(page, 'Engager la rénovation du service');
@@ -348,7 +348,7 @@ test('a funded hospital project is delivered once and fulfils its linked promise
 });
 
 test('a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances', async ({ page, browser }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'The deterministic blocked-project branch is exercised once on desktop.');
+  test.skip(info.project.name !== 'desktop-chromium', 'The deterministic blocked-project branch is exercised once on desktop.');
   test.setTimeout(180_000);
   const route = fixture.journeys.projectRecovery;
   const input = { version: 11, mode: 'national', seed: route.seed, ambition: 'equilibre', choices: route.blockedChoices };
@@ -450,7 +450,7 @@ test('a blocked project can be repaired through its real follow-up, while a reje
 });
 
 test('a censure and destitution crisis interrupts v11 with its votes and replay still available', async ({ page }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'The deterministic institutional ending is verified once on desktop.');
+  test.skip(info.project.name !== 'desktop-chromium', 'The deterministic institutional ending is verified once on desktop.');
   const choices = [
     'pol-wealth-hospital-package', 'pol-coalition-compromise', 'r01c', 'r02c', 'r03c', 'r04c', 'u01c',
     'r05c', 'r06c', 'r07c', 'r08c', 'u00c', 'pol-scandal-cover-up', 'pol-scandal-cover-up',
@@ -479,7 +479,7 @@ test('a censure and destitution crisis interrupts v11 with its votes and replay 
 });
 
 test('one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue', async ({ page }, info) => {
-  test.skip(!['chromium-desktop', 'chromium-mobile-390'].includes(info.project.name), 'The complete replay/export route runs at desktop and mobile sizes.');
+  test.skip(!['desktop-chromium', 'android-chromium'].includes(info.project.name), 'The complete replay/export route runs at desktop and mobile sizes.');
   test.setTimeout(240_000);
   const start = fixture.journeys.fullTerm;
   await interceptClipboard(page);
@@ -712,7 +712,7 @@ test('a shared decision restores exact focus and protects the local save until a
 });
 
 test('reduced motion and a rapid double click commit one decision', async ({ page }, info) => {
-  test.skip(!['chromium-compact-320', 'chromium-mobile-390', 'chromium-desktop', 'webkit-mobile'].includes(info.project.name), 'The reduced-motion interaction is checked in each configured browser.');
+  test.skip(!['compact-chromium', 'android-chromium', 'desktop-chromium', 'iphone-webkit'].includes(info.project.name), 'The reduced-motion interaction is checked in each configured browser.');
   test.setTimeout(120_000);
   const seed = fixture.journeys.interaction.seed;
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -745,7 +745,7 @@ test('reduced motion and a rapid double click commit one decision', async ({ pag
 });
 
 test('reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport', async ({ page }, info) => {
-  test.skip(!['chromium-compact-320', 'chromium-mobile-390', 'chromium-desktop', 'webkit-mobile'].includes(info.project.name), 'Layout evidence is captured in every configured browser and viewport.');
+  test.skip(!['compact-chromium', 'android-chromium', 'desktop-chromium', 'iphone-webkit'].includes(info.project.name), 'Layout evidence is captured in every configured browser and viewport.');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const seed = fixture.journeys.interaction.seed;
   await openSeed(page, seed, { reducedMotion: true });
@@ -788,7 +788,7 @@ test('reduced-motion 320, 390 and desktop layouts keep all decision controls ins
 });
 
 test('the decision verdict auto-closes, advances immediately and never leaves stale feedback', async ({ page }, info) => {
-  test.skip(info.project.name !== 'chromium-desktop', 'Timed verdict transitions are checked once on desktop.');
+  test.skip(info.project.name !== 'desktop-chromium', 'Timed verdict transitions are checked once on desktop.');
   await openSeed(page, fixture.journeys.interaction.seed);
   await pickFront(page, 0);
   const intro = page.locator('.dossier > .story');
