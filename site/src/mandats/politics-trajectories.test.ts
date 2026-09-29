@@ -83,19 +83,18 @@ test('a refused ally bargain leads to a real censure, cabinet change and electio
   assert.deepEqual(decode(encode(game)),game);
 });
 
-test('cover-ups escalate to a distinct destitution route that ends early and survives replay', () => {
+test('repeated cover-ups escalate to a forced regime rupture that ends early and survives replay', () => {
   const ids = ['pol-wealth-hospital-package','pol-coalition-compromise','r01c','r02c','r03c','r04c','u01c','r05c','r06c','r07c','r08c','u00c',
-    'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-publish','pol-censure-vote','pol-destitution-vote'];
+    'pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-scandal-cover-up','pol-rupture-negotiate'];
   let game = replay('national',27,ids,10,'equilibre');
-  assert.equal(game.turn,19);
+  assert.equal(game.turn,17);
   assert.equal(isFinished(game),true);
-  assert.equal(game.politics!.ending?.kind,'destitution');
-  assert.equal(game.politics!.ending?.turn,19);
+  assert.equal(game.politics!.ending?.kind,'rupture');
+  assert.equal(game.politics!.ending?.turn,17);
   assert.equal(game.politics!.misconduct,8);
-  const procedure=game.politics!.lastVote!;
-  assert.equal(procedure.kind,'destitution');
-  assert.equal(procedure.passed,true);
-  assert.deepEqual(procedure.stages?.map(stage=>[stage.total,stage.threshold,stage.for,stage.passed]),[[577,385,413,true],[348,232,255,true],[925,617,663,true]]);
+  assert.equal(game.politics!.institutionalCrisis?.stage,'regime');
+  assert.equal(game.politics!.pendingCrisis,'rupture');
+  assert.equal(game.politics!.votes.some(vote=>vote.kind==='destitution'),false);
   assert.deepEqual(choicesFor(game),[]);
   assert.throws(()=>decide(game,'pol-destitution-vote'));
   const restored=decode(encode(game));
