@@ -163,6 +163,8 @@ test('Confiance : Salaires affiche un profil sourcé et conserve la lecture des 
  const remote=[];page.on('request',r=>{if(/r2.dev|urssaf.fr|oecd.org/.test(r.url()))remote.push(r.url());});
  await page.goto('/salaires/');
  await expect(page.locator('h1')).toHaveText('Du coût du travail au revenu reçu.');
+ const icon=await page.locator('.site-x-link svg').boundingBox();expect(icon.width).toBeLessThanOrEqual(24);expect(icon.height).toBeLessThanOrEqual(24);
+ const header=await page.locator('.entete').boundingBox();expect(header.height).toBeLessThan(160);
  await expect(page.locator('#salaires-contenu')).toContainText('Célibataire sans enfant au salaire moyen français');
  await expect(page.locator('#salaires-contenu')).toContainText('2025');
  await expect(page.locator('#salaires-net')).toHaveCount(0);
@@ -218,10 +220,7 @@ test('Ville: search and financial detail work without a map',async({page},info)=
 
 test('Confiance : Salaires garde la navigation accessible avec mouvement réduit', async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
- await page.getByRole('button',{name:'Activer le mode sombre',exact:true}).click();
- await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
- await page.getByRole('button',{name:'Activer le mode clair',exact:true}).click();
- await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
+ await expect(page.locator('.bascule-theme')).toBeHidden();
  const nav=page.locator('#navigation-principale');
  if(!await nav.getByRole('link',{name:'France',exact:true}).isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
  await nav.getByRole('link',{name:'France',exact:true}).click();

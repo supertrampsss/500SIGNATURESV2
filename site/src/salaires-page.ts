@@ -1,16 +1,17 @@
 import { bindChartControls } from "./chart-controls.ts";
 import { brancherSalaires, renduSalaires } from './salaires.ts';
-import { renduNavigation } from './navigation.ts';
+import { brancherMenuNavigation, suivreHauteurEntete, renduNavigation } from './navigation.ts';
 import { brancherTheme } from './theme.ts';
 import './style.css';
 import './styles/fondations.css';
 import './styles/navigation.css';
-import './styles/salaires.css';
 import './styles/analyses-revue.css';
 import './styles/editorial-identity.css';
 import './styles/data-studio.css';
 import './styles/shared-design.css';
 import './styles/revue-civique.css';
+import './styles/site-shell-v2.css';
+import './styles/salaires.css';
 
 const contenu = document.getElementById('contenu');
 if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();
@@ -20,5 +21,7 @@ if (navigation) navigation.innerHTML = renduNavigation('/salaires', true).replac
 const salaires = document.getElementById('salaires-contenu');
 if (salaires) brancherSalaires(salaires);
 brancherTheme();
+brancherMenuNavigation();
+suivreHauteurEntete();
 
 bindChartControls(document);

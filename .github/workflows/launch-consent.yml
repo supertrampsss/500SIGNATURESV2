@@ -22,6 +22,8 @@ jobs:
       - name: Parcours éditoriaux, consentement et lancement, cinq formats
         run: |
           npx playwright test --config playwright.mandats.config.ts --grep 'Audience :|Lancement :|Dossiers : qualité|Confiance :'
+      - name: En-tête partagé et menu compact, trois formats
+        run: npx playwright test --config playwright.header.config.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -29,4 +31,5 @@ jobs:
           path: |
             site/playwright-report-mandats/
             site/test-results/
+            site/header-artifacts/
           retention-days: 7
