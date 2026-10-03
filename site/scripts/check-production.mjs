@@ -1,5 +1,6 @@
 /** Contrôle HTTP public après déploiement. Aucune connexion ni donnée privée. */
 const origin = new URL(process.env.SITE_URL ?? 'https://500signatures.fr').origin;
+const publisherId = process.env.ADSENSE_PUBLISHER_ID;
 const failures = [];
 const pages = [];
 const get = url => fetch(url, {redirect:'manual', signal:AbortSignal.timeout(15000)});
@@ -14,6 +15,16 @@ try {
   const sitemap = await sitemapResponse.text();
   const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
   if(!urls.length || new Set(urls).size!==urls.length) throw new Error('Sitemap vide ou dupliqué');
+  if(publisherId) {
+    if(!/^ca-pub-\d{16}$/.test(publisherId)) throw new Error('Identifiant AdSense attendu invalide');
+    const adsResponse=await get(origin+'/ads.txt');
+    const expected=`google.com, ${publisherId.slice(3)}, DIRECT, f08c47fec0942fa0`;
+    if(adsResponse.status!==200 || !(await adsResponse.text()).split(/\r?\n/).some(line=>line.trim()===expected)) failures.push('ads.txt : compte AdSense absent ou incorrect');
+    const homeResponse=await get(origin+'/');
+    const homeHtml=await homeResponse.text();
+    const account=[...homeHtml.matchAll(/<meta\b[^>]*>/gi)].map(m=>m[0]).find(tag=>attribute(tag,'name')==='google-adsense-account');
+    if(!account || attribute(account,'content')!==publisherId) failures.push('Accueil : vérification AdSense absente ou incorrecte');
+  }
   const robotsResponse = await get(origin+'/robots.txt');
   if(robotsResponse.status!==200 || !(await robotsResponse.text()).includes(`Sitemap: ${origin}/sitemap.xml`)) failures.push('robots.txt : sitemap non annoncé');
   for(let start=0;start<urls.length;start+=4) {

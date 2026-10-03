@@ -14,7 +14,11 @@ AdSense : les captures fournies par le propriétaire confirment une demande
 d’examen le 19 septembre 2026 à 14:43, la propriété validée et un ads.txt
 « Non autorisé ». Le site n’est pas encore approuvé. Le lien du compte confirme
 l’identifiant public complet, désormais utilisé dans la configuration de publication.
-L’accès direct au compte reste bloqué par la connexion Google.
+Connexion au compte réussie pendant la session : le tableau Sites confirme
+ces états. Le compte comporte déjà un message européen publié pour
+500signatures.fr depuis le 19 septembre. Le panneau de messages affiche
+0 message présenté et 0 % de consentement ; la période de mesure n’a pas été
+contrôlée. La publication du message ne prouve pas son affichage sur le site.
 
 Les corrections SEO et publicitaires de cette branche doivent passer les contrôles
 GitHub, être déployées, puis être vérifiées en production avant d'être déclarées
@@ -36,7 +40,7 @@ P1 : nécessaire pour piloter un lancement sérieux. P2 : amélioration après m
 | P1 | Search Console | Propriété vérifiée ; sitemap soumis pendant la session | Soumission confirmée, initialement en attente de lecture ; contrôler traitement et inspections après exploration |
 | P1 | Indexation | 29 des 31 anciennes URL inconnues de Google, deux états historiques de redirection | Ne pas confondre découverte, impressions et indexation ; suivre les nouvelles adresses canoniques |
 | P1 | AdSense : approbation | Captures du propriétaire : propriété validée, examen demandé le 19 septembre, site « En préparation », ads.txt « Non autorisé » | Approbation encore attendue ; republier ads.txt avec le bon identifiant et laisser Google relire |
-| P1 | CMP | Aucun adaptateur certifié de consentement intégré | Choisir/configurer la CMP ; tester refus, accord, personnalisation et retrait avant une annonce |
+| P1 | CMP | Message européen Google déjà publié pour 500signatures.fr ; aucune preuve d’affichage réel | Conserver la configuration du compte ; intégrer et tester refus, accord et retrait avant une annonce |
 | P1 | Densité publicitaire | Politique d'éligibilité existante, pas de placements réellement intégrés | Un placement éditorial initial ; zéro dans le jeu, les résultats et les sources essentielles |
 | P1 | Analytics de base | Beacon Cloudflare configuré présent sur Accueil, France et Mandats inspectés | Ouvrir Web Analytics du projet Pages ; vérifier visites réelles, routes, appareils, pays et exclusions |
 | P1 | GA4 | Aucun tag dans le code ou les pages inspectées ; scope Analytics absent de GSC Wizard | Connecter Analytics dans GSC Wizard puis sélectionner la bonne propriété ; connexion et collecte sont deux vérifications distinctes |
