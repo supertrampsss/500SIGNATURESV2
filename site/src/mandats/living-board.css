@@ -110,10 +110,9 @@
 }
 @media (max-width: 560px) {
   html body[data-mode="national"] .site-header {
-    display: grid !important; grid-template-columns: minmax(0, 1fr);
-    min-height: 0 !important; grid-template-rows: 34px 44px; gap: 0 !important; padding: 3px 12px 2px !important;
+    display: grid !important; grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 0 !important; grid-template-rows: auto; gap: 6px 8px !important; padding: 6px 12px !important;
   }
-  html body[data-mode="national"] .site-header .site-x-link { display: none !important; }
   html body[data-mode="national"] .site-header .brand strong { font-size: 1.25rem; line-height: 1; }
   html body[data-mode="national"] .site-header .site-navigation a { min-height: 44px !important; padding-block: 7px !important; }
   .mandate-board { margin: 0 -14px 0; padding: 0 12px 20px; min-height: calc(100dvh - 54px); grid-template-rows: auto auto auto auto; overflow: visible; }

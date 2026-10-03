@@ -1,4 +1,5 @@
 import { syncNationalScene } from "./national-scene.ts";
+import { brancherMenuNavigation } from "../navigation.ts";
 import { icon } from "./icons.ts";
 import "./game.css";
 import "../styles/shared-design.css";
@@ -621,4 +622,5 @@ document.addEventListener("change", async event => {
   try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); const imported = decode(await input.files[0].text()); clearBranchReference(); adopt(imported); dialog.close(); render(); announce("Partie importée et recalculée."); persist(); }
   catch (err) { announce(err instanceof Error ? err.message : "Import impossible."); }
 });
+brancherMenuNavigation();
 render(false);
