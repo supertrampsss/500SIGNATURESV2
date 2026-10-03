@@ -1,14 +1,14 @@
-/* Les analyses prolongent la page France : papier, encre verte, terre cuite,
+/* Les analyses prolongent la page France : ivoire, bleu marine et rouge,
    composition typographique et une échelle lisible par figure. */
 body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) {
-  --fond: #f5f2ea;
-  --papier: #f5f2ea;
-  --papier-creuse: #e7eadf;
-  --encre: #203b34;
-  --encre-douce: #596557;
-  --trait: #cfd3c8;
-  --accent: #a84429;
-  --accent-fonce: #91371f;
+  --fond: #f5f4ed;
+  --papier: #f5f4ed;
+  --papier-creuse: #fffefa;
+  --encre: #092d58;
+  --encre-douce: #45658a;
+  --trait: #d5dee7;
+  --accent: #c52438;
+  --accent-fonce: #a21e30;
   --serif: "Spectral", Georgia, serif;
   color: var(--encre);
   background: var(--fond);
@@ -29,14 +29,21 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
   max-width: 80rem;
   padding: clamp(1.25rem, 4vw, 3rem);
 }
+.editorial-footer { max-width: 72rem; margin: 3rem auto 0; padding: 1.5rem 0; border-top: 1px solid var(--trait); color: var(--encre-douce); font-size: .8rem; line-height: 1.6; }
+.editorial-footer > a { color: var(--encre); font: 600 1.2rem "Spectral", Georgia, serif; text-decoration: none; }
+.editorial-footer nav { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+.editorial-footer nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--encre); text-underline-offset: 4px; }
+.dossier-precautions { margin-bottom: 1.5rem; }
+.dossier-precautions h3 { font: 600 1.1rem "Spectral", Georgia, serif; }
+.dossier-precautions p { margin: .6rem 0; line-height: 1.65; }
 .analyse-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .analyse-chart .analyse-chart__mobile { display: none; }
 .analyse-chart__grille line { stroke: var(--trait); stroke-width: 1; }
 .analyse-chart__grille text, .analyse-chart__dates { fill: var(--encre-douce); font: 13px "Public Sans", sans-serif; }
-.analyse-chart__serie { color: var(--accent); }
-.analyse-chart__serie--1 { color: #59745c; }
-.analyse-chart__serie--2 { color: #537d8d; }
-.analyse-chart__serie--3 { color: #937129; }
+.analyse-chart__serie { color: #2a629c; }
+.analyse-chart__serie--1 { color: #092d58; }
+.analyse-chart__serie--2 { color: #5e87b0; }
+.analyse-chart__serie--3 { color: #45658a; }
 :root[data-theme="sombre"] .analyse-chart__serie--1 { color: #99c5a1; }
 :root[data-theme="sombre"] .analyse-chart__serie--2 { color: #8dbbd0; }
 :root[data-theme="sombre"] .analyse-chart__serie--3 { color: #d9be78; }
@@ -46,19 +53,19 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyse-chart__serie circle { fill: currentColor; stroke: var(--papier-creuse); stroke-width: 2; }
 .analyse-chart__unite { font-size: .7rem; color: var(--encre-douce); }
 .analyse-chart__legende { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; list-style: none; padding: 0; margin: .75rem 0 1.5rem; font-size: .7rem; }
-.analyse-chart__cle::before { content: ""; display: inline-block; width: 1rem; height: .2rem; background: var(--accent); margin-right: .5rem; vertical-align: middle; }
-.analyse-chart__cle--1::before { background: #59745c; }
-.analyse-chart__cle--2::before { background: #537d8d; }
-.analyse-chart__cle--3::before { background: #937129; }
+.analyse-chart__cle::before { content: ""; display: inline-block; width: 1rem; height: .2rem; background: #2a629c; margin-right: .5rem; vertical-align: middle; }
+.analyse-chart__cle--1::before { background: #092d58; }
+.analyse-chart__cle--2::before { background: #5e87b0; }
+.analyse-chart__cle--3::before { background: #45658a; }
 :root[data-theme="sombre"] .analyse-chart__cle--1::before { background: #99c5a1; }
 :root[data-theme="sombre"] .analyse-chart__cle--2::before { background: #8dbbd0; }
 :root[data-theme="sombre"] .analyse-chart__cle--3::before { background: #d9be78; }
 .analyse-bars { list-style: none; padding: 0; display: grid; gap: 1.5rem; }
 .analyse-bars li > div { display: flex; justify-content: space-between; gap: 1rem; font-size: .82rem; }
-.analyse-bars strong { text-align: right; color: var(--accent); }
+.analyse-bars strong { text-align: right; color: var(--encre); }
 .analyse-bars__rail { display: block; height: .75rem; background: var(--trait); margin-top: .65rem; }
-.analyse-bars__rail > span { display: block; height: 100%; background: var(--accent); }
-.analyse-bars li:nth-child(2) .analyse-bars__rail > span { background: #59745c; }
+.analyse-bars__rail > span { display: block; height: 100%; background: #2a629c; }
+.analyse-bars li:nth-child(2) .analyse-bars__rail > span { background: #092d58; }
 :root[data-theme="sombre"] .analyse-bars li:nth-child(2) .analyse-bars__rail > span { background: #99c5a1; }
 .analyse-bars small { font-size: .68rem; color: var(--encre-douce); }
 
@@ -68,7 +75,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 .analyses-index__chapo{max-width:42rem;font-size:1.1rem;line-height:1.7}.analyses-index__rubrique{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:2rem 0 1.2rem}.analyses-index__rubrique h2{font:500 1.5rem var(--serif)}.analyses-index__rubrique p{font-size:.75rem;color:var(--encre-douce)}
 .analyses-index .analyse-rendu__index{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.6rem;list-style:none;padding:0;margin:1.6rem 0}
 .analyses-index .dossier-index{position:relative;min-width:0;display:flex;flex-direction:column;gap:1rem;padding:1.8rem;background:var(--papier-creuse);border:1px solid var(--trait);border-radius:0;transition:transform .18s,box-shadow .18s,border-color .18s}
-.dossier-index[hidden]{display:none!important}.analyses-index .dossier-index:hover,.analyses-index .dossier-index:focus-within{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 22px #203b3418}
+.dossier-index[hidden]{display:none!important}.analyses-index .dossier-index:hover,.analyses-index .dossier-index:focus-within{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 22px #092d5818}
 .dossier-index__meta{font-size:.65rem;letter-spacing:.08em;color:var(--accent)}.dossier-index__titre{font:500 clamp(1.65rem,2.5vw,2.1rem)/1.2 var(--serif);letter-spacing:-.025em;margin:0}
 .dossier-index__lien{text-decoration:none}.dossier-index__lien::after{content:"";position:absolute;inset:0}.dossier-index__lien:focus-visible{outline:none}.dossier-index:has(.dossier-index__lien:focus-visible){outline:3px solid var(--accent);outline-offset:4px}
 .dossier-index__affirmation{font-size:.9rem;line-height:1.7;margin:0}.dossier-index__ouvrir{font-size:.78rem;font-weight:650;margin-top:auto;padding-top:.6rem;text-decoration:underline;text-underline-offset:5px;text-decoration-color:var(--accent)}

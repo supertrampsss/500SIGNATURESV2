@@ -262,9 +262,11 @@ function figureDossier(v: VisualisationAnalyse, contrat: DossierAnalyseValide): 
 
 function piedDossier(analyse: Analyse): string {
   const liens = new Map(analyse.sources.map(s=>[s.url,s]));
+  const limites = analyse.dossier?.limitations ?? [];
+  const lecture = limites.length ? `<div class="dossier-precautions"><h3>Pour interpréter ces chiffres</h3>${limites.map(limite => `<p>${echapper(limite)}</p>`).join("")}</div>` : "";
   const derniere = analyse.mises_a_jour.at(-1)?.date;
   const modification = derniere !== analyse.publie_le ? derniere : undefined;
-  return `<footer class="analyse-longue__sources" id="sources"><h2>Sources</h2><ol>${[...liens.values()].map(s=>`<li><a href="${echapper(s.url)}" target="_blank" rel="noopener">${echapper(s.titre)}</a></li>`).join("")}</ol><p class="dossier-date">Publié le <time datetime="${echapper(analyse.publie_le)}">${echapper(dateFrancaise(analyse.publie_le))}</time>${modification ? ` · Mis à jour le <time datetime="${echapper(modification)}">${echapper(dateFrancaise(modification))}</time>` : ""}</p></footer>`;
+  return `<footer class="analyse-longue__sources" id="sources">${lecture}<h2>Sources</h2><ol>${[...liens.values()].map(s=>`<li><a href="${echapper(s.url)}" target="_blank" rel="noopener">${echapper(s.titre)}</a></li>`).join("")}</ol><p class="dossier-date">Publié le <time datetime="${echapper(analyse.publie_le)}">${echapper(dateFrancaise(analyse.publie_le))}</time>${modification ? ` · Mis à jour le <time datetime="${echapper(modification)}">${echapper(dateFrancaise(modification))}</time>` : ""}</p></footer>`;
 }
 
 /** Le contrat garde les références des données ; le lecteur suit un article continu. */
@@ -399,6 +401,7 @@ export function renduDossierVedette(analyses: readonly Analyse[]): string {
 }
 
 const IMAGES_INDEX: Record<string,string> = {
+  "cout-travail-cent-euros-net-2025": "/france/fiscalite.jpg",
   "groenland-accord-securite-europe": "/dossiers/groenland.jpg",
   "championne-du-monde-prelevements-2024": "/france/fiscalite.jpg",
   "la-depense-publique-baisse-2024": "/france/budget.jpg",
@@ -437,7 +440,7 @@ function carteDossierV2(a:Analyse):string {
 
 export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): string {
   const triees=[...analyses].sort((a,b)=>b.publie_le.localeCompare(a.publie_le));
-  const vedette=triees.find((a)=>a.slug==="groenland-accord-securite-europe") ?? triees[0];
+  const vedette=triees.find((a)=>a.mise_en_avant) ?? triees[0];
   const autres=triees.filter((a)=>a!==vedette);
   const visuelles=autres.filter((a)=>IMAGES_INDEX[a.slug]).slice(0,8);
   const secondaires=autres.filter((a)=>!visuelles.includes(a));
@@ -451,7 +454,7 @@ export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): strin
   return `<section class="analyses-index dossiers-v2" aria-labelledby="analyses-titre">
     <header class="dossiers-v2__hero">
       <div><p class="dossiers-v2__eyebrow">Analyses et décryptages</p><h1 id="analyses-titre">Dossiers</h1><p class="dossiers-v2__lead">Des analyses sourcées pour aller plus loin que les chiffres.</p><p>Les dossiers approfondissent les grands enjeux publics à partir des données publiées et de sources identifiées.</p></div>
-      <figure><img src="/dossiers/groenland.jpg" alt="Paysage du Groenland" width="900" height="520"><figcaption>Groenland · illustration du dossier</figcaption></figure>
+      <figure><img src="${vedette ? IMAGES_INDEX[vedette.slug] ?? "/france/assemblee.jpg" : "/france/assemblee.jpg"}" alt="" width="900" height="520"><figcaption>Illustration du dossier à la une</figcaption></figure>
     </header>
     ${filtres}
     ${vedetteHtml}

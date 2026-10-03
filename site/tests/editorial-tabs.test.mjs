@@ -260,3 +260,50 @@ test('France and Ville: charts are the content, touch and keyboard change the ac
  await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(133, 207, 175)');
  await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png')});
 });
+
+test('Dossiers : qualité, lecture du coût du travail et actualité du Groenland', async ({page}, info) => {
+ await page.goto('/analyses/');
+ const refus=page.getByRole('button',{name:'Refuser',exact:true});
+ if(await refus.isVisible()) await refus.click();
+ const titre='Coût du travail : sur 100 € payés par l’employeur, que reste-t-il ?';
+ await expect(page.locator('.dossiers-v2__vedette h2')).toHaveText(titre);
+ await page.locator('.dossiers-v2__vedette h2 a').click();
+ await expect(page.locator('h1')).toHaveText(titre);
+ await expect(page.locator('#figure-france-decomposition .analyse-bars strong')).toHaveText(['26,7 %','8,3 %','12,2 %','52,8 %']);
+ await expect(page.locator('#figure-comparaison-net .analyse-bars strong')).toHaveText(['52,8 %','50,7 %','54,2 %','58,6 %']);
+ await expect(page.locator('#deux-mille')).toContainText('ne permet pas d’affirmer');
+ await expect(page.locator('#sources')).toContainText('Les pourcentages du graphique sont rapportés au coût employeur');
+ await expect(page.locator('#sources a[href*="overview_d93131c3"]')).toBeVisible();
+ await noOverflow(page);
+ await page.locator('#figure-france-decomposition').scrollIntoViewIfNeeded();
+ await page.screenshot({path:info.outputPath('qualite-cout-travail-'+info.project.name+'.png')});
+ await page.locator('.editorial-footer a[href="/analyses/"]').click();
+ await page.getByRole('searchbox').fill('Groenland');
+ await page.getByRole('link',{name:'Groenland : pourquoi l’accord de sécurité compte pour l’Europe',exact:true}).click();
+ await expect(page.locator('#ce-qui-est-annonce')).toContainText('signature le 22 septembre 2026');
+ await expect(page.locator('#texte-signe')).toContainText('Narsarsuaq et Mestersvig');
+ await expect(page.locator('.analyse-rendu')).not.toContainText(/semaine prochaine|texte complet.*pas encore publié|texte doit encore être signé/);
+ await expect(page.locator('.dossier-date')).toContainText('Mis à jour le 3 octobre 2026');
+ await page.locator('.editorial-footer a[href="/confidentialite/"]').click();
+ await expect(page.locator('h1')).toHaveText('Vos données, simplement.');
+});
+
+test('Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript', async ({browser}, info) => {
+ test.setTimeout(120000);
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:info.project.use.viewport});
+ const page=await context.newPage();
+ try {
+  for(const dossier of dossiers) {
+   await page.goto('http://127.0.0.1:4180/analyses/'+dossier.slug+'/');
+   await expect(page.locator('h1')).toHaveText(dossier.titre);
+   await expect(page.locator('.analyse-longue__section')).toHaveCount(dossier.dossier.sections.length);
+   for(const limite of dossier.dossier.limitations) await expect(page.locator('#sources')).toContainText(limite);
+   await expect(page.locator('.editorial-footer a[href="/sources/"]')).toBeVisible();
+   await expect(page.locator('.editorial-footer a[href="/confidentialite/"]')).toBeVisible();
+   await expect(page.locator('script[src*="adsbygoogle"]')).toHaveCount(0);
+   await noOverflow(page);
+  }
+  await page.locator('.editorial-footer').scrollIntoViewIfNeeded();
+  await page.screenshot({path:info.outputPath('qualite-sources-sans-js-'+info.project.name+'.png')});
+ } finally {await context.close();}
+});

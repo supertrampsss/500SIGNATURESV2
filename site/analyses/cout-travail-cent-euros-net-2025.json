@@ -1,0 +1,291 @@
+{
+  "slug": "cout-travail-cent-euros-net-2025",
+  "titre": "Coût du travail : sur 100 € payés par l’employeur, que reste-t-il ?",
+  "type": "comparaison",
+  "publie_le": "2026-10-03",
+  "themes": [
+    "europe",
+    "macro"
+  ],
+  "budgets_concernes": [
+    "secu",
+    "bareme"
+  ],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "Que reste-t-il au salarié pour 100 € de coût employeur ?",
+    "auteur": null,
+    "date": "2026-10-03",
+    "source": {
+      "id": "ocde-tableaux",
+      "titre": "OCDE, Taxing Wages 2026 : tableaux 1.1 et 1.2, données 2025",
+      "url": "https://www.oecd.org/en/publications/taxing-wages-2026_3a5169ef-en/full-report/overview_d93131c3.html",
+      "consulte_le": "2026-10-03"
+    }
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "Pour le célibataire sans enfant au salaire moyen français, le coin fiscal OCDE vaut 47,2 % en 2025 : la part restante du coût employeur est de 52,8 %. Ce profil ne donne pas un taux universel."
+  },
+  "chiffres": [
+    {
+      "dit": "Part du coût employeur absorbée par les impôts et cotisations",
+      "valeur": 47.2,
+      "registre": "donnee_officielle",
+      "lecture": "OCDE, 2025 : 47,2 % pour le célibataire sans enfant au salaire moyen français."
+    },
+    {
+      "dit": "Part restante calculée sur une base 100",
+      "valeur": 52.8,
+      "registre": "interpretation",
+      "lecture": "Calcul 500 Signatures : 100 − 47,2 = 52,8 %, soit 52,80 € sur 100 € de coût."
+    }
+  ],
+  "hypotheses": [
+    "Comparaison au salaire moyen propre à chaque pays, pour un célibataire sans enfant.",
+    "Conversion sur une base 100 ; aucune simulation d’un bulletin individuel."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "id": "ocde-tableaux",
+      "titre": "OCDE, Taxing Wages 2026 : tableaux 1.1 et 1.2, données 2025",
+      "url": "https://www.oecd.org/en/publications/taxing-wages-2026_3a5169ef-en/full-report/overview_d93131c3.html",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "ocde-france",
+      "titre": "OCDE, Taxing Wages 2026 : règles et profil français",
+      "url": "https://www.oecd.org/en/publications/taxing-wages-2026_3a5169ef-en/full-report/france_ad2bf5c9.html",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "urssaf-calcul",
+      "titre": "Urssaf : calcul des cotisations et contributions employeur",
+      "url": "https://www.urssaf.fr/accueil/employeur/cotisations/comprendre-cotisations/calcul-cotisations-employeur.html",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "bulletin",
+      "titre": "Service Public : fiche de paie, total employeur et net à payer",
+      "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F559?lang=fr",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "protection",
+      "titre": "Service Public Entreprendre : cotisations et protection sociale",
+      "url": "https://entreprendre.service-public.gouv.fr/vosdroits/F24013",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "simulateur-urssaf",
+      "titre": "Urssaf : simulateur salaire brut, net et coût employeur",
+      "url": "https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net",
+      "consulte_le": "2026-10-03"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le dossier compare des profils statistiques. Une simulation individuelle demande ses propres paramètres."
+  },
+  "mises_a_jour": [
+    {
+      "date": "2026-10-03",
+      "quoi": "Publication : calculs en base 100 et comparaison France, Allemagne, Italie, Espagne à partir des tableaux OCDE 2025."
+    }
+  ],
+  "verifie_contre": "OCDE Taxing Wages 2026, tableaux 1.1 et 1.2, données 2025",
+  "dossier": {
+    "chapo": "Le salaire reçu ne représente qu’une partie de ce que paie l’employeur. Pour le célibataire sans enfant au salaire moyen français, les données OCDE 2025 laissent 52,80 € après prélèvements sur 100 € de coût. Nous reconstituons ce passage et le comparons à trois voisins, en distinguant ce repère statistique d’un bulletin de paie individuel.",
+    "series": [],
+    "preuves": [
+      {
+        "id": "coin-fiscal-france",
+        "libelle": "Coin fiscal français",
+        "value": 47.2,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Impôts sur le revenu et cotisations salariales et patronales rapportés au coût employeur, célibataire sans enfant au salaire moyen français.",
+        "sourceId": "ocde-tableaux"
+      },
+      {
+        "id": "patronales",
+        "libelle": "Cotisations patronales",
+        "value": 26.7,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Part du coût employeur, célibataire sans enfant au salaire moyen français ; tableau 1.2. La part restante est calculée : 100 moins le coin fiscal.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "france-base-cent"
+      },
+      {
+        "id": "salariales",
+        "libelle": "Cotisations salariales",
+        "value": 8.3,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Part du coût employeur, célibataire sans enfant au salaire moyen français ; tableau 1.2. La part restante est calculée : 100 moins le coin fiscal.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "france-base-cent"
+      },
+      {
+        "id": "impot",
+        "libelle": "Impôt sur le revenu",
+        "value": 12.2,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Part du coût employeur, célibataire sans enfant au salaire moyen français ; tableau 1.2. La part restante est calculée : 100 moins le coin fiscal.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "france-base-cent"
+      },
+      {
+        "id": "net-fr",
+        "libelle": "Revenu après prélèvements",
+        "value": 52.8,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Part du coût employeur, célibataire sans enfant au salaire moyen français ; tableau 1.2. La part restante est calculée : 100 moins le coin fiscal.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "france-base-cent"
+      },
+      {
+        "id": "net-fr-compare",
+        "libelle": "France",
+        "value": 52.8,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Calcul 500 Signatures : 100 moins le coin fiscal du tableau 1.1. Célibataire sans enfant au salaire moyen propre à chaque pays.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "net-base-cent"
+      },
+      {
+        "id": "net-de-compare",
+        "libelle": "Allemagne",
+        "value": 50.7,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Calcul 500 Signatures : 100 moins le coin fiscal du tableau 1.1. Célibataire sans enfant au salaire moyen propre à chaque pays.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "net-base-cent"
+      },
+      {
+        "id": "net-it-compare",
+        "libelle": "Italie",
+        "value": 54.2,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Calcul 500 Signatures : 100 moins le coin fiscal du tableau 1.1. Célibataire sans enfant au salaire moyen propre à chaque pays.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "net-base-cent"
+      },
+      {
+        "id": "net-es-compare",
+        "libelle": "Espagne",
+        "value": 58.6,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Calcul 500 Signatures : 100 moins le coin fiscal du tableau 1.1. Célibataire sans enfant au salaire moyen propre à chaque pays.",
+        "sourceId": "ocde-tableaux",
+        "comparableGroup": "net-base-cent"
+      }
+    ],
+    "visualisations": [
+      {
+        "id": "france-decomposition",
+        "type": "bar",
+        "titre": "Comment se répartissent 100 € de coût employeur en France",
+        "resume": "Parts en pourcentage du coût, donc euros équivalents sur une base de 100 €. Profil OCDE 2025 ; les quatre parts totalisent 100 %.",
+        "preuveIds": [
+          "patronales",
+          "salariales",
+          "impot",
+          "net-fr"
+        ]
+      },
+      {
+        "id": "comparaison-net",
+        "type": "bar",
+        "titre": "La part restante après prélèvements dans quatre pays",
+        "resume": "Calcul 100 moins le coin fiscal. Célibataire sans enfant au salaire moyen de chaque pays, année 2025. Les rémunérations de référence diffèrent.",
+        "preuveIds": [
+          "net-fr-compare",
+          "net-de-compare",
+          "net-it-compare",
+          "net-es-compare"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "id": "quatre-montants",
+        "titre": "Quatre montants à distinguer avant de comparer",
+        "paragraphes": [
+          "Le coût employeur, le salaire brut, le net avant impôt et le net après impôt répondent à quatre questions différentes. Le premier décrit la dépense de l’entreprise pour rémunérer le salarié. Le brut figure dans le contrat ; les cotisations salariales sont ensuite déduites. Le prélèvement à la source intervient pour passer du net avant impôt à la somme versée.",
+          "Le bulletin permet de suivre ces étapes. La ligne « total versé par l’employeur » tient compte des cotisations patronales et des exonérations. Le net imposable sert au calcul du prélèvement à la source : il ne doit pas être confondu avec le net payé."
+        ]
+      },
+      {
+        "id": "cent-euros",
+        "titre": "En France, 52,80 € après prélèvements pour 100 € de coût",
+        "paragraphes": [
+          "Dans le profil OCDE retenu pour 2025, les impôts et cotisations représentent 47,2 % du coût employeur. Nous ramenons ce coût à 100 € : la part restante vaut 100 − 47,2, soit 52,8 %. Elle correspond à 52,80 € sur cette échelle commune.",
+          "La décomposition française permet de reconstituer le passage du coût au revenu : 26,70 € de cotisations patronales, puis 8,30 € de cotisations salariales et 12,20 € d’impôt sur le revenu. Le brut vaut donc 73,30 € et le net avant impôt 65 €. La somme des quatre parts revient à 100 €."
+        ],
+        "visualisationIds": [
+          "france-decomposition"
+        ]
+      },
+      {
+        "id": "voisins",
+        "titre": "Comparer les voisins avec le même profil, pas le même salaire",
+        "paragraphes": [
+          "La comparaison porte sur une personne célibataire sans enfant rémunérée au salaire moyen de son pays. Pour 100 € de coût, notre calcul donne 50,70 € en Allemagne, 54,20 € en Italie et 58,60 € en Espagne, contre 52,80 € en France. La France se situe entre ces voisins.",
+          "Ramenées à cette base, les différences sont lisibles : la part restante française dépasse celle de l’Allemagne de 2,10 € et reste inférieure à celle de l’Espagne de 5,80 €. Ces écarts décrivent des parts d’un coût normalisé. Ils ne comparent ni des salaires mensuels identiques ni le pouvoir d’achat des ménages."
+        ],
+        "visualisationIds": [
+          "comparaison-net"
+        ]
+      },
+      {
+        "id": "deux-mille",
+        "titre": "Pourquoi on ne peut pas appliquer ce ratio à un net de 2 000 €",
+        "paragraphes": [
+          "Diviser 2 000 par 52,8 % donne environ 3 788. Mais ce calcul ne permet pas d’affirmer qu’un employeur doit payer 3 788 € pour verser 2 000 € à n’importe quel salarié. Il prolonge un taux moyen observé sur un seul profil et un seul niveau de rémunération.",
+          "Un calcul individuel demande les règles du millésime choisi, le salaire, le statut, les allègements applicables et la situation fiscale. Les paramètres d’entreprise peuvent aussi modifier les cotisations. L’Urssaf propose un simulateur pour renseigner ces caractéristiques ; une moyenne internationale ne remplace pas cette étape."
+        ]
+      },
+      {
+        "id": "financement",
+        "titre": "Ce que le prélèvement finance, et ce qu’il ne mesure pas",
+        "paragraphes": [
+          "Les cotisations financent notamment la santé, la retraite, la famille, les accidents du travail et le chômage. Une somme prélevée ne disparaît donc pas du seul fait qu’elle n’est pas versée en salaire : elle contribue au financement de protections collectives.",
+          "La comparaison du coût et du net laisse toutefois ouverte la question du service reçu. Elle n’indique pas combien de droits chaque personne utilisera ni la qualité des services. Pour juger une réforme, il faut préciser à la fois le gain immédiat sur le salaire et le financement qui remplace les prélèvements réduits."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Un repère pour lire la paie, pas un taux universel",
+        "paragraphes": [
+          "Sur le profil étudié, la différence entre coût employeur et revenu après prélèvements est importante. La lecture en base 100 montre où se situe la France et rend visible le passage entre coût, brut et net. Elle évite d’attribuer toute la différence aux seules cotisations salariales.",
+          "Pour une embauche ou une augmentation précise, il faut revenir au bulletin et aux paramètres du ménage. Un taux moyen ne mesure pas le prélèvement sur le prochain euro gagné. C’est cette distinction qui permet de discuter une baisse des prélèvements sur le travail sans promettre un gain identique à tous les salariés."
+        ]
+      }
+    ],
+    "limitations": [
+      "Les résultats portent sur 2025, dans le rapport publié en 2026. Ils ne représentent pas un barème individuel 2026.",
+      "Le profil est un célibataire sans enfant au salaire moyen de chaque pays ; les salaires et le pouvoir d’achat ne sont pas identiques.",
+      "Les valeurs OCDE sont arrondies au dixième ; les composantes peuvent différer légèrement du total dans certains pays.",
+      "Les pourcentages du graphique sont rapportés au coût employeur. Ils ne sont pas des taux sur le salaire brut.",
+      "Le taux moyen ne donne pas le prélèvement marginal sur une augmentation."
+    ],
+    "sommaire": [
+      "quatre-montants",
+      "cent-euros",
+      "voisins",
+      "deux-mille",
+      "financement",
+      "conclusion"
+    ]
+  }
+}
