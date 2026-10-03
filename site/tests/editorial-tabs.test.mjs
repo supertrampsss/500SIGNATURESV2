@@ -336,7 +336,7 @@ test('Confiance : méthode, éditeur et démonstration des dépenses sont access
  await expect(page.locator('#projet-contenu')).toContainText('Responsabilité éditoriale');
  await expect(page.getByRole('link',{name:'Signaler une correction sur GitHub',exact:true})).toHaveAttribute('href','https://github.com/supertrampsss/500SIGNATURESV2/issues');
  await page.locator('.editorial-footer a[href="/sources/"]').click();
- await page.locator('.methode__pli > summary').click();
+ await page.locator('.methode__pli:has(.methode-methode__d11) > summary').click();
  await expect(page.locator('.methode-methode__d11')).toBeVisible();
  await expect(page.locator('.methode-methode__d11')).toContainText('contrôles automatiques');
  await expect(page.locator('.methode-methode__fusion')).toContainText('raisonnement');
