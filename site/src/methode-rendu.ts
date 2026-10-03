@@ -446,8 +446,9 @@ export function renduMethode(): string {
         dans chaque cellule, prend une seule échelle pour tout le tableau, choisie
         sur son plus gros montant et nommée dans sa légende : une colonne qui
         change d'unité d'une ligne à l'autre ne se compare pas.</li>
-      <li>Un taux varie en points, jamais en pourcentage — y compris les taux que
-        la source publie pour mille et que l'écran montre en pourcentage.</li>
+      <li>Un taux varie en points lorsqu’on exprime l’écart entre deux valeurs
+        de ce taux. La croissance d’un montant s’exprime en pourcentage du
+        montant initial.</li>
       <li>Les budgets ne s'additionnent pas : l'État, la Sécurité sociale et chaque
         échelon de collectivité se lisent séparément, et la seule addition publiée
         est celle de la comptabilité nationale, qui a son propre cadre et son
@@ -466,18 +467,22 @@ export function renduMethode(): string {
         le RSA, l'APA et la PCH, qui entrent et ressortent, si bien qu'un barème
         commun lui retirerait des points pour sa définition comptable.</li>
       <li>Chaque chiffre porte son unité et son millésime là où il est affiché.
-        Sa source est nommée à côté de lui dans les analyses, sur les images
-        partagées et dans les citations ; ailleurs, elle est sur cette page.</li>
+        Dans les dossiers, les publications utilisées sont regroupées dans la
+        section Sources, avec la date de mise à jour de l’article. Les images
+        partagées conservent le millésime ; les jeux du catalogue sont décrits
+        sur cette page.</li>
     </ul>
 
     <h3>${TITRES.navigateur}</h3>
     <p class="methode-methode__reseau">
-      Les polices et le moteur de carte sont servis par le site lui-même. La page
-      ne charge aucun script tiers, aucun widget social et aucune mesure
-      d'audience : les seules requêtes qu'elle émet vont chercher les fichiers
-      publiés et les tuiles de la carte.
+      Les polices et le moteur de carte sont servis par le site lui-même.
+      Les pages éditoriales peuvent charger Google Analytics après acceptation
+      de la mesure d’audience facultative. Mandats et Salaires sont exclus de
+      cette mesure. Les liens sociaux sont de simples liens ; aucun widget
+      social n’est chargé. Les fichiers du site, les données publiées et les
+      tuiles de carte servent à la consultation, indépendamment de ce choix.
+      <a href="/confidentialite/">Le consentement, les données mesurées et le retrait du choix sont décrits sur la page Confidentialité.</a>
     </p>
-    </details>
     </details>
   `;
 }
