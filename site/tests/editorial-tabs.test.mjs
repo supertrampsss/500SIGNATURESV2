@@ -5,6 +5,37 @@ const dossiers = await Promise.all((await readdir(new URL('../analyses/', import
  .filter(name => name.endsWith('.json'))
  .map(async name => JSON.parse(await readFile(new URL('../analyses/' + name, import.meta.url), 'utf8'))));
 
+// Défauts de lancement constatés en production : métadonnées d'accueil
+// conservées sur France/Ville et requêtes AdSense sans choix préalable.
+test('Lancement : métadonnées propres à chaque vue et aucune publicité automatique', async ({page}, info) => {
+ const advertising=[];
+ page.on('request', request => {if(/googlesyndication|doubleclick/.test(request.url())) advertising.push(request.url());});
+ await page.goto('/');
+ await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/');
+ if(!await page.locator('#navigation-principale a[href="/bilan/"]').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
+ await page.locator('#navigation-principale a[href="/bilan/"]').click();
+ await expect(page).toHaveTitle('Budget et dette publique en France | 500 signatures');
+ await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/bilan/');
+ if(!await page.locator('#navigation-principale a[href="/territoire"]').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
+ await page.locator('#navigation-principale a[href="/territoire"]').click();
+ await expect(page).toHaveTitle('Les comptes de votre ville | 500 Signatures');
+ await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/territoire/');
+ await expect(page.locator('script[src*="adsbygoogle"]')).toHaveCount(0);
+ expect(advertising).toEqual([]);
+ await page.screenshot({path:info.outputPath('lancement-ville.png')});
+});
+
+test('Lancement : la page Ville est lisible sans JavaScript', async ({browser}, info) => {
+ const context=await browser.newContext({javaScriptEnabled:false, viewport:info.project.use.viewport});
+ const page=await context.newPage();
+ try {
+  await page.goto('http://127.0.0.1:4180/territoire/');
+  await expect(page.getByRole('heading',{name:'Les comptes de votre ville, en clair.'})).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/territoire/');
+  await page.screenshot({path:info.outputPath('lancement-ville-sans-js.png')});
+ } finally {await context.close();}
+});
+
 test('Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal', async ({page}, info) => {
  for(const dossier of dossiers.filter(d => d.dossier.visualisations.some(v => v.type === 'snapshot_table'))) {
   await page.goto('/analyses/'+dossier.slug+'/');

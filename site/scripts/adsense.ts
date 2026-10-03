@@ -4,8 +4,9 @@
  * The publisher id is deliberately supplied by the deployment environment:
  * it is account-specific and must never be guessed or committed as a fake
  * value. With no id, the build remains ad-free. With a valid id, the standard
- * verification script is added to generated editorial documents and ads.txt is
- * written alongside the site output.
+ * verification meta tag is added to generated editorial documents and ads.txt
+ * is written alongside the site output. Verification never loads an ad SDK;
+ * actual serving requires a separate consent-aware adapter and configured CMP.
  */
 
 const IDENTIFIANT = /^ca-pub-\d{16}$/;
@@ -24,14 +25,21 @@ export function identifiantAdsense(raw: string | undefined): string | null {
 
 export function codeAdsense(id: string): string {
   if (!IDENTIFIANT.test(id)) throw new Error(`Identifiant AdSense invalide : « ${id} ».`);
-  return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${id}" crossorigin="anonymous"></script>`;
+  return `<meta name="google-adsense-account" content="${id}">`;
 }
 
 export function injecterAdsense(shell: string, rawId: string | undefined): string {
+  if (/<script\b[^>]*\bsrc=["'][^"']*adsbygoogle\.js/i.test(shell)) {
+    throw new Error("Un SDK publicitaire est chargé avant consentement dans le gabarit AdSense.");
+  }
   const id = identifiantAdsense(rawId);
   if (!id) return shell;
   if (!shell.includes("</head>")) throw new Error("Le document AdSense ne porte pas de fermeture </head>.");
-  if (shell.includes("adsbygoogle.js?client=")) return shell;
+  const existing = shell.match(/<meta\s+name="google-adsense-account"\s+content="([^"]+)"\s*\/?\s*>/);
+  if (existing) {
+    if (existing[1] !== id) throw new Error("La balise de vérification AdSense diffère de l'identifiant configuré.");
+    return shell;
+  }
   return shell.replace("</head>", `  ${codeAdsense(id)}\n  </head>`);
 }
 
