@@ -218,11 +218,15 @@ test('Ville: search and financial detail work without a map',async({page},info)=
 
 test('Confiance : Salaires garde la navigation accessible avec mouvement réduit', async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
- await expect(page.locator('.bascule-theme')).toBeHidden();
+ await page.getByRole('button',{name:'Activer le mode sombre',exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-theme','sombre');
+ await page.getByRole('button',{name:'Activer le mode clair',exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
  const nav=page.locator('#navigation-principale');
  if(!await nav.getByRole('link',{name:'France',exact:true}).isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
  await nav.getByRole('link',{name:'France',exact:true}).click();
  await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');
+ await page.getByRole('region',{name:'Mesure d’audience'}).getByRole('button',{name:'Refuser',exact:true}).click();
  await page.locator('.fr-footer a[href="/a-propos/"]').click();
  await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');await noOverflow(page);
 });
@@ -321,6 +325,7 @@ test('Dossiers : qualité, tous les articles et précautions accessibles sans Ja
 // éditeur peu visible, ratio personnel fictif, répétition sans nouveau calcul.
 test('Confiance : méthode, éditeur et démonstration des dépenses sont accessibles', async({page},info)=>{
  await page.goto('/analyses/la-depense-publique-baisse-2024/');
+ await page.getByRole('region',{name:'Mesure d’audience'}).getByRole('button',{name:'Refuser',exact:true}).click();
  await expect(page.locator('#montant')).toContainText('1 714,2');
  await expect(page.locator('#montant')).toContainText('2,5 %');
  await expect(page.locator('#ratio')).toContainText('0,3 point');
