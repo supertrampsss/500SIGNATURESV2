@@ -71,6 +71,7 @@ import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
+import { SEO_VUES } from "../src/seo-site.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
@@ -1423,11 +1424,15 @@ const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
 export function adressesPubliees(analyses: readonly Analyse[]): string[] {
   return [
     "/",
-    ...CHEMINS_DE_VUE,
+    SEO_VUES.territoire.canonique,
+    SEO_VUES.bilan.canonique,
     "/analyses/",
     "/sources/",
     "/salaires/",
     "/questions/",
+    "/mandats/",
+    "/mandats/methode/",
+    "/confidentialite/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ];
@@ -1747,13 +1752,22 @@ async function main(): Promise<void> {
       image: IMAGE_SITE,
     },
     SITE,
-  );
+  ).replace("</head>", () => `  <link rel="canonical" href="${echapper(SITE)}/" />\n</head>`);
   await writeFile(path.join(DIST, "index.html"), htmlSite, "utf8");
   ecrites.push({ chemin: "index.html", html: htmlSite });
   // Le menu ouvre un document explicite : cette adresse évite que l'ancienne
   // racine SPA ou un lien historique soit confondu avec la page France.
   await mkdir(path.join(DIST, "accueil"), { recursive: true });
   await writeFile(path.join(DIST, "accueil", "index.html"), htmlSite, "utf8");
+
+  // Ville dispose d'un document propre : le robot ne reçoit plus l'accueil
+  // sous une seconde adresse, et la recherche reste visible sans JavaScript.
+  const shellVille = shell
+    .replace(/<div\b([^>]*\bid="vue-accueil"[^>]*)>/, '<div$1 hidden>')
+    .replace(/<div\b([^>]*\bid="vue-territoire"[^>]*)>/, (_match, attributs: string) => `<div${attributs.replace(/\s+hidden\b/, "")}>`);
+  const htmlVille = injecterAnnonce(shellVille, SEO_VUES.territoire, SITE);
+  await ecrirePage(path.join(DIST, "territoire"), htmlVille);
+  ecrites.push({ chemin: "territoire/index.html", html: htmlVille });
 
   // La page BILAN, à son propre chemin. Elle réunit ce que REPÈRES et MÉTHODE
   // écrivaient séparément : les huit cadres nationaux, puis les sources et la
@@ -1778,7 +1792,7 @@ async function main(): Promise<void> {
     {
       titre: PAGE_BILAN.titre,
       description: PAGE_BILAN.description,
-      canonique: CHEMIN_BILAN,
+      canonique: SEO_VUES.bilan.canonique,
       image: `${CHEMIN_BILAN}/carte.png`,
     },
     SITE,

@@ -43,6 +43,7 @@ import { permalien } from "../src/partage.ts";
 import { REPONSES_STATIQUES } from "../src/questions.ts";
 import { indexerSources } from "../src/registre-sources.ts";
 import { CHEMINS } from "../src/routes.ts";
+import { SEO_VUES } from "../src/seo-site.ts";
 import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
@@ -780,8 +781,7 @@ const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
  * n'y verrait jamais le cas d'une vue pré-rendue : il jugerait un gabarit à six
  * adresses là où la production en a quatre.
  */
-const PAGES_PROPRES = new Set([CHEMINS.bilan, CHEMINS.bilan]);
-const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => !PAGES_PROPRES.has(c)));
+const SERVIS_PAR_LE_REPLI = new Set<string>();
 
 /**
  * Un `dist` minimal : le gabarit, et une page par adresse qui en a une.
@@ -792,7 +792,7 @@ const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => !PAGES_PRO
  */
 async function distEssai(adresses: readonly string[]): Promise<string> {
   const racine = await mkdtemp(path.join(tmpdir(), "indexation-"));
-  await writeFile(path.join(racine, "index.html"), GABARIT);
+  await writeFile(path.join(racine, "index.html"), injecterAnnonce(GABARIT, { ...PAGE, canonique: "/" }, SITE_ESSAI));
   for (const adresse of adresses) {
     if (adresse === "/" || SERVIS_PAR_LE_REPLI.has(adresse)) continue;
     await mkdir(path.join(racine, adresse.replace(/^\//, "")), { recursive: true });
@@ -817,11 +817,15 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
   // qu'on touche à ce test.
   assert.deepEqual(adresses, [
     "/",
-    ...Object.values(CHEMINS),
+    SEO_VUES.territoire.canonique,
+    SEO_VUES.bilan.canonique,
     "/analyses/",
     "/sources/",
     "/salaires/",
     "/questions/",
+    "/mandats/",
+    "/mandats/methode/",
+    "/confidentialite/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ]);
@@ -859,7 +863,7 @@ test("11. le build rougit dès qu'une adresse du plan ne répond pas", async () 
   const adresses = adressesPubliees(analyses);
   // Le contrôle doit vraiment emprunter la branche du repli : sans chemin de
   // vue au plan, il ne dirait rien du 404.html ni de la canonique du gabarit.
-  assert.ok(adresses.some((a) => CHEMINS_DE_VUE.has(a)), "aucun chemin de vue au plan");
+  assert.ok(adresses.includes(SEO_VUES.territoire.canonique), "la page Ville doit être publiée");
 
   // Tel que le build l'écrit, le plan passe.
   await validerIndexation(await distEssai(adresses), SITE_ESSAI);
@@ -890,7 +894,7 @@ test("11. le build rougit dès qu'une adresse du plan ne répond pas", async () 
   await assert.rejects(() => validerIndexation(egare, SITE_ESSAI), /un plan que rien n'annonce/);
 });
 
-test("11 bis. un 404.html tuerait les chemins de vues du plan, et le build le dit", async () => {
+test("11 bis. les pages publiques ont leurs documents et supportent une vraie page 404", async () => {
   const adresses = adressesPubliees(await analysesPubliees());
   const racine = await distEssai(adresses);
   await validerIndexation(racine, SITE_ESSAI);
@@ -901,7 +905,7 @@ test("11 bis. un 404.html tuerait les chemins de vues du plan, et le build le di
   // écrite dans la spec et tenue par personne ; elle est tenue ici, parce que
   // c'est ce plan-ci qui en dépend.
   await writeFile(path.join(racine, "404.html"), "<html></html>");
-  await assert.rejects(() => validerIndexation(racine, SITE_ESSAI), /404\.html/);
+  await validerIndexation(racine, SITE_ESSAI);
 });
 
 test("11 ter. chaque document annoncé déclare la bonne canonique, ou aucune", async () => {
@@ -918,17 +922,10 @@ test("11 ter. chaque document annoncé déclare la bonne canonique, ou aucune", 
   );
   await assert.rejects(() => validerIndexation(detournee, SITE_ESSAI), /deux adresses pour une seule page/);
 
-  // Le gabarit, lui, répond à plusieurs adresses du plan : la racine et les
-  // chemins de vues que le repli sert. Une canonique fixe y déclarerait toutes
-  // les autres doublons de la première — le plan les annoncerait, le document
-  // les retirerait. Son absence est donc une décision, gardée comme telle.
-  assert.ok(SERVIS_PAR_LE_REPLI.size > 0, "le gabarit ne sert plus qu'une adresse : il lui faudrait une canonique");
-  const figee = await distEssai(adresses);
-  await writeFile(
-    path.join(figee, "index.html"),
-    GABARIT.replace("</head>", `<link rel="canonical" href="${SITE_ESSAI}/" /></head>`),
-  );
-  await assert.rejects(() => validerIndexation(figee, SITE_ESSAI), /les déclarerait doublons/);
+  // La racine ne partage plus son document avec Ville dans le sitemap.
+  const muette = await distEssai(adresses);
+  await writeFile(path.join(muette, "index.html"), GABARIT);
+  await assert.rejects(() => validerIndexation(muette, SITE_ESSAI), /deux adresses pour une seule page/);
 });
 
 test("11 quater. le build appelle ce contrôle, et l'appelle après la dernière page", () => {
@@ -1179,7 +1176,7 @@ test("14 quater. le document de /bilan déclare sa canonique, le gabarit toujour
   const adresses = adressesPubliees(await analysesPubliees());
   // Le chemin de la méthode est bien au plan, et il n'est plus servi par le
   // repli : sans cela, ce test ne dirait rien de ce qu'il prétend garder.
-  assert.ok(adresses.includes(CHEMINS.bilan), "/bilan n'est plus au plan du site");
+  assert.ok(adresses.includes(SEO_VUES.bilan.canonique), "/bilan n'est plus au plan du site");
   assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.bilan), "/bilan est encore servie par le gabarit");
 
   // Tel que le build l'écrit, tout passe.
@@ -1516,12 +1513,12 @@ test("15 quinquies. le document de /bilan déclare sa canonique, le gabarit touj
   const adresses = adressesPubliees(await analysesPubliees());
   // Le chemin est au plan, et il n'est plus servi par le repli : sans cela, ce
   // test ne dirait rien de ce qu'il prétend garder.
-  assert.ok(adresses.includes(CHEMINS.bilan), "/bilan n'est plus au plan du site");
+  assert.ok(adresses.includes(SEO_VUES.bilan.canonique), "/bilan n'est plus au plan du site");
   assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.bilan), "/bilan est encore servie par le gabarit");
   // Le gabarit en sert encore plusieurs : c'est ce qui lui vaut de n'en
   // déclarer aucune, et une page pré-rendue de plus ne doit pas le faire
   // tomber à une seule sans qu'on le voie.
-  assert.ok(SERVIS_PAR_LE_REPLI.size > 1, "le gabarit ne sert plus qu'une adresse : il lui faudrait une canonique");
+  assert.equal(SERVIS_PAR_LE_REPLI.size, 0, "aucune page du plan ne doit dépendre du repli SPA");
 
   await validerIndexation(await distEssai(adresses), SITE_ESSAI);
 
@@ -1562,7 +1559,7 @@ test("15 sexies. le build écrit cette page, et l'écrit avant le plan du site",
   // Et sa propre canonique. `validerIndexation` la refuserait à la
   // publication — mais il faut avoir lancé le build entier, réseau compris,
   // pour l'apprendre ; ici, une seconde suffit.
-  assert.match(corps, /canonique: CHEMIN_BILAN,/);
+  assert.match(corps, /canonique: SEO_VUES\.bilan\.canonique,/);
   // Par `injecterAnnonce`, jamais par `injecter` : celui-ci pose
   // `data-page="editorial"`, qui arrêterait le paquet avant les graphiques.
   assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_BILAN/);

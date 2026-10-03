@@ -18,6 +18,7 @@ import { afficherFiche, rubriqueDuTheme } from "./fiche.ts";
 import { construireRegistre, indexerSources, type IndexSources } from "./registre-sources.ts";
 import { OUVERTURE } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
+import { mettreAJourMetadonnees } from "./seo-site.ts";
 import {
   palmares,
   rendrePalmares,
@@ -2503,6 +2504,7 @@ function basculerVue(): void {
       ? "accueil"
       : "territoire";
   document.body.dataset.vue = vue;
+  mettreAJourMetadonnees(vue);
   rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.

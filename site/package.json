@@ -16,7 +16,8 @@
     "build:client": "npm run check:types && vite build",
     "check:local": "npm test && npm run build:client",
     "business:case": "node --experimental-strip-types scripts/business-case.ts",
-    "audit:visual": "playwright test --config playwright.visual.config.ts"
+    "audit:visual": "playwright test --config playwright.visual.config.ts",
+    "check:production": "node scripts/check-production.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.9.0",
