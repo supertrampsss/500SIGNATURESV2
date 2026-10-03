@@ -12,18 +12,19 @@
   ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "Groenland : que change l’annonce d’un accord avec les États-Unis ?",
+    "texte": "Groenland : que change l’accord signé le 22 septembre 2026 ?",
     "auteur": null,
-    "date": "2026-09-18",
+    "date": "2026-09-22",
     "source": {
-      "titre": "Gouvernement danois : communiqué conjoint du 18 septembre 2026",
-      "url": "https://stm.dk/en/press/press-releases/expected-agreement-on-strengthened-security-in-the-arctic-and-the-north-atlantic-area/",
-      "consulte_le": "2026-09-19"
+      "id": "danemark-signature",
+      "titre": "Gouvernement danois : accord signé le 22 septembre 2026",
+      "url": "https://stm.dk/en/press/press-releases/agreement-between-greenland-denmark-and-the-united-states/",
+      "consulte_le": "2026-10-03"
     }
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Un accord de sécurité entre le Groenland, le Danemark et les États-Unis est annoncé. Sa signature et les procédures parlementaires nationales précèdent son entrée en vigueur."
+    "phrase": "L’accord a été signé le 22 septembre 2026. Le texte prévoit des procédures parlementaires avant son entrée en vigueur."
   },
   "chiffres": [
     {
@@ -101,22 +102,38 @@
       "titre": "Atlantic Council : A US and allied strategy for Greenland, 2026",
       "url": "https://www.atlanticcouncil.org/content-series/atlantic-council-strategy-paper-series/a-us-and-allied-strategy-for-greenland/",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "danemark-signature",
+      "titre": "Gouvernement danois : accord signé le 22 septembre 2026",
+      "url": "https://stm.dk/en/press/press-releases/agreement-between-greenland-denmark-and-the-united-states/",
+      "consulte_le": "2026-10-03"
+    },
+    {
+      "id": "accord-texte",
+      "titre": "Accord signé : texte anglais, articles IV et XII",
+      "url": "https://stm.dk/media/fx1h4fqx/aftale_eng.pdf",
+      "consulte_le": "2026-10-03"
     }
   ],
   "simulateur": {
     "budget": "",
     "contrat": "",
-    "lecture": "L’annonce diplomatique doit encore être distinguée de l’accord signé et entré en vigueur."
+    "lecture": "Le dossier distingue l’annonce, la signature et la mise en œuvre ; il ne simule pas les dépenses de l’accord."
   },
   "mises_a_jour": [
     {
       "date": "2026-09-19",
       "quoi": "Dossier repris à partir de sources institutionnelles et d’analyses de référence : contexte, intérêts, risques et limites de l’accord annoncé."
+    },
+    {
+      "date": "2026-10-03",
+      "quoi": "Signature du 22 septembre vérifiée sur le communiqué officiel ; texte publié ajouté et calendrier actualisé."
     }
   ],
-  "verifie_contre": "Publications primaires et analyses de référence consultées le 2026-09-19",
+  "verifie_contre": "Communiqué du 22 septembre 2026 et accord anglais, consultés le 3 octobre 2026",
   "dossier": {
-    "chapo": "Le Groenland, le Danemark et les États-Unis annoncent un accord pour renforcer la sécurité dans l’Arctique et l’Atlantique Nord. Le sujet dépasse la signature attendue la semaine prochaine : l’île est importante pour la surveillance militaire, les routes maritimes et les ressources, mais son avenir ne peut pas être décidé sans les Groenlandais.",
+    "chapo": "Le Groenland, le Danemark et les États-Unis ont signé un accord de sécurité le 22 septembre 2026. Sa signature et son application sont deux étapes distinctes. L’île compte pour la surveillance militaire, les routes maritimes et les ressources ; les engagements doivent maintenant être appréciés à partir du texte publié et de leur mise en œuvre.",
     "series": [],
     "preuves": [
       {
@@ -172,35 +189,35 @@
       }
     ],
     "limitations": [
-      "Le texte complet de l’accord n’est pas encore publié. Les moyens militaires, les investissements, les responsabilités et le calendrier précis restent donc inconnus.",
+      "Le texte signé est public. Une signature ne suffit pas à établir la date d’entrée en vigueur, les dépenses exécutées ou l’achèvement des installations.",
       "Les ressources minières repérées ne constituent pas une production disponible : leur exploitation dépend de la faisabilité technique, du financement, des infrastructures, des autorisations et de l’accord des populations concernées.",
-      "L’annonce ne permet pas encore de mesurer l’effet réel sur l’OTAN, l’Union européenne ou le statut politique du Groenland."
+      "Les effets réels sur les capacités de défense et l’économie locale devront être mesurés à partir des décisions d’application et des réalisations."
     ],
     "chronologie": {
-      "titre": "Ce qui doit encore se passer",
-      "sourceId": "danemark-accord",
+      "titre": "De l’annonce à la mise en œuvre",
+      "sourceId": "danemark-signature",
       "etapes": [
         {
           "date": "18 septembre 2026",
-          "texte": "Les trois gouvernements annoncent un accord à venir sur la sécurité dans l’Arctique et l’Atlantique Nord."
+          "texte": "Les gouvernements annoncent un accord attendu pendant l’Assemblée générale de l’ONU."
         },
         {
-          "date": "Semaine du 21 septembre 2026",
-          "texte": "La signature est attendue pendant l’Assemblée générale de l’ONU."
+          "date": "22 septembre 2026",
+          "texte": "L’accord est signé à New York et son texte est publié."
         },
         {
-          "date": "Après la signature",
-          "texte": "Les procédures parlementaires nécessaires au Danemark et au Groenland doivent précéder l’entrée en vigueur."
+          "date": "Entrée en vigueur",
+          "texte": "L’article XII prévoit une notification diplomatique après les procédures parlementaires nécessaires."
         }
       ]
     },
     "sections": [
       {
         "id": "ce-qui-est-annonce",
-        "titre": "Ce qui est annoncé, et ce qui ne l’est pas encore",
+        "titre": "Un accord signé, une application à suivre",
         "paragraphes": [
-          "Le 18 septembre, les gouvernements du Groenland, du Danemark et des États-Unis ont annoncé qu’ils préparaient un accord de sécurité. La signature est attendue pendant l’Assemblée générale de l’ONU, puis le texte devra encore suivre les procédures parlementaires nécessaires.",
-          "À ce stade, nous ne disposons pas du texte complet. On sait donc quel est l’objectif politique affiché, mais pas encore quels avions, quels navires, quelles installations ou quels financements seraient concernés. Parler d’un accord déjà appliqué serait aller trop vite."
+          "L’annonce du 18 septembre a été suivie d’une signature le 22 septembre 2026 à New York, confirmée par le gouvernement danois. Le texte anglais est désormais public.",
+          "La signature ne prouve pas à elle seule l’entrée en vigueur. Cette distinction permet de suivre séparément l’engagement diplomatique et son application concrète."
         ],
         "visualisationIds": [
           "repere-territoire"
@@ -216,6 +233,14 @@
         ],
         "visualisationIds": [
           "part-glace"
+        ]
+      },
+      {
+        "id": "texte-signe",
+        "titre": "Ce que prévoit le texte publié",
+        "paragraphes": [
+          "L’article IV autorise une modernisation de Pituffik et prévoit des zones de défense à Narsarsuaq et Mestersvig selon des modalités à convenir. L’article XII lie l’entrée en vigueur à une notification après les procédures parlementaires nécessaires.",
+          "Pour évaluer le résultat, nous suivrons trois éléments : les décisions d’application, les moyens effectivement engagés et les retombées locales. Une autorisation dans un accord ne décrit pas encore des travaux achevés ni un budget exécuté."
         ]
       },
       {
@@ -250,13 +275,14 @@
         "titre": "Ce que l’on peut conclure aujourd’hui",
         "paragraphes": [
           "Le Groenland est important parce qu’il se trouve au croisement de trois sujets : la défense de l’Arctique, les liaisons entre l’Europe et l’Amérique du Nord, et l’accès futur à certaines ressources. L’accord annoncé peut améliorer la coordination entre le Groenland, le Danemark et les États-Unis.",
-          "Mais l’annonce ne règle pas les questions centrales. Le texte doit encore être signé, examiné et appliqué. Sa valeur dépendra des engagements précis, de la place donnée aux Groenlandais et de la capacité des partenaires à financer des infrastructures utiles sans réduire le territoire à une base militaire ou à une réserve de minerais."
+          "L’accord est signé et son texte est accessible. Sa portée réelle dépend encore des décisions d’application, des moyens engagés et des effets pour les Groenlandais. Le suivi doit porter sur ces réalisations plutôt que sur la seule annonce diplomatique."
         ]
       }
     ],
     "sommaire": [
       "ce-qui-est-annonce",
       "pourquoi-cette-ile-compte",
+      "texte-signe",
       "ce-que-laccord-peut-apporter",
       "ressources-et-economie",
       "risques-et-limites",

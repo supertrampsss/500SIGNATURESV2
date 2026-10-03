@@ -29,6 +29,13 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
   max-width: 80rem;
   padding: clamp(1.25rem, 4vw, 3rem);
 }
+.editorial-footer { max-width: 72rem; margin: 3rem auto 0; padding: 1.5rem 0; border-top: 1px solid var(--trait); color: var(--encre-douce); font-size: .8rem; line-height: 1.6; }
+.editorial-footer > a { color: var(--encre); font: 600 1.2rem "Spectral", Georgia, serif; text-decoration: none; }
+.editorial-footer nav { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+.editorial-footer nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--encre); text-underline-offset: 4px; }
+.dossier-precautions { margin-bottom: 1.5rem; }
+.dossier-precautions h3 { font: 600 1.1rem "Spectral", Georgia, serif; }
+.dossier-precautions p { margin: .6rem 0; line-height: 1.65; }
 .analyse-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .analyse-chart .analyse-chart__mobile { display: none; }
 .analyse-chart__grille line { stroke: var(--trait); stroke-width: 1; }
