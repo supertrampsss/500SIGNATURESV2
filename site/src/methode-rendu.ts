@@ -364,6 +364,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
       <div><p class="sources-v2__eyebrow">500 Signatures</p><h1 id="sources-methode-titre">Sources</h1><p class="sources-v2__lead">D’où viennent les chiffres publiés sur le site ?</p><p>Retrouvez les jeux de données et les publications utilisés dans nos pages et dans Mandats.</p></div>
     </header>
     <div class="sources-v2__references">${renduSources(jeux)}${renduSourcesArbitrages()}</div>
+    ${renduMethode()}
     <details class="sources-v2__detail"><summary>Retrouver une source précise</summary><div class="sources-v2__detail-corps">${renduRegistre(fiches)}</div></details>
   </section>`;
 }
