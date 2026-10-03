@@ -339,6 +339,9 @@ test('Confiance : méthode, éditeur et démonstration des dépenses sont access
  await expect(page.locator('.methode-methode__d11')).toBeVisible();
  await expect(page.locator('.methode-methode__d11')).toContainText('contrôles automatiques');
  await expect(page.locator('.methode-methode__fusion')).toContainText('raisonnement');
+ await expect(page.locator('.methode-methode__reseau')).toContainText('Google Analytics');
+ await expect(page.locator('.methode-methode__reseau')).toContainText('après acceptation');
+ await expect(page.locator('.methode-methode__reseau')).not.toContainText("aucune mesure d'audience");
  await expect(page.locator('#contenu')).not.toContainText('garantie par une machine');
  await noOverflow(page);await page.locator('.methode-methode__d11').scrollIntoViewIfNeeded();
  await page.screenshot({path:info.outputPath('confiance-methode.png')});
