@@ -15,6 +15,7 @@ historique ni chaque lien externe.
 
 | Défaut observé | Correction |
 | --- | --- |
+| Articles encore dans l’ancienne palette verte | Palette des Dossiers alignée sur la référence France : ivoire, bleu marine, graphiques bleus et liens rouges |
 | Aucun pied de page général accessible depuis Dossiers | Pied de page des documents éditoriaux pré-rendus : navigation, sources et méthode, confidentialité, compte X public du projet |
 | Les précautions de lecture sont stockées mais jamais rendues | Paragraphes visibles au pied de chacun des dossiers, avant les références ; aucun panneau ni repli |
 | La une est figée sur un slug et annonce une signature « la semaine prochaine » | Sélection parmi les dossiers mis en avant selon leur publication ; mise à jour réelle de l'article Groenland |
