@@ -2,94 +2,17 @@ import { timeChart } from "./chart-studio.ts";
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 
-export const STATUTS = ["salarié", "fonctionnaire", "indépendant", "retraité"] as const;
-export type Statut = (typeof STATUTS)[number];
-
-type Taux = {
-  /** Part estimée du montant reçu correspondant aux cotisations salariales. */
-  cotisationsSalariales: number;
-  /** Part estimée du montant reçu correspondant à l'impôt sur le revenu. */
-  impot: number;
-  /** Part estimée du montant reçu correspondant aux cotisations employeur. */
-  cotisationsEmployeur: number;
-};
-
-/**
- * Ordres de grandeur éditoriaux, séparés par statut.
- *
- * Le montant saisi est le revenu qui arrive sur le compte. Ces coefficients ne
- * remplacent pas une fiche de paie individuelle : la page affiche donc
- * explicitement « estimation » et renvoie vers les sources officielles. Leur
- * intérêt est de rendre visible l'écart net/coût total, comme le parcours
- * public de référence, sans prétendre calculer une situation personnelle.
- */
-const TAUX: Record<Statut, Taux> = {
-  salarié: { cotisationsSalariales: 0.281, impot: 0.071, cotisationsEmployeur: 0.5428 },
-  fonctionnaire: { cotisationsSalariales: 0.205, impot: 0.071, cotisationsEmployeur: 0.365 },
-  indépendant: { cotisationsSalariales: 0.235, impot: 0.071, cotisationsEmployeur: 0.434 },
-  retraité: { cotisationsSalariales: 0.061, impot: 0.071, cotisationsEmployeur: 0.0 },
-};
-
-export type CalculSalaire = {
-  net: number;
-  cotisationsSalariales: number;
-  impot: number;
-  cotisationsEmployeur: number;
-  coutTotal: number;
-};
-
-const entier = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
-
-export function formaterSalaire(valeur: number): string {
-  return `${entier.format(Math.max(0, Math.round(valeur)))} €`;
-}
-
-export function calculerSalaire(net: number, statut: Statut): CalculSalaire {
-  const montant = Number.isFinite(net) ? Math.max(0, net) : 0;
-  const taux = TAUX[statut];
-  const cotisationsSalariales = montant * taux.cotisationsSalariales;
-  const impot = montant * taux.impot;
-  const cotisationsEmployeur = montant * taux.cotisationsEmployeur;
-  return {
-    net: montant,
-    cotisationsSalariales,
-    impot,
-    cotisationsEmployeur,
-    coutTotal: montant + cotisationsSalariales + impot + cotisationsEmployeur,
-  };
-}
-
-function statutValide(value: string | null): Statut {
-  return (STATUTS as readonly string[]).includes(value ?? "") ? (value as Statut) : "salarié";
-}
-
-function montantDepuisChamp(value: string): number | null {
-  const normalise = value.replace(/\s/g, "").replace(",", ".");
-  if (!/^\d+(?:\.\d{0,2})?$/.test(normalise)) return null;
-  const montant = Number(normalise);
-  return Number.isFinite(montant) && montant <= 1_000_000 ? montant : null;
-}
-
-function libelleStatut(statut: Statut): string {
-  return statut.charAt(0).toUpperCase() + statut.slice(1);
-}
-
-const LIGNES = [
-  ["net", "Revenu reçu"],
-  ["cotisationsSalariales", "Cotisations liées au revenu"],
-  ["impot", "Impôt sur le revenu"],
-  ["cotisationsEmployeur", "Cotisations employeur"],
+// OCDE, Taxing Wages 2026, tableau 1.2 : France, données 2025.
+// Célibataire sans enfant au salaire moyen, composantes en % du coût employeur.
+// Base de lecture fixe : aucun montant personnel n'est extrapolé.
+const PROFIL_TRAVAIL = [
+  ['Revenu après prélèvements',52.8],
+  ['Cotisations salariales',8.3],
+  ['Impôt sur le revenu',12.2],
+  ['Cotisations patronales',26.7],
 ] as const;
-
-function libelleLigne(cle: string, statut: Statut, defaut: string): string {
-  if (cle === "cotisationsEmployeur" && statut === "indépendant") return "Autres cotisations du modèle";
-  return defaut;
-}
-
-function coefficients(statut: Statut): string {
-  const taux = TAUX[statut];
-  return `Cotisations liées au revenu : × ${taux.cotisationsSalariales.toLocaleString("fr-FR")}. Impôt : × ${taux.impot.toLocaleString("fr-FR")}. ${statut === "indépendant" ? "Autres cotisations" : "Cotisations employeur"} : × ${taux.cotisationsEmployeur.toLocaleString("fr-FR")}.`;
-}
+const eurosProfil = new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+function formaterProfil(valeur:number):string {return `${eurosProfil.format(valeur)} €`;}
 
 const MISSIONS = [
  ["protection_sociale","Retraites et prestations sociales","Pensions, chômage, famille, pauvreté et aides au logement"],
@@ -151,53 +74,30 @@ function evolutionAllocation(series:Territoire["series"]):string {
  const principaux=latest.missions.slice().sort((a,b)=>b.share-a.share).slice(0,4);
  const selection=principaux[0]?.label ?? latest.missions[0].label;
  const seriesPrincipales=principaux.map(m=>({label:m.label,values:data[m.label]}));
- return `<section class="salary-history" id="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées sont indépendantes du salaire saisi.</p><div class="salary-history__controls"><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><button type="button" class="salary-history__share" data-salary-history-share>Partager le graphique</button><span class="salary-history__share-status" role="status" aria-live="polite"></span></div><div data-salary-history-chart>${graphiqueRepartition(seriesPrincipales.length ? seriesPrincipales : [{label:selection,values:data[selection]}])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
+ return `<section class="salary-history" id="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées décrivent la dépense collective de chaque année.</p><div class="salary-history__controls"><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><button type="button" class="salary-history__share" data-salary-history-share>Partager le graphique</button><span class="salary-history__share-status" role="status" aria-live="polite"></span></div><div data-salary-history-chart>${graphiqueRepartition(seriesPrincipales.length ? seriesPrincipales : [{label:selection,values:data[selection]}])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
 }
 
-function allocation(calcul:CalculSalaire,series:Territoire["series"]):string {
+function allocation(series:Territoire['series']):string {
  const data=repartitionCollective(series);
- if(!data)return `<section class="salaires__allocation salaires__allocation--atelier"><h2>Où vont vos prélèvements ?</h2><p>Retraites, santé, chômage, éducation et services publics.</p><a href="/bilan/#bloc-fonctions">Consulter la répartition publiée des dépenses publiques</a></section>`;
- const total=calcul.coutTotal-calcul.net;
- return `<section class="salaires__allocation salaires__allocation--atelier"><header><p class="salaires__eyebrow">Après le salaire reçu</p><h2>Où vont vos prélèvements ?</h2><p>Sur votre estimation, <strong data-allocation-total>${formaterSalaire(total)}</strong> correspondent aux prélèvements. Voici leur répartition indicative selon les dépenses publiques de ${data.year}.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterSalaire(total*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join("")}</ol><p class="salaires__sources">Cette estimation applique une moyenne nationale à votre résultat : elle ne retrace pas l'affectation exacte de vos cotisations. ${data.basis}, ${data.year}. <a href="/bilan/#bloc-fonctions">Données et évolution</a> · <a href="/sources/">Sources et méthode</a></p></section>`;
+ if(!data)return `<section class="salaires__allocation"><h2>Sur 100 € de dépenses publiques</h2><p>Les comptes publiés montrent les sommes consacrées aux retraites, à la santé, à l’éducation et aux autres missions.</p><a href="/bilan/#bloc-fonctions">Consulter les dépenses publiques</a></section>`;
+ return `<section class="salaires__allocation" aria-labelledby="allocation-titre"><header><p class="salaires__eyebrow">La dépense collective</p><h2 id="allocation-titre">Sur 100 € de dépenses publiques</h2><p>La répartition de ${data.year} décrit l’ensemble des administrations publiques. Cette base de 100 € est indépendante du profil salarial présenté plus haut.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterProfil(100*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join('')}</ol><p class="salaires__sources">${data.basis}, ${data.year}. Les impôts, les cotisations et l’emprunt participent au financement public ; cette répartition décrit les dépenses, sans affecter les prélèvements d’une personne à chaque poste. Les valeurs affichées sont arrondies au centime. <a href="/bilan/#bloc-fonctions">Consulter les comptes</a> · <a href="/sources/">Sources et méthode</a></p></section>`;
 }
 
-export function renduSalaires(net = 2100, statut: Statut = "salarié", series: Territoire["series"] = {}): string {
-  const calcul = calculerSalaire(net, statut);
-  return `<section class="salaires" id="salaires-contenu">
-    <header class="salaires__entree"><p class="salaires__eyebrow">Salaires & revenus</p>
-    <h1>Votre revenu,<br> décomposé.</h1>
-    <p class="salaires__intro">Saisissez votre revenu net pour estimer les prélèvements et le coût total du travail.</p></header>
-    <div class="salaires__atelier">
-    <form class="salaires__form" id="salaires-form">
-      <div class="salaires__statuts" role="group" aria-label="Votre statut">${STATUTS.map(option => `<button type="button" class="salaires__statut" data-statut="${option}" aria-pressed="${option === statut}">${libelleStatut(option)}</button>`).join("")}</div>
-      <label for="salaires-net" class="salaires__label">Votre net mensuel après impôt</label>
-      <div class="salaires__montant"><input id="salaires-net" name="net" inputmode="decimal" autocomplete="off" maxlength="14" value="${echapper(formaterSalaire(net).replace(" €", ""))}" aria-describedby="salaires-aide salaires-erreur"><span aria-hidden="true">€</span><small>/ mois</small></div>
-      <p class="salaires__aide" id="salaires-aide">Le montant qui arrive sur votre compte.</p>
-      <p id="salaires-erreur" class="salaires__erreur" role="status" hidden></p>
-      <p class="salaires__reserve">Estimation selon votre statut.</p>
-    </form>
-    ${allocation(calcul,series)}
-    </div>
-
-    <section class="salaires__resultat salaires__resultat--detail" aria-labelledby="salaires-resultat-label" data-salaires-statut="${statut}">
-      <div class="salaires__total"><p id="salaires-resultat-label">Du revenu reçu au coût total</p><h2 id="salaires-resultat-titre">${formaterSalaire(calcul.coutTotal)}</h2><p>par mois · ${libelleStatut(statut).toLowerCase()}</p></div>
-      <p class="salaires__resultat-intro">Le revenu reçu et les prélèvements estimés forment le coût total du travail.</p>
-      <div class="salaires__barre" aria-hidden="true">${LIGNES.map(([cle],i)=>`<span class="salaires__segment salaires__segment--${i}" data-segment="${cle}" style="width:${calcul.coutTotal ? calcul[cle]/calcul.coutTotal*100 : 0}%"></span>`).join("")}</div>
-      <dl class="salaires__ventilation">${LIGNES.map(([cle,label],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i><span data-label="${cle}">${libelleLigne(cle,statut,label)}</span></dt><dd data-salaires="${cle}">${formaterSalaire(calcul[cle])}</dd></div>`).join("")}</dl>
-      <p class="visuellement-cache" id="salaires-annonce" role="status"></p>
-    </section>
-
-    ${evolutionAllocation(series)}
-    <details class="salaires__detail"><summary>Voir le calcul</summary><p>Chaque composante est calculée à partir du revenu saisi, puis additionnée. Les montants sont arrondis à l'euro à l'écran.</p><p data-coefficients>${coefficients(statut)}</p><p>Ces coefficients sont des hypothèses non calibrées sur un barème annuel. Ils ne constituent ni un calcul officiel ni une estimation personnalisée. Le modèle ne reconstitue pas un salaire brut.</p><p class="salaires__sources"><a href="https://www.urssaf.fr/accueil/outils-documentation/simulateurs.html" rel="noreferrer">Calculer une situation avec l'Urssaf</a> · <a href="https://www.insee.fr/fr/statistiques/8376872?sommaire=8376908" rel="noreferrer">Consulter les salaires observés par l'Insee</a></p></details>
-  </section>`;
+export function renduSalaires(series:Territoire['series']={}):string {
+ return `<section class="salaires" id="salaires-contenu">
+  <header class="salaires__entree"><p class="salaires__eyebrow">Salaires et revenus</p><h1>Du coût du travail au revenu reçu.</h1><p class="salaires__intro">Un repère sourcé pour comprendre le passage entre coût employeur, salaire brut et revenu après prélèvements.</p></header>
+  <div class="salaires__atelier">
+   <section class="salaires__profil" aria-labelledby="profil-titre"><h2 id="profil-titre">Un profil statistique précis</h2><p><strong>Célibataire sans enfant au salaire moyen français, en 2025.</strong> L’OCDE publie les prélèvements de ce profil. Nous ramenons le coût employeur à 100 € pour en montrer les composantes.</p><p>Le salaire brut représente 73,30 € et le net avant impôt 65,00 € sur cette base. Le revenu après prélèvements représente 52,80 €.</p><p>Les règles et la situation du ménage modifient le résultat d’une personne. Ce profil statistique ne permet pas de reconstituer votre paie à partir du seul net reçu.</p><p><a class="salaires__outil" href="https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" rel="noreferrer">Calculer avec l’Urssaf</a></p><p>Le simulateur officiel permet de renseigner les caractéristiques d’une situation salariée. Les hypothèses du calcul sont à vérifier dans cet outil.</p></section>
+   <section class="salaires__resultat" aria-labelledby="profil-resultat"><div class="salaires__total"><p>Pour 100 € de coût employeur</p><h2 id="profil-resultat">52,80 €</h2><p>de revenu après prélèvements · profil OCDE 2025</p></div><div class="salaires__barre" aria-hidden="true">${PROFIL_TRAVAIL.map(([_,part],i)=>`<span class="salaires__segment salaires__segment--${i}" style="width:${part}%"></span>`).join('')}</div><dl class="salaires__ventilation">${PROFIL_TRAVAIL.map(([label,part],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i>${label}</dt><dd>${formaterProfil(part)}</dd></div>`).join('')}</dl><p class="salaires__sources"><a href="https://www.oecd.org/en/publications/taxing-wages-2026_3a5169ef-en/full-report/overview_d93131c3.html" rel="noreferrer">OCDE, Taxing Wages 2026, tableau 1.2</a> · année 2025, consulté le 3 octobre 2026. Les parts sont rapportées au coût employeur et totalisent 100 %.</p></section>
+  </div>
+  <section class="salaires__lecture"><h2>Lire les différents montants</h2><p>Le coût employeur comprend le brut et les cotisations patronales. Les cotisations salariales sont ensuite déduites du brut pour obtenir le net avant impôt. Le prélèvement d’impôt intervient pour passer au montant versé.</p><p><a href="/analyses/cout-travail-cent-euros-net-2025/">Lire le dossier et la comparaison européenne</a> · <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F559?lang=fr" rel="noreferrer">Lire les lignes d’un bulletin de paie</a></p></section>
+  ${allocation(series)}
+  ${evolutionAllocation(series)}
+  <section class="salaires__detail"><h2>Deux bases de lecture</h2><p>La première décompose un coût employeur de 100 € pour le seul profil OCDE indiqué. La seconde répartit 100 € de dépenses publiques entre les postes observés dans les comptes. Elles décrivent des périmètres différents : aucune affectation personnelle de cotisations n’est calculée.</p></section>
+ </section>`;
 }
 
 export function brancherSalaires(root: HTMLElement): void {
-  const formulaire = root.querySelector<HTMLFormElement>("#salaires-form");
-  const resultat = root.querySelector<HTMLElement>("[data-salaires-statut]");
-  const champ = root.querySelector<HTMLInputElement>("#salaires-net");
-  const erreur = root.querySelector<HTMLElement>("#salaires-erreur");
-  if (!formulaire || !resultat || !champ || !erreur) return;
   const history=root.querySelector<HTMLElement>('[data-salary-history]');
   const choixPoste=history?.querySelector<HTMLSelectElement>('select');
   const afficherPoste=(label:string)=>{
@@ -227,37 +127,5 @@ export function brancherSalaires(root: HTMLElement): void {
       else throw new Error('clipboard unavailable');
       if(status)status.textContent='Lien copié.';
     } catch { if(status)status.textContent=`Lien : ${url.href}`; }
-  });
-  let selection = statutValide(resultat.dataset.salairesStatut ?? null);
-  let annonce: ReturnType<typeof setTimeout>;
-  const afficher = () => {
-    for (const bouton of root.querySelectorAll<HTMLButtonElement>(".salaires__statut")) bouton.setAttribute("aria-pressed", String(bouton.dataset.statut === selection));
-    const montant = montantDepuisChamp(champ.value);
-    champ.setAttribute("aria-invalid", String(montant === null));
-    erreur.hidden = montant !== null;
-    erreur.textContent = montant === null ? "Saisissez un montant de 0 à 1 000 000 €, avec deux décimales au maximum. Le résultat précédent est conservé." : "";
-    if (montant === null) return;
-    const calcul = calculerSalaire(montant, selection);
-    const collective = calcul.coutTotal-calcul.net;
-    const totalCollective=root.querySelector<HTMLElement>("[data-allocation-total]");
-    if(totalCollective)totalCollective.textContent=formaterSalaire(collective);
-    for(const element of root.querySelectorAll<HTMLElement>("[data-allocation-share]"))element.textContent=formaterSalaire(collective*Number(element.dataset.allocationShare));
-    resultat.dataset.salairesStatut = selection;
-    resultat.querySelector("h2")!.textContent = formaterSalaire(calcul.coutTotal);
-    resultat.querySelector(".salaires__total p:last-child")!.textContent = `par mois · ${selection}`;
-    for (const [cle,label] of LIGNES) {
-      resultat.querySelector<HTMLElement>(`[data-salaires="${cle}"]`)!.textContent = formaterSalaire(calcul[cle]);
-      resultat.querySelector<HTMLElement>(`[data-segment="${cle}"]`)!.style.width = `${calcul.coutTotal ? calcul[cle]/calcul.coutTotal*100 : 0}%`;
-      resultat.querySelector<HTMLElement>(`[data-label="${cle}"]`)!.textContent = libelleLigne(cle,selection,label);
-    }
-    root.querySelector<HTMLElement>("[data-coefficients]")!.textContent = coefficients(selection);
-    clearTimeout(annonce);
-    annonce = setTimeout(() => { root.querySelector<HTMLElement>("#salaires-annonce")!.textContent = `Coût total estimé : ${formaterSalaire(calcul.coutTotal)} par mois.`; }, 400);
-  };
-  formulaire.addEventListener("submit", event => event.preventDefault());
-  formulaire.addEventListener("input", afficher);
-  formulaire.addEventListener("click", event => {
-    const bouton = (event.target as HTMLElement).closest<HTMLButtonElement>(".salaires__statut");
-    if (bouton) { selection = statutValide(bouton.dataset.statut ?? null); afficher(); }
   });
 }

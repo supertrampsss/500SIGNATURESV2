@@ -91,3 +91,38 @@ html body .salaires__atelier > .salaires__allocation--atelier .salaires__sources
  .salary-history__controls label, .salary-history__controls select, .salary-history__share { width: 100%; }
  .salary-history__share-status { align-self: auto; }
 }
+
+/* Lecture sourcée en base 100, sans extrapolation d'un montant personnel. */
+html body .salaires__entree h1 { font-family: 'Spectral', Georgia, serif; }
+html body .salaires__atelier { border-radius:0; }
+html body .salaires__profil,html body .salaires__resultat { min-width:0;padding:clamp(1.25rem,3vw,2.5rem);background:#fffefa;color:#092d58;border:1px solid #d5dee7;border-radius:0; }
+.salaires__profil h2,.salaires__lecture h2,.salaires__detail h2 { margin:0 0 1rem;font:600 clamp(1.6rem,3vw,2rem)/1.15 'Spectral',Georgia,serif; }
+.salaires__profil p,.salaires__lecture p,.salaires__detail p { line-height:1.65; }
+.salaires__profil a,.salaires__lecture a,.salaires__sources a { color:#c52438;text-underline-offset:.2em; }
+.salaires__outil { display:inline-flex;align-items:center;min-height:44px;padding:.6rem .8rem;border:1px solid #c52438; }
+.salaires__lecture,.salaires__detail { margin-top:2rem;padding-top:1.5rem;border-top:1px solid #d5dee7; }
+html body .salaires__resultat .salaires__total p { color:#45658a; }
+.salaires__segment--0 { background:#2a629c; }.salaires__segment--1 { background:#092d58; }.salaires__segment--2 { background:#c52438; }.salaires__segment--3 { background:#5e87b0; }
+.salaires__ventilation > div { border-color:#d5dee7; }
+.salaires__sources { grid-column:1/-1;line-height:1.6; }
+.salaires__allocation .salary-missions { margin:0;padding:0;list-style:none; }
+.salaires__allocation .salary-missions li { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.4rem .75rem; }
+.salaires__allocation .salary-missions h3 { margin:0; }
+.salaires__allocation .salary-missions p { margin:.25rem 0;color:#45658a; }
+.salaires__allocation .salary-missions strong { white-space:nowrap;align-self:start; }
+@media(max-width:47.99rem){.salaires__profil{padding:1.25rem;}.salaires__sources{overflow-wrap:anywhere;}}
+
+/* Même cadre et mêmes repères visuels que France, sans changer les autres vues. */
+body[data-vue="salaires"] { --design-bg:#f5f4ed;--design-panel:#fffefa;--design-ink:#092d58;--design-muted:#45658a;--design-red:#c52438;--design-gold:#c52438;--design-green:#2a629c;--design-line:#d5dee7;background:#f5f4ed;color:#092d58; }
+html body[data-vue="salaires"] .salaires__entree { padding:2rem 0 1rem; }
+html body[data-vue="salaires"] .salaires__entree h1 { max-width:22ch;font:600 clamp(2.2rem,4.5vw,3.7rem)/1.08 'Spectral',Georgia,serif;letter-spacing:-.02em;color:#092d58; }
+html body[data-vue="salaires"] .salaires__atelier { gap:1.5rem;grid-template-columns:repeat(2,minmax(0,1fr)); }
+html body[data-vue="salaires"] .salaires__segment--0 { background:#2a629c; }html body[data-vue="salaires"] .salaires__segment--1 { background:#092d58; }html body[data-vue="salaires"] .salaires__segment--2 { background:#c52438; }html body[data-vue="salaires"] .salaires__segment--3 { background:#5e87b0; }
+html body[data-vue="salaires"] .salaires__allocation { display:block; }
+html body[data-vue="salaires"] .salaires__allocation header > p:last-child { max-width:70ch; }
+html body[data-vue="salaires"] .salary-missions { grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1.5rem; }
+html body[data-vue="salaires"] .salary-missions li { padding:1rem 0;border:0;border-top:1px solid #d5dee7;border-radius:0;background:transparent; }
+html body[data-vue="salaires"] .salary-missions h3 { font:600 1rem/1.35 'Public Sans',Arial,sans-serif;color:#092d58; }
+html body[data-vue="salaires"] .salary-missions p { font-size:.85rem; }
+html body[data-vue="salaires"] .salary-missions strong { font-size:1.125rem;color:#092d58; }
+@media(max-width:700px){html body[data-vue="salaires"] .salaires__atelier,html body[data-vue="salaires"] .salary-missions { grid-template-columns:minmax(0,1fr); }html body[data-vue="salaires"] .salaires__entree { padding-top:1.5rem; }}

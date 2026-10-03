@@ -6,6 +6,7 @@ const ROUTES = [
   { path: '/bilan/', page: 'france' },
   { path: '/territoire', page: 'territory' },
   { path: '/analyses/', page: 'dossiers' },
+  { path: '/salaires/', page: 'salaires' },
 ];
 
 const header = (page) => page.locator('header.entete');

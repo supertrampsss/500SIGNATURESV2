@@ -66,7 +66,7 @@ const TITRES = {
   sources: "Les sources",
   methode: "La méthode",
   chiffres: "Les chiffres, du fichier du producteur au fichier publié",
-  analyses: "Les analyses, où le contrôle remplace la relecture",
+  analyses: "Les analyses et leurs contrôles",
   ecran: "Ce que l'écran tient",
   navigateur: "Ce que la page demande au réseau",
   grille: "La grille de verdicts",
@@ -364,6 +364,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
       <div><p class="sources-v2__eyebrow">500 Signatures</p><h1 id="sources-methode-titre">Sources</h1><p class="sources-v2__lead">D’où viennent les chiffres publiés sur le site ?</p><p>Retrouvez les jeux de données et les publications utilisés dans nos pages et dans Mandats.</p></div>
     </header>
     <div class="sources-v2__references">${renduSources(jeux)}${renduSourcesArbitrages()}</div>
+    ${renduMethode()}
     <details class="sources-v2__detail"><summary>Retrouver une source précise</summary><div class="sources-v2__detail-corps">${renduRegistre(fiches)}</div></details>
   </section>`;
 }
@@ -375,10 +376,9 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
 /**
  * Ce que le site fait, et ce qui l'arrête quand un montant ne correspond pas.
  *
- * Deux flux qui ne se mélangent pas (spec §7.4) : les chiffres, produits par le
- * pipeline ; les analyses, qui citent des chiffres déjà publiés sans jamais en
- * créer. Le second a sa propre garantie — un contrôle déterministe bloquant à la
- * place de la relecture humaine (décision D11, spec §14.3).
+ * Les observations du catalogue sont rapprochées des fichiers publiés.
+ * Les sources externes, calculs dérivés et interprétations ont leur propre
+ * registre ; leur lecture demande une vérification éditoriale.
  *
  * Chaque phrase décrit un mécanisme qui existe dans le dépôt : les contrôles
  * bloquants et la quarantaine (docs/06 § Contrôles bloquants), la publication
@@ -395,11 +395,11 @@ export function renduMethode(): string {
     <details class="methode__pli">
     <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">
-      Deux chemins, qui ne se croisent qu'une fois. Les chiffres viennent des
-      fichiers de leurs producteurs et sont republiés tels que le pipeline les a
-      lus. Les analyses ne créent aucun chiffre : elles citent ceux qui sont
-      publiés, et une machine vérifie chaque montant cité contre le fichier qui le
-      porte.
+      Les chiffres du catalogue viennent des fichiers de leurs producteurs.
+      Les dossiers peuvent citer ces observations ou des publications externes,
+      puis expliquer des comparaisons et des calculs dérivés. Le registre de
+      chaque chiffre distingue ces usages ; les contrôles et la lecture des
+      sources se complètent.
     </p>
 
     <h3>${TITRES.chiffres}</h3>
@@ -426,40 +426,15 @@ export function renduMethode(): string {
     </ol>
 
     <h3>${TITRES.analyses}</h3>
-    <p class="methode-methode__d11">
-      L'exactitude d'une analyse est garantie par une machine, pas par une
-      relecture (décision D11) : un relecteur ne peut pas confronter à la main
-      chaque montant cité aux fichiers publiés, et une machine le fait
-      intégralement, avant chaque déploiement et après chaque publication de
-      données. Ce contrôle est exécutable par quiconque a le dépôt :
-      <code>python -m plateforme.controle_analyses site/analyses</code>.
-    </p>
+    <p class="methode-methode__d11">Les contrôles automatiques vérifient les observations référencées à nos fichiers publiés : indicateur, territoire, période, unité et valeur. Ils sont exécutés avant chaque déploiement et après chaque publication de données.</p>
     <ul class="methode-methode__controle">
-      <li><strong>Chaque montant est confronté au fichier publié</strong> —
-        indicateur, maille, code, période — et doit en être exactement la valeur,
-        sans tolérance.</li>
-      <li><strong>L'indicateur cité existe et est publié à la maille invoquée</strong>,
-        avec l'unité du catalogue et non celle de l'analyse.</li>
-      <li><strong>Tout montant écrit en prose est adossé à l'un des chiffres
-        référencés.</strong> La prose peut arrondir ce montant ; elle ne peut pas le
-        contredire, et un nombre qui ne désigne aucune référence fait échouer le
-        contrôle. C'est la garde contre l'invention.</li>
-      <li><strong>Une donnée officielle citée ou une estimation externe porte son
-        lien et sa date de consultation</strong>, et reste nommée comme telle plutôt
-        que reformulée en fait comptable.</li>
-      <li><strong>Un lien de simulateur est décodé au build par le décodeur du
-        simulateur lui-même</strong> : un lien qui n'ouvre aucun réglage arrête le
-        build.</li>
-      <li><strong>Chaque analyse porte la version des données sur laquelle le
-        contrôle a réussi.</strong> Après chaque publication, le contrôle est rejoué
-        sur toutes les analyses en ligne ; un montant qui a bougé ouvre une alerte
-        publique dans le dépôt, et la correction est datée dans le journal, plus
-        bas sur cette page.</li>
+      <li><strong>Les valeurs issues du catalogue sont rapprochées des fichiers publiés.</strong> Une observation doit correspondre exactement à la série et à la période indiquées. Les arrondis de présentation sont contrôlés séparément.</li>
+      <li><strong>Les données et estimations externes portent une source et une date.</strong> Leur lien est enregistré ; la présence de ce lien ne certifie pas le contenu de la page externe.</li>
+      <li><strong>La structure des dossiers est vérifiée.</strong> Les références, les unités et les regroupements utilisés dans les graphiques doivent être cohérents.</li>
+      <li><strong>Les corrections sont datées.</strong> Une évolution substantielle du texte ou des chiffres figure dans le journal de l’article. Les séries restent rattachées à leur période et à la publication utilisée.</li>
     </ul>
-    <p class="methode-methode__fusion">
-      La publication passe par une demande de fusion : le contrôle décide de ce qui
-      peut être publié, la fusion reste un geste humain.
-    </p>
+    <p class="methode-methode__fusion">La lecture d’une source externe, l’interprétation d’un résultat et la vérification d’un raisonnement relèvent du travail éditorial. Le succès des contrôles automatiques ne certifie pas ces trois points. Un chiffre sourcé peut aussi être utilisé avec un périmètre ou une interprétation erronés : les dossiers précisent leurs limites et les erreurs signalées peuvent conduire à une correction datée.</p>
+    <p><a href="/a-propos/">Présentation du projet et signalement d’une correction</a></p>
 
     <h3>${TITRES.ecran}</h3>
     <ul class="methode-methode__ecran">

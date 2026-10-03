@@ -826,6 +826,7 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
     "/mandats/",
     "/mandats/methode/",
     "/confidentialite/",
+    "/a-propos/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ]);
