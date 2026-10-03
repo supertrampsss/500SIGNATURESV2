@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/mandats-offline.ts",
+    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/mandats-offline.ts && node scripts/analytics-build.mjs",
     "test": "node scripts/test-unit.mjs",
     "preview": "vite preview",
     "test:board": "playwright test --config playwright.board.config.ts",
