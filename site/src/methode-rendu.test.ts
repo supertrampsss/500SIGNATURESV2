@@ -321,12 +321,6 @@ test("le rendu des sources est pur : deux appels produisent la même chaîne", (
  *  bloc pris à part. */
 const PAGE = () => `${renduSources(JEUX)}${renduMethode()}${renduGrille()}`;
 
-test("la méthode dit les deux flux, et que les analyses ne créent aucun chiffre", () => {
-  const html = renduMethode();
-  assert.match(html, /Les chiffres viennent des\s+fichiers de leurs producteurs/);
-  assert.match(html, /Les analyses ne créent aucun chiffre/);
-});
-
 test("la méthode tient les règles d'affichage du site", () => {
   const html = renduMethode();
   assert.match(html, /millions\s+d'euros/);

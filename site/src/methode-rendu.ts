@@ -375,10 +375,9 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
 /**
  * Ce que le site fait, et ce qui l'arrête quand un montant ne correspond pas.
  *
- * Deux flux qui ne se mélangent pas (spec §7.4) : les chiffres, produits par le
- * pipeline ; les analyses, qui citent des chiffres déjà publiés sans jamais en
- * créer. Le second a sa propre garantie — un contrôle déterministe bloquant à la
- * place de la relecture humaine (décision D11, spec §14.3).
+ * Les observations du catalogue sont rapprochées des fichiers publiés.
+ * Les sources externes, calculs dérivés et interprétations ont leur propre
+ * registre ; leur lecture demande une vérification éditoriale.
  *
  * Chaque phrase décrit un mécanisme qui existe dans le dépôt : les contrôles
  * bloquants et la quarantaine (docs/06 § Contrôles bloquants), la publication
@@ -395,11 +394,11 @@ export function renduMethode(): string {
     <details class="methode__pli">
     <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">
-      Deux chemins, qui ne se croisent qu'une fois. Les chiffres viennent des
-      fichiers de leurs producteurs et sont republiés tels que le pipeline les a
-      lus. Les analyses ne créent aucun chiffre : elles citent ceux qui sont
-      publiés, et une machine vérifie chaque montant cité contre le fichier qui le
-      porte.
+      Les chiffres du catalogue viennent des fichiers de leurs producteurs.
+      Les dossiers peuvent citer ces observations ou des publications externes,
+      puis expliquer des comparaisons et des calculs dérivés. Le registre de
+      chaque chiffre distingue ces usages ; les contrôles et la lecture des
+      sources se complètent.
     </p>
 
     <h3>${TITRES.chiffres}</h3>
