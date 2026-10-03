@@ -20,7 +20,8 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium webkit
       - name: Parcours éditoriaux, consentement et lancement, cinq formats
-        run: npx playwright test --config playwright.mandats.config.ts --grep 'Audience :|Lancement :|Dossiers : qualité'
+        run: |
+          npx playwright test --config playwright.mandats.config.ts --grep 'Audience :|Lancement :|Dossiers : qualité'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
