@@ -76,6 +76,7 @@ import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
 import { renduSalaires } from "../src/salaires.ts";
+import { renduProjet } from "../src/projet-rendu.ts";
 import { contenuAdsTxt, injecterAdsense, identifiantAdsense } from "./adsense.ts";
 import type {
   BudgetEtat,
@@ -543,7 +544,7 @@ const PAGE_SOURCES = {
 
 const PAGE_SALAIRES = {
   titre: "Salaire net et coût du travail | 500 signatures",
-  description: "Comprendre l'écart entre revenu reçu, cotisations et coût total du travail.",
+  description: "Profil OCDE 2025 : comprendre le coût employeur, le brut et le revenu après prélèvements, puis lire la répartition des dépenses publiques.",
 };
 
 /**
@@ -1231,7 +1232,7 @@ export function injecter(shell: string, page: Page, site: string): string {
     html,
     html.replace(
       /(<main id="contenu">)[\s\S]*?(<\/main>)/,
-      (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n<footer class="editorial-footer" aria-label="Pied de page du site"><a href="/accueil/">500 Signatures</a><p>Les comptes de la France. Des chiffres pour comprendre. Des faits pour débattre.</p><nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" target="_blank" rel="noopener noreferrer" aria-label="500 Signatures sur X">X</a></nav></footer>\n${fermeture}`,
+      (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n<footer class="editorial-footer" aria-label="Pied de page du site"><a href="/accueil/">500 Signatures</a><p>Les comptes de la France. Des chiffres pour comprendre. Des faits pour débattre.</p><nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" target="_blank" rel="noopener noreferrer" aria-label="500 Signatures sur X">X</a></nav></footer>\n${fermeture}`,
     ),
   );
 }
@@ -1433,6 +1434,7 @@ export function adressesPubliees(analyses: readonly Analyse[]): string[] {
     "/mandats/",
     "/mandats/methode/",
     "/confidentialite/",
+    "/a-propos/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
     ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ];
@@ -1709,6 +1711,17 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, "sources"), htmlSources);
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
 
+  const pageProjet: Page = {
+    titre: "À propos et corrections | 500 Signatures",
+    description: "Présentation de 500 Signatures, responsabilité éditoriale, sources, contrôles et signalement d’une correction.",
+    canonique: "/a-propos/",
+    image: "/carte.png",
+    corps: renduProjet(),
+  };
+  const htmlProjet = injecter(shell, pageProjet, SITE);
+  await ecrirePage(path.join(DIST, "a-propos"), htmlProjet);
+  ecrites.push({ chemin: "a-propos/index.html", html: htmlProjet });
+
   const htmlSalaires = injecter(
     injecterAdsense(
       await readFile(path.join(DIST, "salaires/index.html"), "utf8"),
@@ -1719,7 +1732,7 @@ async function main(): Promise<void> {
       description: PAGE_SALAIRES.description,
       canonique: "/salaires/",
       image: "/salaires/carte.png",
-      corps: renduSalaires(2100,"salarié",pays.FR.series),
+      corps: renduSalaires(pays.FR.series),
     },
     SITE,
   );

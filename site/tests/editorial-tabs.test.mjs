@@ -159,20 +159,26 @@ async function publication(page,{demographie=false}={}){
  });
 }
 
-test('Salaires: direct calculation, four statuses, validation and native navigation',async({page},info)=>{
- const remote=[];page.on('request',r=>{if(r.url().includes('.r2.dev'))remote.push(r.url());});
- await page.goto('/salaires/');await expect(page.locator('#salaires-net')).toBeVisible();
- await expect(page.locator('.salaires__statut')).toHaveCount(4);await expect(page.getByRole('heading',{level:1})).toHaveText('Votre revenu, décomposé.');
- await page.locator('#salaires-net').fill('3000');
- for(const [statut,total] of [['salarié',5684],['fonctionnaire',4923],['indépendant',5220],['retraité',3396]]){
-  await activate(page.locator(`[data-statut="${statut}"]`),info);expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(total);
-  await expect(page.locator('[data-salaires-statut]')).toHaveAttribute('data-salaires-statut',statut);await noOverflow(page);
- }
- await page.locator('#salaires-net').fill('abc');await expect(page.locator('#salaires-net')).toHaveAttribute('aria-invalid','true');await expect(page.locator('#salaires-erreur')).toBeVisible();expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(3396);
- expect(await page.locator('[data-allocation-share]').count()).toBeGreaterThanOrEqual(10);await page.locator('#salaires-net').fill('0');expect(numeric(await page.locator('#salaires-resultat-titre').innerText())).toBe(0);await expect(page.locator('#salaires-erreur')).toBeHidden();for(const amount of await page.locator('[data-allocation-share]').allTextContents())expect(numeric(amount)).toBe(0);
- await activate(page.locator('.salaires__detail > summary'),info);await expect(page.locator('[data-coefficients]')).toBeVisible();await noOverflow(page);
- expect(remote).toEqual([]);await expect(page.locator('canvas')).toHaveCount(0);
- await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page).toHaveURL(/\/bilan\/?$/);
+test('Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses', async({page},info)=>{
+ const remote=[];page.on('request',r=>{if(/r2.dev|urssaf.fr|oecd.org/.test(r.url()))remote.push(r.url());});
+ await page.goto('/salaires/');
+ await expect(page.locator('h1')).toHaveText('Du coût du travail au revenu reçu.');
+ await expect(page.locator('#salaires-contenu')).toContainText('Célibataire sans enfant au salaire moyen français');
+ await expect(page.locator('#salaires-contenu')).toContainText('2025');
+ await expect(page.locator('#salaires-net')).toHaveCount(0);
+ await expect(page.locator('[data-statut]')).toHaveCount(0);
+ for(const amount of ['52,80 €','26,70 €','8,30 €','12,20 €']) await expect(page.locator('.salaires__ventilation')).toContainText(amount);
+ await expect(page.locator('.salaires__allocation')).toContainText('100 € de dépenses publiques');
+ const amounts=await page.locator('[data-allocation-share]').allTextContents();
+ expect(amounts.length).toBeGreaterThanOrEqual(10);
+ const sum=amounts.reduce((total,t)=>total+Number(t.replace(/[^0-9,]/g,'').replace(',','.')),0);
+ expect(Math.abs(sum-100)).toBeLessThan(.15);
+ await expect(page.getByRole('link',{name:'Calculer avec l’Urssaf',exact:true})).toHaveAttribute('href','https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net');
+ const select=page.locator('#salary-history-choice');await expect(select).toBeVisible();await select.selectOption({index:1});
+ await expect(page.locator('[data-salary-history-chart] figcaption')).toContainText(await select.locator('option:checked').textContent());
+ await noOverflow(page);expect(remote).toEqual([]);
+ await page.locator('.salaires__entree').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('confiance-salaires-profil.png')});
+ await page.locator('.salaires__allocation').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('confiance-salaires-depenses.png')});
 });
 
 test('France: published accounts survive a network failure and chapters stay on the page',async({page},info)=>{
@@ -210,12 +216,15 @@ test('Ville: search and financial detail work without a map',async({page},info)=
  await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
 });
 
-test('Salaires: dark mode, reduced motion and navigation and social links remain usable',async({page},info)=>{
+test('Confiance : Salaires garde la navigation accessible avec mouvement réduit', async({page},info)=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/salaires/');
- await expect(page.locator('html')).toHaveAttribute('data-theme','clair');await activate(page.getByRole('button',{name:'Activer le mode sombre'}),info);await activate(page.getByRole('button',{name:'Activer le mode clair'}),info);await noOverflow(page);
- const boxes=await page.locator('#navigation-principale a').evaluateAll(links=>links.map(a=>{const b=a.getBoundingClientRect();return {height:b.height,left:b.left,right:b.right,visible:!!a.getClientRects().length};}));
- expect(boxes).toHaveLength(6);for(const box of boxes){expect(box.visible).toBe(true);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(info.project.use.viewport.width+1);}
- await page.locator('#salaires-net').fill('1000000');await noOverflow(page);await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','clair');
+ await expect(page.locator('.bascule-theme')).toBeHidden();
+ const nav=page.locator('#navigation-principale');
+ if(!await nav.getByRole('link',{name:'France',exact:true}).isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
+ await nav.getByRole('link',{name:'France',exact:true}).click();
+ await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');
+ await page.locator('.fr-footer a[href="/a-propos/"]').click();
+ await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');await noOverflow(page);
 });
 
 test('France and Ville: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
@@ -306,4 +315,39 @@ test('Dossiers : qualité, tous les articles et précautions accessibles sans Ja
   await page.locator('.editorial-footer').scrollIntoViewIfNeeded();
   await page.screenshot({path:info.outputPath('qualite-sources-sans-js-'+info.project.name+'.png')});
  } finally {await context.close();}
+});
+
+// Risques relevés dans l'avis indépendant : promesse d'exactitude excessive,
+// éditeur peu visible, ratio personnel fictif, répétition sans nouveau calcul.
+test('Confiance : méthode, éditeur et démonstration des dépenses sont accessibles', async({page},info)=>{
+ await page.goto('/analyses/la-depense-publique-baisse-2024/');
+ await expect(page.locator('#montant')).toContainText('1 714,2');
+ await expect(page.locator('#montant')).toContainText('2,5 %');
+ await expect(page.locator('#ratio')).toContainText('0,3 point');
+ await expect(page.locator('#ratio')).toContainText('2025');
+ await expect(page.locator('#sources')).toContainText('3 octobre 2026');
+ await page.locator('.editorial-footer a[href="/a-propos/"]').click();
+ await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');
+ await expect(page.locator('#projet-contenu')).toContainText('Responsabilité éditoriale');
+ await expect(page.getByRole('link',{name:'Signaler une correction sur GitHub',exact:true})).toHaveAttribute('href','https://github.com/supertrampsss/500SIGNATURESV2/issues');
+ await page.locator('.editorial-footer a[href="/sources/"]').click();
+ await expect(page.locator('.methode-methode__d11')).toContainText('contrôles automatiques');
+ await expect(page.locator('.methode-methode__fusion')).toContainText('raisonnement');
+ await expect(page.locator('#contenu')).not.toContainText('garantie par une machine');
+ await noOverflow(page);await page.locator('.methode-methode__d11').scrollIntoViewIfNeeded();
+ await page.screenshot({path:info.outputPath('confiance-methode.png')});
+});
+
+test('Confiance : Salaires et présentation du projet restent lisibles sans JavaScript', async({browser},info)=>{
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:info.project.use.viewport});
+ const page=await context.newPage();
+ try {
+  await page.goto('http://127.0.0.1:4180/salaires/');
+  await expect(page.locator('.salaires__ventilation')).toContainText('52,80 €');
+  await expect(page.locator('#salaires-contenu')).toContainText('profil statistique');await noOverflow(page);
+  await page.locator('.editorial-footer a[href="/a-propos/"]').click();
+  await expect(page.locator('#projet-contenu')).toContainText('outils d’intelligence artificielle');
+  await expect(page.getByRole('link',{name:'Signaler une correction sur GitHub',exact:true})).toBeVisible();
+  await noOverflow(page);await page.screenshot({path:info.outputPath('confiance-projet-sans-js.png')});
+ }finally{await context.close();}
 });

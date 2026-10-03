@@ -1,37 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { calculerSalaire, renduSalaires, STATUTS } from "./salaires.ts";
-
-test("le module Salaires expose les quatre statuts", () => {
-  assert.deepEqual(STATUTS, ["salarié", "fonctionnaire", "indépendant", "retraité"]);
-});
-
-test("le coût total est la somme du revenu et des prélèvements", () => {
-  const calcul = calculerSalaire(2100, "salarié");
-  assert.equal(Math.round(calcul.coutTotal), 3979);
-  assert.equal(
-    Math.round(calcul.coutTotal),
-    Math.round(calcul.net + calcul.cotisationsSalariales + calcul.impot + calcul.cotisationsEmployeur),
-  );
-});
-
-test("un montant invalide ne produit pas de nombre négatif", () => {
-  const calcul = calculerSalaire(Number.NaN, "retraité");
-  assert.equal(calcul.net, 0);
-  assert.equal(calcul.coutTotal, 0);
-});
-
-test("le rendu est court et contient le détail local", () => {
-  const html = renduSalaires();
-  assert.match(html, /id="salaires-contenu"/);
-  assert.match(html, /Voir le calcul/);
-  assert.match(html, /data-statut="salarié"/);
-  assert.match(html, /data-statut="retraité"/);
-  assert.doesNotMatch(html, /sarahknafo/);
-  assert.match(html, /hypothèses non calibrées/);
-  assert.match(html, /data-coefficients/);
-  assert.doesNotMatch(html, /Quand|Sources et méthode/);
-});
+import { renduSalaires } from "./salaires.ts";
 
 test('la répartition collective couvre les dix missions au même exercice et refuse un total incohérent', async () => {
  const {repartitionCollective}=await import('./salaires.ts');
@@ -70,6 +39,6 @@ test('l’historique ne mélange pas des exercices incomplets ou des bases diff�
  const history=historiqueRepartition(series);
  assert.deepEqual(history.map(h=>h.year),['2000','2002']);
  for(const h of history)assert.ok(Math.abs(h.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
- const html=renduSalaires(2100,'salarié',series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);assert.match(html,/id="salary-history"/);assert.match(html,/data-salary-history-share/);assert.match(html,/Les principaux postes de dépense/);
+ const html=renduSalaires(series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);assert.match(html,/id="salary-history"/);assert.match(html,/data-salary-history-share/);assert.match(html,/Les principaux postes de dépense/);
  assert.ok((html.match(/chart-key chart-key--/g)??[]).length>=4);
 });

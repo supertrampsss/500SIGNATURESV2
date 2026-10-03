@@ -1,6 +1,6 @@
 {
   "slug": "la-depense-publique-baisse-2024",
-  "titre": "Dépense publique : davantage d’euros, une part du PIB en recul",
+  "titre": "Dépense publique : des euros en hausse, un poids du PIB à comparer",
   "type": "decryptage",
   "publie_le": "2026-08-22",
   "themes": [
@@ -12,111 +12,75 @@
   ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "La dépense publique française baisse : elle est passée de 58,6 % à 57,3 % du produit intérieur brut.",
+    "texte": "La dépense publique baisse-t-elle lorsque sa part du PIB recule ?",
     "auteur": null,
-    "date": null,
+    "date": "2026-10-03",
     "source": {
-      "titre": "Le compte des administrations publiques en 2025 (Insee Première)",
+      "id": "insee-comptes-2025",
+      "titre": "Insee Première n° 2106 : le compte des administrations publiques en 2025, publié le 29 mai 2026",
       "url": "https://www.insee.fr/fr/statistiques/8997691",
-      "consulte_le": "2026-08-22"
+      "consulte_le": "2026-10-03"
     }
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Les deux chiffres sont ceux des comptes, et le ratio baisse bien. Ce qui baisse est le rapport entre la dépense et la richesse produite, pas la dépense : sur la même période, elle a augmenté. Un ratio peut reculer parce que le numérateur descend ou parce que le dénominateur monte — ici, c'est le second."
+    "phrase": "La part du PIB est plus faible en 2025 qu’en 2013, mais elle augmente entre 2024 et 2025. Le montant des dépenses progresse également en 2025. Le résultat dépend donc de la mesure choisie et des années comparées."
   },
   "chiffres": [
     {
-      "dit": "58,6 % du PIB",
-      "observe": {
-        "indicateur": "eurostat_depenses_publiques_pib",
-        "niveau": "pays",
-        "code": "FR",
-        "periode": "2013",
-        "valeur": 58.6
-      },
-      "registre": "fait_comptable",
-      "lecture": "La dépense publique valait 58,6 % du PIB en 2013."
+      "dit": "Part du PIB en 2013",
+      "valeur": 58.6,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2013 : 58,6 % du PIB."
     },
     {
-      "dit": "57,3 % du PIB",
-      "observe": {
-        "indicateur": "eurostat_depenses_publiques_pib",
-        "niveau": "pays",
-        "code": "FR",
-        "periode": "2024",
-        "valeur": 57.3
-      },
-      "registre": "fait_comptable",
-      "lecture": "Elle vaut 57,3 % en 2024 : le ratio a bien reculé."
+      "dit": "Part du PIB en 2024",
+      "valeur": 57.0,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2024 : 57,0 % du PIB."
     },
     {
-      "dit": "elle baisse",
-      "observe": {
-        "indicateur": "eurostat_apu_depenses",
-        "niveau": "pays",
-        "code": "FR",
-        "periode": "2013",
-        "valeur": 1242358000000
-      },
-      "registre": "fait_comptable",
-      "lecture": "En euros, la dépense valait 1 242 358 M€ en 2013."
+      "dit": "Part du PIB en 2025",
+      "valeur": 57.3,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2025 : 57,3 % du PIB."
     },
     {
-      "dit": "elle baisse",
-      "observe": {
-        "indicateur": "eurostat_apu_depenses",
-        "niveau": "pays",
-        "code": "FR",
-        "periode": "2025",
-        "valeur": 1714137200000
-      },
-      "registre": "fait_comptable",
-      "lecture": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté."
+      "dit": "Hausse des dépenses en 2024",
+      "valeur": 4.0,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2024 : 4,0 % de croissance annuelle."
+    },
+    {
+      "dit": "Hausse des dépenses en 2025",
+      "valeur": 2.5,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2025 : 2,5 % de croissance annuelle."
+    },
+    {
+      "dit": "Dépenses en 2025",
+      "valeur": 1714.2,
+      "registre": "donnee_officielle",
+      "lecture": "Insee, exercice 2025 : 1714,2 milliards d’euros courants."
     }
   ],
   "hypotheses": [
-    "Les montants sont en euros courants : une partie de la hausse est de l'inflation, et une autre de la croissance en volume. Les distinguer demande de déflater par un indice de prix, ce que cette page ne fait pas.",
-    "Le ratio et le montant ne s'arrêtent pas au même exercice : le compte des administrations publiques est publié pour 2025, la série des ratios s'arrête à 2024. Chaque chiffre porte donc son propre millésime plutôt qu'un exercice commun qui n'existe pas.",
-    "Aucune des deux lectures n'est fausse, et aucune ne dit si le niveau est bon. Le ratio situe l'effort public dans la richesse produite ; le montant dit ce qui a été dépensé. Une phrase qui n'annonce pas laquelle des deux elle emploie laisse le lecteur choisir celle qui l'arrange."
+    "Une seule publication Insee est utilisée pour les trois ratios, afin de conserver le même périmètre et la même version des comptes.",
+    "Les différences de ratios sont exprimées en points de pourcentage. Les taux de croissance portent sur les montants en euros courants."
   ],
   "effets_indirects": [],
   "sources": [
     {
-      "titre": "Dépenses des administrations publiques (Eurostat, gov_10a_main)",
-      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
-      "consulte_le": "2026-08-22",
-      "id": "source-1"
-    },
-    {
-      "titre": "Le compte des administrations publiques en 2025 (Insee Première n° 2106)",
+      "id": "insee-comptes-2025",
+      "titre": "Insee Première n° 2106 : le compte des administrations publiques en 2025, publié le 29 mai 2026",
       "url": "https://www.insee.fr/fr/statistiques/8997691",
-      "consulte_le": "2026-08-22",
-      "id": "source-2"
-    },
-    {
-      "id": "cour-comptes-depenses-2024",
-      "titre": "Cour des comptes : rapport public annuel 2024, finances publiques",
-      "url": "https://www.ccomptes.fr/sites/default/files/2024-03/RPA-2024-volume-1-reduit.pdf",
-      "consulte_le": "2026-09-19"
-    },
-    {
-      "id": "ifrap-deficit-2025",
-      "titre": "Fondation iFRAP : Moins de déficit en 2025, merci les impôts supplémentaires (juin 2026)",
-      "url": "https://www.ifrap.org/budget-et-fiscalite/moins-de-deficit-en-2025-merci-les-impots-supplementaires",
-      "consulte_le": "2026-09-19"
-    },
-    {
-      "id": "ofce-finances-2025",
-      "titre": "OFCE : finances publiques, prévision d’octobre 2025",
-      "url": "https://www.ofce.fr/prev/prev2509/france/fipu.html",
-      "consulte_le": "2026-09-19"
+      "consulte_le": "2026-10-03"
     }
   ],
   "simulateur": {
     "budget": "",
     "contrat": "",
-    "lecture": "Le simulateur travaille en euros, jamais en part du produit intérieur brut : une coupe y baisse la dépense sans rien dire du ratio, dont le dénominateur ne dépend pas du budget."
+    "lecture": "Le jeu raisonne en montants budgétaires. Les ratios de ce dossier portent sur l’ensemble des administrations publiques et ne constituent pas un résultat du jeu."
   },
   "mises_a_jour": [
     {
@@ -126,69 +90,75 @@
     {
       "date": "2026-09-19",
       "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
+    },
+    {
+      "date": "2026-10-03",
+      "quoi": "Correction du millésime : 57,3 % correspond à 2025, contre 57,0 % en 2024. Montant et croissance actualisés depuis la publication Insee ; comparaisons et graphiques repris, répétitions retirées."
     }
   ],
-  "verifie_contre": "",
+  "verifie_contre": "Insee Première n° 2106, figures 1, 2 et 4 ; consultation du 3 octobre 2026",
   "dossier": {
-    "chapo": "La dépense publique représente 57,3 % du PIB en 2024, contre 58,6 % en 2013. En euros courants, elle atteint 1 714,1 milliards en 2025, contre 1 242,4 milliards en 2013. Les administrations financent des prestations, des services et des investissements dont le coût évolue avec les prix, la population et les besoins collectifs.",
-    "chronologie": {
-      "titre": "L’évolution de la dépense publique depuis 2013",
-      "sourceId": "source-1",
-      "etapes": [
-        {
-          "date": "2013",
-          "texte": "La dépense publique représente 58,6 % du PIB et atteint 1 242,4 milliards d’euros."
-        },
-        {
-          "date": "2024",
-          "texte": "La part de la dépense dans le PIB vaut 57,3 % ; ce ratio est inférieur à celui de 2013."
-        },
-        {
-          "date": "2025",
-          "texte": "Les dépenses atteignent 1 714,1 milliards d’euros dans les comptes publiés par l’Insee."
-        }
-      ]
-    },
+    "chapo": "Une baisse de la part du PIB ne suffit pas à prouver une baisse des dépenses. Nous confrontons une comparaison de longue période à la dernière évolution annuelle, puis distinguons le montant dépensé de sa vitesse de progression. Les comptes Insee permettent de voir pourquoi ces lectures peuvent donner des impressions opposées.",
     "series": [],
     "preuves": [
       {
-        "id": "chiffre-1",
+        "id": "ratio-2013",
         "libelle": "Part du PIB en 2013",
         "value": 58.6,
         "unit": "percent_GDP",
         "period": "2013",
-        "definition": "La dépense publique valait 58,6 % du PIB en 2013.",
-        "sourceId": "source-1",
+        "definition": "Dépenses des administrations publiques rapportées au PIB, figure 2.",
+        "sourceId": "insee-comptes-2025",
         "comparableGroup": "ratio"
       },
       {
-        "id": "chiffre-2",
+        "id": "ratio-2024",
         "libelle": "Part du PIB en 2024",
-        "value": 57.3,
+        "value": 57.0,
         "unit": "percent_GDP",
         "period": "2024",
-        "definition": "Elle vaut 57,3 % en 2024 : le ratio a bien reculé.",
-        "sourceId": "source-1",
+        "definition": "Dépenses des administrations publiques rapportées au PIB, figure 2.",
+        "sourceId": "insee-comptes-2025",
         "comparableGroup": "ratio"
       },
       {
-        "id": "chiffre-3",
-        "libelle": "Dépenses en 2013",
-        "value": 1242.358,
-        "unit": "billion_EUR",
-        "period": "2013",
-        "definition": "En euros, la dépense valait 1 242 358 M€ en 2013.",
-        "sourceId": "source-1",
-        "comparableGroup": "montant"
+        "id": "ratio-2025",
+        "libelle": "Part du PIB en 2025",
+        "value": 57.3,
+        "unit": "percent_GDP",
+        "period": "2025",
+        "definition": "Dépenses des administrations publiques rapportées au PIB, figures 1 et 2.",
+        "sourceId": "insee-comptes-2025",
+        "comparableGroup": "ratio"
       },
       {
-        "id": "chiffre-4",
+        "id": "croissance-2024",
+        "libelle": "Hausse des dépenses en 2024",
+        "value": 4.0,
+        "unit": "percent",
+        "period": "2024",
+        "definition": "Variation annuelle du montant en euros courants, commentaire de la figure 4.",
+        "sourceId": "insee-comptes-2025",
+        "comparableGroup": "croissance"
+      },
+      {
+        "id": "croissance-2025",
+        "libelle": "Hausse des dépenses en 2025",
+        "value": 2.5,
+        "unit": "percent",
+        "period": "2025",
+        "definition": "Variation annuelle du montant en euros courants, figure 4.",
+        "sourceId": "insee-comptes-2025",
+        "comparableGroup": "croissance"
+      },
+      {
+        "id": "montant-2025",
         "libelle": "Dépenses en 2025",
-        "value": 1714.1372,
+        "value": 1714.2,
         "unit": "billion_EUR",
         "period": "2025",
-        "definition": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté.",
-        "sourceId": "source-2",
+        "definition": "Dépenses des administrations publiques en milliards d’euros courants, figure 4.",
+        "sourceId": "insee-comptes-2025",
         "comparableGroup": "montant"
       }
     ],
@@ -196,92 +166,87 @@
       {
         "id": "ratios",
         "type": "bar",
-        "titre": "Le poids des dépenses dans la richesse produite",
-        "resume": "France : 58,6 % du PIB en 2013 et 57,3 % en 2024, soit un recul de 1,3 point.",
+        "titre": "Trois exercices, deux comparaisons possibles",
+        "resume": "Part du PIB, même périmètre des administrations publiques et même publication Insee. La hauteur des barres représente le ratio total.",
         "preuveIds": [
-          "chiffre-1",
-          "chiffre-2"
+          "ratio-2013",
+          "ratio-2024",
+          "ratio-2025"
         ]
       },
       {
-        "id": "montants",
+        "id": "croissance",
         "type": "bar",
-        "titre": "Les dépenses en euros courants",
-        "resume": "France, en milliards d’euros de chaque année. Les montants incluent l’évolution des prix.",
+        "titre": "La hausse ralentit, le montant continue de progresser",
+        "resume": "Variation du montant des dépenses par rapport à l’année précédente, en euros courants. Un taux positif signifie une hausse, même si ce taux diminue.",
         "preuveIds": [
-          "chiffre-3",
-          "chiffre-4"
-        ]
-      },
-      {
-        "id": "lecture-ratio",
-        "type": "snapshot_table",
-        "titre": "La part du PIB et les sommes dépensées",
-        "resume": "Part du PIB en 2013 et 2024 ; dépenses en euros courants en 2013 et 2025. La progression du PIB en valeur peut réduire le ratio malgré une hausse de la dépense.",
-        "preuveIds": [
-          "chiffre-1",
-          "chiffre-2",
-          "chiffre-3",
-          "chiffre-4"
+          "croissance-2024",
+          "croissance-2025"
         ]
       }
     ],
     "sections": [
       {
         "id": "deux-lectures",
-        "titre": "Une part du PIB plus faible, des dépenses en euros plus élevées",
+        "titre": "D’abord choisir ce que « baisse » veut dire",
         "paragraphes": [
-          "La part de la dépense publique dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024, soit un recul de 1,3 point. Sur cette période, la richesse produite en valeur a donc progressé plus vite que la dépense publique.",
-          "Le montant publié pour 2025 atteint 1 714,1 milliards d’euros, contre 1 242,4 milliards en 2013. Cette hausse en euros courants intègre à la fois les évolutions des services et prestations financés et celles de leurs prix."
+          "Le montant répond à la question « combien les administrations ont-elles dépensé ? ». Le ratio rapporte ce montant à la richesse produite pendant la même année. Il décrit un poids relatif : son dénominateur peut changer même lorsque les dépenses augmentent.",
+          "Une troisième mesure est souvent confondue avec les deux premières : la vitesse de progression du montant. Passer d’une croissance rapide à une croissance moins rapide reste une hausse. Pour comparer des annonces budgétaires, nous devons donc fixer à la fois la mesure et les dates."
         ]
       },
       {
         "id": "ratio",
-        "titre": "La part du PIB recule de 1,3 point entre 2013 et 2024",
+        "titre": "Le choix des années change la réponse",
         "paragraphes": [
-          "La part des dépenses dans le PIB passe de 58,6 % en 2013 à 57,3 % en 2024. Entre ces deux dates, les dépenses publiques augmentent moins vite que le PIB en valeur.",
-          "Lorsque le PIB progresse plus vite que la dépense, ce ratio diminue même si les sommes dépensées augmentent. La croissance en volume et la hausse des prix contribuent toutes deux à l’évolution du PIB en valeur."
+          "Entre 2013 et 2025, le ratio passe de 58,6 % à 57,3 % du PIB. La soustraction donne 57,3 − 58,6 = −1,3 point. Cela décrit une diminution du poids relatif entre deux dates ; cela ne décrit pas le trajet année par année.",
+          "Entre 2024 et 2025, la même publication indique 57,0 % puis 57,3 %. Le calcul donne au contraire +0,3 point. Une annonce de « baisse » fondée sur la longue période ne permet donc pas de qualifier la dernière année."
+        ],
+        "visualisationIds": [
+          "ratios"
         ]
       },
       {
         "id": "montant",
-        "titre": "471,7 milliards d’euros supplémentaires entre 2013 et 2025",
+        "titre": "Un ralentissement ne constitue pas une économie en euros",
         "paragraphes": [
-          "Les dépenses atteignent 1 714,1 milliards d’euros en 2025 contre 1 242,4 milliards en 2013, soit 471,7 milliards supplémentaires en euros courants.",
-          "Les sommes financent les rémunérations, les achats, les investissements et les transferts des administrations publiques. Lorsque leurs coûts augmentent, les administrations doivent dégager davantage de moyens pour maintenir les mêmes prestations et services."
+          "En 2025, les dépenses atteignent 1 714,2 milliards d’euros courants. Elles augmentent de 2,5 % sur un an, après une hausse de 4,0 % en 2024. Le taux est moins élevé, mais reste positif : les sommes dépensées continuent de monter.",
+          "Pour conclure à une économie, il faudrait préciser la référence : un montant inférieur à celui de l’année précédente, ou une dépense inférieure à une trajectoire prévue. Les comptes annuels présentés ici établissent la première évolution ; ils ne chiffrent pas une économie par rapport à un scénario alternatif."
+        ],
+        "visualisationIds": [
+          "croissance"
         ]
       },
       {
         "id": "prix-et-besoins",
-        "titre": "Les prix et les besoins collectifs font évoluer la dépense",
+        "titre": "Des euros courants aux services effectivement financés",
         "paragraphes": [
-          "Une dépense plus élevée peut financer davantage de services, des prix plus élevés, des salaires revalorisés ou des besoins nouveaux. Une population plus nombreuse ou plus âgée modifie aussi la demande de prestations et de services, à règles de prise en charge inchangées.",
-          "La Cour des comptes souligne le rôle de l’extinction des dispositifs exceptionnels de crise dans la baisse de certains ratios. Le retrait de ces aides réduit la dépense totale, tandis que les dépenses ordinaires peuvent continuer à progresser, y compris en part du PIB."
+          "Les montants additionnent les euros de l’année. Des rémunérations, des achats ou des prestations plus chers peuvent accroître la facture sans augmenter dans la même proportion le service rendu. Une hausse nominale ne suffit donc pas à mesurer un gain de moyens réels.",
+          "Mesurer le volume demanderait des indices de prix adaptés aux différentes dépenses et des informations sur les prestations ou les services financés. Nous ne déflatons pas ici le total par un indice unique : ces comptes agrégés ne permettent pas non plus de déduire la qualité des soins, de l’enseignement ou des infrastructures."
         ]
       },
       {
         "id": "perimetre",
-        "titre": "L’État, la Sécurité sociale et les collectivités locales",
+        "titre": "Comparer l’ensemble des administrations publiques",
         "paragraphes": [
-          "Les comptes regroupent l’État, les organismes de Sécurité sociale et les collectivités locales. Ils couvrent ainsi des dépenses aussi différentes que les pensions, les soins, l’enseignement et les investissements locaux.",
-          "Les crises sanitaire et énergétique ont également suscité des soutiens temporaires. Leur création puis leur retrait, ainsi que l’inflation, modifient les montants d’une année à l’autre et peuvent éloigner leur évolution de celle des dépenses ordinaires.",
-          "Le désaccord porte aussi sur la manière de réduire le déficit. La fondation iFRAP préconise de contenir les dépenses plutôt que de recourir à des impôts supplémentaires. L’OFCE souligne de son côté qu’une restriction budgétaire freine l’activité et les recettes, tandis que la hausse des intérêts complique le redressement. Le rythme et la composition des économies déterminent donc à la fois leur rendement budgétaire et leurs effets économiques."
+          "Le périmètre comprend les administrations publiques centrales, locales et de Sécurité sociale. Le budget de l’État ne représente qu’une partie de cet ensemble : le comparer directement au total ferait changer l’objet mesuré.",
+          "Les dépenses totales de l’Insee sont consolidées : les transferts entre les trois sous-secteurs sont neutralisés. Additionner leurs dépenses brutes sans cette correction risquerait de compter deux fois un même financement. La comparaison conserve ici le total consolidé de la publication."
         ]
       },
       {
         "id": "conclusion",
-        "titre": "La dépense progresse en euros, son poids relatif recule sur la période",
+        "titre": "Une annonce utile doit nommer la mesure et la période",
         "paragraphes": [
-          "La part des dépenses publiques dans le PIB recule de 58,6 % à 57,3 % entre 2013 et 2024. Les montants atteignent ensuite 1 714,1 milliards d’euros en 2025, soit 471,7 milliards de plus qu’en 2013 en euros courants.",
-          "Les prix, les besoins collectifs et les dispositifs exceptionnels font évoluer ces dépenses. Leur financement dépend de la capacité des recettes à suivre : une baisse de la part du PIB peut coexister avec des besoins de financement croissants lorsque les recettes progressent moins vite que les dépenses."
+          "Une diminution du poids dans le PIB sur longue période peut coexister avec une hausse du montant et une remontée du ratio la dernière année. Le ralentissement de la croissance des dépenses constitue encore une autre information.",
+          "Pour apprécier une proposition de réduction, nous devons connaître la base de comparaison, le périmètre, les prix retenus et les postes concernés. Le total des comptes pose le diagnostic financier ; il ne détermine pas à lui seul quelles dépenses préserver ou réduire."
         ]
       }
     ],
     "limitations": [
-      "Les ratios et les montants ne portent pas tous sur les mêmes années.",
-      "Les montants sont en euros courants : ils incorporent l'évolution générale des prix.",
-      "Le périmètre est celui des administrations publiques, pas le seul budget de l'État.",
-      "Une variation de dépense ne permet pas à elle seule de conclure sur le volume ou la qualité des services."
+      "Les ratios de 2013, 2024 et 2025 proviennent de la même publication Insee du 29 mai 2026 ; les comptes peuvent être révisés.",
+      "Les montants et leurs taux de croissance sont en euros courants ; aucune mesure de volume n’est calculée.",
+      "Les valeurs publiées sont arrondies. Les différences de ratios sont des calculs 500 Signatures à partir de ces valeurs.",
+      "Le périmètre est celui des administrations publiques consolidées, pas le seul budget de l’État.",
+      "Ces agrégats ne mesurent pas à eux seuls la qualité des services ni l’effet d’une mesure budgétaire particulière."
     ],
     "sommaire": [
       "deux-lectures",
