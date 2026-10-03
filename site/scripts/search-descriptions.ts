@@ -7,7 +7,7 @@ export const SEARCH_DESCRIPTIONS: Readonly<Record<string, string>> = {
   '/analyses/electricite-exportee-facture-francais/': 'La France exporte de l’électricité, tandis que les factures financent l’énergie, les réseaux et les taxes. Les contrats transmettent les prix dans le temps.',
   '/analyses/fournitures-scolaires-prix-1990-2025/': 'Papier, énergie, marques, listes scolaires et aides : pourquoi la rentrée reste chère après la flambée de 2023, avec des prix en euros et des sources croisées.',
   '/analyses/groenland-accord-securite-europe/': 'Accord de sécurité au Groenland : ce qui est annoncé pour l’Arctique, ce qui doit encore être ratifié et les intérêts européens en jeu.',
-  '/analyses/la-depense-publique-baisse-2024/': 'La dépense publique progresse en euros tandis que sa part du PIB recule. Prix, besoins collectifs et choix de financement expliquent ces évolutions.',
+  '/analyses/la-depense-publique-baisse-2024/': 'Dépenses, croissance annuelle et part du PIB : les comptes Insee 2025 montrent pourquoi les conclusions changent selon la mesure et les années comparées.',
   '/analyses/prix-gaz-menages-2022-2025/': 'Le prix TTC du gaz augmente d’environ 42 % entre fin 2022 et fin 2025 pour les ménages D2. Le coût hors taxes et les prélèvements contribuent à la hausse.',
   '/analyses/retraites-premier-poste-2024/': '362,2 milliards d’euros de pensions de vieillesse en 2024. Leur financement dépend de l’emploi, des cotisations, du nombre de retraités et des droits.',
   '/analyses/satisfaction-vie-france-2010-2024/': 'La satisfaction dans la vie remonte à 7,2 sur 10 en 2024. Revenus, emploi, santé et relations sociales éclairent les écarts entre les Français.',
