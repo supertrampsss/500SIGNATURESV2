@@ -225,7 +225,7 @@ test('Confiance : Salaires garde la navigation accessible avec mouvement réduit
  const nav=page.locator('#navigation-principale');
  if(!await nav.getByRole('link',{name:'France',exact:true}).isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
  await nav.getByRole('link',{name:'France',exact:true}).click();
- await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');
+ await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.',{useInnerText:true});
  await page.getByRole('region',{name:'Mesure d’audience'}).getByRole('button',{name:'Refuser',exact:true}).click();
  await page.locator('.fr-footer a[href="/a-propos/"]').click();
  await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');await noOverflow(page);
