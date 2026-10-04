@@ -1,0 +1,55 @@
+name: Canonical domain
+
+# Le propriétaire autorise la correction de l'infrastructure existante.
+# La règle est limitée à www.500signatures.fr et relue après application.
+# Les redéploiements de main maintiennent ensuite cette règle via domaine.py.
+on:
+  pull_request:
+    paths:
+      - 'pipeline/plateforme/redirection_canonique.py'
+      - 'pipeline/tests/test_redirection_canonique.py'
+      - '.github/workflows/canonical-domain.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canonical-domain-production
+  cancel-in-progress: false
+
+jobs:
+  canonical-domain:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q -e ./pipeline pytest
+      - name: Vérifier la préservation des règles et les redéploiements
+        run: python -m pytest -q pipeline/tests/test_redirection_canonique.py
+      - name: Poser et relire la redirection canonique
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python -m plateforme.redirection_canonique
+      - name: Vérifier les réponses HTTP réelles
+        run: |
+          python - <<'PY'
+          import urllib.request
+          class SansRedirection(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          client = urllib.request.build_opener(SansRedirection)
+          for chemin in ['/', '/bilan/', '/ads.txt', '/questions/hausse-prix-gaz/?utm_source=verification']:
+              source = 'https://www.500signatures.fr' + chemin
+              attendu = 'https://500signatures.fr' + chemin
+              try:
+                  with client.open(source, timeout=20) as reponse:
+                      raise RuntimeError(f'{source} : HTTP {reponse.status}, 301 attendu')
+              except urllib.error.HTTPError as erreur:
+                  assert erreur.code == 301, (source, erreur.code)
+                  assert erreur.headers.get('Location') == attendu, (source, erreur.headers.get('Location'))
+                  print(f'301 confirmé : {source} -> {attendu}')
+          PY
