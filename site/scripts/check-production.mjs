@@ -41,6 +41,7 @@ try {
         if(canonicals.length!==1 || canonicals[0]!==url) issues.push('Canonique différente ou absente');
         if(noindex(html)) issues.push('noindex');
         if(!/<title>[^<]+<\/title>/i.test(html) || !/<h1\b/i.test(html)) issues.push('Titre ou H1 absent');
+        if(/<a\b[^>]*href=["']\/accueil\/?["']/i.test(html)) issues.push('Lien interne vers une ancienne adresse d’accueil');
         if(/<script\b[^>]*src=["'][^"']*(adsbygoogle|doubleclick)/i.test(html)) issues.push('Publicité chargée dans le HTML initial');
         if(response.headers.get('x-content-type-options')!=='nosniff') issues.push('En-tête nosniff absent');
         if(address.hostname==='500signatures.fr') {

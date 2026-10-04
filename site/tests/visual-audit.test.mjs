@@ -12,7 +12,7 @@ const PAGES = [
 ];
 
 const NAVIGATION = [
-  ['Accueil', '/accueil/'],
+  ['Accueil', '/'],
   ['France', '/bilan/'],
   ['Ville', '/territoire'],
   ['Dossiers', '/analyses/'],
@@ -291,11 +291,11 @@ test('navigation : contrat des destinations publiques depuis France', async ({ p
   }
 
   const marque = page.getByRole('link', { name: '500 Signatures, accueil', exact: true });
-  expect.soft(await marque.getAttribute('href'), 'la marque revient à Accueil').toBe('/accueil/');
+  expect.soft(await marque.getAttribute('href'), 'la marque revient à Accueil').toBe('/');
 
   await ecrireJson(testInfo, 'navigation-france.json', { navigation: observee });
   await capturer(page, testInfo, 'navigation-france.png');
 
   await marque.click();
-  await expect.soft(page).toHaveURL(/\/accueil\/$/);
+  await expect.soft(page).toHaveURL(/https?:\/\/[^/]+\/$/);
 });

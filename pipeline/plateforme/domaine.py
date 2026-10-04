@@ -163,10 +163,6 @@ def main() -> int:
     rattacher(api, arguments.project, arguments.domain)
     synchroniser_dns(api, arguments.project, arguments.domain)
     attendre(api, arguments.project, arguments.domain)
-    if arguments.project == "plateforme" and "www.500signatures.fr" in arguments.domain:
-        from plateforme.redirection_canonique import assurer_redirection
-
-        assurer_redirection(api)
     return 0
 
 

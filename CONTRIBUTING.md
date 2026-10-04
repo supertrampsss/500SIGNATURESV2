@@ -46,6 +46,12 @@ under `src/` or `scripts/` are included automatically, exactly once.
 | Data pipeline | From `pipeline/`: `pip install ruff pytest -e .`, `ruff check .`, `pytest -q` |
 | Documentation only | Check referenced paths and commands; no need to rerun unrelated browser tests |
 
+For Pages middleware or redirect changes, run `npm run test:edge` after the build.
+This exercises the real built files through the local Cloudflare runtime, including
+the www domain, legacy redirects, query parameters, previews and 404s. Retain the
+HTTP report in `site/edge-artifacts/`; the production gate repeats the public checks
+after publishing. Static assets remain excluded from unnecessary Functions calls.
+
 Before the first browser run: `npx playwright install --with-deps chromium webkit`.
 Browser tests use the built site, so build first. The runner starts its own preview
 server on port 4180. Reports are in `site/playwright-report-mandats/`; failure traces

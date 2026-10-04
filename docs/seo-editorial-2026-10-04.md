@@ -75,7 +75,9 @@ Ne pas publier une variante presque identique d'un dossier pour viser un synonym
 
 `site/src/seo-editorial.ts` est la référence des titres et des liens contextuels. Les treize dossiers ont deux ou trois liens pertinents. L'index donne accès aux questions, chaque réponse revient vers son dossier et ses sources. Les liens sont des ancres HTML utilisables sans JavaScript. Le build refuse un lien de dossier absent du corpus publié.
 
-Les anciennes adresses /accueil et /accueil/ redirigent en 301 vers /. La redirection du sous-domaine www est maintenue par `pipeline/plateforme/redirection_canonique.py` : une règle Cloudflare de zone, limitée à `www.500signatures.fr`, dirige en 301 vers le domaine sans www en conservant chemin et paramètres. Le script ajoute ou répare uniquement sa règle identifiée par `ref`, sans remplacer les autres règles. Il relit la configuration après application et les déploiements de production le rejouent via `domaine.py`. Les fonctions existantes et les règles Pages restent en place.
+Les anciennes adresses /accueil et /accueil/ redirigent en 301 vers /. Les liens internes du logo, du menu et des pieds de page pointent directement vers / pour éviter un détour et consolider le signal canonique. Le middleware racine `site/functions/_middleware.ts` consolide les requêtes de `www.500signatures.fr` vers `https://500signatures.fr` en 301 en conservant chemin et paramètres. Les requêtes du domaine principal et des aperçus passent à la fonction suivante ou au serveur de fichiers de Pages. La fonction historique `/simulateur` reste en place.
+
+Le jeton existant du déploiement autorise Pages et DNS, mais la lecture de `/zones/{zone}/rulesets` a été refusée avec HTTP 403. La correction utilise donc les fonctions Pages déjà déployées, sans élargir les permissions du jeton. `_routes.json` laisse les scripts, styles, polices et illustrations les plus utilisés au service statique. Les pages, robots.txt, sitemap.xml et ads.txt restent couverts par la redirection.
 
 `site/scripts/check-production.mjs` vérifie désormais les 35 redirections www correspondant aux pages du sitemap, les deux anciennes adresses d'accueil et une adresse avec paramètres encodés. L'étape échoue si la redirection manque, perd un chemin ou pointe vers une autre page. La règle ne remplace pas la canonique HTML : les deux signaux convergent vers les mêmes adresses.
 
@@ -95,5 +97,5 @@ L'effet sur les impressions, l'indexation et les clics sera observable seulement
 - https://developers.google.com/search/docs/appearance/structured-data/breadcrumb
 - https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
 - https://developers.cloudflare.com/pages/configuration/redirects/
-- https://developers.cloudflare.com/rules/url-forwarding/single-redirects/create-api/
-- https://developers.cloudflare.com/ruleset-engine/rulesets-api/add-rule/
+- https://developers.cloudflare.com/pages/functions/middleware/
+- https://developers.cloudflare.com/pages/functions/routing/
