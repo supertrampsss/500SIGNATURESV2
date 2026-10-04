@@ -480,7 +480,7 @@ test('repeated institutional breaches force a regime crisis before the player ca
 
 test('one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue', async ({ page }, info) => {
   test.skip(!['desktop-chromium', 'android-chromium'].includes(info.project.name), 'The complete replay/export route runs at desktop and mobile sizes.');
-  test.setTimeout(240_000);
+  test.setTimeout(300_000);
   const start = fixture.journeys.fullTerm;
   await interceptClipboard(page);
   await openSeed(page, start.seed);

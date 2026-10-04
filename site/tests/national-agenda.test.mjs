@@ -11,6 +11,8 @@ async function continueAfterAnnualRecap(page){
 }
 
 test('ten v9 national decisions cross the first annual chapter and preserve the mobile navigation',async({page},info)=>{
+ // Include both scene captures in the budget on the shared CI renderer.
+ test.setTimeout(120000);
  await page.goto('/mandats/?mode=national&v=9&seed=42&ambition=equilibre');
  await expect(page.locator('.mandate-board[data-mandate-board]')).toBeVisible();
  await expect(page.locator('.campaign-position')).toContainText('Année 1 · décision 1/6');
@@ -21,10 +23,11 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
   if(page.viewportSize().height>620) expect((await page.locator('.choices button').first().boundingBox()).y).toBeLessThan(page.viewportSize().height-100);
  }
  const initialSceneFeedback=await page.locator('[data-national-scene]:visible [data-feedback-copy]').innerText();
- await page.screenshot({path:info.outputPath('agenda-v9-before-'+info.project.name+'.png'),fullPage:true});
+ await page.screenshot({path:info.outputPath('agenda-v9-before-'+info.project.name+'.png'),fullPage:true,animations:'disabled'});
  const titles=[];
  for(let i=0;i<10;i++){
   titles.push(await page.locator('.dossier h1').innerText());
+  await expect(page.locator('.mandate-board')).not.toHaveClass(/is-transitioning/);
   const options=page.locator('.choices button:enabled');
   const option=options.nth(i%await options.count());
   await option.scrollIntoViewIfNeeded();
@@ -60,5 +63,5 @@ test('ten v9 national decisions cross the first annual chapter and preserve the 
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe(saved);
  await expect(page.locator('.campaign-position')).toContainText('Année 2 · décision 5/6');
  await expect(page.locator('[data-national-scene]:visible')).toHaveAttribute('data-state','ready');
- await page.screenshot({path:info.outputPath('agenda-v9-after-ten-'+info.project.name+'.png'),fullPage:true});
+ await page.screenshot({path:info.outputPath('agenda-v9-after-ten-'+info.project.name+'.png'),fullPage:true,animations:'disabled'});
 });

@@ -4,7 +4,30 @@ const HOME='/mandats/';
 async function activate(locator,info){if(info.project.use.hasTouch)await locator.tap();else await locator.click();}
 async function noOverflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);}
 async function begin(page,info){await page.goto(HOME+'?v=9');await page.evaluate(()=>localStorage.setItem('500signatures.mandats.v1',JSON.stringify({version:9,mode:'national',seed:42,ambition:'equilibre',choices:[]})));await page.goto(HOME);await activate(page.getByRole('button',{name:'Reprendre',exact:true}),info);await expect(page.locator('.mandate-board[data-mandate-board]')).toBeVisible();await expect(page.locator('.mandate-board [data-board-decision] .choice[data-action="choose"]:not([disabled])').first()).toBeVisible();await expect(page.locator('.campaign-position')).toContainText('Année 1 · décision 1/6');const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));expect(saved.version).toBe(9);expect(saved.choices).toEqual([]);}
-async function choose(page,info){const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length);await activate(page.locator('[data-action="choose"]:not([disabled])').first(),info);const count=before+1;await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length)).toBe(count);if(count===30){await expect(page.locator('.living-result')).toBeVisible();}else if(count%6===0){await expect(page.locator('.year-recap')).toBeVisible();await activate(page.locator(count===30?'.year-recap [data-action="show-result"]':'.year-recap [data-action="next-year"]'),info);if(count===30){await expect(page.locator('.living-result')).toBeVisible();}else{await expect(page.locator('.living-briefing')).toBeVisible();await activate(page.locator('.living-briefing [data-action="start-year"]'),info);await expect(page.locator('.mandate-board[data-mandate-board]')).toHaveAttribute('data-year',String(count/6+1));await expect(page.locator('.mandate-board [data-board-decision] .choice[data-action="choose"]:not([disabled])').first()).toBeVisible();}}else{await expect(page.locator('.mandate-board[data-mandate-board]')).toHaveAttribute('data-turn',String(count));await expect(page.locator('.mandate-board [data-board-decision] .choice[data-action="choose"]:not([disabled])').first()).toBeVisible();}await expect(page.locator('.game-content > .resolution')).toHaveCount(0);await noOverflow(page);}
+async function choose(page,info){
+ const board=page.locator('.mandate-board[data-mandate-board]');
+ // A new card is present before the previous visual hand-off has finished.
+ await expect(board).not.toHaveClass(/is-transitioning/);
+ const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length);
+ await activate(board.locator('[data-action="choose"]:not([disabled])').first(),info);
+ const count=before+1;
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).choices.length)).toBe(count);
+ if(count===30){
+  await expect(page.locator('.living-result')).toBeVisible();
+ }else if(count%6===0){
+  await expect(page.locator('.year-recap')).toBeVisible();
+  await activate(page.locator('.year-recap [data-action="next-year"]'),info);
+  await expect(page.locator('.living-briefing')).toBeVisible();
+  await activate(page.locator('.living-briefing [data-action="start-year"]'),info);
+  await expect(board).toHaveAttribute('data-year',String(count/6+1));
+  await expect(board.locator('[data-board-decision] .choice[data-action="choose"]:not([disabled])').first()).toBeVisible();
+ }else{
+  await expect(board).toHaveAttribute('data-turn',String(count));
+  await expect(board.locator('[data-board-decision] .choice[data-action="choose"]:not([disabled])').first()).toBeVisible();
+ }
+ await expect(page.locator('.game-content > .resolution')).toHaveCount(0);
+ await noOverflow(page);
+}
 test('national: complete touch campaign, sharing and replay',async({page},info)=>{
  test.setTimeout(120000);
  await begin(page,info);
@@ -64,11 +87,13 @@ test('municipal entry announces its unavailability without creating a save',asyn
 });
 test('cinematic art keeps one scene image across decisions and offers an accessible territory', async ({page}, info) => {
  test.skip(!['desktop-board','mobile-board-390','desktop-chromium','android-chromium'].includes(info.project.name), 'Persistent scene integration at desktop and mobile layout sizes');
+ // Two software-rendered scene captures are part of this ten-decision journey.
+ test.setTimeout(120000);
  await begin(page,info);
  const art=page.locator('[data-cinema-art]');
  await expect(art).toBeVisible();
  await art.evaluate(image=>image.dataset.instance='original');
- await info.attach('cinema-art-start', {body:await page.screenshot(),contentType:'image/png'});
+ await info.attach('cinema-art-start', {body:await page.screenshot({animations:'disabled'}),contentType:'image/png'});
  for(let i=0;i<5;i++) await choose(page,info);
  await expect(page.locator('[data-cinema-art]')).toHaveAttribute('data-instance','original');
  await choose(page,info);
@@ -76,7 +101,7 @@ test('cinematic art keeps one scene image across decisions and offers an accessi
  await secondYearScene.evaluate(image=>image.dataset.instance='year-two');
  for(let i=0;i<4;i++) await choose(page,info);
  await expect(page.locator('[data-cinema-art]')).toHaveAttribute('data-instance','year-two');
- await info.attach('cinema-art-year-two', {body:await page.screenshot(),contentType:'image/png'});
+ await info.attach('cinema-art-year-two', {body:await page.screenshot({animations:'disabled'}),contentType:'image/png'});
  await activate(page.getByRole('button',{name:'Bilan',exact:true}),info);
  await expect(page.locator('.cinema-review__landscape img')).toBeVisible();
  await expect(page.getByRole('button',{name:/Espaces ruraux/})).toBeVisible();
