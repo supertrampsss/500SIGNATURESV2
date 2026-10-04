@@ -1,8 +1,18 @@
-.questions {
+body[data-page="editorial"] .questions {
+  display: block;
   width: min(100% - 2rem, 54rem);
   margin: 0 auto;
   padding: clamp(2rem, 6vw, 5rem) 0;
   color: var(--encre, #16324a);
+}
+
+body[data-page="editorial"]:has(.questions) #contenu {
+  padding: clamp(1.25rem, 4vw, 3rem) !important;
+}
+
+body[data-page="editorial"] .questions a {
+  color: var(--accent, #c52438);
+  text-underline-offset: 4px;
 }
 
 .questions header {
@@ -10,6 +20,7 @@
 }
 
 .questions h1 {
+  font-family: var(--serif, "Spectral", Georgia, serif);
   max-width: 18ch;
   margin: .45rem 0 1rem;
   font-size: clamp(2rem, 6vw, 4.5rem);
@@ -65,10 +76,19 @@
 
 .questions__liste { display: grid; gap: .6rem; padding: 0; list-style: none; }
 .questions__liste a { display: block; padding: .9rem 1rem; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: .75rem; }
-.questions--reponse nav { display: flex; gap: .5rem; margin-bottom: 2rem; }
+.questions--reponse { max-width:45rem; }
+.questions--reponse nav { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:2rem; font-size:.85rem; }
 .questions__reponse { max-width: 42rem; font-size: clamp(1.2rem, 3vw, 1.65rem); line-height: 1.45; }
 .questions__preuve { display: inline-block; padding: .8rem 1rem; border-radius: .6rem; background: var(--encre, #16324a); color: #fff; font-weight: 750; }
 .questions__note { max-width: 42rem; color: var(--encre-sourde, #4c6478); font-size: .9rem; }
+.questions__explication { margin:2.5rem 0; max-width:42rem; line-height:1.8; }
+.questions__explication h2 { font:500 clamp(1.5rem,4vw,1.9rem)/1.25 var(--serif); margin:0 0 1rem; }
+.questions__sources { border-top:1px solid var(--trait); padding-top:1.5rem; font-size:.9rem; line-height:1.7; }
+.questions__sources h2 { font:600 1rem/1.4 "Public Sans",sans-serif; }
+.questions__sources li { margin:.6rem 0; overflow-wrap:anywhere; }
+.questions__sources ol li { background:none; border:0; border-radius:0; box-shadow:none; padding:0; }
+.questions--reponse .questions__preuve { padding:0; border-radius:0; background:none; color:var(--accent); text-underline-offset:4px; }
+.questions--reponse a:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
 
 .analyses-index__questions {
   display: inline-block;

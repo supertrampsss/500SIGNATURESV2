@@ -24,6 +24,8 @@ import { access, readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SEARCH_DESCRIPTIONS } from "./search-descriptions.ts";
+import { SEO_DOSSIERS, TITRES_QUESTIONS, validerMaillageEditorial } from "../src/seo-editorial.ts";
+import { libelleTheme } from "../src/themes.ts";
 
 // Le message principal du site vit désormais dans `src/accueil.ts`, la page qui
 // le pose à l'écran (spec §8). Il était ici, où la carte de partage du
@@ -672,6 +674,7 @@ export async function ecrireCartes(
 
 /** Ce qu'il faut d'une page pour composer sa carte de lien. */
 export type ArticleSEO = {
+  headline?: string;
   datePublished: string;
   dateModified?: string;
   section?: string;
@@ -685,6 +688,7 @@ type Partageable = {
   /** Le chemin, dans le site, de l'image de partage de cette page. */
   image: string;
   article?: ArticleSEO;
+  fil?: readonly { nom: string; chemin: string }[];
 };
 
 type Page = Partageable & { corps: string };
@@ -732,7 +736,7 @@ function schemaArticle(page: Partageable, site: string): string {
   const donnees = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: page.titre,
+    headline: page.article.headline ?? page.titre,
     description: page.description,
     inLanguage: "fr-FR",
     mainEntityOfPage: { "@type": "WebPage", "@id": adresseCanonique(page, site) },
@@ -743,6 +747,17 @@ function schemaArticle(page: Partageable, site: string): string {
     publisher: { "@type": "Organization", name: "500 signatures", url: site },
     ...(page.article.section ? { articleSection: page.article.section } : {}),
     ...(page.article.keywords?.length ? { keywords: page.article.keywords.join(", ") } : {}),
+  };
+  return `  <script type="application/ld+json">${jsonLd(donnees)}</script>\n`;
+}
+
+function schemaFil(page: Partageable, site: string): string {
+  if (!page.fil?.length) return "";
+  const donnees = {
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    itemListElement: page.fil.map((etape, index) => ({
+      "@type": "ListItem", position: index + 1, name: etape.nom, item: `${site}${etape.chemin}`,
+    })),
   };
   return `  <script type="application/ld+json">${jsonLd(donnees)}</script>\n`;
 }
@@ -789,7 +804,7 @@ function balisesPartage(page: Partageable, site: string): string {
     `  <meta name="twitter:description" content="${echapper(page.description)}" />\n` +
     `  <meta name="twitter:image" content="${echapper(image)}" />\n` +
     `  <meta name="twitter:image:alt" content="${echapper(`${page.titre} — 500signatures`)}" />\n` +
-    schemaArticle(page, site)
+    schemaArticle(page, site) + schemaFil(page, site)
   );
 }
 
@@ -1647,19 +1662,24 @@ async function main(): Promise<void> {
 
   const ecrites: PageEcrite[] = [];
   validerCorpusQuestions(analyses);
+  validerMaillageEditorial(analyses.map(a => a.slug), REPONSES_STATIQUES.map(r => r.slug));
   for (const analyse of analyses) {
     const canonique = `/analyses/${analyse.slug}/`;
     const page: Page = {
-      titre: titreSEO(analyse.titre),
+      titre: SEO_DOSSIERS[analyse.slug]
+        ? `${SEO_DOSSIERS[analyse.slug]!.titreRecherche} | 500 signatures`
+        : titreSEO(analyse.titre),
       description: SEARCH_DESCRIPTIONS[canonique] ?? analyse.verdict.phrase,
       canonique,
       image: `/analyses/${analyse.slug}/carte.png`,
       article: {
+        headline: analyse.titre,
         datePublished: analyse.publie_le,
         dateModified: analyse.mises_a_jour.at(-1)?.date ?? analyse.publie_le,
         section: analyse.type,
-        keywords: analyse.themes,
+        keywords: analyse.themes.map(libelleTheme),
       },
+      fil: [{nom: "Accueil", chemin: "/"}, {nom: "Dossiers", chemin: "/analyses/"}],
       // Le permalien que porteront les citations de cette page : le même que
       // `og:url`, composé par `permalien()` plutôt que recollé à la main — la
       // règle du dépôt pour toute adresse qui sort du site.
@@ -1684,7 +1704,7 @@ async function main(): Promise<void> {
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
   const pageQuestions: Page = {
-    titre: "Questions vérifiées",
+    titre: "Questions sur les chiffres du quotidien | 500 signatures",
     description: "Électricité, gaz, logement et qualité de vie : des réponses aux questions du quotidien, avec les chiffres, leurs sources et leurs limites.",
     canonique: "/questions/",
     image: "/carte.png",
@@ -1696,11 +1716,12 @@ async function main(): Promise<void> {
   for (const reponse of REPONSES_STATIQUES) {
     const canonique = `/questions/${reponse.slug}/`;
     const pageReponse: Page = {
-      titre: reponse.question,
+      titre: `${TITRES_QUESTIONS[reponse.slug] ?? reponse.question} | 500 signatures`,
       description: SEARCH_DESCRIPTIONS[canonique] ?? reponse.reponse,
       canonique,
       image: "/carte.png",
-      corps: renduReponseQuestion(reponse),
+      fil: [{nom: "Accueil", chemin: "/"}, {nom: "Questions", chemin: "/questions/"}],
+      corps: renduReponseQuestion(reponse, analyses),
     };
     const htmlReponse = injecter(shell, pageReponse, SITE);
     await ecrirePage(path.join(DIST, "questions", reponse.slug), htmlReponse);
