@@ -1,0 +1,253 @@
+{
+  "dateInspection": "2026-10-04",
+  "property": "sc-domain:500signatures.fr",
+  "source": "Google Search Console URL Inspection API via GSC Wizard",
+  "limite": "Etat Google à la date de consultation, distinct du résultat d'un test de page en ligne.",
+  "results": [
+    {
+      "url": "https://500signatures.fr/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Page with redirect",
+      "indexingState": "INDEXING_ALLOWED",
+      "lastCrawlTime": "2026-09-14T11:35:53Z"
+    },
+    {
+      "url": "https://500signatures.fr/territoire/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/bilan/",
+      "verdict": "PASS",
+      "coverageState": "Submitted and indexed",
+      "indexingState": "INDEXING_ALLOWED",
+      "lastCrawlTime": "2026-09-11T06:15:20Z"
+    },
+    {
+      "url": "https://500signatures.fr/analyses/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/sources/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/salaires/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/methode/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/confidentialite/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/a-propos/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/age-achat-residence-principale/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/championne-du-monde-prelevements-2024/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/cout-travail-cent-euros-net-2025/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/defense-credits-votes-consommes-2025/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/defense-europe-depenses-2024/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/electricite-exportee-facture-francais/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/fournitures-scolaires-prix-1990-2025/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/groenland-accord-securite-europe/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/la-depense-publique-baisse-2024/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/prix-gaz-menages-2022-2025/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/retraites-premier-poste-2024/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/satisfaction-vie-france-2010-2024/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/analyses/ukraine-pret-europeen-90-milliards/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/electricite-vendue-moins-chere-etranger/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/arenh-42-euros-etranger/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/prix-fournitures-scolaires/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/hausse-prix-gaz/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/age-premier-achat-residence-principale/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/questions/qualite-vie-france/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/comprendre/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/comprendre/fonctionnement-investissement/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/comprendre/emprunt-et-epargne/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/comprendre/deficit-dette-perimetres/",
+      "verdict": "NEUTRAL",
+      "coverageState": "URL is unknown to Google",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    },
+    {
+      "url": "https://500signatures.fr/mandats/comprendre/entretenir-ou-reparer/",
+      "verdict": "NEUTRAL",
+      "coverageState": "Discovered - currently not indexed",
+      "indexingState": "INDEXING_STATE_UNSPECIFIED",
+      "lastCrawlTime": null
+    }
+  ]
+}

@@ -78,7 +78,7 @@
       "id": "senat-defense-2025",
       "titre": "Sénat : exécution 2025 de la mission Défense, rapport du 17 juin 2026",
       "url": "https://www.senat.fr/rap/l25-736-29/l25-736-29_mono.html",
-      "consulte_le": "2026-09-19"
+      "consulte_le": "2026-10-04"
     }
   ],
   "simulateur": {
@@ -94,11 +94,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
+    },
+    {
+      "date": "2026-10-04",
+      "quoi": "Périmètre des crédits explicité : contributions au compte d’affectation spéciale Pensions comprises, comme dans le rapport du Sénat."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "La mission Défense a consommé 62,1 milliards d’euros en 2025, contre 59,9 milliards inscrits au budget initial. Les ouvertures et reports ont porté les crédits disponibles à 62,6 milliards. Malgré ces moyens supplémentaires, les opérations et les commandes d’équipement font peser des charges sur les exercices suivants.",
+    "chapo": "La mission Défense, pensions comprises, a consommé 62,1 milliards d’euros en 2025, contre 59,9 milliards inscrits au budget initial. Les ouvertures et reports ont porté les crédits disponibles à 62,6 milliards. Malgré ces moyens supplémentaires, les opérations et les commandes d’équipement font peser des charges sur les exercices suivants.",
     "chronologie": {
       "titre": "Du budget initial aux comptes de l’exercice",
       "sourceId": "source-1",
@@ -125,7 +129,7 @@
         "value": 59.946338573,
         "unit": "billion_EUR",
         "period": "2025",
-        "definition": "Les crédits votés : l'autorisation donnée par le Parlement en loi de finances.",
+        "definition": "Les crédits votés : l'autorisation donnée par le Parlement en loi de finances. Contributions au compte d’affectation spéciale Pensions comprises.",
         "sourceId": "source-1",
         "comparableGroup": "defense-2025"
       },
@@ -135,7 +139,7 @@
         "value": 62.12373674991,
         "unit": "billion_EUR",
         "period": "2025",
-        "definition": "Les crédits consommés : ce que la mission a effectivement dépensé.",
+        "definition": "Les crédits consommés : ce que la mission a effectivement dépensé. Contributions au compte d’affectation spéciale Pensions comprises.",
         "sourceId": "source-1",
         "comparableGroup": "defense-2025"
       }
@@ -145,7 +149,7 @@
         "id": "budget-execution",
         "type": "bar",
         "titre": "Le budget initial et les dépenses exécutées",
-        "resume": "Mission Défense, 2025 : 59,9 milliards d’euros inscrits au départ et 62,1 milliards consommés pendant l’exercice.",
+        "resume": "Mission Défense, pensions comprises, 2025 : 59,9 milliards d’euros inscrits au départ et 62,1 milliards consommés pendant l’exercice.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -168,7 +172,8 @@
         "titre": "Le Parlement ouvre une enveloppe de départ",
         "paragraphes": [
           "En 2025, le Parlement a ouvert 59,9 milliards d’euros pour la mission Défense. Les crédits de paiement autorisent les dépenses payables pendant l’exercice ; les engagements, notamment pour les équipements, peuvent courir sur plusieurs années.",
-          "Cette enveloppe initiale organise le financement des armées et des services concernés. Les crédits effectivement disponibles évoluent ensuite avec les ouvertures, les annulations, les transferts et les reports autorisés pendant l’année."
+          "Cette enveloppe initiale organise le financement des armées et des services concernés. Les crédits effectivement disponibles évoluent ensuite avec les ouvertures, les annulations, les transferts et les reports autorisés pendant l’année.",
+          "Ces montants incluent les contributions au compte d’affectation spéciale Pensions. Ils se comparent entre eux sur ce même périmètre ; l’enveloppe de 50,5 milliards d’euros souvent citée pour 2025 exclut ces pensions."
         ]
       },
       {
@@ -207,6 +212,7 @@
       }
     ],
     "limitations": [
+      "Le budget initial et la consommation incluent tous deux les contributions au compte d’affectation spéciale Pensions.",
       "Le budget initial et les crédits consommés ne sont pas deux mesures de la même étape.",
       "Le dossier ne reconstitue pas ici tous les mouvements de crédits intervenus pendant 2025.",
       "La consommation budgétaire ne mesure pas à elle seule l'efficacité ni la disponibilité des forces.",

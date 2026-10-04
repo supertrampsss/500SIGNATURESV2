@@ -45,8 +45,8 @@
       "lecture": "Part de l’enveloppe destinée au soutien macroéconomique."
     },
     {
-      "dit": "11,6 milliards d’euros",
-      "valeur": 11600000000,
+      "dit": "14,9 milliards d’euros",
+      "valeur": 14900000000,
       "registre": "donnee_officielle",
       "lecture": "Cumul indiqué sur la page du Conseil consultée à cette date ; ce montant peut évoluer."
     }
@@ -66,9 +66,9 @@
     },
     {
       "id": "conseil-versements",
-      "titre": "Conseil de l’UE : état du soutien financier, consulté le 19 septembre 2026",
+      "titre": "Conseil de l’UE : état du soutien financier, consulté le 4 octobre 2026",
       "url": "https://www.consilium.europa.eu/fr/policies/ukraine-solidarity-financial-support/",
-      "consulte_le": "2026-09-19"
+      "consulte_le": "2026-10-04"
     },
     {
       "id": "seae-financement",
@@ -114,11 +114,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Réécriture des introductions, développements, légendes et conclusions en analyse directe ; données et références conservées."
+    },
+    {
+      "date": "2026-10-04",
+      "quoi": "Cumul des versements actualisé à 14,9 milliards d’euros d’après le Conseil, dont 3,2 milliards d’assistance macrofinancière et 11,7 milliards pour la défense. Date de consultation et part de l’enveloppe harmonisées."
     }
   ],
-  "verifie_contre": "Publications primaires consultées le 2026-09-19",
+  "verifie_contre": "Publications primaires consultées le 2026-09-19 ; état des versements du Conseil consulté le 2026-10-04",
   "dossier": {
-    "chapo": "L’Union européenne prévoit de prêter 90 milliards d’euros à l’Ukraine en 2026 et 2027 pour financer sa défense et son budget. Elle emprunte sur les marchés, verse les fonds progressivement et prend en charge les intérêts dans son budget. Au 19 septembre 2026, le Conseil annonce 11,6 milliards déjà versés. Le remboursement du principal reste lié aux réparations attendues de la Russie.",
+    "chapo": "L’Union européenne prévoit de prêter 90 milliards d’euros à l’Ukraine en 2026 et 2027 pour financer sa défense et son budget. Elle emprunte sur les marchés, verse les fonds progressivement et prend en charge les intérêts dans son budget. Dans son état consulté le 4 octobre 2026, le Conseil indique 14,9 milliards déjà versés. Le remboursement du principal reste lié aux réparations attendues de la Russie.",
     "chronologie": {
       "titre": "Le prêt se déploie par étapes",
       "sourceId": "conseil-pret",
@@ -132,8 +136,8 @@
           "texte": "Les premiers décaissements de la nouvelle enveloppe commencent."
         },
         {
-          "date": "19 septembre 2026",
-          "texte": "Le Conseil indique 11,6 milliards d’euros déjà versés dans le cadre du prêt."
+          "date": "4 octobre 2026",
+          "texte": "La page du Conseil consultée à cette date indique 14,9 milliards d’euros déjà versés."
         },
         {
           "date": "2026-2027",
@@ -175,9 +179,9 @@
       {
         "id": "pret-verse",
         "libelle": "Versements annoncés par le Conseil",
-        "value": 11.6,
+        "value": 14.9,
         "unit": "billion_EUR",
-        "period": "2026-09-19",
+        "period": "2026-10-04",
         "definition": "Cumul indiqué sur la page du Conseil consultée à cette date ; ce montant peut évoluer.",
         "sourceId": "conseil-versements"
       },
@@ -216,8 +220,8 @@
       {
         "id": "versements-repere",
         "type": "snapshot_table",
-        "titre": "90 milliards prévus, 11,6 milliards déjà versés",
-        "resume": "L’enveloppe couvre 2026 et 2027. Le cumul de 11,6 milliards annoncé par le Conseil au 19 septembre 2026 représente environ 13 % de ce total.",
+        "titre": "90 milliards prévus, 14,9 milliards déjà versés",
+        "resume": "L’enveloppe couvre 2026 et 2027. Le cumul de 14,9 milliards indiqué sur la page du Conseil consultée le 4 octobre 2026 représente environ 16,6 % de ce total.",
         "preuveIds": [
           "pret-total",
           "pret-verse",
@@ -253,10 +257,10 @@
       },
       {
         "id": "versements",
-        "titre": "11,6 milliards d’euros versés au 19 septembre 2026",
+        "titre": "14,9 milliards d’euros déjà versés selon le dernier état du Conseil",
         "paragraphes": [
-          "Au 19 septembre 2026, le Conseil indique 11,6 milliards d’euros déjà versés dans le cadre du prêt, soit environ 13 % de l’enveloppe de 90 milliards.",
-          "La Commission avait annoncé un premier versement macrofinancier de 3,2 milliards d’euros en juin. Le cumul communiqué par le Conseil comprend aussi des versements liés à la défense. Les décaissements ont donc commencé sur plusieurs usages, tandis que l’essentiel de l’enveloppe reste à mobiliser."
+          "La page du Conseil consultée le 4 octobre 2026 indique 14,9 milliards d’euros déjà versés dans le cadre du prêt, soit environ 16,6 % de l’enveloppe de 90 milliards.",
+          "Ce cumul se répartit entre 3,2 milliards d’euros d’assistance macrofinancière et 11,7 milliards pour les acquisitions de défense. Il décrit les fonds déjà débloqués, tandis que l’essentiel de l’enveloppe reste à mobiliser."
         ]
       },
       {
@@ -279,7 +283,7 @@
         "id": "conclusion",
         "titre": "Un soutien immédiat, un engagement budgétaire durable",
         "paragraphes": [
-          "Les 90 milliards d’euros prévus pour 2026 et 2027 doivent financer la défense et le budget ukrainiens. Au 19 septembre 2026, 11,6 milliards sont annoncés comme versés. L’Union lève les fonds et supporte les intérêts, tandis que les décaissements sont soumis aux conditions du prêt.",
+          "Les 90 milliards d’euros prévus pour 2026 et 2027 doivent financer la défense et le budget ukrainiens. La page du Conseil consultée le 4 octobre 2026 indique 14,9 milliards déjà versés. L’Union lève les fonds et supporte les intérêts, tandis que les décaissements sont soumis aux conditions du prêt.",
           "Le dispositif apporte des ressources à l’Ukraine pendant la guerre et engage les finances européennes dans la durée. Son équilibre dépend du contrôle des fonds, de leur emploi et du mécanisme de remboursement lié aux réparations russes, dont la disponibilité reste incertaine."
         ]
       }

@@ -80,17 +80,17 @@ test('Fournitures : récit, prix en euros et graphiques lisibles', async ({page}
 test('Analyses : recherche, filtres, lecture et sources en fin de dossier', async ({page}, info) => {
  await page.goto('/analyses/');
  await expect(page.locator('#navigation-principale a[href="/analyses/"]')).toHaveAttribute('aria-current','page');
- await expect(page.locator('#analyses-index > li')).toHaveCount(12);
- const toggle=page.locator('#analyses-filtres-bouton');
- if(await toggle.isVisible()) await activate(toggle,info);
- await page.locator('#analyses-recherche').fill('groenland');
- await expect(page.locator('#analyses-index > li:visible')).toHaveCount(1);
- await page.locator('#analyses-recherche').fill('motintrouvablexyz');
+ await expect(page.locator('[data-dossier-card]')).toHaveCount(dossiers.length);
+ const search=page.getByRole('searchbox',{name:'Rechercher un dossier'});
+ await search.fill('groenland');
+ await expect(page.locator('[data-dossier-card]:visible')).toHaveCount(1);
+ await search.fill('motintrouvablexyz');
  await expect(page.locator('#analyses-etat-vide')).toBeVisible();
  await page.locator('[data-effacer-filtres]').click();
- await expect(page.locator('#analyses-index > li:visible')).toHaveCount(12);
- await page.locator('#analyses-theme').selectOption('energie');
- await expect(page.locator('#analyses-index > li:visible')).toHaveCount(2);
+ await expect(page.locator('[data-dossier-card]:visible')).toHaveCount(dossiers.length);
+ await expect(search).toBeFocused();
+ await page.locator('[data-analyse-theme="energie"]').click();
+ await expect(page.locator('[data-dossier-card]:visible')).toHaveCount(dossiers.filter(d=>d.themes.includes('energie')).length);
  await noOverflow(page);
  await page.getByRole('link',{name:'Le gaz des ménages a-t-il encore augmenté ?',exact:true}).click();
  await expect(page.locator('.analyse-chart svg:visible')).toBeVisible();
@@ -101,7 +101,7 @@ test('Analyses : recherche, filtres, lecture et sources en fin de dossier', asyn
  await expect(page.locator('.analyse-rendu details')).toHaveCount(0);
  await expect(page.locator('.dossier-date')).toBeVisible();
  await noOverflow(page);
- await page.getByRole('button',{name:'Activer le mode sombre'}).click();
+ await expect(page.locator('.bascule-theme')).toBeHidden();
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('analyses-dark-'+info.project.name+'.png')});
 });
@@ -124,8 +124,8 @@ test('Analyses : les dossiers et leurs sources sont lisibles sans JavaScript',as
  const context=await browser.newContext({javaScriptEnabled:false,viewport:info.project.use.viewport});
  const page=await context.newPage();
  await page.goto('http://127.0.0.1:4180/analyses/');
- await expect(page.locator('#analyses-index > li')).toHaveCount(12);
- await expect(page.locator('#analyses-filtres')).toBeHidden();
+ await expect(page.locator('[data-dossier-card]')).toHaveCount(dossiers.length);
+ await expect(page.locator('.dossiers-v2__filtres')).toBeHidden();
  await page.getByRole('link',{name:'Défense : l’accélération des dépenses européennes',exact:true}).click();
  await expect(page.locator('.analyse-chart svg:visible')).toBeVisible();
  await expect(page.locator('#sources')).toContainText('Eurostat');
@@ -185,8 +185,8 @@ test('Confiance : Salaires affiche un profil sourcé et conserve la lecture des 
 
 test('France: published accounts survive a network failure and chapters stay on the page',async({page},info)=>{
  await page.route('https://pub-fc39d357004540a182a907aed4875ef5.r2.dev/**',r=>r.abort());
- await page.goto('/bilan/');await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');
- await expect(page.locator('.bilan-flux__ligne')).toHaveCount(2);await expect(page.locator('.bilan-verdict__totem')).toContainText('Solde public');
+ await page.goto('/bilan/');await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.',{useInnerText:true});
+ await expect(page.locator('.fr-keygrid > article')).toHaveCount(4);await expect(page.locator('.fr-keygrid')).toContainText('Solde public');
  await expect(page.locator('.bilan-erreur [role="alert"]')).toBeVisible();await expect(page.locator('#national')).toBeVisible();
  const chapitres=page.getByRole('navigation',{name:'Chapitres des comptes publics'});
  // Sur mobile, le raccourci des chapitres est masqué pour laisser la page
@@ -201,6 +201,7 @@ test('France: published accounts survive a network failure and chapters stay on 
 test('Ville: search and financial detail work without a map',async({page},info)=>{
  await publication(page,{demographie:true});
  await page.goto('/territoire');await expect(page.locator('#carte, #cadre-carte, .maplibregl-map')).toHaveCount(0);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de votre ville, en clair.');
+ await page.getByRole('region',{name:'Mesure d’audience'}).getByRole('button',{name:'Refuser',exact:true}).click();
  await expect(page.locator(".territoire-depart")).toHaveCount(0);
  await page.getByRole("combobox",{name:"Rechercher une ville"}).fill("Bordeaux");
  await page.locator('#suggestions button[data-code="33063"]').click();
@@ -215,7 +216,9 @@ test('Ville: search and financial detail work without a map',async({page},info)=
  await expect(population.locator('.davantage__cartes')).toBeVisible();
  await expect(page.locator('#fiche .ville-source a[href="/sources/"]').first()).toBeVisible();await noOverflow(page);
  await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Paris');await page.getByRole('combobox').press('ArrowDown');await page.locator('#suggestions button[data-code="75056"]').press('Enter');await expect(page.locator('.fiche__titre')).toHaveText('Paris');await noOverflow(page);
- await activate(page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true}),info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.');await noOverflow(page);
+ const franceLink=page.locator('#navigation-principale').getByRole('link',{name:'France',exact:true});
+ if(!await franceLink.isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
+ await activate(franceLink,info);await expect(page.getByRole('heading',{level:1})).toHaveText('Les comptes de la France.',{useInnerText:true});await noOverflow(page);
 });
 
 test('Confiance : Salaires garde la navigation accessible avec mouvement réduit', async({page},info)=>{
@@ -230,47 +233,42 @@ test('Confiance : Salaires garde la navigation accessible avec mouvement réduit
  await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');await noOverflow(page);
 });
 
-test('France and Ville: charts are the content, touch and keyboard change the actual figures',async({page},info)=>{
- await publication(page);
- await page.emulateMedia({reducedMotion:'reduce'});
+test('France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier',async({page},info)=>{
+ await publication(page);await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/bilan/');
- await expect(page.locator('.bilan-lecture')).toHaveCount(0);
- await expect(page.locator('.accounts-reading')).not.toHaveAttribute('open','');
- await expect(page.locator('#insights-france')).toBeVisible();
- const chart=page.locator('#bloc-ouverture .chart-time');
- await expect(chart).toBeVisible();
- const control=chart.getByRole('slider');
- const last=await chart.locator('output').textContent();
- await control.press('Home');
- await expect(chart.locator('output')).not.toHaveText(last);
- await expect(control).toHaveAttribute('aria-valuetext',await chart.locator('.chart-scrub__year').innerText());
- await control.press('End');await expect(chart.locator('output')).toHaveText(last);
- await activate(chart.locator('svg:visible'),info);
- await expect(chart.locator('output')).not.toHaveText(last);
- await control.press('End');await expect(chart.locator('output')).toHaveText(last);
- await noOverflow(page);
- await chart.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png')});
- const key=page.locator('[data-waffle-key]').first();
- await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','true');
- await activate(key,info);await expect(key).toHaveAttribute('aria-pressed','false');
- await page.getByRole('link',{name:'Ville',exact:true}).click();
- await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Bordeaux');
+ await page.getByRole('region',{name:'Mesure d’audience'}).getByRole('button',{name:'Refuser',exact:true}).click();
+ const chart=page.locator('#bloc-ouverture .fr-chart');
+ await expect(chart.getByRole('img')).toHaveAccessibleName('Recettes et dépenses publiques, en milliards d’euros');
+ expect(await chart.locator('svg path').count()).toBeGreaterThanOrEqual(2);
+ await expect(page.locator('#bloc-ouverture .fr-source')).toContainText('Eurostat');
+ const europe=page.locator('[data-fr-europe-tab="eurostat_prelevements_obligatoires_pib"]');
+ if(page.viewportSize().width<=700){
+  await expect(europe).toBeVisible();await europe.focus();await europe.press('Enter');await expect(europe).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-fr-europe-chart="eurostat_prelevements_obligatoires_pib"]')).toHaveAttribute('data-fr-active','true');
+ }else{
+  await expect(page.locator('[data-fr-europe-chart="eurostat_depenses_publiques_pib"]')).toBeVisible();
+  await expect(page.locator('[data-fr-europe-chart="eurostat_prelevements_obligatoires_pib"]')).toBeVisible();
+ }
+ const topic=page.locator('.fr-topic').first();await topic.locator('summary').focus();await topic.locator('summary').press('Enter');
+ await expect(topic).toHaveAttribute('open','');await expect(topic.locator('.fr-topic-content')).toBeVisible();
+ await noOverflow(page);await chart.screenshot({path:info.outputPath('accounts-'+info.project.name+'.png')});
+ const ville=page.locator('#navigation-principale').getByRole('link',{name:'Ville',exact:true});
+ if(!await ville.isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
+ await ville.click();await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Bordeaux');
  await activate(page.locator('#suggestions button[data-code="33063"]'),info);
- await expect(page.locator('.territory-charts')).toBeVisible();
- await activate(page.locator('[data-chart-tab="dette"]'),info);
- await expect(page.locator('[data-chart-panel="dette"]')).toBeVisible();
- await expect(page.locator('[data-chart-panel="budget"]')).toBeHidden();
- await page.locator('.territory-charts').screenshot({path:info.outputPath('territory-'+info.project.name+'.png')});
- await activate(page.locator('[data-chart-tab="budget"]'),info);await noOverflow(page);
- const before=await page.locator('[data-chart-panel="budget"] output').textContent();
+ await expect(page.locator('#territoire-comptes')).toBeVisible();
+ const budget=page.locator('#territoire-comptes');
+ await expect(budget.getByRole('img')).toBeVisible();
+ await expect(page.locator('#territoire-dette').getByRole('img')).toBeVisible();
+ await expect(page.locator('#territoire-chiffres-cles .ville-source')).toContainText('OFGL');
+ const control=budget.getByRole('slider').first();
+ const last=await budget.locator('output').textContent();
+ await control.press('Home');await expect(budget.locator('output')).not.toHaveText(last);
+ await control.press('End');await expect(budget.locator('output')).toHaveText(last);
+ await budget.screenshot({path:info.outputPath('territory-'+info.project.name+'.png')});
  await page.getByRole('combobox',{name:'Rechercher une ville'}).fill('Paris');
  await activate(page.locator('#suggestions button[data-code="75056"]'),info);
- await expect(page.locator('[data-chart-panel="budget"] output')).not.toHaveText(before);
- if(await page.locator('html').getAttribute('data-theme')==='sombre')await page.getByRole('button',{name:'Activer le mode clair'}).click();await page.getByRole('button',{name:'Activer le mode sombre'}).click();await noOverflow(page);
- await expect(page.locator('.fiche__titre')).toHaveCSS('color','rgb(245, 240, 223)');
- await expect(page.locator('[data-chart-panel="budget"] .chart-key--0')).toHaveCSS('color','rgb(133, 207, 175)');
- await expect(page.locator('[data-chart-panel="budget"] .chart-series--0').first()).toHaveCSS('color','rgb(133, 207, 175)');
- await page.screenshot({path:info.outputPath('territory-dark-'+info.project.name+'.png')});
+ await expect(page.locator('#territoire-comptes output')).not.toHaveText(last);await noOverflow(page);
 });
 
 test('Dossiers : qualité, lecture du coût du travail et actualité du Groenland', async ({page}, info) => {

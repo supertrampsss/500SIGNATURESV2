@@ -826,3 +826,9 @@ body[data-vue="territoire"]:not([data-territoire-selection="oui"]) .territoire-r
 .sources-v2--compact .sources-v2__references h2{font:500 30px/1.1 "Spectral",Georgia,serif}
 .sources-v2--compact .sources-v2__detail{margin:0 36px 24px}
 @media(max-width:700px){.sources-v2--compact .sources-v2__hero>div{padding:36px 18px}.sources-v2--compact .sources-v2__references{margin:18px}.sources-v2--compact .sources-v2__detail{margin:0 18px 20px}}
+
+/* Les filtres deviennent utilisables seulement après branchement du contrôleur. */
+.dossiers-v2__filtres[hidden],.dossiers-v2__vide[hidden],.dossiers-v2__vedette[hidden]{display:none!important}
+.dossiers-v2__vide{margin:20px;color:var(--site-ink)}
+.dossiers-v2__vide button{min-height:44px;padding:8px 16px;border:1px solid var(--site-red);background:var(--site-paper);color:var(--site-red);font:inherit;cursor:pointer}
+.dossiers-v2__vide button:focus-visible{outline:2px solid var(--site-ink);outline-offset:3px}

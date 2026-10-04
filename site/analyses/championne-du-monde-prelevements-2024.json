@@ -73,7 +73,7 @@
     {
       "titre": "Recettes des administrations publiques par catégorie (Eurostat, gov_10a_taxag)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_taxag/default/table",
-      "consulte_le": "2026-08-22",
+      "consulte_le": "2026-10-04",
       "id": "source-1"
     },
     {
@@ -120,11 +120,15 @@
     {
       "date": "2026-09-19",
       "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
+    },
+    {
+      "date": "2026-10-04",
+      "quoi": "Valeurs rapprochées de l’API Eurostat : France 45,2 %, Danemark 45,4 %, Union européenne 40,2 %. Définition de l’agrégat et date de révision explicitées."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "En 2024, les impôts et cotisations sociales nettes représentent 45,2 % du produit intérieur brut (PIB) en France selon Eurostat, contre 40,2 % dans l’Union européenne et 45,4 % au Danemark. Ce niveau élevé finance notamment les services publics et la protection sociale. Son effet sur les ménages dépend des prélèvements qu’ils acquittent, mais aussi des prestations et des services qu’ils reçoivent.",
+    "chapo": "En 2024, les impôts et cotisations sociales nettes, cotisations imputées comprises, représentent 45,2 % du produit intérieur brut (PIB) en France selon Eurostat, contre 40,2 % dans l’Union européenne et 45,4 % au Danemark. Ce niveau élevé finance notamment les services publics et la protection sociale. Son effet sur les ménages dépend des prélèvements qu’ils acquittent, mais aussi des prestations et des services qu’ils reçoivent.",
     "series": [],
     "preuves": [
       {
@@ -177,7 +181,8 @@
         "titre": "Les impôts et cotisations dans la richesse produite",
         "paragraphes": [
           "Le taux rapporte les impôts et les cotisations sociales nettes au PIB, la richesse produite dans le pays pendant l’année. Il rassemble les recettes prélevées sur les revenus, la consommation, le patrimoine et les activités économiques.",
-          "Les ménages contribuent par plusieurs canaux : cotisations sur le travail, impôts sur les revenus ou le patrimoine, taxes sur les achats. Leur contribution varie avec leur situation et leurs dépenses ; le taux national de 45,2 % porte sur l’ensemble de l’économie."
+          "Les ménages contribuent par plusieurs canaux : cotisations sur le travail, impôts sur les revenus ou le patrimoine, taxes sur les achats. Leur contribution varie avec leur situation et leurs dépenses ; le taux national de 45,2 % porte sur l’ensemble de l’économie.",
+          "Nous utilisons l’agrégat Eurostat qui inclut les cotisations imputées, notamment celles de l’État employeur, et déduit les montants dus mais non recouvrables. La base a été actualisée le 21 juillet 2026. Les chiffres peuvent donc différer du communiqué de 2025 et des taux publiés selon une définition limitée aux prélèvements obligatoires."
         ]
       },
       {
@@ -219,7 +224,8 @@
       "La série comparée couvre l'Union européenne et certains pays voisins, pas tous les pays du monde.",
       "Les valeurs peuvent être révisées et varier de quelques dixièmes selon la base, la définition et l'année de consultation.",
       "Le taux de prélèvements obligatoires ne mesure ni la facture individuelle d'un ménage ni la qualité des services publics.",
-      "La comparaison ne permet pas d'établir une causalité entre niveau de prélèvements et résultats sociaux ou économiques."
+      "La comparaison ne permet pas d'établir une causalité entre niveau de prélèvements et résultats sociaux ou économiques.",
+      "Les valeurs 2024 sont celles de la base Eurostat actualisée le 21 juillet 2026, consultée le 4 octobre 2026 ; l’agrégat inclut les cotisations sociales imputées."
     ],
     "sommaire": [
       "ce-que-mesure-le-taux",

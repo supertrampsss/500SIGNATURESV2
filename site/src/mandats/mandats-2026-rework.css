@@ -1264,3 +1264,6 @@ body[data-mode="national"] .dossier.crisis-dossier{
   .year-briefing__grid{grid-template-columns:1fr}
   .year-briefing__grid>section{padding:20px 18px}
 }
+
+/* Le shell actuel fournit déjà la largeur du jeu, y compris sur les anciens liens. */
+body[data-mode="national"] #mandats .mandat-play-hero{margin-inline:0}

@@ -21,6 +21,8 @@ html body[data-cinema="true"] #mandats {
   padding: 0 !important;
   background: transparent;
 }
+/* The cinema shell has no outer gutter to cancel, including in landscape. */
+html body[data-cinema="true"] #mandats .mandate-board { margin: 0; }
 html body[data-cinema="true"] #mandats :is(h1,h2,h3) {
   font-family: Georgia, "Times New Roman", serif;
   letter-spacing: -.035em;
@@ -162,4 +164,9 @@ body[data-cinema="true"] #mandats summary::marker { content: ''; }
 html body[data-cinema="true"] #mandats :is(.living-result__actions,.living-recap,.living-briefing) .button.primary:hover {
   background: #a91930;
   color: #fff;
+}
+
+/* Garder la première mesure accessible sur les écrans portrait courts. */
+@media (max-width:600px) and (max-height:700px){
+ html body[data-cinema="true"] #mandats .board-scene{height:19svh}
 }
