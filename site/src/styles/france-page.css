@@ -19,7 +19,7 @@ html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete__signature { displ
 html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav { display:flex; width:auto; gap:28px; margin:0 0 0 auto; padding:0; align-items:center; }
 html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a { font:500 13px/1.2 'Source Sans 3',Arial,sans-serif; color:var(--fr-ink); padding:13px 0; border:0; border-bottom:2px solid transparent; min-height:42px; background:none; }
 html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[aria-current="page"] { color:var(--fr-ink); border-bottom-color:var(--fr-red); }
-html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[href='/accueil/'],html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[href^='https://x.com'] { display:none; }
+html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[href='/'],html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[href^='https://x.com'] { display:none; }
 html[data-theme] body[data-vue="bilan"]:has(.fr-page) .entete .entete__nav a[href='/analyses/'] { background:var(--fr-red); color:#fff; padding:12px 20px; border-radius:5px; border:1px solid #b62335; }
 html[data-theme] body[data-vue="bilan"] #vue-bilan #national .fr-page { font:400 16px/1.4 'Source Sans 3','Public Sans',Arial,sans-serif; color:#092d58; text-align:left; }
 html[data-theme] body[data-vue="bilan"] #vue-bilan #national .fr-page *,html[data-theme] body[data-vue="bilan"] #vue-bilan #national .fr-page *::before,html[data-theme] body[data-vue="bilan"] #vue-bilan #national .fr-page *::after { box-sizing:border-box; }
