@@ -2829,19 +2829,19 @@ function brancherFiltresAnalyses(): void {
   const cartes=Array.from(document.querySelectorAll<HTMLElement>("[data-dossier-card]"));
   if(!cartes.length) return;
   const champ=document.getElementById("analyses-recherche-v2") as HTMLInputElement|null;
+  const filtres=document.querySelector<HTMLElement>(".dossiers-v2__filtres");
+  const vide=document.getElementById("analyses-etat-vide");
+  const effacer=vide?.querySelector<HTMLButtonElement>("[data-effacer-filtres]");
   const boutons=Array.from(document.querySelectorAll<HTMLButtonElement>("[data-analyse-theme]"));
   let themeActif="";
   const appliquer=()=>{
-    const recherche=champ?.value ?? "";
+    let visibles=0;
     for(const carte of cartes){
-      const retenue=carteRetenue({
-        type:carte.dataset.type ?? "",
-        themes:carte.dataset.themes ?? "",
-        budgets:carte.dataset.budgets ?? "",
-        texte:carte.dataset.texte ?? "",
-      },{type:"",theme:themeActif,budget:"",recherche});
+      const retenue=carteRetenue({type:carte.dataset.type ?? "",themes:carte.dataset.themes ?? "",budgets:carte.dataset.budgets ?? "",texte:carte.dataset.texte ?? ""},{type:"",theme:themeActif,budget:"",recherche:champ?.value ?? ""});
       carte.hidden=!retenue;
+      if(retenue) visibles++;
     }
+    if(vide) vide.hidden=visibles!==0;
   };
   champ?.addEventListener("input",appliquer);
   for(const bouton of boutons){
@@ -2851,6 +2851,14 @@ function brancherFiltresAnalyses(): void {
       appliquer();
     });
   }
+  effacer?.addEventListener("click",()=>{
+    if(champ) champ.value="";
+    themeActif="";
+    for(const bouton of boutons) bouton.setAttribute("aria-pressed",String(bouton.dataset.analyseTheme===""));
+    appliquer();champ?.focus();
+  });
+  if(filtres) filtres.hidden=false;
+  appliquer();
 }
 
 /* --------------------------------------------------------------------------
@@ -3601,6 +3609,11 @@ demarrer().catch((erreur: Error) => {
     hote = document.createElement("div");
     hote.className = "bilan-erreur";
     $("vue-bilan").prepend(hote);
+  } else if (document.body.dataset.vue === "accueil" && $("vue-accueil").querySelector(".accueil-story")) {
+    // Le texte et les parcours publiés restent utilisables pendant une panne.
+    hote = document.createElement("div");
+    hote.className = "accueil-erreur";
+    $("vue-accueil").prepend(hote);
   } else hote = document.body.dataset.vue === "accueil" ? $("vue-accueil") : $("fiche");
   hote.innerHTML = `<div class="etat etat--echec" role="alert">
       <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>

@@ -85,13 +85,13 @@
     {
       "titre": "Dépenses des administrations publiques par transaction (Eurostat, gov_10a_main)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
-      "consulte_le": "2026-08-22",
+      "consulte_le": "2026-10-04",
       "id": "source-1"
     },
     {
       "titre": "Dépenses des administrations publiques par fonction (Eurostat, gov_10a_exp)",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table",
-      "consulte_le": "2026-08-22",
+      "consulte_le": "2026-10-04",
       "id": "source-2"
     },
     {
@@ -126,6 +126,10 @@
     {
       "date": "2026-09-19",
       "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
+    },
+    {
+      "date": "2026-10-04",
+      "quoi": "Rapprochement des montants avec les API Eurostat ; référence de la ligne vieillesse corrigée vers gov_10a_exp et périmètre des pensions et minima explicité."
     }
   ],
   "verifie_contre": "",
@@ -139,8 +143,8 @@
         "value": 362.1784,
         "unit": "billion_EUR",
         "period": "2024",
-        "definition": "Les pensions de vieillesse valent 362 178,4 M€ en 2024.",
-        "sourceId": "source-1",
+        "definition": "Prestations sociales en espèces de la fonction vieillesse (D62, GF1002) : pensions de droit direct et minima vieillesse, toutes administrations publiques, 2024.",
+        "sourceId": "source-2",
         "comparableGroup": "depenses-2024"
       },
       {
@@ -222,6 +226,7 @@
         "titre": "Des pensions de retraite aux dépenses liées à la vieillesse",
         "paragraphes": [
           "La ligne « pensions de vieillesse » représente 362,2 milliards d’euros dans les comptes publics de 2024. Elle regroupe les pensions versées par les administrations publiques, au-delà du seul budget de l’État. Les autres dépenses liées à l’âge relèvent de catégories distinctes.",
+          "La ligne Eurostat utilisée correspond aux prestations sociales en espèces de la fonction vieillesse. Elle comprend les pensions de droit direct et les minima vieillesse. Les 362,2 milliards ne désignent donc pas exclusivement les pensions contributives ; les pensions de réversion relèvent de la fonction survie.",
           "La DREES chiffre les pensions à 353 milliards d’euros en 2022 et l’ensemble du risque « vieillesse-survie » à 400,3 milliards en 2023. Ce dernier ensemble couvre aussi la survie, notamment les pensions de réversion versées après le décès d’un conjoint. La protection liée à la retraite se prolonge ainsi dans le revenu du conjoint survivant."
         ]
       },
@@ -268,6 +273,7 @@
       }
     ],
     "limitations": [
+      "La ligne de 362,2 milliards inclut les minima vieillesse et exclut les prestations de survie, notamment les pensions de réversion.",
       "Les pensions de vieillesse, la protection sociale et le seul budget de l'État ne recouvrent pas le même périmètre.",
       "Le ratio de 24,1 % rapporte une dépense aux recettes publiques ; ce n'est pas sa part dans les dépenses.",
       "Le classement entre pensions et rémunérations peut varier avec l'année et la nomenclature.",
