@@ -1,6 +1,6 @@
 /* Les analyses prolongent la page France : ivoire, bleu marine et rouge,
    composition typographique et une échelle lisible par figure. */
-body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) {
+body[data-page="editorial"]:has(.analyses-index, .analyse-rendu, .questions) {
   --fond: #f5f4ed;
   --papier: #f5f4ed;
   --papier-creuse: #fffefa;
@@ -24,7 +24,7 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) {
   --accent: #ef9d7d;
   --accent-fonce: #ef9d7d;
 }
-body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
+body[data-page="editorial"]:has(.analyses-index, .analyse-rendu, .questions) #contenu {
   width: 100%;
   max-width: 80rem;
   padding: clamp(1.25rem, 4vw, 3rem);
@@ -96,6 +96,15 @@ body[data-page="editorial"]:has(.analyses-index, .analyse-rendu) #contenu {
 @media print{.analyse-longue__fil{display:none}.dossier-journal .analyse-longue__figure{break-inside:avoid}}
 
 .dossier-journal .analyse-longue__unite-figure{border:0;padding:0;background:none}
+
+.dossier-lectures { border-top:1px solid var(--trait); padding-top:1.5rem; }
+.dossier-lectures ul { list-style:none; padding:0; margin:0; display:grid; gap:1.2rem; }
+.dossier-lectures a { font-weight:600; text-underline-offset:4px; }
+.dossier-lectures p { margin:.35rem 0 0; font-size:.9rem; color:var(--encre-douce); }
+.dossier-lectures a:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.dossiers-v2__questions { margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--trait); }
+.dossiers-v2__questions h2 { font:500 1.8rem/1.25 var(--serif); margin:0 0 .8rem; }
+.dossiers-v2__questions p { max-width:45rem; line-height:1.7; }
 
 /* Three editorial columns fit the reading column, including on narrow phones.
    Override the legacy wide-data-table minimums without clipping any cells. */

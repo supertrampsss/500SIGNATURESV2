@@ -17,8 +17,9 @@ test("la racine et /accueil/ servent l'accueil", () => {
   // Cloudflare applies these rules before serving the prerendered index.html.
   // A root redirect would hide the approved home page despite correct SPA routing.
   assert.equal(rules.some(([source]) => source === "/" || source === "/*"), false);
-  assert.deepEqual(rules.filter(([from]) => from === "/accueil"), [["/accueil", "/accueil/", "301"]]);
-  assert.deepEqual(rules.filter(([from]) => from === "/accueil/"), []);
+  // Les deux anciennes entrées rejoignent désormais la même canonique sans chaîne.
+  assert.deepEqual(rules.filter(([from]) => from === "/accueil"), [["/accueil", "/", "301"]]);
+  assert.deepEqual(rules.filter(([from]) => from === "/accueil/"), [["/accueil/", "/", "301"]]);
   for (const [legacy, canonical] of [
     ["carte", "territoire"],
     ["donnees", "territoire"],

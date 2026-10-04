@@ -7,6 +7,7 @@ import type {IndexSources} from "./registre-sources.ts";
 import {aplatir} from "./simulateur.ts";
 import {libelleTheme} from "./themes.ts";
 import {echapper} from "./texte.ts";
+import {SEO_DOSSIERS} from "./seo-editorial.ts";
 export type Cran = "exact" | "hors_perimetre" | "introuvable";
 
 export type Confusion =
@@ -269,6 +270,12 @@ function piedDossier(analyse: Analyse): string {
   return `<footer class="analyse-longue__sources" id="sources">${lecture}<h2>Sources</h2><ol>${[...liens.values()].map(s=>`<li><a href="${echapper(s.url)}" target="_blank" rel="noopener">${echapper(s.titre)}</a></li>`).join("")}</ol><p class="dossier-date">Publié le <time datetime="${echapper(analyse.publie_le)}">${echapper(dateFrancaise(analyse.publie_le))}</time>${modification ? ` · Mis à jour le <time datetime="${echapper(modification)}">${echapper(dateFrancaise(modification))}</time>` : ""}</p></footer>`;
 }
 
+function lecturesLiees(slug: string): string {
+  const liens = SEO_DOSSIERS[slug]?.liens ?? [];
+  if (!liens.length) return "";
+  return `<section class="dossier-lectures" aria-labelledby="lectures-liees"><h2 id="lectures-liees">À lire aussi</h2><ul>${liens.map(lien => `<li><a href="${echapper(lien.chemin)}">${echapper(lien.titre)}</a><p>${echapper(lien.contexte)}</p></li>`).join("")}</ul></section>`;
+}
+
 /** Le contrat garde les références des données ; le lecteur suit un article continu. */
 export function rendu(analyse: Analyse, _catalogue: Indicateur[], _version = "", _adresse = "", _indexSources?: IndexSources): string {
   const contrat = contratDossierAnalyse(analyse);
@@ -290,7 +297,7 @@ export function rendu(analyse: Analyse, _catalogue: Indicateur[], _version = "",
     // Compatibilité des imports historiques ; les dossiers du site ont tous un développement rédigé.
     corps = `<section class="analyse-longue__section"><h2>Les données publiées</h2>${analyse.chiffres.map(c=>`<p>${echapper(c.lecture)}</p>`).join("")}</section><section class="analyse-longue__section"><h2>Conclusion</h2><p>${echapper(analyse.verdict.phrase)}</p></section>`;
   }
-  return `<article class="analyse-rendu analyse-rendu--long dossier-journal" data-slug="${echapper(analyse.slug)}"><nav class="analyse-longue__fil" aria-label="Retour aux dossiers"><a href="/analyses/">Dossiers</a></nav><header class="analyse-longue__entete"><p class="analyse-longue__meta">${echapper(analyse.themes.map(t=>libelleTheme(t).replace("Comparaisons européennes","Europe")).join(" · "))}</p><h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1><p class="analyse-longue__chapo">${echapper(contrat?.dossier.chapo ?? analyse.affirmation.texte)}</p></header>${corps}${piedDossier(analyse)}</article>`;
+  return `<article class="analyse-rendu analyse-rendu--long dossier-journal" data-slug="${echapper(analyse.slug)}"><nav class="analyse-longue__fil" aria-label="Fil d’Ariane"><a href="/">Accueil</a><span aria-hidden="true"> · </span><a href="/analyses/">Dossiers</a></nav><header class="analyse-longue__entete"><p class="analyse-longue__meta">${echapper(analyse.themes.map(t=>libelleTheme(t).replace("Comparaisons européennes","Europe")).join(" · "))}</p><h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1><p class="analyse-longue__chapo">${echapper(contrat?.dossier.chapo ?? analyse.affirmation.texte)}</p></header>${corps}${lecturesLiees(analyse.slug)}${piedDossier(analyse)}</article>`;
 }
 export type CriteresIndex = {
   type?: string;
@@ -460,6 +467,7 @@ export function renduIndex(analyses: Analyse[], _catalogue: Indicateur[]): strin
     <div class="dossiers-v2__vide" id="analyses-etat-vide" hidden><p role="status">Aucun dossier ne correspond à cette recherche.</p><button type="button" data-effacer-filtres>Effacer les filtres</button></div>
     ${vedetteHtml}
     <section class="dossiers-v2__liste-section"><div class="dossiers-v2__section-head"><h2>Les derniers dossiers</h2><p>Des analyses pour un débat plus serein.</p></div><ul class="dossiers-v2__grille" id="analyses-index">${visuelles.map(carteDossierV2).join("")}${secondaires.map(carteDossierV2).join("")}</ul></section>
+    <section class="dossiers-v2__questions"><h2>Une question sur ces chiffres ?</h2><p>Prix de l’énergie, premier achat immobilier, fournitures scolaires ou qualité de vie : <a href="/questions/">consultez les réponses sourcées aux questions du quotidien</a>.</p></section>
     <section class="dossiers-v2__preuves"><div><strong>Des données fiables</strong><span>Sources publiques officielles</span></div><div><strong>Des analyses indépendantes</strong><span>Une approche factuelle et pédagogique</span></div><div><strong>Une information accessible</strong><span>Des sujets complexes, expliqués clairement</span></div></section>
   </section>`;
 }

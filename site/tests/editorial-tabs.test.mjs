@@ -5,6 +5,83 @@ const dossiers = await Promise.all((await readdir(new URL('../analyses/', import
  .filter(name => name.endsWith('.json'))
  .map(async name => JSON.parse(await readFile(new URL('../analyses/' + name, import.meta.url), 'utf8'))));
 
+// Les robots et les lecteurs sans JS doivent recevoir les mêmes intentions,
+// références et chemins de lecture, sans titre amputé ni lien vers une page absente.
+test('SEO : dossiers et réponses restent documentés et reliés sans JavaScript', async ({browser}, info) => {
+ test.setTimeout(120000);
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:info.project.use.viewport});
+ const page=await context.newPage();
+ const titres=new Set();
+ const liens=new Set();
+ try {
+  await page.goto('http://127.0.0.1:4180/analyses/');
+  await page.getByRole('link',{name:'consultez les réponses sourcées aux questions du quotidien'}).click();
+  await expect(page.getByRole('heading',{level:1,name:'Comprendre les chiffres du quotidien'})).toBeVisible();
+  const questions=await page.locator('.questions__liste a').evaluateAll(els=>els.map(el=>el.getAttribute('href')));
+  expect(questions).toHaveLength(6);
+  const chemins=[...dossiers.map(d=>'/analyses/'+d.slug+'/'),...questions];
+  for(const chemin of chemins) {
+   const response=await page.goto('http://127.0.0.1:4180'+chemin);
+   expect(response.status(),chemin).toBe(200);
+   const titre=await page.title();
+   expect(titre,chemin).not.toContain('…');
+   expect(titre,chemin).toMatch(/\| 500 signatures$/);
+   expect(titres.has(titre),chemin+' titre dupliqué').toBe(false);
+   titres.add(titre);
+   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr'+chemin);
+   const schemas=await page.locator('script[type="application/ld+json"]').evaluateAll(els=>els.map(el=>JSON.parse(el.textContent)));
+   const fil=schemas.find(s=>s['@type']==='BreadcrumbList');
+   expect(fil,chemin).toBeDefined();
+   const nav=page.locator('nav[aria-label="Fil d’Ariane"]');
+   const visibles=await nav.locator('a').evaluateAll(els=>els.map(el=>({name:el.textContent,href:el.getAttribute('href')})));
+   expect(fil.itemListElement.map(e=>({name:e.name,href:new URL(e.item).pathname})),chemin).toEqual(visibles);
+   const article=schemas.find(s=>s['@type']==='Article');
+   if(chemin.startsWith('/analyses/')) {
+    expect(article.headline,chemin).toBe(await page.locator('h1').textContent());
+    await expect(page.locator('.dossier-lectures a')).not.toHaveCount(0);
+    const position=await page.locator('.dossier-lectures').evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#sources')) & Node.DOCUMENT_POSITION_FOLLOWING));
+    expect(position,chemin+' sources en fin de lecture').toBe(true);
+    for(const href of await page.locator('.dossier-lectures a').evaluateAll(els=>els.map(el=>el.getAttribute('href'))))liens.add(href);
+   } else {
+    await expect(page.locator('.questions__explication h2')).toHaveCount(2);
+    await expect(page.locator('.questions__sources a[href^="http"]')).not.toHaveCount(0);
+    const retour=page.locator('.questions__sources a[href^="/analyses/"]');
+   await expect(retour).toHaveCount(1);
+   liens.add(await retour.getAttribute('href'));
+   const lecture=await page.locator('.questions > nav, .questions > header, .questions__reponse, .questions__explication, .questions__sources').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};}));
+   for(let i=0;i<lecture.length;i++) {
+    expect(lecture[i].left,chemin+' marge de lecture').toBeGreaterThanOrEqual(16);
+    expect(lecture[i].right,chemin+' marge droite').toBeLessThanOrEqual(info.project.use.viewport.width-16);
+    if(i)expect(lecture[i].top,chemin+' lecture continue').toBeGreaterThanOrEqual(lecture[i-1].bottom-1);
+   }
+    if(chemin==='/questions/hausse-prix-gaz/') {
+     await expect(page.locator('.questions__reponse')).toContainText('2025');
+     await page.screenshot({path:info.outputPath('seo-gaz-reponse.png'),fullPage:true,animations:'disabled'});
+    }
+   }
+   await noOverflow(page);
+   const contrastes=await page.locator('h1, .questions__reponse, .questions__sources a, .dossier-lectures a').evaluateAll(elements=>{
+    const rgb=value=>value.match(/[\d.]+/g).slice(0,3).map(Number);
+    const luminance=value=>rgb(value).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+    return elements.map(el=>{
+     let parent=el;
+     while(parent && ['rgba(0, 0, 0, 0)','transparent'].includes(getComputedStyle(parent).backgroundColor))parent=parent.parentElement;
+     const fond=getComputedStyle(parent??document.body).backgroundColor;
+     const l1=luminance(getComputedStyle(el).color),l2=luminance(fond);
+     return {texte:el.textContent,ratio:(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05)};
+    });
+   });
+   for(const contraste of contrastes) expect(contraste.ratio,chemin+' '+contraste.texte).toBeGreaterThanOrEqual(4.5);
+   if(chemin==='/analyses/retraites-premier-poste-2024/') {
+    await page.screenshot({path:info.outputPath('seo-retraites-introduction.png'),animations:'disabled'});
+    await page.locator('.dossier-lectures').scrollIntoViewIfNeeded();
+    await page.screenshot({path:info.outputPath('seo-retraites-lectures.png'),animations:'disabled'});
+   }
+  }
+  for(const href of liens) expect((await context.request.get('http://127.0.0.1:4180'+href)).status(),href).toBe(200);
+ } finally {await context.close();}
+});
+
 // Défauts de lancement constatés en production : métadonnées d'accueil
 // conservées sur France/Ville et requêtes AdSense sans choix préalable.
 test('Lancement : métadonnées propres à chaque vue et aucune publicité automatique', async ({page}, info) => {
