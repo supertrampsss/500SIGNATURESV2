@@ -1247,7 +1247,7 @@ export function injecter(shell: string, page: Page, site: string): string {
     html,
     html.replace(
       /(<main id="contenu">)[\s\S]*?(<\/main>)/,
-      (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n<footer class="editorial-footer" aria-label="Pied de page du site"><a href="/accueil/">500 Signatures</a><p>Les comptes de la France. Des chiffres pour comprendre. Des faits pour débattre.</p><nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" target="_blank" rel="noopener noreferrer" aria-label="500 Signatures sur X">X</a></nav></footer>\n${fermeture}`,
+      (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n<footer class="editorial-footer" aria-label="Pied de page du site"><a href="/">500 Signatures</a><p>Les comptes de la France. Des chiffres pour comprendre. Des faits pour débattre.</p><nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" target="_blank" rel="noopener noreferrer" aria-label="500 Signatures sur X">X</a></nav></footer>\n${fermeture}`,
     ),
   );
 }

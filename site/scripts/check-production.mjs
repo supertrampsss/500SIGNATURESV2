@@ -3,6 +3,7 @@ const origin = new URL(process.env.SITE_URL ?? 'https://500signatures.fr').origi
 const publisherId = process.env.ADSENSE_PUBLISHER_ID;
 const failures = [];
 const pages = [];
+const domainRedirects = [];
 const get = url => fetch(url, {redirect:'manual', signal:AbortSignal.timeout(15000)});
 const attribute = (tag, name) => tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, 'i'))?.[1];
 const canonical = html => [...html.matchAll(/<link\b[^>]*>/gi)]
@@ -40,8 +41,18 @@ try {
         if(canonicals.length!==1 || canonicals[0]!==url) issues.push('Canonique différente ou absente');
         if(noindex(html)) issues.push('noindex');
         if(!/<title>[^<]+<\/title>/i.test(html) || !/<h1\b/i.test(html)) issues.push('Titre ou H1 absent');
+        if(/<a\b[^>]*href=["']\/accueil\/?["']/i.test(html)) issues.push('Lien interne vers une ancienne adresse d’accueil');
         if(/<script\b[^>]*src=["'][^"']*(adsbygoogle|doubleclick)/i.test(html)) issues.push('Publicité chargée dans le HTML initial');
         if(response.headers.get('x-content-type-options')!=='nosniff') issues.push('En-tête nosniff absent');
+        if(address.hostname==='500signatures.fr') {
+          const alias=new URL(url);
+          alias.hostname='www.500signatures.fr';
+          const redirected=await get(alias);
+          const location=redirected.headers.get('location');
+          const valid=redirected.status===301 && location && new URL(location,alias).href===url;
+          domainRedirects.push({url:alias.href,status:redirected.status,location,valid:Boolean(valid)});
+          if(!valid) issues.push('www ne redirige pas directement en 301 vers cette page');
+        }
       } catch(error) {issues.push(error.message);}
       pages.push({url,issues});
       failures.push(...issues.map(issue=>`${url} : ${issue}`));
@@ -52,6 +63,17 @@ try {
   const legacy=await get(origin+'/simulateur');
   const destination=legacy.headers.get('location');
   if(![301,302,307,308].includes(legacy.status) || !destination || new URL(destination,origin).pathname!=='/mandats/') failures.push('Redirection historique /simulateur incorrecte');
+  for(const path of ['/accueil','/accueil/']) {
+    const response=await get(origin+path);
+    const location=response.headers.get('location');
+    if(response.status!==301 || !location || new URL(location,origin).href!==origin+'/') failures.push(`${path} : redirection canonique incorrecte`);
+  }
+  if(new URL(origin).hostname==='500signatures.fr') {
+    const queryPath='/questions/hausse-prix-gaz/?utm_source=verification&lecture=gaz%20France';
+    const response=await get('https://www.500signatures.fr'+queryPath);
+    const location=response.headers.get('location');
+    if(response.status!==301 || location!==origin+queryPath) failures.push('www : chemin ou paramètres perdus lors de la redirection');
+  }
 } catch(error) {failures.push(error.message);}
-console.log(JSON.stringify({checkedAt:new Date().toISOString(),origin,checkedPages:pages.length,success:failures.length===0,failures,pages:pages.sort((a,b)=>a.url.localeCompare(b.url))},null,2));
+console.log(JSON.stringify({checkedAt:new Date().toISOString(),origin,checkedPages:pages.length,checkedDomainRedirects:domainRedirects.length,success:failures.length===0,failures,domainRedirects:domainRedirects.sort((a,b)=>a.url.localeCompare(b.url)),pages:pages.sort((a,b)=>a.url.localeCompare(b.url))},null,2));
 if(failures.length) process.exitCode=1;

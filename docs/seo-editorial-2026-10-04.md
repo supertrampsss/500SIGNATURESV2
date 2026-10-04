@@ -75,7 +75,15 @@ Ne pas publier une variante presque identique d'un dossier pour viser un synonym
 
 `site/src/seo-editorial.ts` est la référence des titres et des liens contextuels. Les treize dossiers ont deux ou trois liens pertinents. L'index donne accès aux questions, chaque réponse revient vers son dossier et ses sources. Les liens sont des ancres HTML utilisables sans JavaScript. Le build refuse un lien de dossier absent du corpus publié.
 
-Les anciennes adresses /accueil et /accueil/ redirigent en 301 vers /. La variante www conserve sa canonique vers le domaine sans www. Une redirection du sous-domaine nécessite une règle Cloudflare dédiée : les règles Pages _redirects ne prennent pas en charge les redirections par domaine. Ne pas ajouter une règle inopérante ni remplacer les fonctions d'aperçu du jeu pour contourner cette limite.
+Les anciennes adresses /accueil et /accueil/ redirigent en 301 vers /. Les liens internes du logo, du menu et des pieds de page pointent directement vers / pour éviter un détour et consolider le signal canonique. Le middleware racine `site/functions/_middleware.ts` consolide les requêtes de `www.500signatures.fr` vers `https://500signatures.fr` en 301 en conservant chemin et paramètres. Les requêtes du domaine principal et des aperçus passent à la fonction suivante ou au serveur de fichiers de Pages. La fonction historique `/simulateur` reste en place.
+
+Le jeton existant du déploiement autorise Pages et DNS, mais la lecture de `/zones/{zone}/rulesets` a été refusée avec HTTP 403. La correction utilise donc les fonctions Pages déjà déployées, sans élargir les permissions du jeton. `_routes.json` laisse les scripts, styles, polices et illustrations les plus utilisés au service statique. Les pages, robots.txt, sitemap.xml et ads.txt restent couverts par la redirection.
+
+`site/scripts/check-production.mjs` vérifie désormais les 35 redirections www correspondant aux pages du sitemap, les deux anciennes adresses d'accueil et une adresse avec paramètres encodés. L'étape échoue si la redirection manque, perd un chemin ou pointe vers une autre page. La règle ne remplace pas la canonique HTML : les deux signaux convergent vers les mêmes adresses.
+
+La nouvelle inspection Search Console du 4 octobre donne 13 pages éditoriales découvertes mais non indexées et six encore inconnues, sans exploration enregistrée pour ces 19 pages. `/bilan/` et l'accueil www sont indexés ; l'accueil sans www est signalé comme doublon dont Google choisit une autre canonique. L'API connectée ne fournit pas l'adresse de cette canonique choisie : ne pas l'inventer. Ces résultats décrivent l'état connu par Google, pas l'accessibilité actuelle du site.
+
+Les 35 URL du sitemap ont été ajoutées au suivi d'indexation GSC Wizard le 4 octobre. Le suivi automatique de l'application réinspecte les pages ; une nouvelle soumission du sitemap après livraison annonce le corpus courant. Une demande d'indexation ne constitue pas une indexation acquise. Le script de mesure facultative utilise le flux GA4 existant `G-TYHM099XE8` ; le connecteur GSC Wizard ne dispose pas du périmètre Analytics permettant de lire ses statistiques. Conserver les vérifications de consentement et de requêtes réseau, sans créer de deuxième flux.
 
 Défauts à vérifier dans le navigateur : titre tronqué ou dupliqué, canonique incorrecte, liens absents sans JavaScript, lien cassé, fil structuré différent de la navigation visible, Article.headline différent du H1, réponse courte sans développement ou sans sources et débordement sur téléphone. Conserver les captures sur ordinateur et téléphone et le rapport Playwright. Vérifier après déploiement les 35 pages, les anciennes adresses d'accueil et les chemins éditoriaux modifiés.
 
@@ -89,3 +97,5 @@ L'effet sur les impressions, l'indexation et les clics sera observable seulement
 - https://developers.google.com/search/docs/appearance/structured-data/breadcrumb
 - https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
 - https://developers.cloudflare.com/pages/configuration/redirects/
+- https://developers.cloudflare.com/pages/functions/middleware/
+- https://developers.cloudflare.com/pages/functions/routing/

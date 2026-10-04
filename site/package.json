@@ -17,7 +17,8 @@
     "check:local": "npm test && npm run build:client",
     "business:case": "node --experimental-strip-types scripts/business-case.ts",
     "audit:visual": "playwright test --config playwright.visual.config.ts",
-    "check:production": "node scripts/check-production.mjs"
+    "check:production": "node scripts/check-production.mjs",
+    "test:edge": "node scripts/check-edge-routing.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.9.0",

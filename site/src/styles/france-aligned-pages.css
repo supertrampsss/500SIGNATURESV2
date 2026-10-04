@@ -155,7 +155,7 @@ html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__
   background:none;
 }
 
-html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__nav a[href="/accueil/"] {
+html[data-theme] body:is([data-vue="accueil"],[data-vue="territoire"]) .entete__nav a[href="/"] {
   display:none;
 }
 

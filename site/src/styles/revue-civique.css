@@ -608,7 +608,7 @@ html body[data-vue="bilan"] #vue-bilan .bilan-chapitre { scroll-margin-top: calc
     border-bottom-color: var(--revue-clay);
   }
 
-  html body[data-vue="accueil"] .entete__nav a[href="/accueil/"],
+  html body[data-vue="accueil"] .entete__nav a[href="/"],
   html body[data-vue="accueil"] .entete__nav a[href^="https://x.com/"] {
     display: none;
   }

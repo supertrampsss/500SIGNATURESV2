@@ -1,0 +1,37 @@
+name: Canonical domain
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/canonical-domain.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/canonical-domain.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-domain:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - name: Vérifier les routes dans le runtime Cloudflare local
+        run: npm run test:edge
+      - name: Conserver les réponses HTTP et les journaux reproductibles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-domain-http
+          path: site/edge-artifacts/
+          retention-days: 14

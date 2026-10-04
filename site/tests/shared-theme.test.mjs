@@ -16,14 +16,14 @@ test('Mandats expose Accueil et le lien revient à la page d’accueil',async({p
   await page.goto(path);
   const accueil=page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Accueil',exact:true});
   if(!await accueil.isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
-  await expect(accueil).toHaveAttribute('href','/accueil/');
+  await expect(accueil).toHaveAttribute('href','/');
   await accueil.click();
-  await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
+  await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
   await expect(page.locator('#story-titre')).toHaveText('Comprendre aujourd’hui pour mieux agir demain.',{useInnerText:true});
  }
  await page.goto('/mandats/methode/');
  await page.getByRole('link',{name:'500 Signatures, accueil',exact:true}).click();
- await expect(page).toHaveURL(/https?:\/\/[^/]+\/accueil\/$/);
+ await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
 });
 
 test('Accueil : les données, villes et dossiers précèdent le jeu',async({page},info)=>{

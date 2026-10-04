@@ -23,3 +23,6 @@ site/board-audit-artifacts/
 site/playwright-report-board/
 site/story-artifacts/
 site/header-artifacts/
+
+# Réponses HTTP du runtime Cloudflare local.
+site/edge-artifacts/
