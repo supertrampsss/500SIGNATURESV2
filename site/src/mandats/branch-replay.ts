@@ -117,7 +117,7 @@ export function comparisonMarkup(current: Game, reference: Game): string {
 export function renderReplaySelection(game: Game): string {
   const g = canonicalGame(game);
   if (!g || g.mode !== "national" || g.version < 9 || g.turn === 0) return "";
-  const causal = g.version === 11 ? narrativeTurningPoints(g, 3).map(point => point.index) : [];
+  const causal = g.version >= 11 ? narrativeTurningPoints(g, 3).map(point => point.index) : [];
   const selected = [...new Set(causal.length ? causal : [0, Math.floor((g.turn - 1) / 2), g.turn - 1])];
   const card = (index: number, compact = false) => {
     const turn = g.history[index]!;
@@ -125,12 +125,12 @@ export function renderReplaySelection(game: Game): string {
     const dossier = domainFor(before).dossiers[index];
     const actual = dossier?.choices.find(c => c.id === turn.choice);
     const art = index === g.history.length - 1 ? artForDossier("Héritage", index, g.history.length) : artForDossier(dossier?.category ?? "Chapitre", index, g.history.length);
-    const content = `<img src="${escapeHtml(art.src)}" alt="${escapeHtml(art.alt)}" loading="lazy"><span class="replay-card__body"><span class="replay-card__eyebrow">ANNÉE ${turn.year} · DÉCISION ${index + 1}</span><strong class="replay-card__title">${escapeHtml(dossier?.title ?? turn.title)}</strong>${!compact ? `<span class="replay-card__story">${escapeHtml(dossier?.story ?? turn.event)}</span>` : ""}<span class="replay-card__original">Choix d’origine : <strong>${escapeHtml(actual?.title ?? turn.title)}</strong></span><span class="replay-card__cta">Reprendre avant cette décision</span></span>`;
+    const content = `${g.version===12?"":`<img src="${escapeHtml(art.src)}" alt="${escapeHtml(art.alt)}" loading="lazy">`}<span class="replay-card__body"><span class="replay-card__eyebrow">ANNÉE ${turn.year} · DÉCISION ${index + 1}</span><strong class="replay-card__title">${escapeHtml(dossier?.title ?? turn.title)}</strong>${!compact ? `<span class="replay-card__story">${escapeHtml(g.version===12?(dossier?.story??turn.event).split(/(?<=[.!?])\s+/)[0]:dossier?.story??turn.event)}</span>` : ""}<span class="replay-card__original">Choix d’origine : <strong>${escapeHtml(actual?.title ?? turn.title)}</strong></span><span class="replay-card__cta">Reprendre avant cette décision</span></span>`;
     return `<button type="button" class="replay-card${compact ? " replay-card--compact" : ""}" data-action="branch-replay" data-turn="${index}" aria-label="Reprendre avant l’année ${turn.year}, décision ${index + 1} : ${escapeHtml(dossier?.title ?? turn.title)}">${content}</button>`;
   };
   const cards = selected.map(index => card(index)).join("");
   const remaining = g.history.map((_, index) => index).filter(index => !selected.includes(index)).map(index => card(index, true)).join("");
-  const v11 = g.version === 11;
+  const v11 = g.version >= 11;
   return `<section class="replay-selection" aria-labelledby="replay-selection-title"><header class="replay-selection__header"><span>${v11 ? 'DÉCISIONS MARQUANTES' : 'RELIRE VOTRE MANDAT'}</span><h1 id="replay-selection-title">${v11 ? 'Rejouer un tournant.' : 'Où tout aurait pu changer ?'}</h1><p>${v11 ? 'Ces décisions sont reliées aux événements qui ont réellement marqué votre partie.' : 'Reprenez avant une décision et explorez une autre trajectoire.'}</p><p class="replay-selection__archive">Votre mandat d’origine reste conservé.</p></header><div class="replay-selection__grid">${cards}</div><details class="replay-selection__all"><summary>Toutes mes décisions (${g.turn})</summary><div>${remaining}</div></details><button type="button" class="replay-selection__back" data-action="show-result">Revenir à mon héritage</button></section>`;
 }
 

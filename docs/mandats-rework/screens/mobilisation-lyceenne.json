@@ -1,0 +1,10 @@
+{
+  "seed": 0,
+  "version": 12,
+  "choices": [
+    "n11-0-education-lycees-regrouper"
+  ],
+  "mode": "national",
+  "ambition": "equilibre",
+  "focus": "mvt-lyceens-0"
+}

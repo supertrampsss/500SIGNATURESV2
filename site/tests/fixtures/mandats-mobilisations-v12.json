@@ -1,0 +1,55 @@
+{
+  "salaries": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "choices": [
+      "pol-wealth-hospital-package",
+      "pol-coalition-compromise",
+      "r01a",
+      "r02a",
+      "pol-censure-vote",
+      "r03a"
+    ],
+    "ambition": "equilibre",
+    "focus": "mvt-salaries-5"
+  },
+  "retraites": {
+    "version": 12,
+    "mode": "national",
+    "seed": 3,
+    "choices": ["r01a"],
+    "ambition": "equilibre",
+    "focus": "mvt-retraites-0"
+  },
+  "agents": {
+    "version": 12,
+    "mode": "national",
+    "seed": 1,
+    "choices": [
+      "n11-0-education-lycees-regrouper",
+      "r01a",
+      "pol-censure-vote",
+      "r02a"
+    ],
+    "ambition": "equilibre",
+    "focus": "mvt-agents-3"
+  },
+  "menages": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "choices": [
+      "pol-wealth-hospital-reject",
+      "r01a",
+      "r02a",
+      "pol-censure-vote",
+      "r03b",
+      "r04a",
+      "u02a",
+      "r05a"
+    ],
+    "ambition": "equilibre",
+    "focus": "mvt-menages-7"
+  }
+}

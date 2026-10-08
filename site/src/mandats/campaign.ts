@@ -16,6 +16,8 @@ import { initialPolitics, resolvePoliticalChoice, applyPoliticalResolution } fro
 import { politicalDossier } from './political-dilemmas.ts';
 import { choicesForNarrative, focusedAgendaKind, focusedNarrativeEvent, initialNarrative, narrativeEventByChoice, selectStoryAgenda, applyNarrativeChoice, selectInstitutionalAgenda, selectPolicyAgenda, institutionalChoiceForId, policyChoiceForId } from './narrative-engine.ts';
 import { NARRATIVE_FAMILIES } from './narrative-content.ts';
+import { storyAgenda } from './narrative-engine.ts';
+import { advanceSocialMovements, initialSocialState } from './social-engine.ts';
 
 const BASE = { municipal, national };
 const compiled = { municipal: longDossiers("municipal"), national: longDossiers("national") };
@@ -70,14 +72,14 @@ export function campaignDomain(g:Game):Domain {
     const political=politicalDossier(g);
     if(political){dossiers=dossiers.slice();dossiers[g.turn]=political;}
   }
-  if(g.version===11&&g.mode==='national'&&g.narrative?.focus){
+  if(g.version >= 11&&g.mode==='national'&&g.narrative?.focus){
     if(focusedAgendaKind(g)==='institutional'){
       const political=politicalDossier(g);if(political){dossiers=dossiers.slice();dossiers[g.turn]=political;}
     }
     const event=focusedNarrativeEvent(g);
     if(event){
       dossiers=dossiers.slice();
-      dossiers[g.turn]={category:NARRATIVE_FAMILIES.find(f=>f.id===event.familyId)?.category??'Dossier',title:event.title,story:event.body,advisor:'Équipe de mandat',choices:choicesForNarrative(g)};
+      dossiers[g.turn]={category:storyAgenda(g).find(item=>item.id===event.id)?.category??NARRATIVE_FAMILIES.find(f=>f.id===event.familyId)?.category??'Dossier',title:event.title,story:event.body,advisor:'Équipe de mandat',choices:choicesForNarrative(g)};
     }
   }
   const turns=g.version >= 9 && g.mode==='national'?30:45;
@@ -101,11 +103,11 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11=3):Game {
-  if((version===10||version===11)&&mode!=='national')throw new Error('Cette version concerne uniquement le mandat national.');
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12=3):Game {
+  if(version>=10&&mode!=='national')throw new Error('Cette version concerne uniquement le mandat national.');
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
-  const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{}),...(version>=10?{politics:initialPolitics(seed)}:{}),...(version===11?{narrative:initialNarrative(seed)}:{})};
+  const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{}),...(version>=10?{politics:initialPolitics(seed)}:{}),...(version>=11?{narrative:initialNarrative(seed)}:{}),...(version>=12?{social:initialSocialState()}:{})};
   Object.assign(g,campaignDomain(g).initial());
   return g;
 }
@@ -114,6 +116,7 @@ function apply(g:Game,e:Effect) {
   for(const key of [...financial,'growth'] as const)g.finance[key]+=e[key]??0;
   for(const key of ['services','cohesion','resilience','trust','assets'] as const)g.metrics[key]=clamp(g.metrics[key]+(e[key]??0));
   for(const a of g.areas)if(!e.area||a.id===e.area){a.services=clamp(a.services+(e.services??0));a.resilience=clamp(a.resilience+(e.resilience??0));}
+  for(const a of g.areas){const local=e.areaEffects?.[a.id];if(local){a.services=clamp(a.services+(local.services??0));a.resilience=clamp(a.resilience+(local.resilience??0));}}
 }
 function prepared(game:Game) {
   const g=structuredClone(game),cal=calendarFor(g),messages:string[]=[];
@@ -150,8 +153,16 @@ function transition(game:Game,choice:Choice):Game {
   }
   // Social costs belong to this annual budget, never to the structural run rate.
   // Recompute on every plan so recovery removes them and repeated years do not stack.
+  let mobilisation;
+  if(game.version>=12){
+    // A censure passed at this decision can prevent an outstanding concession from being delivered.
+    g.politics=applyPoliticalResolution(game.politics!,g,choice,politicalResolution!,game.seed,game.turn);
+    mobilisation=advanceSocialMovements(game,g,activeChoice,!(politicalResolution?.vote?.kind==='law'&&!politicalResolution.vote.passed));
+    g.social=mobilisation.state;apply(g,mobilisation.effect);messages.push(...mobilisation.messages);
+  }
   const social=g.version >= 7 ? socialYearEnd(g) : {operating:0,revenue:0};
-  const ledger=d.settle({...g.finance,operating:g.finance.operating+social.operating,revenue:g.finance.revenue+social.revenue});
+  const disruption=g.social?.budget??{operating:0,revenue:0};
+  const ledger=d.settle({...g.finance,operating:g.finance.operating+social.operating+disruption.operating,revenue:g.finance.revenue+social.revenue+disruption.revenue});
   if(cal.isYearEnd){
     g.finance.debt=ledger.debt;g.finance.cash+=ledger.cashChange;g.finance.gdp=ledger.gdp;
     if(g.finance.cash < -1e-8)throw new Error('Financement incomplet.');
@@ -163,19 +174,28 @@ function transition(game:Game,choice:Choice):Game {
   const record={year:cal.year,closed:cal.isYearEnd,choice:choice.id,title:choice.title,messages,event,ledger,metrics:structuredClone(g.metrics),areas:structuredClone(g.areas),...(game.version>=10?{dossier:structuredClone(d.dossiers[game.turn])}:{}),...(politicalResolution?.vote?{vote:politicalResolution.vote}:{}),...(politicalResolution?.consequences.length?{politicalConsequences:politicalResolution.consequences}:{})};
   g.history.push(record);
   g.choices.push(choice.id);g.turn++;
-  if(game.version>=10){g.politics=applyPoliticalResolution(game.politics!,g,choice,politicalResolution!,game.seed,game.turn);if(g.politics.ending)g.politics.ending.turn=g.turn;}
-  if(game.version===11&&game.narrative){
+  if(game.version>=10){
+    if(game.version<12)g.politics=applyPoliticalResolution(game.politics!,g,choice,politicalResolution!,game.seed,game.turn);
+    if(mobilisation){
+      g.politics!.unrest=clamp(g.politics!.unrest+mobilisation.unrest);
+      g.politics!.legitimacy=clamp(g.politics!.legitimacy+mobilisation.legitimacy);
+      g.politics!.blocs=g.politics!.blocs.map(bloc=>({...bloc,loyalty:clamp(bloc.loyalty+(bloc.inGovernment?mobilisation.support:0))}));
+    }
+    if(g.politics!.ending)g.politics!.ending.turn=g.turn;
+  }
+  if(game.version >= 11&&game.narrative){
     const storyEvent=focusedNarrativeEvent(game);
     const story=applyNarrativeChoice(game,g,choice,storyEvent);
     apply(g,story.effect);
     g.narrative=story.state;g.history.at(-1)!.messages.push(...story.consequences);
+    if(mobilisation){g.narrative.events.push(...mobilisation.events);g.narrative.lastConsequences.push(...mobilisation.messages);}
     g.history.at(-1)!.metrics=structuredClone(g.metrics);g.history.at(-1)!.areas=structuredClone(g.areas);
   }
   return g;
 }
 export function campaignChoices(g:Game):Choice[] {
   if(g.version>=10&&(g.politics?.ending||g.turn>=30))return [];
-  if(g.version===11&&!g.narrative?.focus)return [];
+  if(g.version >= 11&&!g.narrative?.focus)return [];
   let choices=campaignDomain(g).dossiers[g.turn]?.choices??[];
   if(g.version>=10&&g.politics?.lastDissolutionTurn!==undefined&&g.turn-g.politics.lastDissolutionTurn<6)choices=choices.filter(c=>c.political?.action!=='dissolve');
   if(!choices.length)return [];
@@ -186,7 +206,7 @@ export function decideCampaign(g:Game,id:string):Game {
   if(g.version>=10&&g.politics?.ending)throw new Error('Ce mandat est terminé.');
   if(g.turn>=campaignDomain(g).turns)throw new Error('Ce mandat est terminé.');
   let current=g;
-  if(g.version===11&&!g.narrative?.focus){
+  if(g.version >= 11&&!g.narrative?.focus){
     const event=narrativeEventByChoice(g,id);
     if(event)current=selectStoryAgenda(g,event.id);
     else if(institutionalChoiceForId(g,id))current=selectInstitutionalAgenda(g);

@@ -6,6 +6,8 @@ import { annualDeficit } from './national-deficit.ts';
 import { politicalDossier } from './political-dilemmas.ts';
 import { nationalAgendaDossiersV9 } from './national-agenda.ts';
 import { resolveNarrativeConsequences } from './narrative-consequences.ts';
+import { EDUCATION_EVENT, EDUCATION_FAMILY, socialMovementFront } from './social-content.ts';
+import { REWORK_EVENTS, REWORK_FAMILIES, REWORK_BASE_EVENTS } from './rework-content.ts';
 
 const contexts: NarrativeContext[] = ['coalition', 'hospital', 'redress'];
 export function narrativeContextForSeed(seed: number): NarrativeContext { return contexts[seed % contexts.length]; }
@@ -20,9 +22,11 @@ export function initialNarrative(seed:number):NarrativeState {
   };
 }
 function eligibleEvents(g:Game):Array<{family:NarrativeFamily;event:NarrativeEvent}> {
-  const family=(id:string)=>NARRATIVE_FAMILIES.find(f=>f.id===id);
+  const families=g.version>=12?[...NARRATIVE_FAMILIES,...REWORK_FAMILIES]:NARRATIVE_FAMILIES;
+  const events=g.version>=12?[...REWORK_BASE_EVENTS,...REWORK_EVENTS]:NARRATIVE_EVENTS;
+  const family=(id:string)=>families.find(f=>f.id===id);
   const matches=(e:NarrativeEvent)=>!e.requiresProject&&!eventWasPlayed(g,e.id)&&!g.narrative?.retiredEvents?.includes(e.id)&&(!e.contexts||e.contexts.includes(g.narrative?.context??narrativeContextForSeed(g.seed)))&&(!e.turns||e.turns.includes(g.turn));
-  const all=NARRATIVE_EVENTS.filter(matches).flatMap(event=>{const f=family(event.familyId);return f?[{family:f,event}]:[];});
+  const all=events.filter(matches).flatMap(event=>{const f=family(event.familyId);return f?[{family:f,event}]:[];});
   return all;
 }
 function stableHash(seed:number,turn:number,id:string):number { let h=(seed^Math.imul(turn+1,0x9e3779b1))>>>0;for(let i=0;i<id.length;i++){h=Math.imul(h^id.charCodeAt(i),0x85ebca6b);h^=h>>>13;}return h>>>0; }
@@ -54,8 +58,8 @@ function blockedProjectFront(g:Game):{event:NarrativeEvent;family:NarrativeFamil
   const project=(g.narrative?.projects??[]).filter(item=>item.status==='blocked')
     .sort((a,b)=>(a.failureTurn??a.resolvedTurn??a.dueTurn)-(b.failureTurn??b.resolvedTurn??b.dueTurn)||a.id.localeCompare(b.id))[0];
   if(!project)return undefined;
-  const authored=NARRATIVE_EVENTS.find(item=>item.requiresProject===project.id&&item.requiresProjectStatus==='blocked'&&!eventWasPlayed(g,item.id));
-  const family=NARRATIVE_FAMILIES.find(item=>item.id===(authored?.familyId??repairFamilyByKind[project.kind]));
+  const authored=(g.version>=12?REWORK_BASE_EVENTS:NARRATIVE_EVENTS).find(item=>item.requiresProject===project.id&&item.requiresProjectStatus==='blocked'&&!eventWasPlayed(g,item.id));
+  const family=NARRATIVE_FAMILIES.find(item=>item.id===(authored?.familyId??repairFamilyByKind[project.kind]))??REWORK_FAMILIES.find(item=>item.id===(project.kind==='energy'?'reseau-eau':project.kind==='industry'?'automatisation-ia':project.kind==='housing'?'logement-emploi':'cyber-soins'));
   if(!family)return undefined;
   if(authored){
     const event={...authored,body:eventBody(g,authored),choices:authored.choices.map(item=>item.project?.action==='repair'?capacityRepairChoice(g,item,project.kind):item)};
@@ -82,7 +86,7 @@ function blockedProjectFront(g:Game):{event:NarrativeEvent;family:NarrativeFamil
   return {family,event:{id,title:`Reprendre ou abandonner : ${project.label}`,familyId:family.id,body:`${project.label} reste bloqué à ${place}. ${project.note} Une reprise peut financer les capacités manquantes; la trésorerie et la continuité du gouvernement restent vérifiées à l’échéance.`,requiresProject:project.id,requiresProjectStatus:'blocked',choices:[repair,abandon]}};
 }
 function agendaEntries(g:Game) {
-  if(g.version!==11||g.mode!=='national'||g.turn>=30)return [];
+  if(g.version < 11||g.mode!=='national'||g.turn>=30)return [];
   const items:Array<{event?:NarrativeEvent;item:StoryAgendaItem;kind:'story'|'policy'|'institutional'}>=[];
   const institutional=politicalDossier(g);
   const crisis=!!g.politics?.pendingCrisis;
@@ -95,22 +99,33 @@ function agendaEntries(g:Game) {
     const openingHealth=eligibleEvents(g).find(x=>x.family.id==='soins-hospitaliers');if(openingHealth)addStory(openingHealth.event,openingHealth.family);
   }
   addPolicy();
-  if(institutional)addInstitutional();
   const blockedFront=blockedProjectFront(g);
-  if(blockedFront)addStory(blockedFront.event,blockedFront.family);
+  if(g.version>=12){
+    if(blockedFront&&items.length<3)addStory(blockedFront.event,blockedFront.family);
+    const movement=socialMovementFront(g);
+    if(movement&&items.length<3)addStory(movement.event,movement.family);
+    else if(!movement&&!blockedFront&&g.turn<=8&&!eventWasPlayed(g,EDUCATION_EVENT.id)&&items.length<3)addStory(EDUCATION_EVENT,EDUCATION_FAMILY);
+  }
+  if(institutional&&(g.version<12||items.length<3))addInstitutional();
+  if(blockedFront&&g.version<12)addStory(blockedFront.event,blockedFront.family);
   const slots=Math.max(0,3-items.length);
   const deferred=(g.narrative?.deferred??[]).filter(d=>d.expiresTurn>=g.turn&&d.dueTurn<=g.turn&&!eventWasPlayed(g,d.eventId)&&!g.narrative?.retiredEvents?.includes(d.eventId)).sort((a,b)=>a.expiresTurn-b.expiresTurn||a.dueTurn-b.dueTurn).slice(0,slots);
-  for(const deferredItem of deferred){const event=NARRATIVE_EVENTS.find(x=>x.id===deferredItem.eventId),family=event&&NARRATIVE_FAMILIES.find(x=>x.id===event.familyId);if(event&&family){addStory({...event,body:`${eventBody(g,event)}\n\nDernier créneau : décision ${deferredItem.expiresTurn+1}. Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.`},family,`À décider avant la décision ${deferredItem.expiresTurn+1}`,deferredItem.expiresTurn);}}
-  const eligible=eligibleEvents(g).filter(x=>!items.some(i=>i.item.id===x.event.id)),seen=new Set<string>(items.flatMap(i=>i.kind==='story'&&i.event?[i.event.familyId]:[])),unique=eligible.filter(x=>{if(seen.has(x.family.id))return false;seen.add(x.family.id);return true;});
-  const offset=unique.length?stableHash(g.seed,g.turn,'agenda')%unique.length:0;
-  const remaining=Math.max(0,3-items.length),rotated=[...unique.slice(offset),...unique.slice(0,offset)].slice(0,remaining);
+  const events=g.version>=12?[...REWORK_BASE_EVENTS,...REWORK_EVENTS]:NARRATIVE_EVENTS;
+  const families=g.version>=12?[...NARRATIVE_FAMILIES,...REWORK_FAMILIES]:NARRATIVE_FAMILIES;
+  for(const deferredItem of deferred){const event=events.find(x=>x.id===deferredItem.eventId),family=event&&families.find(x=>x.id===event.familyId);if(event&&family){addStory({...event,body:`${eventBody(g,event)}\n\nDernier créneau : décision ${deferredItem.expiresTurn+1}. Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.`},family,`À décider avant la décision ${deferredItem.expiresTurn+1}`,deferredItem.expiresTurn);}}
+  const recentFamilies=g.version>=12?new Set(g.history.slice(-2).flatMap(turn=>[...NARRATIVE_EVENTS,...REWORK_EVENTS].filter(event=>turn.choice.includes(`-${event.id}-`)).map(event=>event.familyId))):new Set<string>();
+  const eligible=eligibleEvents(g).filter(x=>!items.some(i=>i.item.id===x.event.id)).sort((a,b)=>Number(recentFamilies.has(a.family.id))-Number(recentFamilies.has(b.family.id))),seen=new Set<string>(items.flatMap(i=>i.kind==='story'&&i.event?[i.event.familyId]:[])),unique=eligible.filter(x=>{if(seen.has(x.family.id))return false;seen.add(x.family.id);return true;});
+  const diverse=unique.filter(item=>!recentFamilies.has(item.family.id));
+  const available=g.version>=12&&diverse.length?diverse:unique;
+  const offset=available.length?stableHash(g.seed,g.turn,'agenda')%available.length:0;
+  const remaining=Math.max(0,3-items.length),rotated=[...available.slice(offset),...available.slice(0,offset)].slice(0,remaining);
   items.push(...rotated.map(({family,event})=>({kind:'story' as const,event,item:{id:event.id,title:event.title,category:family.category,summary:eventBody(g,event),art:family.art,urgency:family.urgency}})));
   return items;
 }
 export function storyAgenda(g:Game):StoryAgendaItem[] { return agendaEntries(g).map(x=>x.item); }
-export function storyPhase(g:Game):'agenda'|'decision' { return g.version===11&&g.narrative?.focus&&agendaEntries(g).some(x=>x.item.id===g.narrative!.focus)?'decision':'agenda'; }
+export function storyPhase(g:Game):'agenda'|'decision' { return g.version >= 11&&g.narrative?.focus&&agendaEntries(g).some(x=>x.item.id===g.narrative!.focus)?'decision':'agenda'; }
 export function selectStoryAgenda(g:Game,id:string):Game {
-  if(g.version!==11||g.mode!=='national')throw new Error('L’agenda narratif concerne le mandat national v11.');
+  if(g.version < 11||g.mode!=='national')throw new Error('L’agenda narratif concerne le mandat national v11.');
   if(!agendaEntries(g).some(x=>x.item.id===id))throw new Error('Ce dossier n’est pas disponible dans l’agenda.');
   const next=structuredClone(g);next.narrative={...next.narrative!,focus:id};return next;
 }
@@ -120,7 +135,7 @@ export function focusedNarrativeEvent(g:Game):NarrativeEvent|undefined { const e
 export function focusedAgendaKind(g:Game):'story'|'policy'|'institutional'|undefined{return agendaEntries(g).find(x=>x.item.id===g.narrative?.focus)?.kind;}
 export function storyContextOptions():Array<{context:NarrativeContext;seed:number}>{return contexts.map((context,seed)=>({context,seed}));}
 export function narrativeObjectives(g:Game):NarrativeObjective[]{
-  if(g.version!==11||g.mode!=='national'||!g.narrative)return [];
+  if(g.version < 11||g.mode!=='national'||!g.narrative)return [];
   const context=g.narrative.context;
   if(context==='coalition'){
     const seats=g.politics?.blocs.filter(b=>b.inGovernment).reduce((n,b)=>n+b.seats,0)??0;
@@ -134,7 +149,7 @@ export function narrativeObjectives(g:Game):NarrativeObjective[]{
   return [{id:'redress-balance',label:'Ramener le déficit annuel à l’équilibre',complete:deficit<=0,progress:deficit===0?'Équilibre atteint':`${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(Math.abs(deficit))} Md€ ${deficit<0?'d’excédent':'de déficit'}`}];
 }
 export function narrativeElectionOutcome(g:Game):NarrativeEpilogue|null {
-  if(g.version!==11||!g.narrative||!g.politics)return null;
+  if(g.version < 11||!g.narrative||!g.politics)return null;
   const governmentSeats=g.politics.blocs.filter(b=>b.inGovernment).reduce((n,b)=>n+b.seats,0),legitimacy=Math.round(g.politics.legitimacy),trust=Math.round(g.metrics.trust);
   const lead=[...g.narrative.relationships].sort((a,b)=>b.loyalty-a.loyalty)[0];
   let kind:NarrativeEpilogue['kind'],title:string,detail:string;
@@ -166,7 +181,7 @@ function toChoice(event:NarrativeEvent,c:NarrativeChoice,turn:number):Choice {
   if(c.amendment?.support){political.supportDelta={...political.supportDelta,reformist:(political.supportDelta?.reformist??0)+c.amendment.support};}
   if(c.relationships)political.supportDelta={...political.supportDelta,...Object.fromEntries(Object.entries(c.relationships).map(([k,v])=>[k,(political.supportDelta?.[k as keyof typeof political.supportDelta]??0)+v]))};
   return {id:prefix(event.id,c.id,turn),title:c.title,description:c.description,cost:c.cost,benefit:c.benefit,sacrifice:c.sacrifice,effect,...(c.delayed?{delayed:c.delayed}:{}),political,amendment:c.amendment,
-    narrative:{eventId:event.id,press:c.press,promise:c.promise,project:c.project,relationships:c.relationships}} as Choice;
+    ...(c.social?{social:c.social}:{}),narrative:{eventId:event.id,press:c.press,promise:c.promise,project:c.project,relationships:c.relationships}} as Choice;
 }
 export function narrativeEventByChoice(g:Game,id:string):NarrativeEvent|undefined {
   for(const {event} of agendaEntries(g))if(event&&event.choices.some(c=>prefix(event.id,c.id,g.turn)===id))return event;
@@ -179,13 +194,13 @@ export function applyNarrativeChoice(before:Game,after:Game,choice:Choice,event?
   const resolved=resolveNarrativeConsequences(before,after,choice,event),state=resolved.state,consequences=resolved.consequences;
   const selected=before.narrative!.focus;
   state.deferred=(state.deferred??[]).filter(d=>d.eventId!==selected);
-  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.item.id!==selected))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
+  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.event?.familyId!=='mobilisations-sociales'&&x.event?.familyId!==EDUCATION_FAMILY.id&&x.item.id!==selected))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
   if(before.politics?.pendingCrisis){for(const item of state.deferred)item.expiresTurn++;}
   else {
     const expired=state.deferred.filter(d=>d.expiresTurn<after.turn);
     for(const item of expired){
-      const family=NARRATIVE_EVENTS.find(event=>event.id===item.eventId)?.familyId??'';
-      consequences.push(`Dossier reporté puis arrivé à échéance : ${NARRATIVE_FAMILIES.find(f=>f.id===family)?.title??item.eventId}.`);
+      const family=[...NARRATIVE_EVENTS,...(before.version>=12?REWORK_EVENTS:[])].find(event=>event.id===item.eventId)?.familyId??'';
+      consequences.push(`Dossier reporté puis arrivé à échéance : ${[...NARRATIVE_FAMILIES,...(before.version>=12?REWORK_FAMILIES:[])].find(f=>f.id===family)?.title??item.eventId}.`);
       state.events.push({id:`report-${item.eventId}-${after.turn}`,turn:after.turn,kind:'report',title:'Échéance reportée',detail:'Le dossier sort de l’agenda après son échéance.',causeTurn:item.originTurn,weight:-2,sourceEventId:item.eventId});
       state.retiredEvents=[...new Set([...(state.retiredEvents??[]),item.eventId])];
       resolved.effect.trust=(resolved.effect.trust??0)-1;resolved.effect.cohesion=(resolved.effect.cohesion??0)-1;

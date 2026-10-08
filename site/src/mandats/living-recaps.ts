@@ -43,7 +43,7 @@ function recapProgress(year: number, completedYears: number) {
   }).join('')}</ol>`;
 }
 export function livingYearRecap(g: Game): string {
-  if (g.version === 11) return livingYearRecapV11(g);
+  if (g.version >= 11) return livingYearRecapV11(g);
   const last = g.history.at(-1);
   if (!last?.closed) return '';
   const year = last.year;
@@ -121,7 +121,7 @@ function livingYearRecapV11(g: Game): string {
 
 /** Annual entry surface; used by render.ts after the recap advances to a new year. */
 export function livingYearBriefing(g: Game): string {
-  if (g.version === 11) return '';
+  if (g.version >= 11) return '';
   const calendar = calendarFor(g);
   const year = calendar.year;
   const dossier = domainFor(g).dossiers[g.turn];
@@ -177,7 +177,7 @@ function profileDetails(g: Game) {
   return `<details class="living-result__profiles"><summary>Voir les indices par profil</summary><div>${Object.entries(labels).map(([key, label]) => `<span>${label}<strong>${Math.round(g.society![key as keyof typeof labels])}/100</strong></span>`).join('')}</div></details>`;
 }
 export function livingResult(g: Game, shared = false): string {
-  if (g.version === 11) return livingResultV11(g, shared);
+  if (g.version >= 11) return livingResultV11(g, shared);
   const start = startingGame(g);
   const deficitStart = annualDeficit(start);
   const deficitEnd = g.history.at(-1)?.ledger.deficit ?? annualDeficit(g);

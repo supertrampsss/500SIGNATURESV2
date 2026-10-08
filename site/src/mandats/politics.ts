@@ -119,7 +119,7 @@ export function resolvePoliticalChoice(before:PoliticalState, choice:Choice, see
 }
 export function applyPoliticalResolution(before:PoliticalState, after:Game, originalChoice:Choice, resolution:PoliticalResolution, seed=0, turn=0):PoliticalState {
   const p=structuredClone(before),m:PoliticalChoice=originalChoice.political??{action:'enact'};
-  const institutionalMechanics=after.version===11;
+  const institutionalMechanics=after.version >= 11;
   const institutionalBefore=institutionalMechanics&&before.institutionalCrisis?structuredClone(before.institutionalCrisis):undefined;
   if(resolution.vote){p.lastVote=resolution.vote;p.votes.push(resolution.vote);}
   const expired=before.commitments.filter(c=>c.status==='pending'&&c.dueTurn<=turn&&before.pendingCrisis===undefined);
@@ -134,7 +134,7 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   if(institutionalRepair)p.institutionalBreaches=Math.max(0,p.institutionalBreaches-institutionalRepair);
   if(m.commitment&&adopted)p.commitments.push({...m.commitment,status:'pending'});
   if(m.breakCommitment&&adopted){const c=p.commitments.find(x=>x.id===m.breakCommitment&&(x.status==='pending'||x.status==='honored'));if(c){c.status='broken';p.legitimacy=clamp(p.legitimacy-7);p.unrest=clamp(p.unrest+6);}}
-  const rejectedV11Law=after.version===11&&resolution.vote?.kind==='law'&&!resolution.vote.passed;
+  const rejectedV11Law=after.version >= 11&&resolution.vote?.kind==='law'&&!resolution.vote.passed;
   if(!rejectedV11Law)p.blocs=p.blocs.map(b=>({...b,loyalty:clamp(b.loyalty+(m.supportDelta?.[b.id]??0))}));
   if(m.action==='coalition_bargain'&&resolution.vote?.passed){const ally=p.blocs.find(b=>b.id==='reformist');if(ally)ally.loyalty=clamp(ally.loyalty+12);if(before.pendingCrisis==='censure')p.failedBills=0;p.pendingCrisis=undefined;}
   if(m.commitment?.id==='wealth-hospital'&&resolution.vote?.passed)p.pendingCrisis='coalition';
@@ -191,7 +191,7 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
   if(!institutionalWindow&&p.cabinet==='fallen'&&p.unrest>=88&&p.legitimacy<=18&&p.pendingCrisis!==undefined)p.pendingCrisis='rupture';
   if(p.misconduct>=6&&p.pendingCrisis===undefined&&!institutionalWindow)p.pendingCrisis='destitution';
   if(!institutionalWindow&&p.unrest>=88&&p.legitimacy<=18&&p.cabinet==='fallen')p.pendingCrisis='rupture';
-  const severeNationalBlockade=after.version===11&&(
+  const severeNationalBlockade=after.version === 11&&(
     (p.unrest>=96&&p.legitimacy<=35)
     || (turn>=23&&p.unrest>=80&&p.legitimacy<=45)
   );
@@ -199,7 +199,7 @@ export function applyPoliticalResolution(before:PoliticalState, after:Game, orig
     p.ending={kind:'rupture',title:'Paralysie nationale',reason:'La tension a atteint un niveau extrême alors que la légitimité du pouvoir s’est effondrée. Les soutiens se désagrègent et le mandat s’interrompt.',turn,causes:[`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`,'Blocage national durable']};
   }
   if(turn>=29&&!p.ending){
-    const unresolved=after.version===11&&(!!p.pendingCrisis||!!p.institutionalCrisis);
+    const unresolved=after.version === 11&&(!!p.pendingCrisis||!!p.institutionalCrisis);
     p.ending=unresolved
       ? {kind:'rupture',title:'Crise non résolue à l’issue du quinquennat',reason:'Le calendrier arrive à son terme alors qu’une crise politique ou institutionnelle reste ouverte. Le mandat ne peut pas être classé comme terminé normalement.',turn,causes:[p.pendingCrisis?`Crise ouverte : ${p.pendingCrisis}`:'Crise institutionnelle ouverte',`Légitimité ${Math.round(p.legitimacy)}`,`Tension ${Math.round(p.unrest)}`]}
       : {kind:'term_complete',title:'Fin du mandat',reason:'Les trente décisions prévues ont été jouées.',turn,causes:[]};

@@ -1,0 +1,12 @@
+{
+  "version": 11,
+  "seed": 0,
+  "mode": "national",
+  "ambition": "equilibre",
+  "choices": [],
+  "focus": "institutional:0",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  }
+}
