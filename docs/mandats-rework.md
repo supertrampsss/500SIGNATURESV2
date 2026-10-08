@@ -6,11 +6,11 @@ La version 12 porte la nouvelle interface et les mobilisations. Les liens des ve
 
 ## Présentation
 
-Carte 3D Babylon.js, interface charbon et vert profond, commandes menthe, urgence corail. Les textes et boutons sont des éléments HTML. Un sujet ouvert montre une phrase, des choix spécifiques et leurs compromis. Les détails, indicateurs et historiques se consultent à la demande. Aucun cadratin, aucune flèche ni aucun chevron dans la nouvelle interface.
+Carte 3D Babylon.js, avec la [maquette principale confirmée le 8 octobre 2026](mandats-diorama/reference-ordinateur.png) comme cible : France miniature détaillée, lumière chaude, mer bleu profond, interface bleu nuit et ivoire, urgences rouges et titres à empattements. La proposition charbon et menthe utilisée dans le rendu livré est une étape intermédiaire. Les textes et boutons sont des éléments HTML. Un sujet ouvert montre une phrase, des choix spécifiques et leurs compromis. Les détails, indicateurs et historiques se consultent à la demande. Aucun cadratin, aucune flèche ni aucun chevron dans la nouvelle interface.
 
 Les lieux simulés utilisent des villes françaises comme repères. Les événements, collectifs et effets restent fictifs. Les contours géographiques proviennent de Natural Earth via world-atlas 2.0.2 ; la géographie ne constitue pas une carte administrative détaillée.
 
-Le premier rendu de cette carte a été rejeté par le propriétaire pour son écart avec les maquettes. La [correction du diorama](mandats-diorama.md) conserve les références artistiques, les défauts reproduits et les captures comparatives du jeu. Elle devient la référence graphique actuelle ; les captures ci-dessous documentent la première livraison.
+Le propriétaire a rejeté le premier rendu de cette carte puis constaté que sa correction restait éloignée de la maquette. Le [contrat du diorama](mandats-diorama.md) conserve l'image qu'il a explicitement confirmée, les défauts reproduits et les captures comparatives du jeu. Toute prochaine itération doit systématiquement comparer ses captures réelles à cette image avant de conclure. Les captures ci-dessous documentent la première livraison.
 
 ## Animations
 

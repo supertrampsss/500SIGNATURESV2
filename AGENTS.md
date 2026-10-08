@@ -109,7 +109,11 @@ Do not replace concrete sacrifices with generic “maintain course” options.
 The owner's rework supersedes the older visual reference below for v12.
 Follow [the 3D rework contract](docs/mandats-rework.md) and
 [social consequences](docs/mandats-social-contract.md): a real Babylon.js France
-map is the main playfield, with charcoal/forest/mint/coral colors and Public Sans.
+map is the main playfield. The owner explicitly confirmed the desktop mockup in
+`docs/mandats-diorama/reference-ordinateur.png` on 8 October: a richly detailed
+France miniature, navy header, ivory subject panel, red urgency and editorial
+serif headings. This image supersedes the later charcoal/mint proposal as the
+visual target for v12.
 Show one concrete problem, distinct responses and essential tradeoffs; accounts
 and history open on demand. No em/en dashes, arrows or chevrons in the new UI.
 Crowds and construction follow actual saved state. Moving or inspecting the map
@@ -118,10 +122,15 @@ keyboard, reduced motion, offline play and WebGL fallback usable. Finishing five
 years is the survival objective; unrest alone does not remove the president.
 The short v12 verdict remains nonmodal and allows the next subject immediately.
 
-The owner's rejection of the first coarse map is recorded in
-[the diorama reference and browser evidence](docs/mandats-diorama.md). Use its
-desktop/mobile reference images and compare actual browser captures. Do not call
-the artistic target complete because compilation or a WebGL test passes.
+The owner's confirmed mockup and rejection of the delivered map are recorded in
+[the diorama reference and browser evidence](docs/mandats-diorama.md). Before
+calling any visual iteration finished, systematically compare actual browser
+captures with that confirmed desktop image, including the whole composition and
+close views of architecture, terrain, water and materials. Record remaining
+visible differences. Mobile layouts adapt its art direction while keeping the
+existing concise reading requirements; the older mobile study is secondary.
+The current delivered scene still falls short of this target. Compilation or a
+WebGL test cannot establish artistic completion.
 
 `map-state.ts` derives scene inputs, `map-scene.ts` owns rendering,
 `map-view.ts` and `map-game.css` own the v12 interface. `social-engine.ts`
