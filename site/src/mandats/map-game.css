@@ -89,6 +89,8 @@ body[data-rework="true"] .map-game * {
   font-size: 14px;
 }
 .map-game__header button {
+  min-height: 44px;
+  min-width: 44px;
   background: none;
   border: 0;
   color: #9cd8c9;

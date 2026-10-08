@@ -56,8 +56,10 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 `site/src/navigation.ts` owns the compact menu and its grouped controls. Do not
 create a second controller in a page module. Scope the compact grid to headers
-with `.entete__actions`; static headers, including Mandats, keep their visible
-navigation. Verify with `npx playwright test --config playwright.header.config.ts`
+with `.entete__actions`; static headers and explicit older Mandats links keep
+their visible navigation. Mandats v12 uses its own header and exposes the site
+through Ma partie, then Retour au site. Verify both paths with
+`npx playwright test --config playwright.header.config.ts`
 after building `site/`; retain the report, open/closed captures and replay inputs
 under `site/header-artifacts/`.
 
