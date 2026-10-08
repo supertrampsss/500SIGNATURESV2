@@ -1,0 +1,40 @@
+name: Mandats 3D and social consequences
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rework-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify map, full mandates, actual replay and WebGL fallback
+        run: npx playwright test --config playwright.rework.config.ts
+      - name: Verify delivery, rejected votes and imported saves
+        run: npx playwright test --config playwright.social.config.ts --project desktop-chromium --project android-chromium --project compact-chromium --project iphone-webkit
+      - name: Retain screenshots, replay inputs and browser reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandats-rework-${{ github.sha }}
+          path: |
+            site/rework-artifacts/
+            site/social-artifacts/
+          retention-days: 14

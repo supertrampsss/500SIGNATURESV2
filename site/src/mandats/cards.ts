@@ -28,10 +28,10 @@ export function cardModel(g: Game, kind: CardKind) {
     const deadline = c.delayed ? `${c.delayed.effect.revenue ? (c.delayed.effect.revenue > 0 ? 'Recette supplémentaire' : 'Fin de la recette temporaire') : g.version >= 7 && !c.effect.investment ? 'Mise en œuvre' : 'Livraison'} en année ${calendarFor(previous).year + c.delayed.after}` : 'Effet immédiat, selon les règles';
     const shared = exactDilemmaShareState(g);
     const url = shared.url;
-    return { label: `DÉCISION DE JEU · ANNÉE ${g.history.at(-1)?.year ?? g.turn}`, title: text.title, fields: [['Coût du choix', c.cost], ['Effet annoncé', c.benefit], ['Compromis', c.sacrifice], ['Délai', deadline]], url, alt: `Décision de jeu, ${d.place}, année ${g.history.at(-1)?.year ?? g.turn}. ${text.title}. ${c.cost}. ${c.benefit}. Compromis : ${c.sacrifice}. ${c.delayed ? `${deadline}.` : ''} Le lien restitue les décisions antérieures pour rejouer ce dilemme. Simulation fictive${g.version === 11 ? '' : ` v${g.version}`}.` };
+    return { label: `DÉCISION DE JEU · ANNÉE ${g.history.at(-1)?.year ?? g.turn}`, title: text.title, fields: [['Coût du choix', c.cost], ['Effet annoncé', c.benefit], ['Compromis', c.sacrifice], ['Délai', deadline]], url, alt: `Décision de jeu, ${d.place}, année ${g.history.at(-1)?.year ?? g.turn}. ${text.title}. ${c.cost}. ${c.benefit}. Compromis : ${c.sacrifice}. ${c.delayed ? `${deadline}.` : ''} Le lien restitue les décisions antérieures pour rejouer ce dilemme. Simulation fictive${g.version >= 11 ? '' : ` v${g.version}`}.` };
   }
   if (kind === 'challenge') {
-    if (g.version === 11) {
+    if (g.version >= 11) {
       const outcome = narrativeOutcome(g)!;
       const objectives = narrativeObjectives(startingGame(g));
       const url = challengeURL(g, 'https://500signatures.fr');
@@ -43,7 +43,7 @@ export function cardModel(g: Game, kind: CardKind) {
     const bilan=g.version>=9?'Bilan multidimensionnel sans note globale':g.version === 1 ? 'Quatre critères, règles v1' : !g.ambition || g.ambition === 'equilibre' ? 'Finances, services, habitants, équipements' : `Ancienne priorité : ${ambitionFor(g).label}`;
     return { label:'DÉFI JOUABLE · SANS VOS CHOIX', title:g.mode === 'municipal' ? `Quel avenir pour ${d.place} ?` : 'Quel cap pour le pays ?', fields: [['Votre mission', mission], ['Durée', d.duration], ['Bilan', bilan], ['Même point de départ', `Scénario ${g.seed} · ${d.turns} décisions`]], url:challengeURL(g, 'https://500signatures.fr'), alt:`Défi de jeu, ${d.place}. Mission : ${mission}. ${d.duration}. ${bilan}. Scénario ${g.seed}, simulation fictive v${g.version}. Le lien ne contient aucune décision du joueur.` };
   }
-  if (g.version === 11) {
+  if (g.version >= 11) {
     const objectives = narrativeObjectives(g);
     const interrupted = g.politics?.ending && g.politics.ending.kind !== 'term_complete';
     const fields = [['Contexte', narrativeOutcome(g)!.context], ['Services', `${Math.round(g.metrics.services)}/100`], ['Confiance', `${Math.round(g.metrics.trust)}/100`], ['Défi', objectives.map(objective => `${objective.complete ? 'Atteint' : 'À poursuivre'} : ${objective.label}`).join(' · ')]];
@@ -71,7 +71,7 @@ function wrap(text: string, max: number): string[] {
 export function cardSVG(g: Game, kind: CardKind, format: keyof typeof CARD_SIZES) {
   const m = cardModel(g, kind), [w,h] = CARD_SIZES[format], tall = h > 900;
   const titleSize = tall ? 49 : 39, gap = tall ? (h - 650)/3 : 104;
-  const modelLabel = g.version === 11 ? domainFor(g).place : `${domainFor(g).place} · Modèle v${g.version}`;
+  const modelLabel = g.version >= 11 ? domainFor(g).place : `${domainFor(g).place} · Modèle v${g.version}`;
   const label = (text:string,x:number,y:number,size:number,color='#f4f0e7') => `<text x="${x}" y="${y}" font-family="sans-serif" font-size="${size}" fill="${color}">${e(text)}</text>`;
   const title = wrap(m.title, tall ? 31 : 48).map((line,i)=>label(line,72,218+i*(titleSize+8),titleSize)).join('');
   const fields = m.fields.map(([name,value],i)=>{

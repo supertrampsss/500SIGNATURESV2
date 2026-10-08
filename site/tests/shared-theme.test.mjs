@@ -1,29 +1,29 @@
 import {test,expect} from '@playwright/test';
 
-test('Mandats : accueil illustré, lancement v11 et navigation accessibles',async({page},info)=>{
+test('Mandats : carte 3D, lancement v12 et navigation accessibles',async({page},info)=>{
  await page.goto('/mandats/');
- await expect(page.locator('.cinema-entry')).toBeVisible();
- await expect(page.getByRole('heading',{name:'À vous de gouverner.',exact:true})).toBeVisible();
- await expect(page.locator('.cinema-entry__chapters > li')).toHaveCount(5);
- const primary=page.getByRole('button',{name:'Gouverner la France',exact:true});await expect(primary).toBeVisible();
+ await expect(page.locator('.map-game--entry')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Tenir cinq ans.',exact:true})).toBeVisible();
+ const primary=page.getByRole('button',{name:'Commencer un mandat',exact:true});await expect(primary).toBeVisible();
  await page.screenshot({path:info.outputPath('mandats-selection.png'),fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
- await primary.click();await expect(page.locator('.story-agenda')).toBeVisible();
- expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).version).toBe(11);
+ await primary.click();await expect(page.locator('[data-map-agenda]')).toBeVisible();
+ expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).version).toBe(12);
 });
-test('Mandats expose Accueil et le lien revient à la page d’accueil',async({page})=>{
- for(const path of ['/mandats/','/mandats/methode/','/mandats/comprendre/','/bilan/']){
+test('Mandats expose un accès au site et le lien revient à la page d’accueil',async({page})=>{
+ await page.goto('/mandats/');
+ await page.getByRole('button',{name:'Ma partie',exact:true}).click();
+ await page.getByRole('link',{name:'Retour au site',exact:true}).click();
+ await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
+ await expect(page.locator('#story-titre')).toHaveText('Comprendre aujourd’hui pour mieux agir demain.',{useInnerText:true});
+ for(const path of ['/mandats/methode/','/mandats/comprendre/','/bilan/']){
   await page.goto(path);
   const accueil=page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Accueil',exact:true});
   if(!await accueil.isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
   await expect(accueil).toHaveAttribute('href','/');
   await accueil.click();
   await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
-  await expect(page.locator('#story-titre')).toHaveText('Comprendre aujourd’hui pour mieux agir demain.',{useInnerText:true});
  }
- await page.goto('/mandats/methode/');
- await page.getByRole('link',{name:'500 Signatures, accueil',exact:true}).click();
- await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
 });
 
 test('Accueil : les données, villes et dossiers précèdent le jeu',async({page},info)=>{
@@ -80,7 +80,7 @@ test('retired simulator URLs lead to Mandats while old browser data is preserved
  await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
  await page.goto('/simulateur/comparer?version=2&budget=france');
  await expect(page).toHaveURL(/\/mandats\/$/);
- await expect(page.getByRole('heading',{name:'À vous de gouverner.',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Tenir cinq ans.',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>localStorage.getItem('simulator-legacy-preservation'))).toBe('old-save');
 });
 

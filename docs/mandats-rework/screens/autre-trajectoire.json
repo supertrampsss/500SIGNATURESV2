@@ -1,0 +1,13 @@
+{
+  "version": 12,
+  "mode": "national",
+  "seed": 0,
+  "choices": [
+    "pol-wealth-hospital-package",
+    "pol-coalition-compromise",
+    "r01a",
+    "r02a",
+    "pol-censure-withdraw"
+  ],
+  "ambition": "equilibre"
+}

@@ -66,7 +66,8 @@ async function checkHeaderGeometry(page, viewportWidth, mobile) {
 }
 
 async function capture(page, info, name) {
-  const path = info.outputPath(`${name}-${info.project.name}.png`);
+  const filename = name.replace(/[^a-zA-Z0-9._-]/g, '-');
+  const path = info.outputPath(`${filename}-${info.project.name}.png`);
   await page.screenshot({ path, fullPage: false, animations: 'disabled' });
   await info.attach(name, { path, contentType: 'image/png' });
   return path;
@@ -88,10 +89,10 @@ test('shared header works across public pages, viewports, and repeated SPA navig
     observedRoutes.push({ ...route, pathname: new URL(page.url()).pathname });
   }
 
-  // These fallback pages import the shared shell but do not install the compact
-  // menu. They must keep the ordinary links visible at every viewport width.
+  // Static public pages and explicit older Mandats links keep the ordinary
+  // navigation. The v12 game has its own compact header, checked below.
   const fallbackScreenshots = [];
-  for (const path of ['/mandats/', '/confidentialite/']) {
+  for (const path of ['/mandats/?mode=national&v=11&seed=0&ambition=equilibre', '/confidentialite/']) {
     await page.goto(path, { waitUntil: 'domcontentloaded' });
     await expect(header(page)).toBeVisible();
     await expect(nav(page)).toBeVisible();
@@ -103,6 +104,32 @@ test('shared header works across public pages, viewports, and repeated SPA navig
     fallbackScreenshots.push(await capture(page, info, `header-fallback-${path.replaceAll('/', '-') || 'root'}`));
     observedRoutes.push({ page: 'fallback', path, menu: 'absent', nav: 'visible' });
   }
+
+  // The map keeps navigation available on demand without a second public header.
+  // Cover the touch target, Escape, reopening and the real return to the site.
+  await page.goto('/mandats/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.map-game__header')).toBeVisible();
+  await expect(page.locator('.map-game__header')).toHaveCount(1);
+  await expect(page.locator('button.fr-menu')).toHaveCount(0);
+  const gameTools = page.getByRole('button', { name: 'Ma partie', exact: true });
+  await expect(gameTools).toBeVisible();
+  const gameToolsBox = await gameTools.boundingBox();
+  expect(gameToolsBox.width).toBeGreaterThanOrEqual(44);
+  expect(gameToolsBox.height).toBeGreaterThanOrEqual(44);
+  await noHorizontalOverflow(page);
+  fallbackScreenshots.push(await capture(page, info, 'mandats-map-header'));
+  await gameTools.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Retour au site', exact: true })).toBeVisible();
+  fallbackScreenshots.push(await capture(page, info, 'mandats-site-navigation'));
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(gameTools).toBeFocused();
+  await gameTools.click();
+  await page.getByRole('link', { name: 'Retour au site', exact: true }).click();
+  await expect(page.locator('.vue--accueil')).toBeVisible();
+  await expect(header(page)).toBeVisible();
+  observedRoutes.push({ page: 'mandats-v12', path: '/mandats/', navigation: 'Ma partie puis Retour au site', escape: 'closes and restores focus' });
 
   // Keep a closed/open pair from the actual home screen for visual review.
   await waitForPage(page, ROUTES[0]);

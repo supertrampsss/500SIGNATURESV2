@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. The current narrative campaign uses v11; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v12; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -56,8 +56,10 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 `site/src/navigation.ts` owns the compact menu and its grouped controls. Do not
 create a second controller in a page module. Scope the compact grid to headers
-with `.entete__actions`; static headers, including Mandats, keep their visible
-navigation. Verify with `npx playwright test --config playwright.header.config.ts`
+with `.entete__actions`; static headers and explicit older Mandats links keep
+their visible navigation. Mandats v12 uses its own header and exposes the site
+through Ma partie, then Retour au site. Verify both paths with
+`npx playwright test --config playwright.header.config.ts`
 after building `site/`; retain the report, open/closed captures and replay inputs
 under `site/header-artifacts/`.
 
@@ -101,6 +103,27 @@ in the deterministic versioned engine. Use `politics.ts`, `political-dilemmas.ts
 rupture scenes. Render votes from their saved results, with skip and reduced motion.
 Do not replace concrete sacrifices with generic “maintain course” options.
 
+
+### Mandats: 3D rework (8 October 2026)
+
+The owner's rework supersedes the older visual reference below for v12.
+Follow [the 3D rework contract](docs/mandats-rework.md) and
+[social consequences](docs/mandats-social-contract.md): a real Babylon.js France
+map is the main playfield, with charcoal/forest/mint/coral colors and Public Sans.
+Show one concrete problem, distinct responses and essential tradeoffs; accounts
+and history open on demand. No em/en dashes, arrows or chevrons in the new UI.
+Crowds and construction follow actual saved state. Moving or inspecting the map
+never spends a turn. Preserve the canvas and camera between choices, and keep
+keyboard, reduced motion, offline play and WebGL fallback usable. Finishing five
+years is the survival objective; unrest alone does not remove the president.
+The short v12 verdict remains nonmodal and allows the next subject immediately.
+
+`map-state.ts` derives scene inputs, `map-scene.ts` owns rendering,
+`map-view.ts` and `map-game.css` own the v12 interface. `social-engine.ts`
+owns persistent mobilisation rules; `rework-content.ts` owns new authored events.
+Run the rework and social Playwright configurations after the full build, retain
+their artifacts, and inspect desktop, 390 px, 320 px and WebKit screens. The
+previous illustration-based composition remains applicable to explicit older links.
 
 ### Mandats: approved ten-screen visual reference (24 September 2026)
 

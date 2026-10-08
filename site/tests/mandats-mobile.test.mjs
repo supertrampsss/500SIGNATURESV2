@@ -61,10 +61,10 @@ test('territory, sandbox and reduced motion keep the saved mandate intact',async
 test('municipal mandate stays unavailable and keeps an existing save',async({page},info)=>{
  const municipalSave={version:2,mode:'municipal',seed:42,choices:[],ambition:'equilibre'};
  await page.addInitScript(save=>localStorage.setItem('500signatures.mandats.v1',JSON.stringify(save)),municipalSave);
- await page.goto(HOME+'?mode=municipal&v=4&ambition=equilibre&seed=42');await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
+ await page.goto(HOME+'?mode=municipal&v=4&ambition=equilibre&seed=42');await expect(page.locator('#notice')).toContainText('mandat communal est temporairement indisponible');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).toEqual(municipalSave);
- await page.reload();await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
- await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
+ await page.reload();await expect(page.locator('#notice')).toContainText('mandat communal est temporairement indisponible');
+ await expect(page.locator('#notice')).toContainText('mandat communal est temporairement indisponible');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).toEqual(municipalSave);
 });
 test('opt-in offline preparation survives network loss with the cinematic game art',async({page,context},info)=>{
@@ -81,9 +81,9 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
 
 test('municipal entry announces its unavailability without creating a save',async({page},info)=>{
  await page.goto(HOME+'?mode=municipal&v=4&ambition=equilibre&seed=42');
- await expect(page.locator('[role="status"]')).toContainText('mandat communal est temporairement indisponible');
+ await expect(page.locator('#notice')).toContainText('mandat communal est temporairement indisponible');
  expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBeNull();
- await expect(page.getByRole('button',{name:/Gouverner la France/})).toBeVisible();await noOverflow(page);
+ await expect(page.getByRole('button',{name:/Commencer un mandat/})).toBeVisible();await noOverflow(page);
 });
 test('cinematic art keeps one scene image across decisions and offers an accessible territory', async ({page}, info) => {
  test.skip(!['desktop-board','mobile-board-390','desktop-chromium','android-chromium'].includes(info.project.name), 'Persistent scene integration at desktop and mobile layout sizes');

@@ -1,0 +1,12 @@
+{
+  "version": 12,
+  "mode": "national",
+  "seed": 0,
+  "ambition": "equilibre",
+  "choices": [],
+  "focus": "education-lycees",
+  "viewport": {
+    "width": 320,
+    "height": 740
+  }
+}

@@ -98,19 +98,19 @@ async function openSeed(page, seed, { reducedMotion = false } = {}) {
   return save;
 }
 
-test('fresh national play starts on the current v11 ruleset', async ({ page }) => {
+test('fresh national play starts on the current v12 ruleset', async ({ page }) => {
   await page.goto(HOME);
-  await page.getByRole('button', { name: /Gouverner la France/ }).click();
+  await page.getByRole('button', { name: /Commencer un mandat/ }).click();
   const save = await stored(page);
-  expect(save).toMatchObject({ version: 11, mode: 'national', choices: [] });
-  await expect(page.locator('.story-agenda')).toBeVisible();
-  const selectedId = await page.locator('.story-agenda [data-action="story-select"]').first().getAttribute('data-story-id');
-  await page.locator('.story-agenda [data-action="story-select"]').first().click();
+  expect(save).toMatchObject({ version: 12, mode: 'national', choices: [] });
+  await expect(page.locator('[data-map-agenda]')).toBeVisible();
+  const selectedId = await page.locator('[data-map-agenda] [data-action="story-select"]').first().getAttribute('data-story-id');
+  await page.locator('[data-map-agenda] [data-action="story-select"]').first().click();
   const focusedRaw = await rawSave(page);
   expect(decodeExport(focusedRaw).narrative.focus).toBe(selectedId);
   await page.reload();
   await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
-  await expect(page.locator('.story-scene[data-stage="decision"]')).toBeVisible();
+  await expect(page.locator('[data-map-decision]')).toBeVisible();
   expect(decodeExport(await rawSave(page)).narrative.focus).toBe(selectedId);
 });
 

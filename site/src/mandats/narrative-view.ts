@@ -5,6 +5,8 @@ import { annualDeficit } from './national-deficit.ts';
 import { NARRATIVE_FICTION_NOTE, NARRATIVE_PLACES } from './narrative-content.ts';
 import type { Game } from './types.ts';
 import type { NarrativeProject, NarrativeProjectStatus, NarrativePromise } from './narrative-types.ts';
+import { renderSocialHistory } from './social-view.ts';
+import { activeSocialMovements } from './social-engine.ts';
 
 const escape = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -37,7 +39,8 @@ function sceneKind(category: string, title: string, summary: string, art: string
 function sceneArt(game: Game, stage: 'agenda' | 'decision' | 'result') {
   const agenda = storyAgenda(game);
   const focus = game.narrative?.focus;
-  const item = stage === 'result' ? undefined : agenda.find(entry => entry.id === focus) ?? agenda[0];
+  const movement = stage === 'agenda' ? activeSocialMovements(game)[0] : undefined;
+  const item = stage === 'result' ? undefined : agenda.find(entry => entry.id === focus) ?? agenda.find(entry => entry.id === movement?.id) ?? agenda[0];
   const turn = Math.min(game.turn, Math.max(0, domainFor(game).dossiers.length - 1));
   const dossier = stage === 'result'
     ? game.history.at(-1)?.dossier ?? domainFor(game).dossiers[Math.max(0, turn - 1)]
@@ -109,10 +112,10 @@ function castAndPress(game: Game) {
 
 /** Longitudinal story tracking lives in the journal, away from the decision. */
 export function renderStoryJournal(game: Game): string {
-  if (game.version !== 11 || !game.narrative) return '';
+  if (game.version < 11 || !game.narrative) return '';
   return `<section class="story-journal" aria-label="Suivi du mandat">
     <h2>Suivi du mandat</h2>
-    <div class="story-scene__details-grid"><div class="story-scene__main">${activity(game)}</div>${castAndPress(game)}</div>
+    ${renderSocialHistory(game)}<div class="story-scene__details-grid"><div class="story-scene__main">${activity(game)}</div>${castAndPress(game)}</div>
     <p class="story-scene__fiction-note">${escape(NARRATIVE_FICTION_NOTE)}</p>
   </section>`;
 }

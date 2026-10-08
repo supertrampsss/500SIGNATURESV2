@@ -36,7 +36,7 @@ export type NarrativeState = {
 
 export type NarrativeChoice = {
   id: string; title: string; description: string; cost: string; benefit: string; sacrifice: string;
-  effect: Effect; delayed?: { after: number; label: string; effect: Effect };
+  effect: Effect; delayed?: { after: number; label: string; effect: Effect }; social?: import('./social-types.ts').SocialChoice;
   political?: import('./politics-types.ts').PoliticalChoice;
   amendment?: Amendment;
   promise?: { id: string; label: string; dueAfter?: number; targetProject?: string; keepWhen?: NarrativePromise['keepWhen'] };

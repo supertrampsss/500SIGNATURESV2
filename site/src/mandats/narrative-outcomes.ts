@@ -17,7 +17,7 @@ export type CausalTurningPoint = { event: NarrativeEventRecord; index: number; t
 /** Restores the eligible story focus for the recorded choice at a zero-based turn. */
 export function focusForRecordedDecision(game: Game, index: number): Game {
   const prefix = replayGame(game, game.choices.slice(0, index));
-  if (game.version !== 11 || !game.history[index]) return prefix;
+  if (game.version < 11 || !game.history[index]) return prefix;
   const choiceId = game.history[index]!.choice;
   return storyAgenda(prefix).map(item => selectStoryAgenda(prefix, item.id)).find(candidate => domainFor(candidate).dossiers[candidate.turn]?.choices.some(choice => choice.id === choiceId)) ?? prefix;
 }
@@ -76,7 +76,7 @@ export type NarrativeOutcome = {
 };
 const contexts = { coalition: 'Coalition fragile', hospital: 'Hôpital prioritaire', redress: 'Redressement' } as const;
 export function narrativeOutcome(game: Game): NarrativeOutcome | null {
-  if (game.version !== 11 || !game.narrative) return null;
+  if (game.version < 11 || !game.narrative) return null;
   const finished = game.turn >= 30 || !!game.politics?.ending;
   return {
     context: contexts[game.narrative.context], dimensions: narrativeDimensions(game), promises: game.narrative.promises,
@@ -87,7 +87,7 @@ export function narrativeOutcome(game: Game): NarrativeOutcome | null {
 
 /** A compact statement for explicitly fictional, deterministic electoral epilogues. */
 export function simulatedElectionEpilogue(game: Game): { label: string; headline: string; basis: string[]; fictive: string } | null {
-  if (game.version !== 11 || !game.narrative || game.turn !== 30 || game.politics?.ending && game.politics.ending.kind !== 'term_complete') return null;
+  if (game.version < 11 || !game.narrative || game.turn !== 30 || game.politics?.ending && game.politics.ending.kind !== 'term_complete') return null;
   const outcome: NarrativeEpilogue | null = narrativeElectionOutcome(game);
   if (!outcome || outcome.kind === 'transition') return null;
   return { label: `${outcome.governmentSeats} sièges au gouvernement`, headline: outcome.title,
@@ -96,7 +96,7 @@ export function simulatedElectionEpilogue(game: Game): { label: string; headline
 }
 
 export function fictionalPressHeadline(game: Game): string | null {
-  if (game.version !== 11 || !game.narrative || !game.history.length) return null;
+  if (game.version < 11 || !game.narrative || !game.history.length) return null;
   const lastEvent = [...game.narrative.events].sort((a, b) => b.turn - a.turn)[0];
   if (lastEvent) return `Presse fictive · « ${lastEvent.title} »`;
   const last = game.history.at(-1)!;
