@@ -10,6 +10,8 @@ Carte 3D Babylon.js, interface charbon et vert profond, commandes menthe, urgenc
 
 Les lieux simulés utilisent des villes françaises comme repères. Les événements, collectifs et effets restent fictifs. Les contours géographiques proviennent de Natural Earth via world-atlas 2.0.2 ; la géographie ne constitue pas une carte administrative détaillée.
 
+Le premier rendu de cette carte a été rejeté par le propriétaire pour son écart avec les maquettes. La [correction du diorama](mandats-diorama.md) conserve les références artistiques, les défauts reproduits et les captures comparatives du jeu. Elle devient la référence graphique actuelle ; les captures ci-dessous documentent la première livraison.
+
 ## Animations
 
 La scène représente les chantiers financés, leur livraison et les mobilisations réellement présentes dans la partie. Les foules se déplacent à des rythmes variés. La caméra reste sous le contrôle du joueur. Le mouvement réduit et la vue légère conservent les commandes. Un navigateur sans WebGL garde une carte et les choix accessibles.
@@ -50,7 +52,7 @@ npm run test:board -- --workers 2
 
 Les trois premières suites utilisent le même serveur de prévisualisation ; ne pas les démarrer simultanément ni reconstruire `dist` pendant un parcours. La CI conserve les captures, rapports et entrées de rejeu pendant 14 jours. Les ressources Babylon.js, y compris les shaders chargés à la demande, rejoignent le cache hors connexion lorsque le joueur le prépare.
 
-La géographie, les bâtiments et les animations sont procéduraux. Le premier bundle Mandats atteint environ 473 Ko gzip avec le moteur et les règles historiques ; le build signale sa taille. La résolution s'adapte et la scène vise 30 images par seconde, mais aucune cadence sur téléphone physique n'est garantie par les tests automatisés.
+La géographie, les bâtiments et les animations sont procéduraux. Le premier bundle Mandats atteignait environ 473 Ko gzip avec le moteur et les règles historiques ; la correction du diorama atteint environ 515 Ko gzip. Le build signale sa taille. La résolution s'adapte et la scène vise 30 images par seconde, mais aucune cadence sur téléphone physique n'est garantie par les tests automatisés.
 
 ## Captures du jeu exécuté
 

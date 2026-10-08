@@ -1,0 +1,41 @@
+{
+  "viewport": {
+    "width": 1779,
+    "height": 1016
+  },
+  "deviceScaleFactor": 1,
+  "version": 12,
+  "mode": "national",
+  "seed": 0,
+  "ambition": "equilibre",
+  "choices": [],
+  "raster": {
+    "width": 1399,
+    "height": 948,
+    "css": {
+      "x": 0,
+      "y": 68,
+      "width": 1399,
+      "height": 948,
+      "top": 68,
+      "right": 1399,
+      "bottom": 1016,
+      "left": 0
+    },
+    "dpr": 1
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1399x948",
+    "landscape": "diorama",
+    "staticBatches": "37",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "cameraRadius": "16.35",
+    "renderMs": "13"
+  },
+  "errors": []
+}

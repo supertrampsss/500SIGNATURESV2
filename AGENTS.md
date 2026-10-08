@@ -118,6 +118,11 @@ keyboard, reduced motion, offline play and WebGL fallback usable. Finishing five
 years is the survival objective; unrest alone does not remove the president.
 The short v12 verdict remains nonmodal and allows the next subject immediately.
 
+The owner's rejection of the first coarse map is recorded in
+[the diorama reference and browser evidence](docs/mandats-diorama.md). Use its
+desktop/mobile reference images and compare actual browser captures. Do not call
+the artistic target complete because compilation or a WebGL test passes.
+
 `map-state.ts` derives scene inputs, `map-scene.ts` owns rendering,
 `map-view.ts` and `map-game.css` own the v12 interface. `social-engine.ts`
 owns persistent mobilisation rules; `rework-content.ts` owns new authored events.
