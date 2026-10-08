@@ -1,4 +1,8 @@
-body[data-rework="true"] {
+html:has(body[data-rework="true"]) {
+  background: #10171b;
+  color-scheme: dark;
+}
+html body[data-rework="true"] {
   --design-navy: #10171b;
   --design-paper: #10171b;
   --design-ink: #f2f0e8;
@@ -9,9 +13,13 @@ body[data-rework="true"] {
   --design-panel: #172c2a;
   --design-inset: #122522;
   --design-selected: #203c31;
-  background: #10171b;
+  background: #10171b !important;
   color: #f2f0e8;
   font-family: "Public Sans", system-ui, sans-serif;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 body[data-rework="true"] .site-header,
 body[data-rework="true"] > .entete,
@@ -22,11 +30,12 @@ body[data-rework="true"] > .site-footer {
 html body[data-rework="true"] > header.site-header.entete {
   display: none !important;
 }
-body[data-rework="true"] #mandats {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
+/* Override the older cinema shell's important 1440 px frame only in v12. */
+html body[data-rework="true"] #mandats {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 body[data-rework="true"] summary {
   list-style: none;
@@ -139,55 +148,81 @@ body[data-rework="true"] .map-game * {
   position: absolute;
   transform: translate(-50%, -50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 9px 11px;
-  border: 1px solid #8eae9c;
-  border-radius: 4px;
-  background: #122923ed;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
   color: #f2f0e8;
   font:
-    650 13px/1.2 "Public Sans",
+    600 11px/1.2 "Public Sans",
     system-ui,
     sans-serif;
   cursor: pointer;
   pointer-events: auto;
   white-space: nowrap;
   min-height: 44px;
-  box-shadow: 0 4px 14px #0a14154d;
+  min-width: 44px;
+  box-shadow: none;
 }
 .map-marker__point {
-  width: 12px;
-  height: 12px;
-  border: 2px solid #c2e8db;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #82dcca;
   border-radius: 50%;
-  background: #66d5be;
+  background: #112c25f2;
   flex: none;
 }
-.map-marker--urgent .map-marker__point {
-  background: #ef7868;
-  border-color: #ffd0c9;
+.map-marker__point::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #82dcca;
 }
-.map-marker.is-selected {
+.map-marker__label {
+  padding: 3px 6px;
+  border: 1px solid #9dbca45c;
+  border-radius: 3px;
+  background: #10231ee6;
+  color: #f2f0e8;
+  line-height: 1.2;
+}
+.map-marker--urgent .map-marker__point {
+  border-color: #ef897c;
+}
+.map-marker--urgent .map-marker__point::after {
+  background: #ef897c;
+}
+.map-marker.is-selected .map-marker__label {
   background: #f2f0e8;
   color: #142923;
   border-color: #f2f0e8;
 }
 .map-marker.is-selected .map-marker__point {
-  background: #ef7868;
-  border-color: #ba5a4e;
+  border-color: #f2f0e8;
 }
 .map-marker--tracking {
   font-size: 11px;
-  background: #182d29d9;
-  border-color: #587666;
-  color: #c6dbcf;
 }
 .map-marker--tracking .map-marker__point {
-  width: 8px;
-  height: 8px;
-  background: #5f8b76;
+  width: 22px;
+  height: 22px;
   border-color: #a8c7b3;
+}
+.map-marker--tracking .map-marker__point::after {
+  width: 6px;
+  height: 6px;
+  background: #a8c7b3;
+}
+.map-marker--tracking .map-marker__label {
+  color: #c6dbcf;
+  border-color: #587666;
 }
 .map-camera {
   position: absolute;
@@ -490,12 +525,12 @@ html body[data-rework="true"] #mandats .map-choice.choice {
   border-color: #577168;
 }
 html body[data-rework="true"] #mandats .map-marker {
-  background: #122923ed;
+  background: transparent;
   color: #f2f0e8;
 }
 html body[data-rework="true"] #mandats .map-marker.is-selected {
-  background: #f2f0e8;
-  color: #142923;
+  background: transparent;
+  color: #f2f0e8;
 }
 .mandate-map[data-renderer="fallback"] .map-camera {
   display: none;
@@ -560,13 +595,14 @@ body[data-rework="true"] dialog#details :is(button, .button) {
     background: #203c31;
     border-color: #91c4ac;
   }
-  .map-marker:hover {
-    background: #224337;
+  .map-marker:hover .map-marker__label {
+    background: #263a33;
+    border-color: #a9cbbb;
   }
 }
 @media (max-width: 820px) {
   .map-game.map-game--focused {
-    grid-template-rows: 58px minmax(190px, 27svh) auto;
+    grid-template-rows: 58px minmax(240px, 33svh) auto;
   }
   .map-game.map-game--focused:has(
       .mandate-map[data-inspection]:not([data-inspection=""])
@@ -652,12 +688,12 @@ body[data-rework="true"] dialog#details :is(button, .button) {
   }
   .map-marker {
     font-size: 11px;
-    padding: 7px 9px;
-    gap: 5px;
+    padding: 2px 4px;
+    gap: 2px;
   }
   .map-marker__point {
-    width: 9px;
-    height: 9px;
+    width: 25px;
+    height: 25px;
   }
   .map-entry h1 {
     font-size: 36px;
@@ -693,7 +729,7 @@ body[data-rework="true"] dialog#details :is(button, .button) {
 }
 @media (max-width: 350px) {
   .map-game.map-game--focused {
-    grid-template-rows: 54px minmax(165px, 23svh) auto;
+    grid-template-rows: 54px minmax(220px, 32svh) auto;
   }
   .map-game__header {
     padding: 0 12px;

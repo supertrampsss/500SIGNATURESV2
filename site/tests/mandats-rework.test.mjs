@@ -89,6 +89,155 @@ async function capture(page, info, label) {
   }
 }
 
+test("a high density display keeps the 3D map sharp through resize and saved resume", async ({
+  browser,
+}, info) => {
+  const viewport = info.project.use.viewport ?? { width: 1440, height: 960 };
+  const context = await browser.newContext({
+    baseURL: info.project.use.baseURL,
+    viewport,
+    deviceScaleFactor: 2,
+    isMobile: Boolean(info.project.use.isMobile),
+    hasTouch: Boolean(info.project.use.hasTouch),
+    reducedMotion: "reduce",
+  });
+  try {
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    const canvas = page.locator("[data-map-canvas]");
+    async function raster() {
+      return canvas.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return {
+          width: element.width,
+          height: element.height,
+          cssWidth: bounds.width,
+          cssHeight: bounds.height,
+          devicePixelRatio: window.devicePixelRatio,
+        };
+      });
+    }
+    async function retain(label) {
+      await capture(page, info, label);
+      const raw = await page.evaluate((key) => localStorage.getItem(key), KEY);
+      const path = info.outputPath(label + "-resolution.json");
+      await writeFile(
+        path,
+        JSON.stringify(
+          {
+            url: page.url(),
+            viewport: page.viewportSize(),
+            raster: await raster(),
+            inputs: raw
+              ? JSON.parse(raw)
+              : {
+                  version: 12,
+                  mode: "national",
+                  seed: 0,
+                  ambition: "equilibre",
+                  choices: [],
+                },
+            state: await game(page),
+          },
+          null,
+          2,
+        ),
+      );
+      await info.attach(label + "-resolution", {
+        path,
+        contentType: "application/json",
+      });
+    }
+    async function expectReadableRaster() {
+      await expect
+        .poll(async () => {
+          const size = await raster();
+          return (
+            size.width >= size.cssWidth - 1 &&
+            size.height >= size.cssHeight - 1
+          );
+        })
+        .toBe(true);
+    }
+
+    await open(page);
+    await expect(page.locator("[data-mandate-map]")).toHaveAttribute(
+      "data-renderer",
+      "babylon",
+    );
+    expect((await raster()).devicePixelRatio).toBe(2);
+    const initial = await game(page);
+    await canvas.evaluate((element) => {
+      element.dataset.instance = "high-density-persistent";
+    });
+    await retain("carte-dpr-2");
+    await expectReadableRaster();
+
+    await page.locator('[data-map-marker="education-lycees"]').click();
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    expect((await game(page)).turn).toBe(initial.turn);
+    await page.locator('[data-action="map-close"]').click();
+    const map = page.locator("[data-mandate-map]");
+    let wheelRadius;
+    if (!info.project.use.isMobile) {
+      const overviewRadius = Number(await map.getAttribute("data-camera-radius"));
+      const bounds = await canvas.boundingBox();
+      await page.mouse.move(bounds.x + bounds.width * .25, bounds.y + bounds.height * .5);
+      await page.mouse.wheel(0, -360);
+      await expect.poll(async () => Number(await map.getAttribute("data-camera-radius")))
+        .toBeLessThan(overviewRadius - .05);
+      let previousRadius, stableChecks = 0;
+      await expect.poll(async () => {
+        const radius = await map.getAttribute("data-camera-radius");
+        stableChecks = radius === previousRadius ? stableChecks + 1 : 0;
+        previousRadius = radius;
+        return stableChecks;
+      }, { intervals: [100] }).toBeGreaterThanOrEqual(3);
+      wheelRadius = Number(await map.getAttribute("data-camera-radius"));
+    }
+    const previousResolution = await map.getAttribute("data-resolution");
+    const resizedViewport = info.project.use.isMobile
+      ? viewport.width <= 320
+        ? { width: 390, height: 844 }
+        : { width: 320, height: 740 }
+      : { width: 1000, height: 800 };
+    await page.setViewportSize(resizedViewport);
+    await expect(map).not.toHaveAttribute("data-resolution", previousResolution);
+    await expectReadableRaster();
+    if (wheelRadius !== undefined)
+      expect(Number(await map.getAttribute("data-camera-radius"))).toBeCloseTo(wheelRadius, 1);
+    expect((await game(page)).turn).toBe(initial.turn);
+    await expect(canvas).toHaveAttribute(
+      "data-instance",
+      "high-density-persistent",
+    );
+    await page.locator('[data-map-marker="education-lycees"]').click();
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    expect((await game(page)).turn).toBe(initial.turn);
+    await retain("carte-redimensionnee-dpr-2");
+
+    const saved = await choose(page, "regrouper");
+    expect(saved.turn).toBe(initial.turn + 1);
+    await page.reload();
+    await page.getByRole("button", { name: "Reprendre", exact: true }).click();
+    await expect(page.locator("[data-mandate-map]")).toHaveAttribute(
+      "data-renderer",
+      "babylon",
+    );
+    await expectReadableRaster();
+    expect((await game(page)).turn).toBe(saved.turn);
+    expect((await game(page)).choices).toEqual(saved.choices);
+    await page.locator("[data-map-marker]").first().click();
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    expect((await game(page)).turn).toBe(saved.turn);
+    await retain("carte-reprise-dpr-2");
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
 test("the real 3D map opens subjects without advancing the game and preserves its canvas", async ({
   page,
 }, info) => {
@@ -336,26 +485,91 @@ test("a lost graphics context keeps the map subjects and decisions usable", asyn
     info.project.name !== "desktop",
     "One actual context-loss lifecycle.",
   );
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await open(page);
-  await expect(page.locator("[data-mandate-map]")).toHaveAttribute(
+  await open(page, 1);
+  const map = page.locator("[data-mandate-map]");
+  const canvas = page.locator("[data-map-canvas]");
+  await expect(map).toHaveAttribute(
     "data-renderer",
     "babylon",
   );
-  const lost = await page.locator("[data-map-canvas]").evaluate((canvas) => {
-    const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl"),
+  const initial = await game(page);
+  expect(initial.narrative.projects).toEqual([]);
+  await canvas.evaluate((element) => {
+    element.dataset.instance = "lost-context-persistent";
+  });
+  const lost = await canvas.evaluate((element) => {
+    const gl = element.getContext("webgl2") ?? element.getContext("webgl"),
       extension = gl?.getExtension("WEBGL_lose_context");
     if (!extension) return false;
     extension.loseContext();
     return true;
   });
   expect(lost).toBe(true);
-  await expect(page.locator("[data-mandate-map]")).toHaveAttribute(
+  await expect(map).toHaveAttribute(
     "data-renderer",
     "fallback",
   );
-  await select(page, "education-lycees");
-  const state = await choose(page, "regrouper");
-  expect(state.turn).toBe(1);
-  await capture(page, info, "contexte-graphique-perdu");
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const gl = element.getContext("webgl2") ?? element.getContext("webgl");
+        return gl?.isContextLost();
+      }),
+    )
+    .toBe(true);
+
+  try {
+    await select(page, "soins-garde-nuit");
+    expect((await game(page)).turn).toBe(initial.turn);
+    const funded = await choose(page, "renover-service");
+    expect(funded.turn).toBe(initial.turn + 1);
+    expect(funded.choices).toEqual([
+      "n11-0-soins-garde-nuit-renover-service",
+    ]);
+    expect(funded.politics.lastVote.passed).toBe(true);
+    expect(funded.narrative.projects).toEqual([
+      expect.objectContaining({
+        id: "service-rives",
+        status: "funded",
+        sourceChoice: funded.choices[0],
+        causeTurn: initial.turn,
+      }),
+    ]);
+    await expect(map).toHaveAttribute("data-renderer", "fallback");
+    await expect(canvas).toHaveAttribute(
+      "data-instance",
+      "lost-context-persistent",
+    );
+    await capture(page, info, "contexte-perdu-projet-finance");
+    expect(errors).toEqual([]);
+
+    await page.locator('[data-map-marker="education-lycees"]').click();
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    const saved = await game(page);
+    expect(saved.turn).toBe(funded.turn);
+    expect(saved.choices).toEqual(funded.choices);
+    expect(saved.narrative.projects).toEqual(funded.narrative.projects);
+    await page.reload();
+    await page.getByRole("button", { name: "Reprendre", exact: true }).click();
+    await expect(map).toHaveAttribute("data-renderer", "babylon");
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    const resumed = await game(page);
+    expect(resumed.turn).toBe(saved.turn);
+    expect(resumed.choices).toEqual(saved.choices);
+    expect(resumed.narrative.projects).toEqual(saved.narrative.projects);
+    expect(resumed.politics.lastVote).toEqual(saved.politics.lastVote);
+    expect(resumed.narrative.focus).toBe(saved.narrative.focus);
+    await capture(page, info, "reprise-apres-contexte-perdu");
+    expect(errors).toEqual([]);
+  } finally {
+    const path = info.outputPath("contexte-perdu-pageerrors.json");
+    await writeFile(path, JSON.stringify(errors, null, 2));
+    await info.attach("contexte-perdu-pageerrors", {
+      path,
+      contentType: "application/json",
+    });
+  }
 });

@@ -1,0 +1,10 @@
+{
+  "version": 12,
+  "mode": "national",
+  "seed": 1,
+  "choices": [
+    "n11-0-soins-garde-nuit-renover-service"
+  ],
+  "ambition": "equilibre",
+  "focus": "education-lycees"
+}
