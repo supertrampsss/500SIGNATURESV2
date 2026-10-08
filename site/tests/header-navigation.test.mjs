@@ -66,7 +66,8 @@ async function checkHeaderGeometry(page, viewportWidth, mobile) {
 }
 
 async function capture(page, info, name) {
-  const path = info.outputPath(`${name}-${info.project.name}.png`);
+  const filename = name.replace(/[^a-zA-Z0-9._-]/g, '-');
+  const path = info.outputPath(`${filename}-${info.project.name}.png`);
   await page.screenshot({ path, fullPage: false, animations: 'disabled' });
   await info.attach(name, { path, contentType: 'image/png' });
   return path;
