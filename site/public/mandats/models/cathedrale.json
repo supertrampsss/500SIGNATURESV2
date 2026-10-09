@@ -7,7 +7,7 @@
     "cathedrale_paris": {
       "width": 1.907,
       "depth": 2.9465,
-      "height": 3.84,
+      "height": 2.935,
       "min": [
         -0.9535000324249268,
         0.0,
@@ -15,15 +15,15 @@
       ],
       "max": [
         0.9535000324249268,
-        3.8400001525878906,
+        2.93500018119812,
         1.473249912261963
       ],
-      "triangles": 79444
+      "triangles": 80916
     },
     "cathedrale_paris_distant": {
       "width": 1.907,
       "depth": 2.9465,
-      "height": 3.84,
+      "height": 2.935,
       "min": [
         -0.9535000324249268,
         0.0,
@@ -31,16 +31,16 @@
       ],
       "max": [
         0.9535000324249268,
-        3.8400001525878906,
+        2.93500018119812,
         1.473249912261963
       ],
-      "triangles": 4180,
+      "triangles": 4182,
       "lodOf": "cathedrale_paris",
-      "lodRatio": 0.052616,
+      "lodRatio": 0.051683,
       "decimationRatio": 0.2,
-      "omittedInspectionComponents": 4680,
-      "decimationExtentError": 0.0,
-      "sourceTriangles": 4679
+      "omittedInspectionComponents": 4736,
+      "decimationExtentError": 0.00354,
+      "sourceTriangles": 4622
     }
   }
 }

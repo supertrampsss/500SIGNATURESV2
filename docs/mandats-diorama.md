@@ -40,6 +40,16 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 33 capturée le 9 octobre 2026
+
+[Comparaison native 33](mandats-diorama/comparaison-33.html). La Corse suit maintenant une rotation commune avec ses villes et son port ; le sud-ouest est élargi. La cathédrale conserve sa nef et son emprise et raccourcit ses tours hautes. Les champs sont plus dorés, les canopées plus contrastées, les façades côtières découpées et la neige plus présente sur les hauts fronts alpins. **La comparaison reste non conforme à la maquette** : largeur du monument, finesse du relief, épaisseur et richesse de certains rivages, composition des campagnes.
+
+Le build complet termine réellement avec 1 082 tests réussis et 227 entrées verrouillées. Huit textures locales remplacent leurs calculs procéduraux au démarrage ; leurs pixels RGBA sont identiques à la recette conservée. Le cache hors connexion contient les huit PNG. Sept vues Chromium natives et le contrôle des corps PNG puis de leur décodage navigateur terminent réellement sans erreur JavaScript, HTTP, requête ou console. Aucun gain de chargement n’est présumé par cette seule capture.
+
+**L’audit physique 33 échoue encore** : six maisons sont rejetées, 731 sont construites sur les 737 définies. Les maisons construites, le lycée, les rochers, les eaux, les places publiques et les foules passent les contrôles effectués ; les six adresses restent à corriger. Les seuils et les aides de contrôle sont inchangés. Le test ciblé desktop des modèles retardés échoue encore au délai original de 15 s après leur libération ; le groupe WebKit suivant n’a pas démarré. Les quatre suites navigateur complètes 33 restent non exécutées. Le rendu capturé constitue une étape réelle, pas une livraison terminée.
+
+Sur 32, un contrôle ciblé a réellement réussi le mandat complet mobile et la reprise du mouvement lycéen WebKit ; la reprise WebKit en haute densité a échoué au délai de renderer après Reprendre. Ces résultats 32 ne valident pas automatiquement 33.
+
 ## Passe 31 capturée le 9 octobre 2026
 
 La [comparaison native31](mandats-diorama/comparaison-31.html) conserve la référence et cinq vues réelles. La lumière réchauffe la pierre à énergie moyenne conservée ; la mer abandonne le halo cyan uniforme, la neige recouvre davantage les hauts pans et les coteaux Touraine/Berry et Lorraine portent de grandes parcelles vertes et dorées.

@@ -1,6 +1,9 @@
+import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRetainedTownPlanPoint } from "./map-camera-projection.ts";
+
 /** Fixed, named miniature quarters composed against the approved France reference.
- * This module is pure data: geography, transport and terrain consume the same
- * authored footprints. No runtime row generation or random house placement. */
+ * Retained F22 plans are transported once through the common southwest/corsican
+ * composition. Geography, transport and terrain consume the same resulting
+ * authored centres and footprints. Model dimensions stay rigid. */
 export type NationalPoint = readonly [number, number];
 export type NationalRegion = "north" | "breton" | "stone" | "south" | "alsace";
 export type NationalBuilding = { id: string; model: string; x: number; z: number; angle: number;
@@ -11,7 +14,7 @@ export type NationalStreet = { id: string; width: number; points: readonly Natio
 export type NationalGarden = { id: string; x: number; z: number; angle: number; width: number; depth: number; outline: readonly NationalPoint[] };
 export type NationalSettlement = { name: string; lon: number; lat: number; region: NationalRegion; major: boolean;
   blocks: readonly NationalBlock[]; trees: readonly NationalTree[]; streets?: readonly NationalStreet[]; gardens?: readonly NationalGarden[] };
-export const NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
+const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
   {
     "name": "lille",
     "lon": 3.06,
@@ -27730,6 +27733,49 @@ export const NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
     "gardens": []
   }
 ];
+
+
+/** Move the authored layout with its terrain, keeping every named house rigid.
+ * The house's footprint centre is transported, rather than its off-centre GLB
+ * origin. All consumers receive these same effective local coordinates. */
+function transportNationalSettlement(town: NationalSettlement): NationalSettlement {
+  const corsica = CORSICA_SETTLEMENTS.has(town.name),
+    yaw = corsica ? CORSE_REFERENCE_POSE.angle : 0;
+  const point = (x: number, z: number): NationalPoint => {
+    const local = mapRetainedTownPlanPoint(town.lon, town.lat, x, z),
+      result = corsica ? mapCorsicaLocalVector(local.x, local.z) : local;
+    return [result.x, result.z];
+  };
+  return {
+    ...town,
+    blocks: town.blocks.map(block => ({
+      ...block,
+      outline: block.outline.map(([x, z]) => point(x, z)),
+      buildings: block.buildings.map(house => {
+        const sourceX = house.x + Math.sin(house.angle) * house.footprintOffset,
+          sourceZ = house.z + Math.cos(house.angle) * house.footprintOffset,
+          centre = point(sourceX, sourceZ), angle = house.angle + yaw;
+        if (!yaw && centre[0] === sourceX && centre[1] === sourceZ) return house;
+        return { ...house, angle,
+          x: centre[0] - Math.sin(angle) * house.footprintOffset,
+          z: centre[1] - Math.cos(angle) * house.footprintOffset };
+      }),
+    })),
+    trees: town.trees.map(tree => {
+      const [x, z] = point(tree.x, tree.z); return { ...tree, x, z };
+    }),
+    ...(town.streets ? { streets: town.streets.map(street => ({ ...street,
+      points: street.points.map(([x, z]) => point(x, z)) })) } : {}),
+    ...(town.gardens ? { gardens: town.gardens.map(garden => {
+      const [x, z] = point(garden.x, garden.z);
+      return { ...garden, x, z, angle: garden.angle + yaw,
+        outline: garden.outline.map(([px, pz]) => point(px, pz)) };
+    }) } : {}),
+  };
+}
+
+export const NATIONAL_SETTLEMENTS: readonly NationalSettlement[] =
+  RETAINED_NATIONAL_SETTLEMENTS.map(transportNationalSettlement);
 
 export function nationalBuildingFootprint(building: NationalBuilding): NationalPoint[] {
   const c = Math.cos(building.angle), s = Math.sin(building.angle),

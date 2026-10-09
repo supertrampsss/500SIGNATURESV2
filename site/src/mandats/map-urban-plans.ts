@@ -1,3 +1,5 @@
+import { publicEsplanadeTerrainSite } from "./map-public-sites.ts";
+import { mapRetainedTownPlanPoint } from "./map-camera-projection.ts";
 import { MAP_PLACES, mapPosition } from "./map-state.ts";
 import type { MapPlace } from "./map-state.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
@@ -110,7 +112,10 @@ export function cityEnvelopeFootprints(): CityEnvelopeFootprint[] {
         halfW: house.width / 2 + .018, halfD: house.depth / 2 + .018,
         rotation: -house.angle, settlement: town.name, localLevel: true });
     }
-    if (town.major) strips.push({ x: point.x + .02, z: point.z - .42,
+    if (town.major && town.name === "ajaccio") {
+      const site = publicEsplanadeTerrainSite(town.name);
+      strips.push({ ...site, x: point.x + site.x, z: point.z + site.z, settlement: town.name });
+    } else if (town.major) strips.push({ x: point.x + .02, z: point.z - .42,
       halfW: .23, halfD: .14, rotation: 0, settlement: town.name });
   }
   // One small service site in Montpellier supports the saved water/energy
@@ -193,7 +198,7 @@ export function urbanFootprint(x: number, z: number): number {
 
 /** Accepted construction reservations remain open while the surrounding town grows.
  * Each point is re-surveyed against the current physical terrain before use. */
-export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { x: number; z: number }[]>> = {
+const RETAINED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { x: number; z: number }[]>> = {
   "paris": [
     {
       "x": 0.734731565,
@@ -333,3 +338,12 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
   ],
   "ajaccio": []
 };
+
+
+/** Project placement, exclusion and terrain protection share the same F22
+ * centre transport as the surrounding authored neighbourhoods. */
+export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { x: number; z: number }[]>> =
+  Object.fromEntries(Object.entries(RETAINED_PROJECT_RESERVATIONS).map(([name, sites]) => {
+    const town = name as MapPlace, origin = MAP_PLACES[town];
+    return [town, sites!.map(site => mapRetainedTownPlanPoint(origin.lon, origin.lat, site.x, site.z))];
+  }));

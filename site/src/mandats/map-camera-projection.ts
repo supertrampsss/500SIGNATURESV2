@@ -187,13 +187,13 @@ function eastParameters(z: number) {
 }
 export const mapBaselinePosition = baseMapPosition;
 export const mapBaselineCoordinates = baseMapCoordinates;
-export function mapFinalFromBaseline(x: number, z: number): Point {
+function eastFinalFromBaseline(x: number, z: number): Point {
   finite(x, z);
   const { D, a, b, L } = eastParameters(z),
     weight = x <= a.v ? 0 : x >= b.v ? 1 : (x - a.v) / L;
   return { x: x + D.v * weight, z };
 }
-export function mapBaselineFromFinal(X: number, z: number): Point {
+function eastBaselineFromFinal(X: number, z: number): Point {
   finite(X, z);
   const { D, a, b, L } = eastParameters(z);
   return { x: X <= a.v ? X : X >= b.v + D.v ? X - D.v :
@@ -209,6 +209,113 @@ function eastJacobian(x: number, z: number) {
   }
   return { xx: 1 + D.v * wx, xz: D.d * weight + D.v * wz };
 }
+// Reference31 broadens the southwestern land mass after the retained F22 map.
+// This is an X-only common coordinate transform, never a per-layer scene offset.
+// At Bordeaux baseline Z=-1.34093 the shift is about .65; on the Basque coast
+// Z=-3.06128 it is 1.648. Northern/central/eastern landmarks remain unchanged.
+const southwestShape = { maxShift: 1.65, southStart: 0, southFull: -3.12,
+  westFull: -2.55, westEnd: .40 } as const;
+function shapeTransition(n: number, start: number, end: number) {
+  const t = Math.max(0, Math.min(1, (n - start) / (end - start)));
+  return { v: t * t * (3 - 2 * t), d: 6 * t * (1 - t) / (end - start) };
+}
+function southwestFinalFromEast(x: number, z: number): Point {
+  if (z >= southwestShape.southStart || x >= southwestShape.westEnd) return { x, z };
+  const south = shapeTransition(z, southwestShape.southStart, southwestShape.southFull).v,
+    west = 1 - shapeTransition(x, southwestShape.westFull, southwestShape.westEnd).v;
+  return { x: x - southwestShape.maxShift * south * west, z };
+}
+function southwestEastFromFinal(X: number, z: number): Point {
+  finite(X, z);
+  if (z >= southwestShape.southStart || X >= southwestShape.westEnd) return { x: X, z };
+  const shift = southwestShape.maxShift *
+    shapeTransition(z, southwestShape.southStart, southwestShape.southFull).v;
+  if (X <= southwestShape.westFull - shift) return { x: X + shift, z };
+  // dX/dx is always >=1. The unique inverse lies in [X, X+shift]. Constant
+  // regions above return exactly; only the small western transition uses Newton.
+  let lower = X, upper = X + shift, x = (lower + upper) / 2;
+  for (let iteration = 0; iteration < 8; iteration++) {
+    const west = shapeTransition(x, southwestShape.westFull, southwestShape.westEnd),
+      residual = x - shift * (1 - west.v) - X;
+    if (Math.abs(residual) <= 1e-12) return { x, z };
+    if (residual < 0) lower = x; else upper = x;
+    const next = x - residual / (1 + shift * west.d);
+    x = next >= lower && next <= upper ? next : (lower + upper) / 2;
+  }
+  // Deterministic bounded fallback for unusual rounding at a transition edge.
+  for (let iteration = 0; iteration < 40; iteration++) {
+    const west = shapeTransition(x, southwestShape.westFull, southwestShape.westEnd),
+      residual = x - shift * (1 - west.v) - X;
+    if (Math.abs(residual) <= 1e-12) return { x, z };
+    if (residual < 0) lower = x; else upper = x;
+    x = (lower + upper) / 2;
+  }
+  return { x, z };
+}
+function southwestJacobian(x: number, z: number) {
+  const south = shapeTransition(z, southwestShape.southStart, southwestShape.southFull),
+    west = shapeTransition(x, southwestShape.westFull, southwestShape.westEnd);
+  return { xx: 1 + southwestShape.maxShift * south.v * west.d,
+    xz: -southwestShape.maxShift * south.d * (1 - west.v) };
+}
+// Native reference cap/south-axis fit at the unchanged country camera, Y=.13.
+// Rigid inside the island/harbour domain; radial sea/context taper is invertible.
+export const CORSE_REFERENCE_POSE = { angle: -0.35456993081176147,
+  pivotX: 4.774450884938317, pivotZ: -4.27538238012851,
+  fullRadius: 1.15, outerRadius: 1.40 } as const;
+export const CORSICA_SETTLEMENTS: ReadonlySet<string> = new Set(["ajaccio", "bastia", "corte", "bonifacio"]);
+export function mapCorsicaLocalVector(x: number, z: number): Point {
+  const c = Math.cos(CORSE_REFERENCE_POSE.angle), s = Math.sin(CORSE_REFERENCE_POSE.angle);
+  return { x: c * x + s * z, z: -s * x + c * z };
+}
+function corsicaRotation(radius: number) {
+  const taper = shapeTransition(radius, CORSE_REFERENCE_POSE.fullRadius, CORSE_REFERENCE_POSE.outerRadius);
+  return { angle: CORSE_REFERENCE_POSE.angle * (1 - taper.v),
+    derivative: -CORSE_REFERENCE_POSE.angle * taper.d };
+}
+function corsicaTransport(x: number, z: number, inverse = false): Point {
+  const dx = x - CORSE_REFERENCE_POSE.pivotX, dz = z - CORSE_REFERENCE_POSE.pivotZ;
+  if (Math.abs(dx) >= CORSE_REFERENCE_POSE.outerRadius || Math.abs(dz) >= CORSE_REFERENCE_POSE.outerRadius)
+    return { x, z };
+  const radius = Math.hypot(dx, dz);
+  if (radius >= CORSE_REFERENCE_POSE.outerRadius) return { x, z };
+  const angle = corsicaRotation(radius).angle * (inverse ? -1 : 1),
+    c = Math.cos(angle), s = Math.sin(angle);
+  return { x: CORSE_REFERENCE_POSE.pivotX + c * dx + s * dz,
+    z: CORSE_REFERENCE_POSE.pivotZ - s * dx + c * dz };
+}
+function corsicaJacobian(x: number, z: number) {
+  const dx = x - CORSE_REFERENCE_POSE.pivotX, dz = z - CORSE_REFERENCE_POSE.pivotZ;
+  if (Math.abs(dx) >= CORSE_REFERENCE_POSE.outerRadius || Math.abs(dz) >= CORSE_REFERENCE_POSE.outerRadius)
+    return { xx: 1, xz: 0, zx: 0, zz: 1 };
+  const radius = Math.hypot(dx, dz);
+  if (radius >= CORSE_REFERENCE_POSE.outerRadius) return { xx: 1, xz: 0, zx: 0, zz: 1 };
+  const rotation = corsicaRotation(radius), c = Math.cos(rotation.angle), s = Math.sin(rotation.angle),
+    rx = c * dx + s * dz, rz = -s * dx + c * dz,
+    gx = radius ? rotation.derivative * dx / radius : 0,
+    gz = radius ? rotation.derivative * dz / radius : 0;
+  return { xx: c + rz * gx, xz: s + rz * gz, zx: -s - rx * gx, zz: c - rx * gz };
+}
+/** Retained rigid town plans were authored after F22, before SW32. Transport
+ * their centres/points through SW once; local GLB dimensions stay unchanged.
+ * The NationalSettlement data driver composes Corse's local R afterwards.
+ */
+export function mapRetainedTownPlanPoint(lon: number, lat: number, x: number, z: number): Point {
+  const baseline = baseMapPosition(lon, lat), origin = eastFinalFromBaseline(baseline.x, baseline.z),
+    point = southwestFinalFromEast(origin.x + x, origin.z + z),
+    projectedOrigin = southwestFinalFromEast(origin.x, origin.z);
+  if (point.x === origin.x + x && projectedOrigin.x === origin.x) return { x, z };
+  return { x: point.x - projectedOrigin.x, z };
+}
+export function mapFinalFromBaseline(x: number, z: number): Point {
+  const p = eastFinalFromBaseline(x, z), national = southwestFinalFromEast(p.x, p.z);
+  return corsicaTransport(national.x, national.z);
+}
+export function mapBaselineFromFinal(x: number, z: number): Point {
+  finite(x, z);
+  const national = corsicaTransport(x, z, true), p = southwestEastFromFinal(national.x, national.z);
+  return eastBaselineFromFinal(p.x, p.z);
+}
 export function mapPosition(lon: number, lat: number): Point {
   const p = baseMapPosition(lon, lat);
   return mapFinalFromBaseline(p.x, p.z);
@@ -219,8 +326,15 @@ export function mapCoordinates(x: number, z: number): { lon: number; lat: number
 }
 export function mapAuthoredJacobian(x: number, z: number) {
   const previous = baseMapAuthoredJacobian(x, z), geo = mapSourceCoordinates(x, z),
-    p = baseMapPosition(geo.lon, geo.lat), j = eastJacobian(p.x, p.z),
-    result = { xx: j.xx * previous.xx + j.xz * previous.zx,
-      xz: j.xx * previous.xz + j.xz * previous.zz, zx: previous.zx, zz: previous.zz };
+    p = baseMapPosition(geo.lon, geo.lat), east = eastJacobian(p.x, p.z),
+    eastPoint = eastFinalFromBaseline(p.x, p.z), southwest = southwestJacobian(eastPoint.x, eastPoint.z),
+    j = { xx: southwest.xx * east.xx, xz: southwest.xx * east.xz + southwest.xz },
+    national = { xx: j.xx * previous.xx + j.xz * previous.zx,
+      xz: j.xx * previous.xz + j.xz * previous.zz, zx: previous.zx, zz: previous.zz },
+    nationalPoint = southwestFinalFromEast(eastPoint.x, eastPoint.z), corsica = corsicaJacobian(nationalPoint.x, nationalPoint.z),
+    result = { xx: corsica.xx * national.xx + corsica.xz * national.zx,
+      xz: corsica.xx * national.xz + corsica.xz * national.zz,
+      zx: corsica.zx * national.xx + corsica.zz * national.zx,
+      zz: corsica.zx * national.xz + corsica.zz * national.zz };
   return { ...result, determinant: result.xx * result.zz - result.xz * result.zx };
 }

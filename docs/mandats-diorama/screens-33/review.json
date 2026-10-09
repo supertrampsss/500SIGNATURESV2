@@ -1,0 +1,22 @@
+{
+  "build": "33",
+  "captureVerificationSha256": "367872d1d5f7ddbe386c70d50acefae3e8557232bd42ea94ad220d4a4c63e7c4",
+  "reviewedBy": "root",
+  "status": "Non conforme à la maquette",
+  "summary": "La silhouette du sud-ouest et l’inclinaison de la Corse se rapprochent de la référence. La cathédrale raccourcie, les champs dorés et les hauts versants plus blancs améliorent la composition, qui conserve une architecture trop étroite et des reliefs grossiers. Six maisons restent rejetées par les gardes physiques.",
+  "observedDifferences": [
+    "La Corse retrouve une inclinaison vers la droite ; le sud-ouest reste élargi sans changer le cadrage national.",
+    "La cathédrale est moins haute et conserve sa nef et sa base ; elle demeure trop étroite et son quartier manque de la richesse de la référence.",
+    "Les champs sont plus dorés et les feuillages gagnent en contraste ; de larges secteurs restent trop vides et les parcelles trop régulières.",
+    "La neige couvre davantage les fronts alpins ; les massifs restent plus polygonaux que ceux de la maquette.",
+    "Les côtes gagnent des panneaux plus courts, mais leurs pans sont encore trop lisses et certains rivages trop fins.",
+    "Le cadre bleu nuit et ivoire reste proche ; les trois sujets et les scores viennent de la partie réelle."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale native33 : Corse orientée, champs dorés, fidélité encore insuffisante.",
+    "paris": "Paris natif33 : vraie cathédrale raccourcie, largeur encore insuffisante.",
+    "seine": "Seine native33 : quartier et surfaces réelles, inspection sans décision.",
+    "alpes": "Alpes natives33 : neige plus présente sur les hauts fronts, relief encore polygonal.",
+    "retour": "Retour national natif33 après les manipulations de carte, zéro décision."
+  }
+}

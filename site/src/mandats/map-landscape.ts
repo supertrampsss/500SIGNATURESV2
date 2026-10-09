@@ -1191,7 +1191,7 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
         slope = Math.hypot(landHeight(x + .025, z) - landHeight(x - .025, z),
           landHeight(x, z + .025) - landHeight(x, z - .025)) / .05,
         mask = alpineSurfaceMask(x, z, y, survey, cover),
-        amount = alpineSnowCover(source.x, source.z, y, slope) * mask;
+        amount = alpineSnowCover(source.x, source.z, y, slope, survey?.band ?? 0) * mask;
       const destination = !corners.some(index => protectedVertices.has(index)) &&
         amount >= .49 ? snowy : bare;
       destination.push(...corners);
@@ -1324,7 +1324,7 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
   color = color.scale(1 - valleyShade * .17);
   const covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
     snow = covered || !alpineGeologicalBand(face?.band ?? mountainFaceBand(x, z)) ? 0 :
-      alpineSnowCover(sx, sz, y, slope) * mask;
+      alpineSnowCover(sx, sz, y, slope, face?.band ?? mountainFaceBand(x, z)) * mask;
   const coastal = coastalRockProfile(x, z, sx, sz);
   if (coastal.cover > 0 && !covered) {
     const shelfStone = colorMix(Color3.FromHexString("#B89B71"), Color3.FromHexString("#DACAA6"),
@@ -1336,20 +1336,22 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
 
 // Broad irregular neves collect on the actual sculpted shelves and in
 // couloirs. Rocky ridges remain visible between them, including at high altitude.
-function alpineSnowCover(sx: number, sz: number, y: number, slope: number) {
-  const snowlineNoise = noise(sx * 2.7 + 17, sz * 3.9 + 5),
+function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band = 0) {
+  const upperAlps = (band >= 100000 && band < 110000) ||
+      (band >= 200000 && band < 1480000) || (band >= 2000000 && band < 4560000),
+    snowlineNoise = noise(sx * 2.7 + 17, sz * 3.9 + 5),
     warp = (snowlineNoise - .5) * .58,
     drift = noise(sx * 7.2 + 31, sz * 6.6 + 19),
     channel = noise(sx * 11.8 + sz * 3.6 + warp + 8, sz * 2.7 - sx * 1.9 + 23),
     branch = noise(sx * 5.2 - sz * 8.1 + 41, sz * 2.0 + sx * .8 - warp + 29),
     altitude = smooth(clamp((y - .34 - snowlineNoise * .04) / .22)),
     shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
-    pocket = smooth(clamp((drift - .59) / .16)),
-    mainGully = smooth(clamp((channel - .53) / .18)),
-    sideGully = smooth(clamp((branch - .60) / .17)) * .84,
+    pocket = smooth(clamp((drift - (upperAlps ? .45 : .59)) / (upperAlps ? .22 : .16))),
+    mainGully = smooth(clamp((channel - (upperAlps ? .33 : .53)) / (upperAlps ? .22 : .18))),
+    sideGully = smooth(clamp((branch - (upperAlps ? .36 : .60)) / (upperAlps ? .22 : .17))) * (upperAlps ? .92 : .84),
     gullySlope = smooth(clamp((slope - .12) / .34)) *
-      (1 - smooth(clamp((slope - 1.25) / 1.30))),
-    // Narrow, warped corridors collect snow; steep faces and rock ribs stay exposed.
+      (1 - smooth(clamp((slope - (upperAlps ? 2.60 : 1.25)) / (upperAlps ? 1.80 : 1.30)))),
+    // Broad Alpine neves whiten upper fronts; the other ranges keep their existing cover.
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - .64) / .18)),
     accumulation = Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope);
@@ -1751,6 +1753,25 @@ function buildGround(
       for (let segment = start; segment < end; segment++) segmentBlocks[segment] = block;
       start = end;
     }
+    // The existing columns are already <= .12 world unit apart. Separate
+    // facade panels from the legacy blocks so protected geometry stays exact.
+    const facadePanels: Array<{ start: number; end: number }> = [],
+      segmentPanels: number[] = [];
+    for (let start = 0; start < coast.length;) {
+      const panel = facadePanels.length, span = .060 + hash(panel + part * 719, 1283) * .060;
+      let end = start + 1;
+      while (end < coast.length && coastArcs[end] - coastArcs[start] < span &&
+        coastArcs[end + 1] - coastArcs[start] <= .120) {
+        const a = coast[(end + coast.length - 1) % coast.length], b = coast[end],
+          c = coast[(end + 1) % coast.length],
+          ax = b.x - a.x, az = b.z - a.z, bx = c.x - b.x, bz = c.z - b.z;
+        if ((ax * bx + az * bz) / (Math.hypot(ax, az) * Math.hypot(bx, bz) || 1) < .80) break;
+        end++;
+      }
+      facadePanels.push({ start, end });
+      for (let segment = start; segment < end; segment++) segmentPanels[segment] = panel;
+      start = end;
+    }
     const boundaryDepth = (block: number) =>
       .002 + hash((block % coastBlocks.length) + part * 97, 421) * .004;
     const boundaryJoint = (block: number) => {
@@ -1861,9 +1882,47 @@ function buildGround(
               faceFormation < .72 ? layer <= 3 ? "upper-wall" : layer <= 5 ? "lower-wall" : "foot" :
                 layer <= 4 ? "wall" : "foot",
             active = Math.max(cliffColumnWeights[i - 1], rimWeight) > 0,
-            group = `${faceBlock}:${active ? rockGroup : protectedGroup}`;
-          cliffFaceGroups.push(group, group); cliffFaceBlocks.push(faceBlock, faceBlock);
+            panel = segmentPanels[i - 1],
+            group = active ? `${faceBlock}:panel-${panel}:${rockGroup}` : `${faceBlock}:${protectedGroup}`;
+          cliffFaceGroups.push(group, group);
+          cliffFaceBlocks.push(active ? panel : faceBlock, active ? panel : faceBlock);
         }
+      }
+    }
+    // Every triangle that can meet the sea keeps ALL its coordinates. The
+    // sea peaks at -.072; even the lowest mutable bed stays above -.064.
+    const fixedWetVertices = new Set<number>();
+    for (let face = 0; face < cliffs.indices.length; face += 3) {
+      const corners = cliffs.indices.slice(face, face + 3);
+      if (corners.some(index => cliffs.positions[index * 3 + 1] <= -.055))
+        for (const index of corners) fixedWetVertices.add(index);
+    }
+    const dryPositions = cliffs.positions.slice();
+    for (let column = 0; column <= coast.length; column++) {
+      const weight = cliffColumnWeights[column];
+      if (weight === 0) continue;
+      const p = coast[column % coast.length], a = coast[(column + coast.length - 1) % coast.length],
+        b = coast[(column + 1) % coast.length], length = Math.hypot(b.x - a.x, b.z - a.z) || 1,
+        nx = (b.z - a.z) / length, nz = -(b.x - a.x) / length,
+        panel = segmentPanels[Math.min(column, coast.length - 1)], limits = facadePanels[panel],
+        across = clamp((coastArcs[column] - coastArcs[limits.start]) /
+          (coastArcs[limits.end] - coastArcs[limits.start] || 1)),
+        left = panel + part * 827, right = (panel + 1) % facadePanels.length + part * 827,
+        clearance = Math.min(Math.hypot(p.x - a.x, p.z - a.z), Math.hypot(b.x - p.x, b.z - p.z)),
+        inwardLimit = Math.min(.016, clearance * .16);
+      for (let layer = 1; layer < cliffLayers; layer++) {
+        const index = column * (cliffLayers + 1) + layer, at = index * 3;
+        if (fixedWetVertices.has(index)) continue;
+        const above = dryPositions[at - 2],
+          below = dryPositions[at + 4], y = dryPositions[at + 1],
+          step = mix(hash(left, 1291 + layer * 17), hash(right, 1291 + layer * 17), across),
+          opening = mix(hash(left, 1301 + layer * 19), hash(right, 1301 + layer * 19), across),
+          shift = Math.min(.009, Math.max(0, Math.min(above - y, y - below) * .12)) *
+            (step * 2 - 1) * weight,
+          inward = inwardLimit * (.15 + opening * .85) * weight;
+        cliffs.positions[at] = dryPositions[at] - coastWinding * nx * inward;
+        cliffs.positions[at + 1] = y + shift;
+        cliffs.positions[at + 2] = dryPositions[at + 2] - coastWinding * nz * inward;
       }
     }
     const sculptedRim = geometry(), rimVertices = new Map<string, number>();
@@ -2293,8 +2352,8 @@ function buildFields(
         z: (iz + (hash(ix, iz + 87) - 0.5) * 0.37) * depth + drift * 0.34,
       });
     }
-  const pasture = ["#759340", "#8FA84D", "#A4B462", "#819C43"];
-  const wheat = ["#CDB05B", "#BDA449", "#DDC36F", "#C4AD56"];
+  const pasture = ["#5C8836", "#7A9D45", "#98B35B", "#688E39"];
+  const wheat = ["#E6B54B", "#D3A13E", "#F1C45C", "#E6C165"];
   const vineyard = ["#A89A68", "#B5A071", "#8B945A", "#B5A96D"];
   let serial = 0;
   for (let ix = minimumX + 1; ix < maximumX; ix++)
@@ -2368,7 +2427,7 @@ function buildFields(
         ],
       );
       if (kind === 1 && hash(ix + 31, iz + 43) < 0.24)
-        color = Color3.FromHexString("#91A156");
+        color = Color3.FromHexString("#7E9A49");
       if (kind === 2 && hash(ix + 52, iz + 21) < 0.31)
         color = Color3.FromHexString("#7B8D45");
       fieldFan(crops, polygon, center, color);
@@ -2424,12 +2483,18 @@ function buildFields(
         if (contains(sourcePolygon, x, z)) points.push(mapAuthoredPosition(x, z));
     const available = (x: number, z: number, margin: number) => nationalCropAvailable(x, z, margin) &&
       (!field.infill || !largeCropAt(x, z)),
-      palette = field.kind === "pasture" ? ["#74913B", "#8BA34A", "#9DB456", "#819D43"] :
-        field.kind === "wheat" ? ["#C5AB4D", "#D9BD61", "#E1C975", "#BFA34E"] :
+      palette = field.kind === "pasture" ? ["#5C8836", "#7A9D45", "#98B35B", "#688E39"] :
+        field.kind === "wheat" ? ["#E6B54B", "#F1C45C", "#E6C165", "#D3A13E"] :
         ["#A5A450", "#BAAA5B", "#9DAA48", "#B6AD60"],
-      color = field.composedPalette ? Color3.FromHexString(field.color) :
-        colorMix(Color3.FromHexString(palette[(field.paletteSlot ?? fieldIndex) % palette.length]),
-        Color3.FromHexString(field.color), .18), start = crops.indices.length,
+      parcelTone = Color3.FromHexString(palette[(field.paletteSlot ?? fieldIndex) % palette.length]),
+      authoredTone = Color3.FromHexString(field.color),
+      // The authored cereal tones carry the warm harvest hue. Keeping only
+      // 18 percent of them made ordinary fields converge towards dull olive.
+      color = field.composedPalette
+        ? field.kind === "wheat" ? colorMix(authoredTone, parcelTone, .40)
+          : field.kind === "pasture" ? colorMix(authoredTone, parcelTone, .42) : authoredTone
+        : colorMix(parcelTone, authoredTone, field.kind === "wheat" ? .72 : .18),
+      start = crops.indices.length,
       triangulation = Delaunator.from(points, p => p.x, p => p.z).triangles;
     for (let i = 0; i < triangulation.length; i += 3) {
       const p = points[triangulation[i]], q = points[triangulation[i + 1]], r = points[triangulation[i + 2]],
@@ -2484,7 +2549,7 @@ function buildFields(
     }
     flush();
   }
-  const composedGold = ["#D1BA69", "#CAB575", "#B8A164"];
+  const composedGold = ["#E4BC5D", "#D5AF56", "#C99F4B"];
   for (const [index, area] of PARIS_TERRAIN_AREAS.filter(
     (area) => area.kind === "field",
   ).entries()) {
@@ -2519,7 +2584,7 @@ function buildFields(
     hedge(hedges, densify([polygon[0], polygon[1]], 0.043, false));
   }
   const cropMaterial = material(scene, "landscape-crops", "#FFFFFF");
-  cropMaterial.diffuseTexture = textures.earth;
+  cropMaterial.diffuseTexture = textures.crops;
   cropMaterial.bumpTexture = textures.earthNormal;
   cropMaterial.backFaceCulling = false;
   const rowMaterial = material(scene, "landscape-crop-detail", "#FFFFFF");

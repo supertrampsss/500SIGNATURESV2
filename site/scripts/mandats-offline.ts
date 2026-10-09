@@ -21,6 +21,8 @@ for (let i=0; i<entryAssets.length; i++) {
   const source = await readFile(dist+asset,'utf8');
   for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
   for (const m of source.matchAll(/import\(["']\.\/([^"']+\.js)["']\)/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
+  // Procedural surface PNGs are content-hashed Vite imports in these chunks.
+  for (const m of source.matchAll(/["'](\/assets\/[^"']+\.(?:png|webp|jpe?g))["']/g)) core.push(m[1]);
   for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);

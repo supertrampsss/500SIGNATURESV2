@@ -13,7 +13,7 @@ import { MAP_PLACES, mapPosition, mapCoordinates } from "./map-state.ts";
 import type { MapPlace } from "./map-state.ts";
 import { landContains, landHeight, riverContains } from "./map-landscape.ts";
 import { publicGround } from "./map-public-ground.ts";
-import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
+import { LYON_SCHOOL_SITE, publicEsplanadeOutline, publicEsplanadePlot, publicEsplanadePoint } from "./map-public-sites.ts";
 import { createCityMaterials } from "./map-city-materials.ts";
 import { CityGeometry as Geometry, createCityMesh } from "./map-city-geometry.ts";
 import { buildHarbour, buildPowerPlant, buildWindTurbines } from "./map-city-infrastructure.ts";
@@ -319,9 +319,9 @@ export async function buildCities(scene: Scene): Promise<{
     geometry("school-red-flag", redFlag, red, node);
   };
 
-  const esplanade = (root: TransformNode) => {
+  const esplanade = (root: TransformNode, town: string) => {
     const surface = new Geometry(), furniture = new Geometry(), feet = new Geometry(),
-      outline = [[-0.205, -0.43], [-0.18, -0.255], [0.12, -0.247], [0.23, -0.29], [0.223, -0.428], [0.085, -0.47]],
+      outline = publicEsplanadeOutline(town),
       ground = Math.max(...outline.map(([x, z]) => landHeight(root.position.x + x, root.position.z + z))) + 0.016;
     if (outline.some(([x, z]) => !landContains(root.position.x + x, root.position.z + z))) return;
     const paving = publicGround(scene, root.position, outline),
@@ -340,25 +340,36 @@ export async function buildCities(scene: Scene): Promise<{
       }
     }
     for (let i = 0; i < 30; i++) {
-      const point = { x: .02 + ((i % 8) - 3.5) * .055 * .72,
-        z: -.42 + Math.floor(i / 8) * .07 * .72 };
+      const point = publicEsplanadePoint(town, .02 + ((i % 8) - 3.5) * .055 * .72,
+        -.42 + Math.floor(i / 8) * .07 * .72);
       if (safe(point)) crowdPositions.push(point);
     }
     for (let z = -.412; z <= -.277 && crowdPositions.length < 30; z += .025)
       for (let x = -.157; x <= .18 && crowdPositions.length < 30; x += .028) {
-        const point = { x, z };
-        if (safe(point) && crowdPositions.every(p => Math.hypot(p.x - x, p.z - z) >= .022))
+        const point = publicEsplanadePoint(town, x, z);
+        if (safe(point) && crowdPositions.every(p => Math.hypot(p.x - point.x, p.z - point.z) >= .022))
           crowdPositions.push(point);
       }
     root.metadata = { ...(root.metadata ?? {}), crowdGroundY: ground + .003, crowdPositions };
     for (const sx of [-0.21, 0.245]) {
-      if ([-.015, .015].some(dx => [-.036, .036].some(dz =>
-        riverContains(root.position.x + sx + dx, root.position.z - .32 + dz, .008)))) continue;
+      const wet = town === "ajaccio"
+        ? [-.015, .015].some(dx => [-.036, .036].some(dz => {
+          const point = publicEsplanadePoint(town, sx + dx, -.32 + dz);
+          return riverContains(root.position.x + point.x, root.position.z + point.z, .008);
+        }))
+        : [-.015, .015].some(dx => [-.036, .036].some(dz =>
+          riverContains(root.position.x + sx + dx, root.position.z - .32 + dz, .008)));
+      if (wet) continue;
       const y = ground - root.position.y;
       furniture.box(sx, y + 0.025, -0.32, 0.025, 0.004, 0.068);
       furniture.box(sx + (sx < 0 ? -0.01 : 0.01), y + 0.039, -0.32, 0.004, 0.028, 0.068);
       for (const z of [-0.34, -0.3]) feet.box(sx, y + 0.012, z, 0.013, 0.024, 0.004);
     }
+    if (town === "ajaccio") for (const shape of [furniture, feet])
+      for (let i = 0; i < shape.positions.length; i += 3) {
+        const point = publicEsplanadePoint(town, shape.positions[i], shape.positions[i + 2]);
+        shape.positions[i] = point.x; shape.positions[i + 2] = point.z;
+      }
     const plaza = geometry("public-esplanade", surface, pavement, root);
     plaza.metadata = { ...plaza.metadata, castsShadow: false, authoredPublicGround: true };
     geometry("public-benches", furniture, timber, root);
@@ -499,7 +510,7 @@ export async function buildCities(scene: Scene): Promise<{
     return path.slice(1).map((end, i) => ({ start: path[i], end, halfWidth: .026 }));
   });
   const allPublicPlots = [...roots.entries()].flatMap(([town, root]) => {
-    const sites = [...specialSites[town] ?? [], { x: .02, z: -.36, halfX: .235, halfZ: .125 }];
+    const sites = [...specialSites[town] ?? [], publicEsplanadePlot(town)];
     const station = stationSites[town];
     if (station) sites.push({ x: station[0] - .05, z: station[1], halfX: .11, halfZ: .19 });
     return sites.map(site => ({ ...site, x: root.position.x + site.x, z: root.position.z + site.z }));
@@ -641,7 +652,7 @@ export async function buildCities(scene: Scene): Promise<{
     if (survey.some(point => riverContains(point.x, point.z, .006))) { waterside++; return; }
     const localPlot = { x: centreX, z: centreZ, halfX, halfZ, halfW: width / 2, halfD: depth / 2, angle: -angle }, place = town as MapPlace;
     if (roots.has(place)) {
-      const forecourt: Plot = { x: .02, z: -.36, halfX: .235, halfZ: .125 };
+      const forecourt: Plot = publicEsplanadePlot(place);
       const station = stationSites[place];
       if (collides(localPlot, forecourt) || (specialSites[place] ?? []).some(site => collides(localPlot, site)) ||
           station && collides(localPlot, { x: station[0] - .05, z: station[1], halfX: .10, halfZ: .18 })) {
@@ -941,7 +952,7 @@ export async function buildCities(scene: Scene): Promise<{
   factory(roots.get("lille")!, -.70, -.65, true);
   hospital(roots.get("rennes")!, .37, .47);
   school(roots.get("lyon")!);
-  for (const root of roots.values()) esplanade(root);
+  for (const [town, root] of roots) esplanade(root, town);
 
   const planted: Plot[] = [], treeCounts: Record<string, number> = {};
   const surroundingTrees = scene.transformNodes.filter(node => node.metadata?.authoredAsset &&

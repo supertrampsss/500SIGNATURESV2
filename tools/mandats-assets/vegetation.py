@@ -39,6 +39,31 @@ needle = material('pine-needles', '5D7133')
 silver = material('olive-silver', '909C70')
 rock_mat = material('weathered-limestone', 'B3A285')
 
+# Effective crown colours stay separate from the historical material names.
+# The country and close models keep exactly the same physical silhouettes.
+CANOPY_TONES = {
+    'canopy-olive': rgb('5D8039'),
+    'canopy-sunlit': rgb('A3B65E'),
+    'canopy-shade': rgb('375A2D'),
+    'pine-needles': rgb('4C7038'),
+}
+
+def stored_linear(value):
+    # BYTE_COLOR stores sRGB bytes. Reproduce that historical quantization so
+    # the generator and the no-Blender COLOR_0 migration use the same rule.
+    srgb = value * 12.92 if value <= .0031308 else 1.055 * value ** (1 / 2.4) - .055
+    byte = round(max(0, min(1, srgb)) * 255) / 255
+    return byte / 12.92 if byte <= .04045 else ((byte + .055) / 1.055) ** 2.4
+
+def canopy_colour(material_name, tint, shade):
+    if material_name not in CANOPY_TONES:
+        return tuple(value * shade for value in tint[:3]) + (1,)
+    old = tuple(stored_linear(value * shade) for value in tint[:3])
+    stored_shade = sum(old[i] * tint[i] for i in range(3)) / sum(tint[i] ** 2 for i in range(3))
+    crown_shade = max(0, min(1, 1 - (1 - stored_shade) * 1.8))
+    return tuple(value * crown_shade for value in CANOPY_TONES[material_name][:3]) + (1,)
+
+
 parts = []
 def branch(a, b, radius, mat=bark, top=.45):
     a, b = Vector(a), Vector(b)
@@ -137,7 +162,7 @@ def finish(name):
             underside = max(0, -poly.normal.z)
             lower = max(0, .42 - p.z) / .42
             shade = 1 - underside * (.14 if name == 'rock' else .08) - lower * (.1 if name == 'rock' else .04)
-            colors.data[index].color = (tint[0] * shade, tint[1] * shade, tint[2] * shade, 1)
+            colors.data[index].color = canopy_colour(obj.data.materials[poly.material_index].name, tint, shade)
     if name != 'rock':
         retain_bounds(obj, name)
     parts.clear()

@@ -1,0 +1,8 @@
+{
+  "build": "33",
+  "command": "node /workspace/mandats-verification/authored-3d/integration33/verify.mjs",
+  "exitCode": 1,
+  "confirmedBy": "functions.write_stdin session54344 returned exit_code1",
+  "confirmedAt": "2026-10-09T08:44:58.411696+00:00",
+  "session": 54344
+}

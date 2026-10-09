@@ -1,3 +1,4 @@
+import { mapCorsicaLocalVector } from "./map-camera-projection.ts";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { mapPosition } from "./map-state.ts";
 import { landContains, landHeight } from "./map-landscape.ts";
@@ -82,7 +83,8 @@ export function surveyHarbour(place: string, origin: HarbourPoint,
   if (!["brest", "nantes", "marseille", "ajaccio"].includes(place)) return;
   const frontage = place === "ajaccio" ? .48 : place === "brest" ? .75 : place === "nantes" ? .85 : .90,
     apronDepth = place === "ajaccio" ? .070 : .108,
-    preferred = place === "marseille" ? [-.20, -.98] : place === "ajaccio" ? [-.90, -.43] : [-.82, -.57];
+    corsicaPreferred = mapCorsicaLocalVector(-.90, -.43),
+    preferred = place === "marseille" ? [-.20, -.98] : place === "ajaccio" ? [corsicaPreferred.x, corsicaPreferred.z] : [-.82, -.57];
   let selected: { stations: HarbourStation[]; score: number } | undefined;
   for (const polygon of coastlines) {
     const lengths = polygon.map((a, i) => Math.hypot(polygon[(i + 1) % polygon.length].x - a.x, polygon[(i + 1) % polygon.length].z - a.z)),

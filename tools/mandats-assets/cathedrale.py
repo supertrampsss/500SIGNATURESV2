@@ -10,6 +10,7 @@ from array import array
 import json
 import importlib.util
 import math
+import os
 import pathlib
 import struct
 import sys
@@ -21,7 +22,8 @@ from mathutils import Matrix, Vector
 SOURCE = pathlib.Path(__file__).resolve().parent
 ROOT = SOURCE.parents[1]
 OUTPUT = ROOT / "site/public/mandats/models"
-EVIDENCE = ROOT.parent / "mandats-verification/authored-3d"
+EVIDENCE = pathlib.Path(os.environ.get("MANDATS_ASSET_EVIDENCE",
+    str(ROOT.parent / "mandats-verification/authored-3d")))
 OUTPUT.mkdir(parents=True, exist_ok=True)
 EVIDENCE.mkdir(parents=True, exist_ok=True)
 parser = argparse.ArgumentParser()
@@ -29,6 +31,8 @@ parser.add_argument("--shape-preview", action="store_true")
 parser.add_argument("--skip-bake", action="store_true")
 parser.add_argument("--no-preview", action="store_true")
 parser.add_argument("--lod-only", action="store_true")
+parser.add_argument("--upper-profile", type=float, default=1.0,
+    help="Optional geometry-only upper profile from the existing packed source; requires --lod-only")
 options = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
@@ -349,6 +353,54 @@ def flying_buttress(side,y):
         poly(vertices,faces,"pierre_taille")
 
 
+def reprofile_upper_geometry(obj, slope, hinge=2.03):
+    """Shorten the upper monument while retaining its packed UV/material atlas.
+
+    Bisect crossing faces first. Moving their upper corners alone would also
+    compress the interpolated texture and visible geometry below the roof.
+    This opt-in candidate must be verified in Blender before asset acceptance.
+    """
+    if not .25 <= slope < 1:
+        raise ValueError("Upper profile slope must be at least .25 and below 1")
+    if obj.get("cathedrale_upper_profile") is not None:
+        raise RuntimeError("Do not apply the cathedral upper profile twice")
+    data = bmesh.new()
+    data.from_mesh(obj.data)
+    uv = data.loops.layers.uv.active
+    if uv is None:
+        data.free()
+        raise RuntimeError("The existing packed cathedral source must have UVs")
+    before_bounds = tuple((min(v.co[a] for v in data.verts),
+        max(v.co[a] for v in data.verts)) for a in (0, 1))
+    # Below-plane corners, including their existing UVs, remain exact. New
+    # corners on the cut plane receive the original face's interpolated UV.
+    lower_corners = {(tuple(loop.vert.co), tuple(loop[uv].uv))
+        for face in data.faces for loop in face.loops if loop.vert.co.z < hinge}
+    bmesh.ops.bisect_plane(data,
+        geom=[*data.verts, *data.edges, *data.faces], dist=.0000001,
+        plane_co=(0, 0, hinge), plane_no=(0, 0, 1),
+        clear_inner=False, clear_outer=False)
+    for vertex in data.verts:
+        if vertex.co.z > hinge:
+            vertex.co.z = hinge + (vertex.co.z - hinge) * slope
+    retained_corners = {(tuple(loop.vert.co), tuple(loop[uv].uv))
+        for face in data.faces for loop in face.loops if loop.vert.co.z < hinge}
+    if not lower_corners.issubset(retained_corners):
+        data.free()
+        raise RuntimeError("Upper profile changed existing lower geometry or UV")
+    after_bounds = tuple((min(v.co[a] for v in data.verts),
+        max(v.co[a] for v in data.verts)) for a in (0, 1))
+    if before_bounds != after_bounds:
+        data.free()
+        raise RuntimeError("Upper profile changed the cathedral footprint")
+    data.normal_update()
+    data.to_mesh(obj.data)
+    data.free()
+    obj.data.update()
+    obj["cathedrale_upper_profile"] = slope
+    obj["cathedrale_upper_hinge"] = hinge
+
+
 def cathedral():
     global CURRENT
     CURRENT="cathedrale_paris"
@@ -471,7 +523,11 @@ if options.lod_only:
 else:
     cathedral()
 
-
+if options.upper_profile != 1.0:
+    if not options.lod_only:
+        raise RuntimeError("Use --lod-only to retain the current packed atlas and UVs")
+    for obj in MODELS:
+        reprofile_upper_geometry(obj, options.upper_profile)
 
 
 def dimensions(obj):
