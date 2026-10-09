@@ -40,6 +40,18 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 25 capturée le 9 octobre 2026
+
+La [comparaison réelle de la passe 25](mandats-diorama/comparaison-25.html) montre la référence face à cinq captures du jeu, dont Paris, les fleuves et les Alpes. Les [sept relevés natifs](mandats-diorama/screens-25/verification.json) et le [build figé](mandats-diorama/screens-25/build.json) conservent les ressources servies, leurs empreintes et les entrées : Chromium 151, 1 672 × 941, DPR 1, mouvement réduit, version 12, graine 0, zéro décision.
+
+**Verdict visuel : non conforme.** Les maisons ont retrouvé des toitures proportionnées et de vrais étages, les rayures d’ombre ont disparu dans les vues examinées, les couleurs des fleuves atteignent effectivement le shader final. Les côtes sont plus lisibles, les parcelles et les bosquets plus présents. Les montagnes gardent cependant de grandes nappes lisses ; le paysage et la pierre restent moins fins et moins composés que dans la référence. Cette passe constitue une étape intermédiaire, pas une reproduction à l’identique.
+
+La reconstruction compose 737 maisons, dont 83 à Paris, avec des géométries et matériaux Blender partagés. Le terrain, les arbres, les voies et les projets utilisent la même projection. Les places publiques suivent les vrais triangles des fleuves : huit esplanades sèches conservent chacune trente positions de rassemblement. Le lycée lyonnais possède une emprise sèche et une fondation jointe à son plancher. Les projets restent issus de la partie sauvegardée ; aucun marqueur fictif de la maquette n’est ajouté pour remplacer cet état.
+
+`NODE_USE_ENV_PROXY=1 npm run check` a réellement réussi : 1 082 tests, types, compilation complète, pré-rendu et préparation hors connexion. Les sept captures natives enregistrent zéro erreur JavaScript, HTTP, requête ou console, et un log informatif Babylon. Le contrôle CPU composé vérifie les 737 planchers, les pieds des arbres, l’école, les places, les foules et les capacités des 28 familles de projets. Il signale encore 25 sondages côtiers où aucun triangle de sol n’est trouvé ; la conformité physique globale reste donc fausse malgré la réussite des contrôles ciblés.
+
+Les suites complètes rework, sociales, en-tête et compatibilité restent non exécutées sur ce build. Les preuves des passes précédentes ne les remplacent pas. Les validations graphiques de cette machine concernent Chromium avec son pilote logiciel ; elles ne prouvent pas une cadence sur téléphone physique.
+
 ## Passe 20 capturée le 2026-10-09
 
 La [comparaison de la passe 20](mandats-diorama/comparaison-20.html) présente la référence confirmée et cinq captures réelles : vue nationale, Paris, Seine, Alpes et retour national. Les [sept vues natives](mandats-diorama/screens-20/verification.json) proviennent de Chromium 151.0.7922.173, à 1 672 × 941 pixels et DPR 1. Le [manifeste du build](mandats-diorama/screens-20/build.json) correspond aux empreintes des corps JavaScript et CSS réellement servis. Les entrées de partie sont conservées : version 12, mode national, graine 0, ambition équilibre, zéro décision ; le tour reste à zéro dans chaque vue.

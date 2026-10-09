@@ -62,7 +62,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 2.9798,
     kind: "pasture",
-    color: "#B4AF4D",
+    color: "#9FAC59",
   },
   {
     id: "bretagne-cereales-est",
@@ -102,7 +102,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 0.012,
     kind: "pasture",
-    color: "#BFB558",
+    color: "#8EA149",
   },
   {
     id: "bretagne-cereales-interieures",
@@ -159,7 +159,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 0.181,
     kind: "pasture",
-    color: "#ACB04C",
+    color: "#AFB56A",
   },
   {
     id: "loire-cereales-basse-vallee",
@@ -220,7 +220,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 0.0452,
     kind: "pasture",
-    color: "#BDB459",
+    color: "#A2B363",
   },
   {
     id: "centre-cereales-nord-ouest",
@@ -262,7 +262,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 2.9402,
     kind: "pasture",
-    color: "#B2AE52",
+    color: "#829A43",
   },
   {
     id: "centre-cereales-ouest",
@@ -319,7 +319,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 2.8798,
     kind: "pasture",
-    color: "#C0B65C",
+    color: "#B5BE73",
   },
   {
     id: "sud-ouest-patures-nord",
@@ -336,7 +336,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 3.0523,
     kind: "pasture",
-    color: "#B5B152",
+    color: "#9FAC59",
   },
   {
     id: "sud-ouest-cereales-centrales",
@@ -492,7 +492,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 3.0178,
     kind: "pasture",
-    color: "#B6AF57",
+    color: "#8EA149",
   },
   {
     id: "rhone-patures-nord",
@@ -511,7 +511,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     ],
     angle: 2.9293,
     kind: "pasture",
-    color: "#BEB056",
+    color: "#AFB56A",
   },
   {
     id: "rhone-cereales-vallee",
@@ -576,7 +576,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "poitou-prairie-nord",
     region: "loire",
     kind: "pasture",
-    color: "#B4B659",
+    color: "#A2B363",
     angle: 0.0713,
     outline: [
       [-2.5437, 0.1018],
@@ -611,7 +611,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "poitou-bocage-ouest",
     region: "sud-ouest",
     kind: "pasture",
-    color: "#A2AC4F",
+    color: "#829A43",
     angle: 0.0918,
     outline: [
       [-2.4305, -0.7431],
@@ -646,7 +646,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "berry-prairie-ouest",
     region: "centre",
     kind: "pasture",
-    color: "#B0B85B",
+    color: "#B5BE73",
     angle: 0.1465,
     outline: [
       [-1.1775, -0.1807],
@@ -681,7 +681,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "limousin-prairie-nord",
     region: "centre",
     kind: "pasture",
-    color: "#9CAA4C",
+    color: "#9FAC59",
     angle: 3.0298,
     outline: [
       [-0.4946, -1.0359],
@@ -716,7 +716,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "limousin-prairie-est",
     region: "centre",
     kind: "pasture",
-    color: "#AEB759",
+    color: "#8EA149",
     angle: 2.9442,
     outline: [
       [0.7635, -1.3125],
@@ -734,7 +734,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "perigord-prairie-est",
     region: "sud-ouest",
     kind: "pasture",
-    color: "#B4B55F",
+    color: "#AFB56A",
     angle: 0.1144,
     outline: [
       [-0.6211, -1.8158],
@@ -769,7 +769,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "quercy-prairie-sud",
     region: "garonne",
     kind: "pasture",
-    color: "#B1B359",
+    color: "#A2B363",
     angle: 0.0959,
     outline: [
       [0.7033, -2.5688],
@@ -804,7 +804,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "lorraine-prairie-ouest",
     region: "est",
     kind: "pasture",
-    color: "#B1B65C",
+    color: "#829A43",
     angle: 2.9208,
     outline: [
       [1.9431, 2.6318],
@@ -839,7 +839,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "lorraine-prairie-est",
     region: "est",
     kind: "pasture",
-    color: "#A6AE55",
+    color: "#B5BE73",
     angle: 0.1822,
     outline: [
       [2.5789, 2.0099],
@@ -874,7 +874,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "bourgogne-prairie-centre",
     region: "est",
     kind: "pasture",
-    color: "#B2BA5C",
+    color: "#9FAC59",
     angle: 3.0022,
     outline: [
       [1.9123, 1.3006],
@@ -909,7 +909,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "bourgogne-prairie-sud",
     region: "est",
     kind: "pasture",
-    color: "#A5AE54",
+    color: "#8EA149",
     angle: 0.1355,
     outline: [
       [2.2829, 0.6712],
@@ -944,7 +944,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "rhone-prairie-contreforts",
     region: "rhone",
     kind: "pasture",
-    color: "#AFB65B",
+    color: "#AFB56A",
     angle: 0.095,
     outline: [
       [1.5817, -0.5994],
@@ -962,7 +962,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "poitou-prairie-clairiere",
     region: "loire",
     kind: "pasture",
-    color: "#AFB559",
+    color: "#A2B363",
     angle: 0.19,
     outline: [
       [-2.6212, -0.4477],
@@ -979,7 +979,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "lorraine-prairie-replat",
     region: "est",
     kind: "pasture",
-    color: "#AFB559",
+    color: "#829A43",
     angle: -0.36,
     outline: [
       [1.812, 2.2232],
@@ -1013,7 +1013,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     id: "bretagne-prairie-pointe",
     region: "bretagne",
     kind: "pasture",
-    color: "#AFB559",
+    color: "#B5BE73",
     angle: 0.18,
     outline: [
       [-4.436, 2.3564],
@@ -1070,14 +1070,34 @@ const VALLEY_CROPS: readonly {
   { id: "provence", region: "rhone", x: 2.05, z: -2.72, length: 1.48, width: .63, angle: .10, columns: 3, rows: 4 },
 ];
 
+// Neighbouring plots form a crop family within each valley. The authored
+// sequences give bocage, cereal plains and vineyards distinct visible patterns.
+const VALLEY_MIX: Readonly<Record<string, readonly string[]>> = {
+  flandres: ["WWPP", "WWWP", "PPWW", "WPWW", "PWWW", "WWPP", "WPWP"],
+  artois: ["WWP", "WPW", "PWW", "WPP"],
+  normandie: ["PPWW", "PWPP", "WPPW", "PPPW", "PWWP"],
+  maine: ["PWW", "WPP", "PWP", "WWP"],
+  champagne: ["WWVV", "WVVW", "VWWP", "WWPP", "PPWW", "VWWV", "WVVP"],
+  lorraine: ["PPW", "WWP", "PWP", "WPP", "PWW", "PPW", "WPW"],
+  "bretagne-nord": ["PPWP", "PWPP", "WPPW"],
+  touraine: ["WWVP", "WPPW", "VPWW", "PVWP"],
+  berry: ["WWPP", "WPPP", "PPWW", "PWWW", "WWPW"],
+  poitou: ["WPP", "PWW", "WWW", "PPW", "WPW"],
+  limousin: ["PPW", "PPP", "WPP", "PWP"],
+  aquitaine: ["VPW", "VVW", "WPV", "PVV", "WPP"],
+  garonne: ["WWVPP", "PWWVP", "VPPWW", "WWWPP", "PVVWW"],
+  rhone: ["WVVW", "VPWP", "VVWW", "PPVW"],
+  provence: ["VVP", "PVV", "WVV", "VPW"],
+};
+
 export const VALLEY_FIELDS: readonly NationalField[] = VALLEY_CROPS.flatMap((basin, basinIndex) => {
   const dx = Math.cos(basin.angle), dz = Math.sin(basin.angle), nx = -dz, nz = dx;
   const point = (u: number, v: number): NationalCompositionPoint =>
     [basin.x + dx * u + nx * v, basin.z + dz * u + nz * v];
   const palettes = {
     wheat: ["#EABC4D", "#F1C758", "#D9AD45", "#E7BF5B", "#D4B050", "#F0CC68"],
-    pasture: ["#B4B359", "#9EAA4F", "#ABB15A", "#BAC064", "#91A347", "#ADB660"],
-    vines: ["#D3AC4E", "#DFC061", "#CBA650", "#B6AC58", "#DBC170", "#C6AC5C"],
+    pasture: ["#9EAD55", "#89A04B", "#AEB768", "#A1B363", "#7D9745", "#B0BB70"],
+    vines: ["#C4AE59", "#D9BE66", "#AFA451", "#9DA453", "#C6B675", "#B4A563"],
   };
   const fields: NationalField[] = [];
   for (let row = 0; row < basin.rows; row++) {
@@ -1088,7 +1108,8 @@ export const VALLEY_FIELDS: readonly NationalField[] = VALLEY_CROPS.flatMap((bas
       const u = (column / basin.columns - .5) * basin.length,
         length = basin.length / basin.columns * (.86 + ((row + column) % 3) * .028),
         serial = row * basin.columns + column + basinIndex * 7,
-        kind = serial % 7 === 3 ? "pasture" : serial % 11 === 7 ? "vines" : "wheat",
+        symbol = VALLEY_MIX[basin.id][row][column],
+        kind = symbol === "P" ? "pasture" : symbol === "V" ? "vines" : "wheat",
         palette = palettes[kind];
       fields.push({ id: `${basin.id}-parcelle-${row}-${column}`, region: basin.region,
         outline: [point(u + bend + .015, v), point(u + length + bend, v + .008),

@@ -61,31 +61,31 @@ for data in list(bpy.data.materials):
     bpy.data.materials.remove(data)
 
 PALETTE = {
-    "pierre": (0.59, 0.47, 0.32),
-    "calcaire": (0.72, 0.64, 0.48),
-    "enduit": (0.70, 0.56, 0.37),
-    "enduit_rose": (0.64, 0.42, 0.34),
-    "enduit_ocre": (0.71, 0.48, 0.27),
-    "brique": (0.48, 0.22, 0.13),
-    "tuile": (0.40, 0.115, 0.048),
-    "tuile_claire": (0.55, 0.185, 0.064),
-    "ardoise": (0.045, 0.065, 0.085),
-    "zinc": (0.25, 0.27, 0.26),
+    "pierre": (0.76, 0.64, 0.45),
+    "calcaire": (0.86, 0.77, 0.60),
+    "enduit": (0.91, 0.79, 0.61),
+    "enduit_rose": (0.84, 0.55, 0.42),
+    "enduit_ocre": (0.88, 0.63, 0.36),
+    "brique": (0.63, 0.275, 0.14),
+    "tuile": (0.60, 0.16, 0.06),
+    "tuile_claire": (0.74, 0.295, 0.095),
+    "ardoise": (0.10, 0.16, 0.235),
+    "zinc": (0.35, 0.38, 0.40),
     "bois": (0.22, 0.12, 0.06),
     "volet": (0.20, 0.28, 0.20),
-    "vitrage": (0.028, 0.064, 0.071),
+    "vitrage": (0.013, 0.037, 0.050),
     "vitrage_clair": (0.16, 0.23, 0.24),
     "metal": (0.14, 0.17, 0.16),
 }
 
 MATS = {}
 ROUGHNESS = {
-    "pierre": (.74,.85), "calcaire": (.73,.84),
-    "enduit": (.78,.86), "enduit_rose": (.78,.86), "enduit_ocre": (.78,.86),
-    "brique": (.67,.77), "tuile": (.54,.65), "tuile_claire": (.54,.65),
-    "ardoise": (.43,.56), "zinc": (.34,.47),
+    "pierre": (.45,.62), "calcaire": (.44,.60),
+    "enduit": (.57,.70), "enduit_rose": (.57,.70), "enduit_ocre": (.57,.70),
+    "brique": (.53,.66), "tuile": (.34,.47), "tuile_claire": (.34,.47),
+    "ardoise": (.26,.41), "zinc": (.28,.40),
     "bois": (.61,.74), "volet": (.63,.75),
-    "vitrage": (.14,.21), "vitrage_clair": (.14,.21), "metal": (.25,.34),
+    "vitrage": (.09,.16), "vitrage_clair": (.09,.16), "metal": (.25,.34),
 }
 for name, color in PALETTE.items():
     mat = bpy.data.materials.new(name)
@@ -124,7 +124,7 @@ for name, color in PALETTE.items():
         bricks.inputs["Mortar Size"].default_value=.006 if name.startswith("tuile") else .012
         bricks.inputs["Mortar Smooth"].default_value=.006
         bricks.inputs["Color1"].default_value=(*color,1)
-        bricks.inputs["Color2"].default_value=(*(c*.87 for c in color),1)
+        bricks.inputs["Color2"].default_value=(*(c*.76 for c in color),1)
         mortar=.69 if name.startswith("tuile") else .77
         bricks.inputs["Mortar"].default_value=(*(c*mortar for c in color),1)
         pattern=nodes.new("ShaderNodeMixRGB")
@@ -207,6 +207,12 @@ def roof(x, y, z, w, d, rise, mat="tuile", hip=False, ridge=True):
     v = [(x-w/2,y-d/2,z),(x+w/2,y-d/2,z),(x+w/2,y+d/2,z),
          (x-w/2,y+d/2,z),(x-w/2+inset,y,z+rise),(x+w/2-inset,y,z+rise)]
     mesh("couverture", v, [(0,1,5,4),(2,3,4,5),(0,4,3),(1,2,5)], mat)
+    if CURRENT.startswith(("maison", "ferme", "boutique")):
+        # The roof has a real dark underside and a stone edge. Both remain
+        # inside the authored roof bounds, preserving every ground footprint.
+        box((x, y, z-.010), (w, d, .020), "bois")
+        for side in (-1, 1):
+            box((x, y+side*(d/2-.008), z-.002), (w, .016, .023), "calcaire")
     if ridge:
         beam((x-w/2+inset,y,z+rise+0.008),(x+w/2-inset,y,z+rise+0.008),.026,mat)
     if not hip:
@@ -227,7 +233,7 @@ def roof_y(x,y,z,w,d,rise,mat="ardoise",hip=False):
 def window(x, y, z, w=.125, h=.155, shutters=False, stone="calcaire", mullion=True):
     # Street-facing openings are real inset coloured planes with thin stone reveals.
     box((x,y,z),(w,.011,h),"vitrage")
-    t = .011
+    t = .016 if CURRENT.startswith(("maison", "ferme", "boutique")) else .011
     box((x-w/2-t/2,y-.008,z),(t,.021,h+t*2),stone)
     box((x+w/2+t/2,y-.008,z),(t,.021,h+t*2),stone)
     box((x,y-.010,z-h/2-t/2),(w+t*2,.026,t),stone)
@@ -292,12 +298,19 @@ def house(name,w=1,d=.78,h=.51,rise=.30,wall="enduit",cover="tuile",floors=2,
     start(name)
     box((0,0,h/2),(w,d,h),wall,bevel=.007)
     box((0,0,.029),(w+.025,d+.025,.058),"pierre")
-    box((0,0,h-.018),(w+.055,d+.05,.035),"calcaire")
+    box((0,0,h-.018),(w+.075,d+.075,.045),"calcaire")
+    # Broad pale bands and corner quoins remain readable in the miniature view.
+    for side in (-1, 1):
+        for front in (-1, 1):
+            box((side*(w/2-.012), front*(d/2-.007), h*.49),
+                (.040,.026,h*.94), "calcaire")
     if floors>1:
-        box((0,-d/2-.012,h*.49),(w+.025,.025,.018),"calcaire")
+        bands = [h*level/floors for level in range(1,floors)] if floors>=4 else [h*.49]
+        for band in bands:
+            box((0,-d/2-.012,band),(w+.025,.025,.018),"calcaire")
     xs = [-w*.31,w*.31] if w<1.1 else [-w*.34,0,w*.34]
     for floor in range(floors):
-        z = .18 + floor*((h-.19)/max(floors-1,1))
+        z = .18 + floor*((h-.30)/max(floors-1,1))
         for x in xs:
             if floor == 0 and abs(x-offset)<.10:
                 continue
@@ -305,8 +318,20 @@ def house(name,w=1,d=.78,h=.51,rise=.30,wall="enduit",cover="tuile",floors=2,
                    shutters=shutters,stone="pierre" if wall=="brique" else "calcaire")
     door(offset,-d/2-.009,w=.14,h=.23 if floors<3 else .21)
     # Rear and side openings are deliberately simpler, avoiding blank cubes at orbit angles.
+    rear_levels = [.18 + floor*((h-.30)/max(floors-1,1)) for floor in range(floors)] if floors>=4 else [h*.60]
     for x in (-w*.29,w*.29):
-        window(x,d/2+.006,h*.60,w=.11,h=.135,mullion=False)
+        for level in rear_levels:
+            window(x,d/2+.006,level,w=.11,h=.125 if floors>=4 else .135,mullion=False)
+    # Side walls carry openings too, so inspection does not expose blank cubes.
+    side_levels = [.18 + floor*((h-.30)/max(floors-1,1)) for floor in range(floors)] if floors>=4 else [h*.59]
+    for side in (-1, 1):
+        before = len(PARTS)
+        for level in side_levels:
+            window(0, 0, level, w=.115, h=.125 if floors>=4 else .145,
+                   shutters=False, stone="calcaire", mullion=False)
+        transform = Matrix.Translation((side*(w/2+.008), 0, 0)) @ Matrix.Rotation(side*math.pi/2,4,"Z")
+        for obj in PARTS[before:]:
+            obj.matrix_world = transform @ obj.matrix_world
     roof(0,0,h,w,d,rise,cover,hip=hip)
     chimney(w*.27,d*.10,h+rise*.71,"brique" if cover=="ardoise" else wall,h=.17)
     if style in {"paris","ardoise"}:
@@ -331,24 +356,25 @@ def house(name,w=1,d=.78,h=.51,rise=.30,wall="enduit",cover="tuile",floors=2,
         box((0,-d/2-.045,.26),(w*.65,.026,.06),"enduit_rose")
         window(-w*.26,-d/2-.012,.14,w=.22,h=.19,mullion=False)
         window(w*.26,-d/2-.012,.14,w=.22,h=.19,mullion=False)
-    finish(name)
+    authored = finish(name)
+    authored["bodyHeight"] = h
 
 
 HOUSE_SPECS = [
     ("maison_pierre_01",dict(w=1.00,d=.75,h=.47,rise=.31,wall="pierre",cover="tuile_claire",shutters=True)),
     ("maison_pierre_02",dict(w=1.17,d=.72,h=.44,rise=.32,wall="calcaire",cover="tuile",hip=True)),
-    ("maison_pierre_03",dict(w=.85,d=.82,h=.48,rise=.40,wall="pierre",cover="ardoise",style="ardoise")),
+    ("maison_pierre_03",dict(w=.85,d=.82,h=.64,rise=.40,floors=3,wall="pierre",cover="ardoise",style="ardoise")),
     ("maison_ardoise_01",dict(w=1.06,d=.77,h=.48,rise=.39,wall="enduit",cover="ardoise",style="ardoise")),
-    ("maison_ardoise_02",dict(w=.87,d=.84,h=.56,rise=.37,wall="pierre",cover="ardoise",style="ardoise",hip=True)),
+    ("maison_ardoise_02",dict(w=.87,d=.84,h=.68,rise=.37,floors=3,wall="pierre",cover="ardoise",style="ardoise",hip=True)),
     ("maison_paris_01",dict(w=1.05,d=.69,h=.66,rise=.29,wall="calcaire",cover="ardoise",style="paris",floors=3)),
     ("maison_paris_02",dict(w=.88,d=.80,h=.65,rise=.31,wall="enduit",cover="zinc",style="paris",floors=3)),
     ("maison_paris_03",dict(w=1.22,d=.74,h=.63,rise=.36,wall="pierre",cover="ardoise",style="paris",floors=3,hip=True)),
-    ("maison_brique_01",dict(w=.91,d=.74,h=.53,rise=.36,wall="brique",cover="ardoise",style="ardoise")),
+    ("maison_brique_01",dict(w=.91,d=.74,h=.68,rise=.36,floors=3,wall="brique",cover="ardoise",style="ardoise")),
     ("maison_brique_02",dict(w=1.12,d=.72,h=.49,rise=.32,wall="brique",cover="tuile",hip=True)),
     ("maison_alsace_01",dict(w=.84,d=.80,h=.51,rise=.45,wall="enduit",cover="tuile",style="colombage")),
     ("maison_alsace_02",dict(w=1.01,d=.70,h=.55,rise=.43,wall="enduit_rose",cover="tuile",style="colombage")),
     ("maison_sud_01",dict(w=1.08,d=.79,h=.46,rise=.23,wall="enduit_ocre",cover="tuile_claire",style="sud",shutters=True,hip=True)),
-    ("maison_sud_02",dict(w=.90,d=.75,h=.51,rise=.26,wall="enduit_rose",cover="tuile",style="sud",shutters=True)),
+    ("maison_sud_02",dict(w=.90,d=.75,h=.61,rise=.26,floors=3,wall="enduit_rose",cover="tuile",style="sud",shutters=True)),
     ("maison_sud_03",dict(w=1.19,d=.80,h=.42,rise=.23,wall="enduit",cover="tuile_claire",shutters=True,hip=True)),
     ("ferme_01",dict(w=1.42,d=.64,h=.32,rise=.31,wall="pierre",cover="tuile",floors=1,hip=True,offset=-.28)),
     ("ferme_02",dict(w=1.29,d=.83,h=.34,rise=.38,wall="enduit",cover="ardoise",floors=1,offset=.29)),
@@ -510,6 +536,15 @@ def belfry():
 
 for name, spec in HOUSE_SPECS:
     house(name,**spec)
+# Dominant frontages have real storeys, rather than the low house stretched in Y.
+# Their complete XZ fittings are shared with the base model's exact footprint.
+for name, spec in HOUSE_SPECS:
+    if not name.startswith("maison_"):
+        continue
+    frontage = dict(spec)
+    frontage.update(h=round(.96 + spec["w"]*.14, 4), floors=4,
+                    rise=min(spec["rise"], .31))
+    house(name + "_dominante", **frontage)
 cathedral()
 townhall()
 belfry()
@@ -645,11 +680,11 @@ if not opts.preview_only:
                     links.new(emit.outputs["Emission"],out.inputs["Surface"])
                 elif kind=="AO":
                     ao=nodes.new("ShaderNodeAmbientOcclusion")
-                    ao.inputs["Distance"].default_value=.085
+                    ao.inputs["Distance"].default_value=.11
                     ao.samples=24
                     soften=nodes.new("ShaderNodeMixRGB")
                     soften.blend_type="MULTIPLY"
-                    soften.inputs[0].default_value=.35
+                    soften.inputs[0].default_value=.48
                     soften.inputs[1].default_value=(1,1,1,1)
                     links.new(ao.outputs["Color"],soften.inputs[2])
                     emit=nodes.new("ShaderNodeEmission")
@@ -686,7 +721,7 @@ if not opts.preview_only:
     normaltex=mat.node_tree.nodes.new("ShaderNodeTexImage")
     normaltex.image=maps["NORMAL"]
     normal=mat.node_tree.nodes.new("ShaderNodeNormalMap")
-    normal.inputs["Strength"].default_value=.7
+    normal.inputs["Strength"].default_value=.85
     mat.node_tree.links.new(normaltex.outputs["Color"],normal.inputs["Color"])
     mat.node_tree.links.new(normal.outputs["Normal"],shader.inputs["Normal"])
     # A single glTF ORM texture keeps occlusion out of the albedo and retains

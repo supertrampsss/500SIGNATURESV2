@@ -1,16 +1,28 @@
 {
-  "method": "Blender4.3.2 export compared with preserved real candidate14 GLB; exact ordered HIGH attributes/indices/material names/transforms byte equality; actual distant normals/colors/trunk/index checks. No browser or GPU.",
-  "previousGLBSHA256": "22d88978198973b29688eaecc3681d61b37517712a056a5a10b39cf9a7e91e38",
-  "glbSHA256": "a76e9ce21413da32747a1fd9ff6f2f0c54460c2e4bfe6510ea3c23a459119ed5",
-  "glbBytes": 811064,
-  "sourceSHA256": "80a3d93ca8571fcb4ae52f6b87e55e3d80b17b3100eaed958247bfb31456669e",
+  "method": "Actual Blender4.3.2 reproduction from repository source matched approved candidate21 GLB byte-for-byte. Exact ordered model attributes/indices, bounds and pivots checked against candidate; actual distant normals/colors/trunk/index checks. Real production Babylon kit in NullEngine with only CPU byte transport. No app build, browser or GPU.",
+  "artifactRevision": 22,
+  "authoringCandidate": 21,
+  "generator": "Blender4.3.2",
+  "previousGLBSHA256": "a76e9ce21413da32747a1fd9ff6f2f0c54460c2e4bfe6510ea3c23a459119ed5",
+  "glbSHA256": "44ba0d18ea0aa4e8f2211d20b88fb4b9904cf4f1b8518066fdd3ec278e700a0b",
+  "glbBytes": 721552,
+  "sourceSHA256": "511b0898d0b402ffd4ddd7f01e54080afd8bcc110d662859a7dac5a588457648",
+  "boundsSourceSHA256": "c6c54f96dc77702d6e6746f6f892df29214b17809c8a7375049ee819f8f767f9",
+  "reproductionCommand": "blender --background --threads 6 --python tools/mandats-assets/vegetation.py",
+  "reproductionMatchesApprovedGLB": true,
   "materialsIdentical": true,
+  "modelNamesAndPivotsPreserved": true,
+  "allHighAndDistantBoundsExact": true,
+  "rockGeometryAndColorsByteIdentical": true,
+  "highTriangles": 7044,
+  "distantTriangles": 861,
   "models": [
     {
       "name": "oak",
-      "highTriangles": 1760,
-      "highIdentical": true,
-      "highFingerprint": "29873b90fe91506a8bc3ba667697805700cf5916fa1f824b74bf83d0f4320b23",
+      "highTriangles": 1576,
+      "previousHighTriangles": 1760,
+      "highIdentical": false,
+      "highFingerprint": "890aa42e8a97c41eb4bfe44ae9b8301f5b7b4556ddb30ce77cf85057578a2f61",
       "highBounds": {
         "min": [
           -0.4392952620983124,
@@ -23,8 +35,21 @@
           0.40127718448638916
         ]
       },
-      "previousDistantTriangles": 482,
-      "distantTriangles": 139,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit",
+        "canopy-shade"
+      ],
+      "previousDistantTriangles": 139,
+      "distantTriangles": 172,
+      "distantFingerprint": "1e8169ff0a9d4e1c942b15a41d92c0ff3c3b0c262cbd3d65ae088305ef4cfcdd",
       "distantBounds": {
         "min": [
           -0.4527553617954254,
@@ -39,24 +64,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "canopy-olive",
-        "canopy-sunlit",
-        "canopy-shade"
-      ],
-      "barkTriangles": 33,
+      "barkTriangles": 32,
       "barkMinY": -0.0009845411404967308
     },
     {
       "name": "beech",
-      "highTriangles": 1352,
-      "highIdentical": true,
-      "highFingerprint": "9ed3a41ef92a9978d40899a3eb9d783db89f33cd1b77668b69c22497097d94de",
+      "highTriangles": 1144,
+      "previousHighTriangles": 1352,
+      "highIdentical": false,
+      "highFingerprint": "589ea6dc506cb07c860494f26568fda6b17259053469a4eb47a9cd22420b4d6b",
       "highBounds": {
         "min": [
           -0.2990770637989044,
@@ -69,8 +89,20 @@
           0.30489522218704224
         ]
       },
-      "previousDistantTriangles": 365,
-      "distantTriangles": 116,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit"
+      ],
+      "previousDistantTriangles": 116,
+      "distantTriangles": 144,
+      "distantFingerprint": "3061fda7b7e75db5253965ac016a655074e102e31a220c50ec44467ab95449d6",
       "distantBounds": {
         "min": [
           -0.2994936406612396,
@@ -85,23 +117,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "canopy-olive",
-        "canopy-sunlit"
-      ],
-      "barkTriangles": 36,
+      "barkTriangles": 34,
       "barkMinY": -0.00042034799116663635
     },
     {
       "name": "pine",
-      "highTriangles": 3224,
-      "highIdentical": true,
-      "highFingerprint": "4ada97e947792edd1afd71486c134d390f6e6863ee21e0a36bf8297679b365a3",
+      "highTriangles": 1860,
+      "previousHighTriangles": 3224,
+      "highIdentical": false,
+      "highFingerprint": "1948d771b79bb6df0867ca76e900e63a22e7a9b4a0c5be68ada5d34a32a5f062",
       "highBounds": {
         "min": [
           -0.3424035310745239,
@@ -114,8 +142,20 @@
           0.3406129777431488
         ]
       },
-      "previousDistantTriangles": 741,
-      "distantTriangles": 223,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-shade",
+        "pine-needles"
+      ],
+      "previousDistantTriangles": 223,
+      "distantTriangles": 228,
+      "distantFingerprint": "d6d76d698753c9391a3bc4f17ab53fbf167d140bcb2f63f3cdb127e9aefbdbb5",
       "distantBounds": {
         "min": [
           -0.34814929962158203,
@@ -130,23 +170,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "canopy-shade",
-        "pine-needles"
-      ],
       "barkTriangles": 54,
       "barkMinY": -0.0003534409624990076
     },
     {
       "name": "cypress",
       "highTriangles": 824,
-      "highIdentical": true,
-      "highFingerprint": "75ee16bcfa8209c7986f17035b59f7d547468d2985a039e3b879e6453c08accf",
+      "previousHighTriangles": 824,
+      "highIdentical": false,
+      "highFingerprint": "2616c15bbe587e5866e6011fb39722a00638fd5cc1852c28c91f58a9b346fb2d",
       "highBounds": {
         "min": [
           -0.09460532665252686,
@@ -159,8 +195,20 @@
           0.08775021135807037
         ]
       },
-      "previousDistantTriangles": 229,
-      "distantTriangles": 69,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "pine-needles",
+        "canopy-shade"
+      ],
+      "previousDistantTriangles": 69,
+      "distantTriangles": 106,
+      "distantFingerprint": "03f26651f84ed3538c0acde364d200df3d4ee950bfc2a3855cae621ec82a8086",
       "distantBounds": {
         "min": [
           -0.0833301842212677,
@@ -175,23 +223,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "pine-needles",
-        "canopy-shade"
-      ],
       "barkTriangles": 24,
       "barkMinY": -0.00013100948126520962
     },
     {
       "name": "olive",
       "highTriangles": 832,
-      "highIdentical": true,
-      "highFingerprint": "b8b44a2db7dbe69df4227d1e46b0710c31afdc410934935672a5b9c77180c50a",
+      "previousHighTriangles": 832,
+      "highIdentical": false,
+      "highFingerprint": "54dc1ad569f9abfb4eab6e98352c94d3a33be3341f2fab1b9887fc834ea06e41",
       "highBounds": {
         "min": [
           -0.3959670960903168,
@@ -204,8 +248,20 @@
           0.3626773953437805
         ]
       },
-      "previousDistantTriangles": 225,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-shade",
+        "olive-silver"
+      ],
+      "previousDistantTriangles": 109,
       "distantTriangles": 109,
+      "distantFingerprint": "74006232f8fca6c39905beacd8c3a972ece232dfa0060fe00d3758d6c3e1e61c",
       "distantBounds": {
         "min": [
           -0.4125773310661316,
@@ -220,23 +276,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "canopy-shade",
-        "olive-silver"
-      ],
       "barkTriangles": 31,
       "barkMinY": -0.0035949950106441975
     },
     {
       "name": "orchard",
       "highTriangles": 728,
-      "highIdentical": true,
-      "highFingerprint": "b8cff12791ae7cb9559367bf2d90eaf4a74415295f30b490efab67cfb8d0dc71",
+      "previousHighTriangles": 728,
+      "highIdentical": false,
+      "highFingerprint": "989d2b2dbf5352b632d64f42d53e3e2edbb1d3ed1406f59505ac595838bcf0c0",
       "highBounds": {
         "min": [
           -0.2461707890033722,
@@ -249,8 +301,20 @@
           0.22638176381587982
         ]
       },
-      "previousDistantTriangles": 195,
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit"
+      ],
+      "previousDistantTriangles": 102,
       "distantTriangles": 102,
+      "distantFingerprint": "ae02c375ae691daa7b9bbef11d8d9331570cffd37a9b46aa266b2930c9351751",
       "distantBounds": {
         "min": [
           -0.26088252663612366,
@@ -265,23 +329,19 @@
       },
       "distantTransform": {
         "matrix": null,
-        "translation": null,
         "rotation": null,
+        "translation": null,
         "scale": null
       },
-      "materials": [
-        "weathered-bark",
-        "canopy-olive",
-        "canopy-sunlit"
-      ],
       "barkTriangles": 30,
       "barkMinY": 0.0
     },
     {
       "name": "rock",
       "highTriangles": 80,
+      "previousHighTriangles": 80,
       "highIdentical": true,
-      "highFingerprint": "61ad61dbc547e845332a7b8ce54fb3b527f4527671cf58442687e09e3dd1d83f",
+      "highFingerprint": "03d2d31ca8380064f5fc11792a24437959d7e17f96f3317afe0d33c9ab373e8b",
       "highBounds": {
         "min": [
           -0.3216630220413208,
@@ -293,48 +353,76 @@
           0.4578305780887604,
           0.2557070851325989
         ]
-      }
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-limestone"
+      ]
     }
   ],
-  "errors": [],
-  "frozenAtUTC": "2026-10-09T01:19:00.825563+00:00",
-  "artifactRevision": 15,
-  "generator": "Blender4.3.2",
-  "silhouetteSummary": {
-    "heightsPx": [
-      7,
-      12,
-      20
-    ],
-    "azimuthsRadians": [
-      0,
-      0.65,
-      1.25
-    ],
-    "betaRadians": 0.86,
-    "minimumWeightedIoUByModel": {
-      "oak": 0.8284006829823564,
-      "beech": 0.8356317035798859,
-      "pine": 0.8714176960290759,
-      "cypress": 0.7537366548042705,
-      "olive": 0.8591392570774015,
-      "orchard": 0.9040113260972157
-    },
-    "method": "Actual GLB triangle projection with vertex colours on CPU only, three azimuths at beta0.86, same physical transform and7/12/20px HIGH height. Alpha silhouette coverage uses12x supersampling then Lanczos downsampling. This is model geometry comparison, not native game/reference visual conformity."
-  },
   "runtimeKit": {
-    "errors": [],
     "prefabs": 7,
     "highPrimitivesWithLOD": 19,
-    "disposal": {
-      "meshes": 0,
-      "textures": 0
-    }
+    "counts": {
+      "empty": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 0,
+        "geometries": 0,
+        "animationGroups": 0
+      },
+      "loaded": {
+        "meshes": 40,
+        "transformNodes": 12,
+        "materials": 7,
+        "textures": 1,
+        "geometries": 39,
+        "animationGroups": 0
+      },
+      "afterTintedVariants": {
+        "meshes": 118,
+        "transformNodes": 12,
+        "materials": 21,
+        "textures": 1,
+        "geometries": 39,
+        "animationGroups": 0
+      },
+      "afterKitDispose": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 1,
+        "geometries": 0,
+        "animationGroups": 0
+      },
+      "afterSceneDispose": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 0,
+        "geometries": 0,
+        "animationGroups": 0
+      }
+    },
+    "sceneOwnedTexture": {
+      "name": "data:EnvironmentBRDFTexture0",
+      "isSceneEnvironmentBRDF": true
+    },
+    "cacheReused": true,
+    "tintedTemplatesReused": true,
+    "doubleDisposeSafe": true,
+    "disposedKitRejectsInstantiate": true,
+    "errors": []
   },
+  "errors": [],
   "limits": [
-    "Only distant mesh assets were changed; HIGH geometry, all vertex attributes, indices, materials and transforms match the preserved previous GLB byte-for-byte.",
-    "Screen-space CPU silhouette comparisons are model evidence, not native game visual conformity or measured GPU/mobile performance.",
-    "Existing candidate14 screenshots use the previous vegetation GLB and cannot serve as proof for this revision15 asset.",
-    "Actual game LOD selection, final main/shadow triangle counts, interactions and frame timing require the parent native revision15 verification."
+    "Tree HIGH/LOW geometry and vertex colors intentionally change; their exact existing bounds and pivots remain. Rock is byte-identical to revision15.",
+    "NullEngine loading/disposal checks are CPU model evidence. Main/shadow triangle counts, frame timing, LOD selection and artistic reference fidelity require the next actual game capture."
   ]
 }

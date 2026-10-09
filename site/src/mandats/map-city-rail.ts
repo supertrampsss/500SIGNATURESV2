@@ -1,3 +1,4 @@
+import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -123,7 +124,7 @@ export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets
   for (const [index, [from, to, via]] of RAIL_ROUTES.entries()) {
     const start = stops.get(from), end = stops.get(to);
     if (!start || !end) continue;
-    const points = curve([start, ...via.map(([lon, lat]) => mapPosition(lon, lat)), end]),
+    const points = curve([mapBaselineFromFinal(start.x, start.z), ...via.map(([lon, lat]) => mapBaselinePosition(lon, lat)), mapBaselineFromFinal(end.x, end.z)]).map(point => mapFinalFromBaseline(point.x, point.z)),
       ballast = new CityGeometry(), tracks = new CityGeometry(), sleepers = new CityGeometry(), runs: Vector3[][] = [];
     let run: Vector3[] = [];
     for (let i = 0; i < points.length - 1; i++) {

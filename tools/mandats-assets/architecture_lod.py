@@ -26,6 +26,7 @@ def metrics(obj):
         "min": [lower[0], lower[2], -upper[1]],
         "max": [upper[0], upper[2], -lower[1]],
         "triangles": len(obj.data.loop_triangles),
+        **({"bodyHeight": float(obj["bodyHeight"])} if "bodyHeight" in obj else {}),
     }
 
 
@@ -39,7 +40,7 @@ def export_with_distance_lods(models):
         original = metrics(high)
         metadata[name] = original
         ratio = .45 if name == "cathedrale_paris" else .40 if name in {
-            "mairie_sud", "beffroi_nord"} else .35
+            "mairie_sud", "beffroi_nord"} else .48
         mesh = high.copy()
         mesh.data = high.data.copy()
         mesh.name = f"{name}_distant_mesh"

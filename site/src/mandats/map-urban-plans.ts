@@ -133,7 +133,13 @@ const streetFootprints: CityEnvelopeFootprint[] = NATIONAL_SETTLEMENTS.flatMap(t
       rotation: Math.atan2(dz, dx), settlement: town.name };
   }));
 });
-const occupiedFootprints = [...footprints, ...streetFootprints].map(footprint => ({
+// Gardens clear crops and woodland without levelling their native ground.
+const gardenFootprints: CityEnvelopeFootprint[] = NATIONAL_SETTLEMENTS.flatMap(town => {
+  const origin = mapPosition(town.lon, town.lat);
+  return (town.gardens ?? []).map(garden => ({ x: origin.x + garden.x, z: origin.z + garden.z,
+    halfW: garden.width / 2, halfD: garden.depth / 2, rotation: -garden.angle, settlement: town.name }));
+});
+const occupiedFootprints = [...footprints, ...streetFootprints, ...gardenFootprints].map(footprint => ({
   ...footprint, cosine: Math.cos(footprint.rotation), sine: Math.sin(footprint.rotation),
 }));
 const footprintCells = new Map<string, typeof occupiedFootprints>(), cellSize = .50, indexedReach = .25;
@@ -194,12 +200,12 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
       "z": -1.011271243
     },
     {
-      "x": -0.625,
-      "z": 1.082531755
+      "x": -0.6249999999999998,
+      "z": 1.0825317547305484
     },
     {
-      "x": 1.188820645,
-      "z": -0.386271243
+      "x": 1.1888206453689418,
+      "z": -0.38627124296868454
     }
   ],
   "lyon": [
@@ -222,8 +228,8 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
       "z": 0.470228202
     },
     {
-      "x": 0.339918694,
-      "z": -1.046162168
+      "x": 0.339918693812442,
+      "z": -1.046162167924669
     },
     {
       "x": -1.188820645,
@@ -232,16 +238,16 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
   ],
   "rennes": [
     {
-      "x": 0.447410307,
-      "z": 1.004900003
+      "x": 0.5500000000000002,
+      "z": 0.9526279441628825
     },
     {
-      "x": 1.392330654,
-      "z": -0.146339849
+      "x": 1.3923306535155826,
+      "z": -0.14633984857471477
     },
     {
-      "x": 0.928931032,
-      "z": 0.836413258
+      "x": 1.9562952014676114,
+      "z": 0.41582338163551863
     }
   ],
   "nantes": [
@@ -250,22 +256,22 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
       "z": 1.03715244
     },
     {
-      "x": 1.541508938,
-      "z": -0.162019118
+      "x": 1.5415089378208235,
+      "z": -0.1620191180648628
     }
   ],
   "bordeaux": [
     {
-      "x": 0.625,
-      "z": 1.082531755
+      "x": 0.6250000000000001,
+      "z": 1.0825317547305482
     },
     {
       "x": -0.130660579,
       "z": -1.243152369
     },
     {
-      "x": 1.222684501,
-      "z": -0.259889614
+      "x": 1.2226845009172571,
+      "z": -0.25988961352219875
     }
   ],
   "toulouse": [
@@ -278,8 +284,8 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
       "z": 1.212435565
     },
     {
-      "x": -1.839865506,
-      "z": 0.193377657
+      "x": -1.9890437907365468,
+      "z": 0.20905692653530658
     }
   ],
   "montpellier": [
@@ -303,8 +309,8 @@ export const AUTHORED_PROJECT_RESERVATIONS: Partial<Record<MapPlace, readonly { 
       "z": 0.705987584
     },
     {
-      "x": -1.03715244,
-      "z": -1.151874479
+      "x": -1.0371524398562306,
+      "z": -1.1518744794899607
     },
     {
       "x": -1.093974085,

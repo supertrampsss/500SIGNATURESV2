@@ -1,101 +1,77 @@
 # Architecture de MANDATS
 
-`architecture.glb` est un kit de modèles 3D créé pour ce dépôt. Il ne contient ni
-fond de carte photographique, ni écran de jeu intégré dans une texture.
+`architecture.glb` contient dix-huit modèles de maisons, fermes et boutiques
+régionales, trois monuments et quinze variantes de façade dominante et une variante de distance de chacun. Ce kit est
+créé pour le dépôt avec Blender 4.3.2. Ses textures décrivent les surfaces des
+modèles ; aucune image de la carte ou du jeu ne sert de décor.
 
-Le générateur d'auteur est `tools/mandats-assets/architecture.py`, exécuté avec
-Blender 4.3.2. Le fichier source `architecture.blend` et son atlas de couleurs sont
-conservés dans le même répertoire que ce script. La géométrie et les matériaux ne
-proviennent pas d'une bibliothèque tierce.
+Le générateur `architecture.py` produit les volumes, les matériaux, l'atlas UV et
+le fichier d'auteur `architecture.blend`. Les débords de toiture ont une face
+inférieure en bois et une bordure en pierre. Les maisons portent des corniches,
+des chaînages d'angle, des ouvertures latérales, des encadrements, des volets,
+des cheminées et, selon leur région, des lucarnes ou des balcons. Les noms, pivots, emprises XZ, hauteurs et niveau du sol des 42 modèles de base sont conservés. Les quinze variantes `maison_*_dominante`, chacune avec son LOD, partagent exactement l’emprise et le pivot de leur maison de base.
+Quatre modèles de base, en pierre, ardoise, brique et enduit rose, portent trois étages
+réels. Les quinze variantes dominantes possèdent quatre niveaux réels, avec des ouvertures sur toutes les façades et une toiture dont la pente reste normale. Leurs hauteurs sources augmentent, tandis que le placement conserve
+l’emprise et la hauteur expressément définies pour chaque adresse. Les fenêtres
+restent sous les corniches au lieu de traverser les débords de toiture.
 
-Le kit comprend dix-huit maisons, fermes ou boutiques régionales et trois
-monuments distincts, avec une version de distance de chaque modèle. Chaque modèle
-possède une racine nommée et un enfant maillé,
-avec son origine d’auteur au niveau du sol. L'export GLTF utilise l'axe Y
-vertical. `architecture.json` fournit les dimensions réelles du modèle, avant la
-mise à l'échelle effectuée par la carte.
+Chaque racine est centrée au niveau du sol. L'export GLTF utilise l'axe Y vertical.
+`architecture.json` fournit les dimensions des modèles avant leur placement.
+Les façades parisiennes et la cathédrale principale proviennent de leurs propres
+kits, `paris.glb` et `cathedrale.glb`.
 
-Les murs, couvertures, lucarnes, cheminées, encadrements et monuments sont des
-volumes. Les maisons partagent un atlas UV local de 2 048 pixels. Les matériaux
-colorés et l'occlusion de contact sont précalculés séparément dans Blender, après avoir
-séparé physiquement les modèles pendant la cuisson. Deux cartes de 1 024 pixels
-conservent le grain des normales et les canaux ORM : occlusion, rugosité et métal.
-Le fichier GLB incorpore les trois textures pour fonctionner sans service externe et pendant
-une partie hors ligne.
+Les modèles partagent un atlas UV de couleurs de 2 048 pixels et des textures de
+normales et ORM de 1 024 pixels. L'ORM sépare l'occlusion de contact, la rugosité et
+le métal dans ses canaux rouge, vert et bleu. L'albédo ne contient pas d'ombre
+précalculée. L'occlusion porte sur 0,11 unité et utilise un poids de 48 %. La
+pierre utilise une rugosité comprise entre 0,44 et 0,62, la terre cuite entre
+0,34 et 0,47, l'ardoise entre 0,26 et 0,41 et le verre entre 0,09 et 0,16.
 
-La correction des matières du 8 octobre conserve strictement les vingt et un
-maillages détaillés, leurs origines et dimensions. L’albédo ne contient plus
-d’ombres permanentes. L’occlusion de contact possède une portée de 0,085 unité et
-un poids de 35 %, dans le canal rouge ORM. Le verre est plus lisse (0,14 à 0,21)
-que l’ardoise (0,43 à 0,56), la terre cuite (0,54 à 0,65) et la pierre (0,73 à
-0,85). Le fer et le zinc ont leurs propres valeurs métalliques. Les couvertures
-d’ardoise disposent d’une teinte bleue sombre.
+La pierre et les enduits possèdent des teintes chaudes distinctes. Les couvertures
+utilisent, en RGB linéaire, `(0,60 ; 0,16 ; 0,06)` pour les tuiles,
+`(0,74 ; 0,295 ; 0,095)` pour les tuiles claires et
+`(0,10 ; 0,16 ; 0,235)` pour l'ardoise. Le dessin des joints, le grain et les
+variations de teinte sont calculés sur les surfaces locales lors de la cuisson.
 
-La palette de couverture du 9 octobre remplace les terres cuites trop pâles par
-des teintes plus rouges : `tuile` utilise le RGB linéaire `(0,40; 0,115; 0,048)`,
-`tuile_claire` `(0,55; 0,185; 0,064)` et `ardoise` `(0,045; 0,065; 0,085)`.
-Les couleurs des murs, briques et pierres restent les mêmes. Cette modification
-recalcule l’albédo à partir des matériaux d’auteur ; elle ne modifie aucune
-géométrie, coordonnée UV, normale, transformation, emprise ou texture PBR.
-La fidélité des teintes à la maquette doit être examinée dans la capture du jeu.
+Un maillage temporaire unique permet le placement UV sans superposition des
+modèles. Des attributs de face et de boucle reportent les coordonnées dans les
+maillages sources. La génération refuse une surface UV totale dépassant l'espace
+disponible ou inférieure à 30 %. Le kit actuel utilise 56,14 % de surface utile.
 
-La préparation utilise un seul maillage temporaire pour le placement UV. Des
-attributs de face et de boucle permettent de reporter les coordonnées exactes
-sur les modèles originaux. Cette étape évite de superposer les UV individuels
-des maisons dans l'atlas. La marge est exprimée en fraction de l’image, au lieu
-du mode relatif qui laissait de grands espaces entre de petits îlots. Le nouvel
-atlas utilise 70,93 % de surface UV utile. Le script refuse une surface UV totale supérieure à
-l'espace disponible; la vue de contrôle vérifie ensuite les couleurs réelles.
-
-Pour reproduire les fichiers depuis la racine du dépôt :
+Depuis la racine du dépôt :
 
 ```sh
-blender --background --threads 6 --python tools/mandats-assets/architecture.py
+blender --background --threads 3 --python tools/mandats-assets/architecture.py
 ```
 
-Pour recuire seulement les couleurs après une modification de palette, à partir
-du `.blend` et des cartes PBR déjà présents :
+Pour régénérer l'albédo seulement, en conservant exactement la géométrie et les
+UV du fichier d'auteur ainsi que les cartes PBR existantes :
 
 ```sh
-blender --background --threads 6 --python tools/mandats-assets/architecture.py -- --albedo-only --skip-preview
+blender --background --threads 3 --python tools/mandats-assets/architecture.py -- --albedo-only --skip-preview
 ```
 
-Ce mode vérifie la géométrie haute régénérée, conserve exactement son placement
-UV, cuit un nouvel albédo et réutilise les cartes de normales, rugosité, métal,
-occlusion et ORM existantes. Les modèles de distance sont ensuite réexportés par
-`architecture_lod.py`. `--skip-preview` évite seulement le rendu de contrôle
-Blender en fin de génération.
-
-Le fichier `.blend` garde uniquement la géométrie haute complète. Pour régénérer
-les versions de distance et l'export GLB depuis ce fichier, sans nouvelle cuisson
-des textures et sans modifier la source :
+Pour réexporter les niveaux de distance depuis la source, sans nouvelle cuisson :
 
 ```sh
-blender --background --threads 2 --python tools/mandats-assets/architecture_lod.py
+blender --background --threads 3 --python tools/mandats-assets/architecture_lod.py
 ```
 
-Les racines de distance sont nommées `nom_du_modele_distant`. La décimation
-Blender conserve 35 % des triangles domestiques, 45 % de ceux de la cathédrale et
-40 % de ceux des autres monuments. Les UV, normales et références des matériaux
-restent présents; aucune texture ni matière n'est dupliquée. Le script refuse une
-dérive des dimensions supérieure à 1,5 %, puis rétablit les emprises exactes dans
-les coordonnées du maillage pour conserver le niveau du sol et les mêmes
-transformations lors du changement de détail. Les comptes du JSON décrivent les
-triangles du maillage Blender ; l’exporteur élimine les triangles sans aire.
-Le GLB actuel conserve les mêmes comptes exportés que la version précédente,
-soit 31 996 triangles sur les deux niveaux réunis.
+`architecture_lod.py` conserve 48 % des triangles domestiques, 45 % des triangles
+de la cathédrale régionale et 40 % des deux autres monuments. Les UV, normales,
+matériaux et origines sont partagés entre les deux niveaux. Le script refuse une
+dérive des dimensions supérieure à 1,5 %, puis rétablit les bornes exactes pour
+que le passage entre les niveaux conserve l'emprise et le niveau du sol.
 
-Le moteur peut instancier `nom_du_modele_distant` pour une vue éloignée et
-`nom_du_modele` pour une inspection. Les deux racines partagent l'origine et les
-dimensions. Ce choix de rendu ne change aucun état de partie. Le JSON version 2
-documente chaque réduction avec `lodOf`, `lodRatio`, les triangles réels et la
-dérive mesurée avant correction des emprises.
+Le JSON décrit 60 437 triangles détaillés et 28 593 triangles de distance.
+L'exporteur nettoie les triangles dégénérés ; le GLB distribué contient
+88 841 triangles. Babylon choisit le niveau de détail selon la couverture à
+l'écran. Une inspection retrouve la géométrie complète.
 
-Le script produit aussi une véritable vue de contrôle de cinq modèles dans
-`/workspace/mandats-verification/architecture-kit-preview.png`. Cette vue sert à
-examiner le kit; seules les captures de Babylon dans le navigateur permettent
-de vérifier la composition finale de la carte.
+`--preview-only` réalise une vue CPU des matériaux d'auteur sans modifier l'export.
+`--skip-preview` évite seulement ce rendu de contrôle. Cette planche ne valide pas
+la fidélité de la carte. La validation visuelle doit comparer le jeu exécuté à
+`docs/mandats-diorama/reference-ordinateur.png`, en vue nationale et rapprochée,
+puis sur les formats mobiles.
 
-`--preview-only` produit une vue de la géométrie et des matériaux sources sans
-remplacer l'export de production. Les rendus utilisent Cycles sans débruitage,
-car l'installation cloud de Blender ne comprend pas OpenImageDenoise.
+Les 154 adresses dominantes utilisent les nouvelles variantes avec une hauteur totale plafonnée à 0,34 unité et à 2,05 fois leur largeur ou profondeur maximale. Les autres bâtiments conservent leurs modèles et hauteurs. Le champ `bodyHeight` du JSON indique la hauteur du corps de chaque maison dans les unités du modèle, avant la mise à l’échelle du jeu.

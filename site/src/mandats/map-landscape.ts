@@ -1,4 +1,6 @@
+import { mapBaselinePosition, mapFinalFromBaseline } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
+import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -9,7 +11,7 @@ import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapAuthoredPosition, mapAuthoredCoordinates, mapAuthoredJacobian } from "./map-state.ts";
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
-import { mountainSourceHeight, mountainBaselineSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey } from "./map-land-crags.ts";
+import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey } from "./map-land-crags.ts";
 import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES } from "./map-land-composition.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
 import {
@@ -45,7 +47,13 @@ const sourceOutlines = FRANCE_OUTLINES.map((outline) =>
   outline.slice(0, -1).map(([lon, lat]) => mapSourcePosition(lon, lat)),
 );
 const outlines = sourceOutlines.map(outline => outline.map(point => mapAuthoredPosition(point.x, point.z)));
-const surveyedFootprints = cityEnvelopeFootprints().map((footprint) => ({
+const schoolOrigin = mapPosition(MAP_PLACES[LYON_SCHOOL_SITE.town].lon, MAP_PLACES[LYON_SCHOOL_SITE.town].lat);
+const surveyedFootprints = [
+  ...cityEnvelopeFootprints().map(footprint => ({ ...footprint, schoolPlatform: false })),
+  { x: schoolOrigin.x + LYON_SCHOOL_SITE.x, z: schoolOrigin.z + LYON_SCHOOL_SITE.z,
+    halfW: LYON_SCHOOL_SITE.halfW, halfD: LYON_SCHOOL_SITE.halfD,
+    rotation: 0, settlement: LYON_SCHOOL_SITE.town, localLevel: true, schoolPlatform: true },
+].map((footprint) => ({
   ...footprint,
   cosine: Math.cos(footprint.rotation),
   sine: Math.sin(footprint.rotation),
@@ -126,13 +134,12 @@ function nationalBlockAt(x: number, z: number) {
     block => x >= block.minX && x <= block.maxX && z >= block.minZ && z <= block.maxZ && contains(block.polygon, x, z),
   );
 }
-const range = (coords: number[][]) =>
-  coords.map(([lon, lat]) => mapPosition(lon, lat));
+const baselineRiverControls = (locations: number[][]) => locations.map(([lon, lat]) => mapBaselinePosition(lon, lat));
 const rivers = [
   // Curved geographic paths, not straight city-to-city links.
   {
     width: 0.055,
-    points: range([
+    points: baselineRiverControls([
       [4.0, 47.8],
       [3.5, 48.35],
       [2.4, 48.82],
@@ -146,7 +153,7 @@ const rivers = [
   },
   {
     width: 0.06,
-    points: range([
+    points: baselineRiverControls([
       [4.05, 44.85],
       [3.9, 45.45],
       [3.15, 46.4],
@@ -163,7 +170,7 @@ const rivers = [
   },
   {
     width: 0.055,
-    points: range([
+    points: baselineRiverControls([
       [0.6, 42.85],
       [0.95, 43.1],
       [1.45, 43.6],
@@ -178,7 +185,7 @@ const rivers = [
   },
   {
     width: 0.06,
-    points: range([
+    points: baselineRiverControls([
       [5.83, 46.13],
       [5.45, 45.95],
       [4.86, 45.78],
@@ -192,7 +199,7 @@ const rivers = [
   },
   {
     width: 0.032,
-    points: range([
+    points: baselineRiverControls([
       [2.8, 45.5],
       [2.3, 45.28],
       [1.4, 45.0],
@@ -205,53 +212,20 @@ const rivers = [
 const riverPaths = rivers.map((river, index) => ({
   ...river,
   index,
-  path: curvedPath(river.points),
+  path: curvedPath(river.points).map(point => mapFinalFromBaseline(point.x, point.z)),
 }));
-function riverSurveyWidth(
-  river: (typeof riverPaths)[number],
-  x: number,
-  z: number,
-  mouth: number,
-) {
-  if (river.index !== 0) return river.width;
-  const multiplier = 0.57 + mouth * 0.58;
-  return (
-    river.width + (0.075 / multiplier - river.width) * parisRiverWeight(x, z)
-  );
-}
-const riverCells = new Map<
-  string,
-  Array<{ a: Point; b: Point; width: number; mouth: number; seine: boolean }>
->();
-for (const river of riverPaths) {
-  for (let i = 1; i < river.path.length; i++) {
-    const a = river.path[i - 1],
-      b = river.path[i];
-    const mouth = i / river.path.length;
-    const segment = {
-      a,
-      b,
-      width: riverSurveyWidth(river, (a.x + b.x) / 2, (a.z + b.z) / 2, mouth),
-      mouth,
-      seine: river.index === 0,
-    };
-    for (
-      let x = Math.floor((Math.min(a.x, b.x) - 0.13) / 0.25);
-      x <= Math.floor((Math.max(a.x, b.x) + 0.13) / 0.25);
-      x++
-    ) {
-      for (
-        let z = Math.floor((Math.min(a.z, b.z) - 0.13) / 0.25);
-        z <= Math.floor((Math.max(a.z, b.z) + 0.13) / 0.25);
-        z++
-      ) {
-        const key = `${x}:${z}`;
-        const cell = riverCells.get(key) ?? [];
-        cell.push(segment);
-        riverCells.set(key, cell);
-      }
-    }
-  }
+// The headwater begins as a point and grows with travelled distance. Using
+// distance rather than control-point index gives every watershed a gentle
+// source, including the sections stretched by the eastern projection.
+const riverDistances = riverPaths.map(river => {
+  const distances = [0];
+  for (let i = 1; i < river.path.length; i++)
+    distances.push(distances[i - 1] + Math.hypot(
+      river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
+  return distances;
+});
+function riverSourceBlend(river: (typeof riverPaths)[number], index: number) {
+  return smooth(clamp(riverDistances[river.index][index] / [.85, .90, .65, .72, .65][river.index]));
 }
 
 function contains(polygon: Point[], x: number, z: number) {
@@ -391,6 +365,139 @@ const constructionReservations = Object.entries(AUTHORED_PROJECT_RESERVATIONS).f
   return sites!.map(site => ({ x: origin.x + site.x, z: origin.z + site.z,
     halfW: .235, halfD: .225, rotation: 0, cosine: 1, sine: 0 }));
 });
+// Width follows real foundations and reserved works, not town envelopes.
+// These extra service rectangles are the physical sites in map-cities and
+// map-city-infrastructure. Bridge end supports keep their existing spans.
+const riverStructureFootprints = [
+  ...surveyedFootprints,
+  ...constructionReservations,
+  ...[
+    ["lille", -.70, -.65, .19, .19],
+    ["rennes", .37, .47, .14, .075],
+    [LYON_SCHOOL_SITE.town, LYON_SCHOOL_SITE.x, LYON_SCHOOL_SITE.z,
+      LYON_SCHOOL_SITE.halfW, LYON_SCHOOL_SITE.halfD],
+    [LYON_SCHOOL_SITE.town, LYON_SCHOOL_SITE.riverWidthAnchor.x, LYON_SCHOOL_SITE.riverWidthAnchor.z,
+      LYON_SCHOOL_SITE.halfW, LYON_SCHOOL_SITE.halfD],
+  ].map(([town, x, z, halfW, halfD]) => {
+    const place = MAP_PLACES[town as keyof typeof MAP_PLACES], origin = mapPosition(place.lon, place.lat);
+    return { x: origin.x + Number(x), z: origin.z + Number(z), halfW: Number(halfW), halfD: Number(halfD), rotation: 0, cosine: 1, sine: 0 };
+  }),
+  ...[[4.9, 44.6], [5.82, 48.9]].map(([lon, lat]) => {
+    const origin = mapPosition(lon, lat);
+    return { x: origin.x + .14, z: origin.z, halfW: .40, halfD: .23, rotation: 0, cosine: 1, sine: 0 };
+  }),
+  ...([
+    ["paris", .543, -.318, .62, .16], ["rouen", -.06, .012, .16, .16],
+    ["nantes", .012, 0, .07, .17], ["bordeaux", .004, 0, .06, .17],
+    ["toulouse", .007, 0, .12, .16], ["lyon", .025, .02, .15, .17],
+  ] as Array<[keyof typeof MAP_PLACES, number, number, number, number]>).flatMap(([town, x, z, angle, length]) => {
+    const place = MAP_PLACES[town], origin = mapPosition(place.lon, place.lat), sine = Math.sin(angle), cosine = Math.cos(angle);
+    return [-1, 1].map(side => ({ x: origin.x + x + sine * length * .45 * side,
+      z: origin.z + z + cosine * length * .45 * side, halfW: .0335, halfD: .009,
+      rotation: -angle, cosine, sine: -sine }));
+  }),
+];
+const riverStructureCells = new Map<string, typeof riverStructureFootprints>();
+for (const footprint of riverStructureFootprints) {
+  const halfX = Math.abs(footprint.cosine) * footprint.halfW + Math.abs(footprint.sine) * footprint.halfD,
+    halfZ = Math.abs(footprint.sine) * footprint.halfW + Math.abs(footprint.cosine) * footprint.halfD;
+  for (let x = Math.floor((footprint.x - halfX) / .5); x <= Math.floor((footprint.x + halfX) / .5); x++)
+    for (let z = Math.floor((footprint.z - halfZ) / .5); z <= Math.floor((footprint.z + halfZ) / .5); z++) {
+      const key = `${x}:${z}`, cell = riverStructureCells.get(key) ?? [];
+      cell.push(footprint); riverStructureCells.set(key, cell);
+    }
+}
+function riverOriginalWidth(river: (typeof riverPaths)[number], point: Point, mouth: number) {
+  const multiplier = .57 + mouth * .58;
+  return river.index === 0
+    ? river.width * multiplier + (.075 - river.width * multiplier) * parisRiverWeight(point.x, point.z)
+    : river.width * multiplier;
+}
+function riverStructureDistance(a: Point, b: Point, footprint: (typeof riverStructureFootprints)[number]) {
+  const local = (point: Point) => ({
+    x: (point.x - footprint.x) * footprint.cosine + (point.z - footprint.z) * footprint.sine,
+    z: -(point.x - footprint.x) * footprint.sine + (point.z - footprint.z) * footprint.cosine,
+  });
+  const p = local(a), q = local(b), hx = footprint.halfW, hz = footprint.halfD;
+  // Slab intersection, including a segment passing through a rectangle while
+  // both end points remain outside it.
+  let lo = 0, hi = 1;
+  for (const [origin, delta, half] of [[p.x, q.x - p.x, hx], [p.z, q.z - p.z, hz]]) {
+    if (Math.abs(delta) < 1e-12) { if (Math.abs(origin) > half) { lo = 2; break; } }
+    else { const t0 = (-half - origin) / delta, t1 = (half - origin) / delta;
+      lo = Math.max(lo, Math.min(t0, t1)); hi = Math.min(hi, Math.max(t0, t1)); }
+  }
+  if (lo <= hi && lo <= 1 && hi >= 0) return 0;
+  const pointDistance = (point: Point) => Math.hypot(Math.max(0, Math.abs(point.x) - hx), Math.max(0, Math.abs(point.z) - hz));
+  return Math.min(pointDistance(p), pointDistance(q),
+    ...[[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]].map(([x, z]) => segmentDistance(x, z, p, q)));
+}
+const riverWidthProfiles = riverPaths.map(river => {
+  const widths = river.path.map((point, i) => {
+    const mouth = i / river.path.length,
+      original = riverOriginalWidth(river, point, mouth),
+      target = [.235, .210, .215, .185, .125][river.index] * (.73 + mouth * .27) +
+        (river.index === 0 ? .025 * parisRiverWeight(point.x, point.z) : 0);
+    return Math.max(original, target) * riverSourceBlend(river, i);
+  });
+  for (let i = 1; i < river.path.length; i++) {
+    const a = river.path[i - 1], b = river.path[i], nearby = new Set<(typeof riverStructureFootprints)[number]>();
+    for (let x = Math.floor((Math.min(a.x, b.x) - .22) / .5); x <= Math.floor((Math.max(a.x, b.x) + .22) / .5); x++)
+      for (let z = Math.floor((Math.min(a.z, b.z) - .22) / .5); z <= Math.floor((Math.max(a.z, b.z) + .22) / .5); z++)
+        for (const footprint of riverStructureCells.get(`${x}:${z}`) ?? []) nearby.add(footprint);
+    const clearance = Math.min(Infinity, ...[...nearby].map(footprint => riverStructureDistance(a, b, footprint))),
+      // The wet edge, visible bank and carved soil remain outside the padded
+      // foundation or works rectangle. Legacy bridge defects are not widened.
+      limit = Math.max(0, 2 * (clearance - .040));
+    for (const index of [i - 1, i])
+      widths[index] = Math.max(
+        riverOriginalWidth(river, river.path[index], index / river.path.length) * riverSourceBlend(river, index),
+        Math.min(widths[index], limit));
+  }
+  // A Lipschitz envelope broadens the river gradually after a bridge or house;
+  // it only lowers widths, so it cannot defeat the physical clearance cap.
+  for (let i = 1; i < widths.length; i++)
+    widths[i] = Math.min(widths[i], widths[i - 1] + .35 * Math.hypot(river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
+  for (let i = widths.length - 2; i >= 0; i--)
+    widths[i] = Math.min(widths[i], widths[i + 1] + .35 * Math.hypot(river.path[i + 1].x - river.path[i].x, river.path[i + 1].z - river.path[i].z));
+  return widths;
+});
+function riverSurveyWidth(river: (typeof riverPaths)[number], index: number) {
+  return riverWidthProfiles[river.index][index];
+}
+const riverSections = riverPaths.map(river => river.path.map((center, index) => {
+  const a = river.path[Math.max(0, index - 1)], b = river.path[Math.min(river.path.length - 1, index + 1)],
+    length = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+  return { center, nx: (b.z - a.z) / length, nz: -(b.x - a.x) / length,
+    width: riverSurveyWidth(river, index), distance: riverDistances[river.index][index],
+    bank: (.012 + parisRiverWeight(center.x, center.z) * .004) * riverSourceBlend(river, index) };
+}));
+type RiverSegment = { a: Point; b: Point; widthA: number; widthB: number; mouth: number; water: Point[]; rendered: boolean };
+const riverCells = new Map<string, RiverSegment[]>();
+for (const river of riverPaths) {
+  const sections = riverSections[river.index];
+  for (let i = 1; i < sections.length; i++) {
+    const a = sections[i - 1], b = sections[i], edge = (section: typeof a, side: number) => ({
+      x: section.center.x + section.nx * side * section.width / 2,
+      z: section.center.z + section.nz * side * section.width / 2,
+    });
+    const segment: RiverSegment = { a: a.center, b: b.center, widthA: a.width, widthB: b.width,
+      mouth: i / river.path.length, water: [edge(a, -1), edge(b, -1), edge(b, 1), edge(a, 1)],
+      rendered: landContains(a.center.x, a.center.z) && landContains(b.center.x, b.center.z) },
+      reach = Math.max(a.width, b.width) / 2 + .04;
+    for (let x = Math.floor((Math.min(a.center.x, b.center.x) - reach) / .25); x <= Math.floor((Math.max(a.center.x, b.center.x) + reach) / .25); x++)
+      for (let z = Math.floor((Math.min(a.center.z, b.center.z) - reach) / .25); z <= Math.floor((Math.max(a.center.z, b.center.z) + reach) / .25); z++) {
+        const key = `${x}:${z}`, cell = riverCells.get(key) ?? [];
+        cell.push(segment); riverCells.set(key, cell);
+      }
+  }
+}
+function riverSegmentWidth(segment: RiverSegment, x: number, z: number) {
+  const dx = segment.b.x - segment.a.x, dz = segment.b.z - segment.a.z,
+    t = clamp(((x - segment.a.x) * dx + (z - segment.a.z) * dz) / (dx * dx + dz * dz));
+  return mix(segment.widthA, segment.widthB, t);
+}
+
 function constructionReservationContains(x: number, z: number, margin: number) {
   return constructionReservations.some(site =>
     Math.abs(x - site.x) < site.halfW + margin && Math.abs(z - site.z) < site.halfD + margin);
@@ -409,8 +516,6 @@ const lowlandProtection = [
   ...constructionReservations,
   ...[...Object.values(MAP_PLACES), ...RURAL_SETTLEMENTS].map(place => ({ ...mapPosition(place.lon, place.lat),
     halfW: .10, halfD: .10, rotation: 0, cosine: 1, sine: 0 })),
-  { x: PARIS_ORIGIN.x + .075, z: PARIS_ORIGIN.z + .375,
-    halfW: 1.925, halfD: 1.725, rotation: 0, cosine: 1, sine: 0 },
 ];
 const lowlandProtectionCells = new Map<string, typeof lowlandProtection>();
 for (const footprint of lowlandProtection) {
@@ -424,7 +529,7 @@ for (const footprint of lowlandProtection) {
 }
 
 function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral: number) {
-  if (mineral > .21 || borderDistance(sx, sz) < .09) return 0;
+  if (mineral > .40 || borderDistance(sx, sz) < .09) return 0;
   let clearance = Infinity;
   for (const footprint of lowlandProtectionCells.get(`${Math.floor(x / .50)}:${Math.floor(z / .50)}`) ?? []) {
     const dx = x - footprint.x, dz = z - footprint.z,
@@ -433,9 +538,9 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
     clearance = Math.min(clearance, Math.hypot(Math.max(0, px), Math.max(0, pz)) + Math.min(0, Math.max(px, pz)));
   }
   if (clearance < .065 || riverContains(x, z, .055)) return 0;
-  const protectedBlend = smooth(clamp((clearance - .065) / .32)),
+  const protectedBlend = smooth(clamp((clearance - .065) / .14)),
     coastalBlend = smooth(clamp((borderDistance(sx, sz) - .09) / .18)),
-    mineralBlend = 1 - smooth(clamp((mineral - .07) / .14));
+    mineralBlend = 1 - smooth(clamp((mineral - .08) / .32));
   let shoulder = 0;
   for (const ridge of plainShoulders) for (let i = 1; i < ridge.points.length; i++) {
     const [ax, az] = ridge.points[i - 1], [bx, bz] = ridge.points[i], dx = bx - ax, dz = bz - az,
@@ -452,7 +557,7 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
   for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++)
     for (const segment of riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? []) {
       const distance = segmentDistance(x, z, segment.a, segment.b) -
-        segment.width * (.57 + segment.mouth * .58) / 2;
+        riverSegmentWidth(segment, x, z) / 2;
       riverDistance = Math.min(riverDistance, distance);
       if (distance > .055 && distance < .30) valley = Math.max(valley,
         .045 * Math.sin(Math.PI * clamp((distance - .055) / .245)));
@@ -460,35 +565,23 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
   // A broad valley floor separates the river's unchanged banks from the
   // shoulders. Its outer terraces carry the very same crop and road meshes.
   const riverBlend = smooth(clamp((riverDistance - .13) / .22));
-  return ((shoulder * riverBlend - valley) * mineralBlend +
-    centralCultivatedRelief(sx, sz) * riverBlend) * protectedBlend * coastalBlend;
+  return ((shoulder * 1.18 * riverBlend - valley) * mineralBlend +
+    centralCultivatedRelief(sx, sz) * 1.28 * riverBlend +
+    (noise(sx * .82 + 41, sz * .93 + 17) - .45) * .035 * riverBlend * mineralBlend) *
+    protectedBlend * coastalBlend;
 }
 
 function unflattenedHeight(x: number, z: number) {
-  const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z;
-  // A single surface joins the valleys, wooded foothills and authored crests.
-  const rolling =
-    noise(sx * 1.18 + 27, sz * 1.34 + 6) * 0.024 +
-    noise(sx * 4.7 + 11, sz * 4.1 + 19) * 0.009;
-  const armorican = hill(sx, sz, -3.1, 1.55, 1.4, 0.65) * 0.026;
-  const vosges = hill(sx, sz, 3.12, 1.54, 0.3, 0.7) * 0.14;
-  const shoulder = smooth(clamp(borderDistance(sx, sz) / 0.3));
-  const baseline = mountainBaselineSourceHeight(sx, sz);
-  let mineralHeight = baseline;
-  if (baseline > .30 && borderDistance(sx, sz) > .065 && !riverContains(x, z, .16)) {
-    const inhabitedDistance = urbanClearance(x, z);
-    const highGround = smooth(clamp((baseline - .30) / .18)),
-      inhabitedMargin = smooth(clamp((inhabitedDistance - .08) / .12)),
-      borderMargin = smooth(clamp((borderDistance(sx, sz) - .065) / .105));
-    if (inhabitedMargin > 0) mineralHeight = mix(baseline, mountainSourceHeight(sx, sz),
-      highGround * inhabitedMargin * borderMargin);
-  }
-  // The miniature has a thin rock rim. A watershed must descend through real
-  // foothills before this edge instead of being sliced into a full-height wall.
-  return (
-    0.115 + rolling + armorican + (vosges + mineralHeight) * shoulder +
-    cultivatedRelief(x, z, sx, sz, baseline)
-  );
+  const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z,
+    massif = mountainSourceHeight(sx, sz),
+    rolling = noise(sx * 1.18 + 27, sz * 1.34 + 6) * .024 +
+      noise(sx * 4.7 + 11, sz * 4.1 + 19) * .006,
+    armorican = hill(sx, sz, -3.1, 1.55, 1.4, .65) * .026,
+    edge = smooth(clamp(borderDistance(sx, sz) / .30));
+  // Houses, streets and works flatten this same surface in surveyedHeight.
+  // The water is carved from it too. No former massif is mixed back into it.
+  return .115 + rolling + armorican + massif * edge +
+    cultivatedRelief(x, z, sx, sz, massif);
 }
 
 const settlementLevels = new Map<string, number>([
@@ -531,9 +624,10 @@ for (const footprint of surveyedFootprints) {
   }
 }
 
-function surveyedHeight(x: number, z: number) {
+function surveyedHeightBase(x: number, z: number) {
   let height = unflattenedHeight(x, z),
     strongest = 0,
+    schoolPlatform = false,
     level = height;
   for (const footprint of surveyCells.get(
     `${Math.floor(x / 0.5)}:${Math.floor(z / 0.5)}`,
@@ -550,29 +644,23 @@ function surveyedHeight(x: number, z: number) {
     const blend = 1 - smooth(clamp((distance + 0.012) / 0.18));
     if (blend > strongest) {
       strongest = blend;
+      schoolPlatform = footprint.schoolPlatform;
       level = localFootprintLevels.get(footprint) ?? settlementLevels.get(footprint.settlement) ?? height;
     }
   }
   // Streets soften the local grade; a village cannot erase a whole watershed
   // or drag its mountain slope into a tall flat terrace at the border.
-  height = mix(height, clamp(level, height - 0.065, height + 0.065), strongest);
+  height = mix(height, schoolPlatform ? level : clamp(level, height - 0.065, height + 0.065), strongest);
   const segments =
     riverCells.get(`${Math.floor(x / 0.25)}:${Math.floor(z / 0.25)}`) ?? [];
   let influence = 0,
     mouth = 0;
   for (const segment of segments) {
     const distance = segmentDistance(x, z, segment.a, segment.b);
-    const oldCarve =
-      1 -
-      smooth(clamp((distance - segment.width * 0.28) / (segment.width * 0.85)));
-    const physicalWidth = segment.width * (0.57 + segment.mouth * 0.58);
-    const bankCarve =
-      1 - smooth(clamp((distance - physicalWidth * 0.4) / 0.028));
-    const carve = mix(
-      oldCarve,
-      bankCarve,
-      segment.seine ? parisRiverWeight(x, z) : 0,
-    );
+    const physicalWidth = riverSegmentWidth(segment, x, z);
+    const carve = 1 - smooth(clamp(
+      (distance - physicalWidth * .40) / (physicalWidth * .10 + .025),
+    ));
     if (carve > influence) {
       influence = carve;
       mouth = segment.mouth;
@@ -586,6 +674,35 @@ function surveyedHeight(x: number, z: number) {
       smooth(clamp((mouth - 0.968) / 0.032)) * influence,
     );
   return height;
+}
+
+// Two river-quarter foundations use only their own authored rectangle.
+// Their placement and all channel, road and project reservations stay fixed.
+const toulouseTerraces = NATIONAL_SETTLEMENTS.filter(town => town.name === "toulouse").flatMap(town => {
+  const origin = mapPosition(town.lon, town.lat);
+  return town.blocks.flatMap(block => block.buildings.filter(house =>
+    house.id === "toulouse-ilot-1-maison-1" || house.id === "toulouse-ilot-1-maison-2").map(house => {
+      const cosine = Math.cos(house.angle), sine = Math.sin(house.angle),
+        x = origin.x + house.x + sine * house.footprintOffset,
+        z = origin.z + house.z + cosine * house.footprintOffset;
+      return { id: house.id, x, z, cosine, sine, halfW: house.width / 2,
+        halfD: house.depth / 2, level: surveyedHeightBase(x, z) };
+    }));
+});
+function surveyedHeight(x: number, z: number) {
+  const height = surveyedHeightBase(x, z);
+  let strongest = 0, level = height;
+  for (const terrace of toulouseTerraces) {
+    const dx = x - terrace.x, dz = z - terrace.z,
+      u = Math.abs(dx * terrace.cosine - dz * terrace.sine) - terrace.halfW,
+      v = Math.abs(dx * terrace.sine + dz * terrace.cosine) - terrace.halfD,
+      distance = Math.hypot(Math.max(0, u), Math.max(0, v)) + Math.min(0, Math.max(u, v)),
+      blend = 1 - smooth(clamp((distance - .012) / .024));
+    if (blend > strongest && !riverContains(x, z, .009)) {
+      strongest = blend; level = terrace.level;
+    }
+  }
+  return mix(height, level, strongest);
 }
 
 // Roads, buildings and actors sample precisely the same bilinear survey as the
@@ -650,84 +767,339 @@ function colorMix(a: Color3, b: Color3, amount: number) {
   return Color3.Lerp(a, b, clamp(amount));
 }
 
-function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFaceSurvey>) {
-  const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z;
-  const y = landHeight(x, z),
-    grain = noise(sx * 3.9 + 8, sz * 4.1 + 44);
-  const area = parisAreaAt(x, z);
-  if (area) {
-    const palette = {
-      urban: "#B5AF91",
-      court: "#C8BDA3",
-      square: "#C9BFA8",
-      garden: "#91A05A",
-      field: "#C9B66F",
-      wood: "#4A613E",
-    };
-    return Color3.FromHexString(palette[area.kind]).scale(0.93 + grain * 0.1);
+// This temporary index owns numeric triangles only. It is discarded after the
+// authored instances touch the same ground surfaces that the renderer draws.
+function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
+  const cells = new Map<string, number[][]>(), step = .12;
+  for (const mesh of ground) {
+    if (!mesh.name.startsWith("landscape-terrain-")) continue;
+    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
+    if (!positions || !indices) continue;
+    for (let i = 0; i < indices.length; i += 3) {
+      const triangle = [indices[i], indices[i + 1], indices[i + 2]].flatMap(index =>
+        [positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]]);
+      for (let x = Math.floor(Math.min(triangle[0], triangle[3], triangle[6]) / step);
+        x <= Math.floor(Math.max(triangle[0], triangle[3], triangle[6]) / step); x++)
+        for (let z = Math.floor(Math.min(triangle[2], triangle[5], triangle[8]) / step);
+          z <= Math.floor(Math.max(triangle[2], triangle[5], triangle[8]) / step); z++) {
+          const key = `${x}:${z}`, cell = cells.get(key) ?? [];
+          cell.push(triangle); cells.set(key, cell);
+        }
+    }
   }
-  if (nationalBlockAt(x, z)) return Color3.FromHexString("#C7B994").scale(0.94 + grain * 0.08);
-  const southern = clamp((-sz - 1.0) / 3.0);
-  let color = colorMix(
-    Color3.FromHexString(parisSector(x, z) ? "#B5AF64" : "#C4B25E"),
-    Color3.FromHexString(parisSector(x, z) ? "#9AA453" : "#A8A353"),
-    grain,
-  );
-  color = colorMix(color, Color3.FromHexString("#C9AD70"), southern * 0.48);
-  const forest = forestAmount(x, z);
-  color = colorMix(
-    color,
-    Color3.FromHexString(parisSector(x, z) ? "#536C3B" : "#4E5934"),
-    clamp((forest - 0.58) / 0.34) * 0.62,
-  );
-  const left = landHeight(x - 0.035, z),
-    right = landHeight(x + 0.035, z),
-    front = landHeight(x, z - 0.035),
-    back = landHeight(x, z + 0.035);
-  const slope = face?.slope ?? Math.hypot(right - left, back - front) / 0.07;
-  const stratum =
-    (y + sx * 0.055 + sz * 0.028 + noise(sx * 1.9 + 3, sz * 2.2 + 8) * 0.023) /
-    0.047;
-  const layer = Math.floor(stratum),
-    fraction = stratum - layer;
-  const discontinuity = clamp((0.13 - Math.min(fraction, 1 - fraction)) * 7);
-  let mineral = colorMix(
-    Color3.FromHexString("#707A81"),
-    Color3.FromHexString("#BCBFBA"),
-    face ? 0.16 + hash(face.band, 37) * 0.72 : noise(sx * 19 + 15, sz * 23 + 32) * 0.64 + hash(layer, 37) * 0.36,
-  );
-  if (face) mineral = colorMix(mineral, Color3.FromHexString("#C1B9A6"),
-    hash(face.band, 113) * .26);
-  const alpine = sx > 1.8 && sx < 3.8 && sz > -3.2 && sz < 0.35;
-  const pyrenean = sx > -3.2 && sx < 0.7 && sz > -5.9 && sz < -3.2;
-  const woodedTalus = clamp((0.59 - y) / 0.25) * clamp((forest - 0.64) * 3.2);
-  const rockAmount =
-    clamp((y - 0.34) * 2.9 + (slope - 0.48) * 0.68) * (1 - woodedTalus * 0.62);
-  color = colorMix(color, mineral, rockAmount);
-  // Broken, tilted strata belong to mineral faces, not to grass or the snow.
-  const joint =
-    discontinuity * clamp((noise(sx * 6.1 + 12, sz * 4.9 + 3) - 0.24) * 2);
-  color = colorMix(
-    color,
-    Color3.FromHexString("#4C5A65"),
-    joint * rockAmount * 0.74,
-  );
-  const occlusion = clamp((left + right + front + back - y * 4) * 2.7);
-  color = color.scale(1 - occlusion * 0.26);
-  const couloir = noise(sx * 16.1 + sz * 2.1 + 9, sz * 5.9 - sx * 2.8 + 17);
-  const snowline = (alpine ? 0.43 : pyrenean ? 0.42 : 0.66) +
-    noise(sx * 7.1, sz * 9.3) * (alpine || pyrenean ? 0.04 : 0.1);
-  const highSnow = clamp((y - snowline) / 0.12);
-  // Snow collects on inclined shelves and at the very highest tips. Steep
-  // walls keep their mineral faces instead of becoming broad white curtains.
-  const exposedCut = clamp((slope - .45) / 1.20) * (0.68 + joint * .22),
-    shelf = 1 - smooth(clamp((slope - .20) / 1.25)),
-    crestCap = clamp((y - .66) / .16),
-    snowShelf = face ? .035 + shelf * .90 : .96,
-    couloirCover = .60 + clamp((couloir - .35) / .36) * .40,
-    snow = highSnow * Math.max(snowShelf * couloirCover * (1 - exposedCut * .35),
-      crestCap * .96);
-  return colorMix(color, Color3.FromHexString("#FFFFFF"), snow);
+  const heightAt = (x: number, z: number) => {
+    let height = -Infinity;
+    for (const p of cells.get(`${Math.floor(x / step)}:${Math.floor(z / step)}`) ?? []) {
+      const denominator = (p[5] - p[8]) * (p[0] - p[6]) + (p[6] - p[3]) * (p[2] - p[8]);
+      if (Math.abs(denominator) < 1e-12) continue;
+      const a = ((p[5] - p[8]) * (x - p[6]) + (p[6] - p[3]) * (z - p[8])) / denominator,
+        b = ((p[8] - p[2]) * (x - p[6]) + (p[0] - p[6]) * (z - p[8])) / denominator,
+        c = 1 - a - b;
+      if (Math.min(a, b, c) >= -1e-7) height = Math.max(height, a * p[1] + b * p[4] + c * p[7]);
+    }
+    return height;
+  };
+  const roots = new Set<TransformNode>();
+  for (const mesh of trees) {
+    let node = mesh.parent;
+    while (node?.parent && node.parent.name !== "landscape-authored-vegetation") node = node.parent;
+    if (node instanceof TransformNode && node.parent?.name === "landscape-authored-vegetation" &&
+      node.metadata?.asset !== "rock") roots.add(node);
+  }
+  for (const root of roots) {
+    const vertices: Vector3[] = [];
+    for (const mesh of root.getChildMeshes()) {
+      const positions = mesh.getVerticesData("position"), matrix = mesh.computeWorldMatrix(true);
+      if (!positions) continue;
+      for (let i = 0; i < positions.length; i += 3) vertices.push(Vector3.TransformCoordinates(
+        new Vector3(positions[i], positions[i + 1], positions[i + 2]), matrix));
+    }
+    const baseY = Math.min(...vertices.map(point => point.y)),
+      foot = vertices.filter(point => point.y <= baseY + .0001);
+    let lowest = heightAt(root.position.x, root.position.z);
+    if (!Number.isFinite(lowest)) lowest = Infinity;
+    for (const point of foot) {
+      const height = heightAt(point.x, point.z);
+      if (Number.isFinite(height)) lowest = Math.min(lowest, height);
+    }
+    if (Number.isFinite(lowest)) root.position.y += lowest - baseY + .001;
+  }
+  cells.clear();
+}
+
+type AlpineColorTarget = { mesh: Mesh; surveys?: Map<number, NonNullable<ReturnType<typeof mountainFaceSurvey>>> };
+type AlpineOccupiedCover = { contains: (x: number, z: number) => boolean;
+  overlaps: (polygon: Point[]) => boolean; treeCount: number; cropTriangles: number };
+
+function alpineGeologicalBand(band: number) {
+  return (band >= 100000 && band < 120000) ||
+    (band >= 200000 && band < 1480000) ||
+    (band >= 2000000 && band < 7120000);
+}
+function alpineStoneFamily(band: number) {
+  return band >= 2000000 && band < 7120000 ? 100000 + Math.floor((band - 2000000) / 256) :
+    band >= 200000 && band < 1480000 ? 100000 + Math.floor((band - 200000) / 128) : band;
+}
+
+// Actual tree geometry and actually drawn crop triangles define occupied soil.
+// The resulting spatial index contains numbers, never scene or mesh references.
+function alpineOccupiedCover(trees: AbstractMesh[], fields: Mesh[]): AlpineOccupiedCover {
+  const cells = new Map<string, Point[][]>(), step = .12;
+  const register = (polygon: Point[]) => {
+    if (polygon.length < 3) return;
+    const xs = polygon.map(p => p.x), zs = polygon.map(p => p.z);
+    for (let x = Math.floor(Math.min(...xs) / step); x <= Math.floor(Math.max(...xs) / step); x++)
+      for (let z = Math.floor(Math.min(...zs) / step); z <= Math.floor(Math.max(...zs) / step); z++) {
+        const key = `${x}:${z}`, cell = cells.get(key) ?? [];
+        cell.push(polygon); cells.set(key, cell);
+      }
+  };
+  const hull = (points: Point[]) => {
+    points.sort((a, b) => a.x - b.x || a.z - b.z);
+    const turn = (a: Point, b: Point, c: Point) =>
+      (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
+    const half = (list: Point[]) => {
+      const result: Point[] = [];
+      for (const point of list) {
+        while (result.length > 1 && turn(result[result.length - 2], result[result.length - 1], point) <= 0) result.pop();
+        result.push(point);
+      }
+      return result;
+    };
+    const lower = half(points), upper = half([...points].reverse());
+    lower.pop(); upper.pop(); return [...lower, ...upper];
+  };
+  const roots = new Set<TransformNode>();
+  for (const mesh of trees) {
+    let node = mesh.parent;
+    while (node?.parent && node.parent.name !== "landscape-authored-vegetation") node = node.parent;
+    if (node instanceof TransformNode && node.parent?.name === "landscape-authored-vegetation" &&
+      node.metadata?.woodland && alpineGeologicalBand(mountainFaceSurvey(node.position.x, node.position.z)?.band ?? 0)) roots.add(node);
+  }
+  for (const root of roots) {
+    const points: Point[] = [];
+    for (const mesh of root.getChildMeshes()) {
+      const positions = mesh.getVerticesData("position"), matrix = mesh.computeWorldMatrix(true);
+      if (!positions) continue;
+      for (let i = 0; i < positions.length; i += 3) {
+        const point = Vector3.TransformCoordinates(new Vector3(positions[i], positions[i + 1], positions[i + 2]), matrix);
+        points.push({ x: point.x, z: point.z });
+      }
+    }
+    register(hull(points));
+  }
+  let cropTriangles = 0;
+  for (const mesh of fields) {
+    if (mesh.name !== "landscape-agriculture") continue;
+    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
+    if (!positions || !indices) continue;
+    for (let i = 0; i < indices.length; i += 3) {
+      const polygon = [indices[i], indices[i + 1], indices[i + 2]].map(index =>
+        ({ x: positions[index * 3], z: positions[index * 3 + 2] })),
+        x = polygon.reduce((sum, p) => sum + p.x, 0) / 3,
+        z = polygon.reduce((sum, p) => sum + p.z, 0) / 3;
+      if (!alpineGeologicalBand(mountainFaceSurvey(x, z)?.band ?? 0)) continue;
+      register(polygon); cropTriangles++;
+    }
+  }
+  return { treeCount: roots.size, cropTriangles,
+    contains: (x, z) => cells.get(`${Math.floor(x / step)}:${Math.floor(z / step)}`)?.some(polygon => contains(polygon, x, z)) ?? false,
+    overlaps: polygon => {
+      const xs = polygon.map(p => p.x), zs = polygon.map(p => p.z), candidates = new Set<Point[]>();
+      for (let x = Math.floor(Math.min(...xs) / step); x <= Math.floor(Math.max(...xs) / step); x++)
+        for (let z = Math.floor(Math.min(...zs) / step); z <= Math.floor(Math.max(...zs) / step); z++)
+          for (const occupied of cells.get(`${x}:${z}`) ?? []) candidates.add(occupied);
+      return [...candidates].some(occupied => harbourPolygonsOverlap(occupied, polygon));
+    } };
+}
+
+function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorTarget[], cover: AlpineOccupiedCover) {
+  let snowSurface: StandardMaterial | undefined;
+  for (const { mesh, surveys } of targets) {
+    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices(), colors = mesh.getVerticesData("color");
+    if (!positions || !indices || !colors) continue;
+    const protectedVertices = new Set<number>();
+    // Protect full triangles wherever a real canopy or a real crop is present.
+    // Their interpolated soil color stays intact, including at the actual feet.
+    for (let i = 0; i < indices.length; i += 3) {
+      const vertices = [indices[i], indices[i + 1], indices[i + 2]],
+        polygon = vertices.map(index => ({ x: positions[index * 3], z: positions[index * 3 + 2] })),
+        x = polygon.reduce((sum, p) => sum + p.x, 0) / 3,
+        z = polygon.reduce((sum, p) => sum + p.z, 0) / 3;
+      if (alpineGeologicalBand(mountainFaceSurvey(x, z)?.band ?? 0) && cover.overlaps(polygon))
+        for (const vertex of vertices) protectedVertices.add(vertex);
+    }
+    let changed = false;
+    for (let i = 0; i < positions.length / 3; i++) {
+      if (protectedVertices.has(i)) continue;
+      const x = positions[i * 3], z = positions[i * 3 + 2], face = surveys?.get(i);
+      if (!alpineGeologicalBand((face ?? mountainFaceSurvey(x, z))?.band ?? 0)) continue;
+      const color = terrainColor(x, z, face, cover);
+      if (color.r === colors[i * 4] && color.g === colors[i * 4 + 1] && color.b === colors[i * 4 + 2]) continue;
+      colors[i * 4] = color.r; colors[i * 4 + 1] = color.g; colors[i * 4 + 2] = color.b; changed = true;
+    }
+    if (changed) mesh.setVerticesData("color", colors, false, 4);
+    if (!mesh.name.startsWith("landscape-terrain-mineral-")) continue;
+    const bare: number[] = [], snowy: number[] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      const corners = [indices[i], indices[i + 1], indices[i + 2]],
+        x = corners.reduce((sum, index) => sum + positions[index * 3], 0) / 3,
+        z = corners.reduce((sum, index) => sum + positions[index * 3 + 2], 0) / 3,
+        y = corners.reduce((sum, index) => sum + positions[index * 3 + 1], 0) / 3,
+        source = mapAuthoredCoordinates(x, z),
+        survey = mountainFaceSurvey(x, z),
+        slope = Math.hypot(landHeight(x + .025, z) - landHeight(x - .025, z),
+          landHeight(x, z + .025) - landHeight(x, z - .025)) / .05,
+        mask = alpineSurfaceMask(x, z, y, survey, cover),
+        amount = alpineSnowCover(source.x, source.z, y, slope) * mask;
+      const destination = !corners.some(index => protectedVertices.has(index)) &&
+        amount >= .49 ? snowy : bare;
+      destination.push(...corners);
+    }
+    if (!snowy.length) continue;
+    snowSurface ??= material(scene, "landscape-snow", "#FFFFFF");
+    snowSurface.specularColor = new Color3(.065, .075, .085);
+    snowSurface.specularPower = 20;
+    // The separate material omits the rock joints and coarse rock bump.
+    // Positions and normals come directly from the actual surveyed terrain.
+    const snowMesh = new Mesh(mesh.name.replace("mineral-", "snow-"), scene),
+      data = new VertexData(), normals = mesh.getVerticesData("normal"),
+      uvs = mesh.getVerticesData("uv"), snowGeometry = geometry(),
+      snowNormals: number[] = [], remap = new Map<number, number>();
+    for (const old of snowy) {
+      let index = remap.get(old);
+      if (index === undefined) {
+        index = remap.size; remap.set(old, index);
+        snowGeometry.positions.push(positions[old * 3], positions[old * 3 + 1], positions[old * 3 + 2]);
+        // A selected snow face is snow, rather than its former ochre rock tint.
+        // Physical light, terrain normals and shadows provide its blue grey shade.
+        const source = mapAuthoredCoordinates(positions[old * 3], positions[old * 3 + 2]),
+          tone = Color3.FromHexString("#F4F6F8").scale(.97 + noise(source.x * 7.1 + 5, source.z * 6.3 + 11) * .03);
+        snowGeometry.colors.push(tone.r, tone.g, tone.b, 1);
+        if (normals) snowNormals.push(normals[old * 3], normals[old * 3 + 1], normals[old * 3 + 2]);
+        if (uvs) snowGeometry.uvs.push(uvs[old * 2], uvs[old * 2 + 1]);
+      }
+      snowGeometry.indices.push(index);
+    }
+    data.positions = snowGeometry.positions; data.indices = snowGeometry.indices;
+    data.colors = snowGeometry.colors;
+    if (normals) data.normals = snowNormals;
+    if (uvs) data.uvs = snowGeometry.uvs;
+    data.applyToMesh(snowMesh);
+    snowMesh.material = snowSurface; snowMesh.receiveShadows = true;
+    snowMesh.isPickable = false;
+    mesh.setIndices(bare); meshes.push(snowMesh);
+  }
+}
+
+// Local geological cover follows the authored Alpine survey. It has no effect
+// on the elevations, parcels, forests or the other mountain ranges.
+const alpineCropAreas = [...NATIONAL_FIELDS, ...VALLEY_FIELDS].map(field => {
+  const polygon = field.outline.map(([x, z]) => ({ x, z }));
+  return { polygon, minX: Math.min(...polygon.map(p => p.x)),
+    maxX: Math.max(...polygon.map(p => p.x)),
+    minZ: Math.min(...polygon.map(p => p.z)),
+    maxZ: Math.max(...polygon.map(p => p.z)) };
+}).filter(area => area.maxX >= 1.90 && area.minX <= 3.94 &&
+  area.maxZ >= -3.20 && area.minZ <= -.12);
+
+function alpineSurfaceMask(x: number, z: number, y: number,
+  face?: ReturnType<typeof mountainFaceSurvey>, occupied?: AlpineOccupiedCover) {
+  if (y <= (occupied ? .18 : .225)) return 0;
+  const survey = face ?? mountainFaceSurvey(x, z), band = survey?.band ?? 0;
+  // The fractured Vanoise faces retain their original massif through this
+  // family range. A rectangular snow mask used to leave the east yellow.
+  if (!alpineGeologicalBand(band)) return 0;
+  if ((occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z)) || riverContains(x, z, .075) ||
+    constructionReservationContains(x, z, .035)) return 0;
+  const urban = smooth(clamp((urbanClearance(x, z) - .08) / .12));
+  if (urban === 0) return 0;
+  const source = mapAuthoredCoordinates(x, z);
+  if (!occupied && alpineCropAreas.some(area => source.x >= area.minX && source.x <= area.maxX &&
+    source.z >= area.minZ && source.z <= area.maxZ &&
+    contains(area.polygon, source.x, source.z)) && nationalCropAvailable(x, z, .009)) return 0;
+  const basal = smooth(clamp((mountainSourceHeight(source.x, source.z) - (occupied ? .01 : .025)) / (occupied ? .035 : .065))),
+    rim = smooth(clamp((borderDistance(source.x, source.z) - .012) / .035)),
+    altitude = smooth(clamp((y - (occupied ? .18 : .225)) / (occupied ? .08 : .095)));
+  return basal * rim * altitude * urban;
+}
+
+// Shared irregular pasture units, expressed in the authored terrain frame.
+// Their boundaries are surface colours on the real mesh, not a scene image.
+const meadowTones = ["#7D9743", "#92A14C", "#AEB65D", "#9CAD52", "#BAC173"];
+const stubbleTones = ["#BCA552", "#CDB567", "#D2BA63", "#AFAA58"];
+function countrysideColor(sx: number, sz: number) {
+  const width = .76, depth = .53, cx = Math.floor(sx / width), cz = Math.floor(sz / depth);
+  let first = Infinity, second = Infinity, chosenX = 0, chosenZ = 0,
+    nextX = 0, nextZ = 0;
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const ix = cx + dx, iz = cz + dz,
+      x = (ix + .5 + (hash(ix * 7 + 19, iz * 11) - .5) * .74) * width,
+      z = (iz + .5 + (hash(ix * 13, iz * 3 + 41) - .5) * .70) * depth,
+      distance = ((sx - x) / width) ** 2 + ((sz - z) / depth) ** 2;
+    if (distance < first) { second = first; nextX = chosenX; nextZ = chosenZ;
+      first = distance; chosenX = ix; chosenZ = iz; }
+    else if (distance < second) { second = distance; nextX = ix; nextZ = iz; }
+  }
+  const tone = (ix: number, iz: number) => {
+    const palette = hash(ix + 107, iz * 9 + 27) < .30 ? stubbleTones : meadowTones;
+    return Color3.FromHexString(palette[Math.floor(hash(ix * 17 + 1, iz * 13 + 3) * palette.length) % palette.length]);
+  };
+  // A narrow irregular edge avoids the same smooth gradient over all France.
+  return colorMix(tone(chosenX, chosenZ), tone(nextX, nextZ),
+    (1 - smooth(clamp((second - first) / .065))) * .30);
+}
+
+function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFaceSurvey>, occupied?: AlpineOccupiedCover) {
+  const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z,
+    y = landHeight(x, z), grain = noise(sx * 3.9 + 8, sz * 4.1 + 44),
+    forest = forestAmount(x, z), area = parisAreaAt(x, z);
+  if (area && !["garden", "field", "wood"].includes(area.kind)) {
+    const palette = { urban: "#BCAF8B", court: "#D0BE99", square: "#D5C6A8",
+      garden: "#91A05A", field: "#C9B66F", wood: "#4A613E" };
+    return Color3.FromHexString(palette[area.kind]).scale(.95 + grain * .07);
+  }
+  if (nationalBlockAt(x, z)) return Color3.FromHexString("#CABB96").scale(.96 + grain * .06);
+  let color = countrysideColor(sx, sz).scale(.97 + grain * .06);
+  if (area?.kind === "field") color = colorMix(color, Color3.FromHexString("#CDB465"), .76);
+  if (area?.kind === "garden") color = colorMix(color, Color3.FromHexString("#8FA44D"), .66);
+  const forestCover = area?.kind === "wood" ? .90 : clamp((forest - .57) / .31) * .84;
+  color = colorMix(color, Color3.FromHexString("#61733C"), forestCover);
+  const left = landHeight(x - .025, z), right = landHeight(x + .025, z),
+    front = landHeight(x, z - .025), back = landHeight(x, z + .025),
+    slope = Math.hypot(right - left, back - front) / .05,
+    massif = mountainSourceHeight(sx, sz),
+    mask = alpineSurfaceMask(x, z, y, face, occupied),
+    band = alpineStoneFamily(face?.band ?? mountainFaceBand(x, z)),
+    family = hash(band, 37), warm = hash(band, 113),
+    rock = colorMix(Color3.FromHexString("#747C7C"),
+      Color3.FromHexString("#A9A493"), .18 + family * .63),
+    stone = colorMix(rock, Color3.FromHexString("#A88C72"),
+      smooth(clamp((warm - .29) / .56)) * .49),
+    geology = smooth(clamp((massif - .13) / .31)),
+    exposed = Math.max(mask * (.78 + .15 * smooth(clamp((slope - .45) / .85))),
+      geology * smooth(clamp((slope - .38) / 1.05)) * (1 - forestCover * .75));
+  color = colorMix(color, stone, exposed);
+  const valleyShade = clamp((left + right + front + back - y * 4) * 2.1);
+  color = color.scale(1 - valleyShade * .17);
+  const covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
+    snow = covered || !alpineGeologicalBand(face?.band ?? mountainFaceBand(x, z)) ? 0 :
+      alpineSnowCover(sx, sz, y, slope) * mask;
+  return colorMix(color, Color3.FromHexString("#F1F3F0"), snow);
+}
+
+// Broad irregular neves collect on the actual sculpted shelves and in
+// couloirs. Rocky ridges remain visible between them, including at high altitude.
+function alpineSnowCover(sx: number, sz: number, y: number, slope: number) {
+  const drift = noise(sx * 4.2 + 31, sz * 5.6 + 19),
+    channel = noise(sx * 10.3 + sz * 1.7 + 8, sz * 3.1 - sx * 2.4 + 23),
+    altitude = smooth(clamp((y - .34 - noise(sx * 2.7 + 17, sz * 3.9 + 5) * .045) / .20)),
+    shelf = 1 - smooth(clamp((slope - .62) / 2.40)),
+    patch = smooth(clamp((drift - .405) / .19)),
+    gully = smooth(clamp((channel - .50) / .16)) *
+      (1 - smooth(clamp((slope - 2.10) / 1.80))),
+    wind = .82 + noise(sx * 5.1 + 7, sz * 4.3 + 12) * .18;
+  return altitude * Math.max(shelf * patch, gully * wind);
 }
 
 function material(scene: Scene, name: string, hex: string) {
@@ -785,6 +1157,7 @@ function buildGround(
   scene: Scene,
   meshes: Mesh[],
   textures: LandMaterialTextures,
+  colorTargets: AlpineColorTarget[],
 ) {
   const surface = material(scene, "landscape-ground", "#FFFFFF");
   surface.diffuseTexture = textures.earth;
@@ -795,10 +1168,17 @@ function buildGround(
   mineralSurface.specularColor = new Color3(.035, .040, .046);
   const cliffMaterial = material(scene, "landscape-cliffs", "#FFFFFF");
   cliffMaterial.backFaceCulling = false;
-  cliffMaterial.bumpTexture = textures.stoneNormal;
-  const stone = Color3.FromHexString("#D7CCB6");
-  const rock = Color3.FromHexString("#ADA997");
-  const pale = Color3.FromHexString("#F2E8D2");
+  cliffMaterial.diffuseTexture = textures.rock;
+  // The rim is a small rock face, not a close view of the Alpine normal map.
+  // Its sculpted shoulders provide the normals; coarse shared grain gives
+  // reflectance variation without dense dark ribs on every vertical face.
+  cliffMaterial.emissiveColor = new Color3(.080, .064, .042);
+  cliffMaterial.specularColor = new Color3(.045, .042, .033);
+  cliffMaterial.specularPower = 28;
+  const stone = Color3.FromHexString("#E3D2AB");
+  const brown = Color3.FromHexString("#C4A478");
+  const rock = Color3.FromHexString("#B2B0A0");
+  const pale = Color3.FromHexString("#F0E2C7");
   for (const [part, outline] of outlines.entries()) {
     const sourceOutline = sourceOutlines[part],
       coast = densify(sourceOutline, 0.035).map(point => mapAuthoredPosition(point.x, point.z));
@@ -857,23 +1237,22 @@ function buildGround(
           Math.hypot(next.x - previous.x, next.z - previous.z) || 1;
         const nx = (next.z - previous.z) / length,
           nz = -(next.x - previous.x) / length;
-        const surveyWidth = riverSurveyWidth(
-          river,
-          p.x,
-          p.z,
-          i / river.path.length,
-        );
-        for (const side of [-0.85, -0.48, 0, 0.48, 0.85]) {
-          const x = p.x + nx * surveyWidth * side,
-            z = p.z + nz * surveyWidth * side;
+        const width = riverSurveyWidth(river, i),
+          bank = riverSections[river.index][i].bank;
+        for (const distance of [-width / 2 - .030, -width / 2 - bank,
+          -width / 2, -width * .40, 0, width * .40, width / 2,
+          width / 2 + bank, width / 2 + .030]) {
+          const x = p.x + nx * distance, z = p.z + nz * distance;
           if (contains(outline, x, z)) points.push([x, z]);
         }
       }
+
     const terrain = geometry(), mineralTerrain = geometry();
     for (const [x, z] of points)
       vertex(terrain, x, landHeight(x, z), z, terrainColor(x, z));
     const triangles = Delaunator.from(points).triangles;
     const rockVertices = new Map<string, number>(),
+      mineralSurveys = new Map<number, NonNullable<ReturnType<typeof mountainFaceSurvey>>>(),
       rockAxes = new Map<number, "x" | "y" | "z">();
     for (let i = 0; i < triangles.length; i += 3) {
       const a = triangles[i],
@@ -898,9 +1277,12 @@ function buildGround(
           landHeight(centerX + 0.025, centerZ) - landHeight(centerX - 0.025, centerZ),
           landHeight(centerX, centerZ + 0.025) - landHeight(centerX, centerZ - 0.025)) / 0.05 : 0;
       if ((faceBand >= 100000 && centerY > 0.24) ||
-        (centerY > 0.33 && slope > 0.83)) {
-        const band = faceBand;
-        let axis = rockAxes.get(band);
+        (centerY > 0.33 && slope > 0.83 &&
+          mountainSourceHeight(mapAuthoredCoordinates(centerX, centerZ).x,
+            mapAuthoredCoordinates(centerX, centerZ).z) > .15)) {
+        const band = faceBand, parent = mountainParentFaceSurvey(centerX, centerZ),
+          uvBand = parent?.band ?? band;
+        let axis = rockAxes.get(uvBand) ?? parent?.uvAxis;
         if (axis === undefined) {
           const normalY = survey ? 1 / Math.hypot(survey.slope, 1) : 1;
           let normalX = Math.abs(survey?.normalX ?? 0),
@@ -918,7 +1300,7 @@ function buildGround(
           }
           axis = normalX > Math.max(normalY, normalZ) ? "x" :
             normalZ > normalY ? "z" : "y";
-          rockAxes.set(band, axis);
+          rockAxes.set(uvBand, axis);
         }
         const corners = face.map((index) => {
           const key = `${index}:${band}`,
@@ -931,7 +1313,7 @@ function buildGround(
             terrain.positions[position],
             terrain.positions[position + 1],
             terrain.positions[position + 2],
-            survey ? terrainColor(terrain.positions[position], terrain.positions[position + 2], survey) :
+            survey ? terrainColor(terrain.positions[position], terrain.positions[position + 2], mountainParentFaceSurvey(centerX, centerZ) ?? survey) :
               new Color3(terrain.colors[tone], terrain.colors[tone + 1], terrain.colors[tone + 2]),
           );
           // One mapping per surveyed geological face keeps its tiny render
@@ -941,17 +1323,60 @@ function buildGround(
           mineralTerrain.uvs[separate * 2] = (axis === "x" ? source.z : source.x) * 2.9;
           mineralTerrain.uvs[separate * 2 + 1] = (axis === "y" ? source.z :
             terrain.positions[position + 1]) * 2.9;
+          if (survey) mineralSurveys.set(separate, survey);
           rockVertices.set(key, separate);
           return separate;
         });
         triangle(mineralTerrain, corners[0], corners[1], corners[2]);
       } else triangle(terrain, face[0], face[1], face[2]);
     }
-    meshes.push(finish(scene, `landscape-terrain-${part}`, terrain, surface));
-    if (mineralTerrain.indices.length) meshes.push(finish(scene,
-      `landscape-terrain-mineral-${part}`, mineralTerrain, mineralSurface));
+    const terrainMesh = finish(scene, `landscape-terrain-${part}`, terrain, surface);
+    meshes.push(terrainMesh);
+    if (part === 0) colorTargets.push({ mesh: terrainMesh });
+    if (mineralTerrain.indices.length) {
+      const mineralMesh = finish(scene, `landscape-terrain-mineral-${part}`, mineralTerrain, mineralSurface);
+      meshes.push(mineralMesh);
+      if (part === 0) colorTargets.push({ mesh: mineralMesh, surveys: mineralSurveys });
+    }
     const cliffs = geometry(), cliffFaceGroups: string[] = [];
     const cliffLayers = 6;
+    // Contacts and survey heights stay fixed. Rock faces span different lengths
+    // of coastline and break at its stronger corners instead of repeating ribs.
+    const coastWinding = Math.sign(coast.reduce((area, point, index) => {
+      const next = coast[(index + 1) % coast.length];
+      return area + point.x * next.z - next.x * point.z;
+    }, 0)) || 1;
+    const coastArcs = [0];
+    for (let i = 1; i <= coast.length; i++) {
+      const p = coast[i % coast.length], previous = coast[i - 1];
+      coastArcs.push(coastArcs[i - 1] + Math.hypot(p.x - previous.x, p.z - previous.z));
+    }
+    const coastBlocks: Array<{ start: number; end: number }> = [],
+      segmentBlocks: number[] = [];
+    for (let start = 0; start < coast.length;) {
+      const block = coastBlocks.length,
+        span = .095 + hash(block + part * 199, 503) * .20;
+      let end = start + 1;
+      while (end < coast.length &&
+        (end - start < 2 || coastArcs[end] - coastArcs[start] < span)) {
+        const a = coast[(end + coast.length - 1) % coast.length],
+          b = coast[end], c = coast[(end + 1) % coast.length],
+          ax = b.x - a.x, az = b.z - a.z, bx = c.x - b.x, bz = c.z - b.z,
+          cosine = (ax * bx + az * bz) / (Math.hypot(ax, az) * Math.hypot(bx, bz) || 1);
+        if (cosine < .80) break;
+        end++;
+      }
+      coastBlocks.push({ start, end });
+      for (let segment = start; segment < end; segment++) segmentBlocks[segment] = block;
+      start = end;
+    }
+    const boundaryDepth = (block: number) =>
+      .002 + hash((block % coastBlocks.length) + part * 97, 421) * .004;
+    const boundaryJoint = (block: number) => {
+      const seed = (block % coastBlocks.length) + part * 271;
+      return hash(seed, 919) > .86 ? .002 + hash(seed, 937) * .004 : 0;
+    };
+    let coastArc = 0;
     for (let i = 0; i <= coast.length; i++) {
       const p = coast[i % coast.length];
       const previous = coast[(i + coast.length - 1) % coast.length];
@@ -959,6 +1384,22 @@ function buildGround(
       const length = Math.hypot(next.x - previous.x, next.z - previous.z) || 1;
       const nx = (next.z - previous.z) / length,
         nz = -(next.x - previous.x) / length;
+      coastArc = coastArcs[i];
+      const block = segmentBlocks[Math.min(i, coast.length - 1)],
+        limits = coastBlocks[block],
+        across = (coastArc - coastArcs[limits.start]) /
+          (coastArcs[limits.end] - coastArcs[limits.start] || 1),
+        faceCore = smooth(clamp(across / .22)) * smooth(clamp((1 - across) / .22)),
+        family = hash(block + part * 211, 331),
+        fracture = boundaryJoint(block) * (1 - smooth(clamp(across / .15))) +
+          boundaryJoint(block + 1) * (1 - smooth(clamp((1 - across) / .15))),
+        faceSetback = mix(boundaryDepth(block), boundaryDepth(block + 1), across),
+        formation = hash(block + part * 109, 617),
+        lean = (hash(block + part * 229, 631) - .5) * .006 *
+          Math.sin(across * Math.PI * 2) * faceCore,
+        profile = formation < .40 ? [0, .003, .003, .005, .020, .006, 0] :
+          formation < .72 ? [0, .008, .028, .007, .038, .014, 0] :
+          [0, .004, .010, .025, .013, .003, 0];
       const top = landHeight(p.x, p.z);
       const shelf = hash(Math.floor(i / 9) + 241, 63),
         notch = hash(Math.floor(i / 4) + 337, 19);
@@ -966,18 +1407,25 @@ function buildGround(
         .69 + notch * .12, .86 + shelf * .08, 1];
       for (let layer = 0; layer <= cliffLayers; layer++) {
         const t = levels[layer];
-        const jag =
+        // The old top and bottom coordinates, including their tiny offsets,
+        // stay exact. Every new shoulder retreats into the existing island.
+        const contactJag =
           (hash(Math.floor(i / 2) + 43, layer * 19) - 0.45) *
-          0.041 *
-          Math.sin(t * Math.PI) +
-          (layer > 0 && layer < cliffLayers ?
-            (hash(Math.floor(i / 5) + 91, layer * 31) - .36) * .025 : 0);
+          0.041 * Math.sin(t * Math.PI),
+          shoulder = mix([0, .005, .009, .008, .013, .006, 0][layer], profile[layer], faceCore),
+          retreat = Math.min(.045, Math.max(0, faceSetback + shoulder + fracture + lean)) *
+            Math.sin(t * Math.PI),
+          jag = layer === 0 || layer === cliffLayers ? contactJag : -coastWinding * retreat;
         const y = mix(top, -0.105 - hash(Math.floor(i / 5), 71) * 0.024, t);
-        const shade = hash(Math.floor(i / 3), layer * 23);
-        let color = colorMix(stone, rock, shade * 0.6);
-        if ((layer + Math.floor(i / 7)) % 4 === 1) color = colorMix(color, pale, 0.51);
-        color = color.scale(0.96 + Math.sin(t * Math.PI) * 0.07);
-        if (layer === 0) color = colorMix(color, terrainColor(p.x, p.z), 0.30);
+        const familyStone = family < .52 ? stone : family < .82 ? brown : rock,
+          lightFace = hash(block + part * 53, 811),
+          sediment = hash(block + part * 283, layer < 3 ? 1013 : 1021);
+        let color = colorMix(familyStone, pale,
+          lightFace > .68 ? .12 + (lightFace - .68) * .60 : .025);
+        // Mineral families and broken beds vary the paint. A continuous bright
+        // cap would look like a drawn outline around the grass instead of rock.
+        color = color.scale(.96 + sediment * .04);
+        if (layer === 0) color = terrainColor(p.x, p.z);
         const cliffVertex = vertex(
           cliffs,
           p.x + nx * jag,
@@ -985,8 +1433,8 @@ function buildGround(
           p.z + nz * jag,
           color,
         );
-        cliffs.uvs[cliffVertex * 2] = (i / coast.length) * 20;
-        cliffs.uvs[cliffVertex * 2 + 1] = t * 2;
+        cliffs.uvs[cliffVertex * 2] = coastArc * .75;
+        cliffs.uvs[cliffVertex * 2 + 1] = y * .75;
         if (i > 0 && layer > 0) {
           const d = i * (cliffLayers + 1) + layer;
           const a = d - cliffLayers - 2,
@@ -994,7 +1442,11 @@ function buildGround(
             c = d - 1;
           triangle(cliffs, a, c, b);
           triangle(cliffs, c, d, b);
-          const group = `${Math.floor(i / 3)}:${Math.floor((layer - 1) / 2)}`;
+          const faceBlock = segmentBlocks[i - 1],
+            faceFormation = hash(faceBlock + part * 109, 617),
+            capLayer = faceFormation < .40 ? 1 : faceFormation < .72 ? 3 : 2,
+            footLayer = faceFormation < .40 ? 5 : faceFormation < .72 ? 4 : 3,
+            group = `${faceBlock}:${layer <= capLayer ? "cap" : layer <= footLayer ? "wall" : "foot"}`;
           cliffFaceGroups.push(group, group);
         }
       }
@@ -1327,8 +1779,8 @@ function buildFields(
         z: (iz + (hash(ix, iz + 87) - 0.5) * 0.37) * depth + drift * 0.34,
       });
     }
-  const pasture = ["#8D9E54", "#799143", "#A3A361", "#839B4E"];
-  const wheat = ["#C9B373", "#B8A05B", "#D3BE7A", "#A69C57"];
+  const pasture = ["#759340", "#8FA84D", "#A4B462", "#819C43"];
+  const wheat = ["#CDB05B", "#BDA449", "#DDC36F", "#C4AD56"];
   const vineyard = ["#A89A68", "#B5A071", "#8B945A", "#B5A96D"];
   let serial = 0;
   for (let ix = minimumX + 1; ix < maximumX; ix++)
@@ -1458,7 +1910,11 @@ function buildFields(
         if (contains(sourcePolygon, x, z)) points.push(mapAuthoredPosition(x, z));
     const available = (x: number, z: number, margin: number) => nationalCropAvailable(x, z, margin) &&
       (!field.infill || !largeCropAt(x, z)),
-      color = Color3.FromHexString(field.color), start = crops.indices.length,
+      palette = field.kind === "pasture" ? ["#74913B", "#8BA34A", "#9DB456", "#819D43"] :
+        field.kind === "wheat" ? ["#C5AB4D", "#D9BD61", "#E1C975", "#BFA34E"] :
+        ["#A5A450", "#BAAA5B", "#9DAA48", "#B6AD60"],
+      color = colorMix(Color3.FromHexString(palette[fieldIndex % palette.length]),
+        Color3.FromHexString(field.color), .18), start = crops.indices.length,
       triangulation = Delaunator.from(points, p => p.x, p => p.z).triangles;
     for (let i = 0; i < triangulation.length; i += 3) {
       const p = points[triangulation[i]], q = points[triangulation[i + 1]], r = points[triangulation[i + 2]],
@@ -1479,7 +1935,7 @@ function buildFields(
     if (crops.indices.length === start) continue;
     nationalParcels++;
     if (field.kind !== "pasture") cropRows(rows, polygon, center, angle,
-      field.kind === "vines" ? 0.027 : 0.022, color.scale(field.kind === "vines" ? 0.59 : 0.68),
+      field.kind === "vines" ? 0.027 : 0.022, color.scale(field.kind === "vines" ? 0.60 : 0.79),
       0.008, (x, z) => available(x, z, 0.012));
     for (const edge of field.hedgedEdges ?? []) {
       let run: Point[] = [];
@@ -1565,21 +2021,16 @@ function buildFields(
 }
 
 export function riverContains(x: number, z: number, margin = 0): boolean {
-  const cellX = Math.floor(x / 0.25),
-    cellZ = Math.floor(z / 0.25);
-  const radius = Math.ceil(Math.max(0, margin) / 0.25);
+  const cellX = Math.floor(x / .25), cellZ = Math.floor(z / .25),
+    radius = Math.ceil(Math.max(0, margin) / .25);
   for (let dx = -radius; dx <= radius; dx++)
-    for (let dz = -radius; dz <= radius; dz++) {
-      const segments = riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? [];
-      if (
-        segments.some(
-          (segment) =>
-            segmentDistance(x, z, segment.a, segment.b) <
-            (segment.width * (0.57 + segment.mouth * 0.58)) / 2 + margin,
-        )
-      )
-        return true;
-    }
+    for (let dz = -radius; dz <= radius; dz++)
+      for (const segment of riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? []) {
+        if (!segment.rendered) continue;
+        if (contains(segment.water, x, z)) return true;
+        if (margin > 0 && segment.water.some((point, index) =>
+          segmentDistance(x, z, point, segment.water[(index + 1) % segment.water.length]) < margin)) return true;
+      }
   return false;
 }
 
@@ -1855,97 +2306,74 @@ function curvedPath(points: Point[]) {
 }
 
 function buildRivers(scene: Scene, meshes: Mesh[]) {
-  const banks = geometry(),
-    water = geometry();
-  const bankColor = Color3.FromHexString("#AFA06B"),
-    waterColor = Color3.FromHexString("#348EB4");
+  const banks = geometry(), water = geometry();
+  const bankColor = Color3.FromHexString("#C5B790"),
+    deepWater = Color3.FromHexString("#185B82"),
+    shallowWater = Color3.FromHexString("#35859F");
   const quad = (
     data: Geometry,
     points: Array<{ x: number; y: number; z: number }>,
     color: Color3,
     tones?: Color3[],
+    uvs?: number[][],
   ) => {
     const start = data.positions.length / 3;
-    for (const [i, point] of points.entries()) vertex(data, point.x, point.y, point.z, tones?.[i] ?? color);
+    for (const [i, point] of points.entries()) {
+      vertex(data, point.x, point.y, point.z, tones?.[i] ?? color);
+      if (uvs) {
+        data.uvs[(start + i) * 2] = uvs[i][0];
+        data.uvs[(start + i) * 2 + 1] = uvs[i][1];
+      }
+    }
     const winding =
       (points[1].x - points[0].x) * (points[2].z - points[0].z) -
       (points[1].z - points[0].z) * (points[2].x - points[0].x);
-    triangle(
-      data,
-      start,
-      start + (winding > 0 ? 1 : 2),
-      start + (winding > 0 ? 2 : 1),
-    );
-    triangle(
-      data,
-      start,
-      start + (winding > 0 ? 2 : 3),
-      start + (winding > 0 ? 3 : 2),
-    );
+    triangle(data, start, start + (winding > 0 ? 1 : 2), start + (winding > 0 ? 2 : 1));
+    triangle(data, start, start + (winding > 0 ? 2 : 3), start + (winding > 0 ? 3 : 2));
   };
   for (const river of riverPaths) {
-    const sections = river.path.map((center, i) => {
-      const a = river.path[Math.max(0, i - 1)],
-        b = river.path[Math.min(river.path.length - 1, i + 1)];
-      const length = Math.hypot(b.x - a.x, b.z - a.z) || 1;
-      const nx = (b.z - a.z) / length,
-        nz = -(b.x - a.x) / length;
-      const width =
-        riverSurveyWidth(river, center.x, center.z, i / river.path.length) *
-        (0.57 + (i / river.path.length) * 0.58);
-      // On a steep upstream valley the opposite bed edge can sit above the
-      // centre. Survey both edges so its continuous water ribbon stays exposed.
+    const sections = riverSections[river.index].map(({ center, nx, nz, width, bank, distance }) => {
       const waterY = Math.max(
         landHeight(center.x, center.z) + 0.031,
         landHeight(center.x - nx * width / 2, center.z - nz * width / 2) + 0.010,
         landHeight(center.x + nx * width / 2, center.z + nz * width / 2) + 0.010,
       );
       const point = (side: number, outer: boolean) => {
-        const distance =
-          width / 2 +
-          (outer ? 0.009 + parisRiverWeight(center.x, center.z) * 0.007 : 0);
-        const x = center.x + nx * side * distance,
-          z = center.z + nz * side * distance;
+        const offset = width / 2 + (outer ? bank : 0);
+        const x = center.x + nx * side * offset, z = center.z + nz * side * offset;
         return { x, z, y: outer ? landHeight(x, z) + 0.007 : waterY + 0.001 };
       };
-      return {
-        center,
-        left: point(-1, false),
-        right: point(1, false),
-        leftBank: point(-1, true),
-        rightBank: point(1, true),
-        waterY,
-      };
+      return { center, distance, left: point(-1, false), right: point(1, false),
+        leftBank: point(-1, true), rightBank: point(1, true), waterY };
     });
     for (let i = 1; i < sections.length; i++) {
-      const a = sections[i - 1],
-        b = sections[i];
-      if (
-        !landContains(a.center.x, a.center.z) ||
-        !landContains(b.center.x, b.center.z)
-      )
-        continue;
-      quad(
-        water,
-        [
-          { ...a.left, y: a.waterY },
-          { ...b.left, y: b.waterY },
-          { ...b.right, y: b.waterY },
-          { ...a.right, y: a.waterY },
-        ],
-        waterColor,
-      );
-      // Banks are separate strips. A filled, raised bank quad would hide the water.
-      const tone =
-        river.index === 0
-          ? Color3.Lerp(
-              bankColor,
-              Color3.FromHexString("#9EA16D"),
-              parisRiverWeight(a.center.x, a.center.z),
-            )
-          : bankColor;
-      const bankOuter = (point: { x: number; z: number }) => Color3.Lerp(tone, terrainColor(point.x, point.z), .72),
-        bankWet = tone.scale(.87);
+      const a = sections[i - 1], b = sections[i];
+      if (!landContains(a.center.x, a.center.z) || !landContains(b.center.x, b.center.z)) continue;
+      const across = (section: typeof a, t: number) => ({
+        x: mix(section.left.x, section.right.x, t),
+        y: section.waterY,
+        z: mix(section.left.z, section.right.z, t),
+      });
+      const currentTone = (section: typeof a, across: number) => {
+        const edge = Math.pow(Math.abs(across * 2 - 1), 2.8),
+          reflection = .025 + .045 * noise(section.center.x * 2.1 + 8, section.center.z * 3.2 + 11);
+        return Color3.Lerp(deepWater, shallowWater, edge * .82 + reflection);
+      };
+      // Three connected strips share the same wet outline as riverContains.
+      // The dark channel and lighter shallows show depth without a flat blue fill.
+      const crossSections = [0, .23, .77, 1];
+      for (let band = 1; band < crossSections.length; band++) {
+        const left = crossSections[band - 1], right = crossSections[band];
+        quad(water, [across(a, left), across(b, left), across(b, right), across(a, right)], deepWater,
+          [currentTone(a, left), currentTone(b, left), currentTone(b, right), currentTone(a, right)],
+          [[left, a.distance * .72], [left, b.distance * .72],
+            [right, b.distance * .72], [right, a.distance * .72]]);
+      }
+      const tone = river.index === 0
+        ? Color3.Lerp(bankColor, Color3.FromHexString("#BCB797"), parisRiverWeight(a.center.x, a.center.z))
+        : bankColor;
+      const bankOuter = (point: { x: number; z: number }) => Color3.Lerp(tone, terrainColor(point.x, point.z), .48),
+        bankWet = Color3.Lerp(tone, Color3.FromHexString("#576B66"), .46);
       quad(banks, [a.leftBank, b.leftBank, b.left, a.left], tone,
         [bankOuter(a.leftBank), bankOuter(b.leftBank), bankWet, bankWet]);
       quad(banks, [a.right, b.right, b.rightBank, a.rightBank], tone,
@@ -1955,8 +2383,9 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
   const bankSurface = material(scene, "landscape-riverbanks", "#FFFFFF");
   bankSurface.backFaceCulling = false;
   const waterSurface = material(scene, "landscape-riverwater", "#FFFFFF");
-  waterSurface.specularColor = new Color3(0.22, 0.35, 0.36);
-  waterSurface.specularPower = 72;
+  waterSurface.specularColor = new Color3(.28, .36, .38);
+  waterSurface.specularPower = 96;
+  waterSurface.ambientColor = new Color3(.06, .08, .10);
   meshes.push(finish(scene, "landscape-riverbanks", banks, bankSurface, false));
   meshes.push(finish(scene, "landscape-rivers", water, waterSurface, false));
 }
@@ -1965,11 +2394,16 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
 export async function buildLandscape(
   scene: Scene,
 ): Promise<{ meshes: AbstractMesh[] }> {
-  const meshes: Mesh[] = [];
+  const meshes: Mesh[] = [], colorTargets: AlpineColorTarget[] = [];
   const textures = landMaterialTextures(scene);
-  buildGround(scene, meshes, textures);
+  buildGround(scene, meshes, textures, colorTargets);
   const orchards = buildFields(scene, meshes, textures);
   buildRivers(scene, meshes);
   const trees = await buildForests(scene, orchards);
+  if (!scene.isDisposed) {
+    seatTreesOnRenderedGround(trees, meshes);
+    recolorAlpineGround(scene, meshes, colorTargets, alpineOccupiedCover(trees, meshes));
+  }
+  colorTargets.length = 0;
   return { meshes: [...meshes, ...trees] };
 }

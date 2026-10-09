@@ -95,6 +95,10 @@ const sculptedMassifs: readonly SculptedMassif[] = [
 type RockTriangle = { x: number[]; z: number[]; h: number[]; inverse: number; band: number; slope: number; normalX: number; normalZ: number };
 const rockCells = new Map<string, RockTriangle[]>();
 const baselineRockCells = new Map<string, RockTriangle[]>();
+const parentRockCells = new Map<string, RockTriangle[]>();
+// Exact surface20, including its two existing bedding fractures. This stays
+// independent of the reshaped Alpine surface for physical reservation blending.
+const previousRockCells = new Map<string, RockTriangle[]>();
 const rockEdges: Array<{ a: { x: number; z: number }; b: { x: number; z: number } }> = [];
 // Each cirque replaces a broad primary tip with a branched ridge: unequal
 // summits in front/behind one another, recessed cols and a low valley mouth.
@@ -142,12 +146,134 @@ function dividedVertices(massif: SculptedMassif, part: number) {
   return vertices;
 }
 
+
+/** Connected medium-scale buttresses. Two unequal crest shoulders,
+ *  inset cols and sloping rock aprons replace the old clusters of thin tips.
+ *  All points belong to the same ground triangulation. */
+function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
+  const vertices = [...massif.boundary, ...massif.points.filter(point => point[2] < .23)]
+    .map(([lon, lat, height]) => ({ ...mapPosition(lon, lat), height }));
+  for (const [index, cirque] of dividedCirques.filter(cirque => cirque.part === part).entries()) {
+    const dx = Math.cos(cirque.angle), dz = Math.sin(cirque.angle), nx = -dz, nz = dx,
+      alternate = index % 2 === 0 ? 1 : -1,
+      reach = cirque.reach * (part === 1 ? 1.24 : index === 2 || index === 4 ? 1.12 : 1.04);
+    const points = [
+      // An oblique crest has a ledge on one side and a steeper broken front.
+      [-.095,.074,.96], [.012,.099,1.00], [.106,.032,.91], [.087,-.075,.82],
+      [-.103,-.047,.76], [-.013,-.081,.72], [.017,.004,.91],
+      // Broad shoulders meet at different levels, rather than radial spires.
+      [-.210,.103,.69], [-.183,.169,.58], [-.073,.194,.65], [.085,.169,.68],
+      [.195,.091,.64], [.183,-.035,.56], [.115,-.177,.49],
+      [-.067,-.172,.50], [-.194,-.108,.45], [-.260,-.020,.39],
+      // Open couloirs have low mouths and one offset rock step above them.
+      [-.036,.248,.29], [.215,.186,.30], [.267,-.083,.24], [.014,-.260,.25],
+      [-.278,.158,.24], [-.218,-.222,.23], [.250,.013,.42], [-.170,.028,.54],
+    ];
+    for (const [u, v, relativeHeight] of points) vertices.push({
+      x: cirque.x + reach * (dx * u + nx * v * alternate),
+      z: cirque.z + reach * (dz * u + nz * v * alternate),
+      height: cirque.height * relativeHeight * (part === 1 ? .76 : index === 0 ? .86 : index === 1 ? .89 : index === 5 ? .92 : 1),
+    });
+  }
+  // Adjacent buttresses share shoulders. Remove redundant close controls
+  // before triangulation; their different heights otherwise create needles.
+  const boundary = vertices.slice(0, massif.boundary.length),
+    controls = vertices.slice(massif.boundary.length).sort((a, b) => b.height - a.height),
+    spaced = [...boundary];
+  for (const point of controls)
+    if (!spaced.some(other => Math.hypot(point.x - other.x, point.z - other.z) < .055)) spaced.push(point);
+  const faces = Delaunator.from(spaced, point => point.x, point => point.z).triangles;
+  // An almost collinear survey triangle may magnify a small step into a tall
+  // blade. Bound only those exceptional faces, leaving normal rock planes
+  // sharp and broad shoulders intact. All neighbouring faces share vertices.
+  for (let pass = 0; pass < 24; pass++) {
+    let adjusted = false;
+    for (let face = 0; face < faces.length; face += 3) {
+      const [a, b, c] = Array.from(faces.slice(face, face + 3)).map(id => spaced[id]),
+        dx1 = b.x - a.x, dz1 = b.z - a.z, dx2 = c.x - a.x, dz2 = c.z - a.z,
+        determinant = dx1 * dz2 - dx2 * dz1;
+      if (Math.abs(determinant) < 1e-10) continue;
+      const gx = ((b.height - a.height) * dz2 - (c.height - a.height) * dz1) / determinant,
+        gz = (dx1 * (c.height - a.height) - dx2 * (b.height - a.height)) / determinant,
+        slope = Math.hypot(gx, gz);
+      if (slope <= 6.8) continue;
+      const floor = Math.min(a.height, b.height, c.height), ratio = 6.8 / slope;
+      for (const point of [a, b, c]) point.height = floor + (point.height - floor) * ratio;
+      adjusted = true;
+    }
+    if (!adjusted) break;
+  }
+  return spaced;
+}
+
 function indexRockFace(index: Map<string, RockTriangle[]>, triangle: RockTriangle) {
   for (let ix = Math.floor(Math.min(...triangle.x) / .24); ix <= Math.floor(Math.max(...triangle.x) / .24); ix++)
     for (let iz = Math.floor(Math.min(...triangle.z) / .24); iz <= Math.floor(Math.max(...triangle.z) / .24); iz++) {
       const key = `${ix}:${iz}`, cell = index.get(key) ?? [];
       cell.push(triangle); index.set(key, cell);
     }
+}
+
+
+/** Visible rock shelves and open creases sculpt the real parent surface.
+ *  Boundary heights are shared exactly. Intermediate rounded angular forms
+ *  are calibrated in the final world, including the wide eastern projection. */
+function steppedRockFace(triangle: RockTriangle) {
+  const final = triangle.x.map((x, i) => mapAuthoredPosition(x, triangle.z[i])),
+    longest = Math.max(...final.map((point, i) =>
+      Math.hypot(point.x - final[(i + 1) % 3].x, point.z - final[(i + 1) % 3].z)));
+  if (longest < .16 || Math.max(...triangle.h) < .15) return [triangle];
+  // The eastern survey is stretched horizontally. Final-world dimensions
+  // determine the visible rock scale, rather than the old source triangle.
+  const divisions = Math.max(3, Math.min(8, Math.ceil(longest / .15))),
+    points: Array<{ x: number; z: number; height: number }> = [],
+    rough = (i: number, j: number) => {
+      let n = Math.imul(i + triangle.band, 374761393) ^ Math.imul(j + 197, 668265263);
+      n = Math.imul(n ^ (n >>> 13), 1274126177);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+    };
+  const sample = (weights: number[], internal: boolean, seed: number) => {
+    const value = (values: number[]) => weights.reduce((sum, weight, i) => sum + weight * values[i], 0),
+      height = value(triangle.h),
+      along = weights[1] + weights[2], across = along > 0 ? weights[2] / along : 0,
+      wave = (n: number) => 1 - Math.abs((n - Math.floor(n)) * 2 - 1),
+      shoulder = Math.min(1, Math.min(wave(along * 2.9 + rough(17, 3)),
+        wave(across * 2.4 + rough(11, 37))) / .62),
+      channel = .27 + rough(7, 71) * .29 + (along - .5) * .17,
+      crease = Math.max(0, 1 - Math.abs(across - channel) / .17),
+      inset = Math.min(1, Math.min(...weights) * 8),
+      breadth = Math.min(1, longest / .38),
+      relief = internal ? inset * breadth *
+        (.052 * shoulder - .020 - crease * (.042 + rough(seed, seed + 71) * .040)) : 0;
+    points.push({ x: value(triangle.x), z: value(triangle.z), height: Math.max(0, height + relief) });
+  };
+  for (let row = 0; row <= divisions; row++) for (let column = 0; column <= row; column++) {
+    const internal = row > 0 && row < divisions && column > 0 && column < row,
+      along = (row + (internal ? (rough(row, column) - .5) * .22 : 0)) / divisions,
+      across = row === 0 ? 0 : (column + (internal ? (rough(column, row + 13) - .5) * .22 : 0)) / row;
+    sample([1 - along, along * (1 - across), along * across], internal, row * 7 + column);
+  }
+
+  const faces = Delaunator.from(points, point => point.x, point => point.z).triangles,
+    result: RockTriangle[] = [], edges = new Set<string>();
+  for (let face = 0; face < faces.length; face += 3) {
+    const ids = Array.from(faces.slice(face, face + 3)), corners = ids.map(id => points[id]),
+      x = corners.map(point => point.x), z = corners.map(point => point.z), h = corners.map(point => point.height),
+      denominator = (z[1] - z[2]) * (x[0] - x[2]) + (x[2] - x[1]) * (z[0] - z[2]);
+    if (Math.abs(denominator) < 1e-12) continue;
+    const gx = ((h[1] - h[0]) * (z[2] - z[0]) - (h[2] - h[0]) * (z[1] - z[0])) / denominator,
+      gz = ((x[1] - x[0]) * (h[2] - h[0]) - (x[2] - x[0]) * (h[1] - h[0])) / denominator,
+      length = Math.hypot(gx, 1, gz);
+    result.push({ x, z, h, inverse: 1 / denominator,
+      band: 2000000 + (triangle.band - 100000) * 256 + face / 3,
+      slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length });
+    for (let edge = 0; edge < 3; edge++) {
+      const a = ids[edge], b = ids[(edge + 1) % 3], key = `${Math.min(a, b)}:${Math.max(a, b)}`;
+      if (edges.has(key)) continue;
+      edges.add(key); rockEdges.push({ a: points[a], b: points[b] });
+    }
+  }
+  return result;
 }
 
 function fracturedRockFace(triangle: RockTriangle) {
@@ -184,7 +310,7 @@ function fracturedRockFace(triangle: RockTriangle) {
     points.push({ x: value(triangle.x), z: value(triangle.z), height: value(triangle.h) });
   }
   const faces = Delaunator.from(points, point => point.x, point => point.z).triangles,
-    result: RockTriangle[] = [], edges = new Set<string>();
+    result: RockTriangle[] = [];
   for (let face = 0; face < faces.length; face += 3) {
     const ids = Array.from(faces.slice(face, face + 3)), corners = ids.map(id => points[id]),
       x = corners.map(point => point.x), z = corners.map(point => point.z),
@@ -197,11 +323,6 @@ function fracturedRockFace(triangle: RockTriangle) {
     result.push({ x, z, h, inverse: 1 / denominator,
       band: 200000 + (triangle.band - 100000) * 128 + face / 3,
       slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length });
-    for (let edge = 0; edge < 3; edge++) {
-      const a = ids[edge], b = ids[(edge + 1) % 3], key = `${Math.min(a, b)}:${Math.max(a, b)}`;
-      if (edges.has(key)) continue;
-      edges.add(key); rockEdges.push({ a: points[a], b: points[b] });
-    }
   }
   return result;
 }
@@ -217,7 +338,23 @@ for (const [part, massif] of sculptedMassifs.entries()) {
     indexRockFace(baselineRockCells, { x, z, h, inverse: 1 / denominator,
       band: 100000 + part * 10000 + face, slope: 0, normalX: 0, normalZ: 0 });
   }
-  const vertices = dividedVertices(massif, part);
+  // Keep the exact previous surface independently: the landscape blends its
+  // physical reservations against this old survey, never a changing baseline.
+  const previousVertices = dividedVertices(massif, part);
+  const previousFaces = Delaunator.from(previousVertices, point => point.x, point => point.z).triangles;
+  for (let face = 0; face < previousFaces.length; face += 3) {
+    const points = Array.from(previousFaces.slice(face, face + 3)).map(id => previousVertices[id]),
+      x = points.map(point => point.x), z = points.map(point => point.z), h = points.map(point => point.height),
+      denominator = (z[1] - z[2]) * (x[0] - x[2]) + (x[2] - x[1]) * (z[0] - z[2]);
+    if (Math.abs(denominator) < 1e-9) continue;
+    const gx = ((h[1] - h[0]) * (z[2] - z[0]) - (h[2] - h[0]) * (z[1] - z[0])) / denominator,
+      gz = ((x[1] - x[0]) * (h[2] - h[0]) - (x[2] - x[0]) * (h[1] - h[0])) / denominator,
+      length = Math.hypot(gx, 1, gz),
+      triangle: RockTriangle = { x, z, h, inverse: 1 / denominator,
+        band: 100000 + part * 10000 + face, slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length };
+    for (const previous of fracturedRockFace(triangle)) indexRockFace(previousRockCells, previous);
+  }
+  const vertices = shoulderedMassifVertices(massif, part);
   const faces = Delaunator.from(vertices, point => point.x, point => point.z).triangles;
   const edges = new Set<string>();
   for (let face = 0; face < faces.length; face += 3) {
@@ -231,7 +368,8 @@ for (const [part, massif] of sculptedMassifs.entries()) {
       length = Math.hypot(gx, 1, gz);
     const triangle: RockTriangle = { x, z, h, inverse: 1 / denominator,
       band: 100000 + part * 10000 + face, slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length };
-    for (const face of fracturedRockFace(triangle)) indexRockFace(rockCells, face);
+    indexRockFace(parentRockCells, triangle);
+    for (const shelf of steppedRockFace(triangle)) indexRockFace(rockCells, shelf);
     for (let edge = 0; edge < 3; edge++) {
       const a = ids[edge], b = ids[(edge + 1) % 3], key = `${Math.min(a, b)}:${Math.max(a, b)}`;
       if (edges.has(key)) continue;
@@ -258,6 +396,26 @@ export function mountainBreakLines() { return projectedRockEdges; }
 export function mountainFaceSurvey(x: number, z: number) {
   const source = mapAuthoredCoordinates(x, z);
   return sculptedAt(source.x, source.z);
+}
+
+/** Actual authored parent plane in FINAL horizontal coordinates. Its UV
+ *  orientation stays constant across the medium rock shelves. This is the
+ *  new massif itself; the historical height is a separate compatibility export.
+ */
+export function mountainParentFaceSurvey(x: number, z: number) {
+  const source = mapAuthoredCoordinates(x, z),
+    parent = sculptedAt(source.x, source.z, parentRockCells);
+  if (!parent) return undefined;
+  const normalY = 1 / Math.hypot(parent.slope, 1),
+    normalX = Math.abs(parent.normalX), normalZ = Math.abs(parent.normalZ),
+    uvAxis: "x" | "y" | "z" = normalX > Math.max(normalY, normalZ) ? "x" :
+      normalZ > normalY ? "z" : "y";
+  return { ...parent, uvAxis };
+}
+
+/** Exact SOURCE altitude20 for applying only the new incision delta. */
+export function mountainPreviousSourceHeight(x: number, z: number) {
+  return sculptedAt(x, z, previousRockCells)?.height ?? mountainSourceHeight(x, z);
 }
 
 /**

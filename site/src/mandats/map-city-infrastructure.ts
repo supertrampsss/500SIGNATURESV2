@@ -10,7 +10,7 @@ import { CityGeometry, createCityMesh } from "./map-city-geometry.ts";
 import type { CityMaterials } from "./map-city-materials.ts";
 import { landContains, landHeight } from "./map-landscape.ts";
 import { mapAuthoredPosition } from "./map-state.ts";
-import { surveyHarbour, harbourStation, harbourPolygonsOverlap } from "./map-city-port-plans.ts";
+import { surveyHarbour, harbourStation, harbourPolygonsOverlap, harbourPolygonContains } from "./map-city-port-plans.ts";
 import type { HarbourPoint } from "./map-city-port-plans.ts";
 
 function toolkit(scene: Scene, meshes: Mesh[]) {
@@ -115,6 +115,16 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
       joints.beam([point.x, -.079, point.z], [point.x, a.height + .001, point.z], .0025);
     }
     if (i % 3 === 1) {
+      const pier = harbourStation(plan, (a.distance + b.distance) / 2, plan.apronDepth - .015);
+      // Low masonry piers articulate the existing wall without widening its
+      // deck or taking more of the harbour's navigable water.
+      const pierFits = [-.012, .012].every(dx => [-.012, .012].every(dz =>
+        plan.quayPolygons.some(polygon => harbourPolygonContains(polygon, { x: pier.x + dx, z: pier.z + dz }))));
+      if (pierFits) {
+        stonework.box(pier.x, (pier.height - .104) / 2, pier.z,
+          .020, pier.height + .104, .020);
+        edge.box(pier.x, pier.height + .004, pier.z, .024, .007, .024);
+      }
       const point = harbourStation(plan, (a.distance + b.distance) / 2, plan.apronDepth - .013);
       iron.box(point.x, point.height + .008, point.z, .009, .016, .009);
       iron.box(point.x, point.height + .016, point.z, .016, .003, .009);
@@ -185,7 +195,8 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     const point = harbourStation(plan, fraction * plan.frontage, plan.apronDepth * .54), tower = new TransformNode(`${place}-golden-crane`, scene);
     const steel = new CityGeometry(), cables = new CityGeometry(), cab = new CityGeometry(), glass = new CityGeometry();
     tower.parent = node; tower.position.set(point.x, point.height, point.z); tower.rotation.y = Math.atan2(point.nx, point.nz);
-    const foot = small ? .016 : .027, mast = height * .80, reach = small ? .12 : .245;
+    const foot = small ? .016 : .027, mast = height * .80,
+      reach = small ? .12 : place === "marseille" ? .30 : .245;
     for (const side of [-1, 1]) {
       for (const z of [-.024, .024]) steel.box(side * foot, -.002, z, small ? .008 : .012, .016, small ? .008 : .012);
       steel.beam([side * foot, .005, -.024], [side * foot * .5, mast, -.004], .006);
@@ -212,7 +223,10 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     tool.shape("crane-cabin", cab, gold, tower); tool.shape("crane-glass", glass, materials.glass, tower);
   };
   const cranePositions = place === "ajaccio" ? [.32] : place === "brest" ? [-.13, .27] : [-.29, .025, .31];
-  cranePositions.forEach((fraction, index) => crane(fraction, place === "ajaccio" ? .225 : place === "brest" ? .36 + index * .03 : .415 - index * .027, place === "ajaccio"));
+  cranePositions.forEach((fraction, index) => crane(fraction,
+    place === "ajaccio" ? .225 : place === "brest" ? .36 + index * .03 :
+      place === "marseille" ? .565 - index * .032 : .465 - index * .027,
+    place === "ajaccio"));
 
   const warehouse = (spec: (typeof plan.warehouses)[number], wall: StandardMaterial, roofMaterial: StandardMaterial) => {
     const { point, angle, width, depth, height } = spec;
@@ -243,24 +257,35 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     place === "ajaccio" ? materials.tile : place === "marseille" ? index === 1 ? materials.ochreTile : materials.tile : materials.slate));
 
   const occupied: HarbourPoint[][] = [...plan.quayPolygons, ...plan.coastalJoins], vessels: Array<{ name: string; footprint: HarbourPoint[]; position: number[] }> = [];
-  const boat = (name: string, fraction: number, offset: number, length: number, beam: number, kind: "cargo" | "ferry" | "sail" | "fishing", heading = 0, offshore?: HarbourPoint) => {
+  const boat = (name: string, fraction: number, offset: number, length: number, beam: number,
+    kind: "cargo" | "ferry" | "sail" | "fishing", heading = 0, offshore?: HarbourPoint,
+    preferred?: { length: number; beam: number; fraction?: number; offset?: number; heading?: number }) => {
     const outline = [[-.34, -.50], [-.50, -.35], [-.50, .24], [-.27, .43], [0, .53], [.27, .43], [.50, .24], [.50, -.35], [.34, -.50]];
     let pose: ReturnType<typeof harbourStation> | undefined, footprint: HarbourPoint[] = [], angle = 0;
-    for (let attempt = 0; attempt < 13; attempt++) {
-      const point = harbourStation(plan, fraction * plan.frontage, offset + attempt * .022);
-      if (offshore) {
-        const projected = mapAuthoredPosition(offshore.x, offshore.z);
-        point.x = projected.x; point.z = projected.z;
+    // The dominant vessels have a measured presentation size. If their hull
+    // cannot clear this surveyed harbour, keep the original vessel and berth.
+    const original = { length, beam, fraction, offset, heading },
+      variants = preferred ? [{ ...original, ...preferred }, original] : [original];
+    for (const variant of variants) {
+      for (let attempt = 0; attempt < 13; attempt++) {
+        const point = harbourStation(plan, variant.fraction * plan.frontage, variant.offset + attempt * .022);
+        if (offshore) {
+          const projected = mapAuthoredPosition(offshore.x, offshore.z);
+          point.x = projected.x; point.z = projected.z;
+        }
+        angle = Math.atan2(point.tx, point.tz) + variant.heading;
+        const c = Math.cos(angle), s = Math.sin(angle);
+        footprint = outline.map(([x, z]) => ({ x: point.x + c * x * (variant.beam + .006) + s * z * (variant.length + .006),
+          z: point.z - s * x * (variant.beam + .006) + c * z * (variant.length + .006) }));
+        const shoreHit = footprint.some((a, i) => {
+          const b = footprint[(i + 1) % footprint.length];
+          return Array.from({ length: 10 }, (_, j) => j / 9)
+            .some(t => landContains(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t));
+        });
+        if (shoreHit || occupied.some(polygon => harbourPolygonsOverlap(polygon, footprint))) continue;
+        pose = point; length = variant.length; beam = variant.beam; break;
       }
-      angle = Math.atan2(point.tx, point.tz) + heading;
-      const c = Math.cos(angle), s = Math.sin(angle);
-      footprint = outline.map(([x, z]) => ({ x: point.x + c * x * (beam + .006) + s * z * (length + .006), z: point.z - s * x * (beam + .006) + c * z * (length + .006) }));
-      const shoreHit = footprint.some((a, i) => {
-        const b = footprint[(i + 1) % footprint.length];
-        return Array.from({ length: 6 }, (_, j) => j / 5).some(t => landContains(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t));
-      });
-      if (shoreHit || occupied.some(polygon => harbourPolygonsOverlap(polygon, footprint))) continue;
-      pose = point; break;
+      if (pose) break;
     }
     if (!pose) return;
     occupied.push(footprint);
@@ -269,7 +294,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     ship.metadata = { harbourVessel: kind, footprint, waterLevel: -.080 };
     vessels.push({ name, footprint, position: ship.position.asArray() });
     const hull = new CityGeometry(), lower = new CityGeometry(), deck = new CityGeometry(), trim = new CityGeometry(), cabin = new CityGeometry(), windows = new CityGeometry(), rigs = new CityGeometry();
-    const large = kind === "cargo" || kind === "ferry", freeboard = large ? .036 : .024, sections = [[-.50, .34], [-.35, .50], [.24, .50], [.43, .27], [.53, .012]];
+    const large = kind === "cargo" || kind === "ferry", freeboard = large ? .049 : .024, sections = [[-.50, .34], [-.35, .50], [.24, .50], [.43, .27], [.53, .012]];
     for (let i = 1; i < sections.length; i++) {
       const [az, aw] = sections[i - 1], [bz, bw] = sections[i];
       for (const side of [-1, 1]) {
@@ -294,17 +319,17 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     hull.quad([beam * .34, freeboard, -length * .50], [beam * .34 * .97, .008, -length * .50], [-beam * .34 * .97, .008, -length * .50], [-beam * .34, freeboard, -length * .50]);
     lower.quad([-beam * .34 * .76, -.022, -length * .50], [-beam * .34 * .97, .008, -length * .50], [beam * .34 * .97, .008, -length * .50], [beam * .34 * .76, -.022, -length * .50]);
     if (large) {
-      cabin.box(0, freeboard + .028, -length * .30, beam * .77, .056, length * .20);
-      cabin.box(0, freeboard + .062, -length * .245, beam * .92, .019, length * .105);
-      windows.box(0, freeboard + .064, -length * .190, beam * .78, .011, .0015);
+      cabin.box(0, freeboard + .035, -length * .30, beam * .77, .070, length * .20);
+      cabin.box(0, freeboard + .078, -length * .245, beam * .92, .022, length * .105);
+      windows.box(0, freeboard + .080, -length * .190, beam * .78, .013, .0015);
       for (const side of [-1, 1]) {
-        windows.box(side * beam * .39, freeboard + .033, -length * .30, .0015, .019, length * .135);
-        trim.beam([side * beam * .41, freeboard + .076, -length * .36], [side * beam * .41, freeboard + .076, -length * .19], .0017);
+        windows.box(side * beam * .39, freeboard + .040, -length * .30, .0015, .023, length * .135);
+        trim.beam([side * beam * .41, freeboard + .093, -length * .36], [side * beam * .41, freeboard + .093, -length * .19], .0017);
       }
       cabin.box(0, freeboard + .005, -length * .245, beam * .98, .009, length * .31);
-      rigs.beam([0, freeboard + .072, -length * .23], [0, freeboard + .127, -length * .23], .002);
-      rigs.beam([-.018, freeboard + .115, -length * .23], [.018, freeboard + .115, -length * .23], .0015);
-      const funnel = new CityGeometry(); funnel.box(-beam * .13, freeboard + .065, -length * .37, beam * .18, .045, length * .052);
+      rigs.beam([0, freeboard + .090, -length * .23], [0, freeboard + .151, -length * .23], .002);
+      rigs.beam([-.018, freeboard + .140, -length * .23], [.018, freeboard + .140, -length * .23], .0015);
+      const funnel = new CityGeometry(); funnel.box(-beam * .13, freeboard + .080, -length * .37, beam * .18, .052, length * .052);
       tool.shape("ship-funnel", funnel, materials.red, ship);
       if (kind === "ferry") {
         cabin.box(0, freeboard + .025, length * .068, beam * .81, .050, length * .39);
@@ -346,18 +371,19 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     boat("island-ferry", .13, .185, .248, .065, "ferry"); boat("fishing-boat", -.17, .113, .112, .041, "fishing");
     boat("marina-yacht", -.28, .185, .124, .038, "sail", .26); boat("offshore-yacht", .32, .420, .155, .043, "sail", -.42);
   } else if (place === "brest") {
-    boat("atlantic-cargo", .06, .170, .353, .083, "cargo"); boat("tug", -.33, .119, .137, .048, "fishing", -.10);
+    boat("atlantic-cargo", .06, .170, .353, .083, "cargo", 0, undefined, { length: .47, beam: .105 }); boat("tug", -.33, .119, .137, .048, "fishing", -.10);
     boat("offshore-yacht", .37, .365, .156, .045, "sail", -.31); boat("outer-yacht", -.34, .480, .137, .040, "sail", .54);
     // Authored Atlantic sailing points stay inside the existing westward
     // diorama extent, keeping the national camera's mainland framing intact.
-    boat("atlantic-sail-north", 0, 0, .153, .043, "sail", .65, { x: -5.23, z: 1.31 });
-    boat("atlantic-sail-centre", 0, 0, .148, .041, "sail", -.40, { x: -4.83, z: .53 });
-    boat("atlantic-sail-south", 0, 0, .161, .044, "sail", .27, { x: -4.34, z: -.38 });
+    boat("atlantic-sail-north", 0, 0, .153, .043, "sail", .65, { x: -5.23, z: 1.31 }, { length: .235, beam: .054 });
+    boat("atlantic-sail-centre", 0, 0, .148, .041, "sail", -.40, { x: -4.83, z: .53 }, { length: .24, beam: .055 });
+    boat("atlantic-sail-south", 0, 0, .161, .044, "sail", .27, { x: -4.34, z: -.38 }, { length: .25, beam: .057 });
   } else if (place === "nantes") {
-    boat("estuary-cargo", -.08, .186, .395, .089, "cargo"); boat("coaster", .33, .358, .275, .069, "cargo", .08);
+    boat("estuary-cargo", -.08, .186, .395, .089, "cargo", 0, undefined, { length: .58, beam: .132 }); boat("coaster", .33, .358, .275, .069, "cargo", .08);
     boat("harbour-tug", -.36, .115, .122, .045, "fishing"); boat("sailing-yacht", -.29, .445, .145, .043, "sail", .53);
   } else {
-    boat("mediterranean-cargo", .10, .265, .395, .088, "cargo"); boat("mediterranean-ferry", .21, .284, .358, .090, "ferry", .06);
+    boat("mediterranean-cargo", .10, .265, .395, .088, "cargo", 0, undefined, { length: .50, beam: .115 }); boat("mediterranean-ferry", .21, .284, .358, .090, "ferry", .06, undefined,
+      { length: .51, beam: .13, fraction: -.20, offset: .36, heading: .60 });
     boat("pilot-boat", .36, .138, .125, .044, "fishing"); boat("sailing-yacht", -.34, .551, .157, .044, "sail", .35);
     boat("outer-yacht", .36, .577, .140, .040, "sail", -.43);
   }
@@ -422,20 +448,34 @@ export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMa
 
 export function buildWindTurbines(scene: Scene, points: Vector3[], materials: CityMaterials): Mesh[] {
   const meshes: Mesh[] = [], tool = toolkit(scene, meshes);
+  let enamel = scene.getMaterialByName("offshore-turbine-enamel") as StandardMaterial | null;
+  if (!enamel) {
+    enamel = new StandardMaterial("offshore-turbine-enamel", scene);
+    enamel.diffuseColor = Color3.FromHexString("#F6F0DE");
+    enamel.emissiveColor = new Color3(.035, .035, .030);
+    enamel.specularColor = new Color3(.12, .12, .11);
+    enamel.backFaceCulling = false;
+    enamel.twoSidedLighting = true;
+  }
   for (const [index, point] of points.entries()) {
-    const node = new TransformNode("wind-turbine", scene), offshore = !landContains(point.x, point.z), blades = new CityGeometry();
+    const node = new TransformNode("wind-turbine", scene), offshore = !landContains(point.x, point.z), blades = new CityGeometry(),
+      bretonOffshore = offshore && index < 3,
+      hub = bretonOffshore ? [.585, .615, .530][index] : .405,
+      mastHeight = hub - .025, paint = bretonOffshore ? enamel : materials.paint;
+    // The three Atlantic masts retain their pivots, footing and rotor width.
+    // Only their measured vertical silhouettes and white enamel become clearer.
     node.position.set(point.x, offshore ? -0.035 : landHeight(point.x, point.z), point.z);
     tool.cylinder("turbine-base", 0, 0.024, 0, 0.043, 0.048, 0.034, materials.cream, node);
-    tool.cylinder("turbine-mast", 0, 0.214, 0, 0.018, 0.38, 0.012, materials.paint, node);
-    tool.box("turbine-nacelle", 0, 0.405, 0, 0.023, 0.022, 0.046, materials.paint, node);
+    tool.cylinder("turbine-mast", 0, .024 + mastHeight / 2, 0, 0.018, mastHeight, 0.012, paint, node);
+    tool.box("turbine-nacelle", 0, hub, 0, 0.023, 0.022, 0.046, paint, node);
     for (let blade = 0; blade < 3; blade++) {
       const a = blade * Math.PI * 2 / 3 + index * 0.31, b = a + 0.03,
-        tipX = Math.sin(a) * 0.18, tipY = 0.405 + Math.cos(a) * 0.18,
-        shoulderX = Math.sin(b) * 0.052, shoulderY = 0.405 + Math.cos(b) * 0.052;
-      blades.triangle([-0.003, 0.405, -0.026], [shoulderX - 0.005, shoulderY, -0.026], [tipX, tipY, -0.026]);
-      blades.triangle([0.003, 0.405, -0.026], [tipX, tipY, -0.026], [shoulderX + 0.005, shoulderY, -0.026]);
+        tipX = Math.sin(a) * 0.18, tipY = hub + Math.cos(a) * 0.18,
+        shoulderX = Math.sin(b) * 0.052, shoulderY = hub + Math.cos(b) * 0.052;
+      blades.triangle([-0.003, hub, -0.026], [shoulderX - 0.005, shoulderY, -0.026], [tipX, tipY, -0.026]);
+      blades.triangle([0.003, hub, -0.026], [tipX, tipY, -0.026], [shoulderX + 0.005, shoulderY, -0.026]);
     }
-    tool.shape("turbine-blades", blades, materials.sail, node);
+    tool.shape("turbine-blades", blades, bretonOffshore ? enamel : materials.sail, node);
   }
   return meshes;
 }

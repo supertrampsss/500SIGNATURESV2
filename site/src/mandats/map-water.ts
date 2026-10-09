@@ -71,6 +71,10 @@ export function buildMapWater(scene: Scene) {
   const geometry = new VertexData();
   geometry.positions = positions;
   geometry.indices = indices;
+  geometry.colors = new Float32Array(positions.length / 3 * 4).fill(1);
+  geometry.uvs = new Float32Array(positions.length / 3 * 2);
+  geometry.normals = new Float32Array(positions.length);
+  for (let index = 1; index < positions.length; index += 3) geometry.normals[index] = 1;
   geometry.applyToMesh(mesh);
   mesh.setVerticesData("shore", shore, false, 1);
   mesh.setVerticesData("channel", new Float32Array(shore.length), false, 1);
@@ -81,18 +85,24 @@ export function buildMapWater(scene: Scene) {
       attribute vec3 position;
       attribute float shore;
       attribute float channel;
+      attribute vec4 color;
+      attribute vec2 uv;
       uniform mat4 worldViewProjection;
       uniform float time;
       varying vec3 seaPosition;
       varying float coastDepth;
       varying float riverChannel;
+      varying vec3 waterTint;
+      varying vec2 flow;
       void main(void) {
         vec3 p = position;
         p.y += (sin(p.x * 9.0 + p.z * 4.0 + time * .45)
-          + sin(p.x * 3.0 - p.z * 8.0 - time * .32)) * .004;
+          + sin(p.x * 3.0 - p.z * 8.0 - time * .32)) * .004 * (1.0 - channel * .75);
         seaPosition = p;
         coastDepth = shore;
         riverChannel = channel;
+        waterTint = color.rgb;
+        flow = uv;
         gl_Position = worldViewProjection * vec4(p, 1.0);
       }`,
     fragmentSource: `
@@ -102,6 +112,8 @@ export function buildMapWater(scene: Scene) {
       varying vec3 seaPosition;
       varying float coastDepth;
       varying float riverChannel;
+      varying vec3 waterTint;
+      varying vec2 flow;
       float hash(vec2 p) {
         vec3 h = fract(vec3(p.xyx) * .1031);
         h += dot(h, h.yzx + 33.33);
@@ -133,10 +145,15 @@ export function buildMapWater(scene: Scene) {
         float rippleA = sin(dot(p, vec2(51.0, 19.0)) + time * .39);
         float rippleB = sin(dot(p, vec2(-23.0, 43.0)) - time * .28);
         color += vec3(.038, .062, .078) * (wave - .5);
-        // The shallow rivers in the reference form a distinct bright ribbon;
-        // their colour must not be the depth tint of the open Atlantic.
-        color = mix(color, vec3(.13, .47, .67) +
-          vec3(.026, .046, .048) * (wave - .5), riverChannel);
+        // The submitted river has a dark channel and brighter shallows.
+        // Its longitudinal UVs follow the actual curved course.
+        float current = .5 + .5 * sin(flow.y * 160.0 +
+          noise(flow * vec2(17.0, 23.0)) * 1.5 - time * .18);
+        float currentGlint = smoothstep(.86, .995, current) *
+          smoothstep(.46, .79, noise(flow * vec2(41.0, 19.0)));
+        color = mix(color, waterTint +
+          vec3(.018, .031, .038) * (wave - .5) +
+          vec3(.065, .085, .095) * currentGlint, riverChannel);
         vec3 normal = normalize(vec3(rippleA * .055 + (wave - .5) * .12,
           1.0, rippleB * .052 + (wave - .5) * .1));
         vec3 towardEye = normalize(eye - seaPosition);
@@ -155,7 +172,7 @@ export function buildMapWater(scene: Scene) {
         gl_FragColor = vec4(color, 1.0);
       }`,
   }, {
-    attributes: ["position", "shore", "channel"],
+    attributes: ["position", "shore", "channel", "color", "uv"],
     uniforms: ["worldViewProjection", "time", "eye"],
   });
   material.setFloat("time", 0);

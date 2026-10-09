@@ -93,16 +93,20 @@ function mineralTextures(scene: Scene) {
       phase = (v * 9 + u * 2 + warp * .34) * Math.PI * 2,
       bedding = .5 + .5 * Math.sin(phase),
       seam = Math.max(0, 1 - Math.abs(Math.sin(phase)) * 9),
-      fractureField = periodicNoise(u * 12 + warp * .8 + 7.1,
-        v * 12 + warp * .8 + 2.4, 12),
-      fracture = Math.max(0, 1 - Math.abs(fractureField - .48) / .018),
+      // Interrupted bedding and oblique joints stay open. A thresholded
+      // isotropic noise contour used to draw closed rings on every white face.
+      jointPhase = (u * 17 + v * 5 + warp * .24) * Math.PI * 2,
+      joint = Math.max(0, 1 - Math.abs(Math.sin(jointPhase)) * 15),
+      interruption = Math.max(0, Math.min(1,
+        (periodicNoise(u * 11 + 2.4, v * 11 + 7.1, 11) - .43) * 6)),
+      fracture = joint * interruption,
       grain = hash(x, y) - .5, index = y * size + x;
     // Sediment and local mineral joints vary the surface reflectance. They
     // contain no direction of illumination or baked scene shadow.
-    tones[index] = 249 + (fine - .5) * 7 + grain * 2 + (coarse - .5) * 5 -
-      seam * 19 - fracture * 45;
-    heights[index] = .5 + coarse * .13 + bedding * .012 - seam * .034 -
-      fracture * .11 + fine * .022 + grain * .004;
+    tones[index] = 247 + (fine - .5) * 10 + grain * 2 + (coarse - .5) * 9 -
+      seam * 11 - fracture * 29;
+    heights[index] = .5 + coarse * .09 + bedding * .017 - seam * .026 -
+      fracture * .068 + fine * .028 + grain * .003;
   }
   const rock = pixels(scene, "land-mineral-rock", size, (x, y) => {
     const tone = tones[y * size + x];
@@ -111,18 +115,18 @@ function mineralTextures(scene: Scene) {
   rock.gammaSpace = true;
   const rockNormal = normal(scene, "land-mineral-normal", size, (x, y) =>
     heights[((y + size) % size) * size + (x + size) % size], 7);
-  rockNormal.level = .48;
+  rockNormal.level = .40;
   return { rock, rockNormal };
 }
 
 export function landMaterialTextures(scene: Scene) {
   const earth = pixels(scene, "land-earth-grain", 1024, (x, y) => {
     const fibers =
-      noise(x * 0.18, y * 0.035) * 0.30 +
-      noise(x * 0.045, y * 0.058) * 0.30 +
-      hash(x, y) * 0.40;
-    const tone = 172 + fibers * 82;
-    return [tone, tone + 2, tone - 6];
+      noise(x * 0.11, y * 0.027) * 0.24 +
+      noise(x * 0.019, y * 0.031) * 0.62 +
+      hash(x, y) * 0.14;
+    const tone = 204 + fibers * 44;
+    return [tone, tone + 1, tone - 4];
   });
   const earthNormal = normal(
     scene,

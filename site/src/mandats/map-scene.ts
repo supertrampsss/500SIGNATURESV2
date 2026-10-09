@@ -7,6 +7,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
@@ -37,6 +38,8 @@ const outlines = FRANCE_OUTLINES.map((points) =>
 // terrain, quays and boats. The same view is used on entry and Vue France.
 const COUNTRY_ALPHA = -Math.PI / 2 + COUNTRY_REFERENCE_POSE.alphaOffset;
 const COUNTRY_BETA = COUNTRY_REFERENCE_POSE.beta;
+// Native desktop20 distance retained after fitting the real miniature.
+const COUNTRY_DESKTOP_RADIUS = 13.446687929333342;
 const COUNTRY_COVERAGE = 0.995;
 function random(seed: number) {
   let state = (seed ^ 0x4c51c8b5) >>> 0;
@@ -88,7 +91,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
   const release = () => { while (cleanup.length) cleanup.pop()!(); };
   try {
     scene.clearColor = Color4.FromHexString("#08233DFF");
-    scene.ambientColor = Color3.FromHexString("#56605B");
+    scene.ambientColor = Color3.FromHexString("#596879");
     scene.skipPointerMovePicking = true;
     scene.imageProcessingConfiguration.toneMappingEnabled = true;
     scene.imageProcessingConfiguration.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
@@ -104,9 +107,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         onError: (message, error) => reject(error ?? new Error(message ?? "Lighting unavailable")),
       });
     });
-    scene.environmentIntensity = 0.40;
+    scene.environmentIntensity = 0.35;
     const camera = new ArcRotateCamera(
-      "country-camera", COUNTRY_ALPHA, COUNTRY_BETA, COUNTRY_REFERENCE_POSE.radius,
+      "country-camera", COUNTRY_ALPHA, COUNTRY_BETA, COUNTRY_DESKTOP_RADIUS,
       new Vector3(...COUNTRY_REFERENCE_POSE.target), scene,
     );
     camera.fov = COUNTRY_REFERENCE_POSE.fov;
@@ -131,14 +134,37 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     camera.panningSensibility = 1000;
     camera.inertia = 0.68;
     camera.attachControl(canvas, true);
+    let contactShadows: SSAO2RenderingPipeline | undefined;
+    function updateContactShadows() {
+      const wanted = host.clientWidth > 820 && engine.webGLVersion === 2 &&
+        SSAO2RenderingPipeline.IsSupported;
+      if (!wanted && contactShadows) {
+        contactShadows.dispose(true);
+        contactShadows = undefined;
+      } else if (wanted && !contactShadows) {
+        contactShadows = new SSAO2RenderingPipeline("miniature-contact", scene,
+          { ssaoRatio: .5, blurRatio: 1 }, [camera], true);
+        contactShadows.radius = .12;
+        contactShadows.totalStrength = .6;
+        contactShadows.base = .05;
+        contactShadows.maxZ = 35;
+        contactShadows.epsilon = .003;
+        contactShadows.samples = 8;
+        contactShadows.textureSamples = 1;
+        contactShadows.bilateralSamples = 4;
+      }
+      host.dataset.contactShadows = String(!!contactShadows);
+    }
+    updateContactShadows();
+    cleanup.push(() => { contactShadows?.dispose(true); contactShadows = undefined; });
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
-    sky.intensity = 0.25;
-    sky.diffuse = Color3.FromHexString("#E8DFCF");
-    sky.groundColor = Color3.FromHexString("#B7B2A2");
+    sky.intensity = 0.27;
+    sky.diffuse = Color3.FromHexString("#CCDDF1");
+    sky.groundColor = Color3.FromHexString("#788797");
     const sun = new DirectionalLight("sun", new Vector3(0.55, -1.2, 0.7), scene);
     sun.position.set(-9, 16, -11);
-    sun.intensity = 1.70;
-    sun.diffuse = Color3.FromHexString("#FFE0B1");
+    sun.intensity = 1.80;
+    sun.diffuse = Color3.FromHexString("#FFF1DD");
     sun.shadowFrustumSize = 19;
     sun.shadowMinZ = 1;
     sun.shadowMaxZ = 38;
@@ -147,8 +173,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     // One hardware-filtered sample keeps miniature shadows crisp without
     // repeating four depth lookups at every pixel of a dense display.
     shadows.filteringQuality = ShadowGenerator.QUALITY_LOW;
-    shadows.bias = 0.00005;
-    shadows.normalBias = 0.002;
+    shadows.bias = 0.0003;
+    shadows.normalBias = 0.012;
     shadows.setDarkness(0.14);
     const shadowMap = shadows.getShadowMap()!;
     shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
@@ -401,7 +427,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       camera.alpha = COUNTRY_ALPHA;
       camera.beta = COUNTRY_BETA;
       camera.target.set(...COUNTRY_REFERENCE_POSE.target);
-      camera.radius = COUNTRY_REFERENCE_POSE.radius;
+      camera.radius = COUNTRY_DESKTOP_RADIUS;
       for (let iteration = 0; iteration < 6; iteration++) {
         updateProjection();
         camera.getViewMatrix(true);
@@ -471,11 +497,12 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         for (let i = 0; i < count; i++) {
           const person = new TransformNode("person-" + i, scene);
           person.parent = root;
-          const start = new Vector3(
-            ((i % 8) - 3.5) * 0.055,
-            0,
-            Math.floor(i / 8) * 0.07,
-          );
+          const position = city.metadata?.crowdPositions?.[i],
+            start = new Vector3(
+              position ? (position.x - .02) / .72 : ((i % 8) - 3.5) * .055,
+              0,
+              position ? (position.z + .42) / .72 : Math.floor(i / 8) * .07,
+            );
           person.position.copyFrom(start);
           crowdPart(i % 3 ? crowdTemplates.coat : crowdTemplates.coral,
             person, "coat", 0, .045);
@@ -877,6 +904,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       // changes. Measure it only after layout, with a drawable CSS size.
       if (disposed || !host.isConnected || !host.clientWidth || !host.clientHeight) return;
       if (!resolution()) return;
+      updateContactShadows();
       if (!cameraTouched && !overview) {
         const from = cameraTween ? pose() : undefined;
         fitCountry();
@@ -935,7 +963,16 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       for (const mesh of cities.meshes) {
         if (mesh.metadata?.assetTemplate || mesh.isDisposed()) continue;
         mesh.computeWorldMatrix(true);
-        countryPoints.push(...mesh.getBoundingInfo().boundingBox.vectorsWorld
+        // A diagonal route's axis-aligned box has empty corners far beyond
+        // its rendered hull. Fit its real vertices while retaining model bounds.
+        const positions = mesh instanceof Mesh && /^(national-road-|railway-)/.test(mesh.name)
+          ? mesh.getVerticesData("position") : null;
+        if (positions?.length) {
+          const world = mesh.getWorldMatrix();
+          for (let index = 0; index < positions.length; index += 3)
+            countryPoints.push(Vector3.TransformCoordinates(
+              Vector3.FromArray(positions, index), world));
+        } else countryPoints.push(...mesh.getBoundingInfo().boundingBox.vectorsWorld
           .map(point => point.clone()));
       }
       if (!cameraTouched && !overview) {

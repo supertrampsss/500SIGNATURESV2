@@ -2,10 +2,14 @@
 import bpy
 import math
 import random
+import json
 from pathlib import Path
 from mathutils import Vector
 
-DEST = Path(__file__).resolve().parents[2] / "site/public/mandats/models/vegetation.glb"
+SOURCE = Path(__file__).resolve().parent
+DEST = SOURCE.parents[1] / "site/public/mandats/models/vegetation.glb"
+# Stable exported extents keep all existing placements and LOD sizes intact.
+BASELINE = json.loads((SOURCE / 'vegetation-bounds.json').read_text())
 DEST.parent.mkdir(parents=True, exist_ok=True)
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -28,11 +32,11 @@ def material(name, color):
     return mat
 
 bark = material('weathered-bark', '63563D')
-leaf = material('canopy-olive', '596D2D')
-leaf_light = material('canopy-sunlit', '728441')
-leaf_dark = material('canopy-shade', '334925')
-needle = material('pine-needles', '3D542C')
-silver = material('olive-silver', '7D8960')
+leaf = material('canopy-olive', '697A35')
+leaf_light = material('canopy-sunlit', '929B4F')
+leaf_dark = material('canopy-shade', '4E6030')
+needle = material('pine-needles', '5D7133')
+silver = material('olive-silver', '909C70')
 rock_mat = material('weathered-limestone', 'B3A285')
 
 parts = []
@@ -55,12 +59,60 @@ def crown(center, size, mat=leaf, irregular=.12, seed=0):
     rng = random.Random(seed)
     for vertex in obj.data.vertices:
         vertex.co *= 1 + rng.uniform(-irregular, irregular)
+        if mat != rock_mat:
+            angle = math.atan2(vertex.co.y, vertex.co.x)
+            crown_cut = 1 + .10 * math.sin(angle * 3 + seed * .41) + .075 * math.sin(angle * 7 - seed)
+            taper = 1 - .34 * max(0, vertex.co.z) ** .8
+            vertex.co.x *= crown_cut * taper
+            vertex.co.y *= crown_cut * taper
+            vertex.co.z += .14 * max(0, vertex.co.z) ** 2
     obj.scale = size
     obj.data.materials.append(mat)
     for poly in obj.data.polygons:
         poly.use_smooth = True
     parts.append(obj)
     return obj
+
+def needle_cluster(center, size, mat=needle, seed=0):
+    # A broken branch spray has angular lateral tips and an elevated central
+    # shoot. It is not an ellipsoid or a row of rotational cones.
+    rng = random.Random(seed)
+    vertices = []
+    for ring, z in [(0, -.40), (1, .15)]:
+        for i in range(9):
+            a = i * math.tau / 9 + .17
+            radius = (.85 if ring == 0 else .72) * (1 + rng.uniform(-.22, .16))
+            vertices.append((math.cos(a) * radius, math.sin(a) * radius,
+                z + rng.uniform(-.14, .14)))
+    vertices += [(-.09, .03, -.66), (.06, -.02, 1.00)]
+    faces = []
+    for i in range(9):
+        k = (i + 1) % 9
+        faces += [(18, k, i), (i, k, 9 + k), (i, 9 + k, 9 + i), (9 + i, 9 + k, 19)]
+    data = bpy.data.meshes.new('needle-spray')
+    data.from_pydata(vertices, [], faces)
+    data.update()
+    obj = bpy.data.objects.new('needle-spray', data)
+    bpy.context.collection.objects.link(obj)
+    obj.location = center
+    obj.scale = size
+    data.materials.append(mat)
+    for poly in data.polygons:
+        poly.use_smooth = False
+    parts.append(obj)
+    return obj
+
+def retain_bounds(obj, name):
+    target = BASELINE[name]
+    lo = [target['min'][0], -target['max'][2], target['min'][1]]
+    hi = [target['max'][0], -target['min'][2], target['max'][1]]
+    before_lo = [min(v.co[i] for v in obj.data.vertices) for i in range(3)]
+    before_hi = [max(v.co[i] for v in obj.data.vertices) for i in range(3)]
+    for vertex in obj.data.vertices:
+        for axis in range(3):
+            t = (vertex.co[axis] - before_lo[axis]) / (before_hi[axis] - before_lo[axis])
+            vertex.co[axis] = lo[axis] + t * (hi[axis] - lo[axis])
+    obj.data.update()
 
 def finish(name):
     bpy.ops.object.select_all(action='DESELECT')
@@ -84,48 +136,50 @@ def finish(name):
             p = obj.data.vertices[loop.vertex_index].co
             underside = max(0, -poly.normal.z)
             lower = max(0, .42 - p.z) / .42
-            shade = 1 - underside * .14 - lower * .1
+            shade = 1 - underside * (.14 if name == 'rock' else .08) - lower * (.1 if name == 'rock' else .04)
             colors.data[index].color = (tint[0] * shade, tint[1] * shade, tint[2] * shade, 1)
+    if name != 'rock':
+        retain_bounds(obj, name)
     parts.clear()
     return obj
 
 # An oak has a branching trunk and an asymmetric, spreading crown.
 branch((0, 0, 0), (.02, .005, .66), .035)
-for i in range(9):
+for i in range(8):
     angle = i * 2.399 + .2
-    radius = .21 + (i % 3) * .035
-    end = (math.cos(angle) * radius, math.sin(angle) * radius, .56 + (i % 4) * .075)
+    radius = .23 + (i % 3) * .040
+    end = (math.cos(angle) * radius, math.sin(angle) * radius, .47 + (i % 4) * .095)
     branch((.012, 0, .3 + i * .023), end, .012, top=.12)
     for j in range(2):
-        crown((end[0] + (j - .5) * .085, end[1], end[2] + j * .05),
-            (.16, .145, .17), [leaf, leaf_light, leaf_dark][(i + j) % 3], seed=i * 3 + j)
-crown((.02, -.015, .87), (.17, .15, .17), leaf_light, seed=41)
+        crown((end[0] + (j - .5) * .060, end[1], end[2] + j * .055),
+            (.130, .110, .145), [leaf, leaf_light, leaf_dark][(i + j) % 3], irregular=.19, seed=i * 3 + j)
+crown((.02, -.015, .90), (.105, .085, .155), leaf_light, irregular=.18, seed=41)
 finish('oak')
 
 # A beech carries many smaller lobes above a slender, forked stem.
 branch((0, 0, 0), (-.015, 0, .9), .028)
-for i in range(12):
+for i in range(10):
     angle = i * 2.399
-    height = .44 + (i % 5) * .095
-    spread = .19 * (1 - max(0, height - .7))
+    height = .38 + (i % 5) * .108
+    spread = .21 * (1 - max(0, height - .7))
     end = (math.cos(angle) * spread, math.sin(angle) * spread, height)
     branch((-.01, 0, height - .16), end, .009, top=.12)
-    crown(end, (.13, .12, .16), [leaf, leaf_light][i % 2], seed=70 + i)
-crown((-.015, .01, .92), (.13, .12, .16), leaf_light, seed=94)
+    crown(end, (.103, .090, .145), [leaf, leaf_light][i % 2], irregular=.19, seed=70 + i)
+crown((-.015, .01, .95), (.081, .070, .150), leaf_light, irregular=.18, seed=94)
 finish('beech')
 
 # Pines use staggered branch whorls and needle clusters, not a stack of cones.
 branch((0, 0, 0), (.015, -.008, 1.17), .027, top=.1)
 for tier in range(6):
-    height = .38 + tier * .125
-    spread = .225 * (1 - tier * .13)
+    height = .31 + tier * .145
+    spread = .255 * (1 - tier * .14)
     for j in range(5):
         angle = j * math.tau / 5 + tier * .72
         end = (math.cos(angle) * spread, math.sin(angle) * spread, height + .025)
         branch((0, 0, height - .035), end, .0065, top=.1)
-        crown(end, (spread * .68, spread * .56, .092), needle if j % 3 else leaf_dark,
-            irregular=.19, seed=120 + tier * 5 + j)
-crown((.01, -.008, 1.11), (.063, .06, .11), needle, seed=156)
+        needle_cluster(end, (spread * .78, spread * .64, .112 + spread * .16),
+            needle if j % 3 else leaf_dark, seed=120 + tier * 5 + j)
+needle_cluster((.01, -.008, 1.09), (.063, .052, .145), needle, seed=156)
 finish('pine')
 
 # Mediterranean cypresses retain a narrow uneven silhouette with visible bark.
@@ -133,8 +187,8 @@ branch((0, 0, 0), (0, .008, 1.1), .02)
 for i in range(10):
     h = .26 + i * .083
     radius = .08 * (1 - max(0, h - .65) * 1.1)
-    crown((math.sin(i * 2.4) * .018, math.cos(i * 2.4) * .018, h),
-        (radius, radius * .88, .105), leaf_dark if i % 3 else needle, seed=180 + i)
+    crown((math.sin(i * 2.4) * .022, math.cos(i * 2.4) * .020, h),
+        (radius * .84, radius * .72, .110), leaf_dark if i % 3 else needle, irregular=.20, seed=180 + i)
 finish('cypress')
 
 # An old olive tree spreads from a bent trunk into flattened, silver foliage.
@@ -143,8 +197,8 @@ for i in range(7):
     angle = i * 2.399
     end = (math.cos(angle) * .22, math.sin(angle) * .22, .4 + (i % 3) * .052)
     branch((.025, -.008, .2), end, .016, top=.1)
-    crown(end, (.17, .14, .13), silver if i % 3 else leaf_dark, seed=210 + i)
-crown((.02, 0, .55), (.19, .16, .13), silver, seed=231)
+    crown(end, (.140, .105, .100), silver if i % 3 else leaf_dark, irregular=.20, seed=210 + i)
+crown((.02, 0, .55), (.145, .115, .110), silver, irregular=.18, seed=231)
 finish('olive')
 
 # Fruit trees keep a low spreading crown suitable for orchard rows.
@@ -153,8 +207,8 @@ for i in range(6):
     angle = i * math.tau / 6
     end = (math.cos(angle) * .13, math.sin(angle) * .13, .36 + (i % 2) * .06)
     branch((0, 0, .23), end, .009)
-    crown(end, (.12, .115, .12), leaf_light if i % 2 else leaf, seed=245 + i)
-crown((0, 0, .48), (.115, .1, .115), leaf_light, seed=259)
+    crown(end, (.097, .085, .106), leaf_light if i % 2 else leaf, irregular=.19, seed=245 + i)
+crown((0, 0, .48), (.086, .075, .115), leaf_light, irregular=.18, seed=259)
 finish('orchard')
 
 # A fractured boulder supplements the continuous sculpted terrain.
@@ -174,8 +228,8 @@ for source in list(bpy.data.objects):
     bpy.context.collection.objects.link(distant)
     bpy.context.view_layer.objects.active = distant
     modifier = distant.modifiers.new('Country view geometry', 'DECIMATE')
-    modifier.ratio = {'oak': .085, 'beech': .095, 'pine': .08,
-        'cypress': .085, 'olive': .14, 'orchard': .15}[source.name]
+    modifier.ratio = {'oak': .115, 'beech': .135, 'pine': .14,
+        'cypress': .13, 'olive': .14, 'orchard': .15}[source.name]
     # The ground-connected stem must survive from every direction. Protect
     # only its disconnected component on the distant copy, not every branch.
     edges = [[] for _ in distant.data.vertices]
@@ -198,8 +252,11 @@ for source in list(bpy.data.objects):
     modifier.vertex_group_factor = 1000
     modifier.use_collapse_triangulate = True
     bpy.ops.object.modifier_apply(modifier=modifier.name)
+    retain_bounds(distant, distant.name)
 
 bpy.ops.object.select_all(action='SELECT')
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / 'vegetation.blend'), compress=True)
 properties = bpy.ops.export_scene.gltf.get_rna_type().properties.keys()
 options = dict(filepath=str(DEST), export_format='GLB', export_apply=True,
     export_yup=True, export_normals=True, export_texcoords=True,

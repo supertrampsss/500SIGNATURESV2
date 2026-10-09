@@ -102,13 +102,13 @@ export function mapSourceCoordinates(x: number, z: number): { lon: number; lat: 
 }
 
 /** One geographic projection for the coast, routes, topics and town origins. */
-export function mapPosition(lon: number, lat: number): Point {
+function baseMapPosition(lon: number, lat: number): Point {
   finite(lon, lat);
   const p = styledPosition(lon, lat);
   return projectPlane(planeProjection, p.x, p.z);
 }
 /** Exact inverse: homography, triangular shear, then monotone latitude intervals. */
-export function mapCoordinates(x: number, z: number): { lon: number; lat: number } {
+function baseMapCoordinates(x: number, z: number): { lon: number; lat: number } {
   finite(x, z);
   const p = projectPlane(inversePlaneProjection, x, z), shear = interpolate(shearKnots, p.z).value;
   const originalX = p.x <= shearWest + shear ? p.x - shear :
@@ -143,7 +143,7 @@ export function mapAuthoredCoordinates(x: number, z: number): Point {
  *  Apply J to (dx,dz); transform field corners individually for their full footprint.
  *  Local town plans and rigid model dimensions do not use this differential.
  */
-export function mapAuthoredJacobian(x: number, z: number) {
+function baseMapAuthoredJacobian(x: number, z: number) {
   const { lon, lat } = mapSourceCoordinates(x, z), mainland = mainlandWeight(lon),
     correction = interpolate(latitudeKnots, lat), sourceLon = -1.2 * Math.max(0, 43.2 - lat) * mainland.slope,
     sourceLat = 1.08 + (lat > 50.63 ? 1 : 0) + (lat < 43.2 ? 1.2 * mainland.value : 0),
@@ -163,5 +163,64 @@ export function mapAuthoredJacobian(x: number, z: number) {
     hzz = (h[1][1] - projected.z * h[2][1]) / d;
   const result = { xx: hxx * xx + hxz * zx, xz: hxx * xz + hxz * zz,
     zx: hzx * xx + hzz * zx, zz: hzx * xz + hzz * zz };
+  return { ...result, determinant: result.xx * result.zz - result.xz * result.zx };
+}
+
+// Baseline13 remains the shared geographic frame; the eastern correction is
+// applied once after interpolation and inverted before every height lookup.
+const eastDisplacementKnots: readonly Knot[] = [[-3.4, 0], [-2.62, 1.258433668273753], [-2.3, 1.1325903014463776], [-1.5, 0.8437374763119094], [2.2, 0.8437374763119094], [3.4, 0.684285698864346], [3.84, 0.8637836404922967], [4.8, 0.8637836404922967], [5.8, 0]];
+const eastStartKnots: readonly Knot[] = [[-3.4, 3.62], [-2.58, 3.62], [-1.5, 2.75], [5.8, 2.75]];
+const eastEndKnots: readonly Knot[] = [[-3.4, 4.2], [-2.58, 4.2], [-1.5, 3.15], [5.8, 3.15]];
+function eastInterpolate(knots: readonly Knot[], z: number): { v: number; d: number } {
+  if (z <= knots[0][0]) return { v: knots[0][1], d: 0 };
+  if (z >= knots[knots.length - 1][0]) return { v: knots[knots.length - 1][1], d: 0 };
+  for (let index = 1; index < knots.length; index++) if (z <= knots[index][0]) {
+    const a = knots[index - 1], b = knots[index], d = (b[1] - a[1]) / (b[0] - a[0]);
+    return { v: a[1] + d * (z - a[0]), d };
+  }
+  throw new RangeError("Invalid eastern projection coordinate.");
+}
+function eastParameters(z: number) {
+  const D = eastInterpolate(eastDisplacementKnots, z),
+    a = eastInterpolate(eastStartKnots, z), b = eastInterpolate(eastEndKnots, z);
+  return { D, a, b, L: b.v - a.v };
+}
+export const mapBaselinePosition = baseMapPosition;
+export const mapBaselineCoordinates = baseMapCoordinates;
+export function mapFinalFromBaseline(x: number, z: number): Point {
+  finite(x, z);
+  const { D, a, b, L } = eastParameters(z),
+    weight = x <= a.v ? 0 : x >= b.v ? 1 : (x - a.v) / L;
+  return { x: x + D.v * weight, z };
+}
+export function mapBaselineFromFinal(X: number, z: number): Point {
+  finite(X, z);
+  const { D, a, b, L } = eastParameters(z);
+  return { x: X <= a.v ? X : X >= b.v + D.v ? X - D.v :
+    (X + D.v * a.v / L) / (1 + D.v / L), z };
+}
+function eastJacobian(x: number, z: number) {
+  const { D, a, b, L } = eastParameters(z);
+  let weight = 0, wx = 0, wz = 0;
+  if (x >= b.v) weight = 1;
+  else if (x > a.v) {
+    weight = (x - a.v) / L; wx = 1 / L;
+    wz = (-a.d * L - (x - a.v) * (b.d - a.d)) / (L * L);
+  }
+  return { xx: 1 + D.v * wx, xz: D.d * weight + D.v * wz };
+}
+export function mapPosition(lon: number, lat: number): Point {
+  const p = baseMapPosition(lon, lat);
+  return mapFinalFromBaseline(p.x, p.z);
+}
+export function mapCoordinates(x: number, z: number): { lon: number; lat: number } {
+  const p = mapBaselineFromFinal(x, z);
+  return baseMapCoordinates(p.x, p.z);
+}
+export function mapAuthoredJacobian(x: number, z: number) {
+  const previous = baseMapAuthoredJacobian(x, z), geo = mapSourceCoordinates(x, z),
+    p = baseMapPosition(geo.lon, geo.lat), j = eastJacobian(p.x, p.z),
+    result = { xx: j.xx * previous.xx + j.xz * previous.zx,
+      xz: j.xx * previous.xz + j.xz * previous.zz, zx: previous.zx, zz: previous.zz };
   return { ...result, determinant: result.xx * result.zz - result.xz * result.zx };
 }

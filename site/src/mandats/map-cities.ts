@@ -1,5 +1,7 @@
+import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { Scene } from "@babylonjs/core/scene";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -10,6 +12,8 @@ import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder"
 import { MAP_PLACES, mapPosition, mapCoordinates } from "./map-state.ts";
 import type { MapPlace } from "./map-state.ts";
 import { landContains, landHeight, riverContains } from "./map-landscape.ts";
+import { publicGround } from "./map-public-ground.ts";
+import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
 import { createCityMaterials } from "./map-city-materials.ts";
 import { CityGeometry as Geometry, createCityMesh } from "./map-city-geometry.ts";
 import { buildHarbour, buildPowerPlant, buildWindTurbines } from "./map-city-infrastructure.ts";
@@ -163,7 +167,7 @@ export async function buildCities(scene: Scene): Promise<{
     // Stay inside the surveyed .021 half-width while retaining a visible pale
     // shoulder on either side of the miniature's national roads.
     const shoulder = national ? .008 : .004;
-    const path = smooth(points, local ? 5 : 12),
+    const path = national ? smooth(points, 12).map(point => mapFinalFromBaseline(point.x, point.z)) : smooth(points, local ? 5 : 12),
       paving = new Geometry(), surface = new Geometry(), paintwork = new Geometry(),
       runs: Vector3[][] = [];
     let run: Vector3[] = [];
@@ -272,8 +276,27 @@ export async function buildCities(scene: Scene): Promise<{
   };
 
   const school = (root: TransformNode) => {
-    const node = located("public-school", root, -0.22, -0.6),
+    const site = LYON_SCHOOL_SITE,
+      levels = Array.from({ length: 9 }, (_, i) => Array.from({ length: 9 }, (_, j) =>
+        landHeight(root.position.x + site.x + (i / 8 - .5) * site.buildingWidth,
+          root.position.z + site.z + (j / 8 - .5) * site.buildingDepth))).flat(),
+      footprint = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => ({
+        x: root.position.x + site.x + x * site.buildingWidth / 2,
+        z: root.position.z + site.z + z * site.buildingDepth / 2 })),
+      rendered = renderedFootprintLevels(footprint),
+      highest = Math.max(...levels, ...rendered), lowest = Math.min(...levels, ...rendered),
+      floor = highest + .003,
+      node = located("public-school", root, site.x, site.z),
       glazing = new Geometry(), details = new Geometry(), flag = new Geometry(), whiteFlag = new Geometry(), redFlag = new Geometry();
+    node.position.y = floor - root.position.y;
+    node.metadata = { schoolSite: true, surveyedMinimum: lowest, surveyedMaximum: highest,
+      renderedGroundMinimum: rendered.length ? Math.min(...rendered) : null,
+      renderedGroundMaximum: rendered.length ? Math.max(...rendered) : null };
+    if (highest - lowest > .010) {
+      const height = floor - lowest + .001;
+      box("school-stone-footing", site.buildingWidth, height, site.buildingDepth, stone,
+        node, 0, -height / 2, 0);
+    }
     box("school-stone", 0.3, 0.143, 0.134, stone, node, 0, 0.0715, 0);
     roof(node, 0.312, 0.144, 0.143, 0.052, "hip", slate);
     for (let floor = 0; floor < 2; floor++)
@@ -299,15 +322,38 @@ export async function buildCities(scene: Scene): Promise<{
   const esplanade = (root: TransformNode) => {
     const surface = new Geometry(), furniture = new Geometry(), feet = new Geometry(),
       outline = [[-0.205, -0.43], [-0.18, -0.255], [0.12, -0.247], [0.23, -0.29], [0.223, -0.428], [0.085, -0.47]],
-      ground = Math.max(...outline.map(([x, z]) => landHeight(root.position.x + x, root.position.z + z))) + 0.016,
-      centre: Point = [0.02, ground - root.position.y, -0.345];
+      ground = Math.max(...outline.map(([x, z]) => landHeight(root.position.x + x, root.position.z + z))) + 0.016;
     if (outline.some(([x, z]) => !landContains(root.position.x + x, root.position.z + z))) return;
-    root.metadata = { ...(root.metadata ?? {}), crowdGroundY: ground + 0.003 };
-    for (let i = 0; i < outline.length; i++) {
-      const a = outline[i], b = outline[(i + 1) % outline.length];
-      surface.triangle(centre, [a[0], ground - root.position.y, a[1]], [b[0], ground - root.position.y, b[1]]);
+    const paving = publicGround(scene, root.position, outline),
+      crowdPositions: GroundPoint[] = [],
+      safe = (point: GroundPoint) => paving.contains(point) &&
+        !riverContains(root.position.x + point.x, root.position.z + point.z, .027);
+    for (const polygon of paving.polygons) {
+      const a = polygon[0];
+      for (let i = 1; i < polygon.length - 1; i++) {
+        const b = polygon[i], c = polygon[i + 1], y = ground - root.position.y;
+        const ax = Math.fround(a.x), az = Math.fround(a.z),
+          bx = Math.fround(b.x), bz = Math.fround(b.z),
+          cx = Math.fround(c.x), cz = Math.fround(c.z);
+        if (Math.abs((bx - ax) * (cz - az) - (bz - az) * (cx - ax)) < 1e-10) continue;
+        surface.triangle([a.x, y, a.z], [b.x, y, b.z], [c.x, y, c.z]);
+      }
     }
+    for (let i = 0; i < 30; i++) {
+      const point = { x: .02 + ((i % 8) - 3.5) * .055 * .72,
+        z: -.42 + Math.floor(i / 8) * .07 * .72 };
+      if (safe(point)) crowdPositions.push(point);
+    }
+    for (let z = -.412; z <= -.277 && crowdPositions.length < 30; z += .025)
+      for (let x = -.157; x <= .18 && crowdPositions.length < 30; x += .028) {
+        const point = { x, z };
+        if (safe(point) && crowdPositions.every(p => Math.hypot(p.x - x, p.z - z) >= .022))
+          crowdPositions.push(point);
+      }
+    root.metadata = { ...(root.metadata ?? {}), crowdGroundY: ground + .003, crowdPositions };
     for (const sx of [-0.21, 0.245]) {
+      if ([-.015, .015].some(dx => [-.036, .036].some(dz =>
+        riverContains(root.position.x + sx + dx, root.position.z - .32 + dz, .008)))) continue;
       const y = ground - root.position.y;
       furniture.box(sx, y + 0.025, -0.32, 0.025, 0.004, 0.068);
       furniture.box(sx + (sx < 0 ? -0.01 : 0.01), y + 0.039, -0.32, 0.004, 0.028, 0.068);
@@ -370,7 +416,7 @@ export async function buildCities(scene: Scene): Promise<{
 
   const transportCorridors = routes.flatMap(route => {
     const path = smooth([roadAnchor(route.from), ...route.via, roadAnchor(route.to)]
-      .map(([lon, lat]) => mapPosition(lon, lat)), 12);
+      .map(([lon, lat]) => mapBaselinePosition(lon, lat)), 12).map(point => mapFinalFromBaseline(point.x, point.z));
     return path.slice(1).map((end, index) => ({ start: path[index], end }));
   });
   const intersectsCorridors = (plot: Plot, corridors: Array<{ start: GroundPoint; end: GroundPoint; halfWidth?: number }>, precise = false) => {
@@ -435,7 +481,8 @@ export async function buildCities(scene: Scene): Promise<{
       halfW: cathedralW, halfD: cathedralD, angle: -cathedralSite.angle };
   const specialSites: Partial<Record<MapPlace, Plot[]>> = {
     paris: [cathedralPlot],
-    lyon: [{ x: -.22, z: -.60, halfX: .18, halfZ: .09 }, { x: -.42, z: .57, halfX: .14, halfZ: .15 }],
+    lyon: [{ x: LYON_SCHOOL_SITE.x, z: LYON_SCHOOL_SITE.z,
+      halfX: LYON_SCHOOL_SITE.publicHalfW, halfZ: LYON_SCHOOL_SITE.publicHalfD }, { x: -.42, z: .57, halfX: .14, halfZ: .15 }],
     lille: [{ x: -.70, z: -.65, halfX: .21, halfZ: .15 }, { x: -.48, z: .13, halfX: .08, halfZ: .08 }],
     rennes: [{ x: .37, z: .47, halfX: .16, halfZ: .10 }],
     toulouse: [{ x: -.35, z: .51, halfX: .20, halfZ: .10 }],
@@ -448,7 +495,7 @@ export async function buildCities(scene: Scene): Promise<{
       const place = MAP_PLACES[town], position = mapPosition(place.lon, place.lat), offset = stationSites[town]!;
       return { x: position.x + offset[0], z: position.z + offset[1] };
     };
-    const path = smooth([stop(from), ...via.map(([lon, lat]) => mapPosition(lon, lat)), stop(to)], 20);
+    const path = smooth([mapBaselineFromFinal(stop(from).x, stop(from).z), ...via.map(([lon, lat]) => mapBaselinePosition(lon, lat)), mapBaselineFromFinal(stop(to).x, stop(to).z)], 20).map(point => mapFinalFromBaseline(point.x, point.z));
     return path.slice(1).map((end, i) => ({ start: path[i], end, halfWidth: .026 }));
   });
   const allPublicPlots = [...roots.entries()].flatMap(([town, root]) => {
@@ -505,6 +552,56 @@ export async function buildCities(scene: Scene): Promise<{
   const baseHousePlots = allAuthoredHousePlots.filter(plot => !plot.id.includes("-tissu14-"));
 
   const parisConflicts = new Map<string, string[]>();
+  const gardenTerrainCells = new Map<string, Point[][]>();
+  for (const mesh of scene.meshes.filter(mesh => mesh.name.startsWith("landscape-terrain-"))) {
+    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
+    if (!positions || !indices) continue;
+    for (let i = 0; i < indices.length; i += 3) {
+      const triangle: Point[] = [0, 1, 2].map(j => {
+        const k = indices[i + j] * 3; return [positions[k], positions[k + 1], positions[k + 2]];
+      }),
+        minX = Math.min(...triangle.map(p => p[0])), maxX = Math.max(...triangle.map(p => p[0])),
+        minZ = Math.min(...triangle.map(p => p[2])), maxZ = Math.max(...triangle.map(p => p[2]));
+      for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
+        for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++) {
+          const key = `${x}:${z}`, cell = gardenTerrainCells.get(key) ?? [];
+          cell.push(triangle); gardenTerrainCells.set(key, cell);
+        }
+    }
+  }
+  // Retaining foundations cover the actual rendered terrain as well as the
+  // analytic ground survey. Planar triangle extrema occur at clipped vertices.
+  const renderedFootprintLevels = (outline: GroundPoint[]): number[] => {
+    const polygon = [...outline], signedArea = polygon.reduce((sum, p, i) => {
+      const q = polygon[(i + 1) % polygon.length]; return sum + p.x * q.z - q.x * p.z;
+    }, 0);
+    if (signedArea < 0) polygon.reverse();
+    const minX = Math.min(...polygon.map(p => p.x)), maxX = Math.max(...polygon.map(p => p.x)),
+      minZ = Math.min(...polygon.map(p => p.z)), maxZ = Math.max(...polygon.map(p => p.z)),
+      triangles = new Set<Point[]>(), levels: number[] = [];
+    for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
+      for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++)
+        for (const triangle of gardenTerrainCells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
+    for (const triangle of triangles) {
+      let clipped = triangle.map(p => [...p] as Point);
+      for (let edge = 0; edge < polygon.length && clipped.length; edge++) {
+        const a = polygon[edge], b = polygon[(edge + 1) % polygon.length],
+          side = (p: Point) => (b.x - a.x) * (p[2] - a.z) - (b.z - a.z) * (p[0] - a.x),
+          next: Point[] = [];
+        for (let i = 0; i < clipped.length; i++) {
+          const p = clipped[i], q = clipped[(i + 1) % clipped.length], sp = side(p), sq = side(q);
+          if (sp >= -1e-10) next.push(p);
+          if ((sp < 0) !== (sq < 0)) {
+            const t = sp / (sp - sq);
+            next.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t]);
+          }
+        }
+        clipped = next;
+      }
+      levels.push(...clipped.map(p => p[1]));
+    }
+    return levels;
+  };
   const placeHouse = (root: TransformNode, town: string, region: UrbanRegion,
     x: number, z: number, angle: number, width: number, index: number,
     frontage?: { normalX: number; normalZ: number; side: number; streetWidth: number; maxDepth: number },
@@ -585,7 +682,14 @@ export async function buildCities(scene: Scene): Promise<{
         survey[0].x + (survey[1].x - survey[0].x) * i / 8 + (survey[3].x - survey[0].x) * j / 8,
         survey[0].z + (survey[1].z - survey[0].z) * i / 8 + (survey[3].z - survey[0].z) * j / 8,
       ))).flat() : levels,
-      footingHighest = Math.max(...footingLevels), footingLowest = Math.min(...footingLevels),
+      c = Math.cos(angle), sn = Math.sin(angle),
+      physicalFootprint = [[-width / 2, -depth / 2], [width / 2, -depth / 2],
+        [width / 2, depth / 2], [-width / 2, depth / 2]].map(([u, v]) => ({
+          x: worldX + u * c + v * sn, z: worldZ - u * sn + v * c,
+        })),
+      renderedLevels = renderedFootprintLevels(physicalFootprint),
+      footingHighest = Math.max(...footingLevels, ...renderedLevels),
+      footingLowest = Math.min(...footingLevels, ...renderedLevels),
       footingGrade = footingHighest - footingLowest;
     // The stone footing follows the house alone. It fills a surveyed slope,
     // without paving an entire lot or leaving a building floating over a valley.
@@ -594,23 +698,25 @@ export async function buildCities(scene: Scene): Promise<{
       const foundation = located("house-footing", root, centreX, centreZ, angle);
       foundation.position.y = floor - root.position.y;
       foundation.metadata = { houseFooting: true, frontage: authored?.id, town,
-        surveyedMinimum: footingLowest, surveyedMaximum: footingHighest };
+        surveyedMinimum: footingLowest, surveyedMaximum: footingHighest,
+        renderedGroundMinimum: renderedLevels.length ? Math.min(...renderedLevels) : null,
+        renderedGroundMaximum: renderedLevels.length ? Math.max(...renderedLevels) : null };
       box("house-stone-footing", width * .98, footingGrade + .004, depth * .98, stone, foundation,
         0, -(footingGrade + .004) / 2, 0);
     }
     asset.root.position.set(x, floor - root.position.y, z);
     asset.root.rotation.y = angle;
     asset.root.scaling.setAll(scale);
-    // Taller facade volumes make the authored windows, storefronts and roof
-    // profiles legible at the national camera. Their surveyed footprint stays
-    // fixed, while rural farms remain lower than the urban street frontages.
+    // Authored heights express each address's role directly: low ancillary
+    // roofs, ordinary houses and occasional taller street accents. All national
+    // models retain their individually surveyed footprint and floor.
     const typeHeight = name.startsWith("ferme") ? 1.15 : name === "boutique_01" ? 1.23 :
       regionalHeight[region] - (rural ? .015 : 0),
       heightFactor = Math.max(1.15, Math.min(1.25, typeHeight + [-.01, .015, -.005, .01][index % 4]));
-    asset.root.scaling.y = authored ? authored.height / bounds.height * (authored.national ? 1.32 : 1) : scale * heightFactor;
+    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor;
     asset.root.scaling.z *= depth / naturalDepth;
     asset.root.metadata = { ...asset.root.metadata, town, domestic: true,
-      heightFactor: authored ? authored.height / (bounds.height * scale) * (authored.national ? 1.32 : 1) : heightFactor,
+      heightFactor: authored ? authored.height / (bounds.height * scale) : heightFactor,
       ...(authored ? { authoredParis: !authored.national, authoredNational: !!authored.national,
         block: authored.block, frontage: authored.id } : {}) };
     meshes.push(...asset.meshes);
@@ -652,6 +758,11 @@ export async function buildCities(scene: Scene): Promise<{
     court.metadata = { ...court.metadata, castsShadow: false, authoredParisGround: true };
   }
 
+  const gardenGrassNorth = new StandardMaterial("garden-grass-north", scene),
+    gardenGrassSouth = new StandardMaterial("garden-grass-south", scene);
+  gardenGrassNorth.diffuseColor = Color3.FromHexString("#62764D");
+  gardenGrassSouth.diffuseColor = Color3.FromHexString("#748249");
+  gardenGrassNorth.specularColor = gardenGrassSouth.specularColor = Color3.Black();
   const ruralRoots: TransformNode[] = [], settlementRoots = new Map<string, TransformNode>(),
     nationalReport: Array<{ id: string; town: string; block: string; accepted: boolean; reason?: string; corridors?: string[] }> = [];
   for (const settlement of NATIONAL_SETTLEMENTS) {
@@ -672,6 +783,60 @@ export async function buildCities(scene: Scene): Promise<{
         reason = Object.keys(after).find(key => after[key as keyof typeof after] > before[key as keyof typeof before]);
       nationalReport.push({ id: building.id, town: settlement.name, block: block.id, accepted,
         ...(reason ? { reason } : {}), ...(parisConflicts.has(building.id) ? { corridors: parisConflicts.get(building.id) } : {}) });
+    }
+    // Tiny native-ground gardens reuse the actual terrain triangle surface.
+    for (const garden of settlement.gardens ?? []) {
+      const world = garden.outline.map(([x, z]) => ({ x: root!.position.x + x, z: root!.position.z + z })),
+        cx = root.position.x + garden.x, cz = root.position.z + garden.z,
+        footprint: Plot = { x: cx, z: cz, halfX: garden.width / 2, halfZ: garden.depth / 2,
+          halfW: garden.width / 2, halfD: garden.depth / 2, angle: -garden.angle };
+      if (world.some(point => !landContains(point.x, point.z) || riverContains(point.x, point.z, .006)) ||
+          intersectsRoad(footprint) || intersectsCorridors(footprint, railCorridors, true) ||
+          intersectsCorridors(footprint, localStreets, true) ||
+          occupied.some(plot => collides(plot, footprint, .004)) ||
+          fixedProjectPlots.some(plot => collides(plot, footprint, .015)) ||
+          allPublicPlots.some(plot => collides(plot, footprint, .004)) ||
+          harbourReservations.some(polygon => harbourPolygonsOverlap(polygon, world))) continue;
+      const signedArea = world.reduce((sum, p, i) => {
+        const next = world[(i + 1) % world.length]; return sum + p.x * next.z - next.x * p.z;
+      }, 0);
+      if (signedArea < 0) world.reverse();
+      const shape = new Geometry(), minX = Math.min(...world.map(p => p.x)), maxX = Math.max(...world.map(p => p.x)),
+        minZ = Math.min(...world.map(p => p.z)), maxZ = Math.max(...world.map(p => p.z)),
+        triangles = new Set<Point[]>();
+      for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
+        for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++)
+          for (const triangle of gardenTerrainCells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
+      for (const triangle of triangles) {
+        let polygon = triangle.map(p => [...p] as Point);
+        for (let edge = 0; edge < world.length && polygon.length; edge++) {
+          const a = world[edge], b = world[(edge + 1) % world.length],
+            side = (p: Point) => (b.x - a.x) * (p[2] - a.z) - (b.z - a.z) * (p[0] - a.x),
+            clipped: Point[] = [];
+          for (let i = 0; i < polygon.length; i++) {
+            const p = polygon[i], q = polygon[(i + 1) % polygon.length], sp = side(p), sq = side(q);
+            if (sp >= -1e-10) clipped.push(p);
+            if ((sp < 0) !== (sq < 0)) {
+              const t = sp / (sp - sq);
+              clipped.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t]);
+            }
+          }
+          polygon = clipped;
+        }
+        if (polygon.length < 3) continue;
+        const area = polygon.reduce((sum, p, i) => { const q = polygon[(i + 1) % polygon.length];
+          return sum + p[0] * q[2] - q[0] * p[2]; }, 0);
+        if (Math.abs(area) < 1e-12) continue;
+        if (area > 0) polygon.reverse();
+        const vertex = (p: Point): Point => [p[0], p[1] + .002, p[2]];
+        for (let i = 1; i < polygon.length - 1; i++)
+          shape.triangle(vertex(polygon[0]), vertex(polygon[i]), vertex(polygon[i + 1]));
+      }
+      if (!shape.positions.length) continue;
+      const mesh = geometry(`national-garden-${garden.id}`, shape,
+        settlement.region === "south" ? gardenGrassSouth : gardenGrassNorth);
+      mesh.metadata = { ...mesh.metadata, castsShadow: false, authoredNationalGarden: true, town: settlement.name,
+        garden: garden.id, nativeTriangleGround: true };
     }
     // Small threshold aprons and connected venelles belong to the actual roofs.
     // The land between them stays visible instead of becoming one beige plate.
@@ -802,6 +967,7 @@ export async function buildCities(scene: Scene): Promise<{
           { x: worldX - .035, z: worldZ - .035 }, { x: worldX + .035, z: worldZ - .035 },
           { x: worldX + .035, z: worldZ + .035 }, { x: worldX - .035, z: worldZ + .035 },
         ])) ||
+        fixedProjectPlots.some(plot => collides(plot, trunkPlot, .035)) ||
         occupied.some(plot => collides(plot, trunkPlot, .008)) ||
         surroundingTrees.some(plot => collides(plot, trunkPlot, .012)) ||
         planted.some(plot => collides(plot, { ...trunkPlot, halfX: .04, halfZ: .04 }))) return;
@@ -864,7 +1030,7 @@ export async function buildCities(scene: Scene): Promise<{
   carShape.box(0, 0.012, 0, 0.022, 0.014, 0.048);
   carShape.box(0, 0.023, -0.003, 0.02, 0.01, 0.025);
   for (const [index, route] of routes.entries()) {
-    const points = [roadAnchor(route.from), ...route.via, roadAnchor(route.to)].map(([lon, lat]) => mapPosition(lon, lat)),
+    const points = [roadAnchor(route.from), ...route.via, roadAnchor(route.to)].map(([lon, lat]) => mapBaselinePosition(lon, lat)),
       runs = road(`national-road-${index}`, points, 0.033);
     networkPaths.push(...runs);
     const path = runs.sort((a, b) => b.length - a.length)[0];
@@ -908,11 +1074,14 @@ export async function buildCities(scene: Scene): Promise<{
       }
       candidates.sort((a, b) => a.distance - b.distance);
       const lane = candidates.find(({ start, end }) => {
-        const corridor = [{ start, end, halfWidth: .012 }],
+        const corridor = [{ start, end, halfWidth: .016 }],
           samples = Array.from({ length: 15 }, (_, i) => ({ x: start.x + (end.x - start.x) * i / 14,
             z: start.z + (end.z - start.z) * i / 14 }));
         if (samples.some(point => !landContains(point.x, point.z) || riverContains(point.x, point.z, .011)) ||
             occupied.some(plot => intersectsCorridors(plot, corridor, true)) ||
+            fixedProjectPlots.some(plot => intersectsCorridors(plot, corridor, true)) ||
+            planted.some(plot => intersectsCorridors({ ...plot, halfX: .025, halfZ: .025 }, corridor, true)) ||
+            surroundingTrees.some(plot => intersectsCorridors(plot, corridor, true)) ||
             allPublicPlots.some(plot => intersectsCorridors(plot, corridor, true))) return false;
         const dx = end.x - start.x, dz = end.z - start.z, length = Math.hypot(dx, dz), nx = -dz / length * .009, nz = dx / length * .009,
           ribbon = [{ x: start.x + nx, z: start.z + nz }, { x: start.x - nx, z: start.z - nz },
@@ -939,13 +1108,12 @@ export async function buildCities(scene: Scene): Promise<{
   const parisPublicPolygons = PARIS_SPACES.map(space => space.outline.map(([x, z]) => ({
     x: parisRoot.position.x + x, z: parisRoot.position.z + z,
   })));
-  for (const settlement of NATIONAL_SETTLEMENTS) for (const block of settlement.blocks) {
-    const root = settlementRoots.get(settlement.name)!,
-      minX = Math.min(...block.outline.map(point => point[0])), maxX = Math.max(...block.outline.map(point => point[0])),
-      minZ = Math.min(...block.outline.map(point => point[1])), maxZ = Math.max(...block.outline.map(point => point[1]));
-    publicSpaces.push({ x: root.position.x + (minX + maxX) / 2, z: root.position.z + (minZ + maxZ) / 2,
-      halfX: (maxX - minX) / 2, halfZ: (maxZ - minZ) / 2 });
-  }
+  const nationalPublicPolygons = NATIONAL_SETTLEMENTS.flatMap(settlement => {
+    const origin = settlementRoots.get(settlement.name)!.position;
+    return [...settlement.blocks, ...settlement.gardens ?? []].map(space => space.outline.map(([x, z]) => ({
+      x: origin.x + x, z: origin.z + z,
+    })));
+  });
   for (const plant of [rhonePlant, lorrainePlant])
     publicSpaces.push({ x: plant.x + .14, z: plant.z, halfX: .42, halfZ: .24 });
   for (const [town, root] of roots) {
@@ -957,7 +1125,7 @@ export async function buildCities(scene: Scene): Promise<{
       const position = node.getAbsolutePosition();
       return { x: position.x, z: position.z, halfX: .04, halfZ: .04 };
     });
-    const candidates: Array<{ x: number; z: number; y: number; score: number }> = [];
+    const candidates: Array<{ x: number; z: number; y: number; score: number; reservationIndex: number }> = [];
     // Compact quarters leave fewer empty parcels beside their centre. Survey
     // the surrounding real terrain as well, keeping the full construction
     // footprint clear of every town, transport corridor and harbour.
@@ -982,16 +1150,22 @@ export async function buildCities(scene: Scene): Promise<{
       const projectFootprint = [[-plot.halfX, -plot.halfZ], [plot.halfX, -plot.halfZ],
         [plot.halfX, plot.halfZ], [-plot.halfX, plot.halfZ]].map(([x, z]) => ({ x: plot.x + x, z: plot.z + z }));
       if (harbourReservations.some(polygon => harbourPolygonsOverlap(polygon, projectFootprint)) ||
-          parisPublicPolygons.some(polygon => harbourPolygonsOverlap(polygon, projectFootprint))) continue;
+          parisPublicPolygons.some(polygon => harbourPolygonsOverlap(polygon, projectFootprint)) ||
+          nationalPublicPolygons.some(polygon => harbourPolygonsOverlap(polygon, projectFootprint))) continue;
       const levels = survey.map(point => landHeight(point.x, point.z)),
         variation = Math.max(...levels) - Math.min(...levels);
       if (variation > .065) continue;
       const nearbyTrees = vegetation.filter(tree => collides(plot, tree)).length;
       candidates.push({ x, z, y: Math.max(...levels) + .012,
-        score: nearbyTrees * .05 + variation * 2 + distance * .10 });
+        score: nearbyTrees * .05 + variation * 2 + distance * .10,
+        reservationIndex: AUTHORED_PROJECT_RESERVATIONS[town]?.findIndex(site =>
+          Math.abs(site.x - x) < 1e-9 && Math.abs(site.z - z) < 1e-9) ?? -1 });
     }
-    candidates.sort((a, b) => a.score - b.score);
+    candidates.sort((a, b) => (a.reservationIndex < 0 ? Infinity : a.reservationIndex) -
+      (b.reservationIndex < 0 ? Infinity : b.reservationIndex) || a.score - b.score);
+    const maximumSites = AUTHORED_PROJECT_RESERVATIONS[town]?.length ?? 3;
     for (const candidate of candidates) {
+      if (sites.length >= maximumSites) break;
       if (sites.some(site => Math.hypot(site.x - candidate.x, site.z - candidate.z) < .50)) continue;
       sites.push({ x: candidate.x, z: candidate.z, y: candidate.y });
       if (sites.length === 3) break;
