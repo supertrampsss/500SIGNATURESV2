@@ -1,0 +1,131 @@
+{
+  "capturedAt": "2026-10-08T20:44:31.184Z",
+  "method": "Actual NullEngine scene with real GLB bytes, barycentric water tests against actual surveyed terrain/crop triangles.",
+  "constructionMs": 1364.814852,
+  "contextMs": 283.8256349999999,
+  "meshes": [
+    {
+      "name": "landscape-terrain-0",
+      "vertices": 47832,
+      "triangles": 69635,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-cliffs-0",
+      "vertices": 11025,
+      "triangles": 18888,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-terrain-1",
+      "vertices": 1592,
+      "triangles": 1982,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-cliffs-1",
+      "vertices": 1127,
+      "triangles": 1920,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-terrain-2",
+      "vertices": 26,
+      "triangles": 31,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-cliffs-2",
+      "vertices": 147,
+      "triangles": 240,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-agriculture",
+      "vertices": 7839,
+      "triangles": 11406,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-crop-rows",
+      "vertices": 17884,
+      "triangles": 13454,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-farm-lanes",
+      "vertices": 268,
+      "triangles": 218,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-hedges",
+      "vertices": 1275,
+      "triangles": 1392,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-riverbanks",
+      "vertices": 9176,
+      "triangles": 4588,
+      "normalsFinite": true
+    },
+    {
+      "name": "landscape-rivers",
+      "vertices": 4588,
+      "triangles": 2294,
+      "normalsFinite": true
+    },
+    {
+      "name": "context-surface",
+      "vertices": 9059,
+      "triangles": 16634,
+      "normalsFinite": true
+    },
+    {
+      "name": "context-boundaries",
+      "vertices": 9556,
+      "triangles": 4778,
+      "normalsFinite": true
+    }
+  ],
+  "water": {
+    "examined": 2294,
+    "landOcclusions": 0,
+    "fieldOcclusions": 0,
+    "examples": []
+  },
+  "border": {
+    "minimum": -0.07988317134696156,
+    "maximum": 0.17374240411424813
+  },
+  "snow": {
+    "highAlpineVertices": 7507,
+    "whiteVertices": 3147,
+    "alpineMaxHeight": 1.038843503790561
+  },
+  "vegetation": {
+    "france": {
+      "treeCount": 360,
+      "rockCount": 38,
+      "authoredVegetation": true
+    },
+    "context": {
+      "treeCount": 1097,
+      "contextVegetation": true,
+      "region": "context",
+      "castsShadow": false
+    }
+  },
+  "sourceSHA256": {
+    "map-landscape.ts": "47a7d11952c34d6a36fc385bfa09f17873a727ca3ef2eecbe668ef1ed7e34420",
+    "map-land-crags.ts": "90ef524745019476889e2f38b2c8f5f592669283b4555e848f1aa9b59fb9eea1",
+    "map-land-materials.ts": "8b3dcc83dfdd129a5f04d6e75ba050b796eaa85640e94d5a338f9dcc08708c6f",
+    "map-context.ts": "bde3a484436fb60bf7d6570db11e78e86c8f0c87ee7079e7757b4bf0902c6288",
+    "map-asset-kit.ts": "aa670ebb18fd26de46d893e5cdedcaee2cce71346c7fbb3990b9a99626596576"
+  },
+  "dispose": {
+    "meshes": 0,
+    "textures": 0
+  }
+}

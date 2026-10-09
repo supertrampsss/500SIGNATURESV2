@@ -1,0 +1,175 @@
+{
+  "capture": "13",
+  "browser": "151.0.7922.173",
+  "viewport": [
+    1672,
+    941
+  ],
+  "devicePixelRatio": 1,
+  "nativeViews": 7,
+  "errors": 0,
+  "failedRequests": 0,
+  "failedResponses": 0,
+  "consoleMessages": 0,
+  "choicesByView": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "nativeViewRecords": [
+    {
+      "stage": "01-national",
+      "capturedAt": "2026-10-09T00:49:12.589Z",
+      "cameraRadius": "13.45",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": true
+    },
+    {
+      "stage": "02-paris-detail",
+      "capturedAt": "2026-10-09T00:49:25.490Z",
+      "cameraRadius": "3.8",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": true
+    },
+    {
+      "stage": "03-paris-seine",
+      "capturedAt": "2026-10-09T00:49:34.940Z",
+      "cameraRadius": "5.8",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": true
+    },
+    {
+      "stage": "03b-paris-recentree",
+      "capturedAt": "2026-10-09T00:49:57.496Z",
+      "cameraRadius": "13.45",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": false
+    },
+    {
+      "stage": "04-lyon-detail",
+      "capturedAt": "2026-10-09T00:50:33.181Z",
+      "cameraRadius": "3.8",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": false
+    },
+    {
+      "stage": "05-lyon-alpes",
+      "capturedAt": "2026-10-09T00:50:42.365Z",
+      "cameraRadius": "5.8",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": true
+    },
+    {
+      "stage": "06-national-retour",
+      "capturedAt": "2026-10-09T00:50:54.440Z",
+      "cameraRadius": "13.45",
+      "errors": 0,
+      "choices": 0,
+      "includedInGallery": true
+    }
+  ],
+  "initialScene": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1268x801",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "landscape": "diorama",
+    "staticBatches": "35",
+    "staticInstances": "8869",
+    "authoredHouses": "376",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "cameraRadius": "13.45",
+    "renderMs": "245"
+  },
+  "artisticStatus": "non conforme à la référence confirmée; reconstruction intermédiaire",
+  "observedDifferences": [
+    "Quartiers isolés et fronts urbains encore répétitifs",
+    "Grandes plaines ouvertes et paysages peu continus",
+    "Arrière-plan voisin sombre et peu structuré",
+    "Longs flancs minéraux striés et côtes régulières",
+    "Rivières uniformes aux berges peu composées",
+    "Corse pauvre en constructions et en composition végétale à cette échelle"
+  ],
+  "otherBrowserSuites": "à exécuter sur ce build",
+  "reference": {
+    "file": "../reference-ordinateur.png",
+    "sha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37"
+  },
+  "copiedEvidence": {
+    "ordinateur.png": {
+      "bytes": 1663873,
+      "sha256": "20ae1ce5ae8185c85b6b8624f46b43cc4519c992cb27512cf89186dd894d939e"
+    },
+    "ordinateur.json": {
+      "bytes": 17447,
+      "sha256": "846f08637b8ef7d5de30f59abc5880afd7fd0ab999fd743791d853f1ed69e67a"
+    },
+    "ordinateur-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "paris.png": {
+      "bytes": 1361262,
+      "sha256": "23f9d71c332c8e7338d6d19a3adf10f4c70bb777bb8658ae352ccb213844882a"
+    },
+    "paris.json": {
+      "bytes": 17800,
+      "sha256": "4ad92fd8f8a81a117e2be648ea73da68afad1afafbb666ce681ab153ae808615"
+    },
+    "paris-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "seine.png": {
+      "bytes": 1358526,
+      "sha256": "f1c9bcb13840a8234733b8f1e1f8398ffdb7e40441e21fe54db74c97a08f1942"
+    },
+    "seine.json": {
+      "bytes": 17896,
+      "sha256": "8b700a377285cb79b74def3028e6404b6b81fb0d7bb472fa93800fd8bd941c9a"
+    },
+    "seine-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "alpes.png": {
+      "bytes": 1616569,
+      "sha256": "66709a71310e873c02b635c8730e050a528ecbf5198302c1273421776292cdab"
+    },
+    "alpes.json": {
+      "bytes": 18155,
+      "sha256": "9683053cf09ff4ae64863b44fe560d59db4aa92d961fe1cba87b940991eb9e90"
+    },
+    "alpes-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "retour.png": {
+      "bytes": 1663873,
+      "sha256": "20ae1ce5ae8185c85b6b8624f46b43cc4519c992cb27512cf89186dd894d939e"
+    },
+    "retour.json": {
+      "bytes": 17984,
+      "sha256": "ff1d14020fbf19700294cffb89b2a80c775544a9cf1c3342aeac3fbd5e86b5c0"
+    },
+    "retour-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    }
+  },
+  "method": "Captures réelles du jeu national v12, seed 0, ambition equilibre. Les inspections utilisent les marqueurs et boutons natifs. Aucun réglage de caméra ou état de partie injecté. Cinq vues sont copiées dans cette galerie ; le relevé conserve le résultat des sept vues natives."
+}

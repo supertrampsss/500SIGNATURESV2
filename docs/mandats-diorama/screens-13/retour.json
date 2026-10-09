@@ -1,0 +1,708 @@
+{
+  "capturedAt": "2026-10-09T00:50:54.440Z",
+  "browserVersion": "151.0.7922.173",
+  "origin": "http://127.0.0.1:4191",
+  "description": "Return to the national view after native map manipulations, with zero decisions",
+  "actions": [
+    "Click the actual Assembly marker",
+    "Click Voir le lieu for Paris",
+    "Click Réduire la carte to include the Paris and river basin surroundings",
+    "Click Recentrer after Paris inspection",
+    "Click Fermer le sujet after Paris inspection",
+    "Click Recentrer",
+    "Click the real education-lycees marker",
+    "Click Voir le lieu for Lyon",
+    "Click Réduire la carte to include Alpine surroundings",
+    "Click Recentrer",
+    "Click Fermer le sujet"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": []
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1268x801",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "landscape": "diorama",
+    "staticBatches": "35",
+    "staticInstances": "8869",
+    "authoredHouses": "376",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "cameraRadius": "13.45",
+    "renderMs": "18",
+    "inspection": ""
+  },
+  "layout": {
+    "scrollWidth": 1672,
+    "viewportWidth": 1672,
+    "viewportHeight": 941,
+    "devicePixelRatio": 1,
+    "scrollY": 0,
+    "subject": null,
+    "canvas": {
+      "x": 0,
+      "y": 66,
+      "width": 1268,
+      "height": 801,
+      "top": 66,
+      "right": 1268,
+      "bottom": 867,
+      "left": 0
+    },
+    "labels": [
+      {
+        "text": "Manche",
+        "hidden": false,
+        "lon": "-2.8",
+        "lat": "50.55",
+        "left": "284px",
+        "top": "92px",
+        "bbox": {
+          "x": 189,
+          "y": 146,
+          "width": 190,
+          "height": 24,
+          "top": 146,
+          "right": 379,
+          "bottom": 170,
+          "left": 189
+        }
+      },
+      {
+        "text": "OcéanAtlantique",
+        "hidden": false,
+        "lon": "-4.1",
+        "lat": "45.5",
+        "left": "123px",
+        "top": "401px",
+        "bbox": {
+          "x": 28,
+          "y": 443,
+          "width": 190,
+          "height": 48,
+          "top": 443,
+          "right": 218,
+          "bottom": 491,
+          "left": 28
+        }
+      },
+      {
+        "text": "MerMéditerranée",
+        "hidden": false,
+        "lon": "6.1",
+        "lat": "42.7",
+        "left": "955px",
+        "top": "716px",
+        "bbox": {
+          "x": 860,
+          "y": 758,
+          "width": 190,
+          "height": 48,
+          "top": 758,
+          "right": 1050,
+          "bottom": 806,
+          "left": 860
+        }
+      },
+      {
+        "text": "Belgique",
+        "hidden": false,
+        "lon": "4.8",
+        "lat": "50.9",
+        "left": "911px",
+        "top": "48px",
+        "bbox": {
+          "x": 864.875,
+          "y": 104.40625,
+          "width": 92.25,
+          "height": 19.1875,
+          "top": 104.40625,
+          "right": 957.125,
+          "bottom": 123.59375,
+          "left": 864.875
+        }
+      },
+      {
+        "text": "Allemagne",
+        "hidden": false,
+        "lon": "8.1",
+        "lat": "50.2",
+        "left": "1175px",
+        "top": "122px",
+        "bbox": {
+          "x": 1119.9375,
+          "y": 178.40625,
+          "width": 110.125,
+          "height": 19.1875,
+          "top": 178.40625,
+          "right": 1230.0625,
+          "bottom": 197.59375,
+          "left": 1119.9375
+        }
+      },
+      {
+        "text": "Suisse",
+        "hidden": false,
+        "lon": "7.9",
+        "lat": "46.8",
+        "left": "1124px",
+        "top": "361px",
+        "bbox": {
+          "x": 1092.53125,
+          "y": 417.40625,
+          "width": 62.9375,
+          "height": 19.1875,
+          "top": 417.40625,
+          "right": 1155.46875,
+          "bottom": 436.59375,
+          "left": 1092.53125
+        }
+      },
+      {
+        "text": "Italie",
+        "hidden": false,
+        "lon": "9.1",
+        "lat": "45.3",
+        "left": "1222px",
+        "top": "483px",
+        "bbox": {
+          "x": 1190.71875,
+          "y": 539.40625,
+          "width": 62.5625,
+          "height": 19.1875,
+          "top": 539.40625,
+          "right": 1253.28125,
+          "bottom": 558.59375,
+          "left": 1190.71875
+        }
+      },
+      {
+        "text": "Espagne",
+        "hidden": false,
+        "lon": "-1.9",
+        "lat": "43",
+        "left": "305px",
+        "top": "627px",
+        "bbox": {
+          "x": 264.53125,
+          "y": 683.40625,
+          "width": 80.9375,
+          "height": 19.1875,
+          "top": 683.40625,
+          "right": 345.46875,
+          "bottom": 702.59375,
+          "left": 264.53125
+        }
+      },
+      {
+        "text": "Corse",
+        "hidden": false,
+        "lon": "9.25",
+        "lat": "41.7",
+        "left": "1209px",
+        "top": "746px",
+        "bbox": {
+          "x": 1188.5625,
+          "y": 804,
+          "width": 40.875,
+          "height": 16,
+          "top": 804,
+          "right": 1229.4375,
+          "bottom": 820,
+          "left": 1188.5625
+        }
+      }
+    ],
+    "footer": [
+      {
+        "text": "Pays",
+        "bbox": {
+          "x": 111.984375,
+          "y": 868,
+          "width": 352,
+          "height": 73,
+          "top": 868,
+          "right": 463.984375,
+          "bottom": 941,
+          "left": 111.984375
+        },
+        "font": "700 22px / 26.4px Spectral, Georgia, serif",
+        "icon": {
+          "x": 111.984375,
+          "y": 879.5,
+          "width": 44,
+          "height": 44,
+          "top": 879.5,
+          "right": 155.984375,
+          "bottom": 923.5,
+          "left": 111.984375
+        },
+        "label": {
+          "x": 177.984375,
+          "y": 888.296875,
+          "width": 42.59375,
+          "height": 26.390625,
+          "top": 888.296875,
+          "right": 220.578125,
+          "bottom": 914.6875,
+          "left": 177.984375
+        }
+      },
+      {
+        "text": "Gouvernement",
+        "bbox": {
+          "x": 463.984375,
+          "y": 868,
+          "width": 400,
+          "height": 73,
+          "top": 868,
+          "right": 863.984375,
+          "bottom": 941,
+          "left": 463.984375
+        },
+        "font": "500 20px / 24px Spectral, Georgia, serif",
+        "icon": {
+          "x": 463.984375,
+          "y": 882.5,
+          "width": 38,
+          "height": 38,
+          "top": 882.5,
+          "right": 501.984375,
+          "bottom": 920.5,
+          "left": 463.984375
+        },
+        "label": {
+          "x": 527.984375,
+          "y": 889.5,
+          "width": 132.703125,
+          "height": 24,
+          "top": 889.5,
+          "right": 660.6875,
+          "bottom": 913.5,
+          "left": 527.984375
+        }
+      },
+      {
+        "text": "Projets",
+        "bbox": {
+          "x": 863.984375,
+          "y": 868,
+          "width": 333,
+          "height": 73,
+          "top": 868,
+          "right": 1196.984375,
+          "bottom": 941,
+          "left": 863.984375
+        },
+        "font": "500 20px / 24px Spectral, Georgia, serif",
+        "icon": {
+          "x": 863.984375,
+          "y": 884.5,
+          "width": 34,
+          "height": 34,
+          "top": 884.5,
+          "right": 897.984375,
+          "bottom": 918.5,
+          "left": 863.984375
+        },
+        "label": {
+          "x": 918.984375,
+          "y": 889.5,
+          "width": 63.734375,
+          "height": 24,
+          "top": 889.5,
+          "right": 982.71875,
+          "bottom": 913.5,
+          "left": 918.984375
+        }
+      },
+      {
+        "text": "Bilan",
+        "bbox": {
+          "x": 1196.984375,
+          "y": 868,
+          "width": 239.015625,
+          "height": 73,
+          "top": 868,
+          "right": 1436,
+          "bottom": 941,
+          "left": 1196.984375
+        },
+        "font": "500 19px / 22.8px Spectral, Georgia, serif",
+        "icon": {
+          "x": 1196.984375,
+          "y": 885.5,
+          "width": 32,
+          "height": 32,
+          "top": 885.5,
+          "right": 1228.984375,
+          "bottom": 917.5,
+          "left": 1196.984375
+        },
+        "label": {
+          "x": 1256.984375,
+          "y": 890.09375,
+          "width": 45.09375,
+          "height": 22.796875,
+          "top": 890.09375,
+          "right": 1302.078125,
+          "bottom": 912.890625,
+          "left": 1256.984375
+        }
+      }
+    ]
+  },
+  "raster": {
+    "width": 1268,
+    "height": 801
+  },
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-ybKB5B_E.js",
+      "initiator": "script",
+      "transfer": 640543,
+      "duration": 203
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "initiator": "other",
+      "transfer": 1011,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-CSQxMUnd.css",
+      "initiator": "link",
+      "transfer": 33072,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "initiator": "link",
+      "transfer": 16984,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "initiator": "link",
+      "transfer": 7098,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "initiator": "link",
+      "transfer": 6697,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "initiator": "css",
+      "transfer": 170488,
+      "duration": 122
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 23336,
+      "duration": 120
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "initiator": "css",
+      "transfer": 64740,
+      "duration": 119
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 52568,
+      "duration": 8651
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+      "initiator": "css",
+      "transfer": 23236,
+      "duration": 8652
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "initiator": "css",
+      "transfer": 23136,
+      "duration": 8651
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-DP0bApMd.js",
+      "initiator": "script",
+      "transfer": 3526,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-Dsx_TBUW.js",
+      "initiator": "script",
+      "transfer": 1935,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-B_u38l1C.js",
+      "initiator": "script",
+      "transfer": 1504,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-Bv_Tnp7c.js",
+      "initiator": "script",
+      "transfer": 830,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneFragment-D1iIhxsN.js",
+      "initiator": "script",
+      "transfer": 661,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-B7SwoplD.js",
+      "initiator": "script",
+      "transfer": 1921,
+      "duration": 35
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneVertex-Bn9-b3B6.js",
+      "initiator": "script",
+      "transfer": 2856,
+      "duration": 35
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/helperFunctions-B9ZzwuR4.js",
+      "initiator": "script",
+      "transfer": 2598,
+      "duration": 34
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-DTivf24J.js",
+      "initiator": "script",
+      "transfer": 631,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneUboDeclaration-jaDgw2lG.js",
+      "initiator": "script",
+      "transfer": 665,
+      "duration": 32
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/meshUboDeclaration-DmV5_Nv1.js",
+      "initiator": "script",
+      "transfer": 646,
+      "duration": 32
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-BPOxDTo4.js",
+      "initiator": "script",
+      "transfer": 934,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-DXzm4yId.js",
+      "initiator": "script",
+      "transfer": 770,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=22d88978198973b2",
+      "initiator": "xmlhttprequest",
+      "transfer": 945048,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=42babe184e779c6a",
+      "initiator": "xmlhttprequest",
+      "transfer": 6802284,
+      "duration": 2098
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=8eb1d54a49bdd46b",
+      "initiator": "xmlhttprequest",
+      "transfer": 9816164,
+      "duration": 2148
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=9fb528573a603aee",
+      "initiator": "xmlhttprequest",
+      "transfer": 11722948,
+      "duration": 2495
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-CfYmhuGy.js",
+      "initiator": "script",
+      "transfer": 26270,
+      "duration": 144
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-CCLVDVv9.js",
+      "initiator": "script",
+      "transfer": 45103,
+      "duration": 144
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-DVGJf_QU.js",
+      "initiator": "script",
+      "transfer": 2723,
+      "duration": 103
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "initiator": "xmlhttprequest",
+      "transfer": 1098868,
+      "duration": 91
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "initiator": "other",
+      "transfer": 713,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-C4VsoXEg.js",
+      "initiator": "script",
+      "transfer": 929,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-c9ZgW21P.js",
+      "initiator": "script",
+      "transfer": 860,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.vertex-Cm1C9E2j.js",
+      "initiator": "script",
+      "transfer": 2593,
+      "duration": 30
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthVertex-ZYzTspZY.js",
+      "initiator": "script",
+      "transfer": 2273,
+      "duration": 30
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/defaultUboDeclaration-GJt-tsPf.js",
+      "initiator": "script",
+      "transfer": 853,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/instancesDeclaration-CabrOb7Y.js",
+      "initiator": "script",
+      "transfer": 1234,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthDeclaration-BR-A1Dak.js",
+      "initiator": "script",
+      "transfer": 749,
+      "duration": 28
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertexDeclaration-BlknAbj2.js",
+      "initiator": "script",
+      "transfer": 642,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertex-CpxTNc4Z.js",
+      "initiator": "script",
+      "transfer": 823,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.fragment-DiUwJ3n9.js",
+      "initiator": "script",
+      "transfer": 6296,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/oitFragment-B2ffbwew.js",
+      "initiator": "script",
+      "transfer": 11563,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/lightFragment-D7b76iE-.js",
+      "initiator": "script",
+      "transfer": 3656,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/reflectionFunction-DPg5HDxt.js",
+      "initiator": "script",
+      "transfer": 1602,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpFragment-DOvF81_9.js",
+      "initiator": "script",
+      "transfer": 2698,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.vertex-BDUH60Ho.js",
+      "initiator": "script",
+      "transfer": 3909,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrUboDeclaration-CjgcFd0e.js",
+      "initiator": "script",
+      "transfer": 979,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/harmonicsFunctions-CzUE0Bpe.js",
+      "initiator": "script",
+      "transfer": 800,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrBRDFFunctions-UQAnyWWt.js",
+      "initiator": "script",
+      "transfer": 4419,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.fragment-DQLU9Jsw.js",
+      "initiator": "script",
+      "transfer": 18441,
+      "duration": 47
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrDebug-BFJh_8ta.js",
+      "initiator": "script",
+      "transfer": 8796,
+      "duration": 47
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrIBLFunctions-DUy0QVxg.js",
+      "initiator": "script",
+      "transfer": 1184,
+      "duration": 46
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "consoleMessages": [],
+  "failedResponses": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Fresh Chromium context at1672x941 with fonts loaded/reduced motion. Native DOM controls and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

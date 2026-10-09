@@ -1,6 +1,7 @@
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { MODEL_URLS } from '../src/mandats/map-model-revisions.ts';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
@@ -23,10 +24,24 @@ for (let i=0; i<entryAssets.length; i++) {
   for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);
+// The authored GLB kits embed their materials. Include any neighbouring local
+// buffers and textures too, so the same 3D scene loads after an offline restart.
+async function collectModels(directory: string): Promise<void> {
+  for (const entry of await readdir(dist + directory, { withFileTypes: true })) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) await collectModels(path);
+    else if (entry.isFile() && /\.(?:glb|gltf|bin|env|png|webp|jpe?g|ktx2|json)$/i.test(entry.name))
+      core.push(Object.values(MODEL_URLS).find(url => url.split('?')[0] === '/' + path) ?? '/' + path);
+  }
+}
+await collectModels('mandats/models');
 const precache = [...new Set(core)];
 const digest = createHash('sha256');
 digest.update(await readFile(fileURLToPath(import.meta.url)));
-for (const path of precache) digest.update(await readFile(dist+path.replace(/^\//,'')+(path.endsWith('/')?'index.html':'')));
+for (const path of precache) {
+  const pathname = path.split('?')[0];
+  digest.update(await readFile(dist+pathname.replace(/^\//,'')+(pathname.endsWith('/')?'index.html':'')));
+}
 const version = digest.digest('hex').slice(0,16);
 const worker = `/* Game-only, opt-in offline cache. Generated from built assets. */
 const CACHE='mandats-offline-${version}';

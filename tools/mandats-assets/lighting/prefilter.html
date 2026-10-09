@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<title>Préparation locale de l'éclairage MANDATS</title>
+<canvas id="lighting" width="32" height="32"></canvas>
+<script type="module">
+import { Engine } from '/node_modules/@babylonjs/core/Engines/engine.js';
+import { Scene } from '/node_modules/@babylonjs/core/scene.js';
+import { HDRCubeTexture } from '/node_modules/@babylonjs/core/Materials/Textures/hdrCubeTexture.js';
+import { CreateEnvTextureAsync } from '/node_modules/@babylonjs/core/Misc/environmentTextureTools.js';
+import { CubeMapToSphericalPolynomialTools } from '/node_modules/@babylonjs/core/Misc/HighDynamicRange/cubemapToSphericalPolynomial.js';
+
+const balance = [1.15, 1.00, .65];
+const polynomialData = polynomial => Object.fromEntries(
+  ['x', 'y', 'z', 'xx', 'yy', 'zz', 'yz', 'zx', 'xy'].map(key => [key, polynomial[key].asArray()]),
+);
+// Correct linear radiance before either diffuse harmonics or specular mipmaps
+// are computed. The original RGBE panorama stays byte-for-byte unchanged.
+class BalancedHDRCubeTexture extends HDRCubeTexture {
+  async _getCubeMapTextureDataAsync(buffer, size, supersample) {
+    const cube = await super._getCubeMapTextureDataAsync(buffer, size, supersample);
+    const original = polynomialData(CubeMapToSphericalPolynomialTools.ConvertCubeMapToSphericalPolynomial(cube));
+    for (const name of ['right', 'left', 'up', 'down', 'front', 'back']) {
+      const face = cube[name];
+      if (!(face instanceof Float32Array) || face.length !== size * size * 3) throw new Error(`Unexpected linear cube face: ${name}`);
+      for (let i = 0; i < face.length; i += 3)
+        for (let channel = 0; channel < 3; channel++) face[i + channel] *= balance[channel];
+      if (face.some(value => !Number.isFinite(value) || value < 0)) throw new Error(`Invalid radiance: ${name}`);
+    }
+    const corrected = polynomialData(CubeMapToSphericalPolynomialTools.ConvertCubeMapToSphericalPolynomial(cube));
+    window.lightingMetadata = { balance, size, originalHarmonics: original, correctedHarmonics: corrected };
+    return cube;
+  }
+}
+
+const engine = new Engine(document.querySelector('canvas'), true);
+const scene = new Scene(engine);
+window.lightingResult = new Promise((resolve, reject) => {
+  const texture = new BalancedHDRCubeTexture(
+    new URL('./umhlanga_sunrise_1k.hdr', location.href).href,
+    scene, 256, false, true, false, true,
+    async () => {
+      try {
+        const bytes = await CreateEnvTextureAsync(texture, { imageType: 'image/png' });
+        window.lightingMetadata.exportedHarmonics = polynomialData(texture.sphericalPolynomial);
+        window.lightingMetadata.renderer = engine.getGlInfo();
+        resolve(Array.from(new Uint8Array(bytes)));
+      } catch (error) { reject(error); }
+    },
+    (message, error) => reject(error ?? new Error(message)),
+  );
+});
+</script>
+</html>
