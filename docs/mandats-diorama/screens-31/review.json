@@ -1,0 +1,22 @@
+{
+  "build": "31",
+  "captureVerificationSha256": "0617e71d1588261ed16b6592bc9d109d6b936414cf0f221aa3c6e44456484aec",
+  "reviewedBy": "root",
+  "status": "Non conforme à la maquette",
+  "summary": "La mer perd son halo cyan et les faces minérales retrouvent une lumière plus chaude. La neige et des parcelles composées sont plus visibles. La silhouette, le monument central et la richesse du paysage restent éloignés de la référence.",
+  "observedDifferences": [
+    "La mer est plus marine et les halos continus sont supprimés ; la côte garde des secteurs minces et des faces trop lisses.",
+    "Les plaques de neige couvrent davantage les hauts pans des crêtes angulaires. Les montagnes restent plus grossières et plus grises que les massifs de la référence.",
+    "La pierre est plus chaude et les ardoises demeurent sombres. Le monument est encore trop haut et étroit, ses bases semblent proches de la référence.",
+    "Les coteaux Touraine/Berry et Lorraine gagnent des pans verts et dorés. La campagne conserve de larges vides et des motifs trop réguliers.",
+    "Le sud-ouest reste trop étroit ; la Corse présente une inclinaison opposée à la référence.",
+    "Le cadre bleu nuit/ivoire reste proche ; année, scores et sujets proviennent de la partie réelle."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale native31 : lumière et eau corrigées, silhouette encore non conforme.",
+    "paris": "Paris natif31 : pierre réchauffée ; monument trop haut et étroit.",
+    "seine": "Seine native31 : vraie inspection et quartiers issus du moteur.",
+    "alpes": "Alpes natives31 : plaques de neige plus visibles, relief encore trop grossier.",
+    "retour": "Retour national natif31 après sept vues, zéro décision, erreur ou avertissement console."
+  }
+}

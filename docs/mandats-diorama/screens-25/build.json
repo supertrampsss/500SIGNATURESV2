@@ -1,0 +1,2208 @@
+{
+  "build": "25",
+  "archivedAt": "2026-10-09T05:47:47.541Z",
+  "scope": "Version25 intégrée : proportions architecturales, relief et neige, côtes, lumière et ancrages",
+  "checks": {
+    "buildPassed": true,
+    "unitSuite": {
+      "status": "passed",
+      "tests": 1082,
+      "passed": 1082,
+      "failed": 0,
+      "scope": "Actual unit summary in this completed command log"
+    },
+    "nativeViews": {
+      "status": "verified",
+      "views": 7,
+      "technicalPassed": true,
+      "counts": {
+        "errors": 0,
+        "failedRequests": 0,
+        "failedResponses": 0,
+        "consoleMessages": 1,
+        "responseBodyErrors": 0,
+        "consoleWarnings": 0,
+        "consoleErrors": 0
+      }
+    },
+    "fullBrowserSuites": "unrun",
+    "denseDisplay": "unrun"
+  },
+  "buildEvidence": {
+    "receipt": {
+      "build": "25",
+      "command": "NODE_USE_ENV_PROXY=1 npm run check",
+      "exitCode": 0,
+      "confirmedBy": "functions.write_stdin session34258 returned exit_code0",
+      "confirmedAt": "2026-10-09T05:47:47.201860+00:00",
+      "session": 34258
+    },
+    "receiptSha256": "3f990daca36b69c305dbff830972d50086035d00193d1d66bac92b87bfc8f03d",
+    "log": {
+      "path": "check-25.log",
+      "sha256": "3fb753620e936aeadb8d49003a1152b39a437520a8707ab86a530765576167b6"
+    },
+    "successMarkers": [
+      "✓ built in ",
+      "Pré-rendu :",
+      "Mandats : guides sourcés publiés",
+      "Mandats hors connexion :",
+      "Audience facultative :"
+    ]
+  },
+  "inputLock": {
+    "path": "locks/25.json",
+    "sha256": "49f9fc63c19edb06a4d33ecf09368badd8bde6612796fac918427b1eac2c5228"
+  },
+  "inputSha256": {
+    "site/src/mandats/ambitions.ts": "58c6a416911027ea2a2758b31ffc9a3b9f34269407f434235f87e92f5eaf070d",
+    "site/src/mandats/approved-decision-room.css": "fc75ae35628e6085cc51d7cd32bcf570de02f0ace84a3cb27c52191e6d7f0483",
+    "site/src/mandats/branch-replay.css": "bbe6b529b226e51fd68092892830f88b008b0d6d86b3b41957bc5f850b507f58",
+    "site/src/mandats/branch-replay.test.ts": "7d225facf9d2cd14747b2abcffc14fec494fafd501b8f3aa408ede7b9f5058ff",
+    "site/src/mandats/branch-replay.ts": "5b1d27330e757f2a51de60b78dbf8a9b2b92944d3b6c4175ea4a0e2dc4345cb4",
+    "site/src/mandats/calendar.ts": "91f71a37963dbe31979a3dd1634264d1b6563d2f786827bda4c077951f3f129d",
+    "site/src/mandats/campaign-content.test.ts": "64302b197819cbc3f3f269cdbcec695e364b91cc62b9f1a867e04459e6dba3ab",
+    "site/src/mandats/campaign-content.ts": "37cb6cc547e1ccdfb6262390d4ce791ee51e84e733120e1fedc877db34b96033",
+    "site/src/mandats/campaign-ui.test.ts": "74a8b28f7bb140ba787b52fc9b865afd3beff95600d576d857beb138de7d489e",
+    "site/src/mandats/campaign.css": "ce4d1ea2ccf778407bde970ea6dd2cf78617fb4119202348bd7e0cb3e3ee5d98",
+    "site/src/mandats/campaign.test.ts": "fa78dfe47021d07ff1dbc361071d436133e23585a65edff4012b86f1de1463f7",
+    "site/src/mandats/campaign.ts": "d31508ab90a7a883e722cb37f8d1577bc65267af4555f8b6379fe365544d6de4",
+    "site/src/mandats/cards.ts": "3e58c1a22293867a43efc37198a7f866aba2dbc12476b8e604cb09d5b97a2d4d",
+    "site/src/mandats/cinema-art.test.ts": "fd2d6edb0de2dd7168921b1a72dff1dc7676430a62e1f4538eb9ea62426d867b",
+    "site/src/mandats/cinema-art.ts": "2e779a832997e64fc27c4eaeb912000bf583f5468ede1ea027424709b9b1da62",
+    "site/src/mandats/cinema-board.css": "f2f6427509cec44fc742298a51dab189166363b56b2c5753dca872feb974dfc4",
+    "site/src/mandats/cinema-shell.css": "6884fe24f2ca39da4898b624eeef33c055f8351bec53afaca77912e3f06ad5b7",
+    "site/src/mandats/cities.test.ts": "497411ac9c0f9060fed04069ae633601d2bd5b58743934fcaf49445906ef89de",
+    "site/src/mandats/cities.ts": "6c685c76d2814d4f9103e9a4bf093671346c869d8708387c44ef3da3ddf257b7",
+    "site/src/mandats/city-context.ts": "a4777d7344e75c7e520ff4e09ee23e608aeff4af0af3e1486a467c2e60fe29c2",
+    "site/src/mandats/city-map.css": "f31d6df8da79d723a76ed74bfc29bae7749144702515974512af067fe75833c5",
+    "site/src/mandats/city-map.ts": "a30183bb3d857edf0541e4a5ce7d5fc142f4b12d29975c5566b147adf31a0b18",
+    "site/src/mandats/completion.test.ts": "3277c65c0e00e395323901af7a37f5858a2437b9802fd0c00fe27e1ffa308228",
+    "site/src/mandats/content/guides.ts": "bbe6351be496af2f0a2d1e060b7b4c1afcd4d989ed5a9da0b458ad13d96831b0",
+    "site/src/mandats/country-feedback.css": "a67d8104c994c3c2390d72cea4265e0a01f56321f91324f149856e85775b2bfc",
+    "site/src/mandats/country-feedback.test.ts": "f6ca6644c1b54ea5429016c26b663f460a3ab1cd23783a27911d1945528a5acb",
+    "site/src/mandats/country-feedback.ts": "b50785a8fcab1f8d7fba83e9b4a65bbf128d66c3cd4da91db2fa75d2da39ce50",
+    "site/src/mandats/decision-motion.css": "72e6760611b3aa1c1a6e4ee6e3197b53f032fe226e36937d737eda5d85470bff",
+    "site/src/mandats/decision-transition.test.ts": "624d67fbf8afebd2a5ec6de940b5d0ffb49e2f137163f027d0bc1b0b3ce43f7b",
+    "site/src/mandats/decision-transition.ts": "24adf7f4da41e4a2de0ac06258a22ada7a8457f6300259e1457f42fa186b9566",
+    "site/src/mandats/decision-verdict.css": "e5792f4717f87ba89640661314932fd08c211b5614e4417ce063db2ce603771d",
+    "site/src/mandats/decision-verdict.ts": "b180b802b28b067dd9ed4613fbd42c72882034ba7b70faa95039d1bb461f9657",
+    "site/src/mandats/engine.test.ts": "2fe565500eb372339db202b2ede8a4b0dd523f398fba3ccd59b29aa2806dbdad",
+    "site/src/mandats/engine.ts": "ae1bf003cc0cb1a2f1322fbe8766f90a0acc82717f021150bff82f274660baec",
+    "site/src/mandats/focus.css": "55db7d19698f0726ebfc098dd2915400673d2bba1b728b9b70519cfce4d934f9",
+    "site/src/mandats/game.css": "4ea6982dc14694855afba931e8e88727bfe6f609000b9f49d7851b1b0e873c4e",
+    "site/src/mandats/icons.ts": "9a4c2e2ca831710c212d72b74a6a472cbc0961836b19c8d8c41ae56a94580d23",
+    "site/src/mandats/intelligence.ts": "97023b058cf7bcd8c3f2715de308fa567105d4e474843ec5783f303dec7522c1",
+    "site/src/mandats/legacy/engine.ts": "6b22dd28359bcebc42123a73e969062d85ec8cbbf9c2e6d8321eb391d4e0e166",
+    "site/src/mandats/legacy/municipal.ts": "4b822f9200a0e8d845494c5dce44cebc78a581b9982784b842e7929817db5785",
+    "site/src/mandats/legacy/national.ts": "57db143933dd21a16629b12818c581f4a6c6a0237c5944dc4235f2605f3f9c07",
+    "site/src/mandats/living-board.css": "e76d96c1a0e184d44aac2adca993da143ff23b25215220011f9b06e846e4c114",
+    "site/src/mandats/living-recaps.css": "42196ec90df3350a6ebd3ac60e2aef8b884896248e792a10ff8131d2ff36eb61",
+    "site/src/mandats/living-recaps.test.ts": "2902c085f9e09a3ffc8f0ec51fe555e2ff1a5431b20dc9a4765ec7208c5ce05b",
+    "site/src/mandats/living-recaps.ts": "12d640e1c9a7e4d80aff9532665ec2a9d6cbbffcc8f3f897eb2d065cb9241b21",
+    "site/src/mandats/local-campaign.test.ts": "f1ea3da1b5aa4e1a7420aafab95e7356493ea2b85e4a717d4e5001280f97113e",
+    "site/src/mandats/local-campaign.ts": "369ae8c936148753c073bd71fe1869ca4dabee885d458ee3ebc199eb7afe15dd",
+    "site/src/mandats/main.ts": "5fb9d936e679afd40c3e35976affc3fb54c6ce9d6ee822dfaad35d99307788a5",
+    "site/src/mandats/mandats-2026-rework.css": "00ed0476b0e4f211163a7ecf15ef123a148f422e9ccf289d267cf6af7fbebbc7",
+    "site/src/mandats/map-asset-kit.ts": "b13e0b928185ff7a36317a9fb3685abb0648395d748c08da9771f028d6fca9e1",
+    "site/src/mandats/map-camera-projection.ts": "aa593907465d3437ac4eea7d74ace560ea89afaa4003dc00d265e814c46200a7",
+    "site/src/mandats/map-cities.ts": "56562b35d60aba7377359e3751bf633345340f0dd0c54250b1ca81d2ed7c1c44",
+    "site/src/mandats/map-city-geometry.ts": "cc8dac6b2734537b4694b1f047e86a49c355e9dfa785668d7c00102080010b7c",
+    "site/src/mandats/map-city-infrastructure.ts": "cf7aab5e8640b3b94f99e691da5c64bca033904f9c1d34317778f705f8741cde",
+    "site/src/mandats/map-city-materials.ts": "ed999b46140e85b517dc15ab4e23450a07ffe1730a2b114c8cc8039c5ed9acf7",
+    "site/src/mandats/map-city-national.ts": "37bd98e9c9b9ef49a904af831968ab4a950929471538a5f7136e14a62c8d4ce2",
+    "site/src/mandats/map-city-paris.ts": "3b3b2ad9b921d1895a3b073277fb3adbad424ff061a0de216c155dcb186895ed",
+    "site/src/mandats/map-city-port-plans.ts": "2c861bc27f3b756fee28c9dcb6e6256505efbebbe641cc77d588b51d42649aa7",
+    "site/src/mandats/map-city-rail.ts": "851b840b19d98442d904845b3a581b59b3bc5782e94eb7ccd0c75d6f723f7d3d",
+    "site/src/mandats/map-context-geography.ts": "e3e54bc84938afcf86b8b3140e228b738af12328423e0fc07fea93debc8e3530",
+    "site/src/mandats/map-context.ts": "d38a768ed989acc1c4f874458d6dcb3cac3094fba3b306f8279704d50f001af6",
+    "site/src/mandats/map-game.css": "5370a921448919a48a425158e1aaf8220a956cf71147c5f7e05ea961bcf43eee",
+    "site/src/mandats/map-geography.ts": "d2cdf9a60b7e736beb571e60dcddccb5b89e9b4de416a6a71b4c928cc54f2271",
+    "site/src/mandats/map-icons.ts": "5b4ebf30343902ff87e0496aca8f87ad4468f282ae26cbfdd013200e2fdf865f",
+    "site/src/mandats/map-land-composition.ts": "1788c00cc5654daceb25f8848c210668edba82f87e5f17da82e9cfa4bc7cc5d1",
+    "site/src/mandats/map-land-crags.ts": "bac12ba5bc388fce2b2db48285b38c6a3bca193e4f8d85ec3024c6a64c26dc0c",
+    "site/src/mandats/map-land-materials.ts": "d9e5d2fee2e985e9f6356b5c5740b471d1fe038a7879befb4713aff9a8f47762",
+    "site/src/mandats/map-landscape.ts": "8d30f7dc8f64ad17fc80216b67995bfbcc3dc03b6797019688d01d72d701e17b",
+    "site/src/mandats/map-model-revisions.ts": "b397de7925b1d5b34380ad1cd1afe1413a29070e928312e2a5a2e4812de06fa1",
+    "site/src/mandats/map-panels.ts": "ee74b82656139cec4f6f9c6afea59596d4ce482b6fddea372be465232d487a59",
+    "site/src/mandats/map-paris-terrain.ts": "636f1455f7b0a9a92d36074a07da6ab1cb5f0c3c6ae7181df7bbdce32e67a154",
+    "site/src/mandats/map-public-ground.ts": "8dad9ed0ede084fc1c5fb3d5b86337c085d3c78794e10e64215b3e5b7040b3bd",
+    "site/src/mandats/map-public-sites.ts": "7858274ff64efe6fecee41d5ee3f49679fa38cad69bc883f440163f8c69a0ee0",
+    "site/src/mandats/map-region-geography.ts": "cb038731532cc306c998bdb91cbac64856bde98856f0c29be385550c38a5748b",
+    "site/src/mandats/map-regions.ts": "2efb02554ed5b463ecf91e51b4db9fe49aa902d7199064db54f1ad7b16441d0c",
+    "site/src/mandats/map-scene.ts": "2587884adaab7af0049bfece239acbbe1d5996577a393057736a4c35f7914988",
+    "site/src/mandats/map-state.ts": "bb0cca073af3950b118550cc0f7c1b22d7be631a6d061c27ec9c36e6c59ce0d1",
+    "site/src/mandats/map-urban-plans.ts": "757325836cd933142755d5662f911993909e20dfdec7aa6560b10a69c7ae2e16",
+    "site/src/mandats/map-verdict.ts": "413a8af19ed5f5d1e713f581d5599c170eb3c262704727d06004bc83766cfc14",
+    "site/src/mandats/map-view.ts": "ce2dbd17b5926a898f85df10f9c50231fca6b43e11699ea888edb575960ba783",
+    "site/src/mandats/map-water.ts": "c482e7e6ecd3909c6884d4f62360b2859318053fee3b0d4b4eb95b912bc38fa0",
+    "site/src/mandats/municipal.ts": "754f0984885533c8193d9ac3f1f912b8e556333b4d36acf0aa062c099ce1fc77",
+    "site/src/mandats/narrative-consequences.ts": "f045be4700b4e6a02cda803b2534e794046265a6f4178623b3a98fcc6f80d4d0",
+    "site/src/mandats/narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+    "site/src/mandats/narrative-engine.ts": "3ecc6db90d720f510aad56b53117ab7e33a47037ddaf79fac8f62c4eea117555",
+    "site/src/mandats/narrative-outcomes.ts": "c288d244130f94921bf6dd63613e355d87a4c76e98c4f0078af968bffafe0c2f",
+    "site/src/mandats/narrative-types.ts": "1edd8130026fc4abafdbacd20ba7b14710362e0434ed641117b4ef303ebd0386",
+    "site/src/mandats/narrative-view.ts": "5a4466af6fdf20c075e925ef91aec189098e1c1ceda2b13933a0d76f959adc8f",
+    "site/src/mandats/narrative.css": "03335689b774f1a1bc9099553af53c921ba4dfc38474b9a4e5dea9865bc0599e",
+    "site/src/mandats/national-agenda.test.ts": "15d756928cd41d1be055475fa0544da59ce5b5763b717be657371207b446315c",
+    "site/src/mandats/national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+    "site/src/mandats/national-branches.test.ts": "51604a3635e13208e0a9d2eb46c45720f6a911c41deaf2cd3951b641cc52aa2f",
+    "site/src/mandats/national-branches.ts": "2977e280722019dc4fdddf573e6a66cea5f7b92e650543d036e3ef52adfca242",
+    "site/src/mandats/national-command.test.ts": "546f8621a7cfc906b73a13fb478868ae1dae560ac55c82b631db5058daa7e5fc",
+    "site/src/mandats/national-command.ts": "f29859d12f56659e1d002c7c405ccebe02b918dde8e790b662304234d89564a5",
+    "site/src/mandats/national-deficit.test.ts": "b470a331cf661eeb7de44fdd431cbdaa563c879da0b93e4f0dd6e915a64a637f",
+    "site/src/mandats/national-deficit.ts": "aa270ad63d8621f159e9fe5822bf1934ad9d53d8ec6554a4ed2e8a2bafedc796",
+    "site/src/mandats/national-policy.test.ts": "0f9edf61a83e55a3fcc6e631c3300b6224714b5ff1dc91f97c1408c228a9b2bb",
+    "site/src/mandats/national-policy.ts": "eac6a019b4ae57fa403784f72ef1e6599c542790a9b315de55f484efabd4c7b3",
+    "site/src/mandats/national-reforms.ts": "ca985711cf6ca92f7b6309e1c92857d2cc02e93a730c1d11b04c4a05e78fef81",
+    "site/src/mandats/national-scene-state.test.ts": "14ed6d80a0759377824ee71bd4208eb394f16cb96578ea4e711e4f50ac116f78",
+    "site/src/mandats/national-scene-state.ts": "d196bd255e0dc9c8059f5a6318a21ba48495c2b6ea2b13c45c5148d6982569a2",
+    "site/src/mandats/national-scene.css": "68c6e8c8f1cbc2efc2c40a836152af50dcdd3e631c399ba8b291eba6c53ce24b",
+    "site/src/mandats/national-scene.ts": "17c4302bfed1b516bb2dec644fb2375b1baf30473c326c5f82d6f44b8680eff5",
+    "site/src/mandats/national-society.ts": "adf5ba439221aac56729c4b6ac7b96b5b9a450c6da9d662f6564a69610753b71",
+    "site/src/mandats/national.ts": "04111449d5b287cfc431ce3108e25dee8219006016cabc5c28e46cb6b7848638",
+    "site/src/mandats/novice-municipal.ts": "1043da36f00c82cbf6646ace06170e24afeab12bc6bedcd3f70d7fc2885cb398",
+    "site/src/mandats/novice-national.ts": "21d80004d894a1c3876eb1ea93c16686d05b08e8dceba8bfaf02e5f600758c75",
+    "site/src/mandats/novice.test.ts": "6aba6e098c2e2a49311dbc44b71c802069ebe0814410c17f4b53e1d46634cd92",
+    "site/src/mandats/novice.ts": "e7bfec0ce8ea3b8644fee19a35a00c7b4605b40fa436570042bf2df6e72ae6ca",
+    "site/src/mandats/offline.ts": "afc23056992c0bff9a7a552fd6d47589183466ab6272638df0c0eb0ec2ef0877",
+    "site/src/mandats/operations.test.ts": "78f7aa75a86ccdcbbd8f715e774bc8494dbe040066a38091bf283e69dd1044a4",
+    "site/src/mandats/operations.ts": "4c90ee2d2754b264cb680b17a3e08e7029b207174d71522efa0aca2be709c4b9",
+    "site/src/mandats/planner.ts": "4b8c90c8b62d955e3c7c2603dd0471de40614a2bccf77b9a0090c1fae2ec763f",
+    "site/src/mandats/political-dilemmas.test.ts": "c9958582525ccd1ef8103b9ad0553282030a29cd7ab0ab5ed4c096607d9d3678",
+    "site/src/mandats/political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+    "site/src/mandats/political-motion.ts": "58d645d6d1393832c9947d705c8970127d0de29f3133b59824c2efd9b93d23e8",
+    "site/src/mandats/political-persistence.test.ts": "1b4b372b22e82bfc796aa39834cfff36c993d07e7447422eebb2177f9fe71b5a",
+    "site/src/mandats/politics-trajectories.test.ts": "863d9886d6ef6274173f2e631d0ae5d714c71cdc1cc83883734c69142100516d",
+    "site/src/mandats/politics-types.ts": "65ba9b9979f47fa07d285e1f22b68f3d0e8713e52c3492491dad96e383e0232f",
+    "site/src/mandats/politics-view.test.ts": "9a285aef785d2f043f7005c02019416a7c1601d17c69af96875ebfea59786ffc",
+    "site/src/mandats/politics-view.ts": "2ad4a9e819457ba32e8a86b3d36105421081a914a27e4e93845041766f4b91b0",
+    "site/src/mandats/politics.css": "9df3db75219332e7ff7268cde00adf9c5161ae3558302cbb5f7a3a2a73178f23",
+    "site/src/mandats/politics.test.ts": "5a7cbe608f8a92c0f295d1c2a148a13db42aee3af6367b139ec12a41123c32b0",
+    "site/src/mandats/politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+    "site/src/mandats/progression.test.ts": "261bef7c5e027c588368d75e5fddcc70499ce3ea563e7053bd82f80324df4b31",
+    "site/src/mandats/progression.ts": "6f8d950a2002181a541eb8ad0eb9618f701167454a0a095fc67b9ead46dcaeff",
+    "site/src/mandats/render.test.ts": "3d5d0a63e9db50823dd13979ce715d822ffa77a3362cf2fa563add9c506efcd7",
+    "site/src/mandats/render.ts": "ee698624355263e512c6de049d09280a0c50bfedca2717de31ec36c65b7b6e69",
+    "site/src/mandats/rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+    "site/src/mandats/session.test.ts": "f3c0ab9e17d5e8664632904a47592069e20f6585ce986dace3f2d654d3b86443",
+    "site/src/mandats/session.ts": "88aad0f1fb48f94447a5ccdd53a3b677ce1a1e28f0df3d4b74a3638a5187f1dc",
+    "site/src/mandats/sharing.ts": "2516869f5b5774075d2ad37b686a17522f73d80cf0bf046879f0a8de2e461474",
+    "site/src/mandats/social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+    "site/src/mandats/social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+    "site/src/mandats/social-types.ts": "4a995cd4e5854a7d14477d1aea230ebd3d79b571c2d2486582d5b715006b64cd",
+    "site/src/mandats/social-view.ts": "15a17cf342cc20f8d739028978d867ba017b41da6531d3ffdba0408a7c63cd90",
+    "site/src/mandats/social.css": "42673de3f711fdf2107e2b16cf67bb20b5597a48a538d7fca9a5c2746c1b682a",
+    "site/src/mandats/storage.ts": "39f51973c9c410c13ebb480280280dacb886b438e93bc541ef7c5426daa8de4f",
+    "site/src/mandats/style.css": "de1ab524b91607b8437fc412d2a49254a1b35e41c71c4cfbddd75f5be02b893e",
+    "site/src/mandats/telemetry.ts": "ddb4be247a6bf51a47f409df809ed8da3c50d479997fd6c90b1c0b54e6a12699",
+    "site/src/mandats/types.ts": "601edd72110d4244c0477f15a7514342b37d056309c1ca856032aa6bc42e4ca0",
+    "site/src/mandats/v9.test.ts": "8b5a5a2d08931ca6d19e678e9bf16c076b886e4189a7df9c0061f25da80d0018",
+    "site/src/mandats/winter/README.md": "dfaf9af830e7a8aedf7a1768ba2a6ea62a1f92386b761f59a7140155a80bcabf",
+    "site/src/mandats/winter/scene.css": "45caee23f1b0abeab86d3bcbd42e7a5ad5a5a0e146d276b247547b8e7b071bfa",
+    "site/src/mandats/winter/scene.ts": "fa5468d15ed1a3adbafc63531dc08811ee934ff8ced4da08b5f88dd5396d9f30",
+    "site/src/mandats/world.css": "19e7d2c17803fc93633f43b782d590bb868a713068086cb44703322404eab8ca",
+    "site/src/mandats/world.test.ts": "c4bc32b7724f41ef9e5dfcf17d849ae4c1cc40841269f0a99671136d8fb7e080",
+    "site/src/mandats/world.ts": "248e77015f5d36b0cb5a627bbbd740f28568b614063a453136ec5733a64ba75e",
+    "site/public/mandats/models/SOURCES.md": "b52fc5b5b36313f46c41b30e5c2d6acfdada6d108e1bec9ba9d2a483154a1565",
+    "site/public/mandats/models/architecture.glb": "5f91bf92a18e1eccbfe85cce091206790a40ccbd8477cf8ad902d0d9721fae64",
+    "site/public/mandats/models/architecture.json": "30ab3b2d66840a69c53a0c534710bf9069d71d069c8ba23c46901a29e5232841",
+    "site/public/mandats/models/cathedrale.glb": "9fb528573a603aee1d756f72f3226e6475c92acbde96d1332afa713ebcdfca81",
+    "site/public/mandats/models/cathedrale.json": "0a632ed96650533e03f06df360642db6ad754dafa954514626da211a09a32186",
+    "site/public/mandats/models/daylight.env": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8",
+    "site/public/mandats/models/paris.glb": "8eb1d54a49bdd46b97f422880c5ff835ee095e952d2cb74b9e61fdd1b3c0d0b8",
+    "site/public/mandats/models/paris.json": "633e343da90ae24c7fb9ce90acc55708cd974df00dcc4dd4c89436ad4b21edbd",
+    "site/public/mandats/models/vegetation.glb": "44ba0d18ea0aa4e8f2211d20b88fb4b9904cf4f1b8518066fdd3ec278e700a0b",
+    "tools/mandats-assets/ARCHITECTURE.md": "4698eea566c1e6d57558ef798f4efdb36591ad153507b1b873c47d72ff7e9364",
+    "tools/mandats-assets/CATHEDRALE.md": "7cfae767ea11cf932c4a441bb0fe53ae6cfbe353a991945e6711eb9d103c50c6",
+    "tools/mandats-assets/PARIS.md": "9f4f52877a6f5ece59b8373de7c716214af4db224b8b36be6c2bc279f8a00dcb",
+    "tools/mandats-assets/README.md": "b959f3d17ebda106068f6d370ade7c92774e49d25ca07032020580cd59da75d9",
+    "tools/mandats-assets/VEGETATION.md": "bdfb6c24461be31d4d8a83c943afe4ceab1b39c6f996d36faacd30c30b879fb6",
+    "tools/mandats-assets/__pycache__/architecture.cpython-312.pyc": "34bcfe8d32dc7ea4bd253762cc5b5f0f9678cd030ea14482e7d711671614fd21",
+    "tools/mandats-assets/__pycache__/architecture_lod.cpython-312.pyc": "a376f4421f08e76c8d1564637d32e743021cb501a998081bfe690ff54f17bba9",
+    "tools/mandats-assets/__pycache__/architecture_lod.cpython-313.pyc": "5167e5b7f9dba461808d0385375248386b88b85f85960bcd39e02281c9e3f7b2",
+    "tools/mandats-assets/__pycache__/cathedrale.cpython-312.pyc": "808456f0765c0e8d3aaf426eeb5dd24283077c6e431c00e1beacce8f956bf37c",
+    "tools/mandats-assets/__pycache__/paris.cpython-312.pyc": "9febe5bb1670a4c9c750e7a03e11c03cc5150190af6928fc559407a5ed141a76",
+    "tools/mandats-assets/__pycache__/paris_lod.cpython-312.pyc": "ebd49bf9d94b00a2f01a439d7e1a528905480ab19f07d31f3fc9c87be9425fa3",
+    "tools/mandats-assets/__pycache__/paris_lod.cpython-313.pyc": "a3735c4934fe96b245d421c9836b231c89cda1aacbbd269ad75fb80acef21f2d",
+    "tools/mandats-assets/architecture-ao.png": "4644a86772cc63fab7570bac2c0182a9932bffeb991c08cfe120e4828c86f3b9",
+    "tools/mandats-assets/architecture-atlas.png": "35d57fafd4fd7054f61ad269696c2f1e8169a28a02a007a15b88fa9c3046a09b",
+    "tools/mandats-assets/architecture-metallic.png": "5d97940ad094e06fcaf16f78d8f482abd1133a2ab5f44e86bea439aa5c88fe29",
+    "tools/mandats-assets/architecture-normal.png": "3fc3abd288cfcefe0c508a35d5c8716b563ca5555ffcd2aeaa6bc728f7f5ab7e",
+    "tools/mandats-assets/architecture-orm.png": "5ce08f51c5dd5df20f330b7688024d0621b228685c2ae7aaedc07cf62f1fb140",
+    "tools/mandats-assets/architecture-roughness.png": "4ab561673ee24b8d046d976e41feeb973f81fd7fdf701684f352164393d9ad56",
+    "tools/mandats-assets/architecture.blend": "011eb0e9e6ce8e95afaa9c073b2e73e358551762545c9cadc5733def67f90788",
+    "tools/mandats-assets/architecture.py": "27448272b9be46fafd0725a841538d548cb6134ab827d66cdcd59ba5bd8df3d4",
+    "tools/mandats-assets/architecture_lod.py": "6aaddc355b78e925ebd97628be919baadb13df9f022a170349564a2f45c96152",
+    "tools/mandats-assets/cathedrale-ao.png": "8630fc52534bebeb09a521fa4eb04efaed0867607a1de07614c6c8198f90fabf",
+    "tools/mandats-assets/cathedrale-atlas.png": "32f7234be37fb78599b0014bbed1e97c1cfd08269751326869be503d6c81a2a9",
+    "tools/mandats-assets/cathedrale-metallic.png": "26f386ecac0437462cd847fb32a5219e3811e4a208424efdcb423e28b1504943",
+    "tools/mandats-assets/cathedrale-normal.png": "3258b770ef764ab5ab32520582451c581ce6a2cfea6f46cf59af076c51e3a21a",
+    "tools/mandats-assets/cathedrale-orm.png": "ec8d945bebeafc959b77d3493acf0b282a491c601e757018cf3b015099e32292",
+    "tools/mandats-assets/cathedrale-roughness.png": "bfa213a6d0f2f41d1e7e28f193f57b5ac227cb1da85e8dbe7fe1f4acadaed803",
+    "tools/mandats-assets/cathedrale.blend": "9aa2a6d060954600b83c4408f0695d7095186625b085e0b9c58d3abee7afe58b",
+    "tools/mandats-assets/cathedrale.py": "9ec0f68ecd530da7f326abf0785a630295417c28cc87362c363ab59d925e8603",
+    "tools/mandats-assets/geography/README.md": "06f72ba42e8681fbca9a62d6c37f3af01d2caed54506f1be651b7f35a710a193",
+    "tools/mandats-assets/geography/build-region-lines.py": "19d5442871eebc1a55ed84472929065a5b6c7c03894bfcd687e91bb34f8ed883",
+    "tools/mandats-assets/geography/france-admin1-naturalearth.geojson": "3186d94bf7e65d40ebee93db0cee6f9bdde4ec3a048478ab0f8c4e5199f72318",
+    "tools/mandats-assets/geography/region-lines.json": "fc404b689cf8461c5d812f46fe6ba389c84b52163420cfa65f7743320f67305c",
+    "tools/mandats-assets/lighting/LICENSE-CC-BY-4.0.txt": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661",
+    "tools/mandats-assets/lighting/README.md": "4dfe5ae91367479ffb3d8a4d4df25d6145eb0040aba92e7f322143da2a614021",
+    "tools/mandats-assets/lighting/daylight-original.env": "4d0ba6e9ffb0d449ec522d1fd5c23a803c484e2ee7731111125ebd92b5f4b52b",
+    "tools/mandats-assets/lighting/prefilter-report.json": "f560588290135e25b721a81ca7eef3c5591a9d90cca28b0fb05e8014be5bad88",
+    "tools/mandats-assets/lighting/prefilter.html": "ade0855a9132cd1011cd040a9aac47dccf13f49e861a14ff0ca732ddc21b6ad2",
+    "tools/mandats-assets/lighting/prefilter.mjs": "97052bcd50f8fb0c77c41bef76bf8b1f6ca65a7c8bfa47267911b0082e49fdcb",
+    "tools/mandats-assets/lighting/source.json": "1998f0550b5d8d1ecf2562f6b280e3ed4b492108b800f5c782da6d0be3072ec3",
+    "tools/mandats-assets/lighting/umhlanga_sunrise_1k.hdr": "5bbc697864531c5953e8f249dec85f7c3f4d585bbf6708105c0a4e5510c75c03",
+    "tools/mandats-assets/paris-ao.png": "f1fe0b6d12e156ddf85372e45d9c6c119506741d47ba739f1f8c402e32d89822",
+    "tools/mandats-assets/paris-atlas.png": "377f9fada5d4cc6cdceeaab85daacee7ca92d2588ea613923e6a64bacb13b682",
+    "tools/mandats-assets/paris-metallic.png": "b8897e61208a499102644fa8d0a0792c561124406ac4e0277bafff09d1e3da74",
+    "tools/mandats-assets/paris-normal.png": "10f117f203c818e644b9ea34ed33a4e8a0f82a1fc027040a9b18052053bfa83b",
+    "tools/mandats-assets/paris-roughness.png": "8f279852663317d08de223007abb6320e28461478648397031cbf95ea50cbfaf",
+    "tools/mandats-assets/paris.blend": "6fb5c0c2542e65535aff0533d6ad93b342e8413544516f620d1723464c0a1d49",
+    "tools/mandats-assets/paris.py": "e1d9511b4ff8f002e63e166b1066c6a2396c28dc0605a132bcf7b2203fb6f098",
+    "tools/mandats-assets/paris_lod.py": "d44a861eb4ccb15f645b4340806e8dfcb34178ca334a55404e099f028f114740",
+    "tools/mandats-assets/vegetation-bounds.json": "c6c54f96dc77702d6e6746f6f892df29214b17809c8a7375049ee819f8f767f9",
+    "tools/mandats-assets/vegetation-lod-manifest.json": "7a5810afb001ee08dbfe3460e4ff349209168cf9b8393f00dad483e961fedd73",
+    "tools/mandats-assets/vegetation.blend": "881658850bb5f2cad98ebc84a84947d7ef67c19017774a7c40a3b905e15766f6",
+    "tools/mandats-assets/vegetation.py": "511b0898d0b402ffd4ddd7f01e54080afd8bcc110d662859a7dac5a588457648"
+  },
+  "sourceSha256": {
+    "site/src/mandats/ambitions.ts": "58c6a416911027ea2a2758b31ffc9a3b9f34269407f434235f87e92f5eaf070d",
+    "site/src/mandats/approved-decision-room.css": "fc75ae35628e6085cc51d7cd32bcf570de02f0ace84a3cb27c52191e6d7f0483",
+    "site/src/mandats/branch-replay.css": "bbe6b529b226e51fd68092892830f88b008b0d6d86b3b41957bc5f850b507f58",
+    "site/src/mandats/branch-replay.test.ts": "7d225facf9d2cd14747b2abcffc14fec494fafd501b8f3aa408ede7b9f5058ff",
+    "site/src/mandats/branch-replay.ts": "5b1d27330e757f2a51de60b78dbf8a9b2b92944d3b6c4175ea4a0e2dc4345cb4",
+    "site/src/mandats/calendar.ts": "91f71a37963dbe31979a3dd1634264d1b6563d2f786827bda4c077951f3f129d",
+    "site/src/mandats/campaign-content.test.ts": "64302b197819cbc3f3f269cdbcec695e364b91cc62b9f1a867e04459e6dba3ab",
+    "site/src/mandats/campaign-content.ts": "37cb6cc547e1ccdfb6262390d4ce791ee51e84e733120e1fedc877db34b96033",
+    "site/src/mandats/campaign-ui.test.ts": "74a8b28f7bb140ba787b52fc9b865afd3beff95600d576d857beb138de7d489e",
+    "site/src/mandats/campaign.css": "ce4d1ea2ccf778407bde970ea6dd2cf78617fb4119202348bd7e0cb3e3ee5d98",
+    "site/src/mandats/campaign.test.ts": "fa78dfe47021d07ff1dbc361071d436133e23585a65edff4012b86f1de1463f7",
+    "site/src/mandats/campaign.ts": "d31508ab90a7a883e722cb37f8d1577bc65267af4555f8b6379fe365544d6de4",
+    "site/src/mandats/cards.ts": "3e58c1a22293867a43efc37198a7f866aba2dbc12476b8e604cb09d5b97a2d4d",
+    "site/src/mandats/cinema-art.test.ts": "fd2d6edb0de2dd7168921b1a72dff1dc7676430a62e1f4538eb9ea62426d867b",
+    "site/src/mandats/cinema-art.ts": "2e779a832997e64fc27c4eaeb912000bf583f5468ede1ea027424709b9b1da62",
+    "site/src/mandats/cinema-board.css": "f2f6427509cec44fc742298a51dab189166363b56b2c5753dca872feb974dfc4",
+    "site/src/mandats/cinema-shell.css": "6884fe24f2ca39da4898b624eeef33c055f8351bec53afaca77912e3f06ad5b7",
+    "site/src/mandats/cities.test.ts": "497411ac9c0f9060fed04069ae633601d2bd5b58743934fcaf49445906ef89de",
+    "site/src/mandats/cities.ts": "6c685c76d2814d4f9103e9a4bf093671346c869d8708387c44ef3da3ddf257b7",
+    "site/src/mandats/city-context.ts": "a4777d7344e75c7e520ff4e09ee23e608aeff4af0af3e1486a467c2e60fe29c2",
+    "site/src/mandats/city-map.css": "f31d6df8da79d723a76ed74bfc29bae7749144702515974512af067fe75833c5",
+    "site/src/mandats/city-map.ts": "a30183bb3d857edf0541e4a5ce7d5fc142f4b12d29975c5566b147adf31a0b18",
+    "site/src/mandats/completion.test.ts": "3277c65c0e00e395323901af7a37f5858a2437b9802fd0c00fe27e1ffa308228",
+    "site/src/mandats/content/guides.ts": "bbe6351be496af2f0a2d1e060b7b4c1afcd4d989ed5a9da0b458ad13d96831b0",
+    "site/src/mandats/country-feedback.css": "a67d8104c994c3c2390d72cea4265e0a01f56321f91324f149856e85775b2bfc",
+    "site/src/mandats/country-feedback.test.ts": "f6ca6644c1b54ea5429016c26b663f460a3ab1cd23783a27911d1945528a5acb",
+    "site/src/mandats/country-feedback.ts": "b50785a8fcab1f8d7fba83e9b4a65bbf128d66c3cd4da91db2fa75d2da39ce50",
+    "site/src/mandats/decision-motion.css": "72e6760611b3aa1c1a6e4ee6e3197b53f032fe226e36937d737eda5d85470bff",
+    "site/src/mandats/decision-transition.test.ts": "624d67fbf8afebd2a5ec6de940b5d0ffb49e2f137163f027d0bc1b0b3ce43f7b",
+    "site/src/mandats/decision-transition.ts": "24adf7f4da41e4a2de0ac06258a22ada7a8457f6300259e1457f42fa186b9566",
+    "site/src/mandats/decision-verdict.css": "e5792f4717f87ba89640661314932fd08c211b5614e4417ce063db2ce603771d",
+    "site/src/mandats/decision-verdict.ts": "b180b802b28b067dd9ed4613fbd42c72882034ba7b70faa95039d1bb461f9657",
+    "site/src/mandats/engine.test.ts": "2fe565500eb372339db202b2ede8a4b0dd523f398fba3ccd59b29aa2806dbdad",
+    "site/src/mandats/engine.ts": "ae1bf003cc0cb1a2f1322fbe8766f90a0acc82717f021150bff82f274660baec",
+    "site/src/mandats/focus.css": "55db7d19698f0726ebfc098dd2915400673d2bba1b728b9b70519cfce4d934f9",
+    "site/src/mandats/game.css": "4ea6982dc14694855afba931e8e88727bfe6f609000b9f49d7851b1b0e873c4e",
+    "site/src/mandats/icons.ts": "9a4c2e2ca831710c212d72b74a6a472cbc0961836b19c8d8c41ae56a94580d23",
+    "site/src/mandats/intelligence.ts": "97023b058cf7bcd8c3f2715de308fa567105d4e474843ec5783f303dec7522c1",
+    "site/src/mandats/legacy/engine.ts": "6b22dd28359bcebc42123a73e969062d85ec8cbbf9c2e6d8321eb391d4e0e166",
+    "site/src/mandats/legacy/municipal.ts": "4b822f9200a0e8d845494c5dce44cebc78a581b9982784b842e7929817db5785",
+    "site/src/mandats/legacy/national.ts": "57db143933dd21a16629b12818c581f4a6c6a0237c5944dc4235f2605f3f9c07",
+    "site/src/mandats/living-board.css": "e76d96c1a0e184d44aac2adca993da143ff23b25215220011f9b06e846e4c114",
+    "site/src/mandats/living-recaps.css": "42196ec90df3350a6ebd3ac60e2aef8b884896248e792a10ff8131d2ff36eb61",
+    "site/src/mandats/living-recaps.test.ts": "2902c085f9e09a3ffc8f0ec51fe555e2ff1a5431b20dc9a4765ec7208c5ce05b",
+    "site/src/mandats/living-recaps.ts": "12d640e1c9a7e4d80aff9532665ec2a9d6cbbffcc8f3f897eb2d065cb9241b21",
+    "site/src/mandats/local-campaign.test.ts": "f1ea3da1b5aa4e1a7420aafab95e7356493ea2b85e4a717d4e5001280f97113e",
+    "site/src/mandats/local-campaign.ts": "369ae8c936148753c073bd71fe1869ca4dabee885d458ee3ebc199eb7afe15dd",
+    "site/src/mandats/main.ts": "5fb9d936e679afd40c3e35976affc3fb54c6ce9d6ee822dfaad35d99307788a5",
+    "site/src/mandats/mandats-2026-rework.css": "00ed0476b0e4f211163a7ecf15ef123a148f422e9ccf289d267cf6af7fbebbc7",
+    "site/src/mandats/map-asset-kit.ts": "b13e0b928185ff7a36317a9fb3685abb0648395d748c08da9771f028d6fca9e1",
+    "site/src/mandats/map-camera-projection.ts": "aa593907465d3437ac4eea7d74ace560ea89afaa4003dc00d265e814c46200a7",
+    "site/src/mandats/map-cities.ts": "56562b35d60aba7377359e3751bf633345340f0dd0c54250b1ca81d2ed7c1c44",
+    "site/src/mandats/map-city-geometry.ts": "cc8dac6b2734537b4694b1f047e86a49c355e9dfa785668d7c00102080010b7c",
+    "site/src/mandats/map-city-infrastructure.ts": "cf7aab5e8640b3b94f99e691da5c64bca033904f9c1d34317778f705f8741cde",
+    "site/src/mandats/map-city-materials.ts": "ed999b46140e85b517dc15ab4e23450a07ffe1730a2b114c8cc8039c5ed9acf7",
+    "site/src/mandats/map-city-national.ts": "37bd98e9c9b9ef49a904af831968ab4a950929471538a5f7136e14a62c8d4ce2",
+    "site/src/mandats/map-city-paris.ts": "3b3b2ad9b921d1895a3b073277fb3adbad424ff061a0de216c155dcb186895ed",
+    "site/src/mandats/map-city-port-plans.ts": "2c861bc27f3b756fee28c9dcb6e6256505efbebbe641cc77d588b51d42649aa7",
+    "site/src/mandats/map-city-rail.ts": "851b840b19d98442d904845b3a581b59b3bc5782e94eb7ccd0c75d6f723f7d3d",
+    "site/src/mandats/map-context-geography.ts": "e3e54bc84938afcf86b8b3140e228b738af12328423e0fc07fea93debc8e3530",
+    "site/src/mandats/map-context.ts": "d38a768ed989acc1c4f874458d6dcb3cac3094fba3b306f8279704d50f001af6",
+    "site/src/mandats/map-game.css": "5370a921448919a48a425158e1aaf8220a956cf71147c5f7e05ea961bcf43eee",
+    "site/src/mandats/map-geography.ts": "d2cdf9a60b7e736beb571e60dcddccb5b89e9b4de416a6a71b4c928cc54f2271",
+    "site/src/mandats/map-icons.ts": "5b4ebf30343902ff87e0496aca8f87ad4468f282ae26cbfdd013200e2fdf865f",
+    "site/src/mandats/map-land-composition.ts": "1788c00cc5654daceb25f8848c210668edba82f87e5f17da82e9cfa4bc7cc5d1",
+    "site/src/mandats/map-land-crags.ts": "bac12ba5bc388fce2b2db48285b38c6a3bca193e4f8d85ec3024c6a64c26dc0c",
+    "site/src/mandats/map-land-materials.ts": "d9e5d2fee2e985e9f6356b5c5740b471d1fe038a7879befb4713aff9a8f47762",
+    "site/src/mandats/map-landscape.ts": "8d30f7dc8f64ad17fc80216b67995bfbcc3dc03b6797019688d01d72d701e17b",
+    "site/src/mandats/map-model-revisions.ts": "b397de7925b1d5b34380ad1cd1afe1413a29070e928312e2a5a2e4812de06fa1",
+    "site/src/mandats/map-panels.ts": "ee74b82656139cec4f6f9c6afea59596d4ce482b6fddea372be465232d487a59",
+    "site/src/mandats/map-paris-terrain.ts": "636f1455f7b0a9a92d36074a07da6ab1cb5f0c3c6ae7181df7bbdce32e67a154",
+    "site/src/mandats/map-public-ground.ts": "8dad9ed0ede084fc1c5fb3d5b86337c085d3c78794e10e64215b3e5b7040b3bd",
+    "site/src/mandats/map-public-sites.ts": "7858274ff64efe6fecee41d5ee3f49679fa38cad69bc883f440163f8c69a0ee0",
+    "site/src/mandats/map-region-geography.ts": "cb038731532cc306c998bdb91cbac64856bde98856f0c29be385550c38a5748b",
+    "site/src/mandats/map-regions.ts": "2efb02554ed5b463ecf91e51b4db9fe49aa902d7199064db54f1ad7b16441d0c",
+    "site/src/mandats/map-scene.ts": "2587884adaab7af0049bfece239acbbe1d5996577a393057736a4c35f7914988",
+    "site/src/mandats/map-state.ts": "bb0cca073af3950b118550cc0f7c1b22d7be631a6d061c27ec9c36e6c59ce0d1",
+    "site/src/mandats/map-urban-plans.ts": "757325836cd933142755d5662f911993909e20dfdec7aa6560b10a69c7ae2e16",
+    "site/src/mandats/map-verdict.ts": "413a8af19ed5f5d1e713f581d5599c170eb3c262704727d06004bc83766cfc14",
+    "site/src/mandats/map-view.ts": "ce2dbd17b5926a898f85df10f9c50231fca6b43e11699ea888edb575960ba783",
+    "site/src/mandats/map-water.ts": "c482e7e6ecd3909c6884d4f62360b2859318053fee3b0d4b4eb95b912bc38fa0",
+    "site/src/mandats/municipal.ts": "754f0984885533c8193d9ac3f1f912b8e556333b4d36acf0aa062c099ce1fc77",
+    "site/src/mandats/narrative-consequences.ts": "f045be4700b4e6a02cda803b2534e794046265a6f4178623b3a98fcc6f80d4d0",
+    "site/src/mandats/narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+    "site/src/mandats/narrative-engine.ts": "3ecc6db90d720f510aad56b53117ab7e33a47037ddaf79fac8f62c4eea117555",
+    "site/src/mandats/narrative-outcomes.ts": "c288d244130f94921bf6dd63613e355d87a4c76e98c4f0078af968bffafe0c2f",
+    "site/src/mandats/narrative-types.ts": "1edd8130026fc4abafdbacd20ba7b14710362e0434ed641117b4ef303ebd0386",
+    "site/src/mandats/narrative-view.ts": "5a4466af6fdf20c075e925ef91aec189098e1c1ceda2b13933a0d76f959adc8f",
+    "site/src/mandats/narrative.css": "03335689b774f1a1bc9099553af53c921ba4dfc38474b9a4e5dea9865bc0599e",
+    "site/src/mandats/national-agenda.test.ts": "15d756928cd41d1be055475fa0544da59ce5b5763b717be657371207b446315c",
+    "site/src/mandats/national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+    "site/src/mandats/national-branches.test.ts": "51604a3635e13208e0a9d2eb46c45720f6a911c41deaf2cd3951b641cc52aa2f",
+    "site/src/mandats/national-branches.ts": "2977e280722019dc4fdddf573e6a66cea5f7b92e650543d036e3ef52adfca242",
+    "site/src/mandats/national-command.test.ts": "546f8621a7cfc906b73a13fb478868ae1dae560ac55c82b631db5058daa7e5fc",
+    "site/src/mandats/national-command.ts": "f29859d12f56659e1d002c7c405ccebe02b918dde8e790b662304234d89564a5",
+    "site/src/mandats/national-deficit.test.ts": "b470a331cf661eeb7de44fdd431cbdaa563c879da0b93e4f0dd6e915a64a637f",
+    "site/src/mandats/national-deficit.ts": "aa270ad63d8621f159e9fe5822bf1934ad9d53d8ec6554a4ed2e8a2bafedc796",
+    "site/src/mandats/national-policy.test.ts": "0f9edf61a83e55a3fcc6e631c3300b6224714b5ff1dc91f97c1408c228a9b2bb",
+    "site/src/mandats/national-policy.ts": "eac6a019b4ae57fa403784f72ef1e6599c542790a9b315de55f484efabd4c7b3",
+    "site/src/mandats/national-reforms.ts": "ca985711cf6ca92f7b6309e1c92857d2cc02e93a730c1d11b04c4a05e78fef81",
+    "site/src/mandats/national-scene-state.test.ts": "14ed6d80a0759377824ee71bd4208eb394f16cb96578ea4e711e4f50ac116f78",
+    "site/src/mandats/national-scene-state.ts": "d196bd255e0dc9c8059f5a6318a21ba48495c2b6ea2b13c45c5148d6982569a2",
+    "site/src/mandats/national-scene.css": "68c6e8c8f1cbc2efc2c40a836152af50dcdd3e631c399ba8b291eba6c53ce24b",
+    "site/src/mandats/national-scene.ts": "17c4302bfed1b516bb2dec644fb2375b1baf30473c326c5f82d6f44b8680eff5",
+    "site/src/mandats/national-society.ts": "adf5ba439221aac56729c4b6ac7b96b5b9a450c6da9d662f6564a69610753b71",
+    "site/src/mandats/national.ts": "04111449d5b287cfc431ce3108e25dee8219006016cabc5c28e46cb6b7848638",
+    "site/src/mandats/novice-municipal.ts": "1043da36f00c82cbf6646ace06170e24afeab12bc6bedcd3f70d7fc2885cb398",
+    "site/src/mandats/novice-national.ts": "21d80004d894a1c3876eb1ea93c16686d05b08e8dceba8bfaf02e5f600758c75",
+    "site/src/mandats/novice.test.ts": "6aba6e098c2e2a49311dbc44b71c802069ebe0814410c17f4b53e1d46634cd92",
+    "site/src/mandats/novice.ts": "e7bfec0ce8ea3b8644fee19a35a00c7b4605b40fa436570042bf2df6e72ae6ca",
+    "site/src/mandats/offline.ts": "afc23056992c0bff9a7a552fd6d47589183466ab6272638df0c0eb0ec2ef0877",
+    "site/src/mandats/operations.test.ts": "78f7aa75a86ccdcbbd8f715e774bc8494dbe040066a38091bf283e69dd1044a4",
+    "site/src/mandats/operations.ts": "4c90ee2d2754b264cb680b17a3e08e7029b207174d71522efa0aca2be709c4b9",
+    "site/src/mandats/planner.ts": "4b8c90c8b62d955e3c7c2603dd0471de40614a2bccf77b9a0090c1fae2ec763f",
+    "site/src/mandats/political-dilemmas.test.ts": "c9958582525ccd1ef8103b9ad0553282030a29cd7ab0ab5ed4c096607d9d3678",
+    "site/src/mandats/political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+    "site/src/mandats/political-motion.ts": "58d645d6d1393832c9947d705c8970127d0de29f3133b59824c2efd9b93d23e8",
+    "site/src/mandats/political-persistence.test.ts": "1b4b372b22e82bfc796aa39834cfff36c993d07e7447422eebb2177f9fe71b5a",
+    "site/src/mandats/politics-trajectories.test.ts": "863d9886d6ef6274173f2e631d0ae5d714c71cdc1cc83883734c69142100516d",
+    "site/src/mandats/politics-types.ts": "65ba9b9979f47fa07d285e1f22b68f3d0e8713e52c3492491dad96e383e0232f",
+    "site/src/mandats/politics-view.test.ts": "9a285aef785d2f043f7005c02019416a7c1601d17c69af96875ebfea59786ffc",
+    "site/src/mandats/politics-view.ts": "2ad4a9e819457ba32e8a86b3d36105421081a914a27e4e93845041766f4b91b0",
+    "site/src/mandats/politics.css": "9df3db75219332e7ff7268cde00adf9c5161ae3558302cbb5f7a3a2a73178f23",
+    "site/src/mandats/politics.test.ts": "5a7cbe608f8a92c0f295d1c2a148a13db42aee3af6367b139ec12a41123c32b0",
+    "site/src/mandats/politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+    "site/src/mandats/progression.test.ts": "261bef7c5e027c588368d75e5fddcc70499ce3ea563e7053bd82f80324df4b31",
+    "site/src/mandats/progression.ts": "6f8d950a2002181a541eb8ad0eb9618f701167454a0a095fc67b9ead46dcaeff",
+    "site/src/mandats/render.test.ts": "3d5d0a63e9db50823dd13979ce715d822ffa77a3362cf2fa563add9c506efcd7",
+    "site/src/mandats/render.ts": "ee698624355263e512c6de049d09280a0c50bfedca2717de31ec36c65b7b6e69",
+    "site/src/mandats/rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+    "site/src/mandats/session.test.ts": "f3c0ab9e17d5e8664632904a47592069e20f6585ce986dace3f2d654d3b86443",
+    "site/src/mandats/session.ts": "88aad0f1fb48f94447a5ccdd53a3b677ce1a1e28f0df3d4b74a3638a5187f1dc",
+    "site/src/mandats/sharing.ts": "2516869f5b5774075d2ad37b686a17522f73d80cf0bf046879f0a8de2e461474",
+    "site/src/mandats/social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+    "site/src/mandats/social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+    "site/src/mandats/social-types.ts": "4a995cd4e5854a7d14477d1aea230ebd3d79b571c2d2486582d5b715006b64cd",
+    "site/src/mandats/social-view.ts": "15a17cf342cc20f8d739028978d867ba017b41da6531d3ffdba0408a7c63cd90",
+    "site/src/mandats/social.css": "42673de3f711fdf2107e2b16cf67bb20b5597a48a538d7fca9a5c2746c1b682a",
+    "site/src/mandats/storage.ts": "39f51973c9c410c13ebb480280280dacb886b438e93bc541ef7c5426daa8de4f",
+    "site/src/mandats/style.css": "de1ab524b91607b8437fc412d2a49254a1b35e41c71c4cfbddd75f5be02b893e",
+    "site/src/mandats/telemetry.ts": "ddb4be247a6bf51a47f409df809ed8da3c50d479997fd6c90b1c0b54e6a12699",
+    "site/src/mandats/types.ts": "601edd72110d4244c0477f15a7514342b37d056309c1ca856032aa6bc42e4ca0",
+    "site/src/mandats/v9.test.ts": "8b5a5a2d08931ca6d19e678e9bf16c076b886e4189a7df9c0061f25da80d0018",
+    "site/src/mandats/winter/README.md": "dfaf9af830e7a8aedf7a1768ba2a6ea62a1f92386b761f59a7140155a80bcabf",
+    "site/src/mandats/winter/scene.css": "45caee23f1b0abeab86d3bcbd42e7a5ad5a5a0e146d276b247547b8e7b071bfa",
+    "site/src/mandats/winter/scene.ts": "fa5468d15ed1a3adbafc63531dc08811ee934ff8ced4da08b5f88dd5396d9f30",
+    "site/src/mandats/world.css": "19e7d2c17803fc93633f43b782d590bb868a713068086cb44703322404eab8ca",
+    "site/src/mandats/world.test.ts": "c4bc32b7724f41ef9e5dfcf17d849ae4c1cc40841269f0a99671136d8fb7e080",
+    "site/src/mandats/world.ts": "248e77015f5d36b0cb5a627bbbd740f28568b614063a453136ec5733a64ba75e"
+  },
+  "bundles": [
+    {
+      "path": "assets/mandats-BgVLXZNU.js",
+      "bytes": 2769249,
+      "sha256": "540d7239962ea9627c1e9bb4f17e95a4e84e6488d3c2f5623d93e59697323a3e"
+    },
+    {
+      "path": "assets/mandats-Dalxypd9.css",
+      "bytes": 174884,
+      "sha256": "8eccfb7dd907479fbb1065ed9f45949c860010a83653a53e54224506f501c383"
+    }
+  ],
+  "archive": {
+    "path": "/workspace/mandats-verification/authored-3d/builds/25",
+    "files": 262,
+    "bytes": 55702971,
+    "fileInventory": [
+      {
+        "path": "404.html",
+        "bytes": 981,
+        "sha256": "4bad5a554674342ec0614afb2f59133071cc7b523a6455663ca0dadc6a5f0d8d"
+      },
+      {
+        "path": "_headers",
+        "bytes": 193,
+        "sha256": "8113f243689f355b13b6625377e5db9db227457a6782d90f3a98095f9f1fff2b"
+      },
+      {
+        "path": "_redirects",
+        "bytes": 525,
+        "sha256": "fc58107440f51f08c84bc2cc2584a63ad814ce5db9362188582312b11785c35d"
+      },
+      {
+        "path": "_routes.json",
+        "bytes": 191,
+        "sha256": "efe2b1f29d7492a47cb278f62735a8b1b52d85ebd05c1fe89d969ff3e8ee61e3"
+      },
+      {
+        "path": "a-propos/index.html",
+        "bytes": 9024,
+        "sha256": "3f8872954efe316a37a1561cef8980c0532d2d9db19c6b7a85e71bc7b78c3d88"
+      },
+      {
+        "path": "accueil/index.html",
+        "bytes": 20941,
+        "sha256": "944f6a93bc84377c88722adf0b67e6ecdbf999dca9de21239250b76026528644"
+      },
+      {
+        "path": "ads.txt",
+        "bytes": 59,
+        "sha256": "400b18b005ebd955eae26ed2566b7bfcb96a1a1ba5f3dfabb8a51d769990e284"
+      },
+      {
+        "path": "analyses/age-achat-residence-principale/carte.png",
+        "bytes": 62808,
+        "sha256": "e762f3beead241bf2c30cb7344b42acba140dbf3ccc170ecc4f24ec14253c396"
+      },
+      {
+        "path": "analyses/age-achat-residence-principale/index.html",
+        "bytes": 19075,
+        "sha256": "aa504dc8f2477b0f803e6a95613728946c84edd2a8a46854f0e7947c9e0fd324"
+      },
+      {
+        "path": "analyses/carte.png",
+        "bytes": 45672,
+        "sha256": "03025c72fae4dfa0f2e2b7be52d0c3ad6b2ee852666fd3b30e483523394aed28"
+      },
+      {
+        "path": "analyses/championne-du-monde-prelevements-2024/carte.png",
+        "bytes": 66153,
+        "sha256": "ab6e958a7907476ca4d3fb48a4d181cf31ef9332de7d0cb17b0e7115661983bb"
+      },
+      {
+        "path": "analyses/championne-du-monde-prelevements-2024/index.html",
+        "bytes": 16777,
+        "sha256": "305ef4052e0e69a0abbf641b8be00a7d0f4a07b906f0fd98278dbfa01bf63a3e"
+      },
+      {
+        "path": "analyses/cout-travail-cent-euros-net-2025/carte.png",
+        "bytes": 66695,
+        "sha256": "410664f640dd749573f08df6966498e14e34dba7dbb03ed4a81a7bdd568709c9"
+      },
+      {
+        "path": "analyses/cout-travail-cent-euros-net-2025/index.html",
+        "bytes": 18184,
+        "sha256": "85f37a24d73f777771d4f19d2c7ea9d72c95fb2dfab68bef8eda7049f81434ad"
+      },
+      {
+        "path": "analyses/defense-credits-votes-consommes-2025/carte.png",
+        "bytes": 90599,
+        "sha256": "c360f94366ed3051ad0307a967354d1a794b82b334d552954b3ced9cd20d2550"
+      },
+      {
+        "path": "analyses/defense-credits-votes-consommes-2025/index.html",
+        "bytes": 16923,
+        "sha256": "31b108be5f4c556149664e9b8a5a845983ce3f2d60da924bf74a50df3021e4a6"
+      },
+      {
+        "path": "analyses/defense-europe-depenses-2024/carte.png",
+        "bytes": 60383,
+        "sha256": "dd605a61114542547571e269627d43988d0d5d5b042a7abcb6f3861c2bef7cf6"
+      },
+      {
+        "path": "analyses/defense-europe-depenses-2024/index.html",
+        "bytes": 22883,
+        "sha256": "5b72519d56222f887572d566e583ffe33b71244ef1dcbf0895342bc58be0d385"
+      },
+      {
+        "path": "analyses/electricite-exportee-facture-francais/carte.png",
+        "bytes": 68774,
+        "sha256": "f4e3a88bf8c01e40d0828fdb7d1608d7d61458ae9842c17cadcf6f301f001910"
+      },
+      {
+        "path": "analyses/electricite-exportee-facture-francais/index.html",
+        "bytes": 21605,
+        "sha256": "342feff44ba963a171e1acd804d06177c7408ce8018a06bc23b5708b51e07412"
+      },
+      {
+        "path": "analyses/fournitures-scolaires-prix-1990-2025/carte.png",
+        "bytes": 64261,
+        "sha256": "6101433e43b30b841fdbdaf92dfb9ba1b72a60a1177e563ec7318801446ada0b"
+      },
+      {
+        "path": "analyses/fournitures-scolaires-prix-1990-2025/index.html",
+        "bytes": 22988,
+        "sha256": "bc2920a4cc60faa2cc27bb3314f0b7bda34aaa1a3439aefa40e66363b4dde3c7"
+      },
+      {
+        "path": "analyses/groenland-accord-securite-europe/carte.png",
+        "bytes": 67373,
+        "sha256": "bdf6152bb83273f33f8a919901446962faafd52af1ceb528381a7b412b41e4f9"
+      },
+      {
+        "path": "analyses/groenland-accord-securite-europe/index.html",
+        "bytes": 21881,
+        "sha256": "809ada4d06b7beff5ff29b5860397e0da76afd5a14039d65f5505012388d9ddd"
+      },
+      {
+        "path": "analyses/index.html",
+        "bytes": 32283,
+        "sha256": "57173639f8310b8b88f4bbabd938026ba9aa7d36af694b49b32660157f4f01d0"
+      },
+      {
+        "path": "analyses/la-depense-publique-baisse-2024/carte.png",
+        "bytes": 61971,
+        "sha256": "1a980c6f95a767e90884bcb349305d8661bc9ce7cb85e8e9d23d8a4892369c50"
+      },
+      {
+        "path": "analyses/la-depense-publique-baisse-2024/index.html",
+        "bytes": 16039,
+        "sha256": "eefb0c2f7bff2673cfda9599047f589b432be7251ba81faa67864e5026e1df6a"
+      },
+      {
+        "path": "analyses/prix-gaz-menages-2022-2025/carte.png",
+        "bytes": 60712,
+        "sha256": "3a78f1f69da7aeb38bb18bf3f9b3de19f8cfbb0adf4d76674dab220dc54ffa7e"
+      },
+      {
+        "path": "analyses/prix-gaz-menages-2022-2025/index.html",
+        "bytes": 22474,
+        "sha256": "91c03a25c062d54a4eacb795b562e109ebb5148e475d879644ac099221cc2552"
+      },
+      {
+        "path": "analyses/retraites-premier-poste-2024/carte.png",
+        "bytes": 89944,
+        "sha256": "f8ece2d9ab9412935f67dcd59d61f319082eb291632627feb1a707242fb54bbe"
+      },
+      {
+        "path": "analyses/retraites-premier-poste-2024/index.html",
+        "bytes": 18714,
+        "sha256": "a2d9c31ac15d6afc1810d914ceaefe7df9f9efc9b98382eafde8b2cf08bc6f0a"
+      },
+      {
+        "path": "analyses/satisfaction-vie-france-2010-2024/carte.png",
+        "bytes": 60657,
+        "sha256": "641bb5581f519aa70aab843cb8c40e340c3d5bc43b75bbb9b2d6e4517db07d23"
+      },
+      {
+        "path": "analyses/satisfaction-vie-france-2010-2024/index.html",
+        "bytes": 16745,
+        "sha256": "b1daadd553e714eb35e7c86ad170ad3935f41bf1b30ae1484c93d8515607df17"
+      },
+      {
+        "path": "analyses/ukraine-pret-europeen-90-milliards/carte.png",
+        "bytes": 59168,
+        "sha256": "716f37d4eb59937ff785d168023b6723c450d4ee32c3f8dedaefd2b32902f59f"
+      },
+      {
+        "path": "analyses/ukraine-pret-europeen-90-milliards/index.html",
+        "bytes": 19188,
+        "sha256": "9e047a4028608f0a6c981100016bbc29d9a81ca4d2a3bd1d25d6e7729677694a"
+      },
+      {
+        "path": "analytics-consent.js",
+        "bytes": 5481,
+        "sha256": "69502b3e5d9846c9b33c6049ba1e958230c6168a8e00df4fc8d5c9a174f7e238"
+      },
+      {
+        "path": "assets/animationGroup.pure-DsBFEd2o.js",
+        "bytes": 42669,
+        "sha256": "a9127c315430e3e50b66e2457f020d0c45c9eabe36b401047783c997a9b0bb5f"
+      },
+      {
+        "path": "assets/basisTextureLoader-ZXzM_8sh.js",
+        "bytes": 8059,
+        "sha256": "587a5184456a90fa2b213e79e8bbae2d83e00710cec1f7b8d36cd968530ee7cf"
+      },
+      {
+        "path": "assets/brdfTextureTools-C8dsqX8U.js",
+        "bytes": 61446,
+        "sha256": "3dbdfaa679277ebfb3dbd137d01d19832fe659f481ae6f4a7e78c9ab2d0ebf3b"
+      },
+      {
+        "path": "assets/bumpFragment-Cl6zr0e3.js",
+        "bytes": 6872,
+        "sha256": "044ca2513c9631965905f06874722a417ea5a3cb1170cd0535fc9923ee3b5a10"
+      },
+      {
+        "path": "assets/bumpFragment-DoBP2XvF.js",
+        "bytes": 8077,
+        "sha256": "661af0d9ae2d1d0f0b4aec79d96d0bcc5e8ce833eae18627714819b20f8740d8"
+      },
+      {
+        "path": "assets/bumpVertex-35yVMJgt.js",
+        "bytes": 523,
+        "sha256": "12d910eec0d312b175a5653be365edecfb42c2ec26cac48812e07035e4a853c6"
+      },
+      {
+        "path": "assets/bumpVertex-DDRr8sTD.js",
+        "bytes": 700,
+        "sha256": "65f6d80d46c3795463ff7080b7fca2a705678dedf4e8d0980f70ba5909b3cec4"
+      },
+      {
+        "path": "assets/bumpVertexDeclaration-C67c8K5C.js",
+        "bytes": 395,
+        "sha256": "3cfbd2a61eef574a1cff914e57692f79c102b868f9a2b53d6929b701faa1479c"
+      },
+      {
+        "path": "assets/bumpVertexDeclaration-_jC8c3Ch.js",
+        "bytes": 342,
+        "sha256": "19e8d3f15f3ee527648c0350d025e25477a7a27334bcf9839c163443b2e22656"
+      },
+      {
+        "path": "assets/chart-controls-BO495Dcv.js",
+        "bytes": 21827,
+        "sha256": "395565f479670d8f9cd93dfb99257fe40855f4e4deb4e2517373ec2df59cb32d"
+      },
+      {
+        "path": "assets/chart-controls-BmTyk4Po.css",
+        "bytes": 88085,
+        "sha256": "e9fd729de87485198c4b30bfee9cb241aa6c0a0aa0c1ff15a9639d8ddbd7d010"
+      },
+      {
+        "path": "assets/clipPlaneFragment-CBmf5pyD.js",
+        "bytes": 1277,
+        "sha256": "a33d98d9de70c4f5cfb967fb987f70ecc4db16f3a5146ec0149f9a3257b267b3"
+      },
+      {
+        "path": "assets/clipPlaneFragment-CEXxg_3A.js",
+        "bytes": 1177,
+        "sha256": "e6bbb084b2d91ca89010aaac534560c114ce7caacfce480cb2d6c53194ef5051"
+      },
+      {
+        "path": "assets/clipPlaneVertex-DFufVtOO.js",
+        "bytes": 13172,
+        "sha256": "c6721b4c8d23d354cbbd4ce8969355ea25a8958a3f6db825149d7700df3f1d24"
+      },
+      {
+        "path": "assets/clipPlaneVertex-n6epvWBi.js",
+        "bytes": 16167,
+        "sha256": "66bbfe9a18e39858d0fea499babeb5034b52c85d9bf02c97ecfbb90e77216e57"
+      },
+      {
+        "path": "assets/cubemapToSphericalPolynomial-D9FeW6UM.js",
+        "bytes": 3669,
+        "sha256": "6ca07f2977445e7c3f9184d5d8a0ae03d37686a343b43b5f5a535f217e3a8c13"
+      },
+      {
+        "path": "assets/dds.pure-BbIaO068.js",
+        "bytes": 7154,
+        "sha256": "a9c111fd0d49e33d825d5d7af5b48a077a826902104c8d717ae13e6ea55f8667"
+      },
+      {
+        "path": "assets/ddsTextureLoader-J-Bp2rI4.js",
+        "bytes": 1418,
+        "sha256": "2c355fa71b544dce685ece20595dddba67efdb99ef3f9f3191f57aefce1b7c8e"
+      },
+      {
+        "path": "assets/default.fragment-Bc2LgxSu.js",
+        "bytes": 25518,
+        "sha256": "e70c8d385afe5d14ae65ba4173b303aaf3109ddaab44ce97584f435cf5dff97b"
+      },
+      {
+        "path": "assets/default.fragment-DsAoDcMC.js",
+        "bytes": 26481,
+        "sha256": "52dd4139d89fa41d91af8943d34da07ab3063cc822266fbf0a3dd672bc7acb32"
+      },
+      {
+        "path": "assets/default.vertex-BR52AogI.js",
+        "bytes": 9460,
+        "sha256": "308fefccc0d527cf0ccf00aa5d934f9ecde1edc5016bcd288c051676682772d0"
+      },
+      {
+        "path": "assets/default.vertex-Bh8H4Ioz.js",
+        "bytes": 8129,
+        "sha256": "0b3f4c4b165ba81aba735956d03d191b9f9a052010216cf40cfe022bfcd93c20"
+      },
+      {
+        "path": "assets/defaultUboDeclaration-DKLqW2LG.js",
+        "bytes": 1626,
+        "sha256": "0262ec6415c946286946755c5a28eba01b0c74807f737b0cfcf53ecf5a160a7f"
+      },
+      {
+        "path": "assets/defaultUboDeclaration-Dli1ygkB.js",
+        "bytes": 1263,
+        "sha256": "5db0e7929ddc4052c349d40807c26cf96b985dc444a7978455944991020c9531"
+      },
+      {
+        "path": "assets/depthBoxBlur.fragment-CFTLrRIx.js",
+        "bytes": 634,
+        "sha256": "2b4e11e20ca74689de6fdba27003627530f6e77bc7aa0c96fc4cffc92e5ccc89"
+      },
+      {
+        "path": "assets/depthBoxBlur.fragment-DJXBVgv4.js",
+        "bytes": 813,
+        "sha256": "dbca543ee73123ce97862a6e30f783b8ba05996d67f468ca8b3f57fb5cf67ac8"
+      },
+      {
+        "path": "assets/dumpTools.pure-PM426fcG.js",
+        "bytes": 3760,
+        "sha256": "765d477314a89bd1b5ac27091724e8a57f50f15dc437b4e46294fa465fdd0c34"
+      },
+      {
+        "path": "assets/envTextureLoader-CnFuP2nk.js",
+        "bytes": 8068,
+        "sha256": "8be0f2e2cde7298697089bf7649bb107e4a4955f16c332b6195e59459f58765c"
+      },
+      {
+        "path": "assets/exrTextureLoader-CmE6HDmw.js",
+        "bytes": 14286,
+        "sha256": "180e51480bf2afc857e7a16a2c1448b1d5bf43678b2139fbcbd179d109081a5f"
+      },
+      {
+        "path": "assets/game-B_-L39w0.css",
+        "bytes": 81756,
+        "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+      },
+      {
+        "path": "assets/geometry.fragment-9l36wC1V.js",
+        "bytes": 11371,
+        "sha256": "fde57a45abc808cc1856e630adc8f664b556bb38dd3314f600554b940f6803cf"
+      },
+      {
+        "path": "assets/geometry.fragment-ktoxyKrs.js",
+        "bytes": 11882,
+        "sha256": "963ed79822182948d4111c4a0db7f5fc110ded17153781ee24efde9565576bd1"
+      },
+      {
+        "path": "assets/geometry.vertex-Dhb8o7FM.js",
+        "bytes": 7907,
+        "sha256": "b64ef9f17a6dba34275bd2513207a934d9eb780c737923bdc60f7aa064be9561"
+      },
+      {
+        "path": "assets/geometry.vertex-yEPREdNM.js",
+        "bytes": 9113,
+        "sha256": "ccaa3bfc938790f0ba9df1487ed513e75d6551e40659e172c8bd4878e057b930"
+      },
+      {
+        "path": "assets/glTFLoaderAnimation.pure-BJAdcsNT.js",
+        "bytes": 1855,
+        "sha256": "e0e4c1f7d1556bc0e83cc14678ed32e0d21ae19b685cc54c5ca5a23fedaf323f"
+      },
+      {
+        "path": "assets/harmonicsFunctions-Dd_Axm_n.js",
+        "bytes": 1422,
+        "sha256": "f361168ca8a3351dd20ab3a1d8b85b4a82c9f3d4c8c43f9d0ae6cfe03cc2ef29"
+      },
+      {
+        "path": "assets/harmonicsFunctions-FPD2EdIn.js",
+        "bytes": 1127,
+        "sha256": "987bbfd2d68c32aa88a5bc5f0061051631985ab2355b1d4a98eacdd5d768d15f"
+      },
+      {
+        "path": "assets/hdrTextureLoader-BGQvgh0h.js",
+        "bytes": 2391,
+        "sha256": "3cca41d849d41bf1df7aef34b4f8b5ef30440e716d894158207bd12b97236953"
+      },
+      {
+        "path": "assets/helperFunctions-DNEktM6R.js",
+        "bytes": 6490,
+        "sha256": "e0cf8796e703b4903f4de7bc7753dfe2a7774bcf6c25d23661cd4b08a3dde5b8"
+      },
+      {
+        "path": "assets/helperFunctions-b6UP9sM9.js",
+        "bytes": 6816,
+        "sha256": "6729df2a446197ff2d5366a71d3f0ec38ddf1ff1d4ad6fc01971ebc6ef7b7f65"
+      },
+      {
+        "path": "assets/iesTextureLoader-DhunNUhR.js",
+        "bytes": 2590,
+        "sha256": "40072d4f96a4c9b2a93d1a46a810ea9352297175cc41ef1edc26cd8d6ada9562"
+      },
+      {
+        "path": "assets/imageProcessing.fragment-BsxrLb3W.js",
+        "bytes": 1025,
+        "sha256": "de1baf3076626124ca24f86425042032a235715f02e2f6f35cdc9689fc40003e"
+      },
+      {
+        "path": "assets/imageProcessing.fragment-D7xx8tl3.js",
+        "bytes": 1203,
+        "sha256": "318660d95565751585d55ef52ef041e6d36c30bb519cbb8863eca75121a27760"
+      },
+      {
+        "path": "assets/imageProcessingFunctions-BVQloDbG.js",
+        "bytes": 4932,
+        "sha256": "138b81229b8936b2d294ddd21bbeec29de12c21dcb71b7a84a0785b814a74c87"
+      },
+      {
+        "path": "assets/imageProcessingFunctions-CfQHcP38.js",
+        "bytes": 5665,
+        "sha256": "b712a92011ecdf10b6268f5df37bea1857493eceb5bf00ff6edf6415deb479c0"
+      },
+      {
+        "path": "assets/instancesDeclaration-DIRTRPXc.js",
+        "bytes": 1041,
+        "sha256": "f363af6b22eb13921ecdd5dc76234ece61e30a2f91a7e77783057f5bec973b7a"
+      },
+      {
+        "path": "assets/instancesDeclaration-ybtPNRy9.js",
+        "bytes": 934,
+        "sha256": "1b9b413141a8dc84b96fa7f5a58a2deb1f87df2102da570bf6cd3b3133182ce4"
+      },
+      {
+        "path": "assets/kernelBlur.fragment-BfZ8Ph9m.js",
+        "bytes": 2947,
+        "sha256": "d1ab0879f3fbe4861e0e5dda461affd882511a1fe4bc2cd16e3cbd69693efbe2"
+      },
+      {
+        "path": "assets/kernelBlur.fragment-BwoQpyKb.js",
+        "bytes": 2412,
+        "sha256": "2316e3bedee707c8bb7518f743a489d6f08dbae1b77810bc529f65be3549085c"
+      },
+      {
+        "path": "assets/kernelBlur.vertex-BF4ChiW5.js",
+        "bytes": 1165,
+        "sha256": "3056e97c77c71f9448079c87b79957fa5d560264d4ddbcb3dab71365134918bb"
+      },
+      {
+        "path": "assets/kernelBlur.vertex-BkX8AgzW.js",
+        "bytes": 1000,
+        "sha256": "c67544955d5e0f112059b67fdce831fa8ecc0635f0437fb4707c58a19d0c52eb"
+      },
+      {
+        "path": "assets/kernelBlurVaryingDeclaration-C5SJ758q.js",
+        "bytes": 213,
+        "sha256": "1e8c17cdc40343ac22b93578a1f94022711e1b210ff427d3d7a436199c229fa4"
+      },
+      {
+        "path": "assets/kernelBlurVaryingDeclaration-ZvIW2AKw.js",
+        "bytes": 223,
+        "sha256": "c10e9515b6b53f92b0b7eb73b5dde32c6a48bd8f2235c0b5ec22bbf5190c3e71"
+      },
+      {
+        "path": "assets/ktxTextureLoader--15t0RhA.js",
+        "bytes": 16506,
+        "sha256": "143433bebccd7cf1edf2ad1ab036e97cd05639d7c6bd1ea4f8a9503eb714e643"
+      },
+      {
+        "path": "assets/lightFragment-BGlous_C.js",
+        "bytes": 22590,
+        "sha256": "6e2e4ca801b31137a66604c6a5dd35165abf7ab779c942209397f956c0e6a3f5"
+      },
+      {
+        "path": "assets/lightFragment-CIII-aLw.js",
+        "bytes": 20577,
+        "sha256": "28b31a49cc9c5727fb25cfb5998a5a4a881850a7d4567dc7452655a81a89061a"
+      },
+      {
+        "path": "assets/logDepthDeclaration-DTXoAB66.js",
+        "bytes": 465,
+        "sha256": "e93daf54c53972462cd0ac0737f2eae4e2178830541fd71cf78461d0bb4249d2"
+      },
+      {
+        "path": "assets/logDepthDeclaration-Ds5p9C1Z.js",
+        "bytes": 449,
+        "sha256": "3addd586b84088b53e66e0b6bc7b97e853969eebf0e10633a269f90cbdd586e8"
+      },
+      {
+        "path": "assets/logDepthVertex-BQBLPS4f.js",
+        "bytes": 22913,
+        "sha256": "c6f9ca791489c171cf854d947d72e658afb7ef5216011ab67aeaf95c6ff82947"
+      },
+      {
+        "path": "assets/logDepthVertex-STHVYIS-.js",
+        "bytes": 7821,
+        "sha256": "7673d2b7193b7fc1907237d32a394dd268a27cb4b31729501c6bb9885441107d"
+      },
+      {
+        "path": "assets/mandats-BgVLXZNU.js",
+        "bytes": 2769249,
+        "sha256": "540d7239962ea9627c1e9bb4f17e95a4e84e6488d3c2f5623d93e59697323a3e"
+      },
+      {
+        "path": "assets/mandats-Dalxypd9.css",
+        "bytes": 174884,
+        "sha256": "8eccfb7dd907479fbb1065ed9f45949c860010a83653a53e54224506f501c383"
+      },
+      {
+        "path": "assets/mesh.vertexData.functions-ayNlGC5K.js",
+        "bytes": 960,
+        "sha256": "109b0c291f78ec6b98053b23c7a9ce01eb8bcee909a0964ce337a68a9b4bc61e"
+      },
+      {
+        "path": "assets/meshUboDeclaration-C08OnYso.js",
+        "bytes": 346,
+        "sha256": "78a294a7f71f9df54d56f0f88b17e4e162515b01dc6b31ac3dce5d547e9e0156"
+      },
+      {
+        "path": "assets/meshUboDeclaration-UQVFSHTx.js",
+        "bytes": 280,
+        "sha256": "338ac40a1eda8356131aa7be73c90ab0a0600871825e77dafe62d270d9a6c956"
+      },
+      {
+        "path": "assets/oitFragment-DETT2QVQ.js",
+        "bytes": 49764,
+        "sha256": "1d0c8e256928ddf90a5f6aad0d6cda6f6d6be6a6c9fd4ee8d22d8c9d448b7925"
+      },
+      {
+        "path": "assets/oitFragment-DL6WeWOy.js",
+        "bytes": 48861,
+        "sha256": "224c7b66843ed74c33a430635ad0f3eb82db95d17dd7f50ccf7c410990cf7c57"
+      },
+      {
+        "path": "assets/openpbr.fragment-B1Amroy7.js",
+        "bytes": 90585,
+        "sha256": "deb76f378bfb415351ff4272a860f8ff53c69cb17d734bdd89491a0d6a12f2ce"
+      },
+      {
+        "path": "assets/openpbr.fragment-DDyzpHrL.js",
+        "bytes": 88856,
+        "sha256": "6c639568789086cb9802a4ee826324f14d31a79a3b8ce010c714eb695481fb27"
+      },
+      {
+        "path": "assets/openpbr.vertex-DVtzcJir.js",
+        "bytes": 17344,
+        "sha256": "fbb7dd04a255faa789dfdc89ca49355f2fb44cdbd5bbd636104a56b5db373a62"
+      },
+      {
+        "path": "assets/openpbr.vertex-DfabgEcv.js",
+        "bytes": 20489,
+        "sha256": "02edbeeb9de3e92092adcf1067319e4708f3cbf119e709335533e49e70d8afb0"
+      },
+      {
+        "path": "assets/openpbrMaterial.pure-BiVwAski.js",
+        "bytes": 91118,
+        "sha256": "a30bd7ba7d40c3f6118315907eea0fb31e61c1ed50d7efa1836400143d161d74"
+      },
+      {
+        "path": "assets/openpbrMaterialLoadingAdapter-CrtshJ99.js",
+        "bytes": 33707,
+        "sha256": "06542c733d119a2e9308cde813fe9852ba0ce24aaafcc725ebe09f164649b98d"
+      },
+      {
+        "path": "assets/openpbrTransmissionLayerData-CWcFsVyP.js",
+        "bytes": 17366,
+        "sha256": "ff76f153d9498f439690ed932f5da439c09ccf64021c446a881038bd72f58554"
+      },
+      {
+        "path": "assets/openpbrTransmissionLayerData-b2P0HyJc.js",
+        "bytes": 18470,
+        "sha256": "b3ec82870c5e66b9d7a3930b5ff6ebc4d409e718ca38ffe9ca70032da332f4be"
+      },
+      {
+        "path": "assets/openpbrUboDeclaration-BQaufGpP.js",
+        "bytes": 5223,
+        "sha256": "78c9c22ddd38e8622adfe4f70f1b2f9178502abd1a85dfeb5f5e0b24f93fec98"
+      },
+      {
+        "path": "assets/openpbrUboDeclaration-ydcrOboj.js",
+        "bytes": 3876,
+        "sha256": "cf4d1c37ae3088e957c1f48cfcf0882df125c3f8cb77c23100a63ee2806d629e"
+      },
+      {
+        "path": "assets/packingFunctions-BFdtBWar.js",
+        "bytes": 564,
+        "sha256": "a011812beb5cc0a920c703241d568f77c1af2abf4dd81b60859854ae93fd125e"
+      },
+      {
+        "path": "assets/packingFunctions-BpoxT5Wf.js",
+        "bytes": 530,
+        "sha256": "502c0c5700ae7d0cc3d6fedd89abcb98a432177201c150a3f68d5a754b2f8d0d"
+      },
+      {
+        "path": "assets/pass.fragment-0D0lx1zT.js",
+        "bytes": 418,
+        "sha256": "5a098b2cd1b405bd2a7a2cd516b0469cca0be63e877d1be38b1f03b12cc79e45"
+      },
+      {
+        "path": "assets/pass.fragment-MtdoHKVE.js",
+        "bytes": 552,
+        "sha256": "220d7a1308753abebd4674a7c01c2a36479a2110adc1e58481472da634cfda0f"
+      },
+      {
+        "path": "assets/passCube.fragment-BL4yKazl.js",
+        "bytes": 1232,
+        "sha256": "317974efb445520408231bbc39116ff8a5b2cd789d1208d06e7f7674c03c44f7"
+      },
+      {
+        "path": "assets/passCube.fragment-Cu9jUYLK.js",
+        "bytes": 923,
+        "sha256": "53f92a4d84455e0110153894e9d9dc31a731815bd8e401eac42bd066ca52e72d"
+      },
+      {
+        "path": "assets/pbr.fragment-D14P902G.js",
+        "bytes": 93737,
+        "sha256": "47f1793291732d6d355322bffc3e0f10f3a620704258f82b426f8024fa3d6eb4"
+      },
+      {
+        "path": "assets/pbr.fragment-i6jUonqA.js",
+        "bytes": 97562,
+        "sha256": "b10b3701b0a3a1e11ad8e81d48933a7632152ed98cb4f85a1490674879033157"
+      },
+      {
+        "path": "assets/pbr.vertex-B5mNGXHB.js",
+        "bytes": 17005,
+        "sha256": "8880c020ba5fd2873dbf390417f0f13d605d52fe523907887d20feaa226d0ac6"
+      },
+      {
+        "path": "assets/pbr.vertex-CL9Ee0cw.js",
+        "bytes": 14465,
+        "sha256": "81745349f2954c3fe8b6e16f55963f1467cf996a6377004736095ea66cb0fbf5"
+      },
+      {
+        "path": "assets/pbrBRDFFunctions-NtxcHd9f.js",
+        "bytes": 11932,
+        "sha256": "1da48c18da37ec6965c97cf8801e1f5135dee7452c7f57aeefdbca2dd3e122cd"
+      },
+      {
+        "path": "assets/pbrBRDFFunctions-VOGzj97g.js",
+        "bytes": 12762,
+        "sha256": "0ba94855205c4cf2c86199afde21dffd7474b4e2057b9bf37475e6515887bafd"
+      },
+      {
+        "path": "assets/pbrDebug-BXF5VzNl.js",
+        "bytes": 45372,
+        "sha256": "c21a6a620657d496f73f157518023789513300e7c6acd5958972f66fef6381cc"
+      },
+      {
+        "path": "assets/pbrDebug-BcRPSabr.js",
+        "bytes": 38082,
+        "sha256": "724fb41504368c12a1a00d72187a3f1976fc55edf467db0021e30da87548739a"
+      },
+      {
+        "path": "assets/pbrIBLFunctions-BkWpbdFY.js",
+        "bytes": 2525,
+        "sha256": "6eebd9b72499b3086ec7acf89c783b26a6b13285df3be6daccc07c91480d2884"
+      },
+      {
+        "path": "assets/pbrIBLFunctions-Bp_W4tWt.js",
+        "bytes": 2722,
+        "sha256": "550aa2e2f89dfa07c4fc0da82039e21f6bdae4bed6219cc2c58e6a166a4e369b"
+      },
+      {
+        "path": "assets/pbrMaterial.pure-CMuFJeAa.js",
+        "bytes": 135988,
+        "sha256": "dbdbee828dee7db2b0e08efaa13240b037e941551f8047b752e56c68cbd4b910"
+      },
+      {
+        "path": "assets/pbrMaterialLoadingAdapter-DErj6GAZ.js",
+        "bytes": 12523,
+        "sha256": "84d16dfcfc771249e9c751303840ca89ecc272f4233ffc4cf15a3218eb8bd442"
+      },
+      {
+        "path": "assets/pbrUboDeclaration-CsCaqdz_.js",
+        "bytes": 2400,
+        "sha256": "f7b5fe044093dd61c1df78041bc77472755c12bbb27cf210eed17293f12f362b"
+      },
+      {
+        "path": "assets/pbrUboDeclaration-eprj42IS.js",
+        "bytes": 1802,
+        "sha256": "d88510e44d4833a0c4c91f6ab8a531bbe834057bc1a5608dc697b5aa0d70c88e"
+      },
+      {
+        "path": "assets/postprocess.vertex-BEFWsqcW.js",
+        "bytes": 560,
+        "sha256": "86ed20999c85d9ddb224b6cc2cd1c26ac66d51427272e780836d3251eada726e"
+      },
+      {
+        "path": "assets/postprocess.vertex-CCjcFsNp.js",
+        "bytes": 684,
+        "sha256": "8d5c83c36774c7dab642edb4ebff6fb730bca21ced1aa7476f131d17f11d043a"
+      },
+      {
+        "path": "assets/principal-BJheiWVh.js",
+        "bytes": 1515744,
+        "sha256": "1a4531e9741d212f25970a990738062d09017ea7615999911cc41b4d964c5f68"
+      },
+      {
+        "path": "assets/principal-Ck7t8tFd.css",
+        "bytes": 306239,
+        "sha256": "312e7be7d88cb799e5fe3ef7d58585e6d7fef61732b5122b436c922ba399948c"
+      },
+      {
+        "path": "assets/procedural.vertex-BuzHmZjS.js",
+        "bytes": 573,
+        "sha256": "bb512ccf604376af2cf54d782e4f2ed3facf9d1e831b489b605807b1e87ad0fe"
+      },
+      {
+        "path": "assets/procedural.vertex-DXkU26BZ.js",
+        "bytes": 713,
+        "sha256": "89e35accff89e6dfa024d58dc6f0e8efc968051294f6ec458afced51d7746a00"
+      },
+      {
+        "path": "assets/reflectionFunction-CqVCkqv6.js",
+        "bytes": 5639,
+        "sha256": "b9a814a16ab0b03bdbe41ff87b4a03637ece69d9ecdc04b8661b0dd6a31f172e"
+      },
+      {
+        "path": "assets/reflectionFunction-t5AE3fux.js",
+        "bytes": 5103,
+        "sha256": "822065d35503e6316dfdf5a91f4e4803f27c3ee310f9f0d0779e090064ed1bd6"
+      },
+      {
+        "path": "assets/rgbdDecode.fragment-D9J8utZw.js",
+        "bytes": 629,
+        "sha256": "1a26ae15e64a0a4478e761529a6929121647db4db1bda3b6291cb4ceabd6cd65"
+      },
+      {
+        "path": "assets/rgbdDecode.fragment-Dv2yt5gt.js",
+        "bytes": 772,
+        "sha256": "78c20a693c33d71c5a51eec85e8d1529dd32fb0716999b18054edf4ad7589c55"
+      },
+      {
+        "path": "assets/rgbdEncode.fragment-CzYhHjxG.js",
+        "bytes": 621,
+        "sha256": "85b92e928e1cc8bf076159a3a634b9d4b22a31dad2180a3e0c2916e54e89e5bc"
+      },
+      {
+        "path": "assets/rgbdEncode.fragment-D95EpxYs.js",
+        "bytes": 763,
+        "sha256": "241fea021466a8274caef0a2b05b96e218208b8bd8a2af5ff5b74f00245e9011"
+      },
+      {
+        "path": "assets/salaires-Dflq8tUO.js",
+        "bytes": 1540,
+        "sha256": "015692b5324cc1014c362a2402ba721ceb9b6711a4e5918f267676c1f0dd1c62"
+      },
+      {
+        "path": "assets/sceneUboDeclaration-CDlXA-we.js",
+        "bytes": 437,
+        "sha256": "4f24e44d1cb5824dfca245771c2f6a17ea5187f17319ec81e2b789967fdde4e9"
+      },
+      {
+        "path": "assets/sceneUboDeclaration-uAtBlFrL.js",
+        "bytes": 365,
+        "sha256": "ca24f621612c54675df67e6c303049e195e22461c2630d4ae0c6a5c93f4d2ebf"
+      },
+      {
+        "path": "assets/sceneVertexDeclaration-DamsPveb.js",
+        "bytes": 331,
+        "sha256": "23326a4e0a522125d0c90fb8ef5f30dbffe55314705fd1a9b0b65c377dcf1002"
+      },
+      {
+        "path": "assets/shadowMap.fragment-DYlDHmG6.js",
+        "bytes": 3976,
+        "sha256": "7ca053ee2529628a49f2ed3c37f5fd40588489b4b74a3962da9a176a87517c2c"
+      },
+      {
+        "path": "assets/shadowMap.fragment-WevUO0HD.js",
+        "bytes": 3411,
+        "sha256": "a3386d0065035620e8dfdbe9067b4dfbbfd8b0d6a7dd94ee080b40e2d69475a3"
+      },
+      {
+        "path": "assets/shadowMap.vertex-B7-Ah43d.js",
+        "bytes": 4795,
+        "sha256": "6fe499232a71d6a95fa08c069c2d8c5aac2c96fdb6f5aaf2febf6a6ea4990a7e"
+      },
+      {
+        "path": "assets/shadowMap.vertex-Cp5n0V1E.js",
+        "bytes": 4821,
+        "sha256": "73e8cf0287c5f4cf0f930e205f94de1c8239467807eb2f761ca7cbfa90827722"
+      },
+      {
+        "path": "assets/shadowMapFragmentSoftTransparentShadow-DG6qimTW.js",
+        "bytes": 470,
+        "sha256": "3e2c0bb1feec73d0c60b539a8a3d5df67c2fd6823e407d8f87877f4c3ee0bb38"
+      },
+      {
+        "path": "assets/shadowMapFragmentSoftTransparentShadow-UK9XsGn3.js",
+        "bytes": 505,
+        "sha256": "6f64c2b673bab265e3db63f87cb5f91d37e564c1294588e1c0f10c9bb50ae60e"
+      },
+      {
+        "path": "assets/shared-design-BR6wKexh.js",
+        "bytes": 711,
+        "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+      },
+      {
+        "path": "assets/shared-design-D17Vxp_n.css",
+        "bytes": 30543,
+        "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+      },
+      {
+        "path": "assets/site-shell-v2-DKHbEmDf.css",
+        "bytes": 45671,
+        "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+      },
+      {
+        "path": "assets/ssao2.fragment-B1xzRmDn.js",
+        "bytes": 6962,
+        "sha256": "00108915e8277b42deed9261a864a335fd9f20513d43bcf7e621019d00081e1b"
+      },
+      {
+        "path": "assets/ssao2.fragment-B5gYeoTt.js",
+        "bytes": 5465,
+        "sha256": "0565bf26fe253eca93ca0f58597032b548cd298c1ffe1c23f7f45368b3f27852"
+      },
+      {
+        "path": "assets/ssaoCombine.fragment-CbyOzUJP.js",
+        "bytes": 906,
+        "sha256": "a2fe8f321e2d54cd60af643b9c2caa22d4845ccec66c697a9bfbfda796a10f81"
+      },
+      {
+        "path": "assets/ssaoCombine.fragment-CtqW6Eb-.js",
+        "bytes": 671,
+        "sha256": "70c488a00b0c09128ee4ed58ed3d23c0376d46530afe4dbf05c3bd1f519638e9"
+      },
+      {
+        "path": "assets/style-Dn4VjWro.css",
+        "bytes": 117383,
+        "sha256": "af5b2dc7711eaf866f160cc7aa3b73c6fad1acd2a1ddd84eddaa236d22d7430c"
+      },
+      {
+        "path": "assets/textureProcessor.fragment-Cs5kYbCg.js",
+        "bytes": 3591,
+        "sha256": "049d93ba0e62178406a279f01535551423bf5360fe6e31a8a9e8267d6cf88954"
+      },
+      {
+        "path": "assets/textureProcessor.fragment-bQQvtwbH.js",
+        "bytes": 4478,
+        "sha256": "41891fad9b0a43e085156b2c6ff094446ee020ac9d10e00e32e7f21caba28808"
+      },
+      {
+        "path": "assets/tgaTextureLoader-B9LzAkWQ.js",
+        "bytes": 3628,
+        "sha256": "268b1333fcb39d7613eb08032eca71f96705a9233980f885794cc18c09b649db"
+      },
+      {
+        "path": "bilan/carte.png",
+        "bytes": 42349,
+        "sha256": "0e75143a24ad77e662b8aae2721573331d42acf8800539aa32c4628fc76ab50d"
+      },
+      {
+        "path": "bilan/index.html",
+        "bytes": 2099428,
+        "sha256": "7b36469eb3c47be3e3cdc12a764e0f4d8df8af1d6cd926bf129c90abc2f2f4f2"
+      },
+      {
+        "path": "brand/accueil-assemblee.png",
+        "bytes": 1533648,
+        "sha256": "c2bf6a097f344a9f12e60622b7c177fbcfac82a250dc7202688bbe869ba3bfba"
+      },
+      {
+        "path": "brand/concept-e-dark.svg",
+        "bytes": 4765,
+        "sha256": "8f3adf676fae0e50869bf782fe3c02a92143b3b05d7989de84746ad0b5ebdaac"
+      },
+      {
+        "path": "brand/concept-e-light.svg",
+        "bytes": 4765,
+        "sha256": "ba017b5fd39081a21b06d09596eebc29d3126d58a5d775284cec3ee0854adaec"
+      },
+      {
+        "path": "brand/favicon-32.png",
+        "bytes": 506,
+        "sha256": "24c35a7bdcbfbd1b24ae0babc881c7167247ca150ef22a85c78b92d37d2851ac"
+      },
+      {
+        "path": "brand/favicon.svg",
+        "bytes": 413,
+        "sha256": "25cbb478c211b33098f9fc3ba79960a4084ccc406ec605e9052eaf119700d659"
+      },
+      {
+        "path": "carte.png",
+        "bytes": 55130,
+        "sha256": "468aed1044d1cd758199e2edc7dc3f58fd8b7145abb48950ad7e029c2efcd337"
+      },
+      {
+        "path": "confidentialite/index.html",
+        "bytes": 6392,
+        "sha256": "5ca37b1cc4a5eaff7a9b0c08f99db8c216d8db82f837b4c0e8eafe1674b54301"
+      },
+      {
+        "path": "dossiers/groenland.jpg",
+        "bytes": 612115,
+        "sha256": "d478d50a97f768b82951e2b06a41be4081e3b6cd96eed6d65431664a61dac13e"
+      },
+      {
+        "path": "france/assemblee.jpg",
+        "bytes": 306905,
+        "sha256": "5e8feba2099748ff537ec4d6c45a6f66602ab9de6d8629ee434238bbbc9066ca"
+      },
+      {
+        "path": "france/budget.jpg",
+        "bytes": 245529,
+        "sha256": "af4a024f20d58ee191483d0deeea48a10f95163cea54144ae6f28a5433a8143e"
+      },
+      {
+        "path": "france/credits.html",
+        "bytes": 2387,
+        "sha256": "330359e2b8304748faa7b71cd6d2a9c5382c82b7a050a4a0d868819f9499ad55"
+      },
+      {
+        "path": "france/fiscalite.jpg",
+        "bytes": 176809,
+        "sha256": "e1f149fd74cdfd81118db0af933b19f9d5914e6075d00598333a71aece8f8596"
+      },
+      {
+        "path": "france/justice.jpg",
+        "bytes": 167944,
+        "sha256": "83086b2b8dc76f3efb1598b18bf7d53c1cc4b517f0b30aedc288469bbd89d8cf"
+      },
+      {
+        "path": "france/logement.jpg",
+        "bytes": 289505,
+        "sha256": "5ef9bba9de03637d7ee950485f062dd3b138ee0edf29dfd6bcf08f2129799000"
+      },
+      {
+        "path": "france/retraites.jpg",
+        "bytes": 160072,
+        "sha256": "f5c3732cf6729d990b471a008ff9e6734f6baa0dc06d4e59036a99a5a63b1a8b"
+      },
+      {
+        "path": "france/services.jpg",
+        "bytes": 288584,
+        "sha256": "ef3c3f439ab1e46c3a052c58715a8042b2a8a5a80db4726d63da61fecb47d7f2"
+      },
+      {
+        "path": "france/travail.jpg",
+        "bytes": 115744,
+        "sha256": "bc628cca21001276153146ff102bee64902457f02c53f99e04bbbe052dc77384"
+      },
+      {
+        "path": "index.html",
+        "bytes": 20941,
+        "sha256": "944f6a93bc84377c88722adf0b67e6ecdbf999dca9de21239250b76026528644"
+      },
+      {
+        "path": "mandats/art/CINEMA-SOURCES.md",
+        "bytes": 1193,
+        "sha256": "13af3a17a889419d065bcd8b8d18897a013c923b193b459da5303125e154d24f"
+      },
+      {
+        "path": "mandats/art/README.md",
+        "bytes": 790,
+        "sha256": "a998b39848c45ab8d032d51fcdf494fe46b727c8b08dbf49a4bd586623f24a50"
+      },
+      {
+        "path": "mandats/art/chapter.webp",
+        "bytes": 375336,
+        "sha256": "c921c49d1d149eff025bbb6419633f551f87ded9117e96913e9b5fd0167103f2"
+      },
+      {
+        "path": "mandats/art/city-inherited-1536.webp",
+        "bytes": 253504,
+        "sha256": "b319eba038e64981b76072c1e1058a6526da5af487cb9d2e39c5cfd9476a99e5"
+      },
+      {
+        "path": "mandats/art/city-inherited-768.webp",
+        "bytes": 75492,
+        "sha256": "fb8722d025c62d772df2d2ef05fb1b74ed54cdc095ecf9a6e01b425e360041ac"
+      },
+      {
+        "path": "mandats/art/city-renewed-1536.webp",
+        "bytes": 263080,
+        "sha256": "8188be5a2170a36c654cc2363fcd9e9b3a266726dda8f6b7ce31ba003e160f29"
+      },
+      {
+        "path": "mandats/art/city-renewed-768.webp",
+        "bytes": 77822,
+        "sha256": "687cf45fccc0514d310ab750aa9aeab329046e80d9327e273f9a6b192ac97457"
+      },
+      {
+        "path": "mandats/art/council.webp",
+        "bytes": 220642,
+        "sha256": "70f02f87ccfb102170ee8d8e613ce181a2449ce727913533c1bb40617a661692"
+      },
+      {
+        "path": "mandats/art/energy.webp",
+        "bytes": 406736,
+        "sha256": "52c0cb6aee89d699be88870492a10652271cd632a9de9c9331d168d1430eeea6"
+      },
+      {
+        "path": "mandats/art/hospital.webp",
+        "bytes": 353288,
+        "sha256": "798a9eebcd2104d308089bc282852e6c771a3e0c63903e5f82e0a05b631707e9"
+      },
+      {
+        "path": "mandats/art/legacy.webp",
+        "bytes": 401858,
+        "sha256": "52ca6c9819138197318580078f60abbbf0682992cb55442d1d1be1192cd62456"
+      },
+      {
+        "path": "mandats/art/nation.webp",
+        "bytes": 471450,
+        "sha256": "b8ff2543d0c2bf13165a621a33c358d0cf599dd66c99480abe89fdeb347846a0"
+      },
+      {
+        "path": "mandats/art/national-relief-1536.webp",
+        "bytes": 233154,
+        "sha256": "1fb595bdfbcc953e9588df60c1cb6b8616c2500f01206365a5c7905b1e3e3daa"
+      },
+      {
+        "path": "mandats/art/national-relief-768.webp",
+        "bytes": 59832,
+        "sha256": "7962d5d41cec12892064c6cab4fb0b2f3f17aa580d1979a88c76320f8136dceb"
+      },
+      {
+        "path": "mandats/art/office.webp",
+        "bytes": 358212,
+        "sha256": "9ee4b193b92a9b322f2be1082547ac17241fe1648484b5414cb22d039a21a868"
+      },
+      {
+        "path": "mandats/art/parliament.webp",
+        "bytes": 295244,
+        "sha256": "7838cc11eb6a19dd38aef8eba21933e96ba7fe8cfeec12f6a5b4dc224cef04e6"
+      },
+      {
+        "path": "mandats/art/rupture.webp",
+        "bytes": 305738,
+        "sha256": "1ba427bea896efbdfd026d90a78b53d2a4f6cdf00965dca1c38d93d1a39eae26"
+      },
+      {
+        "path": "mandats/art/school.webp",
+        "bytes": 360906,
+        "sha256": "5d3205d479c92efc5c11dea5dad8d88d21b12c75a91c56cf4c7c545ac62b5f8f"
+      },
+      {
+        "path": "mandats/art/winter-quarter-small.webp",
+        "bytes": 135692,
+        "sha256": "417e0bf12b47a1a5f8d14e12d714ae415fa2a8e077cff21db551826846dc4870"
+      },
+      {
+        "path": "mandats/art/winter-quarter.webp",
+        "bytes": 433600,
+        "sha256": "9d7d9acac4531979dd19530fb30e8b642088cfc9a876e9fd4009306afecf0ac0"
+      },
+      {
+        "path": "mandats/comprendre/deficit-dette-perimetres/index.html",
+        "bytes": 5628,
+        "sha256": "fd940d8550870fb107001e1d27cfa5b990544f6405ebeaefc6630dbffdafe5b9"
+      },
+      {
+        "path": "mandats/comprendre/emprunt-et-epargne/index.html",
+        "bytes": 5548,
+        "sha256": "8e14a6bb8d0ae1f13354dad7eed921253f63639df27a34b629fa154245182023"
+      },
+      {
+        "path": "mandats/comprendre/entretenir-ou-reparer/index.html",
+        "bytes": 5419,
+        "sha256": "490c1e4fb76a2b2d1530131cac9973639ad191c70d4f09642c5dd8a8fce8d635"
+      },
+      {
+        "path": "mandats/comprendre/fonctionnement-investissement/index.html",
+        "bytes": 5734,
+        "sha256": "13564b248390559038cf77ab3f6e2ecabdf7d0c329c67fcbbae718af247633ec"
+      },
+      {
+        "path": "mandats/comprendre/index.html",
+        "bytes": 4032,
+        "sha256": "7b23d6f3783e037d647299a62c77c545c383afa52f949feaa3d203e46ad3a7b0"
+      },
+      {
+        "path": "mandats/fonts/OFL-Barlow.txt",
+        "bytes": 4377,
+        "sha256": "186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f"
+      },
+      {
+        "path": "mandats/fonts/OFL-Source-Sans-3.txt",
+        "bytes": 4486,
+        "sha256": "56af9b9c6715597e458284a474dc118a50a4150e9d547c70f7b4a33c3e6a9328"
+      },
+      {
+        "path": "mandats/fonts/SOURCES.md",
+        "bytes": 657,
+        "sha256": "20ae53244e3269c2dfa10d3ee2b73cfd6206b92fbf83758a83da485177bdaa06"
+      },
+      {
+        "path": "mandats/fonts/barlow-semi-condensed-600.woff2",
+        "bytes": 64440,
+        "sha256": "bae9a20f1461da5276b405097cfd4ad72a888632b65780ca3a0b996cb4aab3ad"
+      },
+      {
+        "path": "mandats/fonts/mandats-serif-700-latin.woff2",
+        "bytes": 52268,
+        "sha256": "bccb42821e15ea1662ec0662a4ab2cb83ebe96d4f838c8ed904cc1b545107bf7"
+      },
+      {
+        "path": "mandats/fonts/mandats-serif-OFL.txt",
+        "bytes": 4725,
+        "sha256": "84886eb92e101b06e87effdd01ff24808a672311306c51768716c945e253be74"
+      },
+      {
+        "path": "mandats/fonts/source-sans-3-variable.woff2",
+        "bytes": 170188,
+        "sha256": "5f16566f7a40d39b339ad26be151fa5a1ab1f0c2574c7a2e619765584a1acbd8"
+      },
+      {
+        "path": "mandats/france/hiver/index.html",
+        "bytes": 511,
+        "sha256": "0b531db7281b04b38394c1cdfb5412d7dc8247de8526f466a0184bb3c1d351c4"
+      },
+      {
+        "path": "mandats/icon-192.png",
+        "bytes": 2273,
+        "sha256": "e24dd8ab07049388d36ab06125cc658d6d76f85708c667bf0c7064b9a33ea9ce"
+      },
+      {
+        "path": "mandats/icon-512.png",
+        "bytes": 9010,
+        "sha256": "4cc8a900864e0ec38c08a59c375ea34d3dfe4a59bf44d0921823d79439bdcf13"
+      },
+      {
+        "path": "mandats/index.html",
+        "bytes": 5035,
+        "sha256": "54ca3932bb7618de2121154a75e3806eef617d7084218d9f566b643447ef453b"
+      },
+      {
+        "path": "mandats/manifest.webmanifest",
+        "bytes": 493,
+        "sha256": "49b5bfa63377b595f62f16e959131c837398a9b681ce4a4a82dfb262a3dad96f"
+      },
+      {
+        "path": "mandats/methode/index.html",
+        "bytes": 28926,
+        "sha256": "c2d4d84e9526d4047c7ee63d6a6f67f0fb3e6e8ade3250a1bf0b92f545ee9edd"
+      },
+      {
+        "path": "mandats/models/SOURCES.md",
+        "bytes": 1655,
+        "sha256": "b52fc5b5b36313f46c41b30e5c2d6acfdada6d108e1bec9ba9d2a483154a1565"
+      },
+      {
+        "path": "mandats/models/architecture.glb",
+        "bytes": 11679080,
+        "sha256": "5f91bf92a18e1eccbfe85cce091206790a40ccbd8477cf8ad902d0d9721fae64"
+      },
+      {
+        "path": "mandats/models/architecture.json",
+        "bytes": 30448,
+        "sha256": "30ab3b2d66840a69c53a0c534710bf9069d71d069c8ba23c46901a29e5232841"
+      },
+      {
+        "path": "mandats/models/cathedrale.glb",
+        "bytes": 11722648,
+        "sha256": "9fb528573a603aee1d756f72f3226e6475c92acbde96d1332afa713ebcdfca81"
+      },
+      {
+        "path": "mandats/models/cathedrale.json",
+        "bytes": 1041,
+        "sha256": "0a632ed96650533e03f06df360642db6ad754dafa954514626da211a09a32186"
+      },
+      {
+        "path": "mandats/models/daylight.env",
+        "bytes": 1102156,
+        "sha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8"
+      },
+      {
+        "path": "mandats/models/paris.glb",
+        "bytes": 9815864,
+        "sha256": "8eb1d54a49bdd46b97f422880c5ff835ee095e952d2cb74b9e61fdd1b3c0d0b8"
+      },
+      {
+        "path": "mandats/models/paris.json",
+        "bytes": 2613,
+        "sha256": "633e343da90ae24c7fb9ce90acc55708cd974df00dcc4dd4c89436ad4b21edbd"
+      },
+      {
+        "path": "mandats/models/vegetation.glb",
+        "bytes": 721552,
+        "sha256": "44ba0d18ea0aa4e8f2211d20b88fb4b9904cf4f1b8518066fdd3ec278e700a0b"
+      },
+      {
+        "path": "mandats/og.png",
+        "bytes": 49551,
+        "sha256": "df5574b4e326aebb94dfe058aadc04a090391d9712a3c078f996f4ba4f71b47e"
+      },
+      {
+        "path": "mandats/sw.js",
+        "bytes": 8358,
+        "sha256": "ff5f42d764cda17fa940369e418b8b6f723f7ce4774939d0cdb1d7b42fb2dadb"
+      },
+      {
+        "path": "polices/public-sans-latin-ext.woff2",
+        "bytes": 18472,
+        "sha256": "3a00a32f0242b723dcea79935747d6d27dd93675d03ef23f470dfe274e79586a"
+      },
+      {
+        "path": "polices/public-sans-latin.woff2",
+        "bytes": 26832,
+        "sha256": "5ed4d31c988e73b258894244f209069ebe77dc7e564861954b21198b6de90d68"
+      },
+      {
+        "path": "polices/spectral-500-latin-ext.woff2",
+        "bytes": 20644,
+        "sha256": "747fb031bc07d1d88891efbab9d64ec5106407499fe8eb227c9bc47b3e5f77cd"
+      },
+      {
+        "path": "polices/spectral-500-latin.woff2",
+        "bytes": 22836,
+        "sha256": "2b70215ed40f2c73bbc7bb53cff9c8975a244c8462569e60989c77b8c5a87a00"
+      },
+      {
+        "path": "polices/spectral-600-latin-ext.woff2",
+        "bytes": 20824,
+        "sha256": "dea6bd9ca650814af1f750b7474d7205b7fe0e4c79a6b58c6f7157d90dc8815c"
+      },
+      {
+        "path": "polices/spectral-600-latin.woff2",
+        "bytes": 22936,
+        "sha256": "33faca8b5795a0de1af77cbc43a050a3655c4b1e03e04847fdef4d19d2e361d2"
+      },
+      {
+        "path": "polices/spectral-700-latin-ext.woff2",
+        "bytes": 20824,
+        "sha256": "9b5a5be420405c68cf73fcdd06fa4c9978dcd8fb8b87b0e187e107cfb7a5da29"
+      },
+      {
+        "path": "polices/spectral-700-latin.woff2",
+        "bytes": 23036,
+        "sha256": "5276f202cce67e8caa9f697800e11cfc9d708da67d47f6f5507dcadcf1e11c11"
+      },
+      {
+        "path": "questions/age-premier-achat-residence-principale/index.html",
+        "bytes": 9108,
+        "sha256": "5efeb1438f329ec363b87165f4117d37f5e2402b614f9d2048c17ea60c195d9a"
+      },
+      {
+        "path": "questions/arenh-42-euros-etranger/index.html",
+        "bytes": 8726,
+        "sha256": "5e5892f10727d54d4d6fd9889dae57df1bfeb00ce9cd45e39050d7f63cfd7113"
+      },
+      {
+        "path": "questions/electricite-vendue-moins-chere-etranger/index.html",
+        "bytes": 8940,
+        "sha256": "e3d9e75563e061701d8f19973b18d9301ac2a412716429b306ccb10140e7560f"
+      },
+      {
+        "path": "questions/hausse-prix-gaz/index.html",
+        "bytes": 8264,
+        "sha256": "6c23106170616413d094a591c7ddbabca08e65df8a337c90818527eddcddaaf3"
+      },
+      {
+        "path": "questions/index.html",
+        "bytes": 7589,
+        "sha256": "3a1e448156a7de4866e55e99253c55e3a24a720fd62ca6015ec893343716ff12"
+      },
+      {
+        "path": "questions/prix-fournitures-scolaires/index.html",
+        "bytes": 8601,
+        "sha256": "acb885b8c5c96f5a0669e1e00256f6abbf35d812b0ee98ddb9130a55be9d5373"
+      },
+      {
+        "path": "questions/qualite-vie-france/index.html",
+        "bytes": 8391,
+        "sha256": "66e5de8ae27b8e2143cfaef195003088f4e55886b360a85786a8d8fb77cfbeab"
+      },
+      {
+        "path": "robots.txt",
+        "bytes": 70,
+        "sha256": "2d519dac58c6b2766f20d53d3af6049c4bb980ba86761043298a17604531e9f9"
+      },
+      {
+        "path": "salaires/carte.png",
+        "bytes": 52697,
+        "sha256": "0e68715d3610bb402768541a382f6d9a92799d5872744d837ce5d89fe6d6f632"
+      },
+      {
+        "path": "salaires/index.html",
+        "bytes": 84380,
+        "sha256": "5ab3818392ed4f22931f94127fa7211410fa7a5df1e3533c123e9426d8383583"
+      },
+      {
+        "path": "simulateur/carte.png",
+        "bytes": 46160,
+        "sha256": "aa1664f9e5c0261248edc46f9e147edceee636d11b8e839b1eb2190fbd14fbfd"
+      },
+      {
+        "path": "sitemap.xml",
+        "bytes": 2928,
+        "sha256": "7eb7a7bc96c26bd174b253958cb0cbd9e8bc9483896632cea1e27930ff410f85"
+      },
+      {
+        "path": "sources/carte.png",
+        "bytes": 41340,
+        "sha256": "f1144b697e53e5fe33e63c344effbcb0ebc29c81f44610979bbd15f7042f38df"
+      },
+      {
+        "path": "sources/index.html",
+        "bytes": 339010,
+        "sha256": "9e20a1e30d05aa2ef7a20cd90f94363236ca483ad0a374cfa122ef3aa49677ec"
+      },
+      {
+        "path": "territoire/index.html",
+        "bytes": 15146,
+        "sha256": "3e9b3259394947a960eb4cebeb971c76715f2c518a761e311781818af59558d3"
+      },
+      {
+        "path": "ville/cite-civique.webp",
+        "bytes": 196764,
+        "sha256": "4650b6e3f9d9904a64a002046a9bdd84cfa05c58ed514499023c01e6618306bb"
+      },
+      {
+        "path": "ville/conseil-illustration.webp",
+        "bytes": 65428,
+        "sha256": "505aab96c65f16dd30ec3db09e340488689f6cc8e993b6a75daaf27ffa23d187"
+      },
+      {
+        "path": "ville/panorama.svg",
+        "bytes": 2076,
+        "sha256": "30eb2cbd02cdf21301bde3add43870c5aae5fa436ea50bc5f67793631d8fb2ab"
+      },
+      {
+        "path": "ville/recherche.svg",
+        "bytes": 1367,
+        "sha256": "e8d46ed9f1b1100c355d4efdbc638dae226f64c659c485e55224412f9713474e"
+      }
+    ]
+  },
+  "artVerdict": "Unreviewed. Await the actual captures and root/reference_review verdict.",
+  "sourceDeltaFromBase": {
+    "build": "24",
+    "manifestSha256": "3bc7e854280a3b2d94a0ba913c8e838f028c704c27bf2dda7a288af0f3fea4cf",
+    "changed": {
+      "site/src/mandats/map-city-national.ts": {
+        "before": "f25e86c4754bfc2c4be53d88e767313a15ed0d80038ca5f5ca331552a8ff1147",
+        "after": "37bd98e9c9b9ef49a904af831968ab4a950929471538a5f7136e14a62c8d4ce2"
+      },
+      "site/src/mandats/map-context.ts": {
+        "before": "1583793f8d39e08c46f7bc9c0a33efd231bfa8ab893ed92883bc69ed21f7f667",
+        "after": "d38a768ed989acc1c4f874458d6dcb3cac3094fba3b306f8279704d50f001af6"
+      },
+      "site/src/mandats/map-land-crags.ts": {
+        "before": "d65d0164b08fe248ff8a6a2ab320952c74d7b278a91916b8f14466e36b545417",
+        "after": "bac12ba5bc388fce2b2db48285b38c6a3bca193e4f8d85ec3024c6a64c26dc0c"
+      },
+      "site/src/mandats/map-landscape.ts": {
+        "before": "48be0803dba6664fd013ca3cc503f100c84b16dc2edd12f4d082e4c41015b1e5",
+        "after": "8d30f7dc8f64ad17fc80216b67995bfbcc3dc03b6797019688d01d72d701e17b"
+      },
+      "site/src/mandats/map-model-revisions.ts": {
+        "before": "f6c758e3b124be20ba43c6564708abc92223534ba9be7c859b26c48ecf8d021f",
+        "after": "b397de7925b1d5b34380ad1cd1afe1413a29070e928312e2a5a2e4812de06fa1"
+      },
+      "site/src/mandats/map-scene.ts": {
+        "before": "42d0c01c7bc82501cca8f947361a8e0d8af57638f400374078b493f908e7917c",
+        "after": "2587884adaab7af0049bfece239acbbe1d5996577a393057736a4c35f7914988"
+      }
+    },
+    "newlyRecorded": [],
+    "notRecordedInCurrentScope": []
+  },
+  "historicalValidation": {
+    "build": 20,
+    "appliesToCurrentBuild": false,
+    "manifest": "build-20.json",
+    "sha256": "c1505401600a55488333e665d8d38410917f8a7f52439a8f5eb2d90c1a1b0142",
+    "checks": {
+      "unitPassed": 1082,
+      "buildPassed": true,
+      "nativeViews": "7/7 captured,0 runtime/HTTP/request errors,0 decisions; actual console1 informative Babylon log",
+      "fullBrowserSuites": "unrun",
+      "denseDisplay": "Desktop DPR2 passed unchanged zoom/resize/save/resume assertions; dpr-20.log and dpr-20-artifacts"
+    }
+  },
+  "nativeValidation": {
+    "build": "25",
+    "verifiedAt": "2026-10-09T05:53:19.889Z",
+    "buildIdentitySha256": "fc8bd032546a1dbb4961e7d4a11c3772da4f68f734cbb7acd480351bbccba670",
+    "profileSha256": "5b1326734081b6016ae890f7a02699a7f1eb7c49c5d4c862992f436c826370c8",
+    "captureDirectory": "/workspace/mandats-verification/authored-3d/prototype-25",
+    "nativeViews": 7,
+    "browserVersion": "151.0.7922.173",
+    "viewport": [
+      1672,
+      941
+    ],
+    "devicePixelRatio": 1,
+    "counts": {
+      "errors": 0,
+      "failedRequests": 0,
+      "failedResponses": 0,
+      "consoleMessages": 1,
+      "responseBodyErrors": 0,
+      "consoleWarnings": 0,
+      "consoleErrors": 0
+    },
+    "technicalPassed": true,
+    "eventCountMethod": "Last cumulative event snapshot, not a sum of repeated snapshots",
+    "choicesByView": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "viewRecords": [
+      {
+        "stage": "01-national",
+        "capturedAt": "2026-10-09T05:48:34.625Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "5198378",
+          "activeMeshes": "13777",
+          "cameraRadius": "13.52",
+          "renderMs": "627"
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "02-paris-detail",
+        "capturedAt": "2026-10-09T05:48:45.824Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "9534310",
+          "activeMeshes": "2956",
+          "cameraRadius": "5.82",
+          "renderMs": "108",
+          "inspection": "paris"
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "03-paris-seine",
+        "capturedAt": "2026-10-09T05:48:53.382Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "3368042",
+          "activeMeshes": "4103",
+          "cameraRadius": "7.82",
+          "renderMs": "81",
+          "inspection": "paris"
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "03b-paris-recentree",
+        "capturedAt": "2026-10-09T05:49:07.496Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "3760346",
+          "activeMeshes": "13777",
+          "cameraRadius": "13.52",
+          "renderMs": "58",
+          "inspection": ""
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "04-lyon-detail",
+        "capturedAt": "2026-10-09T05:49:30.357Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "10000873",
+          "activeMeshes": "3118",
+          "cameraRadius": "3.8",
+          "renderMs": "65",
+          "inspection": "lyon"
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "05-lyon-alpes",
+        "capturedAt": "2026-10-09T05:49:39.177Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "5607128",
+          "activeMeshes": "6378",
+          "cameraRadius": "5.8",
+          "renderMs": "131",
+          "inspection": "lyon"
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      },
+      {
+        "stage": "06-national-retour",
+        "capturedAt": "2026-10-09T05:49:53.189Z",
+        "data": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "landscape": "diorama",
+          "staticBatches": "40",
+          "staticInstances": "17259",
+          "authoredHouses": "737",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "3760346",
+          "activeMeshes": "13777",
+          "cameraRadius": "13.52",
+          "renderMs": "47",
+          "inspection": ""
+        },
+        "raster": {
+          "width": 1268,
+          "height": 801
+        },
+        "inputs": {
+          "version": 12,
+          "mode": "national",
+          "seed": 0,
+          "ambition": "equilibre",
+          "choices": []
+        }
+      }
+    ],
+    "captureFiles": {
+      "01-national.json": {
+        "bytes": 25745,
+        "sha256": "8d5650c6cc53de5e083026a4262dc12a7bb069b23d9e2639c20c161a03060c02"
+      },
+      "01-national-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "01-national.png": {
+        "bytes": 1788204,
+        "sha256": "766c9e2d7b7b9835ae8a8e418058209755d0cda13e2791d1ff413cd5e9149a35"
+      },
+      "02-paris-detail.json": {
+        "bytes": 25872,
+        "sha256": "609f3d2ef6c11b3ff2d4b854d816527fe003df32c7feeac29bd310e89ca435cd"
+      },
+      "02-paris-detail-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "02-paris-detail.png": {
+        "bytes": 1533698,
+        "sha256": "10bfbb1cb318d90c25ef8e13a3c85f273879183930299dcc9ea610eb55331a67"
+      },
+      "03-paris-seine.json": {
+        "bytes": 25968,
+        "sha256": "beef9d1a020aa0b461048172a9062bd9b6123ac7fd27b62f8eadefa74c94b09d"
+      },
+      "03-paris-seine-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "03-paris-seine.png": {
+        "bytes": 1537428,
+        "sha256": "47773145921c5e8d9eba84468f287aaac69efbde150cf9e6ba0bb0ff09cbfb97"
+      },
+      "03b-paris-recentree.json": {
+        "bytes": 25997,
+        "sha256": "d05524059496372296f3524c5cb240b2038ad5d4d8d4fa9e592b72833593b6ce"
+      },
+      "03b-paris-recentree-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "03b-paris-recentree.png": {
+        "bytes": 1816377,
+        "sha256": "1c0edfea8ea49cd2c5852064b7c3cc76caa38b6e7af845118d480ced95d22f30"
+      },
+      "04-lyon-detail.json": {
+        "bytes": 26126,
+        "sha256": "829dff18a40c634e193f1bc7136e6120578c3c275846283445ab1fdfccd4601d"
+      },
+      "04-lyon-detail-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "04-lyon-detail.png": {
+        "bytes": 1539858,
+        "sha256": "0c03172cfbda7f3b63cabdeb93fdd00b9b997d45d0ee2be90aebeb81709e4cbc"
+      },
+      "05-lyon-alpes.json": {
+        "bytes": 26223,
+        "sha256": "feaf82ccb449bd719b9ec0ecbd10a0e0c91877f2f59b1e6f5dfc1e2f98d2d37b"
+      },
+      "05-lyon-alpes-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "05-lyon-alpes.png": {
+        "bytes": 1714685,
+        "sha256": "3b2ffb033ff7554ac6b45bf3288cb4a8f0a3a0e109cbfa415fa4ef90b4091965"
+      },
+      "06-national-retour.json": {
+        "bytes": 26282,
+        "sha256": "5fd9b74b23d72f28f4e586a8bd3fb35260fa7d3550d527f73510ccdeb2e310e6"
+      },
+      "06-national-retour-inputs.json": {
+        "bytes": 98,
+        "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+      },
+      "06-national-retour.png": {
+        "bytes": 1788204,
+        "sha256": "766c9e2d7b7b9835ae8a8e418058209755d0cda13e2791d1ff413cd5e9149a35"
+      }
+    },
+    "galleryMapping": {
+      "ordinateur": {
+        "stage": "01-national",
+        "title": "Vue nationale réelle"
+      },
+      "paris": {
+        "stage": "02-paris-detail",
+        "title": "Paris"
+      },
+      "seine": {
+        "stage": "03-paris-seine",
+        "title": "Seine et berges"
+      },
+      "alpes": {
+        "stage": "05-lyon-alpes",
+        "title": "Lyon et Alpes"
+      },
+      "retour": {
+        "stage": "06-national-retour",
+        "title": "Retour national"
+      }
+    },
+    "actualServedBundleHashesMatchArchive": true,
+    "collectionReceipt": {
+      "build": "25",
+      "command": "NODE_USE_ENV_PROXY=1 node capture-native.mjs http://127.0.0.1:4191 prototype-25",
+      "exitCode": 0,
+      "confirmedBy": "functions.write_stdin session39219 returned exit_code0",
+      "confirmedAt": "2026-10-09T05:53:19.657780+00:00",
+      "session": 39219
+    },
+    "collectionReceiptSha256": "071ee62f05c921613e3558b392f33345df8d365c8a594ea69a324bd812fe9270"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "kind": "Actual production mineralFractures metadata, separate diagnostic only",
+  "build": "37",
+  "observedAt": "2026-10-09T12:09:18.742Z",
+  "lockSha256": "aa08e0158541d539233cfba55b785e2989beb6b66aa043fbf651d4cdb3df5925",
+  "actualDriverSha256": "0c956895290b122dd55f50cc6e8b6ffc9ef7059ded6b15bdda29114aa385e947",
+  "reporterSha256": "f60ec91ecade6c24683bdacd1505432d617735dc37811a81fc4ded0fee0e1d28",
+  "mineralSourceSha256": "e0bb0489217b06cca310d76684b10cd4fc6c2461636621963c127f0cf9d6f517",
+  "metadataPresent": true,
+  "status": "applied",
+  "reason": "Exposed existing geological faces only",
+  "version": 37,
+  "sourceTriangles": 59116,
+  "movedCoordinates": 168,
+  "depth": {
+    "maximumDepth": 0.030491496198597843
+  },
+  "counts": {
+    "barrierTests": 127601,
+    "protectedTriangles": 54208,
+    "frozenCoordinates": 30393,
+    "originalVertices": 76648,
+    "outputVertices": 76648,
+    "addedTriangles": 0,
+    "addedVertices": 0,
+    "queriedHeights": 0,
+    "scannedGLBs": 0
+  },
+  "originalMetadata": {
+    "version": 37,
+    "status": "applied",
+    "reason": "Exposed existing geological faces only",
+    "sourceTriangles": 59116,
+    "barrierTests": 127601,
+    "protectedTriangles": 54208,
+    "frozenCoordinates": 30393,
+    "movedCoordinates": 168,
+    "layeredCoordinates": 0,
+    "maximumDepth": 0.030491496198597843,
+    "originalVertices": 76648,
+    "outputVertices": 76648,
+    "addedTriangles": 0,
+    "addedVertices": 0,
+    "queriedHeights": 0,
+    "scannedGLBs": 0
+  },
+  "nonfiniteReportedNumericFields": [],
+  "housing": {
+    "historical36AuthoredHouseCount": 781,
+    "observedDomesticRootCount": 781
+  },
+  "limits": [
+    "Copies actual builder metadata; no independent verification of the reported fracture counts or depth is claimed.",
+    "Missing metadata is recorded as null, never assumed applied or skipped.",
+    "Does not alter existing physical helper logic, numeric thresholds, house counts or targeted pass/fail gates.",
+    "No artistic conformity, browser loading result, GPU validation or frame rate is inferred."
+  ]
+}

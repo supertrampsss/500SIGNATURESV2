@@ -1,0 +1,8 @@
+{
+  "build": "34",
+  "command": "node integration34/verify.mjs",
+  "exitCode": 1,
+  "confirmedBy": "functions.write_stdin session27282 returned exit_code1",
+  "confirmedAt": "2026-10-09T09:32:05.033215+00:00",
+  "session": 27282
+}

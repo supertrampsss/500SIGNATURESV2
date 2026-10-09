@@ -1,0 +1,58 @@
+[WebServer] (node:298061) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:298074) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:298092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:298234) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [desktop] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate (40.6s)
+
+
+  1) [desktop] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('[data-mandate-map]')
+    Expected: "babylon"
+    Received: "loading"
+    Timeout:  15000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 15000ms
+      - waiting for locator('[data-mandate-map]')
+        5 × locator resolved to <section data-turn="1" aria-busy="true" data-projects="0" data-movements="1" class="mandate-map" data-mandate-map="" data-motion="reduced" data-renderer="loading" data-resolution="1090x820" data-contact-shadows="true" data-edge-antialiasing="fxaa" aria-label="Carte de France et sujets du mandat">…</section>
+          - unexpected value "loading"
+        - locator resolved to <section data-turn="1" aria-busy="true" data-projects="0" data-movements="1" class="mandate-map" data-mandate-map="" data-motion="reduced" data-renderer="loading" data-landscape="diorama" data-static-batches="48" data-mountain-rocks="305" data-resolution="1090x820" data-authored-houses="781" data-rendered-projects="0" data-unplaced-projects="0" data-contact-shadows="true" data-edge-antialiasing="fxaa" data-static-instances="17867" aria-label="Carte de France et sujets du mandat">…</section>
+        - unexpected value "loading"
+
+
+      519 |     expect(before.social.movements[0].status).toBe("active");
+      520 |     release();
+    > 521 |     await expect(map).toHaveAttribute("data-renderer", "babylon");
+          |                       ^
+      522 |     await expect(map).toHaveAttribute("data-movements", "1");
+      523 |     await expect(page.locator("[data-map-canvas]")).toHaveAttribute("data-instance", "loading-persistent");
+      524 |     expect((await game(page)).choices).toEqual(before.choices);
+        at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:521:23
+
+    Error Context: rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate 
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

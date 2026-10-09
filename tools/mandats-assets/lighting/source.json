@@ -1,0 +1,24 @@
+{
+  "download_url": "https://raw.githubusercontent.com/BabylonJS/Assets/master/environments/umhlanga_sunrise_1k.hdr",
+  "sha": "bb20f414b07245f372302bdf5c658a1c8731d913",
+  "size": 1577804,
+  "repository": "https://github.com/BabylonJS/Assets",
+  "license": "CC BY 4.0",
+  "author": "Babylon.js Assets contributors",
+  "downloaded_at": "2026-10-08",
+  "source_sha256": "5bbc697864531c5953e8f249dec85f7c3f4d585bbf6708105c0a4e5510c75c03",
+  "generated_file": "site/public/mandats/models/daylight.env",
+  "generated_sha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8",
+  "generated_bytes": 1102156,
+  "transformation": "Babylon.js 9.30.0 HDRCubeTexture, linear cube radiance multiplied RGB by (1.15, 1.00, 0.65) before both radiance mip prefiltering and diffuse spherical polynomial calculation; cube face 256 px, PNG RGBD .env. Original RGBE panorama and original .env preserved unchanged.",
+  "generated_at": "2026-10-08",
+  "linear_rgb_balance": [
+    1.15,
+    1.0,
+    0.65
+  ],
+  "original_generated_file": "tools/mandats-assets/lighting/daylight-original.env",
+  "original_generated_sha256": "4d0ba6e9ffb0d449ec522d1fd5c23a803c484e2ee7731111125ebd92b5f4b52b",
+  "original_generated_bytes": 1089581,
+  "prefilter_report": "tools/mandats-assets/lighting/prefilter-report.json"
+}

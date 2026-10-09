@@ -1,0 +1,224 @@
+{
+  "origin": "http://127.0.0.1:4191",
+  "method": "Fresh native 320x640 Chromium context, DPR1, header test driver arguments, default motion preference. Actual entry UI and Ma partie controls; no state or camera injection and no preferences written. Waited eight seconds after renderer readiness to observe the real automatic quality regulator.",
+  "timings": [
+    {
+      "label": "gotoMandats",
+      "duration": 1488,
+      "at": 1603
+    },
+    {
+      "label": "rendererReady",
+      "duration": 7172,
+      "at": 8775
+    },
+    {
+      "label": "nativeMaPartieClick",
+      "duration": 53,
+      "at": 16846
+    },
+    {
+      "label": "nativeDialogVisible",
+      "duration": 4,
+      "at": 16850
+    },
+    {
+      "label": "toolsScreenshot",
+      "duration": 23,
+      "at": 16902
+    },
+    {
+      "label": "closeDialog",
+      "duration": 42,
+      "at": 16945
+    },
+    {
+      "label": "entryScreenshot",
+      "duration": 31,
+      "at": 16983
+    }
+  ],
+  "samples": [
+    {
+      "label": "ready",
+      "at": 8659,
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "320x269",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "landscape": "diorama",
+        "staticBatches": "25",
+        "staticInstances": "6026",
+        "authoredHouses": "660",
+        "cameraRadius": "15.78",
+        "renderMs": "26",
+        "fps": "1",
+        "quality": "still"
+      },
+      "viewport": {
+        "width": 320,
+        "height": 640,
+        "scrollWidth": 320
+      },
+      "reducedMotion": false,
+      "light": null,
+      "saved": null
+    },
+    {
+      "label": "after4s",
+      "at": 12666,
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "320x269",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "landscape": "diorama",
+        "staticBatches": "25",
+        "staticInstances": "6026",
+        "authoredHouses": "660",
+        "cameraRadius": "15.78",
+        "renderMs": "26",
+        "fps": "1",
+        "quality": "still"
+      },
+      "viewport": {
+        "width": 320,
+        "height": 640,
+        "scrollWidth": 320
+      },
+      "reducedMotion": false,
+      "light": null,
+      "saved": null
+    },
+    {
+      "label": "after8s",
+      "at": 16671,
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "320x269",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "landscape": "diorama",
+        "staticBatches": "25",
+        "staticInstances": "6026",
+        "authoredHouses": "660",
+        "cameraRadius": "15.78",
+        "renderMs": "26",
+        "fps": "1",
+        "quality": "still"
+      },
+      "viewport": {
+        "width": 320,
+        "height": 640,
+        "scrollWidth": 320
+      },
+      "reducedMotion": false,
+      "light": null,
+      "saved": null
+    },
+    {
+      "label": "afterTools",
+      "at": 16825,
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "320x269",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "landscape": "diorama",
+        "staticBatches": "25",
+        "staticInstances": "6026",
+        "authoredHouses": "660",
+        "cameraRadius": "15.78",
+        "renderMs": "26",
+        "fps": "1",
+        "quality": "still"
+      },
+      "viewport": {
+        "width": 320,
+        "height": 640,
+        "scrollWidth": 320
+      },
+      "reducedMotion": false,
+      "light": null,
+      "saved": null
+    }
+  ],
+  "toolsBounds": {
+    "x": 266,
+    "y": 4.5,
+    "width": 44,
+    "height": 44
+  },
+  "dialogGeometry": {
+    "bounds": {
+      "x": 19,
+      "y": 16,
+      "width": 282,
+      "height": 616,
+      "top": 16,
+      "right": 301,
+      "bottom": 632,
+      "left": 19
+    },
+    "scrollWidth": 280,
+    "clientWidth": 280
+  },
+  "focus": {
+    "action": "tools",
+    "bounds": {
+      "x": 266,
+      "y": 4.5,
+      "width": 44,
+      "height": 44,
+      "top": 4.5,
+      "right": 310,
+      "bottom": 48.5,
+      "left": 266
+    }
+  },
+  "driver": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)"
+  },
+  "resources": [
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=22d88978198973b2",
+      "duration": 7,
+      "transfer": 945048
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=f8e0fc41499a6063",
+      "duration": 178,
+      "transfer": 5437580
+    }
+  ],
+  "errors": [],
+  "consoleMessages": [
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x398400185600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "at": 7399
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x398400185600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "at": 8776
+    }
+  ],
+  "failedRequests": [],
+  "failedResponses": [],
+  "total": 16984
+}

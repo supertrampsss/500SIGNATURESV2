@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "axes": "GLTF Y-up; footprint centred at ground",
+  "front": "+Z",
+  "distanceGeometry": "Named _distant model; high-detail geometry retained",
+  "models": {
+    "cathedrale_paris": {
+      "width": 2.2884,
+      "depth": 2.9465,
+      "height": 2.935,
+      "min": [
+        -1.144200086593628,
+        0.0,
+        -1.473249912261963
+      ],
+      "max": [
+        1.144200086593628,
+        2.93500018119812,
+        1.473249912261963
+      ],
+      "triangles": 80916
+    },
+    "cathedrale_paris_distant": {
+      "width": 2.2884,
+      "depth": 2.9465,
+      "height": 2.935,
+      "min": [
+        -1.144200086593628,
+        0.0,
+        -1.473249912261963
+      ],
+      "max": [
+        1.144200086593628,
+        2.93500018119812,
+        1.473249912261963
+      ],
+      "triangles": 4182,
+      "lodOf": "cathedrale_paris",
+      "lodRatio": 0.051683,
+      "decimationRatio": 0.2,
+      "omittedInspectionComponents": 4736,
+      "decimationExtentError": 0.00354,
+      "sourceTriangles": 4622
+    }
+  },
+  "authoringProfile": {
+    "facadeSpan": 1.2,
+    "axis": "GLTF X only",
+    "normalTransform": "inverse transpose",
+    "spireWidth": 0.72
+  }
+}

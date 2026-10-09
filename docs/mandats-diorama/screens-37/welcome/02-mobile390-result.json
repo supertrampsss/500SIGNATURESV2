@@ -1,0 +1,281 @@
+{
+  "name": "02-mobile390",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "startedAt": "2026-10-09T12:45:36.540Z",
+  "status": "passed",
+  "expectedPosterFailure": false,
+  "actions": [],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:4191/mandats/",
+      "type": "document",
+      "at": "2026-10-09T12:45:36.684Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:36.714Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:36.905Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:36.907Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:36.907Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:37.300Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:37.307Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:37.308Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "type": "other",
+      "at": "2026-10-09T12:45:37.460Z"
+    }
+  ],
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "path": "assets/game-B_-L39w0.css",
+      "status": 200,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "path": "assets/mandats-B5H7aFd6.css",
+      "status": 200,
+      "bytes": 175231,
+      "sha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "path": "assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "path": "polices/spectral-700-latin.woff2",
+      "status": 200,
+      "bytes": 23036,
+      "sha256": "5276f202cce67e8caa9f697800e11cfc9d708da67d47f6f5507dcadcf1e11c11"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "path": "mandats/fonts/barlow-semi-condensed-600.woff2",
+      "status": 200,
+      "bytes": 64440,
+      "sha256": "bae9a20f1461da5276b405097cfd4ad72a888632b65780ca3a0b996cb4aab3ad"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "path": "mandats/fonts/source-sans-3-variable.woff2",
+      "status": 200,
+      "bytes": 170188,
+      "sha256": "5f16566f7a40d39b339ad26be151fa5a1ab1f0c2574c7a2e619765584a1acbd8"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "path": "assets/mandats-lHN_ghvN.js",
+      "status": 200,
+      "bytes": 3180712,
+      "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "path": "polices/spectral-500-latin.woff2",
+      "status": 200,
+      "bytes": 22836,
+      "sha256": "2b70215ed40f2c73bbc7bb53cff9c8975a244c8462569e60989c77b8c5a87a00"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "path": "mandats/fonts/mandats-serif-700-latin.woff2",
+      "status": 200,
+      "bytes": 52268,
+      "sha256": "bccb42821e15ea1662ec0662a4ab2cb83ebe96d4f838c8ed904cc1b545107bf7"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+      "path": "assets/welcome-diorama-D6QPWYbq.png",
+      "status": 200,
+      "bytes": 1733114,
+      "sha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703"
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "path": "brand/favicon.svg",
+      "status": 200,
+      "bytes": 413,
+      "sha256": "25cbb478c211b33098f9fc3ba79960a4084ccc406ec605e9052eaf119700d659"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "failedResponses": [],
+  "consoleMessages": [],
+  "bodyErrors": [],
+  "captures": [
+    {
+      "suffix": "welcome",
+      "path": "02-mobile390-welcome.png",
+      "fullPage": true,
+      "bytes": 219071,
+      "sha256": "cae57c7662ebdbc6f845777c7c045f5e9fabc32fe1fda1cbb2b23715a146aca2",
+      "actual": {
+        "url": "http://127.0.0.1:4191/mandats/",
+        "screen": "select",
+        "dataset": {
+          "mandateMap": "",
+          "renderer": "preview",
+          "movements": "0"
+        },
+        "previewReady": true,
+        "busy": "false",
+        "poster": {
+          "src": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "complete": true,
+          "naturalWidth": 1268,
+          "naturalHeight": 801,
+          "alt": "",
+          "ariaHidden": "true",
+          "draggable": false,
+          "decoding": "async",
+          "objectFit": "contain",
+          "style": {
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "pointerEvents": "none"
+          }
+        },
+        "fallback": {
+          "tag": "svg",
+          "style": {
+            "display": "block",
+            "visibility": "hidden",
+            "opacity": "1",
+            "pointerEvents": "auto"
+          }
+        },
+        "canvas": {
+          "width": 300,
+          "height": 150,
+          "bounds": {
+            "x": 0,
+            "y": 60,
+            "width": 390,
+            "height": 362.90625,
+            "top": 60,
+            "right": 390,
+            "bottom": 422.90625,
+            "left": 0
+          },
+          "style": {
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "0",
+            "pointerEvents": "auto"
+          }
+        },
+        "layout": {
+          "viewportWidth": 390,
+          "viewportHeight": 844,
+          "devicePixelRatio": 1,
+          "scrollWidth": 390,
+          "map": {
+            "x": 0,
+            "y": 60,
+            "width": 390,
+            "height": 362.90625,
+            "top": 60,
+            "right": 390,
+            "bottom": 422.90625,
+            "left": 0
+          }
+        },
+        "markerCount": 0,
+        "rawSave": null,
+        "resourceURLs": [
+          "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+          "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+          "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+          "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+          "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+          "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+          "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+          "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+          "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+          "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+          "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+          "http://127.0.0.1:4191/brand/favicon.svg"
+        ]
+      }
+    }
+  ],
+  "finishedAt": "2026-10-09T12:45:37.619Z"
+}

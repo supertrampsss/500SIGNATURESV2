@@ -1,0 +1,10 @@
+{
+  "build": "37",
+  "command": "python run-focused-renderer.py 37",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session80490 exit_code0",
+  "confirmedAt": "2026-10-09T12:14:37.733203+00:00",
+  "session": 80490,
+  "scope": "Both original focused tests passed; not the four complete suites",
+  "evidence": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121154Z-306230"
+}

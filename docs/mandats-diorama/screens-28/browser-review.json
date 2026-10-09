@@ -1,0 +1,749 @@
+{
+  "build": 28,
+  "run": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584",
+  "createdAt": "2026-10-09T07:20:10.723128+00:00",
+  "reviewedBy": [
+    "river_art"
+  ],
+  "reference": {
+    "path": "/workspace/500SIGNATURESV2/docs/mandats-diorama/reference-ordinateur.png",
+    "sha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+    "opened": true
+  },
+  "technical": {
+    "status": "failed",
+    "exitCode": 1,
+    "counts": {
+      "expected": 19,
+      "unexpected": 4,
+      "flaky": 0,
+      "skipped": 9,
+      "total": 32
+    },
+    "literalLogSummary": "19 passed, 4 failed, 9 skipped",
+    "receipt": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/receipt.json",
+    "receiptSha256": "8d1e79ec20de5800bad21aeef2844a9236a0ebe7c249df3706cdd0e1ffa9474b",
+    "report": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/report.json",
+    "reportSha256": "e8fd588c3a00f1c1cf060937a9a58e1a3cafc2b4b3560bf31ff04fa18b32a71b",
+    "unrunSuites": [
+      "social",
+      "header",
+      "compat"
+    ],
+    "failures": [
+      {
+        "project": "desktop",
+        "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+        "file": "mandats-rework.test.mjs",
+        "line": 496,
+        "attemptStatuses": [
+          "failed"
+        ],
+        "errors": [
+          "Error: expect(locator).toHaveAttribute(expected) failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \"babylon\"\nReceived: \"loading\"\nTimeout:  15000ms\n\nCall log:\n  - Expect \"toHaveAttribute\" with timeout 15000ms\n  - waiting for locator('[data-mandate-map]')\n    5 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"1090x820\" data-contact-shadows=\"true\" aria-label=\"Carte de France et sujets du mandat\">…</section>\n      - unexpected value \"loading\"\n    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"40\" data-mountain-rocks=\"305\" data-resolution=\"1090x820\" data-authored-houses=\"737\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"true\" data-static-instances=\"17747\" aria-label=\"Carte de France et sujets du mandat\">…</section>\n    - unexpected value \"loading\"\n\n\n  519 |     expect(before.social.movements[0].status).toBe(\"active\");\n  520 |     release();\n> 521 |     await expect(map).toHaveAttribute(\"data-renderer\", \"babylon\");\n      |                       ^\n  522 |     await expect(map).toHaveAttribute(\"data-movements\", \"1\");\n  523 |     await expect(page.locator(\"[data-map-canvas]\")).toHaveAttribute(\"data-instance\", \"loading-persistent\");\n  524 |     expect((await game(page)).choices).toEqual(before.choices);\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:521:23"
+        ]
+      },
+      {
+        "project": "mobile",
+        "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+        "file": "mandats-rework.test.mjs",
+        "line": 389,
+        "attemptStatuses": [
+          "timedOut"
+        ],
+        "errors": [
+          "Test timeout of 180000ms exceeded.",
+          "Error: locator.click: Test timeout of 180000ms exceeded.\nCall log:\n  - waiting for locator('[data-action=\"choose\"][data-choice=\"n11-5-integrite-interets-maintenir-procedure-marche\"]:not([disabled]),[data-action=\"choose\"][data-choice$=\"-n11-5-integrite-interets-maintenir-procedure-marche\"]:not([disabled])')\n    - locator resolved to <button data-action=\"choose\" class=\"choice map-choice\" data-choice=\"n11-5-integrite-interets-maintenir-procedure-marche\">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n\n\n  51 |       `[data-action=\"choose\"][data-choice=\"${id}\"]:not([disabled]),[data-action=\"choose\"][data-choice$=\"-${id}\"]:not([disabled])`,\n  52 |     )\n> 53 |     .click();\n     |      ^\n  54 |   await expect\n  55 |     .poll(() => page.evaluate((key) => localStorage.getItem(key), KEY))\n  56 |     .not.toBe(before);\n    at choose (/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:53:6)\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:453:3"
+        ]
+      },
+      {
+        "project": "webkit",
+        "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+        "file": "mandats-rework.test.mjs",
+        "line": 92,
+        "attemptStatuses": [
+          "failed"
+        ],
+        "errors": [
+          "TimeoutError: locator.click: Timeout 20000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Reprendre', exact: true })\n    - locator resolved to <button class=\"map-primary\" data-action=\"resume\">Reprendre</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n\n\n  221 |     expect(saved.turn).toBe(initial.turn + 1);\n  222 |     await page.reload();\n> 223 |     await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n      |                                                                        ^\n  224 |     await expect(page.locator(\"[data-mandate-map]\")).toHaveAttribute(\n  225 |       \"data-renderer\",\n  226 |       \"babylon\",\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:223:72"
+        ]
+      },
+      {
+        "project": "webkit",
+        "title": "school choices cause a movement which remains pending until its funded delivery",
+        "file": "mandats-rework.test.mjs",
+        "line": 350,
+        "attemptStatuses": [
+          "failed"
+        ],
+        "errors": [
+          "TimeoutError: locator.click: Timeout 20000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Reprendre', exact: true })\n    - locator resolved to <button class=\"map-primary\" data-action=\"resume\">Reprendre</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n\n\n  369 |   expect(state.metrics.services).toBe(before);\n  370 |   await page.reload();\n> 371 |   await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n      |                                                                      ^\n  372 |   expect((await game(page)).social).toEqual(state.social);\n  373 |   for (let count = 0; count < 2; count++) {\n  374 |     if (await page.locator('[data-action=\"next-year\"]').count())\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:371:70"
+        ]
+      }
+    ]
+  },
+  "artistic": {
+    "status": "Non conforme à la maquette",
+    "observations": [
+      "La palette marine/ivoire/rouge et les titres serif reprennent la direction générale.",
+      "Le paysage conserve des panneaux jaunes/olives et des rochers/plans montagneux gris et blancs trop massifs.",
+      "La variété et la finesse architecturales restent insuffisantes à l’échelle nationale, particulièrement sur téléphone.",
+      "Les grandes icônes et les contrôles de carte dominent le plan mobile."
+    ],
+    "limits": [
+      "Les captures mobiles sont pleine page et ne prouvent pas que tous les choix sont visibles sans défilement dans844 ou740px.",
+      "Les PNG fixes ne démontrent pas les animations ni la fluidité.",
+      "Le DPR de la capture ne remplace pas la mesure réelle du framebuffer.",
+      "La concession sociale tenue n’est pas un bâtiment livré ; les trois JSON de livraison disponibles ont narrative.projects vide.",
+      "Aucun rendu additionnel ou test n’a été exécuté pour cette revue."
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/carte-et-sujet.png",
+      "sha256": "5eacb16826465b819b53c46293822c699275bec417af0c56d8d439ff5cf076cb",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "png": {
+        "width": 1440,
+        "height": 960
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Sujet ouvert, trois choix lisibles. Le bas du panneau et Voir le lieu nécessitent le défilement interne.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-active.png",
+      "sha256": "2ddb5b4dd0a68b7c341edf0213c6409b69dd0186698c842cdd9a123deb21d138",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "png": {
+        "width": 1440,
+        "height": 960
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Le marqueur rouge Lyon et la première carte rouge signalent la mobilisation. Le niveau national rend la foule et les façades trop petites pour une lecture détaillée.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-dpr-2.png",
+      "sha256": "c9af640e8acb396595dc22a8b06f656c4b4491572479f6dde0ed7af3fb70cefa",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "png": {
+        "width": 2880,
+        "height": 1920
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "L’interface est lisible. Le PNG à DPR2 ne démontre pas seul la résolution du canvas ; celle-ci est donnée par les JSON associés.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/carte-et-sujet.png",
+      "sha256": "ba8db52e9a03bec9fe444e7fae761efb694a76bd1e7413e0f29cfb5db89bdd82",
+      "project": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 390,
+        "height": 1103
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "En-tête, sujet et réponses lisibles. La troisième réponse et les liens de bas demandent un défilement vertical ; la capture est pleine page.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-dpr-2.png",
+      "sha256": "e42acdde4d9eac88be453c6795c269d1b1f5816804599b5f8c99323967dd6e73",
+      "project": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 780,
+        "height": 1952
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "La carte reste une vue nationale de moins de280px CSS de haut. Le texte des cartes reste lisible, mais les bâtiments et personnages exigent le zoom.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-active.png",
+      "sha256": "bb3dc31014cfe4fc49f105ae0c8c9488ec04321ee9ff56212edc785d5464fd00",
+      "project": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 390,
+        "height": 976
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Le marqueur rouge, Mobilisation lycéenne, Urgent et Ouvrir le sujet sont distincts ; la légende est sous le pli.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/carte-et-sujet.png",
+      "sha256": "e0a4b07ef89e6a2997827d5606025afc13056348a7b9f5d915947335f94c9b15",
+      "project": "compact",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "png": {
+        "width": 320,
+        "height": 1086
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Aucune coupe horizontale visible. Le titre du problème occupe trois lignes ; la première réponse est entièrement visible à740px, la suivante commence sous le pli.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-dpr-2.png",
+      "sha256": "566ac40051cbf3532dd21c59dab557154883795640eff0c02e8cc3503afee664",
+      "project": "compact",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "png": {
+        "width": 640,
+        "height": 1836
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "La liste des sujets est lisible en pleine page ; la carte ne mesure qu’environ237px CSS de haut et ses grandes icônes masquent une partie du territoire.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/carte-et-sujet.png",
+      "sha256": "b9a867fe1c6a5e75589ce388800749076dcbbc0e96cef14e6fbf3ac3401cf0af",
+      "project": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 390,
+        "height": 1103
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Le titre prend deux lignes et les choix restent lisibles. Le troisième choix nécessite un défilement ; le haut de carte affiche le rendu complet.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2.png",
+      "sha256": "5454dbf54b6b73d1534285cbf7cd95ba9bba3dfdcfdedd1983f6af24d5c6abb0",
+      "project": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 780,
+        "height": 1952
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "Le texte reste lisible à390px ; la reprise DPR2 n’a pas abouti au contrôle suivant et aucun JSON de reprise WebKit n’a été produit.",
+      "liveAndArchivedBytesEqual": true
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/mobilisation-active.png",
+      "sha256": "bc105a268d68ebaef351c06060d5ced8f6bc37291823abf589fece1bf2bc6ae8",
+      "project": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "png": {
+        "width": 390,
+        "height": 976
+      },
+      "reviewedBy": [
+        "river_art"
+      ],
+      "caption": "La mobilisation rouge est visible après le choix. Cette image précède la reprise qui échoue ; elle ne prouve ni reprise réussie ni concession tenue.",
+      "liveAndArchivedBytesEqual": true
+    }
+  ],
+  "resolutionJSON": [
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-dpr-2-resolution.json",
+      "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced",
+      "project": "compact",
+      "stage": "carte-dpr-2-resolution",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "raster": {
+        "width": 640,
+        "height": 474,
+        "cssWidth": 320,
+        "cssHeight": 236.796875,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0017156054107557,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-redimensionnee-dpr-2-resolution.json",
+      "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d",
+      "project": "compact",
+      "stage": "carte-redimensionnee-dpr-2-resolution",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "raster": {
+        "width": 780,
+        "height": 558,
+        "cssWidth": 390,
+        "cssHeight": 278.515625,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0034782608695654,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-reprise-dpr-2-resolution.json",
+      "sha256": "26a587a19a39c5d3890c0eceb5e228af8ab557657a11112418b23646ec6ede6a",
+      "project": "compact",
+      "stage": "carte-reprise-dpr-2-resolution",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "raster": {
+        "width": 780,
+        "height": 558,
+        "cssWidth": 390,
+        "cssHeight": 278.515625,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0034782608695654,
+      "turn": 1,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ],
+        "ambition": "equilibre",
+        "focus": "policy:1"
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-dpr-2-resolution.json",
+      "sha256": "8489a7c79da8c2d280401e65aad467b19834bbb6640fbf9ce0447be730a2e650",
+      "project": "desktop",
+      "stage": "carte-dpr-2-resolution",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "raster": {
+        "width": 1859,
+        "height": 1398,
+        "cssWidth": 1090,
+        "cssHeight": 820,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 1.7055045871559633,
+      "ratioY": 1.7048780487804878,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-redimensionnee-dpr-2-resolution.json",
+      "sha256": "eb4999fece0921e3650354effc741574bdc9252ea294ad4b7815f093623606ee",
+      "project": "desktop",
+      "stage": "carte-redimensionnee-dpr-2-resolution",
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "raster": {
+        "width": 1260,
+        "height": 1320,
+        "cssWidth": 630,
+        "cssHeight": 660,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-reprise-dpr-2-resolution.json",
+      "sha256": "7e72f78f3e7efc390f7c1b55d77696db14fbbaa693ffd434d4ed260b3abf87b1",
+      "project": "desktop",
+      "stage": "carte-reprise-dpr-2-resolution",
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "raster": {
+        "width": 1260,
+        "height": 1320,
+        "cssWidth": 630,
+        "cssHeight": 660,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0,
+      "turn": 1,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ],
+        "ambition": "equilibre",
+        "focus": "policy:1"
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-dpr-2-resolution.json",
+      "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d",
+      "project": "mobile",
+      "stage": "carte-dpr-2-resolution",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "raster": {
+        "width": 780,
+        "height": 558,
+        "cssWidth": 390,
+        "cssHeight": 278.515625,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0034782608695654,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-redimensionnee-dpr-2-resolution.json",
+      "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced",
+      "project": "mobile",
+      "stage": "carte-redimensionnee-dpr-2-resolution",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "raster": {
+        "width": 640,
+        "height": 474,
+        "cssWidth": 320,
+        "cssHeight": 236.796875,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0017156054107557,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-reprise-dpr-2-resolution.json",
+      "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e",
+      "project": "mobile",
+      "stage": "carte-reprise-dpr-2-resolution",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "raster": {
+        "width": 640,
+        "height": 474,
+        "cssWidth": 320,
+        "cssHeight": 236.796875,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0017156054107557,
+      "turn": 1,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ],
+        "ambition": "equilibre",
+        "focus": "policy:1"
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2-resolution.json",
+      "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d",
+      "project": "webkit",
+      "stage": "carte-dpr-2-resolution",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "raster": {
+        "width": 780,
+        "height": 558,
+        "cssWidth": 390,
+        "cssHeight": 278.515625,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0034782608695654,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2-resolution.json",
+      "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced",
+      "project": "webkit",
+      "stage": "carte-redimensionnee-dpr-2-resolution",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "raster": {
+        "width": 640,
+        "height": 474,
+        "cssWidth": 320,
+        "cssHeight": 236.796875,
+        "devicePixelRatio": 2
+      },
+      "ratioX": 2.0,
+      "ratioY": 2.0017156054107557,
+      "turn": 0,
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    }
+  ],
+  "socialConcessionEvidence": [
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/mobilisation-et-livraison.json",
+      "sha256": "6eb166858f2d1d05316e409d2adf548cf00dd61744e29c0e772fd948e95a247d",
+      "turn": 4,
+      "movements": [
+        {
+          "id": "mvt-lyceens-0",
+          "actor": "lyceens",
+          "demand": "Classes moins chargées et maintien des enseignements",
+          "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "status": "resolved",
+          "stage": "negotiating",
+          "pressure": 16,
+          "causeTurn": 0,
+          "sourceChoice": "n11-0-education-lycees-regrouper",
+          "sourceTitle": "Regrouper les classes et réduire les postes",
+          "startedTurn": 1,
+          "causes": [
+            {
+              "turn": 0,
+              "choice": "n11-0-education-lycees-regrouper",
+              "title": "Regrouper les classes et réduire les postes"
+            }
+          ],
+          "lastDetail": "Classes moins chargées et maintien des enseignements : les moyens votés sont mis en œuvre. Le collectif met fin au mouvement.",
+          "commitment": {
+            "fundedTurn": 1,
+            "dueTurn": 4,
+            "status": "kept",
+            "operating": 0.35,
+            "deliveryEffect": {
+              "areaEffects": {
+                "metropoles": {
+                  "services": 3
+                },
+                "rural": {
+                  "services": -3
+                }
+              }
+            }
+          },
+          "resolvedTurn": 4
+        }
+      ],
+      "projects": []
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-et-livraison.json",
+      "sha256": "134820dccbd5834fcbe200b83b4824b25c67efe9ef173cdc3b07e608a856a1c9",
+      "turn": 4,
+      "movements": [
+        {
+          "id": "mvt-lyceens-0",
+          "actor": "lyceens",
+          "demand": "Classes moins chargées et maintien des enseignements",
+          "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "status": "resolved",
+          "stage": "negotiating",
+          "pressure": 16,
+          "causeTurn": 0,
+          "sourceChoice": "n11-0-education-lycees-regrouper",
+          "sourceTitle": "Regrouper les classes et réduire les postes",
+          "startedTurn": 1,
+          "causes": [
+            {
+              "turn": 0,
+              "choice": "n11-0-education-lycees-regrouper",
+              "title": "Regrouper les classes et réduire les postes"
+            }
+          ],
+          "lastDetail": "Classes moins chargées et maintien des enseignements : les moyens votés sont mis en œuvre. Le collectif met fin au mouvement.",
+          "commitment": {
+            "fundedTurn": 1,
+            "dueTurn": 4,
+            "status": "kept",
+            "operating": 0.35,
+            "deliveryEffect": {
+              "areaEffects": {
+                "metropoles": {
+                  "services": 3
+                },
+                "rural": {
+                  "services": -3
+                }
+              }
+            }
+          },
+          "resolvedTurn": 4
+        }
+      ],
+      "projects": []
+    },
+    {
+      "path": "/workspace/mandats-verification/authored-3d/final-browser/28/20261009T064728Z-254584/01-rework/artifacts/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-et-livraison.json",
+      "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022",
+      "turn": 4,
+      "movements": [
+        {
+          "id": "mvt-lyceens-0",
+          "actor": "lyceens",
+          "demand": "Classes moins chargées et maintien des enseignements",
+          "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "status": "resolved",
+          "stage": "negotiating",
+          "pressure": 16,
+          "causeTurn": 0,
+          "sourceChoice": "n11-0-education-lycees-regrouper",
+          "sourceTitle": "Regrouper les classes et réduire les postes",
+          "startedTurn": 1,
+          "causes": [
+            {
+              "turn": 0,
+              "choice": "n11-0-education-lycees-regrouper",
+              "title": "Regrouper les classes et réduire les postes"
+            }
+          ],
+          "lastDetail": "Classes moins chargées et maintien des enseignements : les moyens votés sont mis en œuvre. Le collectif met fin au mouvement.",
+          "commitment": {
+            "fundedTurn": 1,
+            "dueTurn": 4,
+            "status": "kept",
+            "operating": 0.35,
+            "deliveryEffect": {
+              "areaEffects": {
+                "metropoles": {
+                  "services": 3
+                },
+                "rural": {
+                  "services": -3
+                }
+              }
+            }
+          },
+          "resolvedTurn": 4
+        }
+      ],
+      "projects": []
+    }
+  ]
+}

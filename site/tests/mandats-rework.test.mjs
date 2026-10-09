@@ -242,13 +242,23 @@ test("the real 3D map opens subjects without advancing the game and preserves it
   page,
 }, info) => {
   const errors = [];
+  const models = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  page.on("response", response => {
+    if (/\/mandats\/models\/[^?]+\.glb(?:\?|$)/.test(response.url()))
+      models.push({ url: response.url(), status: response.status() });
+  });
   await open(page);
   await expect(page.locator("[data-mandate-map]")).toHaveAttribute(
     "data-renderer",
     "babylon",
   );
   await expect(page.locator("[data-map-canvas]")).toBeVisible();
+  expect(models.length).toBeGreaterThanOrEqual(2);
+  expect(models.every(model => model.status === 200)).toBe(true);
+  await info.attach("modeles-3d-charges", {
+    body: JSON.stringify(models, null, 2), contentType: "application/json",
+  });
   await page
     .locator("[data-map-canvas]")
     .evaluate((canvas) => (canvas.dataset.instance = "persistent"));
@@ -309,6 +319,32 @@ test("the real 3D map opens subjects without advancing the game and preserves it
       () => document.documentElement.scrollWidth <= innerWidth + 1,
     ),
   ).toBe(true);
+  await page.locator('[data-action="map-inspect"]').click();
+  await expect(page.locator('[data-mandate-map]')).toHaveAttribute('data-inspection', 'lyon');
+  if (info.project.use.isMobile) {
+    const bounds = await page.locator('[data-map-canvas]').boundingBox();
+    expect(bounds.y).toBeGreaterThanOrEqual(0);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(page.viewportSize().height);
+  }
+  await page.locator('[data-action="map-close"]').click();
+  await expect.poll(() => page.evaluate(() => {
+    const active = document.activeElement;
+    return Boolean(active?.matches('[data-map-marker]:not([hidden]), [data-map-agenda] button, [data-map-agenda] h1') &&
+      active.getBoundingClientRect().width > 0);
+  })).toBe(true);
+  expect((await game(page)).turn).toBe(0);
+  await expect(page.locator('[data-map-canvas]')).toHaveAttribute('data-instance', 'persistent');
+  const rawBeforeMenu = await page.evaluate(key => localStorage.getItem(key), KEY);
+  const tools = page.locator('.map-game__header [data-action="tools"]');
+  await tools.click();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Votre partie', exact: true })).toBeVisible();
+  await capture(page, info, 'menu-ma-partie');
+  await page.getByRole('dialog').locator('[data-action="light-mode"]').click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(tools).toBeFocused();
+  await expect(page.locator('[data-mandate-map]')).toHaveAttribute('data-motion', 'reduced');
+  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(rawBeforeMenu);
+  await expect(page.locator('[data-map-canvas]')).toHaveAttribute('data-instance', 'persistent');
 });
 
 test("school choices cause a movement which remains pending until its funded delivery", async ({
@@ -325,6 +361,7 @@ test("school choices cause a movement which remains pending until its funded del
     "data-movements",
     "1",
   );
+  await capture(page, info, "mobilisation-active");
   await select(page, id);
   const before = state.metrics.services;
   state = await choose(page, "financer");
@@ -354,10 +391,15 @@ test("a complete mandate survives save reload and offers replay from its actual 
 }, info) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await open(page, 0);
+  const map = page.locator("[data-mandate-map]");
+  await expect(map).toHaveAttribute("data-renderer", "babylon");
   for (let turn = 0; turn < 30; turn++) {
     if (await page.locator('[data-action="next-year"]').count())
       await page.locator('[data-action="next-year"]').click();
-    await page.locator('[data-action="story-select"]').first().click();
+    // Play a complete campaign from the visible agenda. This keeps phone
+    // reading in the decision flow instead of scrolling back to the map
+    // before every choice; map interactions have their own native journeys.
+    await page.locator('[data-map-agenda] [data-action="story-select"]').first().click();
     const choice = page
       .locator('[data-action="choose"]:not([disabled])')
       .first();
@@ -372,10 +414,13 @@ test("a complete mandate survives save reload and offers replay from its actual 
     );
     await page.keyboard.press("Escape");
     await expect(page.locator("[data-decision-verdict]")).toBeHidden();
-    if (
-      (await game(page)).politics.ending?.kind !== "term_complete" &&
-      (await game(page)).politics.ending
-    )
+    const advanced = await game(page);
+    // Several projects may accumulate in the same city. Every saved project
+    // still needs real geometry after funding, delivery and later decisions.
+    await expect(map).toHaveAttribute("data-rendered-projects",
+      String(advanced.narrative.projects.length));
+    await expect(map).toHaveAttribute("data-unplaced-projects", "0");
+    if (advanced.politics.ending?.kind !== "term_complete" && advanced.politics.ending)
       break;
   }
   const state = await game(page);
@@ -386,6 +431,15 @@ test("a complete mandate survives save reload and offers replay from its actual 
   await page.getByRole("button", { name: "Reprendre", exact: true }).click();
   expect((await game(page)).choices).toEqual(state.choices);
   await page.locator('[data-action="open-replay-selection"]').click();
+  if (info.project.name === 'desktop') {
+    const rawBeforeNavigation = await page.evaluate(key => localStorage.getItem(key), KEY);
+    await page.getByRole('button', { name: 'Bilan', exact: true }).click();
+    await expect(page.locator('[data-map-review]')).toBeVisible();
+    await page.getByRole('button', { name: 'Pays', exact: true }).click();
+    await expect(page.locator('[data-map-result]')).toBeVisible();
+    expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(rawBeforeNavigation);
+    await page.locator('[data-action="open-replay-selection"]').click();
+  }
   const replay = page.locator('[data-action="branch-replay"]').first(),
     index = Number(await replay.getAttribute("data-turn"));
   await replay.click();
@@ -439,6 +493,60 @@ test("the fallback map and keyboard controls remain usable without WebGL", async
   await capture(page, info, "carte-sans-webgl");
 });
 
+test("authored models load after a real decision and a failed kit preserves the saved mandate", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One actual delayed and failed asset lifecycle.");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  let intercepted = 0;
+  const delay = async route => {
+    intercepted++;
+    await held;
+    await route.continue();
+  };
+  await page.route("**/mandats/models/*.glb*", delay);
+  try {
+    await open(page);
+    await expect.poll(() => intercepted).toBeGreaterThan(0);
+    const map = page.locator("[data-mandate-map]");
+    await expect(map).toHaveAttribute("data-renderer", "loading");
+    await page.locator("[data-map-canvas]").evaluate(canvas => { canvas.dataset.instance = "loading-persistent"; });
+    await select(page, "education-lycees");
+    const before = await choose(page, "regrouper");
+    expect(before.turn).toBe(1);
+    expect(before.social.movements[0].status).toBe("active");
+    release();
+    await expect(map).toHaveAttribute("data-renderer", "babylon");
+    await expect(map).toHaveAttribute("data-movements", "1");
+    await expect(page.locator("[data-map-canvas]")).toHaveAttribute("data-instance", "loading-persistent");
+    expect((await game(page)).choices).toEqual(before.choices);
+    await capture(page, info, "modeles-apres-decision");
+    await page.unroute("**/mandats/models/*.glb*", delay);
+    const fail = route => route.fulfill({ status: 503, body: "Model unavailable" });
+    await page.route("**/mandats/models/*.glb*", fail);
+    await page.reload();
+    await page.getByRole("button", { name: "Reprendre", exact: true }).click();
+    await expect(page.locator("[data-mandate-map]")).toHaveAttribute("data-renderer", "fallback");
+    expect((await game(page)).choices).toEqual(before.choices);
+    await select(page, before.social.movements[0].id);
+    const after = await choose(page, "financer");
+    expect(after.social.movements[0].commitment.status).toBe("pending");
+    await capture(page, info, "modele-indisponible-repli");
+    await page.unroute("**/mandats/models/*.glb*", fail);
+    await page.reload();
+    await page.getByRole("button", { name: "Reprendre", exact: true }).click();
+    await expect(page.locator("[data-mandate-map]")).toHaveAttribute("data-renderer", "babylon");
+    expect((await game(page)).social).toEqual(after.social);
+    expect((await game(page)).choices).toEqual(after.choices);
+    await capture(page, info, "modeles-et-engagement-repris");
+    expect(errors).toEqual([]);
+  } finally {
+    release();
+  }
+});
+
 test("prepared 3D play reloads its shaders and continues a real movement offline", async ({
   page,
   context,
@@ -463,6 +571,16 @@ test("prepared 3D play reloads its shaders and continues a real movement offline
     "prêt hors connexion",
     { timeout: 45000 },
   );
+  const cachedModels = await page.evaluate(async () => {
+    const keys = (await caches.keys()).filter(key => key.startsWith("mandats-offline-"));
+    return Promise.all(keys.map(async key => (await (await caches.open(key)).keys())
+      .map(request => new URL(request.url).pathname)
+      .filter(path => /^\/mandats\/models\/.*\.glb(?:\?|$)/.test(path))));
+  });
+  expect(cachedModels.some(paths => paths.length >= 2)).toBe(true);
+  await info.attach("modeles-3d-hors-connexion", {
+    body: JSON.stringify(cachedModels, null, 2), contentType: "application/json",
+  });
   await context.setOffline(true);
   await page.reload();
   await page.getByRole("button", { name: "Reprendre", exact: true }).click();
@@ -563,6 +681,40 @@ test("a lost graphics context keeps the map subjects and decisions usable", asyn
     expect(resumed.politics.lastVote).toEqual(saved.politics.lastVote);
     expect(resumed.narrative.focus).toBe(saved.narrative.focus);
     await capture(page, info, "reprise-apres-contexte-perdu");
+    expect(errors).toEqual([]);
+
+    // Consulting the new desktop navigation must preserve the actual saved
+    // vote/project, the open subject and the mounted 3D canvas.
+    const rawBeforePanels = await page.evaluate((key) => localStorage.getItem(key), KEY);
+    await canvas.evaluate((element) => { element.dataset.instance = "panels-persistent"; });
+    const dialog = page.getByRole("dialog");
+    await page.getByRole("button", { name: "Gouvernement", exact: true }).click();
+    await expect(dialog.getByRole("heading", { name: "Gouvernement", exact: true })).toBeVisible();
+    for (const bloc of resumed.politics.blocs) {
+      const row = dialog.getByRole("listitem").filter({ hasText: bloc.label });
+      await expect(row).toHaveCount(1);
+      await expect(row).toBeVisible();
+      await expect(row.locator("strong")).toHaveText(new RegExp(`^${bloc.seats}\\s*sièges$`));
+      await expect(row.getByText(bloc.inGovernment ? "Soutien au gouvernement" : "Opposition", { exact: true })).toBeVisible();
+    }
+    await expect(dialog.getByText(resumed.politics.lastVote.title, { exact: true })).toBeVisible();
+    await capture(page, info, "gouvernement-apres-vote-reel");
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Projets", exact: true }).click();
+    await expect(dialog.getByRole("heading", { name: "Projets", exact: true })).toBeVisible();
+    await expect(dialog.getByText(resumed.narrative.projects[0].label, { exact: true })).toBeVisible();
+    await expect(dialog.getByText("En préparation", { exact: true })).toBeVisible();
+    await capture(page, info, "projet-reel-dans-navigation");
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Bilan", exact: true }).click();
+    await expect(page.locator("[data-map-review]")).toBeVisible();
+    await page.getByRole("button", { name: "Pays", exact: true }).click();
+    await expect(page.locator("[data-map-decision]")).toBeVisible();
+    await expect(canvas).toHaveAttribute("data-instance", "panels-persistent");
+    expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBe(rawBeforePanels);
+    expect(await game(page)).toEqual(resumed);
     expect(errors).toEqual([]);
   } finally {
     const path = info.outputPath("contexte-perdu-pageerrors.json");

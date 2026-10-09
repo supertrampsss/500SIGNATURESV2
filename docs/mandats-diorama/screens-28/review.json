@@ -1,0 +1,22 @@
+{
+  "build": "28",
+  "captureVerificationSha256": "ca9c1c48a65780f5c193bb6278b4cd2de67050077a78a2c77067e5a7964887f1",
+  "reviewedBy": "root",
+  "status": "Non conforme à la maquette",
+  "summary": "Les ardoises sombres et les normales rocheuses sont corrigées. Les cinq vues natives restent sensiblement éloignées de la référence : montagne en galets, campagne trop plane et quartiers répétitifs. La passe reste intermédiaire.",
+  "observedDifferences": [
+    "Ardoises bleu sombre distinctes de la pierre, sans les contours noirs défectueux de la passe 26.",
+    "Massifs encore faits de blocs aux larges calottes et de nappes de neige, au lieu de crêtes irrégulières et de faces rocheuses obliques.",
+    "Campagne dominée par un fond olive et de petites parcelles rectilignes ; les cinq sillons incurvés ne recomposent pas encore les coteaux à l’échelle nationale.",
+    "Paris conserve des files de façades répétées et trop d’espace nu autour du monument.",
+    "Côtes plus épaisses localement mais encore trop régulières et minces face à la maquette.",
+    "Interface proche de la référence ; année, jauges, sujets et marqueurs proviennent de la partie réelle."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale native 28 : ardoises corrigées, composition du paysage encore non conforme.",
+    "paris": "Paris natif 28 : toit bleu sombre et pierre lisible ; quartier encore composé de files répétitives.",
+    "seine": "Seine native 28 : fleuve réel, inspection obtenue par les contrôles du jeu.",
+    "alpes": "Alpes natives 28 : normales correctes mais silhouettes de galets et neige trop continue.",
+    "retour": "Retour national natif 28 : zéro décision, zéro erreur et zéro avertissement console."
+  }
+}

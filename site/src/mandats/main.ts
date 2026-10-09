@@ -36,6 +36,7 @@ import "./decision-verdict.css";
 import { showDecisionVerdict } from "./decision-verdict.ts";
 import type { VoteRecord } from "./politics-types.ts";
 import { mapEntry, mapReplay } from './map-view.ts';
+import { mapGovernmentPanel, mapProjectsPanel } from './map-panels.ts';
 import { syncMandateMap, moveMapCamera, inspectMapPlace } from './map-scene.ts';
 import { showMapDecisionVerdict } from './map-verdict.ts';
 import './map-game.css';
@@ -416,7 +417,20 @@ function sharingSheet() {
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
   if (a === 'map-camera') { moveMapCamera(target.dataset.camera ?? 'reset'); return; }
-  if (a === 'map-inspect') { inspectMapPlace(target.dataset.place ?? ''); return; }
+  if (a === 'map-inspect') {
+    inspectMapPlace(target.dataset.place ?? '');
+    if (matchMedia('(max-width: 820px)').matches) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      root.querySelector<HTMLElement>('[data-map-marker][aria-pressed="true"]:not([hidden])')?.focus({ preventScroll: true });
+    } else {
+      // Inspecting the map keeps the subject open. Restore its heading after
+      // the native click has scrolled a long subject to the location control.
+      root.querySelector<HTMLElement>('[data-map-decision]')?.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    return;
+  }
+  if (a === 'map-government' && g?.version === 12) { sheet('Gouvernement', mapGovernmentPanel(g)); return; }
+  if (a === 'map-projects' && g?.version === 12) { sheet('Projets', mapProjectsPanel(g)); return; }
   if (a === 'map-track' && g) {
     const project=g.narrative?.projects.find(item=>item.id===target.dataset.trackId);
     const movement=g.social?.movements.find(item=>item.id===target.dataset.trackId);
@@ -426,7 +440,8 @@ async function action(target: HTMLElement) {
   }
   if (a === 'map-close' && g?.narrative) {
     g = structuredClone(g);delete g.narrative!.focus;persist();render(false);
-    root.querySelector<HTMLElement>('[data-map-marker]')?.focus({ preventScroll: true });return;
+    (root.querySelector<HTMLElement>('[data-map-marker]:not([hidden])') ??
+      root.querySelector<HTMLElement>('[data-map-agenda] button, [data-map-agenda] h1'))?.focus({ preventScroll: true });return;
   }
   if (a === "dismiss-verdict") { decisionVerdict?.dismiss(); return; }
   if (g?.version !== 12 && decisionVerdict && (a === "choose" || a === "story-select")) return;
@@ -442,7 +457,7 @@ async function action(target: HTMLElement) {
     try { localStorage.setItem("mandats.light", String(light)); } catch {}
     if (dialog.open) dialog.close();
     render(false);
-    const nextFocus = inDialog ? (root.querySelector<HTMLElement>('.game-tabs [data-action="tools"]') ?? document.querySelector<HTMLElement>("#game-tools")) : inPanel ? root.querySelector<HTMLElement>('[data-action="light-mode"]') : target;
+    const nextFocus = inDialog ? (root.querySelector<HTMLElement>('.map-game__header [data-action="tools"], .game-tabs [data-action="tools"]') ?? document.querySelector<HTMLElement>("#game-tools")) : inPanel ? root.querySelector<HTMLElement>('[data-action="light-mode"]') : target;
     nextFocus?.focus({ preventScroll: true });
     return;
   }
@@ -561,7 +576,11 @@ async function action(target: HTMLElement) {
   else if (a === "next-year" && g) { screen = g.version >= 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
-  else if (a === "view") { view = target.dataset.view as View; if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play"; }
+  else if (a === "view") {
+    view = target.dataset.view as View;
+    if (g?.version === 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
+    if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
+  }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
   else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 12); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }

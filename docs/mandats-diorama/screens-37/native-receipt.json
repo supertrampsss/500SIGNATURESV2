@@ -1,0 +1,8 @@
+{
+  "build": "37",
+  "command": "node capture-native37.mjs http://127.0.0.1:4191 /workspace/mandats-verification/authored-3d/prototype-37",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session15516 exit_code0",
+  "confirmedAt": "2026-10-09T12:11:53.790422+00:00",
+  "session": 15516
+}

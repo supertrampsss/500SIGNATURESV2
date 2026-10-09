@@ -1,0 +1,30 @@
+{
+  "capture": "12b",
+  "browser": "151.0.7922.173",
+  "viewport": [
+    1672,
+    941
+  ],
+  "nativeViews": 7,
+  "errors": 0,
+  "failedRequests": 0,
+  "failedResponses": 0,
+  "choicesByView": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "artisticStatus": "non conforme à la référence; reprise13 en cours",
+  "observedDifferences": [
+    "Composition sans progression de perspective suffisante",
+    "Quartiers trop espacés et Corse trop peu bâtie",
+    "Toits parisiens sombres et matières froides",
+    "Sommets minéraux trop lisses",
+    "Plaines ouvertes et champs en patchwork",
+    "Forêts disjointes et voisins lisses gris"
+  ]
+}

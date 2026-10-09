@@ -1,0 +1,75 @@
+{
+  "kind": "Actual complete rework37 test failure traces retained externally, exact paths and SHA; no rerun or altered test",
+  "build": "37",
+  "runPath": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316",
+  "rootReceipt": {
+    "path": "/workspace/mandats-verification/authored-3d/receipt-browser-37.json",
+    "sha256": "555b0a4a1374b6b4e594df7da5269e4c51982a54dc7b5a9d2ad6ebb0a83ff899"
+  },
+  "actualFailures": [
+    {
+      "case": "compact-density",
+      "sourceResultFolder": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact",
+      "actualTrace": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/trace.zip",
+        "bytes": 45443085,
+        "sha256": "be5689b06cb081c8e961ce620368500d9312641f4844b5130598b340856100a8",
+        "copiedToRepository": false
+      },
+      "errorContext": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/error-context.md",
+        "sha256": "05067bce08bc102e149ea9f70eed027faaa6d0ad570df4c12ac3519874f8021f"
+      },
+      "failureScreenshot": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/test-failed-1.png",
+        "sha256": "4bf5f90359d2f4513bb6252155b935a3a143a7d622fb5272a3975bc7c5204f79"
+      }
+    },
+    {
+      "case": "webkit-density",
+      "sourceResultFolder": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit",
+      "actualTrace": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/trace.zip",
+        "bytes": 45347902,
+        "sha256": "854aeaea4d60b4c5d384fd9442081b23e7ab0556bdefe438cc570e864c3697ca",
+        "copiedToRepository": false
+      },
+      "errorContext": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/error-context.md",
+        "sha256": "3e1fc7dd53d9e3fc8c0beb5ca0a9e4186087af31b7f09895982631c0090fc109"
+      },
+      "failureScreenshot": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/test-failed-1.png",
+        "sha256": "61ea3a4cf9e1ec6db5c73a63faa4f8df5f42b7f3147764800a698775e02663af"
+      }
+    },
+    {
+      "case": "compact-mandate",
+      "sourceResultFolder": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact",
+      "actualTrace": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/trace.zip",
+        "bytes": 52137864,
+        "sha256": "a8820f67f195f78a2f59605b7def469a7a12836db1796861de073ffb569c9679",
+        "copiedToRepository": false
+      },
+      "errorContext": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/error-context.md",
+        "sha256": "be7d28b7ce33a0398c28856c9c43ce67a23e0d0a3e20433a067cd147cf60739c"
+      },
+      "failureScreenshot": {
+        "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/test-failed-1.png",
+        "sha256": "aecb824f5f218ef63709bdbdb17454023a200b74aef8131fd860af88d040351b"
+      }
+    }
+  ],
+  "resultCounts": {
+    "passed": 20,
+    "failed": 3,
+    "skipped": 9
+  },
+  "remainingFullSuites": [
+    "social unrun",
+    "header unrun",
+    "test:mandats unrun"
+  ]
+}

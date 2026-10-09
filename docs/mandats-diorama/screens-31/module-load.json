@@ -1,0 +1,85 @@
+{
+  "kind": "Actual locked module import; no Scene/NullEngine/browser/GPU construction",
+  "startedAt": "2026-10-09T07:53:21.544Z",
+  "sourceRoot": "/workspace/mandats-verification/authored-3d/integration31/snapshot",
+  "lockPath": "/workspace/mandats-verification/authored-3d/locks/31.json",
+  "status": "passed",
+  "loadedSources": {
+    "site/src/mandats/map-landscape.ts": "a4c8da70dba4fa06a7a0933efd97fb54df018f9b8f33a033f1eb8acf05e3af74",
+    "site/src/mandats/map-camera-projection.ts": "aa593907465d3437ac4eea7d74ace560ea89afaa4003dc00d265e814c46200a7",
+    "site/src/mandats/map-model-revisions.ts": "587a06708800bf48416eb4359a638422a8be2ec24c7278279e058a5bb1ad77ee",
+    "site/src/mandats/map-public-sites.ts": "7858274ff64efe6fecee41d5ee3f49679fa38cad69bc883f440163f8c69a0ee0",
+    "site/src/mandats/map-geography.ts": "d2cdf9a60b7e736beb571e60dcddccb5b89e9b4de416a6a71b4c928cc54f2271",
+    "site/src/mandats/map-state.ts": "bb0cca073af3950b118550cc0f7c1b22d7be631a6d061c27ec9c36e6c59ce0d1",
+    "site/src/mandats/narrative-engine.ts": "3ecc6db90d720f510aad56b53117ab7e33a47037ddaf79fac8f62c4eea117555",
+    "site/src/mandats/narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+    "site/src/mandats/national-deficit.ts": "aa270ad63d8621f159e9fe5822bf1934ad9d53d8ec6554a4ed2e8a2bafedc796",
+    "site/src/mandats/national.ts": "04111449d5b287cfc431ce3108e25dee8219006016cabc5c28e46cb6b7848638",
+    "site/src/mandats/types.ts": "601edd72110d4244c0477f15a7514342b37d056309c1ca856032aa6bc42e4ca0",
+    "site/src/mandats/political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+    "site/src/mandats/national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+    "site/src/mandats/national-branches.ts": "2977e280722019dc4fdddf573e6a66cea5f7b92e650543d036e3ef52adfca242",
+    "site/src/mandats/campaign-content.ts": "37cb6cc547e1ccdfb6262390d4ce791ee51e84e733120e1fedc877db34b96033",
+    "site/src/mandats/national-reforms.ts": "ca985711cf6ca92f7b6309e1c92857d2cc02e93a730c1d11b04c4a05e78fef81",
+    "site/src/mandats/national-society.ts": "adf5ba439221aac56729c4b6ac7b96b5b9a450c6da9d662f6564a69610753b71",
+    "site/src/mandats/narrative-consequences.ts": "f045be4700b4e6a02cda803b2534e794046265a6f4178623b3a98fcc6f80d4d0",
+    "site/src/mandats/social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+    "site/src/mandats/social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+    "site/src/mandats/rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+    "site/src/mandats/map-land-materials.ts": "1b7c1b4f75e68f44e40a241727603d3ac6b5eddcfc7fa47288348f0d4717e102",
+    "site/src/mandats/map-land-crags.ts": "bac12ba5bc388fce2b2db48285b38c6a3bca193e4f8d85ec3024c6a64c26dc0c",
+    "site/src/mandats/map-land-composition.ts": "87d2ab48b76e98d0dea435d95b38d3e5fea9675bfed01b1421b0622f80fbd189",
+    "site/src/mandats/map-city-national.ts": "37bd98e9c9b9ef49a904af831968ab4a950929471538a5f7136e14a62c8d4ce2",
+    "site/src/mandats/map-urban-plans.ts": "757325836cd933142755d5662f911993909e20dfdec7aa6560b10a69c7ae2e16",
+    "site/src/mandats/map-city-paris.ts": "956d637f1c5dff77b4a28565d4372962049638989e9600d8961c5b55394d0800",
+    "site/src/mandats/map-asset-kit.ts": "bf8eeacb180c81122794fd9a260a3c81101a4d3e5645d78917739123c6c41a73",
+    "site/src/mandats/map-geometry-cache.ts": "f8fc6849e9aaeffa7f11e0736d58b8d3c9a12df7a173cc6a8c72d28c5f9cc353",
+    "site/src/mandats/map-city-port-plans.ts": "d97d139cf1f4a330a18b9d6d2a1fa74b6b4ef877922289bc9a76cbef4ce1af70",
+    "site/src/mandats/map-paris-terrain.ts": "636f1455f7b0a9a92d36074a07da6ab1cb5f0c3c6ae7181df7bbdce32e67a154"
+  },
+  "build": "31",
+  "lockSha256": "afdfe1933976516d79e159ceb4866f6b06a0ba36b2349cf1ab7cc74c8b5c5bec",
+  "sourceOrder": {
+    "cellsAt": 22223,
+    "candidatesAt": 22277,
+    "boundsAt": 22350,
+    "levelsAt": 42806,
+    "cachesBeforeModuleTerrain": true
+  },
+  "moduleImportMs": 665.34008,
+  "samples": [
+    {
+      "place": "paris",
+      "x": -0.0363280742918268,
+      "z": 3.758024075792854,
+      "height": 0.08411161198095901,
+      "water": true
+    },
+    {
+      "place": "lyon",
+      "x": 2.1670059067490755,
+      "z": -0.02288501634116345,
+      "height": 0.0946582368361316,
+      "water": true
+    },
+    {
+      "place": "toulouse",
+      "x": -0.5759963949571076,
+      "z": -2.8098578922568427,
+      "height": 0.08810515618120988,
+      "water": true
+    },
+    {
+      "place": "marseille",
+      "x": 2.451630505504733,
+      "z": -3.0949177810873323,
+      "height": 0.12503465946449766,
+      "water": false
+    }
+  ],
+  "sourceStable": true,
+  "finishedAt": "2026-10-09T07:53:22.215Z",
+  "totalMs": 671.552062,
+  "exitCode": 0,
+  "limits": "Runtime module initialisation and four public queries only. No full scene, browser, graphics, game journey or artistic validation."
+}

@@ -1,0 +1,284 @@
+{
+  "capture": 20,
+  "browser": "151.0.7922.173",
+  "viewport": [
+    1672,
+    941
+  ],
+  "devicePixelRatio": 1,
+  "nativeViews": 7,
+  "errors": 0,
+  "failedRequests": 0,
+  "failedResponses": 0,
+  "consoleMessages": 1,
+  "consoleWarnings": 0,
+  "consoleErrors": 0,
+  "eventCountMethod": "Last cumulative browser event snapshot, not the sum of seven repeated snapshots",
+  "choicesByView": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "nativeViewRecords": [
+    {
+      "stage": "01-national",
+      "capturedAt": "2026-10-09T02:52:15.508Z",
+      "cameraRadius": "13.45",
+      "turn": "0",
+      "json": "ordinateur.json",
+      "includedInGallery": true
+    },
+    {
+      "stage": "02-paris-detail",
+      "capturedAt": "2026-10-09T02:52:32.597Z",
+      "cameraRadius": "5.82",
+      "turn": "0",
+      "json": "paris.json",
+      "includedInGallery": true
+    },
+    {
+      "stage": "03-paris-seine",
+      "capturedAt": "2026-10-09T02:52:44.477Z",
+      "cameraRadius": "7.82",
+      "turn": "0",
+      "json": "seine.json",
+      "includedInGallery": true
+    },
+    {
+      "stage": "03b-paris-recentree",
+      "capturedAt": "2026-10-09T02:53:06.273Z",
+      "cameraRadius": "13.45",
+      "turn": "0",
+      "json": "03b-paris-recentree.json",
+      "includedInGallery": false
+    },
+    {
+      "stage": "04-lyon-detail",
+      "capturedAt": "2026-10-09T02:53:50.477Z",
+      "cameraRadius": "3.8",
+      "turn": "0",
+      "json": "04-lyon-detail.json",
+      "includedInGallery": false
+    },
+    {
+      "stage": "05-lyon-alpes",
+      "capturedAt": "2026-10-09T02:54:11.361Z",
+      "cameraRadius": "5.8",
+      "turn": "0",
+      "json": "alpes.json",
+      "includedInGallery": true
+    },
+    {
+      "stage": "06-national-retour",
+      "capturedAt": "2026-10-09T02:54:32.085Z",
+      "cameraRadius": "13.45",
+      "turn": "0",
+      "json": "retour.json",
+      "includedInGallery": true
+    }
+  ],
+  "initialScene": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1268x801",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "landscape": "diorama",
+    "staticBatches": "36",
+    "staticInstances": "11954",
+    "authoredHouses": "1258",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "renderPending": "false",
+    "activeTriangles": "2887894",
+    "activeMeshes": "10850",
+    "cameraRadius": "13.45",
+    "renderMs": "179"
+  },
+  "artisticReview": {
+    "build": 20,
+    "status": "non_conforme",
+    "summary": "La passe 20 reste loin d'une reproduction à l'identique de la maquette. Paris a désormais une présence monumentale, les façades et les ombres ont progressé, et la campagne centrale a gagné quelques structures. La silhouette orientale et sud-orientale reste trop resserrée, les grandes plaines se lisent encore comme des surfaces peu épaisses, et les Alpes gardent des pointes et pans géométriques gris sur de larges bases jaunes. Le cadre de l'interface est proche, sans constituer une validation de la carte.",
+    "reviewedBy": "/root/reference_review",
+    "reviewedAt": "2026-10-09T03:00:30.306308+00:00",
+    "method": "Comparaison visuelle des cinq PNG natifs de prototype-20 avec la référence canonique. Mesures indicatives sur les images, sans navigateur, GPU, build, modification du runtime ou lecture des sources applicatives. Aucun compteur de modèles, triangles, arbres, tests ou performances n'est utilisé comme validation artistique.",
+    "buildManifest": "/workspace/mandats-verification/authored-3d/build-20.json",
+    "buildManifestSha256": "c1505401600a55488333e665d8d38410917f8a7f52439a8f5eb2d90c1a1b0142",
+    "reference": "/workspace/500SIGNATURESV2/docs/mandats-diorama/reference-ordinateur.png",
+    "referenceSha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+    "coordinateConvention": {
+      "units": "pixels",
+      "origin": "top-left of full-page PNG",
+      "pageWidth": 1672,
+      "pageHeight": 941,
+      "mapRect": [
+        0,
+        66,
+        1268,
+        801
+      ]
+    },
+    "observedDifferences": [
+      "Silhouette nationale : le bord est et la côte sud-est occupent moins de largeur que dans la référence. Sur les coupes horizontales y300, y350 et y650, le bord terrestre chaud visible se situe respectivement à x1139, x1094 et x1084 dans 20, contre x1195, x1162 et x1217 dans la référence. Les écarts de 56, 68 et 133 pixels restent présents. Ces coupes prouvent l'écart de silhouette mais ne sont pas des correspondances géographiques suffisantes pour calculer une déformation.",
+      "Relief et composition de la campagne : les vallons, bosquets et talus ajoutés se voient localement, notamment dans la poche centrale x590-784 / y460-534. À l'échelle nationale, de grands espaces jaunes ou olive conservent cependant une lecture horizontale et diagrammatique. Les rangs de cultures et les alignements urbains restent plus réguliers que le réseau de champs, pentes, chemins et petits groupes bâtis de la référence. La couleur seule ne corrige pas ce manque d'épaisseur et de variété structurelle.",
+      "Massifs : dans la vue Alpes, particulièrement x850-985 / y510-680, les crêtes sont plus découpées mais gardent une organisation en dents et grands pans gris plissés. Les nouvelles ruptures existent, mais les bases jaunes sont encore larges, les transitions de versants sont abruptes et la neige forme peu de caps ou bandes clairement distincts. La référence montre des contreforts et roches plus fragmentés, des creux profonds, des débris à plusieurs échelles et une séparation plus nette entre roche chaude, neige claire et ombres froides."
+    ],
+    "captions": {
+      "ordinateur": "Passe 20, vue nationale réelle. Paris, façades et ombres ont progressé. La carte reste trop plate et l'est trop resserré face à la maquette. Verdict artistique : non conforme.",
+      "paris": "Inspection réelle de Paris. La cathédrale est détaillée et possède désormais une masse dominante. Le paysage alentour et les groupes bâtis restent plus réguliers et simplifiés que la référence.",
+      "seine": "Vue réelle de Paris avec recul. Les ombres font mieux lire les volumes et préservent davantage les façades que l'essai 19a. Les sols, cultures et berges restent très graphiques.",
+      "alpes": "Inspection réelle des Alpes. Les entailles et crêtes sont présentes, mais les grands pans gris, les pointes et les bases jaunes restent artificiels. La fragmentation minérale et la neige de la référence ne sont pas reproduites.",
+      "retour": "Retour réel à la vue nationale. Les mêmes écarts de silhouette orientale, de relief général et de massifs restent visibles. Cette capture documente l'état de la passe 20, sans validation artistique."
+    },
+    "screens": [
+      {
+        "view": "ordinateur",
+        "path": "/workspace/mandats-verification/authored-3d/prototype-20/01-national.png",
+        "sha256": "6151be95467c67a7769b0b3a032bf30903ee7c78153e2f0e812f7bc1e8478d40"
+      },
+      {
+        "view": "paris",
+        "path": "/workspace/mandats-verification/authored-3d/prototype-20/02-paris-detail.png",
+        "sha256": "aa7bfa0891cbb3071d10aeea5710b8b3e40e95f2d4dd647d80dadc229e791ee6"
+      },
+      {
+        "view": "seine",
+        "path": "/workspace/mandats-verification/authored-3d/prototype-20/03-paris-seine.png",
+        "sha256": "eae4139e0da020cdfe47d9a1e2f53f5ad34eb113c44d3a4b1818ccfeb6807379"
+      },
+      {
+        "view": "alpes",
+        "path": "/workspace/mandats-verification/authored-3d/prototype-20/05-lyon-alpes.png",
+        "sha256": "032010f50a743d1e4bb87f830581ee7f68111e4c8bfe46fc4a6cb8bf39c06afb"
+      },
+      {
+        "view": "retour",
+        "path": "/workspace/mandats-verification/authored-3d/prototype-20/06-national-retour.png",
+        "sha256": "6151be95467c67a7769b0b3a032bf30903ee7c78153e2f0e812f7bc1e8478d40"
+      }
+    ],
+    "imageMeasurements": {
+      "eastSilhouetteCuts": [
+        {
+          "y": 300,
+          "referenceX": 1195,
+          "actual20X": 1139,
+          "missingEastPx": 56
+        },
+        {
+          "y": 350,
+          "referenceX": 1162,
+          "actual20X": 1094,
+          "missingEastPx": 68
+        },
+        {
+          "y": 650,
+          "referenceX": 1217,
+          "actual20X": 1084,
+          "missingEastPx": 133
+        }
+      ],
+      "cutMethod": "Indicative rightmost connected warm terrestrial pixels on a five-row RGB median band, excluding most blue water/context. Thresholds R>80, R>0.90G, R>1.15B, horizontal run at least 3 pixels. Visual verification on both PNGs; approximately 5 pixels uncertainty. This detects a visible edge, not a geographic vertex or a ground-plane projection.",
+      "geographicAnchorCaution": "The historical camera-homography-townplans-verified.json contains geographic controls for Lyon, Lille, Nantes, Marseille and named capes. Its projected values predate the final relief and must not be treated as newly observed native20 pixels. The illustrated reference does not supply geographic coordinates for every eastern bend."
+    }
+  },
+  "reference": {
+    "file": "../reference-ordinateur.png",
+    "sha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37"
+  },
+  "frozenBuildDirectory": "/workspace/mandats-verification/authored-3d/builds/20",
+  "actualResponseHashesVerified": true,
+  "copiedEvidence": {
+    "ordinateur.png": {
+      "bytes": 1851726,
+      "sha256": "6151be95467c67a7769b0b3a032bf30903ee7c78153e2f0e812f7bc1e8478d40"
+    },
+    "ordinateur.json": {
+      "bytes": 22703,
+      "sha256": "6133f59114c39c35451f04a401203e8a013e19cc919e23a2349654ab01d605ca"
+    },
+    "ordinateur-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "paris.png": {
+      "bytes": 1634695,
+      "sha256": "aa7bfa0891cbb3071d10aeea5710b8b3e40e95f2d4dd647d80dadc229e791ee6"
+    },
+    "paris.json": {
+      "bytes": 22830,
+      "sha256": "b11eae1a1c693378fa0a9d614c08278fea4190a4eb21cdfbb67ac354e2058834"
+    },
+    "paris-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "seine.png": {
+      "bytes": 1661804,
+      "sha256": "eae4139e0da020cdfe47d9a1e2f53f5ad34eb113c44d3a4b1818ccfeb6807379"
+    },
+    "seine.json": {
+      "bytes": 22926,
+      "sha256": "8cbbc85dc428405b135680595f160d1d4df90c6855193fd8c0eda923171955f4"
+    },
+    "seine-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "alpes.png": {
+      "bytes": 1874454,
+      "sha256": "032010f50a743d1e4bb87f830581ee7f68111e4c8bfe46fc4a6cb8bf39c06afb"
+    },
+    "alpes.json": {
+      "bytes": 23180,
+      "sha256": "7a848b0b9c111bed0f6a9026a014b9f1da2e4f14a7e469783638334aa4128d2f"
+    },
+    "alpes-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "retour.png": {
+      "bytes": 1851726,
+      "sha256": "6151be95467c67a7769b0b3a032bf30903ee7c78153e2f0e812f7bc1e8478d40"
+    },
+    "retour.json": {
+      "bytes": 23240,
+      "sha256": "fb7d95fd7ceadd09c57f42072cd05efccc755ea7383352c4eddb5ed1fffdf793"
+    },
+    "retour-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "03b-paris-recentree.json": {
+      "bytes": 22955,
+      "sha256": "dfe205299e6b9b12b382d31a5faece508dfce77a4fa49cfdb0f3a21123dd7abe"
+    },
+    "03b-paris-recentree-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "04-lyon-detail.json": {
+      "bytes": 23084,
+      "sha256": "49bf18cbd7c5a841db6bdfe247341215e6efa6d9e72e1bbb59533829b3f0cd2f"
+    },
+    "04-lyon-detail-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "build.json": {
+      "bytes": 16866,
+      "sha256": "c1505401600a55488333e665d8d38410917f8a7f52439a8f5eb2d90c1a1b0142"
+    },
+    "review.json": {
+      "bytes": 6542,
+      "sha256": "95dd16b15d4bd0c7ea81e9a57adfb595d687b931e50801a20f0c3b8ad431172d"
+    }
+  },
+  "method": "Fresh Chromium context at1672x941 with fonts loaded/reduced motion. Each capture waits for data-render-pending=false after two animation frames, using the existing45000ms native timeout. Browser version comes from browser.version(); HTTP failures and every console level come from page events; served JS/CSS hashes come from the actual response bodies. Native DOM controls, pointer panning and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

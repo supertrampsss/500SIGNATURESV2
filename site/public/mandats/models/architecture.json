@@ -1,0 +1,1370 @@
+{
+  "version": 2,
+  "units": "model units",
+  "axes": "GLTF Y-up; local origin centered at ground",
+  "distanceGeometry": "Explicit named models; high geometry retained for inspection",
+  "models": {
+    "maison_pierre_01": {
+      "width": 1.09,
+      "depth": 0.929,
+      "height": 0.8776,
+      "min": [
+        -0.5450000166893005,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.5450000166893005,
+        0.8776000142097473,
+        0.5090000033378601
+      ],
+      "triangles": 940,
+      "bodyHeight": 0.47
+    },
+    "maison_pierre_01_distant": {
+      "width": 1.09,
+      "depth": 0.929,
+      "height": 0.8776,
+      "min": [
+        -0.5450000166893005,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.5450000166893005,
+        0.8776000142097473,
+        0.5090000033378601
+      ],
+      "triangles": 450,
+      "bodyHeight": 0.47,
+      "lodOf": "maison_pierre_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_pierre_02": {
+      "width": 1.26,
+      "depth": 0.899,
+      "height": 0.8547,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6299999952316284,
+        0.854699969291687,
+        0.49400001764297485
+      ],
+      "triangles": 926,
+      "bodyHeight": 0.44
+    },
+    "maison_pierre_02_distant": {
+      "width": 1.26,
+      "depth": 0.899,
+      "height": 0.8547,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6299999952316284,
+        0.854699969291687,
+        0.49400001764297485
+      ],
+      "triangles": 444,
+      "bodyHeight": 0.44,
+      "lodOf": "maison_pierre_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_pierre_03": {
+      "width": 0.94,
+      "depth": 0.999,
+      "height": 1.1115,
+      "min": [
+        -0.4699999988079071,
+        0.0,
+        -0.45500001311302185
+      ],
+      "max": [
+        0.4699999988079071,
+        1.1115000247955322,
+        0.543999969959259
+      ],
+      "triangles": 1140,
+      "bodyHeight": 0.64
+    },
+    "maison_pierre_03_distant": {
+      "width": 0.94,
+      "depth": 0.999,
+      "height": 1.1115,
+      "min": [
+        -0.4699999988079071,
+        0.0,
+        -0.45500001311302185
+      ],
+      "max": [
+        0.4699999988079071,
+        1.1115000247955322,
+        0.543999969959259
+      ],
+      "triangles": 546,
+      "bodyHeight": 0.64,
+      "lodOf": "maison_pierre_03",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_ardoise_01": {
+      "width": 1.15,
+      "depth": 0.949,
+      "height": 0.9444,
+      "min": [
+        -0.574999988079071,
+        0.0,
+        -0.4300000071525574
+      ],
+      "max": [
+        0.574999988079071,
+        0.9444000124931335,
+        0.5189999938011169
+      ],
+      "triangles": 1100,
+      "bodyHeight": 0.48
+    },
+    "maison_ardoise_01_distant": {
+      "width": 1.15,
+      "depth": 0.949,
+      "height": 0.9444,
+      "min": [
+        -0.574999988079071,
+        0.0,
+        -0.4300000071525574
+      ],
+      "max": [
+        0.574999988079071,
+        0.9444000124931335,
+        0.5189999938011169
+      ],
+      "triangles": 528,
+      "bodyHeight": 0.48,
+      "lodOf": "maison_ardoise_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_ardoise_02": {
+      "width": 0.96,
+      "depth": 1.019,
+      "height": 1.1302,
+      "min": [
+        -0.47999998927116394,
+        0.0,
+        -0.4650000035762787
+      ],
+      "max": [
+        0.47999998927116394,
+        1.130199909210205,
+        0.5540000200271606
+      ],
+      "triangles": 1138,
+      "bodyHeight": 0.68
+    },
+    "maison_ardoise_02_distant": {
+      "width": 0.96,
+      "depth": 1.019,
+      "height": 1.1302,
+      "min": [
+        -0.47999998927116394,
+        0.0,
+        -0.4650000035762787
+      ],
+      "max": [
+        0.47999998927116394,
+        1.130199909210205,
+        0.5540000200271606
+      ],
+      "triangles": 546,
+      "bodyHeight": 0.68,
+      "lodOf": "maison_ardoise_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_01": {
+      "width": 1.14,
+      "depth": 0.869,
+      "height": 1.0534,
+      "min": [
+        -0.5699999928474426,
+        0.0,
+        -0.38999998569488525
+      ],
+      "max": [
+        0.5699999928474426,
+        1.053399920463562,
+        0.4790000021457672
+      ],
+      "triangles": 1268,
+      "bodyHeight": 0.66
+    },
+    "maison_paris_01_distant": {
+      "width": 1.14,
+      "depth": 0.869,
+      "height": 1.0534,
+      "min": [
+        -0.5699999928474426,
+        0.0,
+        -0.38999998569488525
+      ],
+      "max": [
+        0.5699999928474426,
+        1.053399920463562,
+        0.4790000021457672
+      ],
+      "triangles": 608,
+      "bodyHeight": 0.66,
+      "lodOf": "maison_paris_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_02": {
+      "width": 0.97,
+      "depth": 0.979,
+      "height": 1.0576,
+      "min": [
+        -0.48500001430511475,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.48500001430511475,
+        1.0576000213623047,
+        0.5339999794960022
+      ],
+      "triangles": 1140,
+      "bodyHeight": 0.65
+    },
+    "maison_paris_02_distant": {
+      "width": 0.97,
+      "depth": 0.979,
+      "height": 1.0576,
+      "min": [
+        -0.48500001430511475,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.48500001430511475,
+        1.0576000213623047,
+        0.5339999794960022
+      ],
+      "triangles": 546,
+      "bodyHeight": 0.65,
+      "lodOf": "maison_paris_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_03": {
+      "width": 1.31,
+      "depth": 0.919,
+      "height": 1.0731,
+      "min": [
+        -0.6549999713897705,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.6549999713897705,
+        1.0731000900268555,
+        0.5040000081062317
+      ],
+      "triangles": 1434,
+      "bodyHeight": 0.63
+    },
+    "maison_paris_03_distant": {
+      "width": 1.31,
+      "depth": 0.919,
+      "height": 1.0731,
+      "min": [
+        -0.6549999713897705,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.6549999713897705,
+        1.0731000900268555,
+        0.5040000081062317
+      ],
+      "triangles": 688,
+      "bodyHeight": 0.63,
+      "lodOf": "maison_paris_03",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_brique_01": {
+      "width": 1.0,
+      "depth": 0.919,
+      "height": 1.1231,
+      "min": [
+        -0.5,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.5,
+        1.12309992313385,
+        0.5040000081062317
+      ],
+      "triangles": 1140,
+      "bodyHeight": 0.68
+    },
+    "maison_brique_01_distant": {
+      "width": 1.0,
+      "depth": 0.919,
+      "height": 1.1231,
+      "min": [
+        -0.5,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.5,
+        1.12309992313385,
+        0.5040000081062317
+      ],
+      "triangles": 546,
+      "bodyHeight": 0.68,
+      "lodOf": "maison_brique_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_brique_02": {
+      "width": 1.21,
+      "depth": 0.899,
+      "height": 0.9047,
+      "min": [
+        -0.6050000190734863,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6050000190734863,
+        0.904699981212616,
+        0.49400001764297485
+      ],
+      "triangles": 926,
+      "bodyHeight": 0.49
+    },
+    "maison_brique_02_distant": {
+      "width": 1.21,
+      "depth": 0.899,
+      "height": 0.9047,
+      "min": [
+        -0.6050000190734863,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6050000190734863,
+        0.904699981212616,
+        0.49400001764297485
+      ],
+      "triangles": 444,
+      "bodyHeight": 0.49,
+      "lodOf": "maison_brique_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_alsace_01": {
+      "width": 0.93,
+      "depth": 0.979,
+      "height": 1.017,
+      "min": [
+        -0.4650000035762787,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.4650000035762787,
+        1.0169999599456787,
+        0.5339999794960022
+      ],
+      "triangles": 940,
+      "bodyHeight": 0.51
+    },
+    "maison_alsace_01_distant": {
+      "width": 0.93,
+      "depth": 0.979,
+      "height": 1.017,
+      "min": [
+        -0.4650000035762787,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.4650000035762787,
+        1.0169999599456787,
+        0.5339999794960022
+      ],
+      "triangles": 450,
+      "bodyHeight": 0.51,
+      "lodOf": "maison_alsace_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_alsace_02": {
+      "width": 1.1,
+      "depth": 0.879,
+      "height": 1.0428,
+      "min": [
+        -0.550000011920929,
+        0.0,
+        -0.39500001072883606
+      ],
+      "max": [
+        0.550000011920929,
+        1.0428000688552856,
+        0.48399999737739563
+      ],
+      "triangles": 940,
+      "bodyHeight": 0.55
+    },
+    "maison_alsace_02_distant": {
+      "width": 1.1,
+      "depth": 0.879,
+      "height": 1.0428,
+      "min": [
+        -0.550000011920929,
+        0.0,
+        -0.39500001072883606
+      ],
+      "max": [
+        0.550000011920929,
+        1.0428000688552856,
+        0.48399999737739563
+      ],
+      "triangles": 450,
+      "bodyHeight": 0.55,
+      "lodOf": "maison_alsace_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_01": {
+      "width": 1.17,
+      "depth": 0.969,
+      "height": 0.8108,
+      "min": [
+        -0.5849999785423279,
+        0.0,
+        -0.4399999976158142
+      ],
+      "max": [
+        0.5849999785423279,
+        0.8108000159263611,
+        0.5289999842643738
+      ],
+      "triangles": 998,
+      "bodyHeight": 0.46
+    },
+    "maison_sud_01_distant": {
+      "width": 1.17,
+      "depth": 0.969,
+      "height": 0.8108,
+      "min": [
+        -0.5849999785423279,
+        0.0,
+        -0.4399999976158142
+      ],
+      "max": [
+        0.5849999785423279,
+        0.8108000159263611,
+        0.5289999842643738
+      ],
+      "triangles": 478,
+      "bodyHeight": 0.46,
+      "lodOf": "maison_sud_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_02": {
+      "width": 0.99,
+      "depth": 0.929,
+      "height": 0.9821,
+      "min": [
+        -0.4950000047683716,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.4950000047683716,
+        0.9821000099182129,
+        0.5090000033378601
+      ],
+      "triangles": 1216,
+      "bodyHeight": 0.61
+    },
+    "maison_sud_02_distant": {
+      "width": 0.99,
+      "depth": 0.929,
+      "height": 0.9821,
+      "min": [
+        -0.4950000047683716,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.4950000047683716,
+        0.9821000099182129,
+        0.5090000033378601
+      ],
+      "triangles": 582,
+      "bodyHeight": 0.61,
+      "lodOf": "maison_sud_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_03": {
+      "width": 1.28,
+      "depth": 0.979,
+      "height": 0.7708,
+      "min": [
+        -0.6399999856948853,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6399999856948853,
+        0.770799994468689,
+        0.5339999794960022
+      ],
+      "triangles": 1046,
+      "bodyHeight": 0.42
+    },
+    "maison_sud_03_distant": {
+      "width": 1.28,
+      "depth": 0.979,
+      "height": 0.7708,
+      "min": [
+        -0.6399999856948853,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6399999856948853,
+        0.770799994468689,
+        0.5339999794960022
+      ],
+      "triangles": 502,
+      "bodyHeight": 0.42,
+      "lodOf": "maison_sud_03",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "ferme_01": {
+      "width": 1.51,
+      "depth": 0.819,
+      "height": 0.7276,
+      "min": [
+        -0.7549999952316284,
+        0.0,
+        -0.36500000953674316
+      ],
+      "max": [
+        0.7549999952316284,
+        0.7275999784469604,
+        0.45399999618530273
+      ],
+      "triangles": 746,
+      "bodyHeight": 0.32
+    },
+    "ferme_01_distant": {
+      "width": 1.51,
+      "depth": 0.819,
+      "height": 0.7276,
+      "min": [
+        -0.7549999952316284,
+        0.0,
+        -0.36500000953674316
+      ],
+      "max": [
+        0.7549999952316284,
+        0.7275999784469604,
+        0.45399999618530273
+      ],
+      "triangles": 358,
+      "bodyHeight": 0.32,
+      "lodOf": "ferme_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "ferme_02": {
+      "width": 1.38,
+      "depth": 1.009,
+      "height": 0.7973,
+      "min": [
+        -0.6899999976158142,
+        0.0,
+        -0.46000000834465027
+      ],
+      "max": [
+        0.6899999976158142,
+        0.7972999811172485,
+        0.5489999651908875
+      ],
+      "triangles": 748,
+      "bodyHeight": 0.34
+    },
+    "ferme_02_distant": {
+      "width": 1.38,
+      "depth": 1.009,
+      "height": 0.7973,
+      "min": [
+        -0.6899999976158142,
+        0.0,
+        -0.46000000834465027
+      ],
+      "max": [
+        0.6899999976158142,
+        0.7972999811172485,
+        0.5489999651908875
+      ],
+      "triangles": 358,
+      "bodyHeight": 0.34,
+      "lodOf": "ferme_02",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "boutique_01": {
+      "width": 1.26,
+      "depth": 0.889,
+      "height": 0.9205,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4000000059604645
+      ],
+      "max": [
+        0.6299999952316284,
+        0.9204999804496765,
+        0.48899999260902405
+      ],
+      "triangles": 1060,
+      "bodyHeight": 0.52
+    },
+    "boutique_01_distant": {
+      "width": 1.26,
+      "depth": 0.889,
+      "height": 0.9205,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4000000059604645
+      ],
+      "max": [
+        0.6299999952316284,
+        0.9204999804496765,
+        0.48899999260902405
+      ],
+      "triangles": 508,
+      "bodyHeight": 0.52,
+      "lodOf": "boutique_01",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_pierre_01_dominante": {
+      "width": 1.09,
+      "depth": 0.929,
+      "height": 1.5076,
+      "min": [
+        -0.5450000166893005,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.5450000166893005,
+        1.5076000690460205,
+        0.5090000033378601
+      ],
+      "triangles": 2116,
+      "bodyHeight": 1.1
+    },
+    "maison_pierre_01_dominante_distant": {
+      "width": 1.09,
+      "depth": 0.929,
+      "height": 1.5076,
+      "min": [
+        -0.5450000166893005,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.5450000166893005,
+        1.5076000690460205,
+        0.5090000033378601
+      ],
+      "triangles": 1014,
+      "bodyHeight": 1.1,
+      "lodOf": "maison_pierre_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_pierre_02_dominante": {
+      "width": 1.26,
+      "depth": 0.899,
+      "height": 1.5314,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6299999952316284,
+        1.5313999652862549,
+        0.49400001764297485
+      ],
+      "triangles": 2174,
+      "bodyHeight": 1.1238
+    },
+    "maison_pierre_02_dominante_distant": {
+      "width": 1.26,
+      "depth": 0.899,
+      "height": 1.5314,
+      "min": [
+        -0.6299999952316284,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6299999952316284,
+        1.5313999652862549,
+        0.49400001764297485
+      ],
+      "triangles": 1042,
+      "bodyHeight": 1.1238,
+      "lodOf": "maison_pierre_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_pierre_03_dominante": {
+      "width": 0.94,
+      "depth": 0.999,
+      "height": 1.4866,
+      "min": [
+        -0.4699999988079071,
+        0.0,
+        -0.45500001311302185
+      ],
+      "max": [
+        0.4699999988079071,
+        1.4865999221801758,
+        0.543999969959259
+      ],
+      "triangles": 2052,
+      "bodyHeight": 1.079
+    },
+    "maison_pierre_03_dominante_distant": {
+      "width": 0.94,
+      "depth": 0.999,
+      "height": 1.4866,
+      "min": [
+        -0.4699999988079071,
+        0.0,
+        -0.45500001311302185
+      ],
+      "max": [
+        0.4699999988079071,
+        1.4865999221801758,
+        0.543999969959259
+      ],
+      "triangles": 984,
+      "bodyHeight": 1.079,
+      "lodOf": "maison_pierre_03_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_ardoise_01_dominante": {
+      "width": 1.15,
+      "depth": 0.949,
+      "height": 1.516,
+      "min": [
+        -0.574999988079071,
+        0.0,
+        -0.4300000071525574
+      ],
+      "max": [
+        0.574999988079071,
+        1.5160000324249268,
+        0.5189999938011169
+      ],
+      "triangles": 2180,
+      "bodyHeight": 1.1084
+    },
+    "maison_ardoise_01_dominante_distant": {
+      "width": 1.15,
+      "depth": 0.949,
+      "height": 1.516,
+      "min": [
+        -0.574999988079071,
+        0.0,
+        -0.4300000071525574
+      ],
+      "max": [
+        0.574999988079071,
+        1.5160000324249268,
+        0.5189999938011169
+      ],
+      "triangles": 1046,
+      "bodyHeight": 1.1084,
+      "lodOf": "maison_ardoise_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_ardoise_02_dominante": {
+      "width": 0.96,
+      "depth": 1.019,
+      "height": 1.4894,
+      "min": [
+        -0.47999998927116394,
+        0.0,
+        -0.4650000035762787
+      ],
+      "max": [
+        0.47999998927116394,
+        1.4893999099731445,
+        0.5540000200271606
+      ],
+      "triangles": 2050,
+      "bodyHeight": 1.0818
+    },
+    "maison_ardoise_02_dominante_distant": {
+      "width": 0.96,
+      "depth": 1.019,
+      "height": 1.4894,
+      "min": [
+        -0.47999998927116394,
+        0.0,
+        -0.4650000035762787
+      ],
+      "max": [
+        0.47999998927116394,
+        1.4893999099731445,
+        0.5540000200271606
+      ],
+      "triangles": 984,
+      "bodyHeight": 1.0818,
+      "lodOf": "maison_ardoise_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_01_dominante": {
+      "width": 1.14,
+      "depth": 0.869,
+      "height": 1.5004,
+      "min": [
+        -0.5699999928474426,
+        0.0,
+        -0.38999998569488525
+      ],
+      "max": [
+        0.5699999928474426,
+        1.5004000663757324,
+        0.4790000021457672
+      ],
+      "triangles": 2180,
+      "bodyHeight": 1.107
+    },
+    "maison_paris_01_dominante_distant": {
+      "width": 1.14,
+      "depth": 0.869,
+      "height": 1.5004,
+      "min": [
+        -0.5699999928474426,
+        0.0,
+        -0.38999998569488525
+      ],
+      "max": [
+        0.5699999928474426,
+        1.5004000663757324,
+        0.4790000021457672
+      ],
+      "triangles": 1046,
+      "bodyHeight": 1.107,
+      "lodOf": "maison_paris_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_02_dominante": {
+      "width": 0.97,
+      "depth": 0.979,
+      "height": 1.4908,
+      "min": [
+        -0.48500001430511475,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.48500001430511475,
+        1.490799903869629,
+        0.5339999794960022
+      ],
+      "triangles": 2052,
+      "bodyHeight": 1.0832
+    },
+    "maison_paris_02_dominante_distant": {
+      "width": 0.97,
+      "depth": 0.979,
+      "height": 1.4908,
+      "min": [
+        -0.48500001430511475,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.48500001430511475,
+        1.490799903869629,
+        0.5339999794960022
+      ],
+      "triangles": 984,
+      "bodyHeight": 1.0832,
+      "lodOf": "maison_paris_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_paris_03_dominante": {
+      "width": 1.31,
+      "depth": 0.919,
+      "height": 1.5384,
+      "min": [
+        -0.6549999713897705,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.6549999713897705,
+        1.5383999347686768,
+        0.5040000081062317
+      ],
+      "triangles": 2430,
+      "bodyHeight": 1.1308
+    },
+    "maison_paris_03_dominante_distant": {
+      "width": 1.31,
+      "depth": 0.919,
+      "height": 1.5384,
+      "min": [
+        -0.6549999713897705,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.6549999713897705,
+        1.5383999347686768,
+        0.5040000081062317
+      ],
+      "triangles": 1166,
+      "bodyHeight": 1.1308,
+      "lodOf": "maison_paris_03_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_brique_01_dominante": {
+      "width": 1.0,
+      "depth": 0.919,
+      "height": 1.495,
+      "min": [
+        -0.5,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.5,
+        1.494999885559082,
+        0.5040000081062317
+      ],
+      "triangles": 2052,
+      "bodyHeight": 1.0874
+    },
+    "maison_brique_01_dominante_distant": {
+      "width": 1.0,
+      "depth": 0.919,
+      "height": 1.495,
+      "min": [
+        -0.5,
+        0.0,
+        -0.41499999165534973
+      ],
+      "max": [
+        0.5,
+        1.494999885559082,
+        0.5040000081062317
+      ],
+      "triangles": 984,
+      "bodyHeight": 1.0874,
+      "lodOf": "maison_brique_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_brique_02_dominante": {
+      "width": 1.21,
+      "depth": 0.899,
+      "height": 1.5244,
+      "min": [
+        -0.6050000190734863,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6050000190734863,
+        1.524399995803833,
+        0.49400001764297485
+      ],
+      "triangles": 2174,
+      "bodyHeight": 1.1168
+    },
+    "maison_brique_02_dominante_distant": {
+      "width": 1.21,
+      "depth": 0.899,
+      "height": 1.5244,
+      "min": [
+        -0.6050000190734863,
+        0.0,
+        -0.4050000011920929
+      ],
+      "max": [
+        0.6050000190734863,
+        1.524399995803833,
+        0.49400001764297485
+      ],
+      "triangles": 1042,
+      "bodyHeight": 1.1168,
+      "lodOf": "maison_brique_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_alsace_01_dominante": {
+      "width": 0.93,
+      "depth": 0.979,
+      "height": 1.4852,
+      "min": [
+        -0.4650000035762787,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.4650000035762787,
+        1.4851999282836914,
+        0.5339999794960022
+      ],
+      "triangles": 2020,
+      "bodyHeight": 1.0776
+    },
+    "maison_alsace_01_dominante_distant": {
+      "width": 0.93,
+      "depth": 0.979,
+      "height": 1.4852,
+      "min": [
+        -0.4650000035762787,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.4650000035762787,
+        1.4851999282836914,
+        0.5339999794960022
+      ],
+      "triangles": 968,
+      "bodyHeight": 1.0776,
+      "lodOf": "maison_alsace_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_alsace_02_dominante": {
+      "width": 1.1,
+      "depth": 0.879,
+      "height": 1.509,
+      "min": [
+        -0.550000011920929,
+        0.0,
+        -0.39500001072883606
+      ],
+      "max": [
+        0.550000011920929,
+        1.5090000629425049,
+        0.48399999737739563
+      ],
+      "triangles": 2020,
+      "bodyHeight": 1.1014
+    },
+    "maison_alsace_02_dominante_distant": {
+      "width": 1.1,
+      "depth": 0.879,
+      "height": 1.509,
+      "min": [
+        -0.550000011920929,
+        0.0,
+        -0.39500001072883606
+      ],
+      "max": [
+        0.550000011920929,
+        1.5090000629425049,
+        0.48399999737739563
+      ],
+      "triangles": 968,
+      "bodyHeight": 1.1014,
+      "lodOf": "maison_alsace_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_01_dominante": {
+      "width": 1.17,
+      "depth": 0.969,
+      "height": 1.462,
+      "min": [
+        -0.5849999785423279,
+        0.0,
+        -0.4399999976158142
+      ],
+      "max": [
+        0.5849999785423279,
+        1.4619998931884766,
+        0.5289999842643738
+      ],
+      "triangles": 2174,
+      "bodyHeight": 1.1112
+    },
+    "maison_sud_01_dominante_distant": {
+      "width": 1.17,
+      "depth": 0.969,
+      "height": 1.462,
+      "min": [
+        -0.5849999785423279,
+        0.0,
+        -0.4399999976158142
+      ],
+      "max": [
+        0.5849999785423279,
+        1.4619998931884766,
+        0.5289999842643738
+      ],
+      "triangles": 1042,
+      "bodyHeight": 1.1112,
+      "lodOf": "maison_sud_01_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_02_dominante": {
+      "width": 0.99,
+      "depth": 0.929,
+      "height": 1.4581,
+      "min": [
+        -0.4950000047683716,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.4950000047683716,
+        1.4581000804901123,
+        0.5090000033378601
+      ],
+      "triangles": 2176,
+      "bodyHeight": 1.086
+    },
+    "maison_sud_02_dominante_distant": {
+      "width": 0.99,
+      "depth": 0.929,
+      "height": 1.4581,
+      "min": [
+        -0.4950000047683716,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.4950000047683716,
+        1.4581000804901123,
+        0.5090000033378601
+      ],
+      "triangles": 1044,
+      "bodyHeight": 1.086,
+      "lodOf": "maison_sud_02_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "maison_sud_03_dominante": {
+      "width": 1.28,
+      "depth": 0.979,
+      "height": 1.4774,
+      "min": [
+        -0.6399999856948853,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6399999856948853,
+        1.4774000644683838,
+        0.5339999794960022
+      ],
+      "triangles": 2438,
+      "bodyHeight": 1.1266
+    },
+    "maison_sud_03_dominante_distant": {
+      "width": 1.28,
+      "depth": 0.979,
+      "height": 1.4774,
+      "min": [
+        -0.6399999856948853,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6399999856948853,
+        1.4774000644683838,
+        0.5339999794960022
+      ],
+      "triangles": 1170,
+      "bodyHeight": 1.1266,
+      "lodOf": "maison_sud_03_dominante",
+      "lodRatio": 0.48,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.0
+    },
+    "cathedrale_paris": {
+      "width": 1.92,
+      "depth": 2.865,
+      "height": 2.9,
+      "min": [
+        -0.9599999785423279,
+        -2.60770320892334e-08,
+        -1.6099998950958252
+      ],
+      "max": [
+        0.9599999785423279,
+        2.8999998569488525,
+        1.2549999952316284
+      ],
+      "triangles": 7177
+    },
+    "cathedrale_paris_distant": {
+      "width": 1.92,
+      "depth": 2.865,
+      "height": 2.9,
+      "min": [
+        -0.9599999785423279,
+        -2.60770320892334e-08,
+        -1.6099998950958252
+      ],
+      "max": [
+        0.9599999785423279,
+        2.8999998569488525,
+        1.2549999952316284
+      ],
+      "triangles": 3229,
+      "lodOf": "cathedrale_paris",
+      "lodRatio": 0.45,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.003806
+    },
+    "mairie_sud": {
+      "width": 1.81,
+      "depth": 0.925,
+      "height": 1.525,
+      "min": [
+        -0.9049999713897705,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.9049999713897705,
+        1.524999976158142,
+        0.5049999952316284
+      ],
+      "triangles": 1298
+    },
+    "mairie_sud_distant": {
+      "width": 1.81,
+      "depth": 0.925,
+      "height": 1.525,
+      "min": [
+        -0.9049999713897705,
+        0.0,
+        -0.41999998688697815
+      ],
+      "max": [
+        0.9049999713897705,
+        1.524999976158142,
+        0.5049999952316284
+      ],
+      "triangles": 518,
+      "lodOf": "mairie_sud",
+      "lodRatio": 0.4,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.000435
+    },
+    "beffroi_nord": {
+      "width": 1.24,
+      "depth": 0.96,
+      "height": 2.36,
+      "min": [
+        -0.6200000047683716,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6200000047683716,
+        2.3600001335144043,
+        0.5149999856948853
+      ],
+      "triangles": 828
+    },
+    "beffroi_nord_distant": {
+      "width": 1.24,
+      "depth": 0.96,
+      "height": 2.36,
+      "min": [
+        -0.6200000047683716,
+        0.0,
+        -0.4449999928474426
+      ],
+      "max": [
+        0.6200000047683716,
+        2.3600001335144043,
+        0.5149999856948853
+      ],
+      "triangles": 330,
+      "lodOf": "beffroi_nord",
+      "lodRatio": 0.4,
+      "maximumExtentError": 0.0,
+      "decimationExtentError": 0.000459
+    }
+  }
+}

@@ -1,0 +1,428 @@
+{
+  "method": "Actual Blender4.3.2 reproduction from repository source matched approved candidate21 GLB byte-for-byte. Exact ordered model attributes/indices, bounds and pivots checked against candidate; actual distant normals/colors/trunk/index checks. Real production Babylon kit in NullEngine with only CPU byte transport. No app build, browser or GPU.",
+  "artifactRevision": 22,
+  "authoringCandidate": 21,
+  "generator": "Blender4.3.2",
+  "previousGLBSHA256": "a76e9ce21413da32747a1fd9ff6f2f0c54460c2e4bfe6510ea3c23a459119ed5",
+  "glbSHA256": "44ba0d18ea0aa4e8f2211d20b88fb4b9904cf4f1b8518066fdd3ec278e700a0b",
+  "glbBytes": 721552,
+  "sourceSHA256": "511b0898d0b402ffd4ddd7f01e54080afd8bcc110d662859a7dac5a588457648",
+  "boundsSourceSHA256": "c6c54f96dc77702d6e6746f6f892df29214b17809c8a7375049ee819f8f767f9",
+  "reproductionCommand": "blender --background --threads 6 --python tools/mandats-assets/vegetation.py",
+  "reproductionMatchesApprovedGLB": true,
+  "materialsIdentical": true,
+  "modelNamesAndPivotsPreserved": true,
+  "allHighAndDistantBoundsExact": true,
+  "rockGeometryAndColorsByteIdentical": true,
+  "highTriangles": 7044,
+  "distantTriangles": 861,
+  "models": [
+    {
+      "name": "oak",
+      "highTriangles": 1576,
+      "previousHighTriangles": 1760,
+      "highIdentical": false,
+      "highFingerprint": "890aa42e8a97c41eb4bfe44ae9b8301f5b7b4556ddb30ce77cf85057578a2f61",
+      "highBounds": {
+        "min": [
+          -0.4392952620983124,
+          -0.0009845411404967308,
+          -0.34508177638053894
+        ],
+        "max": [
+          0.4602108597755432,
+          1.0465924739837646,
+          0.40127718448638916
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit",
+        "canopy-shade"
+      ],
+      "previousDistantTriangles": 139,
+      "distantTriangles": 172,
+      "distantFingerprint": "1e8169ff0a9d4e1c942b15a41d92c0ff3c3b0c262cbd3d65ae088305ef4cfcdd",
+      "distantBounds": {
+        "min": [
+          -0.4527553617954254,
+          -0.0009845411404967308,
+          -0.3215336799621582
+        ],
+        "max": [
+          0.49620795249938965,
+          1.0219985246658325,
+          0.429195761680603
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 32,
+      "barkMinY": -0.0009845411404967308
+    },
+    {
+      "name": "beech",
+      "highTriangles": 1144,
+      "previousHighTriangles": 1352,
+      "highIdentical": false,
+      "highFingerprint": "589ea6dc506cb07c860494f26568fda6b17259053469a4eb47a9cd22420b4d6b",
+      "highBounds": {
+        "min": [
+          -0.2990770637989044,
+          -0.00042034799116663635,
+          -0.3104558289051056
+        ],
+        "max": [
+          0.32162338495254517,
+          1.069164752960205,
+          0.30489522218704224
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit"
+      ],
+      "previousDistantTriangles": 116,
+      "distantTriangles": 144,
+      "distantFingerprint": "3061fda7b7e75db5253965ac016a655074e102e31a220c50ec44467ab95449d6",
+      "distantBounds": {
+        "min": [
+          -0.2994936406612396,
+          -0.00042034799116663635,
+          -0.2960454821586609
+        ],
+        "max": [
+          0.3199051320552826,
+          1.0450295209884644,
+          0.30325713753700256
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 34,
+      "barkMinY": -0.00042034799116663635
+    },
+    {
+      "name": "pine",
+      "highTriangles": 1860,
+      "previousHighTriangles": 3224,
+      "highIdentical": false,
+      "highFingerprint": "1948d771b79bb6df0867ca76e900e63a22e7a9b4a0c5be68ada5d34a32a5f062",
+      "highBounds": {
+        "min": [
+          -0.3424035310745239,
+          -0.0003534409624990076,
+          -0.33206042647361755
+        ],
+        "max": [
+          0.3914504945278168,
+          1.2124580144882202,
+          0.3406129777431488
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-shade",
+        "pine-needles"
+      ],
+      "previousDistantTriangles": 223,
+      "distantTriangles": 228,
+      "distantFingerprint": "d6d76d698753c9391a3bc4f17ab53fbf167d140bcb2f63f3cdb127e9aefbdbb5",
+      "distantBounds": {
+        "min": [
+          -0.34814929962158203,
+          -0.0003534409624990076,
+          -0.3019872307777405
+        ],
+        "max": [
+          0.3777206242084503,
+          1.2141399383544922,
+          0.3390929698944092
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 54,
+      "barkMinY": -0.0003534409624990076
+    },
+    {
+      "name": "cypress",
+      "highTriangles": 824,
+      "previousHighTriangles": 824,
+      "highIdentical": false,
+      "highFingerprint": "2616c15bbe587e5866e6011fb39722a00638fd5cc1852c28c91f58a9b346fb2d",
+      "highBounds": {
+        "min": [
+          -0.09460532665252686,
+          -0.00013100948126520962,
+          -0.0911751240491867
+        ],
+        "max": [
+          0.09563631564378738,
+          1.1095105409622192,
+          0.08775021135807037
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "pine-needles",
+        "canopy-shade"
+      ],
+      "previousDistantTriangles": 69,
+      "distantTriangles": 106,
+      "distantFingerprint": "03f26651f84ed3538c0acde364d200df3d4ee950bfc2a3855cae621ec82a8086",
+      "distantBounds": {
+        "min": [
+          -0.0833301842212677,
+          -0.00013100948126520962,
+          -0.10141751170158386
+        ],
+        "max": [
+          0.09229742735624313,
+          1.1000654697418213,
+          0.07758355885744095
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 24,
+      "barkMinY": -0.00013100948126520962
+    },
+    {
+      "name": "olive",
+      "highTriangles": 832,
+      "previousHighTriangles": 832,
+      "highIdentical": false,
+      "highFingerprint": "54dc1ad569f9abfb4eab6e98352c94d3a33be3341f2fab1b9887fc834ea06e41",
+      "highBounds": {
+        "min": [
+          -0.3959670960903168,
+          -0.0035949950106441975,
+          -0.36586153507232666
+        ],
+        "max": [
+          0.392549604177475,
+          0.6786569356918335,
+          0.3626773953437805
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-shade",
+        "olive-silver"
+      ],
+      "previousDistantTriangles": 109,
+      "distantTriangles": 109,
+      "distantFingerprint": "74006232f8fca6c39905beacd8c3a972ece232dfa0060fe00d3758d6c3e1e61c",
+      "distantBounds": {
+        "min": [
+          -0.4125773310661316,
+          -0.0035949950106441975,
+          -0.36188578605651855
+        ],
+        "max": [
+          0.3960481584072113,
+          0.6960715651512146,
+          0.3515535891056061
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 31,
+      "barkMinY": -0.0035949950106441975
+    },
+    {
+      "name": "orchard",
+      "highTriangles": 728,
+      "previousHighTriangles": 728,
+      "highIdentical": false,
+      "highFingerprint": "989d2b2dbf5352b632d64f42d53e3e2edbb1d3ed1406f59505ac595838bcf0c0",
+      "highBounds": {
+        "min": [
+          -0.2461707890033722,
+          0.0,
+          -0.23206652700901031
+        ],
+        "max": [
+          0.2491423487663269,
+          0.5968878865242004,
+          0.22638176381587982
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-bark",
+        "canopy-olive",
+        "canopy-sunlit"
+      ],
+      "previousDistantTriangles": 102,
+      "distantTriangles": 102,
+      "distantFingerprint": "ae02c375ae691daa7b9bbef11d8d9331570cffd37a9b46aa266b2930c9351751",
+      "distantBounds": {
+        "min": [
+          -0.26088252663612366,
+          0.0,
+          -0.24898281693458557
+        ],
+        "max": [
+          0.2708406448364258,
+          0.6147269010543823,
+          0.2227448970079422
+        ]
+      },
+      "distantTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "barkTriangles": 30,
+      "barkMinY": 0.0
+    },
+    {
+      "name": "rock",
+      "highTriangles": 80,
+      "previousHighTriangles": 80,
+      "highIdentical": true,
+      "highFingerprint": "03d2d31ca8380064f5fc11792a24437959d7e17f96f3317afe0d33c9ab373e8b",
+      "highBounds": {
+        "min": [
+          -0.3216630220413208,
+          -0.06521196663379669,
+          -0.26270708441734314
+        ],
+        "max": [
+          0.3532716631889343,
+          0.4578305780887604,
+          0.2557070851325989
+        ]
+      },
+      "highTransform": {
+        "matrix": null,
+        "rotation": null,
+        "translation": null,
+        "scale": null
+      },
+      "materials": [
+        "weathered-limestone"
+      ]
+    }
+  ],
+  "runtimeKit": {
+    "prefabs": 7,
+    "highPrimitivesWithLOD": 19,
+    "counts": {
+      "empty": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 0,
+        "geometries": 0,
+        "animationGroups": 0
+      },
+      "loaded": {
+        "meshes": 40,
+        "transformNodes": 12,
+        "materials": 7,
+        "textures": 1,
+        "geometries": 39,
+        "animationGroups": 0
+      },
+      "afterTintedVariants": {
+        "meshes": 118,
+        "transformNodes": 12,
+        "materials": 21,
+        "textures": 1,
+        "geometries": 39,
+        "animationGroups": 0
+      },
+      "afterKitDispose": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 1,
+        "geometries": 0,
+        "animationGroups": 0
+      },
+      "afterSceneDispose": {
+        "meshes": 0,
+        "transformNodes": 0,
+        "materials": 0,
+        "textures": 0,
+        "geometries": 0,
+        "animationGroups": 0
+      }
+    },
+    "sceneOwnedTexture": {
+      "name": "data:EnvironmentBRDFTexture0",
+      "isSceneEnvironmentBRDF": true
+    },
+    "cacheReused": true,
+    "tintedTemplatesReused": true,
+    "doubleDisposeSafe": true,
+    "disposedKitRejectsInstantiate": true,
+    "errors": []
+  },
+  "errors": [],
+  "limits": [
+    "Tree HIGH/LOW geometry and vertex colors intentionally change; their exact existing bounds and pivots remain. Rock is byte-identical to revision15.",
+    "NullEngine loading/disposal checks are CPU model evidence. Main/shadow triangle counts, frame timing, LOD selection and artistic reference fidelity require the next actual game capture."
+  ]
+}

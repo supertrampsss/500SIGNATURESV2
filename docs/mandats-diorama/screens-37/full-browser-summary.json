@@ -1,0 +1,1921 @@
+{
+  "build": "37",
+  "startedAt": "2026-10-09T12:14:38.255Z",
+  "status": "failed",
+  "runDirectory": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316",
+  "buildManifestSha256": "9cd1f84d3a20beb76870a0c97ef95d4b9b61022f894ac047d94d82185b479698",
+  "actualBuildBundles": [
+    {
+      "path": "assets/mandats-B5H7aFd6.css",
+      "bytes": 175231,
+      "sha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c"
+    },
+    {
+      "path": "assets/mandats-lHN_ghvN.js",
+      "bytes": 3180712,
+      "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+    }
+  ],
+  "testInputsSha256": {
+    "package.json": "9f561058cfa8654b2a6f557c8c730ff8b20d9afe0d639c172e4c1294aa8ebf65",
+    "playwright.board.config.ts": "c7cee24afaa2a94816cf9d0cbc764a87d4aa785e0c05316ca07beb9c524a0167",
+    "playwright.header.config.ts": "b9f4ba561dbac0366addd960dc74973db61c711d987f86fb234fbe4b18d185b7",
+    "playwright.mandats.config.ts": "6ee99910f3e6eacbb1beb5fc0d50eae70c3872e4a4194446363ae1580a40fa50",
+    "playwright.rework.config.ts": "668309dab0682f370cfd750e2c235c0f3e09c6199e90b24fd6357641fe47df93",
+    "playwright.social.config.ts": "46c551aab6fed9f5980b74f26a8c22b83f12b3fabe16ba0addd8caf65b696c86",
+    "playwright.story.config.ts": "1840b7436f748228cd68b98e7ef6008fd244008e79f64b49e20baa716eaf269c",
+    "playwright.visual.config.ts": "a0cdc1c83a6b64c630a1b2b199afad85236586f90eae308a613c1f52bd1fa95c",
+    "tests/analytics-consent.test.mjs": "8eee7530c56029c0853717f43e96b840bde248457c75870b1bd75e6daaa0b706",
+    "tests/editorial-devices.html": "e4ef25c77fa70416870d235e16ac96e49db4fb05dc7c1eb02c343e6e1b0cfa05",
+    "tests/editorial-tabs.test.mjs": "2cae12d9e69b7a429e18dcd96daab2d65d148d3558a8cf771166548d6ccdd7ab",
+    "tests/fixtures/editorial-publication.json": "c15a3404bc043209f36acfc11f394f6bd20a612468d641924cca19d3765b0b68",
+    "tests/fixtures/mandats-equilibre.json": "864c6dc01562eff06021afecae5b7b15c27e0e2a3c1607d61a39335b348b8d9c",
+    "tests/fixtures/mandats-mobilisations-v12.json": "d8cd2069402124e1c6768d9e1ed6a0c6b3d4b6b00ae15c9be77a2256ff0746a3",
+    "tests/fixtures/mandats-v11.json": "08d10c933a318ee2139583a1c9c0409b6dd20fb3f875d8e969b780fd91f526df",
+    "tests/france-living.test.mjs": "d68df101d80590904c0b4694aaefc408c8455cbd74c7e9bbe649e69e65437714",
+    "tests/header-navigation.test.mjs": "06f1dd62a48c258fed7517eb3535936aab2e660609e000ae30097771a6c191b8",
+    "tests/mandats-board.test.mjs": "f35cbc696f4525e1a233eaafb887996295160f8e55bbeb7e3356ef58734c3706",
+    "tests/mandats-devices.html": "89d0c2d1e6174c72784326304b95ec4966ead37c0e167690f7325fbb4b3390a6",
+    "tests/mandats-equilibre.test.mjs": "4a7088d0176fd91c52bf53558513f89bc5a7cd626cbf0952370a9e26b2d9418a",
+    "tests/mandats-mobile.test.mjs": "4abfe5da213a83c96f877751c1c67396e67d0b00be337f51a3996cba94e7e22b",
+    "tests/mandats-politics.test.mjs": "6914ca8a08fe1323d0eae2238d95d621be7384596c8e9fad90cc12ec118902ee",
+    "tests/mandats-rework.test.mjs": "cfa6f06d54a6e75a760d68fe3f7611332b6a6cc04bade68bada17325f6a68b87",
+    "tests/mandats-social.test.mjs": "d5f0ac5b1a4df2f037f642c02b94127e7dc407bdff2325bbc77e6256c6cc7e3e",
+    "tests/mandats-story.test.mjs": "45e0bfafc969d3b2c643c21a4f67c3cba0e0d54cd531a163b0467bb23af69516",
+    "tests/national-agenda.test.mjs": "34f0865be8892544c7697d1015cc4588da77978a854e86b8ce05ca1b1d530f7e",
+    "tests/shared-theme.test.mjs": "28eb8fb53593eddb56132e820cca41f40ed3b46a030ec342249211a04aae6d01",
+    "tests/visual-audit.test.mjs": "898219493b6046ab8ae3cb54f17b9c08cf0590a4eecc82349d2d0ecadc52f9ef"
+  },
+  "environment": {
+    "NODE_USE_ENV_PROXY": "1",
+    "MANDATS_CHROMIUM_EXECUTABLE": "/usr/bin/chromium",
+    "MANDATS_WEBKIT_EXECUTABLE": "/workspace/.cache/webkit-libs/webkit-local",
+    "PLAYWRIGHT_BROWSERS_PATH": "/workspace/.cache/ms-playwright",
+    "PLAYWRIGHT_HTML_OPEN": "never"
+  },
+  "historicalOnly": {
+    "referenceCounts": {
+      "rework": 32,
+      "social": 16,
+      "header": 3,
+      "compat": 300
+    },
+    "appliesToCurrentBuild": false,
+    "qualification": "Historical planning counts, never current results"
+  },
+  "suiteOrder": [
+    "rework",
+    "social",
+    "header",
+    "compat"
+  ],
+  "suites": [
+    {
+      "suite": "rework",
+      "actualExitCode": 1,
+      "receipt": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/receipt.json",
+      "receiptSha256": "a70d2e0342dbcf1ce16ee608f984d86cbcebd5d3697051a0411fab87771ba7ba",
+      "status": "failed",
+      "previousEvidence": [
+        {
+          "path": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/pre-existing/rework-artifacts",
+          "files": 24,
+          "inventory": [
+            {
+              "path": "report/data/1e6caa4aed4eb40c1fd28236fec84b9322fd3f3d.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "report/data/5419fe76d818c901c527acf73d397ecaa63203bf.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "report/data/65c91d019591e4904ee81fac0c48e9d2f7492089.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "report/data/954ed322a1ea881686d4a7a07962c20bc81a6d11.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "report/data/9f4164010037ee6dc648ed009635e741251798fe.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "report/data/a1a5709421617c8ad4a0b5ebdabe5b3af9c5e2ba.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "report/data/b6975cc1caff4e38aa7fc1caea7894df1a5b7d02.png",
+              "bytes": 779594,
+              "sha256": "66d85fccd6021dd9962715d2a8b67a20741210d3ff6de781c63365e2d104abf0"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 522091,
+              "sha256": "3e485ac3f596456cf8916ab08bcae51963a013f316ded405b2be454f70779fdd"
+            },
+            {
+              "path": "report.json",
+              "bytes": 10538,
+              "sha256": "3dccb63d346c5ac053fde5c4e58ff1fe562f12a0e390f1242b7f5f112fb2ef2b"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 45,
+              "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-6a2189a8e32d6d6ad2e4665e521a4dc060acc538.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-50054e3780a045d503420e7e0ebc4114dd911b08.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-ae7a1833002d1bdb78d382c74a038059f431d9b8.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-6c7bcac996084a650b1a4fb79998f7391034d7a3.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-33460a6f1da99c21a4209491812f7b5d7959b17a.png",
+              "bytes": 779594,
+              "sha256": "66d85fccd6021dd9962715d2a8b67a20741210d3ff6de781c63365e2d104abf0"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-replay-be23117eabb984454dfc0245dba7b66504eb0cac.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-resolution-551bfa66a5fb9570442c0d0fae0c4eed1184d3fa.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2-resolution.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2.png",
+              "bytes": 779594,
+              "sha256": "66d85fccd6021dd9962715d2a8b67a20741210d3ff6de781c63365e2d104abf0"
+            }
+          ],
+          "qualification": "Pre-existing evidence, not results of this run"
+        }
+      ],
+      "artifactCopies": [
+        {
+          "source": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+          "copy": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts",
+          "freshness": {
+            "path": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+            "absentBeforeCommand": true,
+            "ctimeNs": 1791549564553238596,
+            "mtimeNs": 1791549564553238596,
+            "birthtimeNs": null,
+            "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+          },
+          "inventory": [
+            {
+              "path": "report/data/0e4285723b9b1f12fcb694cf27abef5a4340bcec.json",
+              "bytes": 46770,
+              "sha256": "134820dccbd5834fcbe200b83b4824b25c67efe9ef173cdc3b07e608a856a1c9"
+            },
+            {
+              "path": "report/data/11bca3b191dc9561dd06a961acb7ca886920af16.png",
+              "bytes": 219605,
+              "sha256": "03ad9251aa411fd2c32ff87c7307add35c6722cb09827183541d94ec45c302cd"
+            },
+            {
+              "path": "report/data/127f55486e0ddfdc16ad0fa0edff43a78151a8e6.png",
+              "bytes": 1609638,
+              "sha256": "36d7c468bc1d940184bf217f4eabbe1c1575f0409de15c6a83701603d178b9ba"
+            },
+            {
+              "path": "report/data/13a244e9fdf1e1ebc95dbe43f1b9f470622e00f4.png",
+              "bytes": 903663,
+              "sha256": "c09a9426110d5a34a21bf511ff8c453fdae133519d0df56de0ff8399ff334576"
+            },
+            {
+              "path": "report/data/14abafd7ad7f31ff6dd2b4af88a969b1da15cb5f.zip",
+              "bytes": 45443085,
+              "sha256": "be5689b06cb081c8e961ce620368500d9312641f4844b5130598b340856100a8"
+            },
+            {
+              "path": "report/data/17fd182c422cd7dbd7423cdfc8663ece256c34ae.png",
+              "bytes": 1632764,
+              "sha256": "a900aa3b8a73c8500b9790c9df104cf7ce4a3f32471b1828f4bb96e0ec6ed4d3"
+            },
+            {
+              "path": "report/data/19529b623fa90fb03188e61e80aec1fbc11c4e12.md",
+              "bytes": 11046,
+              "sha256": "05067bce08bc102e149ea9f70eed027faaa6d0ad570df4c12ac3519874f8021f"
+            },
+            {
+              "path": "report/data/1bbcef74ca2a7fb8369e0d0f6f5f32a71123b9c3.png",
+              "bytes": 187585,
+              "sha256": "0df823703020df756081657a08e47ec464293a82341f52c61b7bd71d0dd03af2"
+            },
+            {
+              "path": "report/data/1c2d8116447d0ebd41585f64cda92859bd48de6c.png",
+              "bytes": 937216,
+              "sha256": "483f661b5e489cfcacf04bb9cef27129c0bb49894c92fdf3b250db77ed271de3"
+            },
+            {
+              "path": "report/data/1e6caa4aed4eb40c1fd28236fec84b9322fd3f3d.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "report/data/2091d21358fe14fff646ab488595a4f7837f7ea2.png",
+              "bytes": 277719,
+              "sha256": "0a304a75dea72a8a1d7fbe45f95ff32853a05e7cd1b341bafcf5523d708ff99f"
+            },
+            {
+              "path": "report/data/2147f1f892e24bbb1ef41803d1cd113366ac7409.png",
+              "bytes": 253740,
+              "sha256": "1e94ac44909d78f50b31039ed2fcc5b78ecbc8ebe15ff3e5ff7ad730d8264849"
+            },
+            {
+              "path": "report/data/265314fcf5dac127124213320d1ddc71be8ed089.png",
+              "bytes": 73483,
+              "sha256": "b55d9ec7bccebd0fab47b7864c4e8dd9d7ccce3f04d57d42a8bed427352e59e6"
+            },
+            {
+              "path": "report/data/2892d150058132fc35d15379617db0dcf814996f.png",
+              "bytes": 187521,
+              "sha256": "1f15b3be46c12a3a9907fd713b430e8b133b720776b05481b0ce9a4464f2a5e8"
+            },
+            {
+              "path": "report/data/2b4ceea3f46ef05ca057a4d258fdc068c4bfd8bf.json",
+              "bytes": 19454,
+              "sha256": "6a0d2b8835ae81348adc6d151cdd824c4658ba143e62c9d0743ccbd7ee7dc09d"
+            },
+            {
+              "path": "report/data/2ceea5dd4110e8112686b17f69fd9d53dac3234d.png",
+              "bytes": 74938,
+              "sha256": "09ad5228db3944db2161bbd95ad98851c8f425ca2636aceaa9b9651546111051"
+            },
+            {
+              "path": "report/data/2f0382dafdefb4b0c07c351d693eb4effb42fe6f.png",
+              "bytes": 1611889,
+              "sha256": "e609bdc3eef03eba4acb15bfcebf4a9409fcb64ee6af2c1b1efb6c5438c23508"
+            },
+            {
+              "path": "report/data/35bb656b151035568a370f4bfaf97040f16ee331.png",
+              "bytes": 177832,
+              "sha256": "035f03a8a775416eabca11d73d55858dbf2091c83da26cdf73960ac9bb41060a"
+            },
+            {
+              "path": "report/data/39020e30970ca30da8a7a8706cb4465e3fb43f52.json",
+              "bytes": 18109,
+              "sha256": "58aac44406afe890d07240fc7520ef1ab8f33543456a1b23c9151c1044e96295"
+            },
+            {
+              "path": "report/data/3a7fd9fde303a7e4beeaccc496f2eeead745e346.zip",
+              "bytes": 52137864,
+              "sha256": "a8820f67f195f78a2f59605b7def469a7a12836db1796861de073ffb569c9679"
+            },
+            {
+              "path": "report/data/3c463a0cd31878058a29bc081f84785d822ac3f8.png",
+              "bytes": 608446,
+              "sha256": "8e54eae66b9520b4d53b55b89b365d2ec59463a62eea23d5685535d0d35d883c"
+            },
+            {
+              "path": "report/data/3e99bd7218e53f39dfbc1fd6cc025bdc464ee72d.png",
+              "bytes": 1637435,
+              "sha256": "9fd015a3720ac768cc75b38b3fa3f8cc9f7c5d61d38f5818e5f44546f33d9556"
+            },
+            {
+              "path": "report/data/41607c9165b45fe0c5fee9e5756085bdedbe3043.zip",
+              "bytes": 45347902,
+              "sha256": "854aeaea4d60b4c5d384fd9442081b23e7ab0556bdefe438cc570e864c3697ca"
+            },
+            {
+              "path": "report/data/42e118955c075ccf7181d817683013e3c777b540.png",
+              "bytes": 247673,
+              "sha256": "5d8c6a4d63ca48bbe81f0d8dd393d788bc178c75b31651c2d0d04ca0836fd7dd"
+            },
+            {
+              "path": "report/data/434c3fab2cad7b80229fbb63a0536ff70ab85a1b.png",
+              "bytes": 684870,
+              "sha256": "2ddf81a31126891ee6eca7717e24e22b3f3f146d85b5c84a493fe18df230009d"
+            },
+            {
+              "path": "report/data/43c96ba579c2584b1bfa3e756652a4bd44f2eb18.json",
+              "bytes": 29415,
+              "sha256": "e3fe5b8140a65fcb984dc76cc3dbe3bfd8bebc752c9a8c35e6708a9bb14df0e0"
+            },
+            {
+              "path": "report/data/4444424ddacb239c518b839b0e352e2e4255afb6.png",
+              "bytes": 219325,
+              "sha256": "1eebf8d64fcb6ebbfb4757a7abdccbfeebc530dd6f73dc0fb8153c9a58680c5d"
+            },
+            {
+              "path": "report/data/4772c6f6c070c7aefb21d19d329b28a8482c4a47.json",
+              "bytes": 290646,
+              "sha256": "385448af96901ec6ff1f5996f71c001adef6bde6ae0c344795d70e58bbc4bcd2"
+            },
+            {
+              "path": "report/data/4afaf4216367416d076f589b42e142e927a857eb.png",
+              "bytes": 287164,
+              "sha256": "6ffd73d6d787fc37fd99041cbf903832ed19b3e566751102348587b926b62ae9"
+            },
+            {
+              "path": "report/data/4f2c7466e20ad8142a72563f9cbab835c1a98313.json",
+              "bytes": 62162,
+              "sha256": "8f218f9792d6c5e0ef85e677d037f6640d9d40f1d6046fec13b29cfbebc20fd7"
+            },
+            {
+              "path": "report/data/50061f75e3293a4787028ee97bef58f47e741e93.png",
+              "bytes": 5009948,
+              "sha256": "f0555932b0271a1e769dbfa609772b367dfc26c5a6b9fa9813d656db2136f797"
+            },
+            {
+              "path": "report/data/52083d8a28e29494e7775ecdfecef04ce362a0c4.json",
+              "bytes": 18332,
+              "sha256": "7e72f78f3e7efc390f7c1b55d77696db14fbbaa693ffd434d4ed260b3abf87b1"
+            },
+            {
+              "path": "report/data/5419fe76d818c901c527acf73d397ecaa63203bf.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "report/data/556a398c1cd37091835e1f466387836c928cd1fe.json",
+              "bytes": 62162,
+              "sha256": "f028c6e3fcff7ead97fe42905aea87cef2ca0221726d61fb06c8fd029e8b05eb"
+            },
+            {
+              "path": "report/data/57d5e3c5adda17d1f5c8f572123dee29df6e4c02.json",
+              "bytes": 62163,
+              "sha256": "5829f767ef4b5e15930220a93eec5bcb7ceeac058997c1bb1aafe8f63eb18194"
+            },
+            {
+              "path": "report/data/5c070fad2c9f8be3b9eda84988e8e4e2ca014c6f.png",
+              "bytes": 1598674,
+              "sha256": "0fe6fe54c5613d38af305539e35e3816bbcfcb4ecedbbff9e2b07c4b94c61cf6"
+            },
+            {
+              "path": "report/data/605e2f058bc582edb5970a6ceb23023fda3a483b.png",
+              "bytes": 664132,
+              "sha256": "13d8496ae14a7466ad7d6908e6fec84bd3c61f806fd66c0824cd3131bde64e53"
+            },
+            {
+              "path": "report/data/65c91d019591e4904ee81fac0c48e9d2f7492089.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "report/data/683de35608035eaff5df94db8d80a3f1bf56063e.png",
+              "bytes": 189124,
+              "sha256": "aecb824f5f218ef63709bdbdb17454023a200b74aef8131fd860af88d040351b"
+            },
+            {
+              "path": "report/data/6bbe7e68c457140010f59d332bf25c4a73714f5c.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "report/data/6e9d8c069eff7f822382a1033980054c521f4fc3.png",
+              "bytes": 69665,
+              "sha256": "b39440df3f5257f0983e83eab125408d2fc9793624fb92bb339a65269ee9a250"
+            },
+            {
+              "path": "report/data/7d188fd45a8497bea162e816398b3782c5b23f27.json",
+              "bytes": 46769,
+              "sha256": "6eb166858f2d1d05316e409d2adf548cf00dd61744e29c0e772fd948e95a247d"
+            },
+            {
+              "path": "report/data/81ee7e11815aebbd407ae1751fa68b19f5a705ef.png",
+              "bytes": 256894,
+              "sha256": "556a8797458df5e9d6402ff6f5fa3db572c740e68976803e84a00877dbdf7f47"
+            },
+            {
+              "path": "report/data/826c1e954a717205d517b4c01db91004496c6755.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "report/data/8365b461ceb1cb9dcdce349eabf131250eb7937b.png",
+              "bytes": 206176,
+              "sha256": "13d2a683312b8f5a91ba60ad2e94abd782d1618d1b019f8b41287409ccee7116"
+            },
+            {
+              "path": "report/data/847facf6f5b6d731aa676a62ac2717aa7e33f652.png",
+              "bytes": 255453,
+              "sha256": "04d34fabfd1e5411db34a8bec66331eac1b52aeadffc64b44b9cefd44b907a8c"
+            },
+            {
+              "path": "report/data/84ecd2078c7f06d2c97ca8e78ed7f7fcf9fa2e68.png",
+              "bytes": 64975,
+              "sha256": "1df1f05d441ba94044b3306e263a1fe1572f23eab845a1a67930f135204ae5d3"
+            },
+            {
+              "path": "report/data/88df5e3d9da485d28991398cead7abcc13d0b5b4.png",
+              "bytes": 1597629,
+              "sha256": "3f4ab3d5043545a3fd67ceec2b7ac8339241aeefac691b428e9201951f88c7b3"
+            },
+            {
+              "path": "report/data/8edf168c677ef3f92f8a5dbf1757d30eaa86badb.json",
+              "bytes": 46769,
+              "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022"
+            },
+            {
+              "path": "report/data/917427c0ad5b8f1dbc0ea19637442f857541c5c5.png",
+              "bytes": 665713,
+              "sha256": "1d24c749ab1c83550df97da4e667d1f62ce5199c4bcf2d6ee854fef3a5a8f402"
+            },
+            {
+              "path": "report/data/954ed322a1ea881686d4a7a07962c20bc81a6d11.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "report/data/97d170e1550eee4afc0af065b78cda302a97674c.json",
+              "bytes": 2,
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            {
+              "path": "report/data/9f4164010037ee6dc648ed009635e741251798fe.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "report/data/9f6d806c62dbaee25a5ba41e99e38db20207ad5d.png",
+              "bytes": 274870,
+              "sha256": "f022e419aadcd9b5c9aa0613efbe253adfa846e013620cb6f8b4a239e3699bae"
+            },
+            {
+              "path": "report/data/a00a6a54421af64f3baa8772f5f5fabad3ee80f9.md",
+              "bytes": 11372,
+              "sha256": "3e1fc7dd53d9e3fc8c0beb5ca0a9e4186087af31b7f09895982631c0090fc109"
+            },
+            {
+              "path": "report/data/a1a5709421617c8ad4a0b5ebdabe5b3af9c5e2ba.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "report/data/a8d3e68adfcc074e5dac9554d89bcac0ac14a2ab.png",
+              "bytes": 1588112,
+              "sha256": "9804c27cc23fbc20265a69a08d718dad1be2bc46e59cfd451f12b7074a5b88b3"
+            },
+            {
+              "path": "report/data/aa2c5c21ddcd2da7552bfd69c9db972f10f89347.png",
+              "bytes": 643548,
+              "sha256": "59c48f547220591f73816045a5b29e0f66b5a4a8935080ef85bc556bce327db4"
+            },
+            {
+              "path": "report/data/b51cd3d61626e935920000eb3998898b312f0adc.png",
+              "bytes": 92526,
+              "sha256": "87f092433c3a2fbeb36c4bf75684bd5b46566f5a303c73efa59a9a4e38061a3f"
+            },
+            {
+              "path": "report/data/b542c259046db6e0d663a8ca3f4b592ba6f6bf70.png",
+              "bytes": 2710561,
+              "sha256": "f85550c81f015b7d4917717c3ad9f8fc438210b96bc42728cc1d9af248ea99e8"
+            },
+            {
+              "path": "report/data/b75b0e3b52fcacbc027df97b68773fa20ddb9d30.png",
+              "bytes": 836399,
+              "sha256": "4bf5f90359d2f4513bb6252155b935a3a143a7d622fb5272a3975bc7c5204f79"
+            },
+            {
+              "path": "report/data/b8dce0aaad0c1e5e32cde62b3e362b949b17bc18.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "report/data/bbf3010d8d35a5831679373e9996c821d0862ee9.json",
+              "bytes": 5581,
+              "sha256": "8489a7c79da8c2d280401e65aad467b19834bbb6640fbf9ce0447be730a2e650"
+            },
+            {
+              "path": "report/data/bc5c5bbb3a2bb1ab931848e4ad40d25cddf6b786.png",
+              "bytes": 65436,
+              "sha256": "51b73114c762bf677999109820b5bc0e45141a2cffd49d2182c6273488c07347"
+            },
+            {
+              "path": "report/data/becf08ffb7110f720e1bd286814b3eb02f5c3128.png",
+              "bytes": 1612433,
+              "sha256": "04e0ef193cf3e53878b1d26f82d9ee80e200e3d775112abdb124ea0a85b02484"
+            },
+            {
+              "path": "report/data/cc3bc778bb5dd496050a19bb5a56b49624d2d611.json",
+              "bytes": 290647,
+              "sha256": "210ee272449630b222b7cbd4888dacc1694e7cb56fb3174cffbded771fbaaa50"
+            },
+            {
+              "path": "report/data/cebddeeddc5de3c43243fb2bc0682ec3e694eae9.json",
+              "bytes": 290646,
+              "sha256": "e790db5ebafb0b86496666876281392dbdd789b1f2c354c9370b9cc5a7db185d"
+            },
+            {
+              "path": "report/data/d042300595d783b78db5826524d5461a0fde7445.png",
+              "bytes": 669842,
+              "sha256": "61ea3a4cf9e1ec6db5c73a63faa4f8df5f42b7f3147764800a698775e02663af"
+            },
+            {
+              "path": "report/data/d22d70b89f945a61d0d9048a893a5efaed79476b.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "report/data/dfda0835d4af48ee4f61ae4226677ffb2f99c55c.png",
+              "bytes": 245742,
+              "sha256": "a87ec2917cf0cdb94b344139a2eff77f881f30b564ac1aca05a8fd6e6745ff50"
+            },
+            {
+              "path": "report/data/e0166c6e432d75e8ae9b7501ad364806cff4935a.png",
+              "bytes": 2715692,
+              "sha256": "583c945d395047173071c3b2e6354377f0733daed63c37e9083202e95befa97a"
+            },
+            {
+              "path": "report/data/e1391151aac8fb4110f9b25cf0346705cbdc3b2f.png",
+              "bytes": 287940,
+              "sha256": "5cc71c36dcfc383c35fc2c195900ba7c019fa5fbcf29dbfecda7cf39b80646f6"
+            },
+            {
+              "path": "report/data/ecc4c4f7ffa9a74c64ea462560535355263e69b7.png",
+              "bytes": 179008,
+              "sha256": "fa361a7724a81c2db1b69179f81d5e57e51f870e0f84431206f90684cbf8bad7"
+            },
+            {
+              "path": "report/data/ef63f119a055f6867783a8e1ebc8f3fe52cef94f.png",
+              "bytes": 849885,
+              "sha256": "91e456c52e6810ee1e3af3ebdc56bdf1e280e94e7782cf02147287a224d443e5"
+            },
+            {
+              "path": "report/data/f47c6db593c88ef98c30c1fe6a6d9900c89a479f.png",
+              "bytes": 311878,
+              "sha256": "3ab8c7c57b5347cf941b95e5023c84f01686ca9bab8e6d99b4f170a122faac58"
+            },
+            {
+              "path": "report/data/f78daafd1c71dd3eb00186ee9094ec3afdb59c16.md",
+              "bytes": 2419,
+              "sha256": "be7d28b7ce33a0398c28856c9c43ce67a23e0d0a3e20433a067cd147cf60739c"
+            },
+            {
+              "path": "report/data/f9bd1afcb9fee8ee9b15481e25c650f8242dce8e.png",
+              "bytes": 274342,
+              "sha256": "a167c0fde2564957f5ec4e8912a6378766e07a7bfa0dbdada1702697920d6229"
+            },
+            {
+              "path": "report/data/fbed5f70eabe3e376cc322d91ca73c3bbb424562.json",
+              "bytes": 5580,
+              "sha256": "eb4999fece0921e3650354effc741574bdc9252ea294ad4b7815f093623606ee"
+            },
+            {
+              "path": "report/data/fcd4aec89b27af79926673997ff680a03c3cdbd7.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "report/data/fce86ea7ca431de4f7b31a6d66801f3f39e05dc8.json",
+              "bytes": 18162,
+              "sha256": "781971685aef5fd2634bc96243bc9ea4daf36c7f8d7abf2354c62f55bf9853e4"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 635355,
+              "sha256": "ba16ef3def6e8c83ee7e69ed317e0027e9166e86fdaa76a349c93b879a8e44f8"
+            },
+            {
+              "path": "report/trace/assets/codeMirrorModule-rXmQmLUY.js",
+              "bytes": 307393,
+              "sha256": "bb0f7c41f9889e4195c2504878e38061288881f426498434c9955479828f7e66"
+            },
+            {
+              "path": "report/trace/assets/defaultSettingsView-B-dXF5JN.js",
+              "bytes": 643184,
+              "sha256": "2ce8be133fe21a4abd7d8330d9b443092dc2ce28826f191442c14989f9d55b15"
+            },
+            {
+              "path": "report/trace/assets/urlMatch-L3liM589.js",
+              "bytes": 2510,
+              "sha256": "1bc6321e32d11c31a452bc75896f0b344e6153321854d9f1658818be7f845c16"
+            },
+            {
+              "path": "report/trace/codeMirrorModule.-QdMvsKi.css",
+              "bytes": 6251,
+              "sha256": "20be824a82832b62cc04642d31da3c609fd280b23f1cdcb1e622c4f40aac5ab8"
+            },
+            {
+              "path": "report/trace/codicon.DCmgc-ay.ttf",
+              "bytes": 80340,
+              "sha256": "0f1d5219934e96e83b8db162d60b4d8c09b5de1e7d38031cbafe4a3c0f2889c9"
+            },
+            {
+              "path": "report/trace/defaultSettingsView.BLFoOugd.css",
+              "bytes": 105310,
+              "sha256": "72241b3112ab609ca0e06195e85e02cb373799217cd5f24a07d61d9273c4ad3e"
+            },
+            {
+              "path": "report/trace/index.B_TqY17P.css",
+              "bytes": 2055,
+              "sha256": "08a212fcacae1866f44f065654afcc4c7d03409c68c74b3315c5bda17a0ca003"
+            },
+            {
+              "path": "report/trace/index.KZ4wOW1K.js",
+              "bytes": 6566,
+              "sha256": "53e2227532161670bc601e241a7a9af00ac54826a9dd2ef9c15b8c1f77e92e63"
+            },
+            {
+              "path": "report/trace/index.html",
+              "bytes": 2363,
+              "sha256": "e2218af9284b6e1c2ec3b547320857778a323fd1473d90620153e967223c5721"
+            },
+            {
+              "path": "report/trace/manifest.webmanifest",
+              "bytes": 429,
+              "sha256": "d8540500603a32a39fe7e5a0375dc0f9ebafd11118e06a846db7efc608223ab9"
+            },
+            {
+              "path": "report/trace/playwright-logo.svg",
+              "bytes": 5033,
+              "sha256": "6b0a4367bdeab10995bc239278f04c68c10e48adbec15e799e01909a0d66dcb9"
+            },
+            {
+              "path": "report/trace/snapshot.B_Jk1wbt.js",
+              "bytes": 650,
+              "sha256": "d4d09e05451d107d8e1a6bbd041405fe518b9fd2833890e4ebaaad83b7f554f5"
+            },
+            {
+              "path": "report/trace/snapshot.html",
+              "bytes": 389,
+              "sha256": "c608c8899c95c5a74d3f556e20146c3d852b9df85ae2854c659a7cc773c9b727"
+            },
+            {
+              "path": "report/trace/sw.bundle.js",
+              "bytes": 93459,
+              "sha256": "cfd6662a71914516efe90a5a6f3da2bbe5db6e442939b868ca465f765d33723f"
+            },
+            {
+              "path": "report/trace/uiMode.C7UW1sC9.css",
+              "bytes": 54341,
+              "sha256": "c194e703ad4697e31c5e9b8d1e4f75f201a1fbe9940620fa6319dfa5543707b4"
+            },
+            {
+              "path": "report/trace/uiMode.Dzuouizj.js",
+              "bytes": 37932,
+              "sha256": "a584f96f0797144552430d7a04f7e3b84b1baaa0b781a664b1512339ec1c760b"
+            },
+            {
+              "path": "report/trace/uiMode.html",
+              "bytes": 727,
+              "sha256": "32b260f173708fe088834efe8eff0f9d92af0c7e2e6c987cd8e197f0a066742f"
+            },
+            {
+              "path": "report/trace/xtermModule.kHJ-D0s7.css",
+              "bytes": 2853,
+              "sha256": "0dd60056134e6a2994a86b59a1e9789b9f04e92924da109aef8c923acaf08ce5"
+            },
+            {
+              "path": "report.json",
+              "bytes": 162527,
+              "sha256": "09e499495e78c4cb5de6cd51555de6c7f0dde9ccbc232fb0d280cecded26592e"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 194,
+              "sha256": "937ba48c67f84d813bfa76f1a093ef57e6848ba4fa96b59036152deb4f23a48f"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-a2cc5101f9774ef34b08c675104e6086153441b6.png",
+              "bytes": 177832,
+              "sha256": "035f03a8a775416eabca11d73d55858dbf2091c83da26cdf73960ac9bb41060a"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-replay-a48857510a5605ae79e04547e48e0f015bf26985.json",
+              "bytes": 62162,
+              "sha256": "8f218f9792d6c5e0ef85e677d037f6640d9d40f1d6046fec13b29cfbebc20fd7"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-7abadb754a09e8cc2f929c4ed002cdc634b6c00b.png",
+              "bytes": 187521,
+              "sha256": "1f15b3be46c12a3a9907fd713b430e8b133b720776b05481b0ce9a4464f2a5e8"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-replay-fcf9a22307092593522dbd64ec7e6033c81e66a9.json",
+              "bytes": 290646,
+              "sha256": "e790db5ebafb0b86496666876281392dbdd789b1f2c354c9370b9cc5a7db185d"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/autre-trajectoire.json",
+              "bytes": 62162,
+              "sha256": "8f218f9792d6c5e0ef85e677d037f6640d9d40f1d6046fec13b29cfbebc20fd7"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/autre-trajectoire.png",
+              "bytes": 177832,
+              "sha256": "035f03a8a775416eabca11d73d55858dbf2091c83da26cdf73960ac9bb41060a"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/error-context.md",
+              "bytes": 2419,
+              "sha256": "be7d28b7ce33a0398c28856c9c43ce67a23e0d0a3e20433a067cd147cf60739c"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/fin-du-mandat.json",
+              "bytes": 290646,
+              "sha256": "e790db5ebafb0b86496666876281392dbdd789b1f2c354c9370b9cc5a7db185d"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/fin-du-mandat.png",
+              "bytes": 187521,
+              "sha256": "1f15b3be46c12a3a9907fd713b430e8b133b720776b05481b0ce9a4464f2a5e8"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/test-failed-1.png",
+              "bytes": 189124,
+              "sha256": "aecb824f5f218ef63709bdbdb17454023a200b74aef8131fd860af88d040351b"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/trace.zip",
+              "bytes": 52137864,
+              "sha256": "a8820f67f195f78a2f59605b7def469a7a12836db1796861de073ffb569c9679"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-4f47c98de0b6b2e0512fe9856aee9fc7514ef793.png",
+              "bytes": 1588112,
+              "sha256": "9804c27cc23fbc20265a69a08d718dad1be2bc46e59cfd451f12b7074a5b88b3"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-replay-9fdcedc4c97897ab5c541c483c7de6d7a44fd3f3.json",
+              "bytes": 62163,
+              "sha256": "5829f767ef4b5e15930220a93eec5bcb7ceeac058997c1bb1aafe8f63eb18194"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-c2d11ed01be608da28b80afdad65f3efba3fbf72.png",
+              "bytes": 1597629,
+              "sha256": "3f4ab3d5043545a3fd67ceec2b7ac8339241aeefac691b428e9201951f88c7b3"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-replay-e23e0590b6b5be065c262f0b9dd975a37f99ea2a.json",
+              "bytes": 290647,
+              "sha256": "210ee272449630b222b7cbd4888dacc1694e7cb56fb3174cffbded771fbaaa50"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/autre-trajectoire.json",
+              "bytes": 62163,
+              "sha256": "5829f767ef4b5e15930220a93eec5bcb7ceeac058997c1bb1aafe8f63eb18194"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/autre-trajectoire.png",
+              "bytes": 1588112,
+              "sha256": "9804c27cc23fbc20265a69a08d718dad1be2bc46e59cfd451f12b7074a5b88b3"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/fin-du-mandat.json",
+              "bytes": 290647,
+              "sha256": "210ee272449630b222b7cbd4888dacc1694e7cb56fb3174cffbded771fbaaa50"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/fin-du-mandat.png",
+              "bytes": 1597629,
+              "sha256": "3f4ab3d5043545a3fd67ceec2b7ac8339241aeefac691b428e9201951f88c7b3"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-3e0df3581a7ea77216d0ab28613c1b75fe38efd5.png",
+              "bytes": 245742,
+              "sha256": "a87ec2917cf0cdb94b344139a2eff77f881f30b564ac1aca05a8fd6e6745ff50"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-replay-948b131243757cb66d147b56ee1ab9ffc06af34b.json",
+              "bytes": 62162,
+              "sha256": "f028c6e3fcff7ead97fe42905aea87cef2ca0221726d61fb06c8fd029e8b05eb"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-6ca195c15270e65b42c9c034dae8d931132fa728.png",
+              "bytes": 256894,
+              "sha256": "556a8797458df5e9d6402ff6f5fa3db572c740e68976803e84a00877dbdf7f47"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-replay-53ff46155bb93891c4857970d992c96935efe884.json",
+              "bytes": 290646,
+              "sha256": "385448af96901ec6ff1f5996f71c001adef6bde6ae0c344795d70e58bbc4bcd2"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/autre-trajectoire.json",
+              "bytes": 62162,
+              "sha256": "f028c6e3fcff7ead97fe42905aea87cef2ca0221726d61fb06c8fd029e8b05eb"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/autre-trajectoire.png",
+              "bytes": 245742,
+              "sha256": "a87ec2917cf0cdb94b344139a2eff77f881f30b564ac1aca05a8fd6e6745ff50"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/fin-du-mandat.json",
+              "bytes": 290646,
+              "sha256": "385448af96901ec6ff1f5996f71c001adef6bde6ae0c344795d70e58bbc4bcd2"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/fin-du-mandat.png",
+              "bytes": 256894,
+              "sha256": "556a8797458df5e9d6402ff6f5fa3db572c740e68976803e84a00877dbdf7f47"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-1c959d8360628f6c3adc0a22af470e1a27ecbb58.png",
+              "bytes": 274870,
+              "sha256": "f022e419aadcd9b5c9aa0613efbe253adfa846e013620cb6f8b4a239e3699bae"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-replay-a0ebbd0145c1ae8332e16f561af3d75c5057586e.json",
+              "bytes": 62162,
+              "sha256": "f028c6e3fcff7ead97fe42905aea87cef2ca0221726d61fb06c8fd029e8b05eb"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-5254ea690deee1b687eb0c94b769966b20342b9c.png",
+              "bytes": 287164,
+              "sha256": "6ffd73d6d787fc37fd99041cbf903832ed19b3e566751102348587b926b62ae9"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-replay-2d83b9a0050832e30d7ec05a68377d514086561d.json",
+              "bytes": 290646,
+              "sha256": "385448af96901ec6ff1f5996f71c001adef6bde6ae0c344795d70e58bbc4bcd2"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/autre-trajectoire.json",
+              "bytes": 62162,
+              "sha256": "f028c6e3fcff7ead97fe42905aea87cef2ca0221726d61fb06c8fd029e8b05eb"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/autre-trajectoire.png",
+              "bytes": 274870,
+              "sha256": "f022e419aadcd9b5c9aa0613efbe253adfa846e013620cb6f8b4a239e3699bae"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/fin-du-mandat.json",
+              "bytes": 290646,
+              "sha256": "385448af96901ec6ff1f5996f71c001adef6bde6ae0c344795d70e58bbc4bcd2"
+            },
+            {
+              "path": "results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/fin-du-mandat.png",
+              "bytes": 287164,
+              "sha256": "6ffd73d6d787fc37fd99041cbf903832ed19b3e566751102348587b926b62ae9"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-e6b16c4184678c215a0d97c993fe4b543c7d600e.png",
+              "bytes": 608446,
+              "sha256": "8e54eae66b9520b4d53b55b89b365d2ec59463a62eea23d5685535d0d35d883c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-resolution-e6eecb4915ce607dccc3a943029e1887cb88e767.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-5daea0953915167ff21602a71e0ad8a53d9b48c9.png",
+              "bytes": 903663,
+              "sha256": "c09a9426110d5a34a21bf511ff8c453fdae133519d0df56de0ff8399ff334576"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-resolution-a66cbab9c4d49a0443986d2b24a73dfa4d407ffc.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-dpr-2.png",
+              "bytes": 608446,
+              "sha256": "8e54eae66b9520b4d53b55b89b365d2ec59463a62eea23d5685535d0d35d883c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/carte-redimensionnee-dpr-2.png",
+              "bytes": 903663,
+              "sha256": "c09a9426110d5a34a21bf511ff8c453fdae133519d0df56de0ff8399ff334576"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/error-context.md",
+              "bytes": 11046,
+              "sha256": "05067bce08bc102e149ea9f70eed027faaa6d0ad570df4c12ac3519874f8021f"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/test-failed-1.png",
+              "bytes": 836399,
+              "sha256": "4bf5f90359d2f4513bb6252155b935a3a143a7d622fb5272a3975bc7c5204f79"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/trace.zip",
+              "bytes": 45443085,
+              "sha256": "be5689b06cb081c8e961ce620368500d9312641f4844b5130598b340856100a8"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-ca994d9f2e91deefb7d9df0bdc0c79c49b611784.png",
+              "bytes": 5009948,
+              "sha256": "f0555932b0271a1e769dbfa609772b367dfc26c5a6b9fa9813d656db2136f797"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-resolution-a9ab09a5d4776183832642a905984e6f8c0c8f03.json",
+              "bytes": 5581,
+              "sha256": "8489a7c79da8c2d280401e65aad467b19834bbb6640fbf9ce0447be730a2e650"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-f62ddecf1b403fcaf2ebd7cbc15ed131abb5ca4a.png",
+              "bytes": 2710561,
+              "sha256": "f85550c81f015b7d4917717c3ad9f8fc438210b96bc42728cc1d9af248ea99e8"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-resolution-8c56c870e425f92a43f8ad528f38bf10831ac805.json",
+              "bytes": 5580,
+              "sha256": "eb4999fece0921e3650354effc741574bdc9252ea294ad4b7815f093623606ee"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-01b1732bc02e3d488563faf7a31aa6f8c92f0360.png",
+              "bytes": 2715692,
+              "sha256": "583c945d395047173071c3b2e6354377f0733daed63c37e9083202e95befa97a"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-replay-b9d750a40489c960820393972d0e8f7e824be495.json",
+              "bytes": 18162,
+              "sha256": "781971685aef5fd2634bc96243bc9ea4daf36c7f8d7abf2354c62f55bf9853e4"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-resolution-cc93b97ce4da8f94116d7512eb317f9a1ac24ae3.json",
+              "bytes": 18332,
+              "sha256": "7e72f78f3e7efc390f7c1b55d77696db14fbbaa693ffd434d4ed260b3abf87b1"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-dpr-2-resolution.json",
+              "bytes": 5581,
+              "sha256": "8489a7c79da8c2d280401e65aad467b19834bbb6640fbf9ce0447be730a2e650"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-dpr-2.png",
+              "bytes": 5009948,
+              "sha256": "f0555932b0271a1e769dbfa609772b367dfc26c5a6b9fa9813d656db2136f797"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5580,
+              "sha256": "eb4999fece0921e3650354effc741574bdc9252ea294ad4b7815f093623606ee"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-redimensionnee-dpr-2.png",
+              "bytes": 2710561,
+              "sha256": "f85550c81f015b7d4917717c3ad9f8fc438210b96bc42728cc1d9af248ea99e8"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-reprise-dpr-2-resolution.json",
+              "bytes": 18332,
+              "sha256": "7e72f78f3e7efc390f7c1b55d77696db14fbbaa693ffd434d4ed260b3abf87b1"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-reprise-dpr-2.json",
+              "bytes": 18162,
+              "sha256": "781971685aef5fd2634bc96243bc9ea4daf36c7f8d7abf2354c62f55bf9853e4"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/carte-reprise-dpr-2.png",
+              "bytes": 2715692,
+              "sha256": "583c945d395047173071c3b2e6354377f0733daed63c37e9083202e95befa97a"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-a36e194884660b83df89a2d6e5b763a7df5e1a6f.png",
+              "bytes": 849885,
+              "sha256": "91e456c52e6810ee1e3af3ebdc56bdf1e280e94e7782cf02147287a224d443e5"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-resolution-a15976ac5d7c30feb15f8cade0c01d891b611a18.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-8ad08beff4c7288ff67e66c069aa7d6c980ddea5.png",
+              "bytes": 664132,
+              "sha256": "13d8496ae14a7466ad7d6908e6fec84bd3c61f806fd66c0824cd3131bde64e53"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-resolution-8dd51a78d92f9a3f2e3c0cd014de64b73c2d0330.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-677527867b45c2b8af16c48f1e80bd2169302d80.png",
+              "bytes": 684870,
+              "sha256": "2ddf81a31126891ee6eca7717e24e22b3f3f146d85b5c84a493fe18df230009d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-replay-281b4c4a5f4fa119af82dd4c348ef98b846cc492.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-resolution-acdb3bec8a6a36659aefb5a9cd553179d54003e6.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-dpr-2.png",
+              "bytes": 849885,
+              "sha256": "91e456c52e6810ee1e3af3ebdc56bdf1e280e94e7782cf02147287a224d443e5"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-redimensionnee-dpr-2.png",
+              "bytes": 664132,
+              "sha256": "13d8496ae14a7466ad7d6908e6fec84bd3c61f806fd66c0824cd3131bde64e53"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-reprise-dpr-2-resolution.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-reprise-dpr-2.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/carte-reprise-dpr-2.png",
+              "bytes": 684870,
+              "sha256": "2ddf81a31126891ee6eca7717e24e22b3f3f146d85b5c84a493fe18df230009d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-6a2189a8e32d6d6ad2e4665e521a4dc060acc538.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-50054e3780a045d503420e7e0ebc4114dd911b08.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-ae7a1833002d1bdb78d382c74a038059f431d9b8.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-6c7bcac996084a650b1a4fb79998f7391034d7a3.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2.png",
+              "bytes": 955464,
+              "sha256": "093d9c1c574779ee43864d64e872ae30934b55af56825348829f018c8257188c"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2.png",
+              "bytes": 755877,
+              "sha256": "3d6e6adcd3cda8780f994ac89723e44817717b895e8e01471dbeb9d218944026"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/error-context.md",
+              "bytes": 11372,
+              "sha256": "3e1fc7dd53d9e3fc8c0beb5ca0a9e4186087af31b7f09895982631c0090fc109"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/test-failed-1.png",
+              "bytes": 669842,
+              "sha256": "61ea3a4cf9e1ec6db5c73a63faa4f8df5f42b7f3147764800a698775e02663af"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/trace.zip",
+              "bytes": 45347902,
+              "sha256": "854aeaea4d60b4c5d384fd9442081b23e7ab0556bdefe438cc570e864c3697ca"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-pageerrors-b549087ef7db73ab102d72770ce3c83681b56273.json",
+              "bytes": 2,
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-projet-finance-fbdde52223a629193517782502ef95e8c5fc263c.png",
+              "bytes": 219605,
+              "sha256": "03ad9251aa411fd2c32ff87c7307add35c6722cb09827183541d94ec45c302cd"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-projet-finance-replay-f8544cac93a0ad297cefea2e6beb9e0db7c84e89.json",
+              "bytes": 19454,
+              "sha256": "6a0d2b8835ae81348adc6d151cdd824c4658ba143e62c9d0743ccbd7ee7dc09d"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/gouvernement-apres-vote-reel-0fd3dccfe28235df6f7797714c4cc43e13889b80.png",
+              "bytes": 665713,
+              "sha256": "1d24c749ab1c83550df97da4e667d1f62ce5199c4bcf2d6ee854fef3a5a8f402"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/gouvernement-apres-vote-reel-replay-6e3eb145cf46833a6ca77e92a122f2d6992f13a7.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/projet-reel-dans-navigation-f97b99ebb39e77b2bce8dd77f282a4a6ee4a3e67.png",
+              "bytes": 937216,
+              "sha256": "483f661b5e489cfcacf04bb9cef27129c0bb49894c92fdf3b250db77ed271de3"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/projet-reel-dans-navigation-replay-c3ef64eea5bb484e142dc0dcee7992669e3bca97.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/reprise-apres-contexte-perdu-29f9fe1ae3a96190af549b5e576fe526aeb8e005.png",
+              "bytes": 1632764,
+              "sha256": "a900aa3b8a73c8500b9790c9df104cf7ce4a3f32471b1828f4bb96e0ec6ed4d3"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/reprise-apres-contexte-perdu-replay-50dbec908732eb0e9ba7637a81f2b190a7582ba3.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/contexte-perdu-pageerrors.json",
+              "bytes": 2,
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/contexte-perdu-projet-finance.json",
+              "bytes": 19454,
+              "sha256": "6a0d2b8835ae81348adc6d151cdd824c4658ba143e62c9d0743ccbd7ee7dc09d"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/contexte-perdu-projet-finance.png",
+              "bytes": 219605,
+              "sha256": "03ad9251aa411fd2c32ff87c7307add35c6722cb09827183541d94ec45c302cd"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/gouvernement-apres-vote-reel.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/gouvernement-apres-vote-reel.png",
+              "bytes": 665713,
+              "sha256": "1d24c749ab1c83550df97da4e667d1f62ce5199c4bcf2d6ee854fef3a5a8f402"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/projet-reel-dans-navigation.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/projet-reel-dans-navigation.png",
+              "bytes": 937216,
+              "sha256": "483f661b5e489cfcacf04bb9cef27129c0bb49894c92fdf3b250db77ed271de3"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/reprise-apres-contexte-perdu.json",
+              "bytes": 19522,
+              "sha256": "279edf2e1dd96688d9bcd533dbcd46ce0e0700234a524985486a73e94720ed77"
+            },
+            {
+              "path": "results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/reprise-apres-contexte-perdu.png",
+              "bytes": 1632764,
+              "sha256": "a900aa3b8a73c8500b9790c9df104cf7ce4a3f32471b1828f4bb96e0ec6ed4d3"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-d1d607a4fbed6e5c8ede8ccf18aa701f8e2a8f27.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-replay-c6a9a6e7e8d6da58073a47f842f1f11bcbc8e139.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-6a881ed3d3fc9dcf0348ac506fddbdd37a85166f.png",
+              "bytes": 1612433,
+              "sha256": "04e0ef193cf3e53878b1d26f82d9ee80e200e3d775112abdb124ea0a85b02484"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-replay-ea15a631273279f4f5fea33b30b7c13e0aed2c40.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-390ceb3e71b58ed3a23f6c903176b86034ce7e3d.png",
+              "bytes": 1609638,
+              "sha256": "36d7c468bc1d940184bf217f4eabbe1c1575f0409de15c6a83701603d178b9ba"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-replay-eef6a69be0432b4eb4fbe9a630f622f721bc33f8.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.png",
+              "bytes": 1612433,
+              "sha256": "04e0ef193cf3e53878b1d26f82d9ee80e200e3d775112abdb124ea0a85b02484"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.png",
+              "bytes": 1609638,
+              "sha256": "36d7c468bc1d940184bf217f4eabbe1c1575f0409de15c6a83701603d178b9ba"
+            },
+            {
+              "path": "results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/attachments/hors-connexion-3d-49882ab2c482d2579f68129b9ea0506308726508.png",
+              "bytes": 253740,
+              "sha256": "1e94ac44909d78f50b31039ed2fcc5b78ecbc8ebe15ff3e5ff7ad730d8264849"
+            },
+            {
+              "path": "results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/attachments/hors-connexion-3d-replay-27bc69913e4c491237267b7c2621b9a3ade48867.json",
+              "bytes": 29415,
+              "sha256": "e3fe5b8140a65fcb984dc76cc3dbe3bfd8bebc752c9a8c35e6708a9bb14df0e0"
+            },
+            {
+              "path": "results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/hors-connexion-3d.json",
+              "bytes": 29415,
+              "sha256": "e3fe5b8140a65fcb984dc76cc3dbe3bfd8bebc752c9a8c35e6708a9bb14df0e0"
+            },
+            {
+              "path": "results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/hors-connexion-3d.png",
+              "bytes": 253740,
+              "sha256": "1e94ac44909d78f50b31039ed2fcc5b78ecbc8ebe15ff3e5ff7ad730d8264849"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-d730f43871046b0384ede2607ce5fc5ec8d4cf57.png",
+              "bytes": 187585,
+              "sha256": "0df823703020df756081657a08e47ec464293a82341f52c61b7bd71d0dd03af2"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-replay-b33e78821fc64032de8a8fd258fc3e712a4c2d30.json",
+              "bytes": 18109,
+              "sha256": "58aac44406afe890d07240fc7520ef1ab8f33543456a1b23c9151c1044e96295"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-db71d2bd2b5fba0c596faf4d5e429526b60e5d10.png",
+              "bytes": 179008,
+              "sha256": "fa361a7724a81c2db1b69179f81d5e57e51f870e0f84431206f90684cbf8bad7"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-replay-4c27afb8de9b89df08751c809c2d6072a1b39f75.json",
+              "bytes": 46769,
+              "sha256": "6eb166858f2d1d05316e409d2adf548cf00dd61744e29c0e772fd948e95a247d"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/mobilisation-active.json",
+              "bytes": 18109,
+              "sha256": "58aac44406afe890d07240fc7520ef1ab8f33543456a1b23c9151c1044e96295"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/mobilisation-active.png",
+              "bytes": 187585,
+              "sha256": "0df823703020df756081657a08e47ec464293a82341f52c61b7bd71d0dd03af2"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/mobilisation-et-livraison.json",
+              "bytes": 46769,
+              "sha256": "6eb166858f2d1d05316e409d2adf548cf00dd61744e29c0e772fd948e95a247d"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/mobilisation-et-livraison.png",
+              "bytes": 179008,
+              "sha256": "fa361a7724a81c2db1b69179f81d5e57e51f870e0f84431206f90684cbf8bad7"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-d76229cdf0a295d7bc2beb7be1175ada0a42a1d5.png",
+              "bytes": 1611889,
+              "sha256": "e609bdc3eef03eba4acb15bfcebf4a9409fcb64ee6af2c1b1efb6c5438c23508"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-replay-ef610d7a180575b443217070cc247ac5c2893438.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-7a1b0a58ce2503ce9f802d8e39c0b1bb90b25a74.png",
+              "bytes": 1598674,
+              "sha256": "0fe6fe54c5613d38af305539e35e3816bbcfcb4ecedbbff9e2b07c4b94c61cf6"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-replay-4d467fb33261a44a2471cf39380b03345f0c7dd5.json",
+              "bytes": 46770,
+              "sha256": "134820dccbd5834fcbe200b83b4824b25c67efe9ef173cdc3b07e608a856a1c9"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-active.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-active.png",
+              "bytes": 1611889,
+              "sha256": "e609bdc3eef03eba4acb15bfcebf4a9409fcb64ee6af2c1b1efb6c5438c23508"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-et-livraison.json",
+              "bytes": 46770,
+              "sha256": "134820dccbd5834fcbe200b83b4824b25c67efe9ef173cdc3b07e608a856a1c9"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/mobilisation-et-livraison.png",
+              "bytes": 1598674,
+              "sha256": "0fe6fe54c5613d38af305539e35e3816bbcfcb4ecedbbff9e2b07c4b94c61cf6"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-5e8e31650b5419a067bb7ac8be501b04827a1f4d.png",
+              "bytes": 255453,
+              "sha256": "04d34fabfd1e5411db34a8bec66331eac1b52aeadffc64b44b9cefd44b907a8c"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-replay-c76323554de78285817f9ef4a88ce3986e66b7b0.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-74259e6cbea018761777541f375b21d66b0368bc.png",
+              "bytes": 247673,
+              "sha256": "5d8c6a4d63ca48bbe81f0d8dd393d788bc178c75b31651c2d0d04ca0836fd7dd"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-replay-35b52090a628da3656415dc9df6d9d603ee7d80f.json",
+              "bytes": 46769,
+              "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-active.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-active.png",
+              "bytes": 255453,
+              "sha256": "04d34fabfd1e5411db34a8bec66331eac1b52aeadffc64b44b9cefd44b907a8c"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-et-livraison.json",
+              "bytes": 46769,
+              "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/mobilisation-et-livraison.png",
+              "bytes": 247673,
+              "sha256": "5d8c6a4d63ca48bbe81f0d8dd393d788bc178c75b31651c2d0d04ca0836fd7dd"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-4556d657e5f385016395daa23accd5487af00424.png",
+              "bytes": 287940,
+              "sha256": "5cc71c36dcfc383c35fc2c195900ba7c019fa5fbcf29dbfecda7cf39b80646f6"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-replay-8438524c52fe39929e7f6b0bbd4e2d17146a2b5c.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-e7ff4bd85da3f50da971543bf3cfe0a82fa0c37d.png",
+              "bytes": 277719,
+              "sha256": "0a304a75dea72a8a1d7fbe45f95ff32853a05e7cd1b341bafcf5523d708ff99f"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-replay-6e529a2b3f2e2697991337dbedbeadb6c9cf4fd2.json",
+              "bytes": 46769,
+              "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/mobilisation-active.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/mobilisation-active.png",
+              "bytes": 287940,
+              "sha256": "5cc71c36dcfc383c35fc2c195900ba7c019fa5fbcf29dbfecda7cf39b80646f6"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/mobilisation-et-livraison.json",
+              "bytes": 46769,
+              "sha256": "536a6a7a5480dc852c012cf2febd8636b162b8d442917d316665cfecce836022"
+            },
+            {
+              "path": "results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/mobilisation-et-livraison.png",
+              "bytes": 277719,
+              "sha256": "0a304a75dea72a8a1d7fbe45f95ff32853a05e7cd1b341bafcf5523d708ff99f"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/attachments/carte-sans-webgl-40c02a4e45a5a49f60fd3057c61b56de6c9f3aa8.png",
+              "bytes": 64975,
+              "sha256": "1df1f05d441ba94044b3306e263a1fe1572f23eab845a1a67930f135204ae5d3"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/attachments/carte-sans-webgl-replay-a31b2b0b9f09bbfa927525d0dc3d1af9280e0030.json",
+              "bytes": 18109,
+              "sha256": "58aac44406afe890d07240fc7520ef1ab8f33543456a1b23c9151c1044e96295"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/carte-sans-webgl.json",
+              "bytes": 18109,
+              "sha256": "58aac44406afe890d07240fc7520ef1ab8f33543456a1b23c9151c1044e96295"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/carte-sans-webgl.png",
+              "bytes": 64975,
+              "sha256": "1df1f05d441ba94044b3306e263a1fe1572f23eab845a1a67930f135204ae5d3"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/attachments/carte-sans-webgl-50b5644d7a0967dce54eda82aef9652387cdecb9.png",
+              "bytes": 219325,
+              "sha256": "1eebf8d64fcb6ebbfb4757a7abdccbfeebc530dd6f73dc0fb8153c9a58680c5d"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/attachments/carte-sans-webgl-replay-995fc9b062c9ba7d10762dd54aa8dfe7df8f38df.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/carte-sans-webgl.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/carte-sans-webgl.png",
+              "bytes": 219325,
+              "sha256": "1eebf8d64fcb6ebbfb4757a7abdccbfeebc530dd6f73dc0fb8153c9a58680c5d"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/attachments/carte-sans-webgl-756d95ecf6368fadbe3824a19e76b5ce51f32c53.png",
+              "bytes": 69665,
+              "sha256": "b39440df3f5257f0983e83eab125408d2fc9793624fb92bb339a65269ee9a250"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/attachments/carte-sans-webgl-replay-a32eb9e60ae30ef72c9032ebdc1e0635e213d929.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/carte-sans-webgl.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/carte-sans-webgl.png",
+              "bytes": 69665,
+              "sha256": "b39440df3f5257f0983e83eab125408d2fc9793624fb92bb339a65269ee9a250"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/attachments/carte-sans-webgl-15a136c4e27d6f286d5bb2fa9bd9cf80a3f73421.png",
+              "bytes": 73483,
+              "sha256": "b55d9ec7bccebd0fab47b7864c4e8dd9d7ccce3f04d57d42a8bed427352e59e6"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/attachments/carte-sans-webgl-replay-e6491b67678715fd56774a0e1bbc3edb70a00018.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/carte-sans-webgl.json",
+              "bytes": 18109,
+              "sha256": "dd39722ac1bbecbd0a45eaa5cb14900529ed1e765bb223e3fbe371f5ae08a40a"
+            },
+            {
+              "path": "results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/carte-sans-webgl.png",
+              "bytes": 73483,
+              "sha256": "b55d9ec7bccebd0fab47b7864c4e8dd9d7ccce3f04d57d42a8bed427352e59e6"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/attachments/carte-et-sujet-0c829cb914174ac62c39bdcdc9100bf68f914b98.png",
+              "bytes": 206176,
+              "sha256": "13d2a683312b8f5a91ba60ad2e94abd782d1618d1b019f8b41287409ccee7116"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/attachments/menu-ma-partie-123c0f678b53bbd035ea0e46580494a5fe7706cd.png",
+              "bytes": 65436,
+              "sha256": "51b73114c762bf677999109820b5bc0e45141a2cffd49d2182c6273488c07347"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/carte-et-sujet.png",
+              "bytes": 206176,
+              "sha256": "13d2a683312b8f5a91ba60ad2e94abd782d1618d1b019f8b41287409ccee7116"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/menu-ma-partie.png",
+              "bytes": 65436,
+              "sha256": "51b73114c762bf677999109820b5bc0e45141a2cffd49d2182c6273488c07347"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/attachments/carte-et-sujet-b0f85a0f56d03c546246bdbc8de6aa45cfeadd1b.png",
+              "bytes": 1637435,
+              "sha256": "9fd015a3720ac768cc75b38b3fa3f8cc9f7c5d61d38f5818e5f44546f33d9556"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/attachments/menu-ma-partie-3c4bfdd79187c89a328e11c4ffd8ba1ace812267.png",
+              "bytes": 643548,
+              "sha256": "59c48f547220591f73816045a5b29e0f66b5a4a8935080ef85bc556bce327db4"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/carte-et-sujet.png",
+              "bytes": 1637435,
+              "sha256": "9fd015a3720ac768cc75b38b3fa3f8cc9f7c5d61d38f5818e5f44546f33d9556"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/menu-ma-partie.png",
+              "bytes": 643548,
+              "sha256": "59c48f547220591f73816045a5b29e0f66b5a4a8935080ef85bc556bce327db4"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/attachments/carte-et-sujet-c76f062e8b866e62b331849fad865d9c162485a5.png",
+              "bytes": 274342,
+              "sha256": "a167c0fde2564957f5ec4e8912a6378766e07a7bfa0dbdada1702697920d6229"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/attachments/menu-ma-partie-cc9a407b8faaead0950170c1aa9112eed5653e3d.png",
+              "bytes": 74938,
+              "sha256": "09ad5228db3944db2161bbd95ad98851c8f425ca2636aceaa9b9651546111051"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/carte-et-sujet.png",
+              "bytes": 274342,
+              "sha256": "a167c0fde2564957f5ec4e8912a6378766e07a7bfa0dbdada1702697920d6229"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/menu-ma-partie.png",
+              "bytes": 74938,
+              "sha256": "09ad5228db3944db2161bbd95ad98851c8f425ca2636aceaa9b9651546111051"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/attachments/carte-et-sujet-046347cf7d8f2c55e3bb222dd1bc8bf749382c7f.png",
+              "bytes": 311878,
+              "sha256": "3ab8c7c57b5347cf941b95e5023c84f01686ca9bab8e6d99b4f170a122faac58"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/attachments/menu-ma-partie-61b3b17fb7b07cee552d988c0c4fbf6984d2bfbf.png",
+              "bytes": 92526,
+              "sha256": "87f092433c3a2fbeb36c4bf75684bd5b46566f5a303c73efa59a9a4e38061a3f"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/carte-et-sujet.png",
+              "bytes": 311878,
+              "sha256": "3ab8c7c57b5347cf941b95e5023c84f01686ca9bab8e6d99b4f170a122faac58"
+            },
+            {
+              "path": "results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/menu-ma-partie.png",
+              "bytes": 92526,
+              "sha256": "87f092433c3a2fbeb36c4bf75684bd5b46566f5a303c73efa59a9a4e38061a3f"
+            }
+          ]
+        }
+      ],
+      "evidenceProblems": [
+        "Actual report contains unexpected failures or runner errors"
+      ],
+      "reportFreshness": {
+        "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/report.json",
+        "absentBeforeCommand": true,
+        "ctimeNs": 1791549564553238596,
+        "mtimeNs": 1791549564553238596,
+        "birthtimeNs": null,
+        "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+      },
+      "stats": {
+        "startTime": "2026-10-09T12:14:39.237Z",
+        "duration": 1484437.737,
+        "expected": 20,
+        "skipped": 9,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "counts": {
+        "expected": 20,
+        "unexpected": 3,
+        "flaky": 0,
+        "skipped": 9,
+        "total": 32
+      },
+      "countsMeaning": "Literal Playwright outcome counts. Expected does not invent a passed-attempt count.",
+      "byProject": {
+        "desktop": {
+          "expected": 7,
+          "skipped": 1
+        },
+        "mobile": {
+          "expected": 6,
+          "skipped": 2
+        },
+        "compact": {
+          "unexpected": 2,
+          "expected": 3,
+          "skipped": 3
+        },
+        "webkit": {
+          "unexpected": 1,
+          "expected": 4,
+          "skipped": 3
+        }
+      },
+      "unexpectedTests": [
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "project": "compact",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "failed"
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "project": "compact",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "timedOut"
+          ]
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "failed"
+          ]
+        }
+      ],
+      "flakyTests": [],
+      "skippedTests": [
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "project": "desktop",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One real service-worker lifecycle; other widths cover the same game.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 554,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "project": "mobile",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual delayed and failed asset lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 497,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "project": "mobile",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual context-loss lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 602,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "project": "compact",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual delayed and failed asset lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 497,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "project": "compact",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One real service-worker lifecycle; other widths cover the same game.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 554,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "project": "compact",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual context-loss lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 602,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual delayed and failed asset lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 497,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One real service-worker lifecycle; other widths cover the same game.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 554,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "skipped",
+          "annotations": [
+            {
+              "type": "skip",
+              "description": "One actual context-loss lifecycle.",
+              "location": {
+                "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                "line": 602,
+                "column": 8
+              }
+            }
+          ],
+          "attemptStatuses": [
+            "skipped"
+          ]
+        }
+      ],
+      "errors": [],
+      "report": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316/01-rework/artifacts/rework-artifacts/report.json",
+      "reportSha256": "09e499495e78c4cb5de6cd51555de6c7f0dde9ccbc232fb0d280cecded26592e",
+      "reportStartTime": "2026-10-09T12:14:39.237Z"
+    }
+  ],
+  "visualInspection": "Pending. Inspect actual rework desktop, 390, 320 and WebKit screens after these gates.",
+  "updatedAt": "2026-10-09T12:39:26.439Z",
+  "stoppedAfter": "rework",
+  "finishedAt": "2026-10-09T12:39:26.444Z",
+  "remainingSuites": [
+    "social",
+    "header",
+    "compat"
+  ]
+}

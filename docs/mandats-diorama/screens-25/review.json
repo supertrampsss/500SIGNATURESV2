@@ -1,0 +1,21 @@
+{
+  "build": "25",
+  "captureVerificationSha256": "d9d50cc8340dce16c3d37c80fcdd0722191a978f566b1114efd20f1f447a1862",
+  "reviewedBy": "root",
+  "status": "Non conforme à la maquette",
+  "summary": "Les proportions des maisons, les ombres, les côtes et la lumière ont progressé. Les reliefs restent de grandes nappes et le paysage manque de la finesse et des volumes composés de la référence.",
+  "observedDifferences": [
+    "Toitures et façades mieux proportionnées, mais variété de volumes et pierre lumineuse encore insuffisantes.",
+    "Montagnes encore composées de grandes surfaces lisses avec nappes de neige trop larges.",
+    "Campagne encore dominée par de grands aplats et des bois en bandes.",
+    "Côtes plus lisibles mais certains fronts calcaires sont uniformes et clairs.",
+    "Interface proche de la référence ; sujets et compteurs fournis par la partie réelle initiale."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale native25 : proportions et ombres corrigées, relief et finesse encore non conformes.",
+    "paris": "Paris natif25 : vraie architecture, pierre encore terne face à la référence.",
+    "seine": "Seine native25 : fleuve et rives rendus avec leurs couleurs, sans décision.",
+    "alpes": "Alpes natives25 : neige lisible mais volumes rocheux encore trop lisses.",
+    "retour": "Retour national natif25 : même partie, zéro décision et zéro erreur navigateur."
+  }
+}

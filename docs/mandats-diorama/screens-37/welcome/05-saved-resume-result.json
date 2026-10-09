@@ -1,0 +1,1167 @@
+{
+  "name": "05-saved-resume",
+  "viewport": {
+    "width": 1672,
+    "height": 941
+  },
+  "startedAt": "2026-10-09T12:45:41.078Z",
+  "status": "passed",
+  "expectedPosterFailure": false,
+  "actions": [
+    "Click the real Reprendre button for the browser-created save."
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:4191/mandats/",
+      "type": "document",
+      "at": "2026-10-09T12:45:41.468Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:41.520Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:41.526Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:41.526Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:41.526Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:41.526Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "type": "stylesheet",
+      "at": "2026-10-09T12:45:41.526Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:41.787Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:41.787Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:41.787Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:42.486Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:42.527Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:42.527Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "type": "other",
+      "at": "2026-10-09T12:45:42.954Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+      "type": "font",
+      "at": "2026-10-09T12:45:44.688Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.863Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.863Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/ssao2.fragment-DiJqLOcd.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.863Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-BIyaM03b.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.864Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/ssaoCombine.fragment-BDDFlvbT.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.864Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/geometry.vertex-CAlUmEWP.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.864Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/geometry.fragment-C_1BsuWs.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.864Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/openpbrTransmissionLayerData-BAB6L9cZ.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.864Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pass.fragment-Cv85RasD.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.866Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-DU-ilQIB.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.866Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-BvVSbVFP.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.866Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-fmBcca9o.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-KFsLf99o.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+      "type": "xhr",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+      "type": "xhr",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "type": "xhr",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+      "type": "xhr",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-earth-grain-DRREWpxX.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-crop-stalks-DqbEWteS.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-earth-normal-D8qTdGaP.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-leaf-grain-Dq3zfjHI.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-leaf-normal-KsVL2iP_.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-stone-normal-CxQ85Rmx.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-mineral-rock-DqRxmUfD.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-mineral-normal-B2VVWRH9.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-coastal-normal-5Lv01LFJ.png",
+      "type": "image",
+      "at": "2026-10-09T12:45:54.867Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-DqHS-_55.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.956Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-DbTuwmTk.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.956Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:54.956Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "type": "xhr",
+      "at": "2026-10-09T12:45:55.084Z"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "type": "script",
+      "at": "2026-10-09T12:45:59.349Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/7366d208-5649-46bd-bcf4-c1ca462f9321",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/c6d6256f-4a0f-49de-97dd-063597c6221f",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/793cd46a-4c78-4819-9f09-0e9593078135",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/74dcaddc-fb4a-430f-a0f0-ace7e27fa38c",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/07bef848-8888-4496-ab89-cbf9bd3e8425",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/49c8f42e-bace-4ff0-8cd8-aaa264682963",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/124a8497-1a41-43b1-a7d9-c9f6e2c63528",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/a175ceed-ef3d-4c04-8127-d2c2d13bb191",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/be059ae5-ba5f-4975-85dc-b44b2efa09bb",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/c3f07f5f-634e-4208-9f9a-02f086f30aa9",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/df593cf0-9d6f-4f4e-a5b1-7a179f2febba",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/7a738035-75f7-4bc4-9f35-5270af4b9f91",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/899bb713-00ca-4e2d-b3f4-e30112c63abb",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/f4b83da3-816f-4d54-90ac-62fbe9e823b6",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/5f8eb80e-250e-45bc-86a3-3df5f753cbcd",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.460Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/7755a9a2-402d-4eb4-8073-4103dbf235d5",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/54f1feb3-a005-44fd-886e-ae15aaa76e49",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/70fc4f01-877e-495a-80fc-54e686f46e3a",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/0201a1ca-61e2-4ccc-a85f-5e4b4bff8753",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/42ee6041-09a7-4327-bfb3-0375a010ac9d",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/d4ef8236-14a5-4e11-8a89-9e36d905ab74",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/6475ed43-53d4-4ac2-abfa-0b1fd5664d45",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/4f26d3ac-32f9-4f50-ad27-865de8e2c8f2",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/14545c5c-23de-4b2b-9d08-70b78d3f0ccd",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/bcb785bb-6cfd-43c1-9296-08513fb111fe",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/a229f913-1b67-4fd6-b84f-570a35837b79",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/3a631e2f-e99f-43d7-98c3-75adf53e201a",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/eb4a548f-3166-4ba4-ac66-4c49505efc51",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/e7013f96-79ce-446f-97e7-2aae95b6fa72",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/ac916926-461a-48ab-b231-bccefeba82a7",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/f8ffb3fb-0ba5-418e-aa8a-c6a85e7ed6bd",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/9b63d2e9-86ab-4fc0-a442-a9896938a6f2",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/5d07aec9-0542-4611-b380-d0cfca4d0100",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/417db742-b2f2-4bef-831c-6e40d79440f3",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/814a95b9-8149-40ed-820c-848b628f2f91",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/b446dc44-0055-49b1-ba2f-78977c6d5679",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/b9912fe2-30a8-40d8-8b70-07657bbecf22",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/cd8f9ec7-cc00-4a0e-812d-2cfd0b23a2b6",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/63e889be-54eb-4ec2-9371-2dd7d671ded6",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/6ed2d007-f274-454a-8f96-c5bbcdf63201",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/fb9da3a6-fdd0-4f1a-bb32-bb9769e8eab8",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/a84705a6-5a5c-4e3c-ac5e-038dc31815ac",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/141f3eed-b3b8-4194-854b-92ec54f9a308",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/5afc8a05-411a-4954-8ad3-51f518487f73",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/3a192ec6-701c-4df9-936c-a47dc7100c6d",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/12299d48-b108-477d-ae7b-60eed77ebe3e",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/0925d34f-4ae1-4b62-9ebd-646dc4c4bda0",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.461Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/a8085bf4-f99e-4405-b7e0-4c6caef6e16a",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/170bf7d6-d2a5-47bc-bd36-9012a0559bf3",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/2d96a02c-a111-4d2f-9ac9-76ea4f94f93f",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/01e1324b-1a24-4578-8895-a7ac3ca9ff9a",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/bceb62cb-9ed9-4ff9-b663-8eff5ead10ed",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/86ef760a-fa1c-4f9e-a1d8-c709bed501ed",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/cd7b5867-0841-49da-a568-f214b985a030",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.462Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/cf87f470-354a-4202-9d54-9d3269195dd2",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.860Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/5afe16af-a020-411a-84e9-24c55a9b3c79",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.860Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/9fd58ee6-76ba-4c1b-b8ab-84f8c81d106b",
+      "type": "image",
+      "at": "2026-10-09T12:45:59.860Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/2a64c5ee-c99b-4e64-94f1-67628b9152a6",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.190Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/94d6bc10-af45-4f25-8ba3-d4970b6941fe",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.190Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/57712a82-e2dc-40b0-8e5b-a3c7a7632164",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.190Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/6629ee56-a71b-49d5-952b-d7335a33d11b",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.310Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/e86a5960-71b4-4d53-ab36-416c69f7be27",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.310Z"
+    },
+    {
+      "url": "blob:http://127.0.0.1:4191/1a7d5cf2-f435-4043-be90-c884f7447296",
+      "type": "image",
+      "at": "2026-10-09T12:46:00.310Z"
+    }
+  ],
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "path": "assets/game-B_-L39w0.css",
+      "status": 200,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "path": "assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "path": "assets/mandats-B5H7aFd6.css",
+      "status": 200,
+      "bytes": 175231,
+      "sha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "path": "mandats/fonts/barlow-semi-condensed-600.woff2",
+      "status": 200,
+      "bytes": 64440,
+      "sha256": "bae9a20f1461da5276b405097cfd4ad72a888632b65780ca3a0b996cb4aab3ad"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "path": "mandats/fonts/source-sans-3-variable.woff2",
+      "status": 200,
+      "bytes": 170188,
+      "sha256": "5f16566f7a40d39b339ad26be151fa5a1ab1f0c2574c7a2e619765584a1acbd8"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "path": "polices/spectral-700-latin.woff2",
+      "status": 200,
+      "bytes": 23036,
+      "sha256": "5276f202cce67e8caa9f697800e11cfc9d708da67d47f6f5507dcadcf1e11c11"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "path": "assets/mandats-lHN_ghvN.js",
+      "status": 200,
+      "bytes": 3180712,
+      "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+      "path": "assets/welcome-diorama-D6QPWYbq.png",
+      "status": 200,
+      "bytes": 1733114,
+      "sha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "path": "mandats/fonts/mandats-serif-700-latin.woff2",
+      "status": 200,
+      "bytes": 52268,
+      "sha256": "bccb42821e15ea1662ec0662a4ab2cb83ebe96d4f838c8ed904cc1b545107bf7"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "path": "polices/spectral-500-latin.woff2",
+      "status": 200,
+      "bytes": 22836,
+      "sha256": "2b70215ed40f2c73bbc7bb53cff9c8975a244c8462569e60989c77b8c5a87a00"
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "path": "brand/favicon.svg",
+      "status": 200,
+      "bytes": 413,
+      "sha256": "25cbb478c211b33098f9fc3ba79960a4084ccc406ec605e9052eaf119700d659"
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+      "path": "polices/spectral-600-latin.woff2",
+      "status": 200,
+      "bytes": 22936,
+      "sha256": "33faca8b5795a0de1af77cbc43a050a3655c4b1e03e04847fdef4d19d2e361d2"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-earth-grain-DRREWpxX.png",
+      "path": "assets/land-earth-grain-DRREWpxX.png",
+      "status": 200,
+      "bytes": 251667,
+      "sha256": "f5c5368a06e77792a3ce1c09668f3f6b5fa021d06861bb4f08332dbbc252b43f"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-earth-normal-D8qTdGaP.png",
+      "path": "assets/land-earth-normal-D8qTdGaP.png",
+      "status": 200,
+      "bytes": 377245,
+      "sha256": "08d6a9a5e2d0f3dcac0e1c778debc3001fa13e7158e7fd301768a7a55a28484b"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-crop-stalks-DqbEWteS.png",
+      "path": "assets/land-crop-stalks-DqbEWteS.png",
+      "status": 200,
+      "bytes": 337750,
+      "sha256": "1d0b3cce4271b7cdcff8f758e34f65be01c42564936959b919f2594f8fc34eec"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-leaf-grain-Dq3zfjHI.png",
+      "path": "assets/land-leaf-grain-Dq3zfjHI.png",
+      "status": 200,
+      "bytes": 54194,
+      "sha256": "8be3fe4ea75eaea6c570156882998b1a017a3dbabc18279b43a4d267637a12dd"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-leaf-normal-KsVL2iP_.png",
+      "path": "assets/land-leaf-normal-KsVL2iP_.png",
+      "status": 200,
+      "bytes": 183565,
+      "sha256": "d1fcdf39068b069e32340e867e87578c401e6adcfbc98cebd3b6f6fcf2867c4c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+      "path": "assets/envTextureLoader-sHfoo1I9.js",
+      "status": 200,
+      "bytes": 8025,
+      "sha256": "0f723d493fea653cc57367f235166cd63073875f63ff354fc52721a48f069087"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-stone-normal-CxQ85Rmx.png",
+      "path": "assets/land-stone-normal-CxQ85Rmx.png",
+      "status": 200,
+      "bytes": 171401,
+      "sha256": "98e58ca0a80d9b1865742e0af609378407962b8e9572090a7106d4df7168b46d"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "path": "assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "status": 200,
+      "bytes": 3669,
+      "sha256": "627b981fe71831aab012d0ad94aaa16497c864a35c5e85de463d4b54789c2fc0"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-BIyaM03b.js",
+      "path": "assets/postprocess.vertex-BIyaM03b.js",
+      "status": 200,
+      "bytes": 560,
+      "sha256": "48cbac63933d51a737021d26d75e6e567f87587e31322d6c396ce1cdbe5dec5a"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/ssao2.fragment-DiJqLOcd.js",
+      "path": "assets/ssao2.fragment-DiJqLOcd.js",
+      "status": 200,
+      "bytes": 5465,
+      "sha256": "6caa3a038e759f64b2e01ad365e180001f9f4877fdad43fe4649cbcd2262339c"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/geometry.vertex-CAlUmEWP.js",
+      "path": "assets/geometry.vertex-CAlUmEWP.js",
+      "status": 200,
+      "bytes": 7690,
+      "sha256": "352d60fbd5705312c90e0dc8f73977234f6603f8507d8dc3ce4dffa6c6f29650"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/ssaoCombine.fragment-BDDFlvbT.js",
+      "path": "assets/ssaoCombine.fragment-BDDFlvbT.js",
+      "status": 200,
+      "bytes": 671,
+      "sha256": "75e1d6d8e70071c207eb7364527fa38fd5de08f0b4bded1b91ef894ec665236a"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/openpbrTransmissionLayerData-BAB6L9cZ.js",
+      "path": "assets/openpbrTransmissionLayerData-BAB6L9cZ.js",
+      "status": 200,
+      "bytes": 17366,
+      "sha256": "180309a2117dd058eecf423e207a8d6e7ff00082069c00cd6e8bb0ed0ee07284"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/geometry.fragment-C_1BsuWs.js",
+      "path": "assets/geometry.fragment-C_1BsuWs.js",
+      "status": 200,
+      "bytes": 11073,
+      "sha256": "692459cf69fa661b1e3c1dfff1a0a30c648e0db04056ba94f7c9c1ff463abb6d"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-mineral-rock-DqRxmUfD.png",
+      "path": "assets/land-mineral-rock-DqRxmUfD.png",
+      "status": 200,
+      "bytes": 480970,
+      "sha256": "7fccdd8533a976145985f55bf9a39578c3769b48ca9e0c62c23b69c74a40995b"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-coastal-normal-5Lv01LFJ.png",
+      "path": "assets/land-coastal-normal-5Lv01LFJ.png",
+      "status": 200,
+      "bytes": 88726,
+      "sha256": "1a06b1fd13e14f38bed8179903fbe407999a40afed6959540285aacec3f3a184"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/land-mineral-normal-B2VVWRH9.png",
+      "path": "assets/land-mineral-normal-B2VVWRH9.png",
+      "status": 200,
+      "bytes": 1292987,
+      "sha256": "895de5fdb6ab33fc128775d89f5744601e117b2ed4c024855bb17ab4b7d2c25f"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pass.fragment-Cv85RasD.js",
+      "path": "assets/pass.fragment-Cv85RasD.js",
+      "status": 200,
+      "bytes": 418,
+      "sha256": "96aa5a03d502b208aad7a84205ba797c7c8174593440608c6c4c8429953a7720"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-BvVSbVFP.js",
+      "path": "assets/packingFunctions-BvVSbVFP.js",
+      "status": 200,
+      "bytes": 530,
+      "sha256": "e976255aa6f5d9547443f9af40da78c31059c81e9eda48ff20df803e405a2558"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-KFsLf99o.js",
+      "path": "assets/sceneVertexDeclaration-KFsLf99o.js",
+      "status": 200,
+      "bytes": 331,
+      "sha256": "38d8cbb24c384ff06adf677a3f400724068005228048ee392147a1e0a55ffe63"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "path": "assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "status": 200,
+      "bytes": 634,
+      "sha256": "0c2a36c38d4dc109cb52fd35830f1541058e2fedf083a8b242b68ef23488e9ae"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-DU-ilQIB.js",
+      "path": "assets/shadowMap.fragment-DU-ilQIB.js",
+      "status": 200,
+      "bytes": 3371,
+      "sha256": "e25322711f8a49355f1f1d9ebff831f5ad681aaf4b9c35f7acab0885178b3762"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-fmBcca9o.js",
+      "path": "assets/shadowMap.vertex-fmBcca9o.js",
+      "status": 200,
+      "bytes": 4616,
+      "sha256": "155df8aad7644f9fb327b0d24b53a1b7ccb017d3e871ac8520af1a3e312df245"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "path": "assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "status": 200,
+      "bytes": 470,
+      "sha256": "a0a4207ee85ca0ee866d7a9bb2f6315fdf406ac2c06ac2eac8afa31b0a120009"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+      "path": "mandats/models/vegetation.glb",
+      "status": 200,
+      "bytes": 721552,
+      "sha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-DbTuwmTk.js",
+      "path": "assets/brdfTextureTools-DbTuwmTk.js",
+      "status": 200,
+      "bytes": 61404,
+      "sha256": "748cf9fbee8c634d8397f0cc36d3cce74325b6659fb7f13448caa8a9bbe5db67"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-DqHS-_55.js",
+      "path": "assets/pbrMaterial.pure-DqHS-_55.js",
+      "status": 200,
+      "bytes": 135103,
+      "sha256": "829dd7de88cb4c3db5b864848d39be5a7fc1dc498215286b0c10c34efbff5de3"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "path": "assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "status": 200,
+      "bytes": 12528,
+      "sha256": "87acb688574135350a1e9d9a6474943f2eed2202cb8478cc8d47a37b110157d2"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "path": "mandats/models/daylight.env",
+      "status": 200,
+      "bytes": 1102156,
+      "sha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8"
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "path": "assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "status": 200,
+      "bytes": 586,
+      "sha256": "7fd32688684d63c4c3287927838bde5f15aca297398ceb20cc100252217f44f7"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "path": "mandats/models/paris.glb",
+      "status": 200,
+      "bytes": 9231336,
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+      "path": "mandats/models/architecture.glb",
+      "status": 200,
+      "bytes": 11109712,
+      "sha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717"
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+      "path": "mandats/models/cathedrale.glb",
+      "status": 200,
+      "bytes": 11236112,
+      "sha256": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "failedResponses": [],
+  "consoleMessages": [
+    {
+      "type": "log",
+      "text": "BJS - [12:45:45]: Babylon.js v9.30.0 - WebGL2",
+      "location": {
+        "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+        "line": 337,
+        "column": 12820,
+        "lineNumber": 337,
+        "columnNumber": 12820
+      }
+    }
+  ],
+  "bodyErrors": [],
+  "captures": [
+    {
+      "suffix": "saved-welcome",
+      "path": "05-saved-resume-saved-welcome.png",
+      "fullPage": false,
+      "bytes": 1810921,
+      "sha256": "ac523749c45d6682a0d6f854bb9db443ad3e8e6491c282e01f93636a947f6956",
+      "actual": {
+        "url": "http://127.0.0.1:4191/mandats/",
+        "screen": "select",
+        "dataset": {
+          "mandateMap": "",
+          "renderer": "preview",
+          "movements": "0"
+        },
+        "previewReady": true,
+        "busy": "false",
+        "poster": {
+          "src": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "complete": true,
+          "naturalWidth": 1268,
+          "naturalHeight": 801,
+          "alt": "",
+          "ariaHidden": "true",
+          "draggable": false,
+          "decoding": "async",
+          "objectFit": "contain",
+          "style": {
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "pointerEvents": "none"
+          }
+        },
+        "fallback": {
+          "tag": "svg",
+          "style": {
+            "display": "block",
+            "visibility": "hidden",
+            "opacity": "1",
+            "pointerEvents": "auto"
+          }
+        },
+        "canvas": {
+          "width": 300,
+          "height": 150,
+          "bounds": {
+            "x": 0,
+            "y": 66,
+            "width": 1268,
+            "height": 875,
+            "top": 66,
+            "right": 1268,
+            "bottom": 941,
+            "left": 0
+          },
+          "style": {
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "0",
+            "pointerEvents": "auto"
+          }
+        },
+        "layout": {
+          "viewportWidth": 1672,
+          "viewportHeight": 941,
+          "devicePixelRatio": 1,
+          "scrollWidth": 1672,
+          "map": {
+            "x": 0,
+            "y": 66,
+            "width": 1268,
+            "height": 875,
+            "top": 66,
+            "right": 1268,
+            "bottom": 941,
+            "left": 0
+          }
+        },
+        "markerCount": 0,
+        "rawSave": "{\"version\":12,\"mode\":\"national\",\"seed\":6173,\"choices\":[],\"ambition\":\"equilibre\"}",
+        "resourceURLs": [
+          "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+          "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+          "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+          "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+          "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+          "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+          "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+          "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+          "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+          "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+          "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+          "http://127.0.0.1:4191/brand/favicon.svg"
+        ]
+      }
+    },
+    {
+      "suffix": "resumed-canvas",
+      "path": "05-saved-resume-resumed-canvas.png",
+      "fullPage": false,
+      "bytes": 1861190,
+      "sha256": "41e1e732bf04209bb53748456d6408f00e2ee49efbbd5d86e32d0db381125511",
+      "actual": {
+        "url": "http://127.0.0.1:4191/mandats/",
+        "screen": "play",
+        "dataset": {
+          "mandateMap": "",
+          "renderer": "babylon",
+          "movements": "0",
+          "resolution": "1268x801",
+          "contactShadows": "true",
+          "edgeAntialiasing": "fxaa",
+          "turn": "0",
+          "projects": "0",
+          "motion": "reduced",
+          "mountainRocks": "305",
+          "landscape": "diorama",
+          "staticBatches": "48",
+          "staticInstances": "17867",
+          "authoredHouses": "781",
+          "renderedProjects": "0",
+          "unplacedProjects": "0",
+          "renderPending": "false",
+          "activeTriangles": "5170146",
+          "activeMeshes": "13615",
+          "cameraRadius": "13.52",
+          "renderMs": "424"
+        },
+        "previewReady": true,
+        "busy": "false",
+        "poster": {
+          "src": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "complete": true,
+          "naturalWidth": 1268,
+          "naturalHeight": 801,
+          "alt": "",
+          "ariaHidden": "true",
+          "draggable": false,
+          "decoding": "async",
+          "objectFit": "contain",
+          "style": {
+            "display": "none",
+            "visibility": "visible",
+            "opacity": "1",
+            "pointerEvents": "none"
+          }
+        },
+        "fallback": {
+          "tag": "svg",
+          "style": {
+            "display": "block",
+            "visibility": "hidden",
+            "opacity": "1",
+            "pointerEvents": "auto"
+          }
+        },
+        "canvas": {
+          "width": 1268,
+          "height": 801,
+          "bounds": {
+            "x": 0,
+            "y": 66,
+            "width": 1268,
+            "height": 801,
+            "top": 66,
+            "right": 1268,
+            "bottom": 867,
+            "left": 0
+          },
+          "style": {
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "pointerEvents": "auto"
+          }
+        },
+        "layout": {
+          "viewportWidth": 1672,
+          "viewportHeight": 941,
+          "devicePixelRatio": 1,
+          "scrollWidth": 1672,
+          "map": {
+            "x": 0,
+            "y": 66,
+            "width": 1268,
+            "height": 801,
+            "top": 66,
+            "right": 1268,
+            "bottom": 867,
+            "left": 0
+          }
+        },
+        "markerCount": 3,
+        "rawSave": "{\"version\":12,\"mode\":\"national\",\"seed\":6173,\"choices\":[],\"ambition\":\"equilibre\"}",
+        "resourceURLs": [
+          "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+          "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+          "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+          "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+          "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+          "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+          "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+          "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+          "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+          "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+          "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+          "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+          "http://127.0.0.1:4191/brand/favicon.svg",
+          "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+          "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+          "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-CChat9Os.js",
+          "http://127.0.0.1:4191/assets/ssao2.fragment-DiJqLOcd.js",
+          "http://127.0.0.1:4191/assets/postprocess.vertex-BIyaM03b.js",
+          "http://127.0.0.1:4191/assets/ssaoCombine.fragment-BDDFlvbT.js",
+          "http://127.0.0.1:4191/assets/geometry.vertex-CAlUmEWP.js",
+          "http://127.0.0.1:4191/assets/geometry.fragment-C_1BsuWs.js",
+          "http://127.0.0.1:4191/assets/openpbrTransmissionLayerData-BAB6L9cZ.js",
+          "http://127.0.0.1:4191/assets/pass.fragment-Cv85RasD.js",
+          "http://127.0.0.1:4191/assets/shadowMap.fragment-DU-ilQIB.js",
+          "http://127.0.0.1:4191/assets/packingFunctions-BvVSbVFP.js",
+          "http://127.0.0.1:4191/assets/shadowMap.vertex-fmBcca9o.js",
+          "http://127.0.0.1:4191/assets/sceneVertexDeclaration-KFsLf99o.js",
+          "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-7AMcv5st.js",
+          "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+          "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+          "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+          "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+          "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+          "http://127.0.0.1:4191/assets/land-earth-grain-DRREWpxX.png",
+          "http://127.0.0.1:4191/assets/land-crop-stalks-DqbEWteS.png",
+          "http://127.0.0.1:4191/assets/land-earth-normal-D8qTdGaP.png",
+          "http://127.0.0.1:4191/assets/land-leaf-grain-Dq3zfjHI.png",
+          "http://127.0.0.1:4191/assets/land-leaf-normal-KsVL2iP_.png",
+          "http://127.0.0.1:4191/assets/land-stone-normal-CxQ85Rmx.png",
+          "http://127.0.0.1:4191/assets/land-mineral-rock-DqRxmUfD.png",
+          "http://127.0.0.1:4191/assets/land-mineral-normal-B2VVWRH9.png",
+          "http://127.0.0.1:4191/assets/land-coastal-normal-5Lv01LFJ.png",
+          "http://127.0.0.1:4191/assets/pbrMaterial.pure-DqHS-_55.js",
+          "http://127.0.0.1:4191/assets/brdfTextureTools-DbTuwmTk.js",
+          "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+          "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+          "http://127.0.0.1:4191/assets/rgbdDecode.fragment-DbY-pkGz.js"
+        ]
+      }
+    }
+  ],
+  "finishedAt": "2026-10-09T12:46:14.626Z"
+}

@@ -1,0 +1,721 @@
+{
+  "build": "35",
+  "startedAt": "2026-10-09T10:35:09.955Z",
+  "status": "passed",
+  "runDirectory": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138",
+  "buildManifestSha256": "59322728dd8429f0478b6cfc4eba36ae888ee195c0688779cf1d6ba9c015fc68",
+  "actualBuildBundles": [
+    {
+      "path": "assets/mandats-DOodpuN4.css",
+      "bytes": 174932,
+      "sha256": "f3ef11d7798e47fac10057062ce7470762867541be641ef0d63a41596bbc2b3e"
+    },
+    {
+      "path": "assets/mandats-DwGYHWvg.js",
+      "bytes": 3135748,
+      "sha256": "8566e5e0b14d042b6bc11670a01b3f81177869aa59493ead3a11104277b65f2e"
+    }
+  ],
+  "testInputsSha256": {
+    "package.json": "9f561058cfa8654b2a6f557c8c730ff8b20d9afe0d639c172e4c1294aa8ebf65",
+    "playwright.board.config.ts": "c7cee24afaa2a94816cf9d0cbc764a87d4aa785e0c05316ca07beb9c524a0167",
+    "playwright.header.config.ts": "b9f4ba561dbac0366addd960dc74973db61c711d987f86fb234fbe4b18d185b7",
+    "playwright.mandats.config.ts": "6ee99910f3e6eacbb1beb5fc0d50eae70c3872e4a4194446363ae1580a40fa50",
+    "playwright.rework.config.ts": "668309dab0682f370cfd750e2c235c0f3e09c6199e90b24fd6357641fe47df93",
+    "playwright.social.config.ts": "46c551aab6fed9f5980b74f26a8c22b83f12b3fabe16ba0addd8caf65b696c86",
+    "playwright.story.config.ts": "1840b7436f748228cd68b98e7ef6008fd244008e79f64b49e20baa716eaf269c",
+    "playwright.visual.config.ts": "a0cdc1c83a6b64c630a1b2b199afad85236586f90eae308a613c1f52bd1fa95c",
+    "tests/analytics-consent.test.mjs": "8eee7530c56029c0853717f43e96b840bde248457c75870b1bd75e6daaa0b706",
+    "tests/editorial-devices.html": "e4ef25c77fa70416870d235e16ac96e49db4fb05dc7c1eb02c343e6e1b0cfa05",
+    "tests/editorial-tabs.test.mjs": "2cae12d9e69b7a429e18dcd96daab2d65d148d3558a8cf771166548d6ccdd7ab",
+    "tests/fixtures/editorial-publication.json": "c15a3404bc043209f36acfc11f394f6bd20a612468d641924cca19d3765b0b68",
+    "tests/fixtures/mandats-equilibre.json": "864c6dc01562eff06021afecae5b7b15c27e0e2a3c1607d61a39335b348b8d9c",
+    "tests/fixtures/mandats-mobilisations-v12.json": "d8cd2069402124e1c6768d9e1ed6a0c6b3d4b6b00ae15c9be77a2256ff0746a3",
+    "tests/fixtures/mandats-v11.json": "08d10c933a318ee2139583a1c9c0409b6dd20fb3f875d8e969b780fd91f526df",
+    "tests/france-living.test.mjs": "d68df101d80590904c0b4694aaefc408c8455cbd74c7e9bbe649e69e65437714",
+    "tests/header-navigation.test.mjs": "06f1dd62a48c258fed7517eb3535936aab2e660609e000ae30097771a6c191b8",
+    "tests/mandats-board.test.mjs": "f35cbc696f4525e1a233eaafb887996295160f8e55bbeb7e3356ef58734c3706",
+    "tests/mandats-devices.html": "89d0c2d1e6174c72784326304b95ec4966ead37c0e167690f7325fbb4b3390a6",
+    "tests/mandats-equilibre.test.mjs": "4a7088d0176fd91c52bf53558513f89bc5a7cd626cbf0952370a9e26b2d9418a",
+    "tests/mandats-mobile.test.mjs": "4abfe5da213a83c96f877751c1c67396e67d0b00be337f51a3996cba94e7e22b",
+    "tests/mandats-politics.test.mjs": "6914ca8a08fe1323d0eae2238d95d621be7384596c8e9fad90cc12ec118902ee",
+    "tests/mandats-rework.test.mjs": "cfa6f06d54a6e75a760d68fe3f7611332b6a6cc04bade68bada17325f6a68b87",
+    "tests/mandats-social.test.mjs": "d5f0ac5b1a4df2f037f642c02b94127e7dc407bdff2325bbc77e6256c6cc7e3e",
+    "tests/mandats-story.test.mjs": "45e0bfafc969d3b2c643c21a4f67c3cba0e0d54cd531a163b0467bb23af69516",
+    "tests/national-agenda.test.mjs": "34f0865be8892544c7697d1015cc4588da77978a854e86b8ce05ca1b1d530f7e",
+    "tests/shared-theme.test.mjs": "28eb8fb53593eddb56132e820cca41f40ed3b46a030ec342249211a04aae6d01",
+    "tests/visual-audit.test.mjs": "898219493b6046ab8ae3cb54f17b9c08cf0590a4eecc82349d2d0ecadc52f9ef"
+  },
+  "environment": {
+    "NODE_USE_ENV_PROXY": "1",
+    "MANDATS_CHROMIUM_EXECUTABLE": "/usr/bin/chromium",
+    "MANDATS_WEBKIT_EXECUTABLE": "/workspace/.cache/webkit-libs/webkit-local",
+    "PLAYWRIGHT_BROWSERS_PATH": "/workspace/.cache/ms-playwright",
+    "PLAYWRIGHT_HTML_OPEN": "never"
+  },
+  "historicalOnly": {
+    "referenceCounts": {
+      "rework": 32,
+      "social": 16,
+      "header": 3,
+      "compat": 300
+    },
+    "appliesToCurrentBuild": false,
+    "qualification": "Historical planning counts, never current results"
+  },
+  "suiteOrder": [
+    "focused-models",
+    "focused-webkit-density"
+  ],
+  "suites": [
+    {
+      "suite": "focused-models",
+      "actualExitCode": 0,
+      "receipt": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/01-focused-models/receipt.json",
+      "receiptSha256": "1f57eff9870e699728bb9730a475e5dc2c44c635698b688d3ce248237acb83d3",
+      "status": "passed",
+      "previousEvidence": [
+        {
+          "path": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/01-focused-models/pre-existing/rework-artifacts",
+          "files": 37,
+          "inventory": [
+            {
+              "path": "report/data/1fad7291a75fc68858cc392c2bf184df652675ca.zip",
+              "bytes": 43459241,
+              "sha256": "a01cb4ef6c26f7c625ff00b447d52b272f4e39f1e9d85b1c3a4c914cfd32d0c2"
+            },
+            {
+              "path": "report/data/3689e815e107a1b1348200031c8dc5e14dce835b.md",
+              "bytes": 11856,
+              "sha256": "3167fd0d153dfeb9a50884ecf53ea6c9c914012cfa5d2b9a0108aa5ec6a8e10e"
+            },
+            {
+              "path": "report/data/826c1e954a717205d517b4c01db91004496c6755.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "report/data/b8dce0aaad0c1e5e32cde62b3e362b949b17bc18.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "report/data/f1a54abf491c61136d4651611a1550652b6c9d3c.png",
+              "bytes": 1540020,
+              "sha256": "7287685f0dc5fca5a49cf761a275cccd3bc153a186e4ab4ca751062a03227d84"
+            },
+            {
+              "path": "report/data/fcd4aec89b27af79926673997ff680a03c3cdbd7.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 524919,
+              "sha256": "6ac9d0fcb05b29c8d1a8768989a2bc3a3ca70fb2eb2b4339459f5c8dfc1ceafc"
+            },
+            {
+              "path": "report/trace/assets/codeMirrorModule-rXmQmLUY.js",
+              "bytes": 307393,
+              "sha256": "bb0f7c41f9889e4195c2504878e38061288881f426498434c9955479828f7e66"
+            },
+            {
+              "path": "report/trace/assets/defaultSettingsView-B-dXF5JN.js",
+              "bytes": 643184,
+              "sha256": "2ce8be133fe21a4abd7d8330d9b443092dc2ce28826f191442c14989f9d55b15"
+            },
+            {
+              "path": "report/trace/assets/urlMatch-L3liM589.js",
+              "bytes": 2510,
+              "sha256": "1bc6321e32d11c31a452bc75896f0b344e6153321854d9f1658818be7f845c16"
+            },
+            {
+              "path": "report/trace/codeMirrorModule.-QdMvsKi.css",
+              "bytes": 6251,
+              "sha256": "20be824a82832b62cc04642d31da3c609fd280b23f1cdcb1e622c4f40aac5ab8"
+            },
+            {
+              "path": "report/trace/codicon.DCmgc-ay.ttf",
+              "bytes": 80340,
+              "sha256": "0f1d5219934e96e83b8db162d60b4d8c09b5de1e7d38031cbafe4a3c0f2889c9"
+            },
+            {
+              "path": "report/trace/defaultSettingsView.BLFoOugd.css",
+              "bytes": 105310,
+              "sha256": "72241b3112ab609ca0e06195e85e02cb373799217cd5f24a07d61d9273c4ad3e"
+            },
+            {
+              "path": "report/trace/index.B_TqY17P.css",
+              "bytes": 2055,
+              "sha256": "08a212fcacae1866f44f065654afcc4c7d03409c68c74b3315c5bda17a0ca003"
+            },
+            {
+              "path": "report/trace/index.KZ4wOW1K.js",
+              "bytes": 6566,
+              "sha256": "53e2227532161670bc601e241a7a9af00ac54826a9dd2ef9c15b8c1f77e92e63"
+            },
+            {
+              "path": "report/trace/index.html",
+              "bytes": 2363,
+              "sha256": "e2218af9284b6e1c2ec3b547320857778a323fd1473d90620153e967223c5721"
+            },
+            {
+              "path": "report/trace/manifest.webmanifest",
+              "bytes": 429,
+              "sha256": "d8540500603a32a39fe7e5a0375dc0f9ebafd11118e06a846db7efc608223ab9"
+            },
+            {
+              "path": "report/trace/playwright-logo.svg",
+              "bytes": 5033,
+              "sha256": "6b0a4367bdeab10995bc239278f04c68c10e48adbec15e799e01909a0d66dcb9"
+            },
+            {
+              "path": "report/trace/snapshot.B_Jk1wbt.js",
+              "bytes": 650,
+              "sha256": "d4d09e05451d107d8e1a6bbd041405fe518b9fd2833890e4ebaaad83b7f554f5"
+            },
+            {
+              "path": "report/trace/snapshot.html",
+              "bytes": 389,
+              "sha256": "c608c8899c95c5a74d3f556e20146c3d852b9df85ae2854c659a7cc773c9b727"
+            },
+            {
+              "path": "report/trace/sw.bundle.js",
+              "bytes": 93459,
+              "sha256": "cfd6662a71914516efe90a5a6f3da2bbe5db6e442939b868ca465f765d33723f"
+            },
+            {
+              "path": "report/trace/uiMode.C7UW1sC9.css",
+              "bytes": 54341,
+              "sha256": "c194e703ad4697e31c5e9b8d1e4f75f201a1fbe9940620fa6319dfa5543707b4"
+            },
+            {
+              "path": "report/trace/uiMode.Dzuouizj.js",
+              "bytes": 37932,
+              "sha256": "a584f96f0797144552430d7a04f7e3b84b1baaa0b781a664b1512339ec1c760b"
+            },
+            {
+              "path": "report/trace/uiMode.html",
+              "bytes": 727,
+              "sha256": "32b260f173708fe088834efe8eff0f9d92af0c7e2e6c987cd8e197f0a066742f"
+            },
+            {
+              "path": "report/trace/xtermModule.kHJ-D0s7.css",
+              "bytes": 2853,
+              "sha256": "0dd60056134e6a2994a86b59a1e9789b9f04e92924da109aef8c923acaf08ce5"
+            },
+            {
+              "path": "report.json",
+              "bytes": 15139,
+              "sha256": "27a5d4ee723f281fbce4dac88d2c1f574127c886b4b388873b70b09e009f2937"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 96,
+              "sha256": "166ca1395e4e7a493556e8b0ac13dc69a4faeb4b7dd8d13d9e85055e820fbdd3"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-d1d607a4fbed6e5c8ede8ccf18aa701f8e2a8f27.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-replay-c6a9a6e7e8d6da58073a47f842f1f11bcbc8e139.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-6a881ed3d3fc9dcf0348ac506fddbdd37a85166f.png",
+              "bytes": 1540020,
+              "sha256": "7287685f0dc5fca5a49cf761a275cccd3bc153a186e4ab4ca751062a03227d84"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-replay-ea15a631273279f4f5fea33b30b7c13e0aed2c40.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/error-context.md",
+              "bytes": 11856,
+              "sha256": "3167fd0d153dfeb9a50884ecf53ea6c9c914012cfa5d2b9a0108aa5ec6a8e10e"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.png",
+              "bytes": 1540020,
+              "sha256": "7287685f0dc5fca5a49cf761a275cccd3bc153a186e4ab4ca751062a03227d84"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/trace.zip",
+              "bytes": 43459241,
+              "sha256": "a01cb4ef6c26f7c625ff00b447d52b272f4e39f1e9d85b1c3a4c914cfd32d0c2"
+            }
+          ],
+          "qualification": "Pre-existing evidence, not results of this run"
+        }
+      ],
+      "artifactCopies": [
+        {
+          "source": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+          "copy": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/01-focused-models/artifacts/rework-artifacts",
+          "freshness": {
+            "path": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+            "absentBeforeCommand": true,
+            "ctimeNs": 1791542170894341451,
+            "mtimeNs": 1791542170894341451,
+            "birthtimeNs": null,
+            "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+          },
+          "inventory": [
+            {
+              "path": "report/data/6213e20c1ee495e48a6e89180eb636124e46663d.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "report/data/826c1e954a717205d517b4c01db91004496c6755.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "report/data/a9251692caec6cddec2101fa43815c80e3c4ed52.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            },
+            {
+              "path": "report/data/b8dce0aaad0c1e5e32cde62b3e362b949b17bc18.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "report/data/fcd4aec89b27af79926673997ff680a03c3cdbd7.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 521375,
+              "sha256": "54672b7f52cb735e79ad45d5f0cf60426ffd28f17e18c609dc2f3131bb7e6fa9"
+            },
+            {
+              "path": "report.json",
+              "bytes": 9491,
+              "sha256": "c15c837a4ea416a024602a5ebb54d0cf644f544d3c79fe6774647df73c10d997"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 45,
+              "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-d1d607a4fbed6e5c8ede8ccf18aa701f8e2a8f27.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-replay-c6a9a6e7e8d6da58073a47f842f1f11bcbc8e139.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-6a881ed3d3fc9dcf0348ac506fddbdd37a85166f.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-replay-ea15a631273279f4f5fea33b30b7c13e0aed2c40.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-390ceb3e71b58ed3a23f6c903176b86034ce7e3d.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-replay-eef6a69be0432b4eb4fbe9a630f622f721bc33f8.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            }
+          ]
+        }
+      ],
+      "evidenceProblems": [],
+      "reportFreshness": {
+        "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/report.json",
+        "absentBeforeCommand": true,
+        "ctimeNs": 1791542170894341451,
+        "mtimeNs": 1791542170894341451,
+        "birthtimeNs": null,
+        "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+      },
+      "stats": {
+        "startTime": "2026-10-09T10:35:11.346Z",
+        "duration": 59517.466,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "counts": {
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "total": 1
+      },
+      "countsMeaning": "Literal Playwright outcome counts. Expected does not invent a passed-attempt count.",
+      "byProject": {
+        "desktop": {
+          "expected": 1
+        }
+      },
+      "unexpectedTests": [],
+      "flakyTests": [],
+      "skippedTests": [],
+      "errors": [],
+      "report": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/01-focused-models/artifacts/rework-artifacts/report.json",
+      "reportSha256": "c15c837a4ea416a024602a5ebb54d0cf644f544d3c79fe6774647df73c10d997",
+      "reportStartTime": "2026-10-09T10:35:11.346Z",
+      "buildAndInputsStableAfterSuite": true
+    },
+    {
+      "suite": "focused-webkit-density",
+      "actualExitCode": 0,
+      "receipt": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/02-focused-webkit-density/receipt.json",
+      "receiptSha256": "40f0a176fe0f5a10013ed5e91fbe300eec21c07beef9c5c91a4a0a6f80912de5",
+      "status": "passed",
+      "previousEvidence": [
+        {
+          "path": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/02-focused-webkit-density/pre-existing/rework-artifacts",
+          "files": 20,
+          "inventory": [
+            {
+              "path": "report/data/6213e20c1ee495e48a6e89180eb636124e46663d.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "report/data/826c1e954a717205d517b4c01db91004496c6755.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "report/data/a9251692caec6cddec2101fa43815c80e3c4ed52.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            },
+            {
+              "path": "report/data/b8dce0aaad0c1e5e32cde62b3e362b949b17bc18.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "report/data/fcd4aec89b27af79926673997ff680a03c3cdbd7.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 521375,
+              "sha256": "54672b7f52cb735e79ad45d5f0cf60426ffd28f17e18c609dc2f3131bb7e6fa9"
+            },
+            {
+              "path": "report.json",
+              "bytes": 9491,
+              "sha256": "c15c837a4ea416a024602a5ebb54d0cf644f544d3c79fe6774647df73c10d997"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 45,
+              "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-d1d607a4fbed6e5c8ede8ccf18aa701f8e2a8f27.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-replay-c6a9a6e7e8d6da58073a47f842f1f11bcbc8e139.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-6a881ed3d3fc9dcf0348ac506fddbdd37a85166f.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-replay-ea15a631273279f4f5fea33b30b7c13e0aed2c40.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-390ceb3e71b58ed3a23f6c903176b86034ce7e3d.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-replay-eef6a69be0432b4eb4fbe9a630f622f721bc33f8.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modele-indisponible-repli.png",
+              "bytes": 223250,
+              "sha256": "07d47715db9fcb72fbecc87938421772d555998ffb11238cc1b88395ef7ad0f9"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.json",
+              "bytes": 18110,
+              "sha256": "6582a73ba24aca636c8f635798da664a9c511aa828fa8f41f759aaf1f8fc1466"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-apres-decision.png",
+              "bytes": 1582707,
+              "sha256": "77cd2d21bbc771a60514d91dfe4b141d3b43e5bf4c3e79491ba544a28ea74f2d"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.json",
+              "bytes": 29416,
+              "sha256": "9010cd8a6857fea572f1d58eb6844a7516c17ba0a937097aeeb47b0177469aa7"
+            },
+            {
+              "path": "results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/modeles-et-engagement-repris.png",
+              "bytes": 1577037,
+              "sha256": "075f59cb402dd4dabd3e61e2232d6ed29fbab8eabc340966304fb703990573a3"
+            }
+          ],
+          "qualification": "Pre-existing evidence, not results of this run"
+        }
+      ],
+      "artifactCopies": [
+        {
+          "source": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+          "copy": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/02-focused-webkit-density/artifacts/rework-artifacts",
+          "freshness": {
+            "path": "/workspace/500SIGNATURESV2/site/rework-artifacts",
+            "absentBeforeCommand": true,
+            "ctimeNs": 1791542228209053875,
+            "mtimeNs": 1791542228209053875,
+            "birthtimeNs": null,
+            "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+          },
+          "inventory": [
+            {
+              "path": "report/data/16518217aeee15b3ba3d4534020c136fcc8370ed.png",
+              "bytes": 765235,
+              "sha256": "d93ad4ef9c46c80a8ba6f07089169412e454f54c31aea1366efdeaf46f7538c6"
+            },
+            {
+              "path": "report/data/3b012dc460844590398c5a319cf7a68f7d75fba6.png",
+              "bytes": 929689,
+              "sha256": "1e039e3b1e5da6342c9345f6cbf8206b1c7d1eec89877d6c5e5c853e61f1db27"
+            },
+            {
+              "path": "report/data/5419fe76d818c901c527acf73d397ecaa63203bf.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "report/data/84f0a16f2f02e4045bd6e97ed8a911c5189ecbec.png",
+              "bytes": 738432,
+              "sha256": "398eb2b4f0dec9d58be3455e57a6559208cc05ca716ab4f6cbe225d969e75356"
+            },
+            {
+              "path": "report/data/954ed322a1ea881686d4a7a07962c20bc81a6d11.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "report/data/9f4164010037ee6dc648ed009635e741251798fe.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "report/data/a1a5709421617c8ad4a0b5ebdabe5b3af9c5e2ba.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "report/index.html",
+              "bytes": 522051,
+              "sha256": "42a582b9bf66db0662783b4a8193ac3a6c98fbbdbeb0844a7ff2ce293a1d0306"
+            },
+            {
+              "path": "report.json",
+              "bytes": 10538,
+              "sha256": "4caad6e32bb2cfdde01fa87eba2404884e5eba7bccecd6fa170b67370a1f8398"
+            },
+            {
+              "path": "results/.last-run.json",
+              "bytes": 45,
+              "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-6a2189a8e32d6d6ad2e4665e521a4dc060acc538.png",
+              "bytes": 929689,
+              "sha256": "1e039e3b1e5da6342c9345f6cbf8206b1c7d1eec89877d6c5e5c853e61f1db27"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-50054e3780a045d503420e7e0ebc4114dd911b08.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-ae7a1833002d1bdb78d382c74a038059f431d9b8.png",
+              "bytes": 738432,
+              "sha256": "398eb2b4f0dec9d58be3455e57a6559208cc05ca716ab4f6cbe225d969e75356"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-6c7bcac996084a650b1a4fb79998f7391034d7a3.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-33460a6f1da99c21a4209491812f7b5d7959b17a.png",
+              "bytes": 765235,
+              "sha256": "d93ad4ef9c46c80a8ba6f07089169412e454f54c31aea1366efdeaf46f7538c6"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-replay-be23117eabb984454dfc0245dba7b66504eb0cac.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-resolution-551bfa66a5fb9570442c0d0fae0c4eed1184d3fa.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "1e34ceb7316b7e22d3ecec1ce6d9a1ec59d5ba4c21158b16df74a0743f22cd0d"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-dpr-2.png",
+              "bytes": 929689,
+              "sha256": "1e039e3b1e5da6342c9345f6cbf8206b1c7d1eec89877d6c5e5c853e61f1db27"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2-resolution.json",
+              "bytes": 5584,
+              "sha256": "7d79c01aa95faee6a65d555a75c760165e2dc52c9618175ad465e9f2a4c4eced"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-redimensionnee-dpr-2.png",
+              "bytes": 738432,
+              "sha256": "398eb2b4f0dec9d58be3455e57a6559208cc05ca716ab4f6cbe225d969e75356"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2-resolution.json",
+              "bytes": 18336,
+              "sha256": "389b41f81e96b6371794a44e7a94482e52cf92a3cf09ff02936835d284801c6e"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2.json",
+              "bytes": 18161,
+              "sha256": "3547976618d190aca42ab6f39b6013a3c10b641653c01f41fa7c53f863936197"
+            },
+            {
+              "path": "results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/carte-reprise-dpr-2.png",
+              "bytes": 765235,
+              "sha256": "d93ad4ef9c46c80a8ba6f07089169412e454f54c31aea1366efdeaf46f7538c6"
+            }
+          ]
+        }
+      ],
+      "evidenceProblems": [],
+      "reportFreshness": {
+        "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/report.json",
+        "absentBeforeCommand": true,
+        "ctimeNs": 1791542228209053875,
+        "mtimeNs": 1791542228209053875,
+        "birthtimeNs": null,
+        "creationEvidence": "Absent before command, then new ctime; birthtime included when available"
+      },
+      "stats": {
+        "startTime": "2026-10-09T10:36:12.174Z",
+        "duration": 55990.489,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "counts": {
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "total": 1
+      },
+      "countsMeaning": "Literal Playwright outcome counts. Expected does not invent a passed-attempt count.",
+      "byProject": {
+        "webkit": {
+          "expected": 1
+        }
+      },
+      "unexpectedTests": [],
+      "flakyTests": [],
+      "skippedTests": [],
+      "errors": [],
+      "report": "/workspace/mandats-verification/authored-3d/final-browser/35/20261009T103509Z-292138/02-focused-webkit-density/artifacts/rework-artifacts/report.json",
+      "reportSha256": "4caad6e32bb2cfdde01fa87eba2404884e5eba7bccecd6fa170b67370a1f8398",
+      "reportStartTime": "2026-10-09T10:36:12.174Z",
+      "buildAndInputsStableAfterSuite": true
+    }
+  ],
+  "visualInspection": "Pending. Inspect actual rework desktop, 390, 320 and WebKit screens after these gates.",
+  "updatedAt": "2026-10-09T10:37:08.506Z",
+  "finishedAt": "2026-10-09T10:37:08.506Z",
+  "qualification": "Actual browser gates completed. No visual conformity verdict or physical-phone performance claim."
+}

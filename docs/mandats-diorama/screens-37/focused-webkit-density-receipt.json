@@ -1,0 +1,24 @@
+{
+  "build": "37",
+  "suite": "focused-webkit-density",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "playwright",
+    "test",
+    "--config",
+    "playwright.rework.config.ts",
+    "--workers=1",
+    "--project=webkit",
+    "--grep",
+    "a high density display"
+  ],
+  "cwd": "/workspace/500SIGNATURESV2/site",
+  "exitCode": 0,
+  "shellExitCode": 0,
+  "startedNs": 1791547979909862963,
+  "confirmedAt": "2026-10-09T12:14:00.004Z",
+  "confirmedBy": "Actual subprocess.Popen.wait() return value",
+  "logSha256": "687a221a53573b8d2e7dbca7c4c2cfeb82fd2df57010181a94255e1500c9ddae"
+}
