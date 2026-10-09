@@ -1612,6 +1612,27 @@ function rejectedShoreClipper(outline: Point[]) {
   };
 }
 
+function coastalFracturePoint(points: Array<{ x: number; y: number; z: number }>, inward: Point,
+  u: number, v: number, requestedDepth: number) {
+  const [a, b, c] = points, w = 1 - u - v,
+    ab = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z },
+    cb = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z },
+    nx = ab.y * cb.z - ab.z * cb.y, ny = ab.z * cb.x - ab.x * cb.z,
+    nz = ab.x * cb.y - ab.y * cb.x, norm = Math.hypot(nx, ny, nz),
+    low = Math.min(a.y, b.y, c.y), high = Math.max(a.y, b.y, c.y);
+  if (norm < 1e-10 || Math.abs(ny) / norm > .72 || high - low < .025) return undefined;
+  const direction = Math.sign(nx * inward.x + nz * inward.z);
+  if (!direction || Math.abs(nx * inward.x + nz * inward.z) / norm < .40) return undefined;
+  const shortest = Math.min(Math.hypot(ab.x, ab.y, ab.z), Math.hypot(cb.x, cb.y, cb.z),
+    Math.hypot(a.x - c.x, a.y - c.y, a.z - c.z)),
+    depth = Math.min(.012, shortest * .22, (high - low) * .18, requestedDepth),
+    x = a.x * u + b.x * v + c.x * w + nx / norm * depth * direction,
+    y = a.y * u + b.y * v + c.y * w + ny / norm * depth * direction,
+    z = a.z * u + b.z * v + c.z * w + nz / norm * depth * direction;
+  if (y <= low + .002 || y >= high - .002) return undefined;
+  return { x, y, z, weights: [u, v, w], depth };
+}
+
 function buildGround(
   scene: Scene,
   meshes: Mesh[],
@@ -1638,6 +1659,7 @@ function buildGround(
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
   const pale = Color3.FromHexString("#F0E2C7");
+  let fractureBudget = 900;
   for (const [part, outline] of outlines.entries()) {
     const sourceOutline = sourceOutlines[part],
       coast = densify(sourceOutline, 0.035).map(point => mapAuthoredPosition(point.x, point.z));
@@ -2104,6 +2126,7 @@ function buildGround(
       }
     }
     const sculptedRim = geometry(), rimVertices = new Map<string, number>();
+    let fracturedFaces = 0;
     for (let face = 0; face < cliffs.indices.length / 3; face++) {
       const sourceCorners = cliffs.indices.slice(face * 3, face * 3 + 3),
         dryFace = sourceCorners.every(index => !fixedWetVertices.has(index)) &&
@@ -2133,9 +2156,55 @@ function buildGround(
         rimVertices.set(key, index);
         return index;
       });
+      if (fractureBudget > 0 && dryFace && bed >= 2 && bed <= 4 &&
+        hash(face + part * 991, 1511) < .66) {
+        const column = Math.max(...sourceCorners.map(index => Math.floor(index / (cliffLayers + 1)))),
+          a = coast[(column + coast.length - 1) % coast.length], b = coast[column % coast.length],
+          edgeLength = Math.hypot(b.x - a.x, b.z - a.z) || 1,
+          inward = { x: -coastWinding * (b.z - a.z) / edgeLength,
+            z: coastWinding * (b.x - a.x) / edgeLength },
+          points = corners.map(index => ({ x: sculptedRim.positions[index * 3],
+            y: sculptedRim.positions[index * 3 + 1], z: sculptedRim.positions[index * 3 + 2] })),
+          middle = coastalFracturePoint(points, inward,
+            .24 + hash(face + part * 997, 1513) * .20,
+            .24 + hash(face + part * 1009, 1523) * .16,
+            .006 + hash(face + part * 1013, 1531) * .010);
+        if (middle && landContains(middle.x, middle.z) && contains(coast, middle.x, middle.z)) {
+          const source = mapAuthoredCoordinates(middle.x, middle.z),
+            cover = coastalRockProfile(middle.x, middle.z, source.x, source.z).cover;
+          if (cover > .18 && middle.y < landHeight(middle.x, middle.z) - .012) {
+            const channels = [0, 1, 2].map(channel => corners.reduce((sum, index, i) =>
+              sum + sculptedRim.colors[index * 4 + channel] * middle.weights[i], 0)),
+              chipColor = colorMix(new Color3(channels[0], channels[1], channels[2]), coastalIvory,
+                .12 + hash(face + part * 1019, 1543) * .14),
+              uv = [0, 1].map(axis => corners.reduce((sum, index, i) =>
+                sum + sculptedRim.uvs[index * 2 + axis] * middle.weights[i], 0));
+            // The old triangle's three edges remain exact. Its replacement is
+            // recessed into solid dry land; independent facet normals expose
+            // small mineral chips without adding an overlapping rock skin.
+            for (let edge = 0; edge < 3; edge++) {
+              const original = [corners[edge], corners[(edge + 1) % 3]],
+                pair = original.map(index => {
+                  const p = index * 3, c = index * 4,
+                    copy = vertex(sculptedRim, sculptedRim.positions[p], sculptedRim.positions[p + 1],
+                      sculptedRim.positions[p + 2], new Color3(sculptedRim.colors[c], sculptedRim.colors[c + 1], sculptedRim.colors[c + 2]));
+                  sculptedRim.uvs[copy * 2] = sculptedRim.uvs[index * 2];
+                  sculptedRim.uvs[copy * 2 + 1] = sculptedRim.uvs[index * 2 + 1];
+                  return copy;
+                }),
+                centre = vertex(sculptedRim, middle.x, middle.y, middle.z, chipColor);
+              sculptedRim.uvs[centre * 2] = uv[0]; sculptedRim.uvs[centre * 2 + 1] = uv[1];
+              triangle(sculptedRim, pair[0], pair[1], centre);
+            }
+            fractureBudget--; fracturedFaces++; continue;
+          }
+        }
+      }
       triangle(sculptedRim, corners[0], corners[1], corners[2]);
     }
-    meshes.push(finish(scene, `landscape-cliffs-${part}`, sculptedRim, cliffMaterial));
+    const cliffMesh = finish(scene, `landscape-cliffs-${part}`, sculptedRim, cliffMaterial);
+    cliffMesh.metadata = { ...cliffMesh.metadata, coastalFractures: fracturedFaces };
+    meshes.push(cliffMesh);
   }
 }
 
@@ -2492,6 +2561,69 @@ function clipBesideSettlement(polygon: Point[], center: Point) {
   return polygon;
 }
 
+type CropFaceVertex = { x: number; y: number; z: number; uv: number[]; color: number[] };
+type CropDivider = { nx: number; nz: number; offset: number; x: number; z: number };
+function interpolateCropVertex(a: CropFaceVertex, b: CropFaceVertex, t: number): CropFaceVertex {
+  const interpolate = (x: number, y: number) => x + (y - x) * t;
+  return { x: interpolate(a.x, b.x), y: interpolate(a.y, b.y), z: interpolate(a.z, b.z),
+    uv: a.uv.map((v, i) => interpolate(v, b.uv[i])),
+    color: a.color.map((v, i) => interpolate(v, b.color[i])) };
+}
+function clipCropPolygon(polygon: CropFaceVertex[], line: { nx: number; nz: number; offset: number }, negative: boolean) {
+  const result: CropFaceVertex[] = [], push = (point: CropFaceVertex) => {
+    const last = result.at(-1);
+    if (!last || Math.hypot(last.x - point.x, last.z - point.z) > 1e-12) result.push(point);
+  };
+  for (let i = 0; i < polygon.length; i++) {
+    const a = polygon[i], b = polygon[(i + 1) % polygon.length],
+      da = a.x * line.nx + a.z * line.nz - line.offset,
+      db = b.x * line.nx + b.z * line.nz - line.offset,
+      insideA = negative ? da <= 0 : da >= 0, insideB = negative ? db <= 0 : db >= 0;
+    if (insideA) push(a);
+    if (insideA !== insideB) push(interpolateCropVertex(a, b, Math.max(0, Math.min(1, da / (da - db)))));
+  }
+  if (result.length > 1 && Math.hypot(result[0].x - result.at(-1)!.x, result[0].z - result.at(-1)!.z) <= 1e-12) result.pop();
+  return result;
+}
+function cropProjectedArea(polygon: CropFaceVertex[]) {
+  return polygon.reduce((sum, p, i) => {
+    const q = polygon[(i + 1) % polygon.length]; return sum + p.x * q.z - q.x * p.z;
+  }, 0) / 2;
+}
+function partitionCropFace(face: CropFaceVertex[], dividers: Array<{ nx: number; nz: number; offset: number }>) {
+  const pieces: Array<{ vertices: CropFaceVertex[]; piece: number }> = [];
+  let remaining = face;
+  for (const [piece, divider] of dividers.entries()) {
+    const lower = clipCropPolygon(remaining, divider, true);
+    if (lower.length >= 3 && Math.abs(cropProjectedArea(lower)) > 1e-14) pieces.push({ vertices: lower, piece });
+    remaining = clipCropPolygon(remaining, divider, false);
+  }
+  if (remaining.length >= 3 && Math.abs(cropProjectedArea(remaining)) > 1e-14)
+    pieces.push({ vertices: remaining, piece: dividers.length });
+  return pieces;
+}
+function appendCropPiece(data: Geometry, polygon: CropFaceVertex[], tone = [1, 1, 1], lift = 0) {
+  const start = data.positions.length / 3;
+  for (const p of polygon) {
+    data.positions.push(p.x, p.y + lift, p.z); data.uvs.push(...p.uv);
+    data.colors.push(...p.color.map((v, i) => Math.min(1, v * tone[i])), 1);
+  }
+  for (let i = 1; i < polygon.length - 1; i++) {
+    if (Math.abs(cropProjectedArea([polygon[0], polygon[i], polygon[i + 1]])) <= 1e-14) continue;
+    triangle(data, start, start + i, start + i + 1);
+  }
+}
+const CROP_MATURITY_DETAILS: Readonly<Record<string, { fractions: number[]; leans: number[]; limit?: number; length?: number; green?: boolean }>> = {
+  "loire-grandes-cultures-est": { fractions: [.27, .56, .81], leans: [-.14, .09, -.04], limit: 1, length: .18 },
+  "touraine-ble-versant": { fractions: [.34, .71], leans: [.13, -.08], limit: 0, length: .20 },
+  "centre-cereales-ouest": { fractions: [.22, .60, .79], leans: [.12, -.11, .05], limit: 1, length: .16, green: true },
+  "berry-ble-central": { fractions: [.38, .74], leans: [-.12, .08] },
+  "berry-ble-haut-coteau": { fractions: [.24, .57, .83], leans: [-.10, .14, -.07], limit: 1, length: .18, green: true },
+  "centre-cereales-est": { fractions: [.29, .69], leans: [.12, -.09], limit: 1, length: .16 },
+  "sud-ouest-cereales-centrales": { fractions: [.36, .72], leans: [-.12, .14], limit: 0, length: .17 },
+  "garonne-cereales-nord": { fractions: [.25, .59, .82], leans: [-.08, .10, -.12] },
+};
+
 const cropSurveys = new Map<number, Map<number, { ground: boolean; clearance: number }>>();
 function nationalCropAvailable(x: number, z: number, margin: number) {
   let column = cropSurveys.get(x);
@@ -2518,7 +2650,13 @@ function buildFields(
     rows = geometry(),
     lanes = geometry(),
     hedges = geometry(),
+    fieldLimits = geometry(),
     orchards: Point[] = [];
+  const maturityTones = [[1.02, .98, .89], [.92, .94, .90], [1.04, 1.03, .96], [.98, 1.01, .87]],
+    detailRanges: Array<{ id: string; oldIndexRange: number[]; newIndexRange: number[]; pieces: number;
+      addedTriangles: number; limitTriangles: number; status: string }> = [],
+    detailGuards = new Map<string, boolean>();
+  let detailTriangleBudget = 5000, detailGuardChecks = 0, addedCropTriangles = 0;
   // Shared irregular parcel edges give coherent basins and bocage. The patchwork
   // covers lowland routes between settlements, not isolated islands in a lawn.
   const spacing = 0.29,
@@ -2679,7 +2817,7 @@ function buildFields(
         ? field.kind === "wheat" ? colorMix(authoredTone, parcelTone, .40)
           : field.kind === "pasture" ? colorMix(authoredTone, parcelTone, .42) : authoredTone
         : colorMix(parcelTone, authoredTone, field.kind === "wheat" ? .72 : .18),
-      start = crops.indices.length,
+      start = crops.indices.length, startVertex = crops.positions.length / 3,
       triangulation = Delaunator.from(points, p => p.x, p => p.z).triangles;
     for (let i = 0; i < triangulation.length; i += 3) {
       const p = points[triangulation[i]], q = points[triangulation[i + 1]], r = points[triangulation[i + 2]],
@@ -2696,6 +2834,80 @@ function buildFields(
       const corners = [p, q, r].map(p => vertex(crops, p.x, landHeight(p.x, p.z) + 0.004, p.z,
         color.scale(0.96 + noise(p.x * 18.7, p.z * 20.1) * 0.08)));
       triangle(crops, corners[0], corners[winding > 0 ? 1 : 2], corners[winding > 0 ? 2 : 1]);
+    }
+    const detail = CROP_MATURITY_DETAILS[field.id];
+    if (detail) {
+      const oldEnd = crops.indices.length, oldStart = start - addedCropTriangles * 3,
+        oldFaces: CropFaceVertex[][] = [], replacement = geometry(), actualPieces = new Set<number>(),
+        axis = { x: Math.cos(angle), z: Math.sin(angle) },
+        projections = polygon.map(p => (p.x - center.x) * axis.x + (p.z - center.z) * axis.z),
+        low = Math.min(...projections), high = Math.max(...projections),
+        dividers: CropDivider[] = detail.fractions.map((fraction, i) => {
+          const x = center.x + axis.x * mix(low, high, fraction),
+            z = center.z + axis.z * mix(low, high, fraction),
+            nx = Math.cos(angle + detail.leans[i]), nz = Math.sin(angle + detail.leans[i]);
+          return { nx, nz, offset: x * nx + z * nz, x, z };
+        });
+      for (let i = start; i < oldEnd; i += 3) oldFaces.push(crops.indices.slice(i, i + 3).map(index => ({
+        x: crops.positions[index * 3], y: crops.positions[index * 3 + 1], z: crops.positions[index * 3 + 2],
+        uv: crops.uvs.slice(index * 2, index * 2 + 2), color: crops.colors.slice(index * 4, index * 4 + 3),
+      })));
+      let conserved = true;
+      for (const face of oldFaces) {
+        const pieces = partitionCropFace(face, dividers), area = cropProjectedArea(face),
+          sum = pieces.reduce((total, piece) => total + cropProjectedArea(piece.vertices), 0);
+        if (Math.abs(sum - area) > Math.max(1e-12, Math.abs(area) * 1e-10)) { conserved = false; break; }
+        for (const piece of pieces) {
+          actualPieces.add(piece.piece);
+          appendCropPiece(replacement, piece.vertices, maturityTones[piece.piece % maturityTones.length]);
+        }
+      }
+      const extra = replacement.indices.length / 3 - oldFaces.length,
+        accepted = conserved && extra >= 0 && extra <= detailTriangleBudget;
+      if (accepted) {
+        // Replace only this field's existing accepted faces. New points retain
+        // their old support plane and UVs; no new crop area or survey is added.
+        crops.positions.length = startVertex * 3; crops.colors.length = startVertex * 4;
+        crops.uvs.length = startVertex * 2; crops.indices.length = start;
+        crops.positions.push(...replacement.positions); crops.colors.push(...replacement.colors); crops.uvs.push(...replacement.uvs);
+        crops.indices.push(...replacement.indices.map(index => index + startVertex));
+        detailTriangleBudget -= extra; addedCropTriangles += extra;
+      }
+      const limitStart = fieldLimits.indices.length;
+      if (detail.limit !== undefined && detailTriangleBudget > 0) {
+        const divider = dividers[detail.limit], tangent = { x: -divider.nz, z: divider.nx },
+          middle = divider.x * tangent.x + divider.z * tangent.z,
+          halfLength = (detail.length ?? .16) / 2, halfWidth = .003,
+          limitColor = Color3.FromHexString(detail.green ? "#627C3D" : "#D7C391"),
+          approved = (p: CropFaceVertex) => {
+            const key = `${p.x}:${p.z}`, cached = detailGuards.get(key);
+            if (cached !== undefined) return cached;
+            if (detailGuardChecks >= 700) return false;
+            detailGuardChecks++;
+            const valid = available(p.x, p.z, .014) && !constructionReservationContains(p.x, p.z, .016);
+            detailGuards.set(key, valid); return valid;
+          },
+          average = (a: CropFaceVertex, b: CropFaceVertex, c?: CropFaceVertex) => c ?
+            interpolateCropVertex(interpolateCropVertex(a, b, .5), c, 1 / 3) : interpolateCropVertex(a, b, .5);
+        for (const face of oldFaces) {
+          let band = clipCropPolygon(face, { ...divider, offset: divider.offset - halfWidth }, false);
+          band = clipCropPolygon(band, { ...divider, offset: divider.offset + halfWidth }, true);
+          band = clipCropPolygon(band, { nx: tangent.x, nz: tangent.z, offset: middle - halfLength }, false);
+          band = clipCropPolygon(band, { nx: tangent.x, nz: tangent.z, offset: middle + halfLength }, true);
+          for (let i = 1; i < band.length - 1 && detailTriangleBudget > 0; i++) {
+            const a = band[0], b = band[i], c = band[i + 1];
+            if (Math.abs(cropProjectedArea([a, b, c])) <= 1e-14 ||
+              ![a, b, c, average(a, b), average(b, c), average(c, a), average(a, b, c)].every(approved)) continue;
+            const tinted = [a, b, c].map(p => ({ ...p, color: [limitColor.r, limitColor.g, limitColor.b] }));
+            appendCropPiece(fieldLimits, tinted, [1, 1, 1], detail.green ? .007 : .004);
+            detailTriangleBudget--;
+          }
+        }
+      }
+      detailRanges.push({ id: field.id, oldIndexRange: [oldStart, oldStart + oldEnd - start],
+        newIndexRange: [start, crops.indices.length], pieces: accepted ? actualPieces.size : 1,
+        addedTriangles: accepted ? extra : 0, limitTriangles: (fieldLimits.indices.length - limitStart) / 3,
+        status: !oldFaces.length ? "no-accepted-crop" : accepted ? "partitioned" : conserved ? "budget-fallback" : "area-fallback" });
     }
     if (crops.indices.length === start) continue;
     nationalParcels++;
@@ -2775,9 +2987,13 @@ function buildFields(
   const rowMaterial = material(scene, "landscape-crop-detail", "#FFFFFF");
   rowMaterial.backFaceCulling = false;
   const cropMesh = finish(scene, "landscape-agriculture", crops, cropMaterial, false);
-  cropMesh.metadata = { ...cropMesh.metadata, nationalParcels, composedParcels: true };
+  cropMesh.metadata = { ...cropMesh.metadata, nationalParcels, composedParcels: true,
+    maturityDetails: { fields: detailRanges, addedTriangles: addedCropTriangles,
+      limitTriangles: fieldLimits.indices.length / 3, guardPointChecks: detailGuardChecks,
+      triangleBudgetRemaining: detailTriangleBudget } };
   meshes.push(cropMesh);
   meshes.push(finish(scene, "landscape-crop-rows", rows, rowMaterial, false));
+  if (fieldLimits.indices.length) meshes.push(finish(scene, "landscape-field-limits", fieldLimits, rowMaterial, false));
   meshes.push(finish(scene, "landscape-farm-lanes", lanes, rowMaterial, false));
   const hedgeMaterial = material(scene, "landscape-hedges", "#FFFFFF");
   hedgeMaterial.diffuseTexture = textures.leaves;

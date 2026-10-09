@@ -8,9 +8,10 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/core/Meshes/instancedMesh";
 import { mountainFaceSurvey } from "./map-land-crags.ts";
 import { landContains, riverContains } from "./map-landscape.ts";
+import { fractureMineralTerrain, type MineralFractureFace } from "./map-mineral-fractures.ts";
 
 type Point = { x: number; z: number };
-type Face = { polygon: Point[]; heights: number[]; area: number; alpine: boolean };
+type Face = MineralFractureFace & { area: number };
 type Geometry = { positions: number[]; indices: number[]; colors: number[]; uvs: number[] };
 const STEP = .20;
 function random(a: number, b: number) {
@@ -201,7 +202,9 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
         alpine = band >= 100000 && band < 110000 || band >= 2000000 && band < 4560000,
         pyrenean = band >= 110000 && band < 120000 || band >= 4560000 && band < 7120000;
       if (!alpine && !pyrenean) continue;
-      const face = { polygon, heights: world.map(p => p.y), area, alpine }; faces.push(face); insert(mineral, polygon, face);
+      const face = { mesh, band,
+        polygon, heights: world.map(p => p.y), area, alpine };
+      faces.push(face); insert(mineral, polygon, face);
     }
   }
   const rectangles = (minX: number, maxX: number, minZ: number, maxZ: number) =>
@@ -293,6 +296,8 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
   scene.metadata = { ...scene.metadata, mountainRocks: { count: placements.length, alpineCount, pyreneanCount,
     templates: templates.size, sourceTriangles: faces.length, placements,
     method: "Actual mineral triangles and full scenery footprints, grounded below the lowest true soil sample; shared rock/snow geometry." } };
+  // Sculpt only unoccupied ground after all original stone/snow seats exist.
+  fractureMineralTerrain(scene, faces, barriers, placements.map(p => p.footprint), STEP);
   mineral.clear(); barriers.clear();
   return output;
 }

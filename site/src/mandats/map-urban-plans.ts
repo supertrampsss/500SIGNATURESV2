@@ -172,6 +172,30 @@ const footprintGroups = [...groupedFootprints.values()].map(group => {
     maxZ: Math.max(...bounds.map(bound => bound.maxZ)) };
 });
 
+// Static unions of the private group boxes. Search visits the nearer child first;
+// local signed distances and exceptional inputs keep their original path.
+type FootprintGroupNode = {
+  minX: number; maxX: number; minZ: number; maxZ: number;
+} & ({ group: typeof footprintGroups[number] } | { left: FootprintGroupNode; right: FootprintGroupNode });
+function buildFootprintGroupTree(groups: typeof footprintGroups): FootprintGroupNode {
+  const bounds = { minX: Math.min(...groups.map(group => group.minX)),
+    maxX: Math.max(...groups.map(group => group.maxX)), minZ: Math.min(...groups.map(group => group.minZ)),
+    maxZ: Math.max(...groups.map(group => group.maxZ)) };
+  if (groups.length === 1) return { ...bounds, group: groups[0] };
+  const splitX = bounds.maxX - bounds.minX >= bounds.maxZ - bounds.minZ;
+  const ordered = [...groups].sort((a, b) => splitX
+    ? (a.minX + a.maxX) - (b.minX + b.maxX)
+    : (a.minZ + a.maxZ) - (b.minZ + b.maxZ));
+  const middle = Math.floor(ordered.length / 2);
+  return { ...bounds, left: buildFootprintGroupTree(ordered.slice(0, middle)),
+    right: buildFootprintGroupTree(ordered.slice(middle)) };
+}
+const footprintGroupTree = buildFootprintGroupTree(footprintGroups);
+// Use the tree only around the authored terrain; distant finite queries retain
+// the original stable group order and its floating-point pruning behaviour.
+const footprintTreeBounds = { minX: footprintGroupTree.minX - 1, maxX: footprintGroupTree.maxX + 1,
+  minZ: footprintGroupTree.minZ - 1, maxZ: footprintGroupTree.maxZ + 1 };
+
 // These private footprint copies and their index remain fixed for this module.
 // Exact number keys preserve neighbouring doubles; extra unique queries simply
 // bypass insertion once the cache budget is full.
@@ -209,6 +233,23 @@ function calculateUrbanFootprint(x: number, z: number, reuseGroups: boolean): nu
   // Every footprint nearer than this reach is in the point's cell. Distant
   // queries use group bounds to retain the exact distance, rather than a cap.
   if (clearance < indexedReach) return clearance;
+  if (reuseGroups && x >= footprintTreeBounds.minX && x <= footprintTreeBounds.maxX
+    && z >= footprintTreeBounds.minZ && z <= footprintTreeBounds.maxZ) {
+    const lowerBound = (node: FootprintGroupNode) => Math.hypot(Math.max(node.minX - x, 0, x - node.maxX),
+      Math.max(node.minZ - z, 0, z - node.maxZ));
+    const visit = (node: FootprintGroupNode, bound: number): void => {
+      if (bound > Math.max(0, clearance)) return;
+      if ("group" in node) {
+        for (const footprint of node.group.footprints) clearance = Math.min(clearance, distance(footprint));
+        return;
+      }
+      const leftBound = lowerBound(node.left), rightBound = lowerBound(node.right);
+      if (leftBound <= rightBound) { visit(node.left, leftBound); visit(node.right, rightBound); }
+      else { visit(node.right, rightBound); visit(node.left, leftBound); }
+    };
+    visit(footprintGroupTree, 0);
+    return clearance;
+  }
   const groups = reuseGroups ? footprintGroupQueries : footprintGroups.map(group => ({ group,
     lowerBound: Math.hypot(Math.max(group.minX - x, 0, x - group.maxX),
       Math.max(group.minZ - z, 0, z - group.maxZ)) }));

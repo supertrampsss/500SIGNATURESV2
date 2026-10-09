@@ -1251,6 +1251,20 @@ function placeFallbackMarkers(host: HTMLElement, state: MandateMapState): void {
     element.style.top = `${Math.round(point.y)}px`;
   }
 }
+function watchPreviewImage(host: HTMLElement): (() => void) | undefined {
+  const image = host.querySelector<HTMLImageElement>(".mandate-map__preview");
+  if (!image) return;
+  const update = () => host.classList.toggle("mandate-map--preview-ready",
+    image.complete && image.naturalWidth > 0);
+  image.addEventListener("load", update);
+  image.addEventListener("error", update);
+  update();
+  return () => {
+    image.removeEventListener("load", update);
+    image.removeEventListener("error", update);
+  };
+}
+let previewImageCleanup: ReturnType<typeof watchPreviewImage>;
 let controller: ReturnType<typeof mount> | undefined,
   activeHost: HTMLElement | undefined,
   fallbackResize: ResizeObserver | undefined,
@@ -1272,6 +1286,10 @@ export function syncMandateMap(
   light: boolean,
 ): void {
   const host = root.querySelector<HTMLElement>("[data-mandate-map]");
+  if (previewImageCleanup && (game || activeHost !== host)) {
+    previewImageCleanup();
+    previewImageCleanup = undefined;
+  }
   if (!host) {
     cancelMapMount();
     controller?.dispose();
@@ -1286,8 +1304,8 @@ export function syncMandateMap(
     return;
   }
   if (!game) {
-    // The entry has no adopted mandate. Keep its existing SVG preview responsive
-    // instead of constructing and compiling a full country behind Reprendre.
+    // The entry has no adopted mandate. Keep its image or SVG preview responsive
+    // while Commencer and Reprendre remain immediately available.
     cancelMapMount();
     controller?.dispose();
     fallbackResize?.disconnect();
@@ -1295,6 +1313,7 @@ export function syncMandateMap(
     controller = undefined;
     activeHost = host;
     host.dataset.renderer = "preview";
+    previewImageCleanup ??= watchPreviewImage(host);
     host.setAttribute("aria-busy", "false");
     host.querySelector<HTMLElement>("[data-map-status]")!.textContent = "";
     return;

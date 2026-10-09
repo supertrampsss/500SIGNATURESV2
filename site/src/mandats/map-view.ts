@@ -21,6 +21,8 @@ import { iconForTopic, mapIcon, toneForTopic } from "./map-icons.ts";
 import type { Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
 
+const welcomeDioramaUrl = new URL("./textures/welcome-diorama.png", import.meta.url).href;
+
 export const cleanGameText = (text: string) =>
   text
     .replace(/[—–]/g, ", ")
@@ -118,7 +120,7 @@ function geographicLabels(): string {
 export function mapWorld(game: Game | null): string {
   const state = mapState(game);
   return `<section class="mandate-map" data-mandate-map data-renderer="loading" data-movements="${state.movements.length}" aria-label="Carte de France et sujets du mandat">
-    ${fallbackMap()}<canvas data-map-canvas class="mandate-map__canvas" aria-hidden="true"></canvas>${geographicLabels()}
+    ${fallbackMap()}${game === null ? `<img class="mandate-map__preview" src="${e(welcomeDioramaUrl)}" width="1268" height="801" alt="" aria-hidden="true" draggable="false" decoding="async">` : ""}<canvas data-map-canvas class="mandate-map__canvas" aria-hidden="true"></canvas>${geographicLabels()}
     <div class="mandate-map__markers" data-map-markers>${state.markers
       .map((item, index) => {
         const { x, z } = item.id.startsWith("policy:") ? { x: 0, z: 0 } :

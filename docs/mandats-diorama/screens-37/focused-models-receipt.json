@@ -1,0 +1,24 @@
+{
+  "build": "37",
+  "suite": "focused-models",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "playwright",
+    "test",
+    "--config",
+    "playwright.rework.config.ts",
+    "--workers=1",
+    "--project=desktop",
+    "--grep",
+    "authored models load after a real decision"
+  ],
+  "cwd": "/workspace/500SIGNATURESV2/site",
+  "exitCode": 0,
+  "shellExitCode": 0,
+  "startedNs": 1791547915415146210,
+  "confirmedAt": "2026-10-09T12:12:59.257Z",
+  "confirmedBy": "Actual subprocess.Popen.wait() return value",
+  "logSha256": "9e54c2ed29e0b15d4c773419b8143a6d19a7dac5f844ca0edea8917972c23dc2"
+}

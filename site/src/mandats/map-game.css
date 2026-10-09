@@ -270,12 +270,20 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
 }
 .mandate-map__canvas,
 .mandate-map__fallback,
+.mandate-map__preview,
 .mandate-map__markers {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
+.mandate-map__preview {
+  display: none;
+  object-fit: contain;
+  pointer-events: none;
+}
+.mandate-map[data-renderer="preview"].mandate-map--preview-ready .mandate-map__preview { display: block; }
+.mandate-map[data-renderer="preview"].mandate-map--preview-ready .mandate-map__fallback { visibility: hidden; }
 .mandate-map__canvas {
   display: block;
   outline: none;

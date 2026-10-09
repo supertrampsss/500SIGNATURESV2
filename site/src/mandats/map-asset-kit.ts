@@ -8,6 +8,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import type { Material } from "@babylonjs/core/Materials/material";
 import type { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { prepareCathedralLimestone } from "./map-cathedral-material.ts";
 import "@babylonjs/loaders/glTF/2.0/glTFLoader";
 import "@babylonjs/loaders/glTF/glTFFileLoader";
 import "@babylonjs/core/Meshes/instancedMesh";
@@ -57,6 +58,7 @@ export function loadAssetKit(scene: Scene, url: string): Promise<AssetKit> {
 }
 
 async function load(scene: Scene, url: string): Promise<AssetKit> {
+  const cathedralKit = url.split("?")[0] === "/mandats/models/cathedrale.glb";
   const container = await LoadAssetContainerAsync(url, scene, {
     pluginExtension: ".glb",
   });
@@ -82,6 +84,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       surface.environmentIntensity = 1.00;
       surface.specularIntensity = 0.5;
       surface.ambientTextureStrength = 0.75;
+      if (cathedralKit) prepareCathedralLimestone(surface);
     }
   }
   let disposed = false, serial = 0;
@@ -152,6 +155,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
           tinted.transparencyMode = original.transparencyMode;
           tinted.useAlphaFromAlbedoTexture = original.useAlphaFromAlbedoTexture;
           tinted.backFaceCulling = original.backFaceCulling;
+          if (cathedralKit) prepareCathedralLimestone(tinted);
           material = tinted;
         } else if (mesh.material instanceof StandardMaterial) {
           const original = mesh.material;

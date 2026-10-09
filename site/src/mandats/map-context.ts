@@ -494,25 +494,65 @@ export async function buildMapContext(
   surface.ambientColor = new Color3(0.18, 0.18, 0.15);
   const size = 512, rgba = new Uint8Array(size * size * 4),
     relief = new Float32Array(size * size), normals = new Uint8Array(size * size * 4);
-  for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
-    const u = x / size, v = z / size,
-      broad = periodicMaterialNoise(u * 23 + 19.3, v * 23 + 37.2, 23),
+  // Fractured mineral planes, rather than rounded noise lobes. Each local
+  // plate covers about .097 source units; these are material normals only.
+  const platePeriod = 23, plates = new Float32Array(platePeriod * platePeriod * 5),
+    plateIndex = (x: number, z: number) => (((z % platePeriod + platePeriod) % platePeriod) *
+      platePeriod + (x % platePeriod + platePeriod) % platePeriod) * 5;
+  for (let z = 0; z < platePeriod; z++) for (let x = 0; x < platePeriod; x++) {
+    const at = plateIndex(x, z);
+    plates[at] = .18 + hash(x * 7 + 83, z * 11 + 17) * .64;
+    plates[at + 1] = .18 + hash(x * 13 + 31, z * 5 + 71) * .64;
+    plates[at + 2] = hash(x * 19 + 53, z * 17 + 29);
+    plates[at + 3] = hash(x * 23 + 11, z * 13 + 47) - .5;
+    plates[at + 4] = hash(x * 11 + 97, z * 19 + 3) - .5;
+  }
+  const platePlane = (at: number, x: number, z: number) => (plates[at + 2] - .5) * .10 +
+    (x * plates[at + 3] + z * plates[at + 4]) * .75;
+  function mineralSample(u: number, v: number) {
+    const sx = u * platePeriod, sz = v * platePeriod, ix = Math.floor(sx), iz = Math.floor(sz);
+    let first = Infinity, second = Infinity, firstAt = 0, secondAt = 0,
+      firstX = 0, firstZ = 0, secondX = 0, secondZ = 0;
+    for (let oz = -1; oz <= 1; oz++) for (let ox = -1; ox <= 1; ox++) {
+      const cx = ix + ox, cz = iz + oz, at = plateIndex(cx, cz),
+        dx = sx - cx - plates[at], dz = sz - cz - plates[at + 1], distance = dx * dx + dz * dz;
+      if (distance < first) {
+        second = first; secondAt = firstAt; secondX = firstX; secondZ = firstZ;
+        first = distance; firstAt = at; firstX = dx; firstZ = dz;
+      } else if (distance < second) {
+        second = distance; secondAt = at; secondX = dx; secondZ = dz;
+      }
+    }
+    const gap = Math.sqrt(second) - Math.sqrt(first),
       middle = periodicMaterialNoise(u * 47 + 4.6, v * 47 + 17.7, 47),
       fine = periodicMaterialNoise(u * 127 + 41.5, v * 127 + 11.3, 127),
-      chips = smooth(clamp((periodicMaterialNoise(u * 79 + 43.4, v * 79 + 11.9, 79) - .58) * 4.8)),
-      shade = Math.max(0, Math.min(255, 224 + (broad - .5) * 9 + (middle - .5) * 13 +
-        (fine - .5) * 16 + chips * 10)),
+      blend = .5 + .5 * smooth(clamp(gap / .14)),
+      slab = mix(platePlane(secondAt, secondX, secondZ), platePlane(firstAt, firstX, firstZ), blend),
+      mineral = mix(plates[secondAt + 2], plates[firstAt + 2], blend),
+      // Weathering interrupts the joints, avoiding a continuous paving grid.
+      joint = (1 - smooth(clamp(gap / .085))) * smooth(clamp((middle - .28) / .44)),
+      chips = smooth(clamp((fine - .60) / .30));
+    return {
+      relief: .5 + slab - joint * .085 + (middle - .5) * .02 + (fine - .5) * .028,
+      shade: 226 + (mineral - .5) * 22 + (fine - .5) * 12 + chips * 7 - joint * 30,
+    };
+  }
+  for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
+    const sample = mineralSample(x / size, z / size),
+      shade = Math.max(0, Math.min(255, sample.shade)),
       at = (z * size + x) * 4;
-    // Small mineral chips vary over a few native pixels, rather than forming
-    // broad cloudy hills. This texture contains no illumination or scene image.
-    relief[z * size + x] = .5 + broad * .02 + middle * .095 + chips * .065 + fine * .04;
+    // Albedo describes mineral/soil variation, never a painted highlight.
+    // Inclined slabs and broken joints respond to the scene's actual sunlight.
+    relief[z * size + x] = sample.relief;
     rgba.set([shade, shade + 1, Math.max(0, shade - 3), 255], at);
   }
   const heightAt = (x: number, z: number) => relief[
     ((z + size) % size) * size + (x + size) % size];
   for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
-    const dx = (heightAt(x - 1, z) - heightAt(x + 1, z)) * 8,
-      dz = (heightAt(x, z - 1) - heightAt(x, z + 1)) * 8,
+    const rawX = (heightAt(x - 1, z) - heightAt(x + 1, z)) * 8,
+      rawZ = (heightAt(x, z - 1) - heightAt(x, z + 1)) * 8,
+      attenuation = Math.max(1, Math.hypot(rawX, rawZ) / 1.1),
+      dx = rawX / attenuation, dz = rawZ / attenuation,
       length = Math.hypot(dx, dz, 1), at = (z * size + x) * 4;
     normals.set([128 + dx / length * 127, 128 + dz / length * 127,
       128 + 127 / length, 255], at);
