@@ -67,37 +67,86 @@ function rockGeometry(variant: number) {
   const body: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
     snow: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
     palette = ["#8D8980", "#A69983", "#AFA188", "#7F888B", "#AAA494", "#998D7C"],
-    color = Color3.FromHexString(palette[variant]);
-  for (let ring = 0; ring < 4; ring++) for (let i = 0; i < 8; i++) {
-    const a = Math.PI * 2 * i / 8 + (random(i, variant + 31) - .5) * .09,
-      radius = (.94 + random(i, variant + 41) * .12) * [1, .97, .78, .43][ring],
-      offsetX = ring > 1 ? (random(variant, 77) - .5) * .16 : 0,
-      offsetZ = ring > 1 ? (random(variant, 91) - .5) * .14 : 0,
-      y = ring === 0 ? 0 : [0, .25, .65, .94][ring] + (random(i * 17 + ring, variant + 11) - .5) * .10,
-      tone = .94 + random(i * 7 + ring, variant + 79) * .12;
-    body.positions.push(Math.cos(a) * radius + offsetX, y, Math.sin(a) * radius + offsetZ);
+    color = Color3.FromHexString(palette[variant]),
+    angles = [-.10, .88, 2.07, 3.33, 4.36, 5.47],
+    radii = [1.02, .91, 1.05, .88, .99, .86],
+    shoulderRadii = [.76, .86, .72, .83, .68, .89],
+    shoulderLevels = [.28, .43, .32, .41, .26, .38],
+    upperRadii = [.44, .64, .55, .61, .43, .54],
+    upperLevels = [.53, .65, .62, .57, .68, .56],
+    phase = (random(variant, 201) - .5) * .46,
+    leanX = (random(variant, 203) - .5) * .18,
+    leanZ = (random(variant, 207) - .5) * .14,
+    rotate = (x: number, z: number) => ({ x: x * Math.cos(phase) - z * Math.sin(phase),
+      z: x * Math.sin(phase) + z * Math.cos(phase) });
+  const vertex = (x: number, y: number, z: number, tone: number) => {
+    const p = rotate(x, z);
+    body.positions.push(p.x, y, p.z);
     body.colors.push(color.r * tone, color.g * tone, color.b * tone, 1);
-    body.uvs.push(i / 8, y * .70);
-  }
-  const snowy = (a: number, b: number, c: number) => {
-    const first = snow.positions.length / 3;
-    for (const id of [a, b, c]) {
-      snow.positions.push(body.positions[id * 3], body.positions[id * 3 + 1] + .012, body.positions[id * 3 + 2]);
-      snow.colors.push(.955, .968, .987, 1); snow.uvs.push(body.uvs[id * 2], body.uvs[id * 2 + 1]);
-    }
-    snow.indices.push(first, first + 1, first + 2);
+    body.uvs.push((p.x + 1.1) / 2.2, y * .70);
   };
-  for (let ring = 0; ring < 3; ring++) for (let i = 0; i < 8; i++) {
-    const j = (i + 1) % 8, a = ring * 8 + i, b = ring * 8 + j, c = (ring + 1) * 8 + j, d = (ring + 1) * 8 + i;
-    // Babylon LH normals use (a - b) × (c - b); wind the outer skin accordingly.
+  // Unequal sides, independently stepped shoulders and a leaning upper rim.
+  // These are geological wedges; there is no concentric rounded crown.
+  for (let ring = 0; ring < 3; ring++) for (let i = 0; i < 6; i++) {
+    const corner = (i + variant) % 6,
+      radius = ring === 0 ? radii[i] : ring === 1 ? shoulderRadii[corner] : upperRadii[corner],
+      y = ring === 0 ? 0 : (ring === 1 ? shoulderLevels[corner] : upperLevels[corner]) +
+        (random(i + ring * 19, variant + 211) - .5) * .045,
+      x = Math.cos(angles[i]) * radius + (ring === 0 ? 0 : leanX * (ring === 1 ? .45 : 1)),
+      z = Math.sin(angles[i]) * radius + (ring === 0 ? 0 : leanZ * (ring === 1 ? .45 : 1));
+    vertex(x, y, z, .94 + random(i + ring * 7, variant + 223) * .12);
+  }
+  // A short, off-centre two-point crest makes broad oblique facets without a needle.
+  vertex(leanX + .235, [.99, .92, 1, .95, .98, .94][variant], leanZ + .055, 1.02);
+  vertex(leanX - .205, [.87, 1, .88, .99, .91, .98][variant], leanZ - .045, .97);
+  const snowy = (a: number, b: number, c: number, face: number) => {
+    if ((face + variant * 3) % 8 === 2 || (face + variant * 3) % 8 === 4 ||
+      (face + variant * 3) % 8 === 7) return;
+    const p = [a, b, c].map(id => ({ x: body.positions[id * 3], y: body.positions[id * 3 + 1],
+      z: body.positions[id * 3 + 2] })),
+      ab = { x: p[0].x - p[1].x, y: p[0].y - p[1].y, z: p[0].z - p[1].z },
+      cb = { x: p[2].x - p[1].x, y: p[2].y - p[1].y, z: p[2].z - p[1].z },
+      nx = ab.y * cb.z - ab.z * cb.y, ny = ab.z * cb.x - ab.x * cb.z,
+      nz = ab.x * cb.y - ab.y * cb.x;
+    if (ny / Math.hypot(nx, ny, nz) < .34) return;
+    const line = .72 + random(face, variant + 227) * .10,
+      patch: Array<{ x: number; y: number; z: number }> = [];
+    // Clip the actual facet by local altitude, then expose a narrow stone border.
+    for (let i = 0; i < p.length; i++) {
+      const first = p[i], last = p[(i + 1) % p.length];
+      if (first.y >= line) patch.push(first);
+      if ((first.y >= line) !== (last.y >= line)) {
+        const t = (line - first.y) / (last.y - first.y);
+        patch.push({ x: first.x + (last.x - first.x) * t, y: line,
+          z: first.z + (last.z - first.z) * t });
+      }
+    }
+    if (patch.length < 3) return;
+    const centre = patch.reduce((sum, v) => ({ x: sum.x + v.x / patch.length,
+      y: sum.y + v.y / patch.length, z: sum.z + v.z / patch.length }), { x: 0, y: 0, z: 0 }),
+      inset = .82 + random(face, variant + 229) * .09,
+      first = snow.positions.length / 3;
+    for (const v of patch) {
+      const x = centre.x + (v.x - centre.x) * inset, y = centre.y + (v.y - centre.y) * inset,
+        z = centre.z + (v.z - centre.z) * inset;
+      snow.positions.push(x, y + .012, z); snow.colors.push(.955, .968, .987, 1);
+      snow.uvs.push((x + 1.1) / 2.2, y * .70);
+    }
+    for (let i = 1; i < patch.length - 1; i++) snow.indices.push(first, first + i, first + i + 1);
+  };
+  for (let ring = 0; ring < 2; ring++) for (let i = 0; i < 6; i++) {
+    const j = (i + 1) % 6, a = ring * 6 + i, b = ring * 6 + j,
+      c = (ring + 1) * 6 + j, d = (ring + 1) * 6 + i;
+    // Babylon LH: exterior normals are (a - b) × (c - b).
     body.indices.push(a, b, c, a, c, d);
-    if (ring === 2 && (i + variant * 3) % 8 < 5) { snowy(a, b, c); snowy(a, c, d); }
   }
-  for (let i = 1; i < 7; i++) {
-    body.indices.push(0, i + 1, i, 24, 24 + i, 24 + i + 1);
-    if ((i + variant) % 5 !== 0) snowy(24, 24 + i, 24 + i + 1);
+  for (let i = 1; i < 5; i++) body.indices.push(0, i + 1, i);
+  const roof = [[18, 12, 13], [18, 13, 14], [18, 14, 19], [19, 14, 15],
+    [19, 15, 16], [19, 16, 17], [19, 17, 18], [18, 17, 12]];
+  for (const [i, [a, b, c]] of roof.entries()) {
+    body.indices.push(a, b, c); snowy(a, b, c, i);
   }
-  return { body, snow, footprint: hull(Array.from({ length: 32 }, (_, i) =>
+  return { body, snow, footprint: hull(Array.from({ length: body.positions.length / 3 }, (_, i) =>
     ({ x: body.positions[i * 3], z: body.positions[i * 3 + 2] }))) };
 }
 

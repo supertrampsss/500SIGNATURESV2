@@ -82,31 +82,77 @@ function periodicNoise(x: number, y: number, period: number) {
   return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty;
 }
 
+type SurfaceGrain = {
+  x: number; y: number; cosine: number; sine: number;
+  length: number; width: number; bend: number; slender: boolean;
+};
+// Jittered, finite particles give clods and bent fibres a physical footprint.
+// Their wrapped seeds make the albedo and its paired normal tile seamlessly.
+function surfaceGrains(period: number, slenderFraction: number) {
+  const seeds: SurfaceGrain[] = [];
+  for (let y = 0; y < period; y++) for (let x = 0; x < period; x++) {
+    const angle = hash(x + 43, y + 97) * Math.PI * 2,
+      slender = hash(x + 211, y - 41) < slenderFraction;
+    seeds.push({ x: .18 + hash(x + 137, y + 79) * .64,
+      y: .18 + hash(x + 191, y + 17) * .64,
+      cosine: Math.cos(angle), sine: Math.sin(angle), slender,
+      length: slender ? .24 + hash(x + 251, y + 107) * .21 : .18 + hash(x + 71, y + 23) * .13,
+      width: slender ? .034 + hash(x - 29, y + 67) * .025 : .14 + hash(x + 11, y + 181) * .13,
+      bend: (hash(x + 307, y + 53) - .5) * (slender ? .38 : .07) });
+  }
+  const wrap = (value: number) => ((value % period) + period) % period;
+  return (u: number, v: number) => {
+    const x = u * period, y = v * period, ix = Math.floor(x), iy = Math.floor(y);
+    let clods = 0, fibres = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const cx = ix + dx, cy = iy + dy, seed = seeds[wrap(cy) * period + wrap(cx)],
+        px = x - cx - seed.x, py = y - cy - seed.y;
+      if (Math.abs(px) > .56 || Math.abs(py) > .56) continue;
+      const along = px * seed.cosine + py * seed.sine,
+        across = -px * seed.sine + py * seed.cosine - seed.bend * along * along,
+        distance = (along / seed.length) ** 2 + (across / seed.width) ** 2;
+      if (distance >= 1) continue;
+      const grain = (1 - distance) ** 2;
+      if (seed.slender) fibres = Math.max(fibres, grain);
+      else clods = Math.max(clods, grain);
+    }
+    return { clods, fibres };
+  };
+}
+
+function soilSample() {
+  const aggregates = surfaceGrains(41, .12), stems = surfaceGrains(61, .82);
+  return (u: number, v: number) => {
+    const aggregate = aggregates(u, v), stem = stems(u, v),
+      clods = aggregate.clods + stem.clods * .28,
+      fibres = stem.fibres + aggregate.fibres * .22,
+      pores = periodicNoise(u * 29 + 7.1, v * 29 + 3.7, 29) - .5,
+      micro = periodicNoise(u * 127 + 23.8, v * 127 + 51.1, 127) - .5;
+    return {
+      // The carrier preserves the existing parcel palette and mean tint.
+      tone: 227.1 + (clods - .10) * 13 - (fibres - .012) * 9 + pores * 4 + micro * 2,
+      height: .5 + clods * .11 - fibres * .027 + pores * .018 + micro * .034,
+    };
+  };
+}
+
 function mineralTextures(scene: Scene) {
   const size = 1024, heights = new Float32Array(size * size),
-    tones = new Float32Array(size * size);
+    tones = new Float32Array(size * size),
+    chips = surfaceGrains(29, .13), joints = surfaceGrains(13, .47);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = x / size, v = y / size,
       coarse = periodicNoise(u * 7 + 2.1, v * 7 + 4.7, 7),
       fine = periodicNoise(u * 127 + 8.3, v * 127 + 13.2, 127),
-      warp = periodicNoise(u * 5 + 1.9, v * 5 + 3.1, 5) - .5,
-      phase = (v * 9 + u * 2 + warp * .34) * Math.PI * 2,
-      bedding = .5 + .5 * Math.sin(phase),
-      seam = Math.max(0, 1 - Math.abs(Math.sin(phase)) * 9),
-      // Interrupted bedding and oblique joints stay open. A thresholded
-      // isotropic noise contour used to draw closed rings on every white face.
-      jointPhase = (u * 17 + v * 5 + warp * .24) * Math.PI * 2,
-      joint = Math.max(0, 1 - Math.abs(Math.sin(jointPhase)) * 15),
-      interruption = Math.max(0, Math.min(1,
-        (periodicNoise(u * 11 + 2.4, v * 11 + 7.1, 11) - .43) * 6)),
-      fracture = joint * interruption,
+      chip = chips(u, v), joint = joints(u, v),
+      // Finite joints change direction from one grain to another. They do not
+      // connect into closed rings or two crossing families of regular stripes.
+      fracture = joint.fibres,
       grain = hash(x, y) - .5, index = y * size + x;
-    // Sediment and local mineral joints vary the surface reflectance. They
-    // contain no direction of illumination or baked scene shadow.
-    tones[index] = 247 + (fine - .5) * 10 + grain * 2 + (coarse - .5) * 9 -
-      seam * 11 - fracture * 29;
-    heights[index] = .5 + coarse * .09 + bedding * .017 - seam * .026 -
-      fracture * .068 + fine * .028 + grain * .003;
+    tones[index] = 246.65 + (fine - .5) * 10 + grain * 2 + (coarse - .5) * 9 -
+      fracture * 25 + (chip.clods - .08) * 7;
+    heights[index] = .5 + coarse * .09 + chip.clods * .033 -
+      fracture * .059 + fine * .028 + grain * .003;
   }
   const rock = pixels(scene, "land-mineral-rock", size, (x, y) => {
     const tone = tones[y * size + x];
@@ -120,23 +166,19 @@ function mineralTextures(scene: Scene) {
 }
 
 export function landMaterialTextures(scene: Scene) {
+  const soil = soilSample(), soilHeights = new Float32Array(1024 * 1024);
   const earth = pixels(scene, "land-earth-grain", 1024, (x, y) => {
-    const fibers =
-      noise(x * 0.11, y * 0.027) * 0.24 +
-      noise(x * 0.019, y * 0.031) * 0.62 +
-      hash(x, y) * 0.14;
-    const tone = 204 + fibers * 44;
+    const { tone, height } = soil(x / 1024, y / 1024);
+    soilHeights[y * 1024 + x] = height;
     return [tone, tone + 1, tone - 4];
   });
-  const earthNormal = normal(
-    scene,
-    "land-earth-normal",
-    256,
-    (x, y) => noise(x * 0.13, y * 0.13) * 0.55 + noise(x * 0.5, y * 0.5) * 0.22,
-    1.6,
-  );
-  earthNormal.uScale = 8;
-  earthNormal.vScale = 8;
+  earth.gammaSpace = true;
+  const earthNormal = normal(scene, "land-earth-normal", 512, (x, y) =>
+    soilHeights[((y * 2 + 1024) % 1024) * 1024 + (x * 2 + 1024) % 1024], 3.1);
+  // The normals describe those same particles, at precisely the same UV scale.
+  // Previously the albedo was at 1 and unrelated nonperiodic normals at 8.
+  earth.uScale = earth.vScale = 4;
+  earthNormal.uScale = earthNormal.vScale = 4;
   const leaves = pixels(scene, "land-leaf-grain", 256, (x, y) => {
     const clusters = noise(x * 0.11, y * 0.12);
     const tiny = noise(x * 0.6, y * 0.38);

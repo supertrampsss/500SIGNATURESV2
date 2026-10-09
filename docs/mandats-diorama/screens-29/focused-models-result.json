@@ -1,0 +1,30 @@
+{
+  "build": "29",
+  "scope": "Only the existing desktop delayed/failed authored-model test, not the complete rework suite",
+  "actualSessionExitCode": 1,
+  "confirmedBy": "functions.write_stdin session2819 returned exit_code1",
+  "resultSha256": "038c766b8f10775258787a5b349e4c3eb990ad76db6b623038fd515b36c639c8",
+  "suite": "focused-models",
+  "actualExitCode": 1,
+  "status": "failed",
+  "counts": {
+    "expected": 0,
+    "unexpected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "total": 1
+  },
+  "unexpectedTests": [
+    {
+      "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+      "file": "mandats-rework.test.mjs",
+      "project": "desktop",
+      "outcome": "unexpected",
+      "annotations": [],
+      "attemptStatuses": [
+        "failed"
+      ]
+    }
+  ],
+  "reportSha256": "2e84d1d12a28392bf375b7f8702e702c4dfad3afc4c66f279b0be8ba8058718f"
+}

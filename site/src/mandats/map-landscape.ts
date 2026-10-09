@@ -13,7 +13,7 @@ import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapSourceCo
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
 import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey } from "./map-land-crags.ts";
-import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES } from "./map-land-composition.ts";
+import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES, TOURAINE_BERRY_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
 import {
   cityEnvelopeFootprints,
@@ -22,6 +22,7 @@ import {
   AUTHORED_PROJECT_RESERVATIONS,
 } from "./map-urban-plans.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
+import { geometryContactFrame, geometryProjectionVertices } from "./map-geometry-cache.ts";
 import { surveyHarbour, harbourPolygonsOverlap, harbourPolygonContains } from "./map-city-port-plans.ts";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -629,6 +630,35 @@ function cultivatedValleyBreakLines() {
   return lines;
 }
 
+// Continuous cultivated faces replace the old diffuse shoulders only here.
+// They share their exact source-frame contours with fields and wooded crests.
+function composedCoteauProfile(sx: number, sz: number) {
+  let height = 0, influence = 0;
+  for (const coteau of TOURAINE_BERRY_COTEAUX) {
+    const first = coteau.spine[0][0], last = coteau.spine[coteau.spine.length - 1][0];
+    if (sx <= first || sx >= last) continue;
+    const offset = sz - coteauSourceZ(coteau, sx), section = coteau.section,
+      low = section[0][0], high = section[section.length - 1][0];
+    if (offset <= low || offset >= high) continue;
+    const weight = smooth(clamp((sx - first) / .20)) * smooth(clamp((last - sx) / .20)) *
+      smooth(clamp((offset - low) / .19)) * smooth(clamp((high - offset) / .19));
+    if (weight <= influence) continue;
+    for (let i = 1; i < section.length; i++) {
+      const a = section[i - 1], b = section[i];
+      if (offset > b[0]) continue;
+      height = mix(a[1], b[1], clamp((offset - a[0]) / (b[0] - a[0])));
+      break;
+    }
+    influence = weight;
+  }
+  return { height, influence };
+}
+function composedCoteauBreakLines() {
+  return TOURAINE_BERRY_COTEAUX.flatMap(coteau =>
+    coteau.section.slice(1, -1).map(([offset]) =>
+      coteauContour(coteau, offset).map(([x, z]) => mapAuthoredPosition(x, z))));
+}
+
 function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral: number) {
   if (mineral > .40 || borderDistance(sx, sz) < .09) return 0;
   const clearance = cultivatedClearance(x, z);
@@ -665,7 +695,9 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
       (noise(sx * .82 + 41, sz * .93 + 17) - .45) * .035 * riverBlend * mineralBlend,
     section = cultivatedValleyProfile(x, z),
     influence = section.influence * smooth(clamp((borderDistance(sx, sz) - .27) / .15));
-  return mix(original, section.height * mineralBlend, influence) * protectedBlend * coastalBlend;
+  const existing = mix(original, section.height * mineralBlend, influence),
+    composed = parisAreaAt(x, z) ? { height: 0, influence: 0 } : composedCoteauProfile(sx, sz);
+  return mix(existing, composed.height * mineralBlend, composed.influence) * protectedBlend * coastalBlend;
 }
 
 type CoastalRockSample = { height: number; cover: number };
@@ -1023,15 +1055,9 @@ function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
       node.metadata?.asset !== "rock") roots.add(node);
   }
   for (const root of roots) {
-    const vertices: Vector3[] = [];
-    for (const mesh of root.getChildMeshes()) {
-      const positions = mesh.getVerticesData("position"), matrix = mesh.computeWorldMatrix(true);
-      if (!positions) continue;
-      for (let i = 0; i < positions.length; i += 3) vertices.push(Vector3.TransformCoordinates(
-        new Vector3(positions[i], positions[i + 1], positions[i + 2]), matrix));
-    }
-    const baseY = Math.min(...vertices.map(point => point.y)),
-      foot = vertices.filter(point => point.y <= baseY + .0001);
+    const contacts = root.getChildMeshes().map(geometryContactFrame),
+      baseY = Math.min(...contacts.map(contact => contact.minimumY)),
+      foot = contacts.flatMap(contact => contact.below(baseY + .0001));
     let lowest = heightAt(root.position.x, root.position.z);
     if (!Number.isFinite(lowest)) lowest = Infinity;
     for (const point of foot) {
@@ -1095,12 +1121,8 @@ function alpineOccupiedCover(trees: AbstractMesh[], fields: Mesh[]): AlpineOccup
   for (const root of roots) {
     const points: Point[] = [];
     for (const mesh of root.getChildMeshes()) {
-      const positions = mesh.getVerticesData("position"), matrix = mesh.computeWorldMatrix(true);
-      if (!positions) continue;
-      for (let i = 0; i < positions.length; i += 3) {
-        const point = Vector3.TransformCoordinates(new Vector3(positions[i], positions[i + 1], positions[i + 2]), matrix);
+      for (const point of geometryProjectionVertices(mesh))
         points.push({ x: point.x, z: point.z });
-      }
     }
     register(hull(points));
   }
@@ -1313,15 +1335,23 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
 // Broad irregular neves collect on the actual sculpted shelves and in
 // couloirs. Rocky ridges remain visible between them, including at high altitude.
 function alpineSnowCover(sx: number, sz: number, y: number, slope: number) {
-  const drift = noise(sx * 4.2 + 31, sz * 5.6 + 19),
-    channel = noise(sx * 10.3 + sz * 1.7 + 8, sz * 3.1 - sx * 2.4 + 23),
-    altitude = smooth(clamp((y - .34 - noise(sx * 2.7 + 17, sz * 3.9 + 5) * .045) / .20)),
-    shelf = 1 - smooth(clamp((slope - .62) / 2.40)),
-    patch = smooth(clamp((drift - .405) / .19)),
-    gully = smooth(clamp((channel - .50) / .16)) *
-      (1 - smooth(clamp((slope - 2.10) / 1.80))),
-    wind = .82 + noise(sx * 5.1 + 7, sz * 4.3 + 12) * .18;
-  return altitude * Math.max(shelf * patch, gully * wind);
+  const snowlineNoise = noise(sx * 2.7 + 17, sz * 3.9 + 5),
+    warp = (snowlineNoise - .5) * .58,
+    drift = noise(sx * 7.2 + 31, sz * 6.6 + 19),
+    channel = noise(sx * 11.8 + sz * 3.6 + warp + 8, sz * 2.7 - sx * 1.9 + 23),
+    branch = noise(sx * 5.2 - sz * 8.1 + 41, sz * 2.0 + sx * .8 - warp + 29),
+    altitude = smooth(clamp((y - .36 - snowlineNoise * .05) / .23)),
+    shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
+    pocket = smooth(clamp((drift - .59) / .16)),
+    mainGully = smooth(clamp((channel - .57) / .18)),
+    sideGully = smooth(clamp((branch - .64) / .17)) * .84,
+    gullySlope = smooth(clamp((slope - .16) / .36)) *
+      (1 - smooth(clamp((slope - 1.05) / 1.10))),
+    // Narrow, warped corridors collect snow; steep faces and rock ribs stay exposed.
+    rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
+      sz * 7.3 + sx * 2.1 + 61) - .64) / .18)),
+    accumulation = Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope);
+  return altitude * accumulation * (1 - rockRib * .78);
 }
 
 function material(scene: Scene, name: string, hex: string) {
@@ -1529,6 +1559,17 @@ function buildGround(
           cultivatedValleyProfile(point.x, point.z).influence < .02) continue;
         points.push([point.x, point.z]);
       }
+    // The large Touraine/Berry faces get real shared crests and terrace seams.
+    // No overlay contour or extra mesh substitutes for this terrain silhouette.
+    for (const line of composedCoteauBreakLines())
+      for (const point of densify(line, .045, false)) {
+        if (!contains(outline, point.x, point.z) || cultivatedClearance(point.x, point.z) < .21 ||
+          riverContains(point.x, point.z, .055) || constructionReservationContains(point.x, point.z, .035)) continue;
+        const source = mapAuthoredCoordinates(point.x, point.z);
+        if (borderDistance(source.x, source.z) <= .27 || mountainSourceHeight(source.x, source.z) > .40 ||
+          composedCoteauProfile(source.x, source.z).influence < .02) continue;
+        points.push([point.x, point.z]);
+      }
     // River beds need their own vertices; a coarse triangle spanning both banks
     // otherwise rises over the water even when the mathematical height is cut.
     for (const river of riverPaths)
@@ -1669,8 +1710,15 @@ function buildGround(
       meshes.push(shoreMesh);
       if (part === 0) colorTargets.push({ mesh: shoreMesh });
     }
-    const cliffs = geometry(), cliffFaceGroups: string[] = [];
+    const cliffs = geometry(), cliffFaceGroups: string[] = [], cliffFaceBlocks: number[] = [],
+      cliffColumnWeights: number[] = [];
     const cliffLayers = 6;
+    // Warm, exposed beds are taken from the confirmed miniature's lit coastal
+    // faces. These remain material colours, with the scene providing lighting.
+    const coastalOchre = Color3.FromHexString("#E6AD7E"),
+      coastalSandstone = Color3.FromHexString("#BE8A57"),
+      coastalLimestone = Color3.FromHexString("#C3B9A2"),
+      coastalIvory = Color3.FromHexString("#E4D1AB");
     // Contacts and survey heights stay fixed. Rock faces span different lengths
     // of coastline and break at its stronger corners instead of repeating ribs.
     const coastWinding = Math.sign(coast.reduce((area, point, index) => {
@@ -1707,6 +1755,16 @@ function buildGround(
       const seed = (block % coastBlocks.length) + part * 271;
       return hash(seed, 919) > .86 ? .002 + hash(seed, 937) * .004 : 0;
     };
+    const exposedBedLevels = (block: number) => {
+      const seed = (block % coastBlocks.length) + part * 397;
+      return [0, .08 + hash(seed, 1201) * .065, .29 + hash(seed, 1213) * .06,
+        .50 + hash(seed, 1223) * .07, .72 + hash(seed, 1231) * .07,
+        .89 + hash(seed, 1237) * .035, 1];
+    };
+    const exposedBedJoint = (block: number) => {
+      const seed = (block % coastBlocks.length) + part * 271;
+      return hash(seed, 919) > .86 ? .010 + hash(seed, 937) * .016 : 0;
+    };
     let coastArc = 0;
     for (let i = 0; i <= coast.length; i++) {
       const p = coast[i % coast.length];
@@ -1731,13 +1789,23 @@ function buildGround(
         profile = formation < .40 ? [0, .003, .003, .005, .020, .006, 0] :
           formation < .72 ? [0, .008, .028, .007, .038, .014, 0] :
           [0, .004, .010, .025, .013, .003, 0];
-      const top = landHeight(p.x, p.z);
+      const top = landHeight(p.x, p.z), source = mapAuthoredCoordinates(p.x, p.z),
+        rimWeight = coastalRockProfile(p.x, p.z, source.x, source.z).cover,
+        bedLeft = exposedBedLevels(block), bedRight = exposedBedLevels(block + 1),
+        brokenJoint = exposedBedJoint(block) * (1 - smooth(clamp(across / .13))) +
+          exposedBedJoint(block + 1) * (1 - smooth(clamp((1 - across) / .13))),
+        brokenProfile = formation < .40 ? [0, .003, .010, .028, .029, .014, 0] :
+          formation < .72 ? [0, .004, .026, .029, .010, .009, 0] :
+            [0, .003, .006, .008, .032, .013, 0];
+      // The existing coast's protected port, river, urban and works margins
+      // also suppress this under-face sculpture. No new support is introduced.
+      cliffColumnWeights.push(rimWeight);
       const shelf = hash(Math.floor(i / 9) + 241, 63),
         notch = hash(Math.floor(i / 4) + 337, 19);
       const levels = [0, .12 + shelf * .11, .34 + notch * .10, .52 + shelf * .10,
         .69 + notch * .12, .86 + shelf * .08, 1];
       for (let layer = 0; layer <= cliffLayers; layer++) {
-        const t = levels[layer];
+        const t = mix(levels[layer], mix(bedLeft[layer], bedRight[layer], clamp(across)), rimWeight);
         // The old top and bottom coordinates, including their tiny offsets,
         // stay exact. Every new shoulder retreats into the existing island.
         const contactJag =
@@ -1746,7 +1814,15 @@ function buildGround(
           shoulder = mix([0, .005, .009, .008, .013, .006, 0][layer], profile[layer], faceCore),
           retreat = Math.min(.045, Math.max(0, faceSetback + shoulder + fracture + lean)) *
             Math.sin(t * Math.PI),
-          jag = layer === 0 || layer === cliffLayers ? contactJag : -coastWinding * retreat;
+          bedContact = Math.min(1, t / .33) * Math.min(1, (1 - t) / .14),
+          brokenShoulder = mix([0, .003, .008, .009, .014, .007, 0][layer],
+            brokenProfile[layer], faceCore),
+          brokenRetreat = Math.min(.060, Math.max(0,
+            faceSetback * bedContact + brokenShoulder +
+            brokenJoint * smooth(clamp((t - .14) / .35)) * Math.sin(t * Math.PI) +
+            lean * 1.6)),
+          jag = layer === 0 || layer === cliffLayers ? contactJag :
+            -coastWinding * mix(retreat, brokenRetreat, rimWeight);
         const y = mix(top, -0.105 - hash(Math.floor(i / 5), 71) * 0.024, t);
         const familyStone = family < .52 ? stone : family < .82 ? brown : rock,
           lightFace = hash(block + part * 53, 811),
@@ -1777,8 +1853,14 @@ function buildGround(
             faceFormation = hash(faceBlock + part * 109, 617),
             capLayer = faceFormation < .40 ? 1 : faceFormation < .72 ? 3 : 2,
             footLayer = faceFormation < .40 ? 5 : faceFormation < .72 ? 4 : 3,
-            group = `${faceBlock}:${layer <= capLayer ? "cap" : layer <= footLayer ? "wall" : "foot"}`;
-          cliffFaceGroups.push(group, group);
+            protectedGroup = layer <= capLayer ? "cap" : layer <= footLayer ? "wall" : "foot",
+            rockGroup = layer === 1 ? "cap" : faceFormation < .40 ?
+              layer === 2 ? "shoulder" : layer <= 4 ? "wall" : "foot" :
+              faceFormation < .72 ? layer <= 3 ? "upper-wall" : layer <= 5 ? "lower-wall" : "foot" :
+                layer <= 4 ? "wall" : "foot",
+            active = Math.max(cliffColumnWeights[i - 1], rimWeight) > 0,
+            group = `${faceBlock}:${active ? rockGroup : protectedGroup}`;
+          cliffFaceGroups.push(group, group); cliffFaceBlocks.push(faceBlock, faceBlock);
         }
       }
     }
@@ -1787,9 +1869,19 @@ function buildGround(
       const corners = cliffs.indices.slice(face * 3, face * 3 + 3).map(original => {
         const key = `${original}:${cliffFaceGroups[face]}`, saved = rimVertices.get(key);
         if (saved !== undefined) return saved;
-        const p = original * 3, c = original * 4,
-          index = vertex(sculptedRim, cliffs.positions[p], cliffs.positions[p + 1], cliffs.positions[p + 2],
-            new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]));
+        const p = original * 3, c = original * 4, layer = original % (cliffLayers + 1),
+          column = Math.floor(original / (cliffLayers + 1)), faceBlock = cliffFaceBlocks[face],
+          family = hash(faceBlock + part * 211, 331),
+          bedColor = family < .56 ? coastalOchre : family < .85 ? coastalSandstone : coastalLimestone,
+          exposedColor = colorMix(bedColor, coastalIvory,
+            .04 + hash(faceBlock + part * 53, 811) * .14),
+          // A face belongs to a surveyed block, not to its neighbour's column.
+          // Sparse sediment variation never draws a continuous bright cap.
+          color = layer === 0 ? new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]) :
+            colorMix(new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]),
+              exposedColor.scale(.94 + hash(faceBlock + part * 283, layer < 3 ? 1013 : 1021) * .06),
+              cliffColumnWeights[column]),
+          index = vertex(sculptedRim, cliffs.positions[p], cliffs.positions[p + 1], cliffs.positions[p + 2], color);
         sculptedRim.uvs[index * 2] = cliffs.uvs[original * 2];
         sculptedRim.uvs[index * 2 + 1] = cliffs.uvs[original * 2 + 1];
         rimVertices.set(key, index);
@@ -2333,7 +2425,7 @@ function buildFields(
       palette = field.kind === "pasture" ? ["#74913B", "#8BA34A", "#9DB456", "#819D43"] :
         field.kind === "wheat" ? ["#C5AB4D", "#D9BD61", "#E1C975", "#BFA34E"] :
         ["#A5A450", "#BAAA5B", "#9DAA48", "#B6AD60"],
-      color = colorMix(Color3.FromHexString(palette[fieldIndex % palette.length]),
+      color = colorMix(Color3.FromHexString(palette[(field.paletteSlot ?? fieldIndex) % palette.length]),
         Color3.FromHexString(field.color), .18), start = crops.indices.length,
       triangulation = Delaunator.from(points, p => p.x, p => p.z).triangles;
     for (let i = 0; i < triangulation.length; i += 3) {
@@ -2367,7 +2459,7 @@ function buildFields(
       }
       flush();
     }
-    if (field.infill && fieldIndex % 5 === 0) {
+    if (field.infill && (field.paletteSlot ?? fieldIndex) % 5 === 0) {
       let run: Point[] = [];
       const flush = () => { if (run.length > 1) strip(lanes, run, .009,
         Color3.FromHexString("#D7C391"), .009); run = []; };
@@ -2575,7 +2667,9 @@ async function buildForests(scene: Scene, orchards: Point[]) {
         { x, z } = mapAuthoredPosition(sx, sz);
       const ground = landHeight(x, z);
       if (!contains(wood.polygon, x, z) || !landContains(x, z) || parisSector(x, z) ||
-        (wood.id.startsWith("bosquet-") && constructionReservationContains(x, z, .035)) ||
+        ((wood.id.startsWith("bosquet-") || wood.id === "lisiere-loire-centre" ||
+          wood.id === "bois-centre-sud" || wood.id === "lisiere-berry-bourbonnais") &&
+          constructionReservationContains(x, z, .035)) ||
         parisAreaAt(x, z) || nationalBlockAt(x, z) || urbanClearance(x, z) < 0.032 || nearbyRiver(x, z) ||
         ground < (wood.minHeight ?? -Infinity) || ground > (wood.maxHeight ?? 0.78) ||
         planted.some(p => Math.hypot(p.x - x, p.z - z) < (wood.minSpacing ?? 0.031))) continue;

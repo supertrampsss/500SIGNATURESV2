@@ -40,6 +40,16 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 29 capturée le 9 octobre 2026
+
+La [comparaison réelle 29](mandats-diorama/comparaison-29.html) conserve la référence et les cinq vues nationales et rapprochées. Les [sept relevés natifs](mandats-diorama/screens-29/verification.json) utilisent Chromium151, 1 672 × 941, DPR1, graine0 et zéro décision, avec zéro erreur ou avertissement console.
+
+**Verdict visuel : non conforme.** Les Alpes ont des crêtes angulaires, Paris des îlots et venelles, les coteaux centraux de grandes parcelles courbes et les falaises des facettes stratifiées. Les images montrent cependant une neige trop rare, une pierre trop grise, des campagnes encore olive et un rivage trop uniforme. La fidélité reste en cours.
+
+Le build complet a réellement passé 1 082 tests et toutes ses étapes. L’[audit physique composé](mandats-diorama/screens-29/physical-summary-final.json), avec son [reçu](mandats-diorama/screens-29/physical-receipt.json), vérifie les 737 maisons, lycée, arbres, places et projets sur 214 entrées verrouillées et les quatre GLB finaux. Les 305 rochers, leur winding, les contacts et le contrôle côtier dense passent les mêmes gardes que28. La construction CPU totale mesurée dure 24,27s ; aucun gain global de chargement n’est établi par le cache de géométrie partagé.
+
+Le [contrôle navigateur ciblé](mandats-diorama/screens-29/focused-models-result.json) du seul chargement différé des GLB échoue encore au délai existant de15s. Les quatre suites complètes restent non exécutées sur29 ; les succès historiques et les captures natives ne les remplacent pas.
+
 ## Passe 28 capturée le 9 octobre 2026
 
 La [comparaison réelle de la passe 28](mandats-diorama/comparaison-28.html) conserve la référence et cinq vues du jeu, dont Paris, Seine et Alpes. Les [sept relevés natifs](mandats-diorama/screens-28/verification.json) sont issus de Chromium 151 à 1 672 × 941, DPR 1, mouvement réduit, version 12, graine 0 et zéro décision. Les ressources effectivement reçues correspondent au [build figé](mandats-diorama/screens-28/build.json).
