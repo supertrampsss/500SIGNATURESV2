@@ -5,6 +5,8 @@ export type NationalField = {
   region: "bretagne" | "loire" | "centre" | "sud-ouest" | "garonne" | "rhone" | "est";
   outline: readonly NationalCompositionPoint[];
   angle: number;
+  /** Optional centreline for curved raised crop rows, in the same source frame as outline. */
+  rowGuide?: readonly NationalCompositionPoint[];
   kind: "wheat" | "pasture" | "vines";
   color: string;
   hedgedEdges?: readonly number[];
@@ -141,6 +143,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [-2.9391, 1.6316],
     ],
     angle: 3.0784,
+    rowGuide: [[-2.99, 1.595], [-2.69, 1.582], [-2.35, 1.518], [-2.01, 1.511]],
     kind: "wheat",
     color: "#F1C450",
   },
@@ -179,6 +182,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [-2.9221, 0.6249],
     ],
     angle: 3.02,
+    rowGuide: [[-2.96, 0.613], [-2.67, 0.613], [-2.35, 0.554], [-2.0, 0.536]],
     kind: "wheat",
     color: "#E7BC56",
   },
@@ -531,6 +535,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [1.6157, -1.6647],
     ],
     angle: 0.1724,
+    rowGuide: [[1.54, -1.719], [1.85, -1.723], [2.18, -1.617], [2.6, -1.57]],
     kind: "wheat",
     color: "#EDC55B",
   },
@@ -552,6 +557,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [1.5602, -2.0562],
     ],
     angle: 2.9303,
+    rowGuide: [[1.5, -2.085], [1.83, -2.082], [2.17, -2.234], [2.56, -2.211]],
     kind: "vines",
     color: "#D9AD55",
   },
@@ -569,6 +575,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [1.5672, -2.5221],
     ],
     angle: 0.0116,
+    rowGuide: [[1.49, -2.581], [1.79, -2.584], [2.1, -2.553], [2.39, -2.548]],
     kind: "vines",
     color: "#E4B754",
   },

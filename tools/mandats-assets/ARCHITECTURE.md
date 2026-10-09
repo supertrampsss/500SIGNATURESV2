@@ -30,7 +30,7 @@ pierre utilise une rugosité comprise entre 0,44 et 0,62, la terre cuite entre
 La pierre et les enduits possèdent des teintes chaudes distinctes. Les couvertures
 utilisent, en RGB linéaire, `(0,60 ; 0,16 ; 0,06)` pour les tuiles,
 `(0,74 ; 0,295 ; 0,095)` pour les tuiles claires et
-`(0,10 ; 0,16 ; 0,235)` pour l'ardoise. Le dessin des joints, le grain et les
+`(0,025 ; 0,045 ; 0,075)` pour l'ardoise. Le dessin des joints, le grain et les
 variations de teinte sont calculés sur les surfaces locales lors de la cuisson.
 
 Un maillage temporaire unique permet le placement UV sans superposition des
@@ -75,3 +75,15 @@ la fidélité de la carte. La validation visuelle doit comparer le jeu exécuté
 puis sur les formats mobiles.
 
 Les 154 adresses dominantes utilisent les nouvelles variantes avec une hauteur totale plafonnée à 0,34 unité et à 2,05 fois leur largeur ou profondeur maximale. Les autres bâtiments conservent leurs modèles et hauteurs. Le champ `bodyHeight` du JSON indique la hauteur du corps de chaque maison dans les unités du modèle, avant la mise à l’échelle du jeu.
+
+La palette source de l'ardoise utilise le bleu profond RGB linéaire
+`(0,025 ; 0,045 ; 0,075)`. Le changement concerne seulement l'albédo de ses
+îlots UV ; la pierre, les tuiles, les vitrages, les normales et les canaux ORM
+restent inchangés. Les fichiers `.blend` existants conservent leur géométrie et
+peuvent garder leur ancienne image intégrée. À chaque export final, y compris
+un export de LOD seul, `slate_albedo.py` synchronise l'image d'albédo du GLB avec
+l'atlas PNG local courant. Il vérifie que tous les autres bufferViews restent
+identiques octet par octet. Les modèles détaillés et distants utilisent la même
+image ; aucune couleur de toiture n'est appliquée globalement au matériau PBR.
+Une génération complète recuit directement la nouvelle palette enregistrée dans
+le générateur, sans retouche de la lumière dans les couleurs.

@@ -6,6 +6,7 @@ Run after architecture.py, without rebaking or modifying its high detail source:
 from __future__ import annotations
 
 import json
+import importlib.util
 import math
 import pathlib
 
@@ -119,6 +120,12 @@ def export_with_distance_lods(models):
         export_texcoords=True, export_normals=True, export_materials="EXPORT",
         export_cameras=False, export_lights=False,
     )
+    # The local PNG is authoritative even when .blend keeps an older packed
+    # albedo. This runs for full generation and standalone distance exports.
+    slate_spec = importlib.util.spec_from_file_location("slate_albedo", SOURCE / "slate_albedo.py")
+    slate_module = importlib.util.module_from_spec(slate_spec)
+    slate_spec.loader.exec_module(slate_module)
+    slate_module.sync_glb_albedo(OUTPUT / "architecture.glb", SOURCE / "architecture-atlas.png")
     (OUTPUT / "architecture.json").write_text(json.dumps({
         "version": 2, "units": "model units",
         "axes": "GLTF Y-up; local origin centered at ground",

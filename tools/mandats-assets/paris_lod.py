@@ -6,6 +6,7 @@ The high-detail .blend remains unchanged; no material or texture is duplicated.
 from __future__ import annotations
 
 import json
+import importlib.util
 import math
 import pathlib
 
@@ -103,6 +104,12 @@ def export_distance_geometry(models):
     bpy.ops.export_scene.gltf(filepath=str(OUTPUT/"paris.glb"),export_format="GLB",
         use_selection=True,export_yup=True,export_apply=True,export_texcoords=True,
         export_normals=True,export_materials="EXPORT",export_cameras=False,export_lights=False)
+    # The local PNG is authoritative even when .blend keeps an older packed
+    # albedo. This runs for full generation and standalone distance exports.
+    slate_spec = importlib.util.spec_from_file_location("slate_albedo", SOURCE / "slate_albedo.py")
+    slate_module = importlib.util.module_from_spec(slate_spec)
+    slate_spec.loader.exec_module(slate_module)
+    slate_module.sync_glb_albedo(OUTPUT / "paris.glb", SOURCE / "paris-atlas.png")
     (OUTPUT/"paris.json").write_text(json.dumps({"version":2,
         "axes":"GLTF Y-up; footprint centred at ground", "front":"+Z; hotel second facade +X",
         "distanceGeometry":"Named _distant models; high-detail geometry retained",

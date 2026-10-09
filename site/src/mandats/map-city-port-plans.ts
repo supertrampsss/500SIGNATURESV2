@@ -77,7 +77,8 @@ function ribbon(points: HarbourPoint[], width: number): HarbourPoint[][] {
 }
 
 /** The miniature's actual coastline supplies the curved quay and its land contact. */
-export function surveyHarbour(place: string, origin: HarbourPoint): HarbourPlan | undefined {
+export function surveyHarbour(place: string, origin: HarbourPoint,
+  groundHeight: (x: number, z: number) => number = landHeight): HarbourPlan | undefined {
   if (!["brest", "nantes", "marseille", "ajaccio"].includes(place)) return;
   const frontage = place === "ajaccio" ? .48 : place === "brest" ? .75 : place === "nantes" ? .85 : .90,
     apronDepth = place === "ajaccio" ? .070 : .108,
@@ -111,7 +112,7 @@ export function surveyHarbour(place: string, origin: HarbourPoint): HarbourPlan 
         if (!landContains(point.x - nx * .025, point.z - nz * .025)) score += 4;
         for (const offset of [.025, .11, .23, .40]) if (landContains(point.x + nx * offset, point.z + nz * offset)) score += 4;
         score += Math.max(0, .20 - nx * preferred[0] - nz * preferred[1]) * .30;
-        const shoreHeight = Math.max(landHeight(point.x, point.z), landHeight(point.x - nx * .035, point.z - nz * .035)) + .010,
+        const shoreHeight = Math.max(groundHeight(point.x, point.z), groundHeight(point.x - nx * .035, point.z - nz * .035)) + .010,
           base = place === "marseille" ? .016 : place === "nantes" ? .021 : place === "brest" ? .020 : .012,
           bay = place === "marseille" || place === "nantes" ? distance < -frontage * .18 ? .003 : distance > frontage * .18 ? .001 : -.003 : 0,
           height = Math.max(.008, Math.min(.032, shoreHeight - .055, base + (shoreHeight - .135) * .22 + bay));
@@ -180,7 +181,7 @@ export function surveyHarbour(place: string, origin: HarbourPoint): HarbourPlan 
       footprint = harbourRectangle(point, angle, width, depth);
     }
     if (footprint.some(p => !landContains(p.x, p.z))) continue;
-    const height = Math.max(...footprint.map(p => landHeight(p.x, p.z))) + .007;
+    const height = Math.max(...footprint.map(p => groundHeight(p.x, p.z))) + .007;
     plan.warehouses.push({ point: { x: point.x, z: point.z }, angle, width, depth, height, footprint });
     plan.landReservations.push(harbourRectangle(point, angle, width + .016, depth + .012));
   }

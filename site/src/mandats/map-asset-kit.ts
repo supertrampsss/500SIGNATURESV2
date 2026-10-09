@@ -24,6 +24,11 @@ export type AssetKit = {
 };
 
 const kits = new WeakMap<Scene, Map<string, Promise<AssetKit>>>();
+const architecturalKits = new Set([
+  "/mandats/models/architecture.glb",
+  "/mandats/models/paris.glb",
+  "/mandats/models/cathedrale.glb",
+]);
 
 /** Authored local models share geometry and materials across the miniature. */
 export function loadAssetKit(scene: Scene, url: string): Promise<AssetKit> {
@@ -47,6 +52,19 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
   if (scene.isDisposed) {
     container.dispose();
     throw new Error("Scene disposed during model loading.");
+  }
+  if (architecturalKits.has(url.split("?")[0])) {
+    for (const material of container.materials) {
+      if (material.getClassName() !== "PBRMaterial") continue;
+      const surface = material as PBRMaterial;
+      // PBR diffuse is normalized by pi; the landscape uses StandardMaterial.
+      // Calibrate only the architectural surfaces, preserving their atlas and
+      // ORM channels. Compensate direct specular so slate does not turn white.
+      surface.directIntensity = 2;
+      surface.environmentIntensity = 1.25;
+      surface.specularIntensity = 0.5;
+      surface.ambientTextureStrength = 0.75;
+    }
   }
   let disposed = false, serial = 0;
   const distantSources = new Map<Mesh, Mesh>();
@@ -90,6 +108,9 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
           tinted.albedoColor = original.albedoColor.multiply(tint);
           tinted.metallic = original.metallic;
           tinted.roughness = original.roughness;
+          tinted.directIntensity = original.directIntensity;
+          tinted.environmentIntensity = original.environmentIntensity;
+          tinted.specularIntensity = original.specularIntensity;
           tinted.albedoTexture = original.albedoTexture;
           tinted.bumpTexture = original.bumpTexture;
           tinted.ambientTexture = original.ambientTexture;

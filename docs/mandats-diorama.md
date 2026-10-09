@@ -40,6 +40,20 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 28 capturée le 9 octobre 2026
+
+La [comparaison réelle de la passe 28](mandats-diorama/comparaison-28.html) conserve la référence et cinq vues du jeu, dont Paris, Seine et Alpes. Les [sept relevés natifs](mandats-diorama/screens-28/verification.json) sont issus de Chromium 151 à 1 672 × 941, DPR 1, mouvement réduit, version 12, graine 0 et zéro décision. Les ressources effectivement reçues correspondent au [build figé](mandats-diorama/screens-28/build.json).
+
+**Verdict visuel : non conforme.** Les ardoises sont maintenant bleu sombre et la pierre se sépare mieux des toits. Les normales des volumes rocheux et leurs avertissements d’ombre sont corrigés. Les massifs se lisent cependant encore comme des amas de galets, la campagne reste trop plane et Paris conserve des files de façades répétitives. Cette passe est une étape intermédiaire ; elle ne reproduit pas la maquette à l’identique.
+
+Le terrain compose deux profils de vallées asymétriques et cinq parcelles à sillons courbes. Six secteurs littoraux reçoivent une épaisseur réelle, avec protections des ports, voies, bâtiments, cours d’eau et projets. La couverture intérieure du rivage est complétée par des triangles exacts, avec les couleurs et hauteurs interpolées du terrain existant. Les atlas des trois kits architecturaux corrigent uniquement leurs surfaces d’ardoise ; la géométrie, les UV, les normales et les autres textures sont conservés. Les générateurs synchronisent ces atlas lors des exports.
+
+`NODE_USE_ENV_PROXY=1 npm run check` a réellement réussi : 1 082 tests, types, compilation complète, pré-rendu et préparation hors connexion. Les sept captures natives enregistrent zéro erreur JavaScript, HTTP, requête ou console, et zéro avertissement console.
+
+Le [contrôle physique composé](mandats-diorama/screens-28/physical-summary-final.json), avec son [reçu réel](mandats-diorama/screens-28/physical-receipt.json), utilise les quatre GLB finaux et 213 entrées verrouillées. Il vérifie les contacts des 737 maisons, du lycée, des arbres, des huit places et rassemblements ainsi que les capacités des 28 familles de projets. Les 305 volumes rocheux restent ancrés dans les véritables triangles du sol. Le contrôle côtier dense conserve 179 172 sondages et rejoue les coordonnées historiques : aucune lacune intérieure ni occlusion terrestre sous les fleuves n’est observée dans ces contrôles. Cet audit CPU ne constitue pas un rendu graphique.
+
+La suite rework a réellement terminé en échec : 19 tests réussis, quatre échecs et neuf omissions prévues. Les échecs concernent le chargement différé des GLB sur ordinateur, la fin du parcours de rejeu sur mobile et deux reprises de sauvegarde sur WebKit. Les suites sociales, en-tête et compatibilité n’ont pas été exécutées après cet arrêt. Le [rapport de lecture des captures](mandats-diorama/screens-28/browser-review.json) conserve les observations sur ordinateur, à 390 et 320 pixels et sur WebKit. Le pilote logiciel cloud ne permet pas de conclure sur la fluidité d’un téléphone physique.
+
 ## Passe 25 capturée le 9 octobre 2026
 
 La [comparaison réelle de la passe 25](mandats-diorama/comparaison-25.html) montre la référence face à cinq captures du jeu, dont Paris, les fleuves et les Alpes. Les [sept relevés natifs](mandats-diorama/screens-25/verification.json) et le [build figé](mandats-diorama/screens-25/build.json) conservent les ressources servies, leurs empreintes et les entrées : Chromium 151, 1 672 × 941, DPR 1, mouvement réduit, version 12, graine 0, zéro décision.

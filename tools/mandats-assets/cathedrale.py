@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 from array import array
 import json
+import importlib.util
 import math
 import pathlib
 import struct
@@ -40,7 +41,7 @@ COLORS = {
     "pierre_patinee": (.55, .47, .35),
     "enduit_creme": (.67, .57, .42),
     "enduit_rose": (.57, .40, .30),
-    "ardoise": (.065, .087, .105),
+    "ardoise": (.025, .045, .075),
     "zinc": (.21, .25, .27),
     "tuile": (.40, .16, .083),
     "brique": (.36, .14, .075),
@@ -583,6 +584,12 @@ def export_distance_geometry(models):
     bpy.ops.export_scene.gltf(filepath=str(OUTPUT/"cathedrale.glb"),export_format="GLB",
         use_selection=True,export_yup=True,export_apply=True,export_texcoords=True,
         export_normals=True,export_materials="EXPORT",export_cameras=False,export_lights=False)
+    # Source PNGs are authoritative even when .blend retains an older packed
+    # albedo. Synchronize only the final image after both full and LOD exports.
+    slate_spec = importlib.util.spec_from_file_location("slate_albedo", SOURCE / "slate_albedo.py")
+    slate_module = importlib.util.module_from_spec(slate_spec)
+    slate_spec.loader.exec_module(slate_module)
+    slate_module.sync_glb_albedo(OUTPUT / "cathedrale.glb", SOURCE / "cathedrale-atlas.png")
     # The exporter omits zero-area triangles left by collapse. Record the actual
     # indexed runtime triangles as well as the source count when they differ.
     binary=(OUTPUT/"cathedrale.glb").read_bytes()

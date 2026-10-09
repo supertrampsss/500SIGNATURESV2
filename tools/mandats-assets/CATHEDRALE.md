@@ -57,3 +57,15 @@ Les aperçus Cycles sont enregistrés hors du dépôt dans
 `cathedrale-atlas-preview.png`. Ils permettent d’inspecter l’actif ; la fidélité
 de la carte complète se juge dans Babylon à partir de captures du jeu comparées
 à l’image confirmée.
+
+La palette source de l'ardoise utilise le bleu profond RGB linéaire
+`(0,025 ; 0,045 ; 0,075)`. Le changement concerne seulement l'albédo de ses
+îlots UV ; la pierre, les tuiles, les vitrages, les normales et les canaux ORM
+restent inchangés. Les fichiers `.blend` existants conservent leur géométrie et
+peuvent garder leur ancienne image intégrée. À chaque export final, y compris
+un export de LOD seul, `slate_albedo.py` synchronise l'image d'albédo du GLB avec
+l'atlas PNG local courant. Il vérifie que tous les autres bufferViews restent
+identiques octet par octet. Les modèles détaillés et distants utilisent la même
+image ; aucune couleur de toiture n'est appliquée globalement au matériau PBR.
+Une génération complète recuit directement la nouvelle palette enregistrée dans
+le générateur, sans retouche de la lumière dans les couleurs.

@@ -24,6 +24,7 @@ import { MAP_PLACES, mapPosition, mapSourcePosition, mapState } from "./map-stat
 import { COUNTRY_REFERENCE_POSE } from "./map-camera-projection.ts";
 import { buildLandscape, landHeight, landContains } from "./map-landscape.ts";
 import { buildCities } from "./map-cities.ts";
+import { buildMountainRocks } from "./map-mountain-rocks.ts";
 import { buildMapContext } from "./map-context.ts";
 import { buildMapWater } from "./map-water.ts";
 import { buildRegionBoundaries } from "./map-regions.ts";
@@ -214,7 +215,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       const compatible = new Map<string, Mesh[]>();
       const record = (mesh: AbstractMesh, castsShadow = true) => {
         mesh.isPickable = false;
-        mesh.receiveShadows = true;
+        // Instances inherit this flag from their shared source mesh.
+        if (mesh instanceof Mesh) mesh.receiveShadows = true;
         mesh.freezeWorldMatrix();
         if (castsShadow) shadows.addShadowCaster(mesh, false);
         batches.push(mesh);
@@ -990,8 +992,10 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
           const position = root.getAbsolutePosition();
           return { root, x: position.x, z: position.z };
         });
+      const rocks = buildMountainRocks(scene);
+      host.dataset.mountainRocks = String(scene.metadata?.mountainRocks?.count ?? 0);
       const moving = new Set<AbstractMesh>(vehicles.map(vehicle => vehicle.mesh));
-      finishScenery([...landscape.meshes, ...cities.meshes, ...context.meshes, ...regions, boatWash]
+      finishScenery([...landscape.meshes, ...cities.meshes, ...context.meshes, ...regions, boatWash, ...rocks]
         .filter(mesh => !moving.has(mesh)));
       sceneryReady = true;
       update(state, lightMode);

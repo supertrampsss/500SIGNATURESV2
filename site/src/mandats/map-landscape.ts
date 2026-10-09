@@ -1,4 +1,4 @@
-import { mapBaselinePosition, mapFinalFromBaseline } from "./map-camera-projection.ts";
+import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
 import { Scene } from "@babylonjs/core/scene";
@@ -7,8 +7,9 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import Delaunator from "delaunator";
+import earcut from "earcut";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
-import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapAuthoredPosition, mapAuthoredCoordinates, mapAuthoredJacobian } from "./map-state.ts";
+import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapSourceCoordinates, mapAuthoredPosition, mapAuthoredCoordinates, mapAuthoredJacobian } from "./map-state.ts";
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
 import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey } from "./map-land-crags.ts";
@@ -21,7 +22,7 @@ import {
   AUTHORED_PROJECT_RESERVATIONS,
 } from "./map-urban-plans.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
-import { surveyHarbour, harbourPolygonsOverlap } from "./map-city-port-plans.ts";
+import { surveyHarbour, harbourPolygonsOverlap, harbourPolygonContains } from "./map-city-port-plans.ts";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
@@ -528,8 +529,81 @@ for (const footprint of lowlandProtection) {
     }
 }
 
-function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral: number) {
-  if (mineral > .40 || borderDistance(sx, sz) < .09) return 0;
+type CultivatedValleySide = readonly (readonly [number, number])[];
+// Sections use the existing final river frame: a field keeps the same outline
+// and projection while its floor, benches and watershed become real ground.
+const cultivatedValleyProfiles: Array<{ river: number; sides: [CultivatedValleySide, CultivatedValleySide] }> = [
+  { river: 1, sides: [
+    [[0,0],[.16,0],[.31,.035],[.46,.042],[.71,.125],[.83,.133],[1.01,.162],[1.39,0]],
+    [[0,0],[.15,0],[.32,.056],[.52,.061],[.79,.155],[.92,.163],[1.16,.214],[1.65,0]],
+  ] },
+  { river: 3, sides: [
+    [[0,0],[.16,0],[.32,.052],[.48,.056],[.74,.158],[.88,.162],[1.13,.216],[1.67,0]],
+    [[0,0],[.15,0],[.31,.035],[.48,.040],[.78,.112],[.96,.115],[1.20,.154],[1.61,0]],
+  ] },
+];
+type CultivatedValleySegment = {
+  a: Point; b: Point; distance: number; length: number; widthA: number; widthB: number;
+  profile: (typeof cultivatedValleyProfiles)[number]; total: number;
+};
+const cultivatedValleyCells = new Map<string, CultivatedValleySegment[]>();
+for (const profile of cultivatedValleyProfiles) {
+  const sections = riverSections[profile.river],
+    total = sections[sections.length - 1].distance;
+  for (let i = 1; i < sections.length; i++) {
+    const a = sections[i - 1], b = sections[i],
+      length = Math.hypot(b.center.x - a.center.x, b.center.z - a.center.z);
+    if (length === 0) continue;
+    const segment = { a: a.center, b: b.center, distance: a.distance, length,
+      widthA: a.width, widthB: b.width, profile, total },
+      reach = Math.max(...profile.sides.map(side => side[side.length - 1][0])) +
+        Math.max(a.width, b.width) / 2;
+    for (let x = Math.floor((Math.min(a.center.x, b.center.x) - reach) / .5);
+      x <= Math.floor((Math.max(a.center.x, b.center.x) + reach) / .5); x++)
+      for (let z = Math.floor((Math.min(a.center.z, b.center.z) - reach) / .5);
+        z <= Math.floor((Math.max(a.center.z, b.center.z) + reach) / .5); z++) {
+        const key = `${x}:${z}`, cell = cultivatedValleyCells.get(key) ?? [];
+        cell.push(segment); cultivatedValleyCells.set(key, cell);
+      }
+  }
+}
+function cultivatedValleyProfile(x: number, z: number) {
+  const nearest = new Map<number, { segment: CultivatedValleySegment; t: number; distance: number; signed: number }>();
+  for (const segment of cultivatedValleyCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
+    const dx = segment.b.x - segment.a.x, dz = segment.b.z - segment.a.z,
+      t = clamp(((x - segment.a.x) * dx + (z - segment.a.z) * dz) / (segment.length * segment.length)),
+      distance = Math.hypot(x - segment.a.x - dx * t, z - segment.a.z - dz * t);
+    if (distance >= (nearest.get(segment.profile.river)?.distance ?? Infinity)) continue;
+    nearest.set(segment.profile.river, { segment, t, distance,
+      signed: ((x - segment.a.x) * dz - (z - segment.a.z) * dx) / segment.length });
+  }
+  const parisDistance = Math.max(parisBounds.minX - x, x - parisBounds.maxX,
+    parisBounds.minZ - z, z - parisBounds.maxZ, 0);
+  let height = 0, influence = 0;
+  for (const { segment, t, distance, signed } of nearest.values()) {
+    const profile = segment.profile.sides[signed < 0 ? 0 : 1],
+      shoreDistance = Math.max(0, distance - mix(segment.widthA, segment.widthB, t) / 2),
+      outer = profile[profile.length - 1][0], crest = profile[profile.length - 2][0];
+    if (shoreDistance >= outer) continue;
+    const along = segment.distance + t * segment.length,
+      fade = smooth(clamp(along / .70)) * smooth(clamp((segment.total - along) / 1.10)),
+      weight = fade * (1 - smooth(clamp((shoreDistance - crest) / (outer - crest)))) *
+        smooth(clamp(parisDistance / .18));
+    if (weight <= influence) continue;
+    let elevation = 0;
+    for (let i = 1; i < profile.length; i++) {
+      const a = profile[i - 1], b = profile[i];
+      if (shoreDistance > b[0]) continue;
+      elevation = mix(a[1], b[1], clamp((shoreDistance - a[0]) / (b[0] - a[0])));
+      break;
+    }
+    // Slow longitudinal movement makes continuous ridges, not isolated humps.
+    height = elevation * (.92 + .08 * Math.sin(along * .73 + segment.profile.river));
+    influence = weight;
+  }
+  return { height, influence };
+}
+function cultivatedClearance(x: number, z: number) {
   let clearance = Infinity;
   for (const footprint of lowlandProtectionCells.get(`${Math.floor(x / .50)}:${Math.floor(z / .50)}`) ?? []) {
     const dx = x - footprint.x, dz = z - footprint.z,
@@ -537,6 +611,27 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
       pz = Math.abs(-dx * footprint.sine + dz * footprint.cosine) - footprint.halfD;
     clearance = Math.min(clearance, Math.hypot(Math.max(0, px), Math.max(0, pz)) + Math.min(0, Math.max(px, pz)));
   }
+  return clearance;
+}
+// These are vertices of the very same landscape mesh, not overlay contours.
+// Each polyline follows one change of slope in the asymmetric valley section.
+function cultivatedValleyBreakLines() {
+  const lines: Point[][] = [];
+  for (const profile of cultivatedValleyProfiles)
+    for (let side = 0; side < 2; side++)
+      for (const [distance] of profile.sides[side].slice(1, -1)) {
+        const direction = side === 0 ? -1 : 1;
+        lines.push(riverSections[profile.river].map(section => ({
+          x: section.center.x + section.nx * direction * (section.width / 2 + distance),
+          z: section.center.z + section.nz * direction * (section.width / 2 + distance),
+        })));
+      }
+  return lines;
+}
+
+function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral: number) {
+  if (mineral > .40 || borderDistance(sx, sz) < .09) return 0;
+  const clearance = cultivatedClearance(x, z);
   if (clearance < .065 || riverContains(x, z, .055)) return 0;
   const protectedBlend = smooth(clamp((clearance - .065) / .14)),
     coastalBlend = smooth(clamp((borderDistance(sx, sz) - .09) / .18)),
@@ -565,10 +660,131 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
   // A broad valley floor separates the river's unchanged banks from the
   // shoulders. Its outer terraces carry the very same crop and road meshes.
   const riverBlend = smooth(clamp((riverDistance - .13) / .22));
-  return ((shoulder * 1.18 * riverBlend - valley) * mineralBlend +
-    centralCultivatedRelief(sx, sz) * 1.28 * riverBlend +
-    (noise(sx * .82 + 41, sz * .93 + 17) - .45) * .035 * riverBlend * mineralBlend) *
-    protectedBlend * coastalBlend;
+  const original = (shoulder * 1.18 * riverBlend - valley) * mineralBlend +
+      centralCultivatedRelief(sx, sz) * 1.28 * riverBlend +
+      (noise(sx * .82 + 41, sz * .93 + 17) - .45) * .035 * riverBlend * mineralBlend,
+    section = cultivatedValleyProfile(x, z),
+    influence = section.influence * smooth(clamp((borderDistance(sx, sz) - .27) / .15));
+  return mix(original, section.height * mineralBlend, influence) * protectedBlend * coastalBlend;
+}
+
+type CoastalRockSample = { height: number; cover: number };
+// Authored sea-facing tracts, in geographic degrees. Inland borders and the
+// high northern cape stay outside these six supports and the camera is fixed.
+const rockyCoastTracts = [
+  { id: "bretagne", lon: [-5.05, -2.30], lat: [47.55, 48.88], height: .19, width: .29 },
+  { id: "normandie", lon: [-1.88, .88], lat: [49.12, 49.78], height: .17, width: .25 },
+  { id: "vendee", lon: [-2.20, -1.00], lat: [45.90, 47.40], height: .14, width: .23 },
+  { id: "landes", lon: [-1.85, -.70], lat: [43.42, 45.76], height: .16, width: .26 },
+  { id: "mediterranee", lon: [2.65, 7.30], lat: [43.00, 43.78], height: .21, width: .28 },
+  { id: "corse-est", lon: [9.08, 9.60], lat: [41.50, 42.62], height: .15, width: .20 },
+];
+// Only XZ geometry is needed here. Passing the constant sampler deliberately
+// avoids landHeight, which has not finished initialising its survey yet.
+const coastalPortPlans = [
+  { name: "brest", lon: -4.49, lat: 48.39 },
+  ...["nantes", "marseille", "ajaccio"].map(name => {
+    const { lon, lat } = MAP_PLACES[name as "nantes" | "marseille" | "ajaccio"];
+    return { name, lon, lat };
+  }),
+].map(place => surveyHarbour(place.name, mapPosition(place.lon, place.lat), () => .14))
+  .filter((plan): plan is NonNullable<typeof plan> => !!plan);
+const coastalPortPolygons = coastalPortPlans.flatMap(plan => [
+  ...plan.quayPolygons, ...plan.coastalJoins, ...plan.landReservations,
+]);
+const coastalPortCells = new Map<string, typeof coastalPortPolygons>();
+for (const polygon of coastalPortPolygons) {
+  for (let x = Math.floor((Math.min(...polygon.map(p => p.x)) - .24) / .5);
+    x <= Math.floor((Math.max(...polygon.map(p => p.x)) + .24) / .5); x++)
+    for (let z = Math.floor((Math.min(...polygon.map(p => p.z)) - .24) / .5);
+      z <= Math.floor((Math.max(...polygon.map(p => p.z)) + .24) / .5); z++) {
+      const key = `${x}:${z}`, cell = coastalPortCells.get(key) ?? [];
+      cell.push(polygon); coastalPortCells.set(key, cell);
+    }
+}
+// These are the five existing national road paths that can reach the coast.
+// Their interpolation is the same baseline-then-final transport used by roads.
+const coastalRoadControls = [
+  [[1.1, 49.44], [.53, 49.14], [-.13, 48.85], [-.8, 48.41], [-1.68, 48.11]],
+  [[-1.68, 48.11], [-1.77, 47.78], [-1.74, 47.52], [-1.55, 47.22]],
+  [[-1.55, 47.22], [-1.06, 46.72], [-.67, 46.24], [-.57, 45.61], [-.58, 44.84]],
+  [[1.44, 43.60], [1.94, 43.42], [2.44, 43.27], [3.02, 43.28], [3.48, 43.49], [3.88, 43.61]],
+  [[3.88, 43.61], [4.19, 43.73], [4.65, 43.72], [5.09, 43.61], [5.37, 43.30]],
+];
+const coastTransportPath = (points: Point[], steps: number) => {
+  const path: Point[] = [];
+  for (let segment = 0; segment < points.length - 1; segment++) {
+    const a = points[Math.max(0, segment - 1)], b = points[segment],
+      c = points[segment + 1], d = points[Math.min(points.length - 1, segment + 2)];
+    for (let step = 0; step < steps; step++) {
+      const t = step / steps, t2 = t * t, t3 = t2 * t,
+        value = (p0: number, p1: number, p2: number, p3: number) =>
+          .5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+            (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+      path.push(mapFinalFromBaseline(value(a.x, b.x, c.x, d.x), value(a.z, b.z, c.z, d.z)));
+    }
+  }
+  const last = points.at(-1)!; path.push(mapFinalFromBaseline(last.x, last.z));
+  return path;
+};
+const coastalRoadPaths = coastalRoadControls.map(points =>
+  coastTransportPath(points.map(([lon, lat]) => mapBaselinePosition(lon, lat)), 12));
+const coastalRailStops = [
+  { town: "nantes", x: .66, z: -.39 }, { town: "bordeaux", x: .64, z: .46 },
+].map(stop => {
+  const town = MAP_PLACES[stop.town as "nantes" | "bordeaux"], origin = mapPosition(town.lon, town.lat);
+  return mapBaselineFromFinal(origin.x + stop.x, origin.z + stop.z);
+});
+const coastalRailPath = coastTransportPath([coastalRailStops[0],
+  mapBaselinePosition(-.75, 46.5), mapBaselinePosition(-.28, 45.71), coastalRailStops[1]], 20);
+const coastalTransportSegments = [...coastalRoadPaths, coastalRailPath].flatMap(path =>
+  path.slice(1).map((b, i) => ({ a: path[i], b })));
+const coastalTransportCells = new Map<string, typeof coastalTransportSegments>();
+for (const segment of coastalTransportSegments) {
+  for (let x = Math.floor((Math.min(segment.a.x, segment.b.x) - .25) / .5);
+    x <= Math.floor((Math.max(segment.a.x, segment.b.x) + .25) / .5); x++)
+    for (let z = Math.floor((Math.min(segment.a.z, segment.b.z) - .25) / .5);
+      z <= Math.floor((Math.max(segment.a.z, segment.b.z) + .25) / .5); z++) {
+      const key = `${x}:${z}`, cell = coastalTransportCells.get(key) ?? [];
+      cell.push(segment); coastalTransportCells.set(key, cell);
+    }
+}
+function coastalRockProfile(x: number, z: number, sx: number, sz: number): CoastalRockSample {
+  const empty = { height: 0, cover: 0 }, distance = borderDistance(sx, sz);
+  if (distance > .29 || constructionReservationContains(x, z, .16) || riverContains(x, z, .17)) return empty;
+  const { lon, lat } = mapSourceCoordinates(sx, sz);
+  let strength = 0, height = 0, width = 0;
+  for (const tract of rockyCoastTracts) {
+    const along = smooth(clamp((lon - tract.lon[0]) / .23)) * smooth(clamp((tract.lon[1] - lon) / .23)),
+      across = smooth(clamp((lat - tract.lat[0]) / .13)) * smooth(clamp((tract.lat[1] - lat) / .13)),
+      support = along * across;
+    if (support <= strength) continue;
+    strength = support; height = tract.height; width = tract.width;
+  }
+  if (strength === 0 || distance > width) return empty;
+  let clearance = urbanClearance(x, z);
+  for (const footprint of lowlandProtectionCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
+    const dx = x - footprint.x, dz = z - footprint.z,
+      px = Math.abs(dx * footprint.cosine + dz * footprint.sine) - footprint.halfW,
+      pz = Math.abs(-dx * footprint.sine + dz * footprint.cosine) - footprint.halfD;
+    clearance = Math.min(clearance, Math.hypot(Math.max(0, px), Math.max(0, pz)) + Math.min(0, Math.max(px, pz)));
+  }
+  for (const polygon of coastalPortCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
+    if (harbourPolygonContains(polygon, { x, z })) return empty;
+    for (let i = 0; i < polygon.length; i++) clearance = Math.min(clearance,
+      segmentDistance(x, z, polygon[i], polygon[(i + 1) % polygon.length]));
+  }
+  for (const segment of coastalTransportCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? [])
+    clearance = Math.min(clearance, segmentDistance(x, z, segment.a, segment.b) - .026);
+  if (clearance <= .085) return empty;
+  const protection = smooth(clamp((clearance - .085) / .14)),
+    shelfEnd = width * .40,
+    shelf = distance < shelfEnd ? 1 - distance / shelfEnd * .12 :
+      .88 * (1 - smooth(clamp((distance - shelfEnd) / (width - shelfEnd)))),
+    bed = .86 + noise(sx * 2.7 + 61, sz * 3.1 + 43) * .14,
+    weight = strength * protection;
+  return { height: height * shelf * bed * weight,
+    cover: (1 - smooth(clamp((distance - .055) / .11))) * weight };
 }
 
 function unflattenedHeight(x: number, z: number) {
@@ -581,7 +797,7 @@ function unflattenedHeight(x: number, z: number) {
   // Houses, streets and works flatten this same surface in surveyedHeight.
   // The water is carved from it too. No former massif is mixed back into it.
   return .115 + rolling + armorican + massif * edge +
-    cultivatedRelief(x, z, sx, sz, massif);
+    cultivatedRelief(x, z, sx, sz, massif) + coastalRockProfile(x, z, sx, sz).height;
 }
 
 const settlementLevels = new Map<string, number>([
@@ -1085,6 +1301,12 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
   const covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
     snow = covered || !alpineGeologicalBand(face?.band ?? mountainFaceBand(x, z)) ? 0 :
       alpineSnowCover(sx, sz, y, slope) * mask;
+  const coastal = coastalRockProfile(x, z, sx, sz);
+  if (coastal.cover > 0 && !covered) {
+    const shelfStone = colorMix(Color3.FromHexString("#B89B71"), Color3.FromHexString("#DACAA6"),
+      noise(sx * 4.1 + 93, sz * 3.3 + 57));
+    color = colorMix(color, shelfStone, coastal.cover * .78);
+  }
   return colorMix(color, Color3.FromHexString("#F1F3F0"), snow);
 }
 
@@ -1153,6 +1375,61 @@ function densify(points: Point[], step: number, closed = true) {
   return result;
 }
 
+// A Delaunay face may straddle a concave shore even when its centre is at sea.
+// Intersect only those rejected faces with the existing country polygon. The
+// accepted terrain, surveyed heights and rendered cliff contour stay intact.
+type ShorePoint = [number, number];
+function rejectedShoreClipper(outline: Point[]) {
+  const coordinates = outline.flatMap(point => [point.x, point.z]),
+    indices = earcut(coordinates), step = .24,
+    cells = new Map<string, number[]>(),
+    countryFaces: Array<{ corners: ShorePoint[]; direction: number }> = [];
+  const cross = (a: ShorePoint, b: ShorePoint, p: ShorePoint) =>
+    (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+  for (let i = 0; i < indices.length; i += 3) {
+    const corners: ShorePoint[] = Array.from({ length: 3 }, (_, j) => {
+      const point = outline[indices[i + j]];
+      return [point.x, point.z];
+    }), face = countryFaces.length;
+    countryFaces.push({ corners, direction: Math.sign(cross(corners[0], corners[1], corners[2])) });
+    for (let x = Math.floor(Math.min(...corners.map(p => p[0])) / step);
+      x <= Math.floor(Math.max(...corners.map(p => p[0])) / step); x++)
+      for (let z = Math.floor(Math.min(...corners.map(p => p[1])) / step);
+        z <= Math.floor(Math.max(...corners.map(p => p[1])) / step); z++) {
+        const key = `${x}:${z}`, cell = cells.get(key) ?? [];
+        cell.push(face); cells.set(key, cell);
+      }
+  }
+  return (p: ShorePoint, q: ShorePoint, r: ShorePoint) => {
+    const candidates = new Set<number>(), result: ShorePoint[][] = [], source = [p, q, r];
+    for (let x = Math.floor(Math.min(p[0], q[0], r[0]) / step);
+      x <= Math.floor(Math.max(p[0], q[0], r[0]) / step); x++)
+      for (let z = Math.floor(Math.min(p[1], q[1], r[1]) / step);
+        z <= Math.floor(Math.max(p[1], q[1], r[1]) / step); z++)
+        for (const face of cells.get(`${x}:${z}`) ?? []) candidates.add(face);
+    for (const face of candidates) {
+      const { corners, direction } = countryFaces[face];
+      let polygon = source;
+      for (let edge = 0; edge < 3 && polygon.length >= 3; edge++) {
+        const a = corners[edge], b = corners[(edge + 1) % 3], clipped: ShorePoint[] = [];
+        for (let i = 0; i < polygon.length; i++) {
+          const start = polygon[i], end = polygon[(i + 1) % polygon.length],
+            ds = cross(a, b, start) * direction, de = cross(a, b, end) * direction;
+          if (ds >= 0) clipped.push(start);
+          if ((ds >= 0) !== (de >= 0)) {
+            const t = ds / (ds - de);
+            clipped.push([start[0] + (end[0] - start[0]) * t,
+              start[1] + (end[1] - start[1]) * t]);
+          }
+        }
+        polygon = clipped;
+      }
+      if (polygon.length >= 3) result.push(polygon);
+    }
+    return result;
+  };
+}
+
 function buildGround(
   scene: Scene,
   meshes: Mesh[],
@@ -1187,6 +1464,23 @@ function buildGround(
     const maxX = Math.max(...sourceOutline.map(({ x }) => x));
     const minZ = Math.min(...sourceOutline.map(({ z }) => z));
     const maxZ = Math.max(...sourceOutline.map(({ z }) => z));
+    // Survey the mineral replat on this shared mesh, rather than adding rocks
+    // over a flat coastline. The geographic coast itself remains unchanged.
+    const sourceCoast = densify(sourceOutline, .070),
+      winding = Math.sign(sourceOutline.reduce((sum, p, i) => {
+        const q = sourceOutline[(i + 1) % sourceOutline.length]; return sum + p.x * q.z - q.x * p.z;
+      }, 0)) || 1;
+    for (let i = 0; i < sourceCoast.length; i++) {
+      const p = sourceCoast[i], a = sourceCoast[(i + sourceCoast.length - 1) % sourceCoast.length],
+        b = sourceCoast[(i + 1) % sourceCoast.length], length = Math.hypot(b.x - a.x, b.z - a.z) || 1,
+        nx = (b.z - a.z) / length * -winding, nz = -(b.x - a.x) / length * -winding;
+      for (const inward of [.065, .115, .185, .255]) {
+        const sx = p.x + nx * inward, sz = p.z + nz * inward;
+        if (!contains(sourceOutline, sx, sz)) continue;
+        const point = mapAuthoredPosition(sx, sz);
+        if (coastalRockProfile(point.x, point.z, sx, sz).height > .008) points.push([point.x, point.z]);
+      }
+    }
     const spacing = 0.055;
     for (let ix = Math.ceil(minX / spacing); ix * spacing < maxX; ix++) {
       for (let iz = Math.ceil(minZ / spacing); iz * spacing < maxZ; iz++) {
@@ -1226,6 +1520,15 @@ function buildGround(
         if (contains(outline, x, z)) points.push([x, z]);
       }
     }
+    for (const line of cultivatedValleyBreakLines())
+      for (const point of densify(line, .050, false)) {
+        if (!contains(outline, point.x, point.z) || cultivatedClearance(point.x, point.z) < .21 ||
+          riverContains(point.x, point.z, .055)) continue;
+        const source = mapAuthoredCoordinates(point.x, point.z);
+        if (borderDistance(source.x, source.z) <= .27 || mountainSourceHeight(source.x, source.z) > .40 ||
+          cultivatedValleyProfile(point.x, point.z).influence < .02) continue;
+        points.push([point.x, point.z]);
+      }
     // River beds need their own vertices; a coarse triangle spanning both banks
     // otherwise rises over the water even when the mathematical height is cut.
     for (const river of riverPaths)
@@ -1247,7 +1550,8 @@ function buildGround(
         }
       }
 
-    const terrain = geometry(), mineralTerrain = geometry();
+    const terrain = geometry(), mineralTerrain = geometry(), shoreTerrain = geometry(),
+      clipRejected = rejectedShoreClipper(outline);
     for (const [x, z] of points)
       vertex(terrain, x, landHeight(x, z), z, terrainColor(x, z));
     const triangles = Delaunator.from(points).triangles;
@@ -1261,10 +1565,32 @@ function buildGround(
       const p = points[a],
         q = points[b],
         r = points[c];
-      if (
-        !contains(outline, (p[0] + q[0] + r[0]) / 3, (p[1] + q[1] + r[1]) / 3)
-      )
+      if (!contains(outline, (p[0] + q[0] + r[0]) / 3, (p[1] + q[1] + r[1]) / 3)) {
+        const denominator = (q[1] - r[1]) * (p[0] - r[0]) +
+          (r[0] - q[0]) * (p[1] - r[1]);
+        if (Math.abs(denominator) < 1e-12) continue;
+        for (const polygon of clipRejected(p, q, r)) {
+          const corners = polygon.map(([x, z]) => {
+            const u = ((q[1] - r[1]) * (x - r[0]) + (r[0] - q[0]) * (z - r[1])) / denominator,
+              v = ((r[1] - p[1]) * (x - r[0]) + (p[0] - r[0]) * (z - r[1])) / denominator,
+              y = u * terrain.positions[a * 3 + 1] + v * terrain.positions[b * 3 + 1] +
+                (1 - u - v) * terrain.positions[c * 3 + 1];
+            return vertex(shoreTerrain, x, y, z, new Color3(
+              u * terrain.colors[a * 4] + v * terrain.colors[b * 4] + (1 - u - v) * terrain.colors[c * 4],
+              u * terrain.colors[a * 4 + 1] + v * terrain.colors[b * 4 + 1] + (1 - u - v) * terrain.colors[c * 4 + 1],
+              u * terrain.colors[a * 4 + 2] + v * terrain.colors[b * 4 + 2] + (1 - u - v) * terrain.colors[c * 4 + 2],
+            ));
+          });
+          for (let corner = 1; corner + 1 < corners.length; corner++) {
+            const p = polygon[0], q = polygon[corner], r = polygon[corner + 1],
+              winding = (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+            if (Math.abs(winding) < 1e-12) continue;
+            triangle(shoreTerrain, corners[0], corners[winding > 0 ? corner : corner + 1],
+              corners[winding > 0 ? corner + 1 : corner]);
+          }
+        }
         continue;
+      }
       const winding =
         (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
       const face = [a, winding > 0 ? b : c, winding > 0 ? c : b];
@@ -1337,6 +1663,11 @@ function buildGround(
       const mineralMesh = finish(scene, `landscape-terrain-mineral-${part}`, mineralTerrain, mineralSurface);
       meshes.push(mineralMesh);
       if (part === 0) colorTargets.push({ mesh: mineralMesh, surveys: mineralSurveys });
+    }
+    if (shoreTerrain.indices.length) {
+      const shoreMesh = finish(scene, `landscape-terrain-coastal-${part}`, shoreTerrain, surface);
+      meshes.push(shoreMesh);
+      if (part === 0) colorTargets.push({ mesh: shoreMesh });
     }
     const cliffs = geometry(), cliffFaceGroups: string[] = [];
     const cliffLayers = 6;
@@ -1571,6 +1902,90 @@ function strip(
   }
 }
 
+// Curved centreline survey stays in the authored source frame. Every point is
+// projected individually, so the eastern correction also bends the crop rows.
+function sampleCropGuide(guide: readonly Point[]) {
+  const path: Point[] = [];
+  for (let i = 0; i < guide.length - 1; i++) {
+    const a = guide[Math.max(0, i - 1)], b = guide[i], c = guide[i + 1],
+      d = guide[Math.min(guide.length - 1, i + 2)],
+      divisions = Math.max(1, Math.ceil(Math.hypot(c.x - b.x, c.z - b.z) / .018));
+    for (let step = 0; step < divisions; step++) {
+      const t = step / divisions, t2 = t * t, t3 = t2 * t,
+        curve = (av: number, bv: number, cv: number, dv: number) => .5 * (
+          2 * bv + (-av + cv) * t + (2 * av - 5 * bv + 4 * cv - dv) * t2 +
+          (-av + 3 * bv - 3 * cv + dv) * t3);
+      path.push({ x: curve(a.x, b.x, c.x, d.x), z: curve(a.z, b.z, c.z, d.z) });
+    }
+  }
+  path.push(guide[guide.length - 1]);
+  return path;
+}
+
+function guidedCropRows(data: Geometry, polygon: Point[], sourceGuide: readonly Point[],
+  spacing: number, color: Color3, lift: number, available: (x: number, z: number) => boolean) {
+  const guide = sampleCropGuide(sourceGuide),
+    sourcePolygon = polygon.map(point => mapAuthoredCoordinates(point.x, point.z)),
+    reach = Math.max(...sourcePolygon.map(point => Math.min(...guide.slice(1).map((b, i) =>
+      segmentDistance(point.x, point.z, guide[i], b))))),
+    rowLimit = Math.ceil(reach / spacing), width = spacing * .28;
+  const approved = (point: Point) => contains(polygon, point.x, point.z) &&
+    available(point.x, point.z) && !constructionReservationContains(point.x, point.z, .016);
+  type Section = readonly [Point, Point, Point];
+  const between = (a: Point, b: Point, t = .5) => ({ x: mix(a.x, b.x, t), z: mix(a.z, b.z, t) });
+  const faceApproved = (a: Point, b: Point, c: Point) => approved({
+    x: (a.x + b.x + c.x) / 3, z: (a.z + b.z + c.z) / 3,
+  });
+  for (let row = -rowLimit; row <= rowLimit; row++) {
+    const sourcePath = guide.map((point, i) => {
+      const a = guide[Math.max(0, i - 1)], b = guide[Math.min(guide.length - 1, i + 1)],
+        length = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+      return { x: point.x - (b.z - a.z) / length * row * spacing,
+        z: point.z + (b.x - a.x) / length * row * spacing };
+    });
+    const path = densify(sourcePath.map(point => mapAuthoredPosition(point.x, point.z)), .018, false);
+    let run: Section[] = [];
+    const flush = () => {
+      if (run.length > 1) {
+        const start = data.positions.length / 3;
+        for (let i = 0; i < run.length; i++) {
+          for (let side = 0; side < 3; side++) {
+            const point = run[i][side];
+            vertex(data, point.x, landHeight(point.x, point.z) + lift + (side === 1 ? .004 : 0),
+              point.z, side === 1 ? color : color.scale(.93));
+          }
+          if (i > 0) {
+            const a = start + (i - 1) * 3, b = a + 3;
+            for (let side = 0; side < 2; side++) {
+              triangle(data, a + side, a + side + 1, b + side);
+              triangle(data, a + side + 1, b + side + 1, b + side);
+            }
+          }
+        }
+      }
+      run = [];
+    };
+    for (let i = 0; i < path.length; i++) {
+      const a = path[Math.max(0, i - 1)], b = path[Math.min(path.length - 1, i + 1)],
+        length = Math.hypot(b.x - a.x, b.z - a.z) || 1,
+        nx = (b.z - a.z) / length * width / 2, nz = -(b.x - a.x) / length * width / 2,
+        point = path[i], section: Section = [
+          { x: point.x - nx, z: point.z - nz }, point, { x: point.x + nx, z: point.z + nz },
+        ];
+      // Test the whole raised strip, including its shoulders and face centres.
+      // A curved centreline alone is not sufficient beside a river or a house.
+      if (!section.every(approved) || !approved(between(section[0], section[1])) ||
+        !approved(between(section[1], section[2]))) { flush(); continue; }
+      const previous = run[run.length - 1];
+      if (previous && (!section.every((point, side) => approved(between(point, previous[side]))) ||
+        ![0, 1].every(side => faceApproved(previous[side], previous[side + 1], section[side]) &&
+          faceApproved(previous[side + 1], section[side + 1], section[side])))) flush();
+      run.push(section);
+    }
+    flush();
+  }
+}
+
 function cropRows(
   data: Geometry,
   polygon: Point[],
@@ -1580,7 +1995,12 @@ function cropRows(
   color: Color3,
   lift = 0.017,
   available?: (x: number, z: number) => boolean,
+  sourceGuide?: readonly Point[],
 ) {
+  if (sourceGuide && sourceGuide.length > 1 && available) {
+    guidedCropRows(data, polygon, sourceGuide, spacing, color, lift, available);
+    return;
+  }
   const dx = Math.cos(theta),
     dz = Math.sin(theta),
     nx = -dz,
@@ -1935,8 +2355,9 @@ function buildFields(
     if (crops.indices.length === start) continue;
     nationalParcels++;
     if (field.kind !== "pasture") cropRows(rows, polygon, center, angle,
-      field.kind === "vines" ? 0.027 : 0.022, color.scale(field.kind === "vines" ? 0.60 : 0.79),
-      0.008, (x, z) => available(x, z, 0.012));
+      field.rowGuide ? field.kind === "vines" ? .043 : .038 : field.kind === "vines" ? .027 : .022,
+      color.scale(field.kind === "vines" ? .60 : .79),
+      .008, (x, z) => available(x, z, .012), field.rowGuide?.map(([x, z]) => ({ x, z })));
     for (const edge of field.hedgedEdges ?? []) {
       let run: Point[] = [];
       const flush = () => { if (run.length > 1) hedge(hedges, run, 0.019); run = []; };
