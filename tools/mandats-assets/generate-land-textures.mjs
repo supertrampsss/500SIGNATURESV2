@@ -40,8 +40,8 @@ const recipeRequire = name => {
 new Function('require', 'exports', 'module', compiled)(
   recipeRequire, recipeModule.exports, recipeModule);
 const maps = recipeModule.exports.landMaterialTextures(undefined);
-if (Object.keys(maps).length !== recorded.length || recorded.length !== 8)
-  throw new Error('The recipe must return all eight recorded surface maps.');
+if (Object.keys(maps).length !== recorded.length || recorded.length !== 9)
+  throw new Error('The recipe must return all nine recorded surface maps.');
 
 const crcTable = Uint32Array.from({ length: 256 }, (_, index) => {
   let value = index;

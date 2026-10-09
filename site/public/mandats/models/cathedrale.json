@@ -5,32 +5,32 @@
   "distanceGeometry": "Named _distant model; high-detail geometry retained",
   "models": {
     "cathedrale_paris": {
-      "width": 1.907,
+      "width": 2.2884,
       "depth": 2.9465,
       "height": 2.935,
       "min": [
-        -0.9535000324249268,
+        -1.144200086593628,
         0.0,
         -1.473249912261963
       ],
       "max": [
-        0.9535000324249268,
+        1.144200086593628,
         2.93500018119812,
         1.473249912261963
       ],
       "triangles": 80916
     },
     "cathedrale_paris_distant": {
-      "width": 1.907,
+      "width": 2.2884,
       "depth": 2.9465,
       "height": 2.935,
       "min": [
-        -0.9535000324249268,
+        -1.144200086593628,
         0.0,
         -1.473249912261963
       ],
       "max": [
-        0.9535000324249268,
+        1.144200086593628,
         2.93500018119812,
         1.473249912261963
       ],
@@ -42,5 +42,10 @@
       "decimationExtentError": 0.00354,
       "sourceTriangles": 4622
     }
+  },
+  "authoringProfile": {
+    "facadeSpan": 1.2,
+    "axis": "GLTF X only",
+    "normalTransform": "inverse transpose"
   }
 }

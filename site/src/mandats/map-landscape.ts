@@ -49,6 +49,31 @@ const sourceOutlines = FRANCE_OUTLINES.map((outline) =>
   outline.slice(0, -1).map(([lon, lat]) => mapSourcePosition(lon, lat)),
 );
 const outlines = sourceOutlines.map(outline => outline.map(point => mapAuthoredPosition(point.x, point.z)));
+// Only these private, immutable France contours use the ray index. Other
+// parcel/river polygons keep their original full scan, including mutable ones.
+const OUTLINE_RAY_STEP = .1;
+function outlineRayIndex(polygon: Point[]) {
+  const cells = new Map<number, number[]>(),
+    minZ = Math.min(...polygon.map(point => point.z)),
+    maxZ = Math.max(...polygon.map(point => point.z));
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i], b = polygon[j];
+    if (a.z === b.z) continue; // A horizontal edge cannot cross the original ray.
+    // This padding only selects candidates at floating grid boundaries. The
+    // original strict Z test and X intersection below remain unchanged.
+    const first = Math.floor((Math.min(a.z, b.z) - 1e-8) / OUTLINE_RAY_STEP),
+      last = Math.floor((Math.max(a.z, b.z) + 1e-8) / OUTLINE_RAY_STEP);
+    for (let cell = first; cell <= last; cell++) {
+      const edges = cells.get(cell) ?? [];
+      edges.push(i); cells.set(cell, edges);
+    }
+  }
+  return { cells, minZ, maxZ };
+}
+// Initialize before any module-level terrain or river query, preserving order.
+const outlineRayIndices = new WeakMap<Point[], ReturnType<typeof outlineRayIndex>>(
+  [...sourceOutlines, ...outlines].map(polygon => [polygon, outlineRayIndex(polygon)] as const),
+);
 const schoolOrigin = mapPosition(MAP_PLACES[LYON_SCHOOL_SITE.town].lon, MAP_PLACES[LYON_SCHOOL_SITE.town].lat);
 const surveyedFootprints = [
   ...cityEnvelopeFootprints().map(footprint => ({ ...footprint, schoolPlatform: false })),
@@ -231,6 +256,20 @@ function riverSourceBlend(river: (typeof riverPaths)[number], index: number) {
 }
 
 function contains(polygon: Point[], x: number, z: number) {
+  const index = outlineRayIndices.get(polygon);
+  if (index && Number.isFinite(x) && Number.isFinite(z)) {
+    // Only Z bounds are used; no rounded X bound can change ray parity.
+    if (z < index.minZ - 1e-8 || z > index.maxZ + 1e-8) return false;
+    let hit = false;
+    for (const i of index.cells.get(Math.floor(z / OUTLINE_RAY_STEP)) ?? []) {
+      const a = polygon[i], b = polygon[i === 0 ? polygon.length - 1 : i - 1];
+      if (
+        a.z > z !== b.z > z &&
+        x < ((b.x - a.x) * (z - a.z)) / (b.z - a.z) + a.x
+      ) hit = !hit;
+    }
+    return hit;
+  }
   let hit = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const a = polygon[i],
@@ -1480,12 +1519,12 @@ function buildGround(
   const cliffMaterial = material(scene, "landscape-cliffs", "#FFFFFF");
   cliffMaterial.backFaceCulling = false;
   cliffMaterial.diffuseTexture = textures.rock;
-  // The rim is a small rock face, not a close view of the Alpine normal map.
-  // Its sculpted shoulders provide the normals; coarse shared grain gives
-  // reflectance variation without dense dark ribs on every vertical face.
-  cliffMaterial.emissiveColor = new Color3(.080, .064, .042);
-  cliffMaterial.specularColor = new Color3(.045, .042, .033);
-  cliffMaterial.specularPower = 28;
+  // This map describes sparse vertical joints and small chipped surfaces at
+  // the existing rim UV scale. The larger broken beds remain actual geometry.
+  cliffMaterial.bumpTexture = textures.coastNormal;
+  cliffMaterial.emissiveColor = new Color3(.038, .029, .018);
+  cliffMaterial.specularColor = new Color3(.018, .015, .011);
+  cliffMaterial.specularPower = 20;
   const stone = Color3.FromHexString("#E3D2AB");
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
@@ -1909,7 +1948,10 @@ function buildGround(
           (coastArcs[limits.end] - coastArcs[limits.start] || 1)),
         left = panel + part * 827, right = (panel + 1) % facadePanels.length + part * 827,
         clearance = Math.min(Math.hypot(p.x - a.x, p.z - a.z), Math.hypot(b.x - p.x, b.z - p.z)),
-        inwardLimit = Math.min(.016, clearance * .16);
+        inwardLimit = Math.min(.016, clearance * .16),
+        first = column * (cliffLayers + 1) * 3,
+        last = first + cliffLayers * 3,
+        topY = dryPositions[first + 1], bottomY = dryPositions[last + 1];
       for (let layer = 1; layer < cliffLayers; layer++) {
         const index = column * (cliffLayers + 1) + layer, at = index * 3;
         if (fixedWetVertices.has(index)) continue;
@@ -1920,27 +1962,51 @@ function buildGround(
           shift = Math.min(.009, Math.max(0, Math.min(above - y, y - below) * .12)) *
             (step * 2 - 1) * weight,
           inward = inwardLimit * (.15 + opening * .85) * weight;
-        cliffs.positions[at] = dryPositions[at] - coastWinding * nx * inward;
+        // Straight columns give the miniature its vertical rock thickness.
+        // Only dry internal beds move, within the original top/bottom outline;
+        // the existing cover also excludes ports, rivers, houses and works.
+        const contactT = clamp((topY - y) / (topY - bottomY || 1)),
+          lineX = mix(dryPositions[first], dryPositions[last], contactT),
+          lineZ = mix(dryPositions[first + 2], dryPositions[last + 2], contactT),
+          leftJoint = (1 - smooth(clamp(across / .24))) *
+            (.005 + hash(left, 1451) * .009),
+          rightJoint = (1 - smooth(clamp((1 - across) / .24))) *
+            (.005 + hash(right, 1451) * .009),
+          chip = hash(left, 1459 + layer * 23) > .78 ?
+            .003 + hash(left, 1463 + layer * 29) * .006 : 0,
+          faceRetreat = Math.min(clearance * .24, .024,
+            .0025 + opening * .004 + leftJoint + rightJoint + chip),
+          verticality = .82 * weight,
+          oldX = dryPositions[at] - coastWinding * nx * inward,
+          oldZ = dryPositions[at + 2] - coastWinding * nz * inward;
+        cliffs.positions[at] = mix(oldX, lineX - coastWinding * nx * faceRetreat, verticality);
         cliffs.positions[at + 1] = y + shift;
-        cliffs.positions[at + 2] = dryPositions[at + 2] - coastWinding * nz * inward;
+        cliffs.positions[at + 2] = mix(oldZ, lineZ - coastWinding * nz * faceRetreat, verticality);
       }
     }
     const sculptedRim = geometry(), rimVertices = new Map<string, number>();
     for (let face = 0; face < cliffs.indices.length / 3; face++) {
-      const corners = cliffs.indices.slice(face * 3, face * 3 + 3).map(original => {
-        const key = `${original}:${cliffFaceGroups[face]}`, saved = rimVertices.get(key);
+      const sourceCorners = cliffs.indices.slice(face * 3, face * 3 + 3),
+        dryFace = sourceCorners.every(index => !fixedWetVertices.has(index)) &&
+          sourceCorners.some(index => cliffColumnWeights[Math.floor(index / (cliffLayers + 1))] > 0),
+        bed = Math.max(...sourceCorners.map(index => index % (cliffLayers + 1))),
+        // Separate each exposed bed's normals. Smoothing over several beds
+        // produced broad diagonal planks instead of short chipped rock faces.
+        group = `${cliffFaceGroups[face]}${dryFace ? `:bed-${bed}` : ""}`,
+        corners = sourceCorners.map(original => {
+        const key = `${original}:${group}`, saved = rimVertices.get(key);
         if (saved !== undefined) return saved;
         const p = original * 3, c = original * 4, layer = original % (cliffLayers + 1),
           column = Math.floor(original / (cliffLayers + 1)), faceBlock = cliffFaceBlocks[face],
           family = hash(faceBlock + part * 211, 331),
-          bedColor = family < .56 ? coastalOchre : family < .85 ? coastalSandstone : coastalLimestone,
+          bedColor = family < .35 ? coastalOchre : family < .86 ? coastalSandstone : coastalLimestone,
           exposedColor = colorMix(bedColor, coastalIvory,
             .04 + hash(faceBlock + part * 53, 811) * .14),
           // A face belongs to a surveyed block, not to its neighbour's column.
           // Sparse sediment variation never draws a continuous bright cap.
           color = layer === 0 ? new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]) :
             colorMix(new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]),
-              exposedColor.scale(.94 + hash(faceBlock + part * 283, layer < 3 ? 1013 : 1021) * .06),
+              exposedColor.scale(.89 + hash(faceBlock + part * 283, 1471 + layer * 31) * .11),
               cliffColumnWeights[column]),
           index = vertex(sculptedRim, cliffs.positions[p], cliffs.positions[p + 1], cliffs.positions[p + 2], color);
         sculptedRim.uvs[index * 2] = cliffs.uvs[original * 2];

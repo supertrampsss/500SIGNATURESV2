@@ -4417,7 +4417,7 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "bordeaux-ilot-0-tissu14-2007",
             "model": "maison_pierre_01",
-            "x": -0.3636467395,
+            "x": -0.3456467395,
             "z": 0.0241467366,
             "angle": 3.48159,
             "width": 0.117,
@@ -5229,8 +5229,8 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "bordeaux-ilot-2-tissu14-2052",
             "model": "maison_ardoise_01",
-            "x": 0.7920500508,
-            "z": 0.5005180472,
+            "x": 0.711449689904,
+            "z": 0.531132721789,
             "angle": -0.13,
             "width": 0.117,
             "depth": 0.099722,
@@ -5356,7 +5356,7 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "bordeaux-ilot-2-tissu14-2067",
             "model": "maison_pierre_02",
-            "x": 0.2452390059,
+            "x": 0.031269620121,
             "z": 0.5282950157,
             "angle": -0.05,
             "width": 0.117,
@@ -5367,8 +5367,8 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "bordeaux-ilot-2-maison-5",
             "model": "maison_pierre_01_dominante",
-            "x": 0.3946536232,
-            "z": 0.4236833802,
+            "x": 0.463793143617,
+            "z": 0.398808957096,
             "angle": -0.05,
             "width": 0.161,
             "depth": 0.11487,
@@ -7848,8 +7848,8 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "toulouse-ilot-1-tissu14-2008",
             "model": "maison_sud_01",
-            "x": -0.9079109996,
-            "z": -0.8802311357,
+            "x": -0.917482757719,
+            "z": -0.897201698448,
             "angle": 3.14159,
             "width": 0.097,
             "depth": 0.069286,
@@ -21508,8 +21508,8 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "agen-bourg-0-tissu14-2004",
             "model": "maison_sud_01",
-            "x": -0.1392432112,
-            "z": -0.2825675737,
+            "x": -0.136493957006,
+            "z": -0.2945675737,
             "angle": 2.68159,
             "width": 0.109,
             "depth": 0.077857,

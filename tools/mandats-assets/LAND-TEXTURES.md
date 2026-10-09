@@ -1,9 +1,10 @@
 # Textures locales du terrain
 
-Les huit PNG de `site/src/mandats/textures/` sont des cartes de matière répétées,
+Les neuf PNG de `site/src/mandats/textures/` sont des cartes de matière répétées,
 préparées depuis la recette TypeScript conservée dans `land-texture-recipe.ts`.
-Ce sont les mêmes octets RGBA que ceux auparavant calculés au démarrage. La
-recette comprend le porteur neutre des cultures de la passe 33.
+Les huit premières conservent les octets RGBA auparavant calculés au démarrage,
+y compris le porteur neutre des cultures de la passe 33. La neuvième est une
+normale côtière de 256 × 256 pixels, dédiée aux fissures des falaises.
 
 Pour les reproduire, depuis la racine du dépôt avec les dépendances de `site/`
 installées :

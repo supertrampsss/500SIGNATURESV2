@@ -19,6 +19,12 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
 import "@babylonjs/core/Meshes/instancedMesh";
+// These GLSL programs are always used by this scene. Register their existing
+// code/includes with the game bundle instead of fetching them at the ready gate.
+import "@babylonjs/core/Shaders/default.vertex";
+import "@babylonjs/core/Shaders/default.fragment";
+import "@babylonjs/core/Shaders/pbr.vertex";
+import "@babylonjs/core/Shaders/pbr.fragment";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { MAP_PLACES, mapPosition, mapSourcePosition, mapState } from "./map-state.ts";
 import { COUNTRY_REFERENCE_POSE } from "./map-camera-projection.ts";
@@ -167,14 +173,16 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     updateContactShadows();
     cleanup.push(() => { contactShadows?.dispose(true); contactShadows = undefined; });
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
-    sky.intensity = 0.27;
+    // StandardMaterial clamps diffuse light before multiplying terrain colour.
+    // Preserve the slope response instead of clipping all upward faces white.
+    sky.intensity = 0.12;
     sky.diffuse = Color3.FromHexString("#CCDDF1");
     // A stone/soil bounce below the hemisphere, rather than a second blue sky.
     sky.groundColor = balancedIlluminant("#817A6D", "#788797");
-    const sun = new DirectionalLight("sun", new Vector3(0.55, -1.2, 0.7), scene);
+    const sun = new DirectionalLight("sun", new Vector3(0.55, -0.80, 0.7), scene);
     sun.position.set(-9, 16, -11);
-    sun.intensity = 1.80;
-    sun.diffuse = balancedIlluminant("#FFE7CA", "#FFF1DD");
+    sun.intensity = 0.95;
+    sun.diffuse = balancedIlluminant("#FFE2BD", "#FFF1DD");
     sun.shadowFrustumSize = 19;
     sun.shadowMinZ = 1;
     sun.shadowMaxZ = 38;

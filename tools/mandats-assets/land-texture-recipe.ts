@@ -165,6 +165,43 @@ function mineralTextures(scene: Scene) {
   return { rock, rockNormal };
 }
 
+// A compact coastal tile adds finite, tilted cracks to the existing warm rock
+// albedo. It does not draw regular ribs across every face or change their UVs.
+export function coastalNormalTexture(scene: Scene) {
+  const size = 256, period = 18, heights = new Float32Array(size * size),
+    seeds = Array.from({ length: period }, (_, index) => ({
+      x: (index + .16 + hash(index + 1709, 37) * .68) / period,
+      y: hash(index + 1721, 53),
+      length: .16 + hash(index + 1723, 59) * .25,
+      width: .003 + hash(index + 1733, 61) * .003,
+      slant: (hash(index + 1741, 67) - .5) * .085,
+      depth: .065 + hash(index + 1747, 71) * .045,
+    })),
+    wrapped = (value: number) => value - Math.round(value);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = x / size, v = y / size,
+      cell = Math.floor(u * period),
+      coarse = periodicNoise(u * 7 + 1.9, v * 7 + 4.3, 7),
+      grains = periodicNoise(u * 61 + 8.7, v * 61 + 3.1, 61);
+    let fracture = 0;
+    for (let neighbour = -1; neighbour <= 1; neighbour++) {
+      const seed = seeds[(cell + neighbour + period) % period],
+        along = wrapped(v - seed.y),
+        end = Math.max(0, 1 - (along / seed.length) ** 2);
+      if (end === 0) continue;
+      const bend = Math.sin(v * Math.PI * 2 + seed.x * 17) * .002,
+        distance = Math.abs(wrapped(u - seed.x - along * seed.slant - bend)) / seed.width,
+        joint = Math.max(0, 1 - distance);
+      fracture = Math.max(fracture, joint * joint * end * seed.depth);
+    }
+    heights[y * size + x] = .5 + coarse * .045 + grains * .014 - fracture;
+  }
+  const coastNormal = normal(scene, "land-coastal-normal", size, (x, y) =>
+    heights[((y + size) % size) * size + (x + size) % size], 9.5);
+  coastNormal.level = .36;
+  return coastNormal;
+}
+
 export function landMaterialTextures(scene: Scene) {
   const soil = soilSample(), soilHeights = new Float32Array(1024 * 1024),
     cropTones = new Uint8Array(1024 * 1024);
@@ -214,6 +251,7 @@ export function landMaterialTextures(scene: Scene) {
   stoneNormal.uScale = 6;
   stoneNormal.vScale = 6;
   const { rock, rockNormal } = mineralTextures(scene);
-  return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal };
+  const coastNormal = coastalNormalTexture(scene);
+  return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal, coastNormal };
 }
 export type LandMaterialTextures = ReturnType<typeof landMaterialTextures>;

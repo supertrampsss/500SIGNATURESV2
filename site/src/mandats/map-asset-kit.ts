@@ -64,6 +64,12 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
     container.dispose();
     throw new Error("Scene disposed during model loading.");
   }
+  // The lower miniature sun restores StandardMaterial slope shading. PBR
+  // already keeps HDR light, so retain its existing direct-light power.
+  for (const material of container.materials) {
+    if (material.getClassName() === "PBRMaterial")
+      (material as PBRMaterial).directIntensity *= 1.80 / 0.95;
+  }
   if (architecturalKits.has(url.split("?")[0])) {
     for (const material of container.materials) {
       if (material.getClassName() !== "PBRMaterial") continue;
@@ -72,8 +78,8 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       // Calibrate only the architectural surfaces, preserving their atlas and
       // ORM channels. Compensate direct specular so slate does not turn white.
       surface.reflectionColor = surface.reflectionColor.multiply(architecturalDaylightBalance);
-      surface.directIntensity = 2;
-      surface.environmentIntensity = 1.25;
+      surface.directIntensity = 4.10;
+      surface.environmentIntensity = 0.80;
       surface.specularIntensity = 0.5;
       surface.ambientTextureStrength = 0.75;
     }

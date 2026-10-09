@@ -8,6 +8,7 @@ const leafNormalUrl = new URL("./textures/land-leaf-normal.png", import.meta.url
 const stoneNormalUrl = new URL("./textures/land-stone-normal.png", import.meta.url).href;
 const rockUrl = new URL("./textures/land-mineral-rock.png", import.meta.url).href;
 const rockNormalUrl = new URL("./textures/land-mineral-normal.png", import.meta.url).href;
+const coastNormalUrl = new URL("./textures/land-coastal-normal.png", import.meta.url).href;
 
 // Byte-identical surface maps baked by tools/mandats-assets/generate-land-textures.mjs.
 // Texture loading remains blocking for the existing scene.executeWhenReady gate.
@@ -42,6 +43,7 @@ export function landMaterialTextures(scene: Scene) {
   const stoneNormal = surfaceTexture(scene, "land-stone-normal", stoneNormalUrl, false, .55, 6);
   const rock = surfaceTexture(scene, "land-mineral-rock", rockUrl);
   const rockNormal = surfaceTexture(scene, "land-mineral-normal", rockNormalUrl, false, .40);
-  return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal };
+  const coastNormal = surfaceTexture(scene, "land-coastal-normal", coastNormalUrl, false, .36);
+  return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal, coastNormal };
 }
 export type LandMaterialTextures = ReturnType<typeof landMaterialTextures>;

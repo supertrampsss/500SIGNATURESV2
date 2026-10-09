@@ -33,7 +33,13 @@ parser.add_argument("--no-preview", action="store_true")
 parser.add_argument("--lod-only", action="store_true")
 parser.add_argument("--upper-profile", type=float, default=1.0,
     help="Optional geometry-only upper profile from the existing packed source; requires --lod-only")
+parser.add_argument("--facade-span", type=float, default=1.0,
+    help="Optional GLTF-X facade stretch after export; requires --no-preview")
 options = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+if not math.isfinite(options.facade_span) or not 1 <= options.facade_span <= 1.4:
+    raise ValueError("Facade span must be finite and between 1 and 1.4")
+if options.facade_span != 1.0 and (not options.no_preview or options.shape_preview):
+    raise RuntimeError("Facade span uses the exported kit; use --no-preview")
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 for material in list(bpy.data.materials):
@@ -854,6 +860,15 @@ if not options.shape_preview and not options.lod_only:
 
 elif options.lod_only:
     export_distance_geometry(MODELS)
+
+# Final opt-in geometry profile follows both LOD export and the slate atlas sync.
+if options.facade_span != 1.0:
+    span_spec = importlib.util.spec_from_file_location("cathedral_facade_span", SOURCE / "cathedral_facade_span.py")
+    span_module = importlib.util.module_from_spec(span_spec)
+    span_spec.loader.exec_module(span_module)
+    report = span_module.stretch_facade(OUTPUT/"cathedrale.glb", OUTPUT/"cathedrale.json", options.facade_span)
+    metadata = json.loads((OUTPUT/"cathedrale.json").read_text())["models"]
+    print("CATHEDRALE_FACADE_SPAN", json.dumps(report), flush=True)
 
 if not options.no_preview:
     for index,obj in enumerate(MODELS):

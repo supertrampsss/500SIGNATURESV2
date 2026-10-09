@@ -40,13 +40,23 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 34 capturée le 9 octobre 2026
+
+La [comparaison native 34](mandats-diorama/comparaison-34.html) présente la maquette originale et cinq captures réelles. La lumière préserve désormais le modelé des matières Standard au lieu de les plafonner ; la façade de la cathédrale est plus large, les falaises ont des lits séparés et les petits rochers portent davantage de cassures et de neige. **Le verdict reste non conforme** : ombres trop noires sur les voies, mer trop uniforme, grandes parcelles, relief et ports encore différents de la référence.
+
+Le build complet passe réellement 1 082 tests sur 229 entrées verrouillées. Les neuf PNG sont régénérées depuis leur recette et leurs pixels sont vérifiés ; les huit premières restent identiques à 33. Sept vues Chromium natives et neuf décodages PNG terminent sans erreur. Les imports anticipés des programmes GLSL regroupent leurs ressources dans le bundle ; le lot hors connexion contient désormais 144 ressources. L’index des six contours privés conserve strictement leur parité, vérifiée sur 32 727 cas numériques et 73 coordonnées historiques avant l’audit composé.
+
+L’[audit physique réel](mandats-diorama/screens-34/physical-summary-final.json) échoue : 734 maisons construites sur 737, une adresse toulousaine trop pentue et deux adresses parisiennes intersectant un corridor national. Deux points du pied d’un même pin manquent également de triangle de sol ; leurs coordonnées étaient déjà présentes dans l’échec 33. Les 305 rochers et le contrôle côtier dense passent. Aucun seuil n’est assoupli.
+
+Le [test ciblé des modèles](mandats-diorama/screens-34/focused-models-result.json) passe cette fois le premier chargement retardé après une décision et le repli lorsque les GLB sont indisponibles. Il échoue ensuite lors de Reprendre après rechargement, au délai original de 15 secondes. Le groupe WebKit prévu après cet échec et les quatre suites complètes restent non exécutés. Cette passe n’est pas une livraison terminée.
+
 ## Passe 33 capturée le 9 octobre 2026
 
 [Comparaison native 33](mandats-diorama/comparaison-33.html). La Corse suit maintenant une rotation commune avec ses villes et son port ; le sud-ouest est élargi. La cathédrale conserve sa nef et son emprise et raccourcit ses tours hautes. Les champs sont plus dorés, les canopées plus contrastées, les façades côtières découpées et la neige plus présente sur les hauts fronts alpins. **La comparaison reste non conforme à la maquette** : largeur du monument, finesse du relief, épaisseur et richesse de certains rivages, composition des campagnes.
 
 Le build complet termine réellement avec 1 082 tests réussis et 227 entrées verrouillées. Huit textures locales remplacent leurs calculs procéduraux au démarrage ; leurs pixels RGBA sont identiques à la recette conservée. Le cache hors connexion contient les huit PNG. Sept vues Chromium natives et le contrôle des corps PNG puis de leur décodage navigateur terminent réellement sans erreur JavaScript, HTTP, requête ou console. Aucun gain de chargement n’est présumé par cette seule capture.
 
-**L’audit physique 33 échoue encore** : six maisons sont rejetées, 731 sont construites sur les 737 définies. Les maisons construites, le lycée, les rochers, les eaux, les places publiques et les foules passent les contrôles effectués ; les six adresses restent à corriger. Les seuils et les aides de contrôle sont inchangés. Le test ciblé desktop des modèles retardés échoue encore au délai original de 15 s après leur libération ; le groupe WebKit suivant n’a pas démarré. Les quatre suites navigateur complètes 33 restent non exécutées. Le rendu capturé constitue une étape réelle, pas une livraison terminée.
+**L’audit physique 33 échoue encore** : six maisons sont rejetées, 731 sont construites sur les 737 définies. Les maisons construites, le lycée, les rochers, les eaux, les places publiques et les foules passent les contrôles effectués ; les six adresses restent à corriger. Le rapport relève aussi deux points du pied d’un même pin sans triangle de sol. Les seuils et les aides de contrôle sont inchangés. Le test ciblé desktop des modèles retardés échoue encore au délai original de 15 s après leur libération ; le groupe WebKit suivant n’a pas démarré. Les quatre suites navigateur complètes 33 restent non exécutées. Le rendu capturé constitue une étape réelle, pas une livraison terminée.
 
 Sur 32, un contrôle ciblé a réellement réussi le mandat complet mobile et la reprise du mouvement lycéen WebKit ; la reprise WebKit en haute densité a échoué au délai de renderer après Reprendre. Ces résultats 32 ne valident pas automatiquement 33.
 

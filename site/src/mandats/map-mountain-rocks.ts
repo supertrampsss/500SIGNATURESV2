@@ -66,7 +66,7 @@ function triangleHeight(face: Face, point: Point) {
 function rockGeometry(variant: number) {
   const body: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
     snow: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
-    palette = ["#8A8378", "#A39176", "#AB987C", "#6E7A83", "#8D897D", "#8E7D6D"],
+    palette = ["#AA947B", "#B59D80", "#C0AA8B", "#7B8289", "#9F8E7B", "#A18B73"],
     color = Color3.FromHexString(palette[variant]),
     angles = [-.10, .88, 2.07, 3.33, 4.36, 5.47],
     radii = [1.02, .91, 1.05, .88, .99, .86],
@@ -100,16 +100,15 @@ function rockGeometry(variant: number) {
   vertex(leanX + .235, [.99, .92, 1, .95, .98, .94][variant], leanZ + .055, 1.02);
   vertex(leanX - .205, [.87, 1, .88, .99, .91, .98][variant], leanZ - .045, .97);
   const snowy = (a: number, b: number, c: number, face: number) => {
-    if ((face + variant * 3) % 8 === 2 || (face + variant * 3) % 8 === 4 ||
-      (face + variant * 3) % 8 === 7) return;
+    if ((face + variant * 3) % 8 === 2 || (face + variant * 3) % 8 === 7) return;
     const p = [a, b, c].map(id => ({ x: body.positions[id * 3], y: body.positions[id * 3 + 1],
       z: body.positions[id * 3 + 2] })),
       ab = { x: p[0].x - p[1].x, y: p[0].y - p[1].y, z: p[0].z - p[1].z },
       cb = { x: p[2].x - p[1].x, y: p[2].y - p[1].y, z: p[2].z - p[1].z },
       nx = ab.y * cb.z - ab.z * cb.y, ny = ab.z * cb.x - ab.x * cb.z,
       nz = ab.x * cb.y - ab.y * cb.x;
-    if (ny / Math.hypot(nx, ny, nz) < .34) return;
-    const line = .59 + random(face, variant + 227) * .08,
+    if (ny / Math.hypot(nx, ny, nz) < .24) return;
+    const line = .49 + random(face, variant + 227) * .07,
       patch: Array<{ x: number; y: number; z: number }> = [];
     // Clip the actual facet by local altitude, then expose a narrow stone border.
     for (let i = 0; i < p.length; i++) {
@@ -129,22 +128,51 @@ function rockGeometry(variant: number) {
     for (const v of patch) {
       const x = centre.x + (v.x - centre.x) * inset, y = centre.y + (v.y - centre.y) * inset,
         z = centre.z + (v.z - centre.z) * inset;
-      snow.positions.push(x, y + .012, z); snow.colors.push(.955, .968, .987, 1);
+      snow.positions.push(x, y + .012, z); snow.colors.push(.985, .985, .975, 1);
       snow.uvs.push((x + 1.1) / 2.2, y * .70);
     }
     for (let i = 1; i < patch.length - 1; i++) snow.indices.push(first, first + i, first + i + 1);
+  };
+  // Split only the upper facets into shallow broken ledges. Every old edge
+  // and the closed supporting base remain intact; the new point lies below
+  // the old facet, inside its original convex envelope and XZ footprint.
+  const brokenFacet = (a: number, b: number, c: number, face: number, crest: boolean) => {
+    const points = [a, b, c].map(id => ({ x: body.positions[id * 3],
+      y: body.positions[id * 3 + 1], z: body.positions[id * 3 + 2] })),
+      ab = { x: points[0].x - points[1].x, y: points[0].y - points[1].y, z: points[0].z - points[1].z },
+      cb = { x: points[2].x - points[1].x, y: points[2].y - points[1].y, z: points[2].z - points[1].z },
+      nx = ab.y * cb.z - ab.z * cb.y, ny = ab.z * cb.x - ab.x * cb.z,
+      nz = ab.x * cb.y - ab.y * cb.x,
+      upward = ny / Math.hypot(nx, ny, nz),
+      x = points.reduce((sum, p) => sum + p.x / 3, 0),
+      z = points.reduce((sum, p) => sum + p.z / 3, 0),
+      averageY = points.reduce((sum, p) => sum + p.y / 3, 0),
+      cut = upward > .06 ? (crest ? .075 : .008) + random(face, variant + 239) * (crest ? .035 : .010) : 0,
+      y = Math.max(Math.min(...points.map(p => p.y)) + .008, averageY - cut),
+      middle = body.positions.length / 3;
+    body.positions.push(x, y, z);
+    for (let channel = 0; channel < 3; channel++) body.colors.push(
+      [a, b, c].reduce((sum, id) => sum + body.colors[id * 4 + channel] / 3, 0));
+    body.colors.push(1); body.uvs.push((x + 1.1) / 2.2, y * .70);
+    for (const [i, [u, v]] of [[a, b], [b, c], [c, a]].entries()) {
+      body.indices.push(u, v, middle); snowy(u, v, middle, face * 3 + i);
+    }
   };
   for (let ring = 0; ring < 2; ring++) for (let i = 0; i < 6; i++) {
     const j = (i + 1) % 6, a = ring * 6 + i, b = ring * 6 + j,
       c = (ring + 1) * 6 + j, d = (ring + 1) * 6 + i;
     // Babylon LH: exterior normals are (a - b) × (c - b).
-    body.indices.push(a, b, c, a, c, d);
+    if (ring === 0) body.indices.push(a, b, c, a, c, d);
+    else {
+      brokenFacet(a, b, c, 20 + i * 2, false);
+      brokenFacet(a, c, d, 21 + i * 2, false);
+    }
   }
   for (let i = 1; i < 5; i++) body.indices.push(0, i + 1, i);
   const roof = [[18, 12, 13], [18, 13, 14], [18, 14, 19], [19, 14, 15],
     [19, 15, 16], [19, 16, 17], [19, 17, 18], [18, 17, 12]];
   for (const [i, [a, b, c]] of roof.entries()) {
-    body.indices.push(a, b, c); snowy(a, b, c, i);
+    brokenFacet(a, b, c, 100 + i, true);
   }
   return { body, snow, footprint: hull(Array.from({ length: body.positions.length / 3 }, (_, i) =>
     ({ x: body.positions[i * 3], z: body.positions[i * 3 + 2] }))) };
@@ -249,7 +277,8 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
       height = Math.max(radius * (.75 + random(i, 173) * .25), highest - lowest + .042);
     if (height > .24 || height > radius * 2.20) continue;
     const floor = lowest - .006,
-      snowy = y + height * .70 > .51 && random(i, 179) > .22;
+      snowy = y + height * .70 > (face.alpine ? .44 : .36) &&
+        random(i, 179) > (face.alpine ? .08 : .24);
     for (const white of snowy ? [false, true] : [false]) {
       const instance = template(variant, white).createInstance(`mountain-rock-${white ? "snow" : "stone"}-${placements.length}`);
       instance.position.set(x, floor, z); instance.rotation.y = angle; instance.scaling.set(radius, height, radius * scaleZ);

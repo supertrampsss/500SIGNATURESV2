@@ -149,7 +149,7 @@ export function buildMapWater(scene: Scene) {
         // the broad horizontal bands of the first water material.
         float rippleA = sin(dot(p, vec2(51.0, 19.0)) + time * .39);
         float rippleB = sin(dot(p, vec2(-23.0, 43.0)) - time * .28);
-        color += vec3(.038, .062, .078) * (wave - .5);
+        color += vec3(.014, .023, .029) * (wave - .5);
         // The submitted river has a dark channel and brighter shallows.
         // Its longitudinal UVs follow the actual curved course.
         float current = .5 + .5 * sin(flow.y * 160.0 +
@@ -162,14 +162,16 @@ export function buildMapWater(scene: Scene) {
         vec3 normal = normalize(vec3(rippleA * .055 + (wave - .5) * .12,
           1.0, rippleB * .052 + (wave - .5) * .1));
         vec3 towardEye = normalize(eye - seaPosition);
-        float reflection = pow(max(0.0, dot(reflect(normalize(vec3(.55, -1.2, .7)), normal), towardEye)), 48.0);
+        float reflection = pow(max(0.0, dot(reflect(normalize(vec3(.55, riverChannel > .5 ? -1.2 : -.80, .7)), normal), towardEye)), 48.0);
         color += vec3(.56, .69, .76) * reflection * (.12 + wave * .22);
         float flecks = smoothstep(.72, .88, noise(p * 108.0 + drift)) *
           smoothstep(.52, .76, wave);
         float crest = smoothstep(.89, .997, .5 + .5 * rippleA) *
           smoothstep(.62, .86, seaNoise(p * 15.0 + drift));
-        color += vec3(.12, .18, .19) * flecks * (.2 + reflection * .9);
-        color += vec3(.08, .13, .16) * crest * (1.0 - riverChannel);
+        // Calm open water keeps isolated glints instead of a field of bright
+        // speckles. River tint/current and their existing flecks stay intact.
+        color += vec3(.12, .18, .19) * flecks * (mix(.035, .2, riverChannel) + reflection * .9);
+        color += vec3(.024, .039, .048) * crest * (1.0 - riverChannel);
         // Broken near-rock wash stays thin and retains the existing clock.
         // The coarse patch interrupts it; the moving fine noise draws surf.
         float wash = .5 + .5 * sin(coastDepth * 111.0 - time * .32 + coastPatch * 2.6);
