@@ -1,0 +1,36 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MANDATS : comparaison 31</title><style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; padding: 28px; background: #071b32; color: #fbf5eb; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 1800px; margin: auto; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.2; }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 40px); }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 14px; font-size: 22px; }
+    p { max-width: 90ch; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #edbc6b; outline-offset: 5px; }
+    .status { display: inline-block; margin: 0 0 12px; padding: 6px 11px; border: 1px solid #bb945b; border-radius: 4px; color: #f0cf98; }
+    .comparison, .inspections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .comparison { margin-top: 30px; }
+    figure { min-width: 0; margin: 0; }
+    .image-link { display: grid; place-items: center; width: 100%; aspect-ratio: 1672 / 941; border: 1px solid #687e96; background: #102940; overflow: hidden; text-decoration: none; }
+    .image-link img { display: block; width: 100%; height: auto; }
+    figcaption { padding-top: 12px; color: #d1dbe6; }
+    figcaption p { margin: 0 0 7px; }
+    .capture-status { font-size: 14px; color: #bdcada; }
+    .section { margin-top: 36px; padding-top: 26px; border-top: 1px solid #516a85; }
+    .review { max-width: 100ch; }
+    .review li { margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 12px; border: 1px solid #516a85; text-align: left; vertical-align: top; }
+    caption { margin-bottom: 10px; text-align: left; color: #d1dbe6; }
+    footer { margin-top: 34px; padding-top: 20px; border-top: 1px solid #516a85; color: #bdcada; }
+    @media (max-width: 850px) {
+      body { padding: 20px 16px; }
+      .comparison, .inspections { grid-template-columns: 1fr; gap: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style></head>
+<body><main><header><p class="status">Passe 31 : Non conforme à la maquette</p><h1>La référence confirmée et le jeu réel</h1><p>La mer perd son halo cyan et les faces minérales retrouvent une lumière plus chaude. La neige et des parcelles composées sont plus visibles. La silhouette, le monument central et la richesse du paysage restent éloignés de la référence.</p><p>7 vues réelles, Chromium 151.0.7922.173, 1672 × 941, DPR 1, zéro décision. Erreurs JavaScript : 0 ; requêtes échouées : 0 ; erreurs HTTP : 0 ; avertissements console : 0 ; erreurs console : 0.</p></header>
+<section class="comparison"><figure><h2>Référence confirmée</h2><a class="image-link" href="reference-ordinateur.png"><img src="reference-ordinateur.png" width="1672" height="941" alt="Maquette confirmée : France miniature détaillée"></a><figcaption>Image originale conservée sans modification.</figcaption></figure><figure><h2>Vue nationale réelle</h2><a class="image-link" href="screens-31/ordinateur.png"><img src="screens-31/ordinateur.png" width="1672" height="941" alt="Vue nationale réelle"></a><figcaption><p>Vue nationale native31 : lumière et eau corrigées, silhouette encore non conforme.</p><a href="screens-31/ordinateur.json">Conditions et actions</a> · <a href="screens-31/ordinateur-inputs.json">Entrées de partie</a></figcaption></figure></section><section class="section"><div class="inspections"><figure><h2>Paris</h2><a class="image-link" href="screens-31/paris.png"><img src="screens-31/paris.png" width="1672" height="941" alt="Paris"></a><figcaption><p>Paris natif31 : pierre réchauffée ; monument trop haut et étroit.</p><a href="screens-31/paris.json">Conditions et actions</a> · <a href="screens-31/paris-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Seine et berges</h2><a class="image-link" href="screens-31/seine.png"><img src="screens-31/seine.png" width="1672" height="941" alt="Seine et berges"></a><figcaption><p>Seine native31 : vraie inspection et quartiers issus du moteur.</p><a href="screens-31/seine.json">Conditions et actions</a> · <a href="screens-31/seine-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Lyon et Alpes</h2><a class="image-link" href="screens-31/alpes.png"><img src="screens-31/alpes.png" width="1672" height="941" alt="Lyon et Alpes"></a><figcaption><p>Alpes natives31 : plaques de neige plus visibles, relief encore trop grossier.</p><a href="screens-31/alpes.json">Conditions et actions</a> · <a href="screens-31/alpes-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Retour national</h2><a class="image-link" href="screens-31/retour.png"><img src="screens-31/retour.png" width="1672" height="941" alt="Retour national"></a><figcaption><p>Retour national natif31 après sept vues, zéro décision, erreur ou avertissement console.</p><a href="screens-31/retour.json">Conditions et actions</a> · <a href="screens-31/retour-inputs.json">Entrées de partie</a></figcaption></figure></div></section><section class="section review"><h2>Écarts observés</h2><ul><li>La mer est plus marine et les halos continus sont supprimés ; la côte garde des secteurs minces et des faces trop lisses.</li><li>Les plaques de neige couvrent davantage les hauts pans des crêtes angulaires. Les montagnes restent plus grossières et plus grises que les massifs de la référence.</li><li>La pierre est plus chaude et les ardoises demeurent sombres. Le monument est encore trop haut et étroit, ses bases semblent proches de la référence.</li><li>Les coteaux Touraine/Berry et Lorraine gagnent des pans verts et dorés. La campagne conserve de larges vides et des motifs trop réguliers.</li><li>Le sud-ouest reste trop étroit ; la Corse présente une inclinaison opposée à la référence.</li><li>Le cadre bleu nuit/ivoire reste proche ; année, scores et sujets proviennent de la partie réelle.</li></ul><p><a href="screens-31/verification.json">Preuves de capture</a> · <a href="screens-31/build.json">Build réellement servi</a> · <a href="screens-31/review.json">Revue enregistrée</a></p></section></main></body></html>

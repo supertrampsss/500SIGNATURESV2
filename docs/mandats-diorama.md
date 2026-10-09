@@ -40,6 +40,18 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+## Passe 31 capturée le 9 octobre 2026
+
+La [comparaison native31](mandats-diorama/comparaison-31.html) conserve la référence et cinq vues réelles. La lumière réchauffe la pierre à énergie moyenne conservée ; la mer abandonne le halo cyan uniforme, la neige recouvre davantage les hauts pans et les coteaux Touraine/Berry et Lorraine portent de grandes parcelles vertes et dorées.
+
+**Verdict visuel : non conforme.** Le sud-ouest est trop resserré, la cathédrale trop haute et étroite, les reliefs trop grossiers et les campagnes encore moins riches que la référence. Les sept vues Chromium151, 1 672 × 941/DPR1/graine0/zéro décision enregistrent zéro erreur JavaScript, HTTP, requête ou avertissement console.
+
+Le build complet passe réellement 1 082 tests et toutes ses étapes. L’[audit composé](mandats-diorama/screens-31/physical-summary-final.json) et son [reçu](mandats-diorama/screens-31/physical-receipt.json) vérifient les contacts, foules, réservations, 737 maisons et 305 rochers sur214 entrées verrouillées. Le contrôle côtier dense conserve ses179 172 sondages et coordonnées historiques ; les mêmes gardes passent. L’[import réel du module](mandats-diorama/screens-31/module-load.json) charge31 sources TS conformes au verrou, sans Scene ni GPU.
+
+La passe30 a compilé, puis échoué avant toute scène : le cache des segments d’eau était déclaré après son premier usage pendant l’initialisation du terrain. Le correctif31 place ses deux déclarations avant ce premier appel, sans changer les réponses géométriques. Les preuves30 restent conservées ; aucun rendu30 n’est revendiqué.
+
+Le [test navigateur ciblé](mandats-diorama/screens-31/focused-models-result.json) des modèles retardés, indisponibles et repris passe réellement avec le délai15s original. Il conserve la décision et son engagement après la reprise. Les quatre suites complètes restent non exécutées sur31. L’accueil sans mandat adopté conserve un aperçu SVG et démarre la scène après Commencer ou Reprendre ; une scène existante reste conservée entre décisions. Ce changement doit encore être évalué sur les reprises WebKit et le parcours complet mobile.
+
 ## Passe 29 capturée le 9 octobre 2026
 
 La [comparaison réelle 29](mandats-diorama/comparaison-29.html) conserve la référence et les cinq vues nationales et rapprochées. Les [sept relevés natifs](mandats-diorama/screens-29/verification.json) utilisent Chromium151, 1 672 × 941, DPR1, graine0 et zéro décision, avec zéro erreur ou avertissement console.

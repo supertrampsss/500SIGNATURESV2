@@ -134,10 +134,15 @@ export function buildMapWater(scene: Scene) {
       }
       void main(void) {
         vec2 p = seaPosition.xz;
-        float depth = smoothstep(.0, .92, coastDepth);
         float broad = seaNoise(p * .45);
-        vec3 deep = mix(vec3(.018, .106, .205), vec3(.045, .225, .340), broad);
-        vec3 color = mix(vec3(.064, .350, .455), deep, depth);
+        // The reference sea has a navy blue body and small, local clear-water
+        // pockets. A continuous cyan shelf used to extend .60 world unit out.
+        vec3 deep = mix(vec3(.008, .137, .255), vec3(.039, .224, .365), broad);
+        float coastPatch = noise(p * 4.7 + vec2(7.4, 13.1));
+        float shelfWidth = mix(.10, .25, coastPatch);
+        float shallows = (1.0 - smoothstep(.012, shelfWidth, coastDepth)) *
+          smoothstep(.31, .75, coastPatch) * (1.0 - riverChannel);
+        vec3 color = mix(deep, vec3(.016, .302, .427), shallows * .62);
         vec2 drift = vec2(time * .021, -time * .014);
         float wave = seaNoise(p * 23.0 + drift);
         // Several crossed ripples give the surface a fine grain instead of
@@ -165,10 +170,13 @@ export function buildMapWater(scene: Scene) {
           smoothstep(.62, .86, seaNoise(p * 15.0 + drift));
         color += vec3(.12, .18, .19) * flecks * (.2 + reflection * .9);
         color += vec3(.08, .13, .16) * crest * (1.0 - riverChannel);
-        float wash = .5 + .5 * sin(coastDepth * 72.0 - time * .32);
-        float foam = (1.0 - smoothstep(.018, .19, coastDepth)) *
-          smoothstep(.40, .82, seaNoise(p * 27.0 + drift)) * (.45 + wash * .55);
-        color = mix(color, vec3(.59, .73, .71), foam * .58);
+        // Broken near-rock wash stays thin and retains the existing clock.
+        // The coarse patch interrupts it; the moving fine noise draws surf.
+        float wash = .5 + .5 * sin(coastDepth * 111.0 - time * .32 + coastPatch * 2.6);
+        float foam = (1.0 - smoothstep(.011, .075, coastDepth)) *
+          smoothstep(.50, .76, seaNoise(p * 27.0 + drift)) *
+          smoothstep(.20, .62, coastPatch) * (.30 + wash * .70) * (1.0 - riverChannel);
+        color = mix(color, vec3(.733, .824, .851), foam * .67);
         gl_FragColor = vec4(color, 1.0);
       }`,
   }, {

@@ -13,7 +13,7 @@ import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapSourceCo
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
 import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey } from "./map-land-crags.ts";
-import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES, TOURAINE_BERRY_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
+import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES, COMPOSED_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
 import {
   cityEnvelopeFootprints,
@@ -476,6 +476,8 @@ const riverSections = riverPaths.map(river => river.path.map((center, index) => 
 }));
 type RiverSegment = { a: Point; b: Point; widthA: number; widthB: number; mouth: number; water: Point[]; rendered: boolean };
 const riverCells = new Map<string, RiverSegment[]>();
+const riverQueryCandidates = new Map<string, readonly RiverSegment[]>();
+const riverQueryBounds = new WeakMap<RiverSegment, { minX: number; maxX: number; minZ: number; maxZ: number }>();
 for (const river of riverPaths) {
   const sections = riverSections[river.index];
   for (let i = 1; i < sections.length; i++) {
@@ -634,7 +636,7 @@ function cultivatedValleyBreakLines() {
 // They share their exact source-frame contours with fields and wooded crests.
 function composedCoteauProfile(sx: number, sz: number) {
   let height = 0, influence = 0;
-  for (const coteau of TOURAINE_BERRY_COTEAUX) {
+  for (const coteau of COMPOSED_COTEAUX) {
     const first = coteau.spine[0][0], last = coteau.spine[coteau.spine.length - 1][0];
     if (sx <= first || sx >= last) continue;
     const offset = sz - coteauSourceZ(coteau, sx), section = coteau.section,
@@ -654,7 +656,7 @@ function composedCoteauProfile(sx: number, sz: number) {
   return { height, influence };
 }
 function composedCoteauBreakLines() {
-  return TOURAINE_BERRY_COTEAUX.flatMap(coteau =>
+  return COMPOSED_COTEAUX.flatMap(coteau =>
     coteau.section.slice(1, -1).map(([offset]) =>
       coteauContour(coteau, offset).map(([x, z]) => mapAuthoredPosition(x, z))));
 }
@@ -1340,13 +1342,13 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number) {
     drift = noise(sx * 7.2 + 31, sz * 6.6 + 19),
     channel = noise(sx * 11.8 + sz * 3.6 + warp + 8, sz * 2.7 - sx * 1.9 + 23),
     branch = noise(sx * 5.2 - sz * 8.1 + 41, sz * 2.0 + sx * .8 - warp + 29),
-    altitude = smooth(clamp((y - .36 - snowlineNoise * .05) / .23)),
+    altitude = smooth(clamp((y - .34 - snowlineNoise * .04) / .22)),
     shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
     pocket = smooth(clamp((drift - .59) / .16)),
-    mainGully = smooth(clamp((channel - .57) / .18)),
-    sideGully = smooth(clamp((branch - .64) / .17)) * .84,
-    gullySlope = smooth(clamp((slope - .16) / .36)) *
-      (1 - smooth(clamp((slope - 1.05) / 1.10))),
+    mainGully = smooth(clamp((channel - .53) / .18)),
+    sideGully = smooth(clamp((branch - .60) / .17)) * .84,
+    gullySlope = smooth(clamp((slope - .12) / .34)) *
+      (1 - smooth(clamp((slope - 1.25) / 1.30))),
     // Narrow, warped corridors collect snow; steep faces and rock ribs stay exposed.
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - .64) / .18)),
@@ -2425,7 +2427,8 @@ function buildFields(
       palette = field.kind === "pasture" ? ["#74913B", "#8BA34A", "#9DB456", "#819D43"] :
         field.kind === "wheat" ? ["#C5AB4D", "#D9BD61", "#E1C975", "#BFA34E"] :
         ["#A5A450", "#BAAA5B", "#9DAA48", "#B6AD60"],
-      color = colorMix(Color3.FromHexString(palette[(field.paletteSlot ?? fieldIndex) % palette.length]),
+      color = field.composedPalette ? Color3.FromHexString(field.color) :
+        colorMix(Color3.FromHexString(palette[(field.paletteSlot ?? fieldIndex) % palette.length]),
         Color3.FromHexString(field.color), .18), start = crops.indices.length,
       triangulation = Delaunator.from(points, p => p.x, p => p.z).triangles;
     for (let i = 0; i < triangulation.length; i += 3) {
@@ -2533,17 +2536,41 @@ function buildFields(
   return orchards;
 }
 
-export function riverContains(x: number, z: number, margin = 0): boolean {
-  const cellX = Math.floor(x / .25), cellZ = Math.floor(z / .25),
-    radius = Math.ceil(Math.max(0, margin) / .25);
+function riverCandidates(cellX: number, cellZ: number, radius: number): readonly RiverSegment[] {
+  const key = `${cellX}:${cellZ}:${radius}`, cached = riverQueryCandidates.get(key);
+  if (cached) return cached;
+  // riverCells and the water polygons are populated once at module startup.
+  // Keep their first-seen order, but avoid testing a shared segment per cell.
+  const candidates: RiverSegment[] = [], seen = new Set<RiverSegment>();
   for (let dx = -radius; dx <= radius; dx++)
     for (let dz = -radius; dz <= radius; dz++)
-      for (const segment of riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? []) {
-        if (!segment.rendered) continue;
-        if (contains(segment.water, x, z)) return true;
-        if (margin > 0 && segment.water.some((point, index) =>
-          segmentDistance(x, z, point, segment.water[(index + 1) % segment.water.length]) < margin)) return true;
-      }
+      for (const segment of riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? [])
+        if (!seen.has(segment)) { seen.add(segment); candidates.push(segment); }
+  riverQueryCandidates.set(key, candidates);
+  return candidates;
+}
+function riverWaterBounds(segment: RiverSegment) {
+  let bounds = riverQueryBounds.get(segment);
+  if (!bounds) {
+    bounds = { minX: Math.min(...segment.water.map(p => p.x)), maxX: Math.max(...segment.water.map(p => p.x)),
+      minZ: Math.min(...segment.water.map(p => p.z)), maxZ: Math.max(...segment.water.map(p => p.z)) };
+    riverQueryBounds.set(segment, bounds);
+  }
+  return bounds;
+}
+export function riverContains(x: number, z: number, margin = 0): boolean {
+  const cellX = Math.floor(x / .25), cellZ = Math.floor(z / .25),
+    radius = Math.ceil(Math.max(0, margin) / .25), padding = Math.max(0, margin) + 1e-8;
+  for (const segment of riverCandidates(cellX, cellZ, radius)) {
+    // Read the live flag; the cache indexes geometry rather than query results.
+    if (!segment.rendered) continue;
+    const bounds = riverWaterBounds(segment);
+    if (x < bounds.minX - padding || x > bounds.maxX + padding ||
+      z < bounds.minZ - padding || z > bounds.maxZ + padding) continue;
+    if (contains(segment.water, x, z)) return true;
+    if (margin > 0 && segment.water.some((point, index) =>
+      segmentDistance(x, z, point, segment.water[(index + 1) % segment.water.length]) < margin)) return true;
+  }
   return false;
 }
 
@@ -2668,7 +2695,8 @@ async function buildForests(scene: Scene, orchards: Point[]) {
       const ground = landHeight(x, z);
       if (!contains(wood.polygon, x, z) || !landContains(x, z) || parisSector(x, z) ||
         ((wood.id.startsWith("bosquet-") || wood.id === "lisiere-loire-centre" ||
-          wood.id === "bois-centre-sud" || wood.id === "lisiere-berry-bourbonnais") &&
+          wood.id === "bois-centre-sud" || wood.id === "lisiere-berry-bourbonnais" ||
+          wood.id === "lisiere-champagne-ardenne" || wood.id === "lisiere-lorraine") &&
           constructionReservationContains(x, z, .035)) ||
         parisAreaAt(x, z) || nationalBlockAt(x, z) || urbanClearance(x, z) < 0.032 || nearbyRiver(x, z) ||
         ground < (wood.minHeight ?? -Infinity) || ground > (wood.maxHeight ?? 0.78) ||

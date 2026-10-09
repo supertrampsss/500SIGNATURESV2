@@ -30,6 +30,17 @@ const architecturalKits = new Set([
   "/mandats/models/cathedrale.glb",
 ]);
 
+// The current prefiltered daylight has a green-heavy upward irradiance.
+// Rebalance both diffuse irradiance and specular radiance through the existing
+// PBR reflectionColor uniform, leaving stone/slate atlas pixels untouched.
+// The mean comes from lighting/prefilter-report.json (six axial directions).
+const architecturalDaylightMean = new Color3(.6904249668877601, .6548215501790223, .5549155640500457),
+  architecturalDaylightTint = new Color3(1.18, .98, .98),
+  daylightLuminance = (value: Color3) => value.r * .2126 + value.g * .7152 + value.b * .0722,
+  architecturalDaylightBalance = architecturalDaylightTint.scale(
+    daylightLuminance(architecturalDaylightMean) /
+      daylightLuminance(architecturalDaylightMean.multiply(architecturalDaylightTint)));
+
 /** Authored local models share geometry and materials across the miniature. */
 export function loadAssetKit(scene: Scene, url: string): Promise<AssetKit> {
   if (!url.startsWith("/mandats/models/") || !url.split("?")[0].endsWith(".glb"))
@@ -60,6 +71,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       // PBR diffuse is normalized by pi; the landscape uses StandardMaterial.
       // Calibrate only the architectural surfaces, preserving their atlas and
       // ORM channels. Compensate direct specular so slate does not turn white.
+      surface.reflectionColor = surface.reflectionColor.multiply(architecturalDaylightBalance);
       surface.directIntensity = 2;
       surface.environmentIntensity = 1.25;
       surface.specularIntensity = 0.5;
@@ -110,6 +122,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
           tinted.roughness = original.roughness;
           tinted.directIntensity = original.directIntensity;
           tinted.environmentIntensity = original.environmentIntensity;
+          tinted.reflectionColor = original.reflectionColor.clone();
           tinted.specularIntensity = original.specularIntensity;
           tinted.albedoTexture = original.albedoTexture;
           tinted.bumpTexture = original.bumpTexture;

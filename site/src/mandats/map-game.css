@@ -634,6 +634,7 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
 .map-game button:active { filter: brightness(0.96); }
 html body[data-rework="true"] #mandats .map-marker,
 html body[data-rework="true"] #mandats .map-marker.is-selected { background: transparent; color: var(--map-ink); }
+.mandate-map[data-renderer="preview"] .map-camera,
 .mandate-map[data-renderer="fallback"] .map-camera { display: none; }
 .map-game:has(.mandate-map[data-renderer="fallback"]) [data-action="map-inspect"] { display: none; }
 .map-decision-receipt {

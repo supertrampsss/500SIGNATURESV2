@@ -66,7 +66,7 @@ function triangleHeight(face: Face, point: Point) {
 function rockGeometry(variant: number) {
   const body: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
     snow: Geometry = { positions: [], indices: [], colors: [], uvs: [] },
-    palette = ["#8D8980", "#A69983", "#AFA188", "#7F888B", "#AAA494", "#998D7C"],
+    palette = ["#8A8378", "#A39176", "#AB987C", "#6E7A83", "#8D897D", "#8E7D6D"],
     color = Color3.FromHexString(palette[variant]),
     angles = [-.10, .88, 2.07, 3.33, 4.36, 5.47],
     radii = [1.02, .91, 1.05, .88, .99, .86],
@@ -109,7 +109,7 @@ function rockGeometry(variant: number) {
       nx = ab.y * cb.z - ab.z * cb.y, ny = ab.z * cb.x - ab.x * cb.z,
       nz = ab.x * cb.y - ab.y * cb.x;
     if (ny / Math.hypot(nx, ny, nz) < .34) return;
-    const line = .72 + random(face, variant + 227) * .10,
+    const line = .59 + random(face, variant + 227) * .08,
       patch: Array<{ x: number; y: number; z: number }> = [];
     // Clip the actual facet by local altitude, then expose a narrow stone border.
     for (let i = 0; i < p.length; i++) {
@@ -124,7 +124,7 @@ function rockGeometry(variant: number) {
     if (patch.length < 3) return;
     const centre = patch.reduce((sum, v) => ({ x: sum.x + v.x / patch.length,
       y: sum.y + v.y / patch.length, z: sum.z + v.z / patch.length }), { x: 0, y: 0, z: 0 }),
-      inset = .82 + random(face, variant + 229) * .09,
+      inset = .94 + random(face, variant + 229) * .04,
       first = snow.positions.length / 3;
     for (const v of patch) {
       const x = centre.x + (v.x - centre.x) * inset, y = centre.y + (v.y - centre.y) * inset,

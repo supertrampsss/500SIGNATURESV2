@@ -14,6 +14,8 @@ export type NationalField = {
   infill?: boolean;
   /** Keep other basins' colour sequences stable when a composed sector replaces its grid. */
   paletteSlot?: number;
+  /** A composed green/gold pan uses its authored tone directly. */
+  composedPalette?: boolean;
 };
 export type NationalWood = {
   id: string;
@@ -31,7 +33,7 @@ export type NationalWood = {
 
 /** Two continuous source-frame landforms own the contour fields and their wooded crests. */
 export type CultivatedCoteau = {
-  id: "touraine" | "berry";
+  id: "touraine" | "berry" | "lorraine";
   spine: readonly NationalCompositionPoint[];
   section: readonly NationalCompositionPoint[];
 };
@@ -41,6 +43,12 @@ export const TOURAINE_BERRY_COTEAUX: readonly CultivatedCoteau[] = [
   { id: "berry", spine: [[-1.47,-.30],[-.92,-.35],[-.30,-.45],[.36,-.37],[.97,-.27],[1.56,-.39]],
     section: [[-.79,0],[-.58,.030],[-.35,.120],[-.11,.245],[.09,.290],[.32,.225],[.60,.050],[.83,0]] },
 ];
+// The north-east sector is separate from the two unchanged Touraine/Berry surveys.
+export const LORRAINE_COTEAUX: readonly CultivatedCoteau[] = [
+  { id: "lorraine", spine: [[1.65,2.45],[2.13,2.38],[2.65,2.47],[3.13,2.37],[3.52,2.26]],
+    section: [[-.78,0],[-.56,.035],[-.32,.120],[-.09,.225],[.11,.255],[.31,.205],[.58,.065],[.82,0]] },
+];
+export const COMPOSED_COTEAUX = [...TOURAINE_BERRY_COTEAUX, ...LORRAINE_COTEAUX];
 export function coteauSourceZ(coteau: CultivatedCoteau, x: number) {
   const points = coteau.spine;
   for (let i = 1; i < points.length; i++) {
@@ -66,20 +74,36 @@ export function coteauContour(coteau: CultivatedCoteau, offset: number,
 }
 function coteauField(id: string, region: NationalField["region"], coteauIndex: number,
   start: number, end: number, low: number, high: number, kind: NationalField["kind"], color: string): NationalField {
-  const coteau = TOURAINE_BERRY_COTEAUX[coteauIndex],
+  const coteau = COMPOSED_COTEAUX[coteauIndex],
     lower = coteauContour(coteau, low, start, end),
     upper = coteauContour(coteau, high, start + .035, end - .055);
-  return { id, region, kind, color, angle: 0,
+  return { id, region, kind, color, angle: 0, composedPalette: true,
     outline: [...lower, ...upper.reverse()],
     rowGuide: kind === "pasture" ? undefined : coteauContour(coteau, (low + high) / 2, start, end) };
 }
 function coteauWood(id: string, coteauIndex: number, low: number, high: number, trees: number): NationalWood {
-  const coteau = TOURAINE_BERRY_COTEAUX[coteauIndex],
+  const coteau = COMPOSED_COTEAUX[coteauIndex],
     start = coteau.spine[0][0] + .20, end = coteau.spine[coteau.spine.length - 1][0] - .20,
     lower = coteauContour(coteau, low, start, end), upper = coteauContour(coteau, high, start, end),
     groups = coteauContour(coteau, (low + high) / 2, start + .10, end - .10)
       .filter((_, index) => index % 6 === 0).map(([x, z]): readonly [number, number, number, number] =>
         [x, z, .20, (high - low) * .55]);
+  return { id, trees, outline: [...lower, ...upper.reverse()], groups, maxSlope: .62 };
+}
+
+function lorraineField(id: string, start: number, end: number, low: number, high: number,
+  kind: NationalField["kind"], color: string): NationalField {
+  return { ...coteauField(id, "est", 2, start, end, low, high, kind, color), composedPalette: true };
+}
+function lorraineBosquet(id: string, start: number, end: number,
+  low: number, high: number, trees: number): NationalWood {
+  const coteau = LORRAINE_COTEAUX[0], lower = coteauContour(coteau, low, start, end),
+    upper = coteauContour(coteau, high, start + .03, end - .02),
+    middle = (low + high) / 2,
+    groups = [.22, .50, .78].map((t): readonly [number, number, number, number] => {
+      const x = start + (end - start) * t;
+      return [x, coteauSourceZ(coteau, x) + middle, (end - start) * .25, (high - low) * .53];
+    });
   return { id, trees, outline: [...lower, ...upper.reverse()], groups, maxSlope: .62 };
 }
 
@@ -242,8 +266,8 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     kind: "wheat",
     color: "#E7BC56",
   },
-  coteauField("loire-grandes-cultures-est", "loire", 0, -2.23, -0.63, 0.055, 0.275, "wheat", "#D5BB68"),
-  coteauField("loire-patures-meandre", "loire", 0, -2.06, -0.43, -0.155, 0.025, "pasture", "#99AC62"),
+  coteauField("loire-grandes-cultures-est", "loire", 0, -2.23, -0.63, 0.055, 0.275, "wheat", "#D6B454"),
+  coteauField("loire-patures-meandre", "loire", 0, -2.06, -0.43, -0.155, 0.025, "pasture", "#87A24B"),
   {
     id: "centre-cereales-nord-ouest",
     region: "centre",
@@ -286,7 +310,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     kind: "pasture",
     color: "#829A43",
   },
-  coteauField("centre-cereales-ouest", "centre", 1, -0.71, 0.96, 0.1, 0.31, "wheat", "#D8BD68"),
+  coteauField("centre-cereales-ouest", "centre", 1, -0.71, 0.96, 0.1, 0.31, "wheat", "#D9B752"),
   {
     id: "centre-cereales-est",
     region: "centre",
@@ -304,7 +328,7 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
     kind: "wheat",
     color: "#F3CA5B",
   },
-  coteauField("centre-patures-sud", "centre", 1, -0.5, 1.3, -0.18, 0.025, "pasture", "#90A856"),
+  coteauField("centre-patures-sud", "centre", 1, -0.5, 1.3, -0.18, 0.025, "pasture", "#86A047"),
   {
     id: "sud-ouest-patures-nord",
     region: "sud-ouest",
@@ -629,8 +653,8 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [-1.3153, -0.5757],
     ],
   },
-  coteauField("berry-prairie-ouest", "centre", 1, -1.25, -0.53, -0.31, -0.13, "pasture", "#A5B36B"),
-  coteauField("berry-ble-central", "centre", 1, -0.49, 0.93, -0.435, -0.205, "wheat", "#D0B25D"),
+  coteauField("berry-prairie-ouest", "centre", 1, -1.25, -0.53, -0.31, -0.13, "pasture", "#9BB05B"),
+  coteauField("berry-ble-central", "centre", 1, -0.49, 0.93, -0.435, -0.205, "wheat", "#D0AD4D"),
   {
     id: "limousin-prairie-nord",
     region: "centre",
@@ -754,59 +778,9 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [2.0585, 3.2814],
     ],
   },
-  {
-    id: "lorraine-prairie-ouest",
-    region: "est",
-    kind: "pasture",
-    color: "#829A43",
-    angle: 2.9208,
-    outline: [
-      [1.9431, 2.6318],
-      [1.9938, 2.5982],
-      [2.3094, 2.5473],
-      [2.3722, 2.559],
-      [2.414, 2.6766],
-      [2.3634, 2.7102],
-      [2.0334, 2.7843],
-      [1.9706, 2.7726],
-    ],
-    hedgedEdges: [1, 5],
-  },
-  {
-    id: "lorraine-ble-central",
-    region: "est",
-    kind: "wheat",
-    color: "#EAC268",
-    angle: 3.0767,
-    outline: [
-      [2.6515, 2.5437],
-      [2.7381, 2.5171],
-      [3.2566, 2.4834],
-      [3.3498, 2.4983],
-      [3.3618, 2.6163],
-      [3.2752, 2.643],
-      [2.7701, 2.6765],
-      [2.6769, 2.6617],
-    ],
-  },
-  {
-    id: "lorraine-prairie-est",
-    region: "est",
-    kind: "pasture",
-    color: "#B5BE73",
-    angle: 0.1822,
-    outline: [
-      [2.5789, 2.0099],
-      [2.6705, 2.0066],
-      [3.1823, 2.1009],
-      [3.2705, 2.1373],
-      [3.2611, 2.2501],
-      [3.1695, 2.2534],
-      [2.6577, 2.1591],
-      [2.5695, 2.1227],
-    ],
-    hedgedEdges: [3],
-  },
+  lorraineField("lorraine-prairie-ouest", 1.89, 2.49, 0.025, 0.235, "pasture", "#7A9844"),
+  lorraineField("lorraine-ble-central", 2.53, 3.3, 0.265, 0.525, "wheat", "#DDBA56"),
+  lorraineField("lorraine-prairie-est", 2.58, 3.31, 0.025, 0.235, "pasture", "#86A14B"),
   {
     id: "bourgogne-ble-nord",
     region: "est",
@@ -929,40 +903,8 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [-2.6239, -0.3847],
     ],
   },
-  {
-    id: "lorraine-prairie-replat",
-    region: "est",
-    kind: "pasture",
-    color: "#829A43",
-    angle: -0.36,
-    outline: [
-      [1.812, 2.2232],
-      [1.8354, 2.1741],
-      [2.0592, 2.0871],
-      [2.2362, 2.0427],
-      [2.282, 2.081],
-      [2.2362, 2.1538],
-      [2.027, 2.2381],
-      [1.8432, 2.2781],
-    ],
-  },
-  {
-    id: "lorraine-ble-versant",
-    region: "est",
-    kind: "wheat",
-    color: "#E7BE5D",
-    angle: 0.32,
-    outline: [
-      [2.7216, 1.723],
-      [2.7738, 1.6975],
-      [3.0166, 1.775],
-      [3.1922, 1.8568],
-      [3.2042, 1.9198],
-      [3.1174, 1.95],
-      [2.8886, 1.8801],
-      [2.7103, 1.79],
-    ],
-  },
+  lorraineField("lorraine-prairie-replat", 1.89, 2.57, -0.385, -0.14, "pasture", "#91A854"),
+  lorraineField("lorraine-ble-versant", 2.63, 3.3, -0.405, -0.135, "wheat", "#D5B351"),
   {
     id: "bretagne-prairie-pointe",
     region: "bretagne",
@@ -997,11 +939,13 @@ export const NATIONAL_FIELDS: readonly NationalField[] = [
       [-3.7744, 2.4236],
     ],
   },
-  coteauField("touraine-ble-versant", "loire", 0, -2.31, -0.74, -0.435, -0.18, "wheat", "#D9BE66"),
-  coteauField("touraine-vignes-occidentales", "loire", 0, -2.25, -1.55, 0.31, 0.55, "vines", "#ABA454"),
-  coteauField("touraine-prairie-orientale", "loire", 0, -1.48, -0.45, 0.31, 0.55, "pasture", "#9FAE60"),
-  coteauField("berry-vignes-orientales", "centre", 1, 0.985, 1.39, -0.37, -0.15, "vines", "#A6A45B"),
-  coteauField("berry-ble-haut-coteau", "centre", 1, -0.74, 1.12, 0.34, 0.555, "wheat", "#CBB15D"),
+  coteauField("touraine-ble-versant", "loire", 0, -2.31, -0.74, -0.435, -0.18, "wheat", "#DFBB59"),
+  coteauField("touraine-vignes-occidentales", "loire", 0, -2.25, -1.55, 0.31, 0.55, "vines", "#89A045"),
+  coteauField("touraine-prairie-orientale", "loire", 0, -1.48, -0.45, 0.31, 0.55, "pasture", "#7F9B43"),
+  coteauField("berry-vignes-orientales", "centre", 1, 0.985, 1.39, -0.37, -0.15, "vines", "#829A46"),
+  coteauField("berry-ble-haut-coteau", "centre", 1, -0.74, 1.12, 0.34, 0.555, "wheat", "#D7B052"),
+  lorraineField("lorraine-ble-occidental", 1.89, 2.48, 0.265, 0.525, "wheat", "#E0BE5A"),
+  lorraineField("lorraine-prairie-de-crete", 1.89, 3.3, -0.095, 0.005, "pasture", "#8CA54C"),
 ];
 
 // Named cultivated basins join the miniature's settlements. Each basin has its
@@ -1050,8 +994,8 @@ const VALLEY_MIX: Readonly<Record<string, readonly string[]>> = {
 };
 
 export const VALLEY_FIELDS: readonly NationalField[] = VALLEY_CROPS.flatMap((basin, basinIndex) => {
-  if (basin.id === "touraine" || basin.id === "berry") return [];
-  const paletteBase = NATIONAL_FIELDS.length - 5 + VALLEY_CROPS.slice(0, basinIndex)
+  if (basin.id === "touraine" || basin.id === "berry" || basin.id === "lorraine") return [];
+  const paletteBase = NATIONAL_FIELDS.length - 7 + VALLEY_CROPS.slice(0, basinIndex)
     .reduce((sum, previous) => sum + previous.rows * previous.columns, 0);
   const dx = Math.cos(basin.angle), dz = Math.sin(basin.angle), nx = -dz, nz = dx;
   const point = (u: number, v: number): NationalCompositionPoint =>
@@ -1098,12 +1042,7 @@ export const NATIONAL_WOODS: readonly NationalWood[] = [
       [.63,4.39],[.40,4.43],[.02,4.26],[-.31,4.12],[-.62,3.92],[-.98,3.86]],
     groups: [[-.74,3.77,.23,.16],[-.37,3.96,.25,.18],[.02,4.15,.26,.17],[.42,4.30,.25,.16]],
   },
-  {
-    id: "lisiere-champagne-ardenne", trees: 146,
-    outline: [[1.04,2.05],[1.32,2.03],[1.57,2.38],[1.85,2.82],[2.12,3.18],
-      [2.19,3.48],[1.94,3.57],[1.88,3.31],[1.59,3.03],[1.33,2.56],[1.08,2.35]],
-    groups: [[1.24,2.26,.18,.25],[1.49,2.67,.20,.30],[1.83,3.12,.20,.30],[2.03,3.42,.18,.20]],
-  },
+  lorraineBosquet("lisiere-champagne-ardenne", 1.82, 2.5, 0.58, 0.8, 146),
   {
     id: "bois-pays-de-caux", trees: 96,
     outline: [[-1.77,3.28],[-1.57,3.23],[-1.31,3.37],[-1.09,3.58],[-.85,3.63],
@@ -1303,26 +1242,7 @@ export const NATIONAL_WOODS: readonly NationalWood[] = [
       [-0.95, -1.1, 0.15, 0.27],
     ],
   },
-  {
-    id: "lisiere-lorraine",
-    trees: 74,
-    outline: [
-      [2.4, 2.4],
-      [2.56, 2.43],
-      [2.64, 2.22],
-      [2.57, 2.03],
-      [2.62, 1.77],
-      [2.56, 1.55],
-      [2.42, 1.53],
-      [2.36, 1.74],
-      [2.42, 1.99],
-      [2.35, 2.21],
-    ],
-    groups: [
-      [2.48, 2.23, 0.16, 0.24],
-      [2.5, 1.8, 0.15, 0.28],
-    ],
-  },
+  lorraineBosquet("lisiere-lorraine", 2.92, 3.45, 0.57, 0.8, 74),
 ];
 
 export const MOUNTAIN_WOODS: readonly NationalWood[] = [

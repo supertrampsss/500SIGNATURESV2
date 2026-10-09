@@ -49,6 +49,14 @@ function random(seed: number) {
     return state / 4294967296;
   };
 }
+// Balance colour at the old photometric power. Warm miniature sunlight must
+// not become a general exposure increase or turn every roof into a highlight.
+function balancedIlluminant(hex: string, previous: string) {
+  const color = Color3.FromHexString(hex), reference = Color3.FromHexString(previous),
+    luminance = (value: Color3) => value.r * .2126 + value.g * .7152 + value.b * .0722;
+  return color.scale(luminance(reference) / luminance(color));
+}
+
 function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
   const canvas = host.querySelector<HTMLCanvasElement>("[data-map-canvas]")!;
   const engine = new Engine(
@@ -161,11 +169,12 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
     sky.intensity = 0.27;
     sky.diffuse = Color3.FromHexString("#CCDDF1");
-    sky.groundColor = Color3.FromHexString("#788797");
+    // A stone/soil bounce below the hemisphere, rather than a second blue sky.
+    sky.groundColor = balancedIlluminant("#817A6D", "#788797");
     const sun = new DirectionalLight("sun", new Vector3(0.55, -1.2, 0.7), scene);
     sun.position.set(-9, 16, -11);
     sun.intensity = 1.80;
-    sun.diffuse = Color3.FromHexString("#FFF1DD");
+    sun.diffuse = balancedIlluminant("#FFE7CA", "#FFF1DD");
     sun.shadowFrustumSize = 19;
     sun.shadowMinZ = 1;
     sun.shadowMaxZ = 38;
@@ -1203,6 +1212,17 @@ let controller: ReturnType<typeof mount> | undefined,
   activeHost: HTMLElement | undefined,
   fallbackResize: ResizeObserver | undefined,
   fallbackState: MandateMapState | undefined;
+type PendingMapMount = {
+  host: HTMLElement; state: MandateMapState; light: boolean;
+  cameraActions: string[]; inspection?: MapPlace;
+};
+let pendingMapMount: PendingMapMount | undefined,
+  mapMountTimer: ReturnType<typeof setTimeout> | undefined;
+function cancelMapMount(): void {
+  if (mapMountTimer !== undefined) clearTimeout(mapMountTimer);
+  mapMountTimer = undefined;
+  pendingMapMount = undefined;
+}
 export function syncMandateMap(
   root: HTMLElement,
   game: Game | null,
@@ -1210,6 +1230,7 @@ export function syncMandateMap(
 ): void {
   const host = root.querySelector<HTMLElement>("[data-mandate-map]");
   if (!host) {
+    cancelMapMount();
     controller?.dispose();
     fallbackResize?.disconnect();
     fallbackResize = undefined;
@@ -1221,42 +1242,83 @@ export function syncMandateMap(
     controller.update(mapState(game), light);
     return;
   }
+  if (!game) {
+    // The entry has no adopted mandate. Keep its existing SVG preview responsive
+    // instead of constructing and compiling a full country behind Reprendre.
+    cancelMapMount();
+    controller?.dispose();
+    fallbackResize?.disconnect();
+    fallbackResize = undefined;
+    controller = undefined;
+    activeHost = host;
+    host.dataset.renderer = "preview";
+    host.setAttribute("aria-busy", "false");
+    host.querySelector<HTMLElement>("[data-map-status]")!.textContent = "";
+    return;
+  }
+  if (pendingMapMount?.host === host) {
+    pendingMapMount.state = mapState(game);
+    pendingMapMount.light = light;
+    placeFallbackMarkers(host, pendingMapMount.state);
+    return;
+  }
   if (activeHost === host && host.dataset.renderer === "fallback") {
     fallbackState = mapState(game);
     placeFallbackMarkers(host, fallbackState);
     host.dataset.movements = String(fallbackState.movements.length);
     return;
   }
+  cancelMapMount();
   controller?.dispose();
   fallbackResize?.disconnect();
   fallbackResize = undefined;
   controller = undefined;
   activeHost = host;
-  try {
-    controller = mount(host, mapState(game), light);
-  } catch (error) {
-    host.dataset.renderError =
-      error instanceof Error ? error.message : String(error);
-    host.dataset.renderer = "fallback";
-    host.setAttribute("aria-busy", "false");
-    host.querySelector<HTMLElement>("[data-map-status]")!.textContent =
-      "Vue légère. Les sujets et les décisions restent accessibles.";
-    fallbackState = mapState(game);
-    placeFallbackMarkers(host, fallbackState);
-    fallbackResize = new ResizeObserver(() => {
-      if (fallbackState) placeFallbackMarkers(host, fallbackState);
-    });
-    fallbackResize.observe(host);
-  }
+  const pending: PendingMapMount = { host, state: mapState(game), light, cameraActions: [] };
+  pendingMapMount = pending;
+  host.dataset.renderer = "loading";
+  host.setAttribute("aria-busy", "true");
+  host.querySelector<HTMLElement>("[data-map-status]")!.textContent = "La carte se prépare.";
+  placeFallbackMarkers(host, pending.state);
+  // Finish the input handler and its saved HTML state before starting the
+  // synchronous country construction. Read the latest state when this runs.
+  mapMountTimer = setTimeout(() => {
+    mapMountTimer = undefined;
+    if (pendingMapMount !== pending) return;
+    pendingMapMount = undefined;
+    if (activeHost !== host || !host.isConnected) return;
+    try {
+      controller = mount(host, pending.state, pending.light);
+      for (const action of pending.cameraActions) controller.camera(action);
+      if (pending.inspection) controller.inspect(pending.inspection);
+    } catch (error) {
+      host.dataset.renderError =
+        error instanceof Error ? error.message : String(error);
+      host.dataset.renderer = "fallback";
+      host.setAttribute("aria-busy", "false");
+      host.querySelector<HTMLElement>("[data-map-status]")!.textContent =
+        "Vue légère. Les sujets et les décisions restent accessibles.";
+      fallbackState = pending.state;
+      placeFallbackMarkers(host, fallbackState);
+      fallbackResize = new ResizeObserver(() => {
+        if (fallbackState) placeFallbackMarkers(host, fallbackState);
+      });
+      fallbackResize.observe(host);
+    }
+  }, 0);
 }
 export function moveMapCamera(action: string): void {
-  controller?.camera(action);
+  if (controller) controller.camera(action);
+  else pendingMapMount?.cameraActions.push(action);
 }
 export function inspectMapPlace(place: string): void {
-  if (Object.hasOwn(MAP_PLACES, place)) controller?.inspect(place as MapPlace);
+  if (!Object.hasOwn(MAP_PLACES, place)) return;
+  if (controller) controller.inspect(place as MapPlace);
+  else if (pendingMapMount) pendingMapMount.inspection = place as MapPlace;
 }
 if (typeof window !== "undefined")
   window.addEventListener("pagehide", () => {
+    cancelMapMount();
     controller?.dispose();
     fallbackResize?.disconnect();
     fallbackResize = undefined;
