@@ -220,13 +220,13 @@ export function landMaterialTextures(scene: Scene) {
     return [tone, tone, tone];
   });
   crops.gammaSpace = true;
-  crops.uScale = crops.vScale = 4;
+  crops.uScale = crops.vScale = 8;
   const earthNormal = normal(scene, "land-earth-normal", 512, (x, y) =>
     soilHeights[((y * 2 + 1024) % 1024) * 1024 + (x * 2 + 1024) % 1024], 3.1);
   // The normals describe those same particles, at precisely the same UV scale.
   // Previously the albedo was at 1 and unrelated nonperiodic normals at 8.
-  earth.uScale = earth.vScale = 4;
-  earthNormal.uScale = earthNormal.vScale = 4;
+  earth.uScale = earth.vScale = 8;
+  earthNormal.uScale = earthNormal.vScale = 8;
   const leaves = pixels(scene, "land-leaf-grain", 256, (x, y) => {
     const clusters = noise(x * 0.11, y * 0.12);
     const tiny = noise(x * 0.6, y * 0.38);

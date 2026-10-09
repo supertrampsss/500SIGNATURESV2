@@ -1,0 +1,224 @@
+{
+  "config": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/500SIGNATURESV2/site/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.rework.config.ts",
+      "--workers=1",
+      "--project=desktop",
+      "--grep",
+      "authored models load after a real decision"
+    ],
+    "configFile": "/workspace/500SIGNATURESV2/site/playwright.rework.config.ts",
+    "rootDir": "/workspace/500SIGNATURESV2/site/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "compact",
+        "name": "compact",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./rework-artifacts/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./rework-artifacts/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite preview --host 127.0.0.1 --port 4180 --strictPort",
+      "url": "http://127.0.0.1:4180/mandats/",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "mandats-rework.test.mjs",
+      "file": "mandats-rework.test.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 40552,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    5 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"1090x820\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-mountain-rocks=\"305\" data-resolution=\"1090x820\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" data-static-instances=\"17867\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    5 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"1090x820\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-mountain-rocks=\"305\" data-resolution=\"1090x820\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" data-static-instances=\"17867\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:521:23",
+                    "location": {
+                      "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                      "column": 23,
+                      "line": 521
+                    },
+                    "snippet": "  519 |     expect(before.social.movements[0].status).toBe(\"active\");\n  520 |     release();\n> 521 |     await expect(map).toHaveAttribute(\"data-renderer\", \"babylon\");\n      |                       ^\n  522 |     await expect(map).toHaveAttribute(\"data-movements\", \"1\");\n  523 |     await expect(page.locator(\"[data-map-canvas]\")).toHaveAttribute(\"data-instance\", \"loading-persistent\");\n  524 |     expect((await game(page)).choices).toEqual(before.choices);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "column": 23,
+                        "line": 521
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    5 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"1090x820\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" class=\"mandate-map\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-mountain-rocks=\"305\" data-resolution=\"1090x820\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"true\" data-edge-antialiasing=\"fxaa\" data-static-instances=\"17867\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n\n  519 |     expect(before.social.movements[0].status).toBe(\"active\");\n  520 |     release();\n> 521 |     await expect(map).toHaveAttribute(\"data-renderer\", \"babylon\");\n      |                       ^\n  522 |     await expect(map).toHaveAttribute(\"data-movements\", \"1\");\n  523 |     await expect(page.locator(\"[data-map-canvas]\")).toHaveAttribute(\"data-instance\", \"loading-persistent\");\n  524 |     expect((await game(page)).choices).toEqual(before.choices);\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:521:23"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:298234) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T11:16:23.115Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "column": 23,
+                    "line": 521
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-fe90dd7a6de8bb9194c5",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-09T11:16:21.740Z",
+    "duration": 48954.07,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

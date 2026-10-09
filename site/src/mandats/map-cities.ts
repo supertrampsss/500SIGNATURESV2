@@ -617,7 +617,7 @@ export async function buildCities(scene: Scene): Promise<{
   const placeHouse = (root: TransformNode, town: string, region: UrbanRegion,
     x: number, z: number, angle: number, width: number, index: number,
     frontage?: { normalX: number; normalZ: number; side: number; streetWidth: number; maxDepth: number },
-    authored?: (Omit<ParisBuilding, "model"> & { model: string; footprintOffset?: number; national?: boolean }) & { kit: AssetKit; block: string }) => {
+    authored?: (Omit<ParisBuilding, "model"> & { model: string; footprintOffset?: number; national?: boolean; ruralInfill?: true }) & { kit: AssetKit; block: string }) => {
     candidates++;
     const family = families[region];
     const rural = !roots.has(town as MapPlace),
@@ -661,7 +661,8 @@ export async function buildCities(scene: Scene): Promise<{
       }
     }
     const plot = { ...localPlot, x: worldX, z: worldZ };
-    if (authored && town === "paris" && fixedProjectPlots.some(other => collides(plot, other, .020))) { reserved++; return; }
+    if (authored && (town === "paris" || authored.ruralInfill) &&
+        fixedProjectPlots.some(other => collides(plot, other, .020))) { reserved++; return; }
     if (authored?.id.includes("-tissu14-") &&
         (baseHousePlots.some(other => collides(plot, other, -.004)) ||
           fixedProjectPlots.some(other => collides(plot, other, .020)))) { reserved++; return; }

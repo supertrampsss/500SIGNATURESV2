@@ -166,19 +166,22 @@ export function buildMapWater(scene: Scene) {
         color += vec3(.56, .69, .76) * reflection * (.12 + wave * .22);
         float flecks = smoothstep(.72, .88, noise(p * 108.0 + drift)) *
           smoothstep(.52, .76, wave);
-        float crest = smoothstep(.89, .997, .5 + .5 * rippleA) *
+        // Sparse, short ripples catch light between the darker sea pockets.
+        // Keep the existing broken mask; narrow peaks avoid a white line grid.
+        float crest = smoothstep(.93, .997, .5 + .5 * rippleA) *
           smoothstep(.62, .86, seaNoise(p * 15.0 + drift));
         // Calm open water keeps isolated glints instead of a field of bright
         // speckles. River tint/current and their existing flecks stay intact.
         color += vec3(.12, .18, .19) * flecks * (mix(.10, .2, riverChannel) + reflection * .9);
-        color += vec3(.024, .039, .048) * crest * (1.0 - riverChannel);
+        color += vec3(.20, .29, .32) * crest *
+          (.28 + shallows * .72) * (1.0 - riverChannel);
         // Broken near-rock wash stays thin and retains the existing clock.
         // The coarse patch interrupts it; the moving fine noise draws surf.
         float wash = .5 + .5 * sin(coastDepth * 111.0 - time * .32 + coastPatch * 2.6);
         float foam = (1.0 - smoothstep(.011, .075, coastDepth)) *
-          smoothstep(.50, .76, seaNoise(p * 27.0 + drift)) *
+          smoothstep(.44, .73, seaNoise(p * 27.0 + drift)) *
           smoothstep(.20, .62, coastPatch) * (.30 + wash * .70) * (1.0 - riverChannel);
-        color = mix(color, vec3(.733, .824, .851), foam * .67);
+        color = mix(color, vec3(.835, .900, .901), foam * .86);
         gl_FragColor = vec4(color, 1.0);
       }`,
   }, {
@@ -250,7 +253,9 @@ export function buildMapWater(scene: Scene) {
       wash.hasVertexAlpha = true;
       const surface = new StandardMaterial("sea-boat-foam", scene);
       surface.diffuseColor = Color3.White();
-      surface.emissiveColor = new Color3(.12, .15, .14);
+      // White wash remains readable in the cast shadow of a hull or jetty.
+      // Its existing vertex alpha still fades the physically surveyed V bands.
+      surface.emissiveColor = new Color3(.24, .30, .29);
       surface.specularColor = Color3.Black();
       surface.backFaceCulling = false;
       wash.material = surface;

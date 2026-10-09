@@ -1,0 +1,574 @@
+{
+  "build": "36",
+  "sourceStable": true,
+  "snapshotStable": true,
+  "lockedFiles": 233,
+  "sourcesLoaded": 44,
+  "loadedGLBs": {
+    "site/public/mandats/models/architecture.glb": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717",
+    "site/public/mandats/models/vegetation.glb": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a",
+    "site/public/mandats/models/paris.glb": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491",
+    "site/public/mandats/models/cathedrale.glb": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e"
+  },
+  "missingRuntimeGLBs": [],
+  "construction": {
+    "sceneryMs": 12753.194283,
+    "rocksMs": 1077.6092399999998,
+    "landscapeMeshes": 7860,
+    "cityMeshes": 2403,
+    "contextMeshes": 8288,
+    "regions": 1,
+    "boatWashTriangles": 960,
+    "rocksReturned": 567,
+    "order": [
+      "buildMapWater",
+      "cityScenery=buildCities(scene) before buildLandscape",
+      "Promise.all(buildLandscape,cityScenery,buildMapContext,lighting-slot,buildRegionBoundaries)",
+      "coverRiver",
+      "boatWash",
+      "buildMountainRocks"
+    ],
+    "limitations": [
+      "The physical driver omits environment lighting, camera, gameplay updates and static batching. It constructs their input geometry in production order and does not render or compile GPU shaders."
+    ]
+  },
+  "durationMs": 18040.726573,
+  "finitude": {
+    "meshes": 19306,
+    "transformNodes": 12592,
+    "geometryArrays": 38876,
+    "positionValues": 49457220,
+    "normalValues": 49457220,
+    "indexValues": 22652670,
+    "worldMatrices": 31898,
+    "errors": [],
+    "pass": true
+  },
+  "extraFinitude": {
+    "pass": true,
+    "arrays": 35364,
+    "values": 71575978,
+    "errors": []
+  },
+  "water": {
+    "triangles": 8532,
+    "samples": 34128,
+    "landOcclusions": 0,
+    "cropOcclusions": 0,
+    "missingGround": 316,
+    "insideMissingGround": 0,
+    "examples": []
+  },
+  "houseRenderedGround": {
+    "houses": 781,
+    "samples": 19525,
+    "missing": 0,
+    "aboveFloor": 0,
+    "maxAboveFloor": -0.0029999867754537113,
+    "examples": [],
+    "failures": []
+  },
+  "houseFootings": {
+    "houses": 781,
+    "samples": 63261,
+    "foundations": 168,
+    "missing": [],
+    "errors": [],
+    "maxInteriorAboveFloor": 0,
+    "minimumFloorClearance": 0.0029999881251495664,
+    "method": "Existing urban20 81-point analytic footprint, river/outside and actual foundation-world-bounds checks; separate from actual triangle contact."
+  },
+  "school": {
+    "position": [
+      1.9030060768127441,
+      0.14067459106445312,
+      -0.6228850483894348
+    ],
+    "samples": 81,
+    "water": 0,
+    "outside": 0,
+    "missing": 0,
+    "aboveFloor": 0,
+    "maximumAboveFloor": -0.004075945973727985,
+    "renderedMinimum": 0.1194381202300551,
+    "renderedMaximum": 0.13659864509072514,
+    "surveyedMinimum": 0.11943826394144177,
+    "surveyedMaximum": 0.1376745981363165,
+    "footing": {
+      "minimumY": 0.1184382503677726,
+      "maximumY": 0.1406745845626473,
+      "topGap": 6.501805815961603e-9,
+      "bottomAboveRenderedMinimum": -0.0009998698622824959
+    }
+  },
+  "treeContact": {
+    "france": {
+      "trees": 2612,
+      "footPoints": 23894,
+      "missing": 0,
+      "outside": 0,
+      "water": 0,
+      "maximumMinimumGap": 0.000999871447360523,
+      "minimumGap": -0.056744447059235065,
+      "examples": []
+    },
+    "context": {
+      "trees": 2561,
+      "footPoints": 20709,
+      "missing": 0,
+      "inFrance": 0,
+      "maximumMinimumGap": 0.0009911088707831028,
+      "minimumGap": -0.03308708934620838,
+      "examples": []
+    }
+  },
+  "mountainRocks": {
+    "stones": 305,
+    "enabledInstances": 555,
+    "templates": 12,
+    "sourceCount": 305,
+    "terrainTriangles": 59623,
+    "blockedTriangles": 25867,
+    "obstacles": {
+      "houses": 781,
+      "trees": 2743,
+      "school": 1,
+      "monuments": 4,
+      "infrastructure": 2,
+      "projects": 28,
+      "publicPaving": 1644,
+      "water": 8517,
+      "crops": 9404,
+      "roads": 6302
+    },
+    "samples": 4069,
+    "footPoints": 1830,
+    "missingGround": 0,
+    "aboveFloor": 0,
+    "outside": 0,
+    "water": 0,
+    "maximumFootGap": -0.005999625408411924,
+    "minimumFootGap": -0.20178165168705786,
+    "overlapCounts": {
+      "houses": 0,
+      "trees": 0,
+      "school": 0,
+      "monuments": 0,
+      "infrastructure": 0,
+      "projects": 0,
+      "publicPaving": 0,
+      "water": 0,
+      "crops": 0,
+      "roads": 0
+    },
+    "inwardStoneTriangles": 0,
+    "inwardSnowTriangles": 0,
+    "normalTriangles": 729,
+    "shadowReceiverErrors": [],
+    "snowCasterErrors": [],
+    "normalErrors": [],
+    "failures": [],
+    "pass": true,
+    "method": "Actual post-Promise.all rock instances and templates, actual world vertices and mineral/snow triangles, actual GLB hierarchy bounds and production obstacle pads. Existing rocks26 count minimum 60, rocks27 normal dot threshold 1e-8, existing floor epsilon 1e-6. No render or GPU."
+  },
+  "publicPaving": [
+    {
+      "name": "public-esplanade-727",
+      "triangles": 4,
+      "samples": 220,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-730",
+      "triangles": 1531,
+      "samples": 84205,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-733",
+      "triangles": 4,
+      "samples": 220,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-736",
+      "triangles": 4,
+      "samples": 220,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-739",
+      "triangles": 4,
+      "samples": 220,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-742",
+      "triangles": 66,
+      "samples": 3630,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-745",
+      "triangles": 30,
+      "samples": 1650,
+      "water": 0
+    },
+    {
+      "name": "public-esplanade-748",
+      "triangles": 4,
+      "samples": 220,
+      "water": 0
+    }
+  ],
+  "crowds": [
+    {
+      "name": "city-paris",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-lyon",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-lille",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-rennes",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-nantes",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-bordeaux",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-toulouse",
+      "positions": 30,
+      "water": 0
+    },
+    {
+      "name": "city-rouen",
+      "positions": 30,
+      "water": 0
+    }
+  ],
+  "projectSites": [
+    {
+      "town": "paris",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0072163086759821915
+    },
+    {
+      "town": "paris",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0030376868139786323
+    },
+    {
+      "town": "paris",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.004379097788567571
+    },
+    {
+      "town": "lyon",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.021545906609312243
+    },
+    {
+      "town": "lyon",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.010382034349983943
+    },
+    {
+      "town": "lyon",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.007463471483171974
+    },
+    {
+      "town": "lille",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0045339679303011
+    },
+    {
+      "town": "lille",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0016149132710195913
+    },
+    {
+      "town": "lille",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.003099946547231433
+    },
+    {
+      "town": "rennes",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.008458309058881508
+    },
+    {
+      "town": "rennes",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0029447221292305537
+    },
+    {
+      "town": "rennes",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.005373946655489237
+    },
+    {
+      "town": "nantes",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.002631448196051045
+    },
+    {
+      "town": "nantes",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.006815918411237715
+    },
+    {
+      "town": "bordeaux",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.004837866889699477
+    },
+    {
+      "town": "bordeaux",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.009247032605127742
+    },
+    {
+      "town": "bordeaux",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.007533300951973687
+    },
+    {
+      "town": "toulouse",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.003193976046246244
+    },
+    {
+      "town": "toulouse",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.00908465477948267
+    },
+    {
+      "town": "toulouse",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.007166614544994759
+    },
+    {
+      "town": "montpellier",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.015586666614401556
+    },
+    {
+      "town": "montpellier",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.028649630274736215
+    },
+    {
+      "town": "strasbourg",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.007934044692481546
+    },
+    {
+      "town": "strasbourg",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.003661754057570632
+    },
+    {
+      "town": "strasbourg",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.03160993631031794
+    },
+    {
+      "town": "rouen",
+      "index": 0,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.003443906111748385
+    },
+    {
+      "town": "rouen",
+      "index": 1,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.0059947763213243355
+    },
+    {
+      "town": "rouen",
+      "index": 2,
+      "water": 0,
+      "outside": 0,
+      "grade": 0.005617016275501666
+    }
+  ],
+  "projectCapacity": [
+    {
+      "town": "rennes",
+      "projects": 3,
+      "capacity": 12
+    },
+    {
+      "town": "paris",
+      "projects": 10,
+      "capacity": 12
+    },
+    {
+      "town": "lille",
+      "projects": 5,
+      "capacity": 12
+    },
+    {
+      "town": "montpellier",
+      "projects": 2,
+      "capacity": 8
+    },
+    {
+      "town": "bordeaux",
+      "projects": 7,
+      "capacity": 12
+    },
+    {
+      "town": "nantes",
+      "projects": 1,
+      "capacity": 8
+    }
+  ],
+  "rejected": [],
+  "measuredCoastalDefects": {
+    "brief36InsideMissing": 0,
+    "dense36InsideMissing": 0,
+    "historical22Remaining": 0,
+    "historical25Remaining": 0,
+    "historical22OutsideNow": 0,
+    "historical25OutsideNow": 0
+  },
+  "coastalCoverage": {
+    "provenance": {
+      "path": "/workspace/mandats-verification/authored-3d/river-widening22/mesh-audit.mjs",
+      "sha256": "bd1b37ecd4ca115bf0a1fb33a237ff13cd49410591d7a0eb48a6a8629a2a7bad",
+      "sourceFunction": "meshAudit",
+      "scope": "Reuse water/terrain index, sampling and numeric thresholds only; no rebuilding or disposal of production geometry"
+    },
+    "terrainTriangles": 143096,
+    "dense": {
+      "waterTriangles": 8532,
+      "waterSamples": 179172,
+      "noGround": 1796,
+      "noGroundInsideLand": 0,
+      "occlusions": 0,
+      "maximumGroundAboveWater": -0.00672231090595804,
+      "minimumWaterClearance": 0.00672231090595804,
+      "pass": true
+    },
+    "historical22": {
+      "provenance": {
+        "report": "/workspace/mandats-verification/authored-3d/river-widening22/audit-urban-geo-classify.json",
+        "sha256": "724a4546033dbd2111bb5b664a3cde25eda4d3e7def085ce5d57b99af361cccb",
+        "jsonPointer": "/physicalRiverAudit/actualMeshAudit/noGroundDetails (filter land===true)",
+        "coordinateCount": 48,
+        "landscapeAtHistoricalExecution": {
+          "path": "/workspace/mandats-verification/authored-3d/river-widening22/map-landscape-transported.ts",
+          "sha": "ea0e679a3ae23c0cfb0c35c4bfdcbb02a3a8961b8462f1cc537c07223a6ff2d2"
+        },
+        "historicalWaterSamples": 59724
+      },
+      "total": 48,
+      "missing": 0,
+      "outsideNow": 0,
+      "pass": true,
+      "coordinatePolicy": "Every historical record retained in order, including duplicates; exact stored x/z doubles, no rounding, relocation, substitution or regeneration. Coverage only, no comparison against historical water heights."
+    },
+    "historical25": {
+      "provenance": {
+        "report": "/workspace/mandats-verification/authored-3d/coast-outline26/baseline.json",
+        "sha256": "77144af6d078680bcc42d5f13aa9eb80fcada4638b5a6ac737a9c06ecf22067f",
+        "jsonPointer": "/water/insideMissing",
+        "coordinateCount": 25,
+        "historicalWaterSamples": 34128
+      },
+      "total": 25,
+      "missing": 0,
+      "outsideNow": 0,
+      "pass": true,
+      "coordinatePolicy": "Every historical record retained in order, including duplicates; exact stored x/z doubles, no rounding, relocation, substitution or regeneration. Coverage only, no comparison against historical water heights."
+    },
+    "pass": true,
+    "method": "Historical22 21 edge-inclusive barycentric points per real current water triangle, same .075 index, determinant 1e-13, containment epsilon 1e-7 and water-height threshold 1e-5; actual composed final35 terrain including coastal-clipped meshes. Gate25 remains separately unchanged at four samples and .0006. All original48 historical22 records and original25 baseline25 coastal records replayed at their exact stored coordinates. No render, browser or artistic verdict."
+  },
+  "physicalAssessment": {
+    "targetedChecksPass": true,
+    "coastalCoveragePass": true,
+    "scope": "Only the CPU physical checks and coordinate replays actually performed on snapshot36; no exhaustive mathematical guarantee."
+  },
+  "artisticAssessment": {
+    "status": "Not assessed by CPU audit",
+    "requires": "Actual native final36 captures compared with the confirmed mockup"
+  },
+  "targetedGates": {
+    "legacy25GateFailed": false,
+    "additionalFailures": [],
+    "pass": true
+  },
+  "method": "Actual complete final36 production NullEngine geometry with snapshot-locked real local GLBs. Native concurrent scenery order, final river material and boat wash, then production buildMountainRocks before batching. Existing25 physical checks plus existing urban20 footing guards and rocks26/27 normal/count guards. No browser, GPU, render, lighting validation, or artistic conformity verdict.",
+  "verdict": "Performed targeted CPU physical checks passed. Artistic review is separate and pending."
+}

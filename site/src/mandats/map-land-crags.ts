@@ -654,6 +654,7 @@ type DrainageSegment = {
   length2: number;
   depth: number;
   width: number;
+  pyrenean: boolean;
 };
 const drainageCells = new Map<string, DrainageSegment[]>();
 const drainages: Array<{
@@ -779,6 +780,7 @@ for (const drainage of drainages)
       length2: (q.x - p.x) ** 2 + (q.z - p.z) ** 2,
       depth: drainage.depth,
       width: drainage.width,
+      pyrenean: drainage.shiftLon === 0 && drainage.shiftLat === 0,
     };
     const reach = drainage.width * 2.5;
     for (
@@ -865,6 +867,25 @@ export function mountainFaceBand(x: number, z: number) {
 export function mountainHeight(x: number, z: number) {
   const source = mapAuthoredCoordinates(x, z);
   return mountainSourceHeight(source.x, source.z);
+}
+
+/** The existing Pyrenean valley paths also cut the composed ground.
+ * Keep the sculpted source intact: physical exclusions are applied by terrain. */
+export function pyreneanSourceIncision(x: number, z: number) {
+  const face = sculptedAt(x, z), band = face?.band ?? 0;
+  if (!face || !((band >= 110000 && band < 120000) || (band >= 4560000 && band < 7120000))) return 0;
+  let incision = 0;
+  for (const segment of drainageCells.get(`${Math.floor(x / .4)}:${Math.floor(z / .4)}`) ?? []) {
+    if (!segment.pyrenean) continue;
+    const dx = segment.bx - segment.ax, dz = segment.bz - segment.az,
+      t = clamp(((x - segment.ax) * dx + (z - segment.az) * dz) / segment.length2),
+      distance = Math.hypot(x - segment.ax - dx * t, z - segment.az - dz * t),
+      across = clamp(1 - distance / segment.width);
+    // A smooth, open valley cuts its shoulder without introducing a sharp
+    // downward spike or changing any old crest/control/boundary vertex.
+    incision = Math.max(incision, segment.depth * across * across * (3 - 2 * across));
+  }
+  return Math.min(face.height * .28, incision);
 }
 
 /** Sampling grids already in the authored frame avoid a redundant inverse. */

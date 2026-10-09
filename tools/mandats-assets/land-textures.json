@@ -1,6 +1,6 @@
 {
   "recipe": "tools/mandats-assets/land-texture-recipe.ts",
-  "recipeSha256": "584087995d4281ef087d551334fa0a68afe410fcdab4ca2fa925eb98ba87c9f1",
+  "recipeSha256": "3ca1aa672dd5d48901e43e74d2344ce906c18239f63ecae08e37f75fb39b8a3b",
   "format": "RGBA8 PNG; IHDR/IDAT/IEND only",
   "noSceneOrEngineCreated": true,
   "textures": [
@@ -18,8 +18,8 @@
       "samplingMode": 3,
       "gammaSpace": true,
       "level": 1,
-      "uScale": 4,
-      "vScale": 4,
+      "uScale": 8,
+      "vScale": 8,
       "wrapU": 1,
       "wrapV": 1,
       "anisotropicFilteringLevel": 4
@@ -38,8 +38,8 @@
       "samplingMode": 3,
       "gammaSpace": false,
       "level": 0.55,
-      "uScale": 4,
-      "vScale": 4,
+      "uScale": 8,
+      "vScale": 8,
       "wrapU": 1,
       "wrapV": 1,
       "anisotropicFilteringLevel": 4
@@ -58,8 +58,8 @@
       "samplingMode": 3,
       "gammaSpace": true,
       "level": 1,
-      "uScale": 4,
-      "vScale": 4,
+      "uScale": 8,
+      "vScale": 8,
       "wrapU": 1,
       "wrapV": 1,
       "anisotropicFilteringLevel": 4

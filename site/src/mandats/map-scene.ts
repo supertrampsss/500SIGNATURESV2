@@ -7,6 +7,8 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { FxaaPostProcess } from "@babylonjs/core/PostProcesses/fxaaPostProcess";
+import { ThinFXAAPostProcess } from "@babylonjs/core/PostProcesses/thinFXAAPostProcess";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -25,6 +27,8 @@ import "@babylonjs/core/Shaders/default.vertex";
 import "@babylonjs/core/Shaders/default.fragment";
 import "@babylonjs/core/Shaders/pbr.vertex";
 import "@babylonjs/core/Shaders/pbr.fragment";
+import "@babylonjs/core/Shaders/fxaa.vertex";
+import "@babylonjs/core/Shaders/fxaa.fragment";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { MAP_PLACES, mapPosition, mapSourcePosition, mapState } from "./map-state.ts";
 import { COUNTRY_REFERENCE_POSE } from "./map-camera-projection.ts";
@@ -150,10 +154,14 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     camera.inertia = 0.68;
     camera.attachControl(canvas, true);
     let contactShadows: SSAO2RenderingPipeline | undefined;
+    let contactEdges: FxaaPostProcess | undefined;
+    let contactEdgesEffect: ThinFXAAPostProcess | undefined;
     function updateContactShadows() {
       const wanted = host.clientWidth > 820 && engine.webGLVersion === 2 &&
         SSAO2RenderingPipeline.IsSupported;
       if (!wanted && contactShadows) {
+        contactEdges?.dispose(camera); contactEdges = undefined;
+        contactEdgesEffect?.dispose(); contactEdgesEffect = undefined;
         contactShadows.dispose(true);
         contactShadows = undefined;
       } else if (wanted && !contactShadows) {
@@ -167,15 +175,28 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         contactShadows.samples = 8;
         contactShadows.textureSamples = 1;
         contactShadows.bilateralSamples = 4;
+        // SSAO captures a single-sample target, bypassing canvas antialiasing.
+        // Own the wrapper too: PostProcess does not dispose supplied effects.
+        contactEdgesEffect = new ThinFXAAPostProcess("miniature-edges", engine);
+        contactEdges = new FxaaPostProcess("miniature-edges", {
+          size: 1, camera, effectWrapper: contactEdgesEffect,
+        });
       }
       host.dataset.contactShadows = String(!!contactShadows);
+      host.dataset.edgeAntialiasing = contactEdges ? "fxaa" : "canvas";
     }
     updateContactShadows();
-    cleanup.push(() => { contactShadows?.dispose(true); contactShadows = undefined; });
+    cleanup.push(() => {
+      contactEdges?.dispose(camera); contactEdges = undefined;
+      contactEdgesEffect?.dispose(); contactEdgesEffect = undefined;
+      contactShadows?.dispose(true); contactShadows = undefined;
+    });
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
     // StandardMaterial clamps diffuse light before multiplying terrain colour.
-    // Preserve the slope response instead of clipping all upward faces white.
-    sky.intensity = 0.12;
+    // Fill shadowed faces while retaining a slope response on the ground.
+    sky.intensity = 0.21;
+    // Keep the previous StandardMaterial hemispheric specular power.
+    sky.specular = new Color3(0.12 / 0.21, 0.12 / 0.21, 0.12 / 0.21);
     sky.diffuse = Color3.FromHexString("#CCDDF1");
     // A stone/soil bounce below the hemisphere, rather than a second blue sky.
     sky.groundColor = balancedIlluminant("#817A6D", "#788797");
@@ -804,6 +825,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         retryGpuWork();
         return;
       }
+      // A newly activated postprocess compiles asynchronously on resize.
+      // Keep the redraw pending until its readiness callback can submit it.
+      if (contactEdges && !contactEdges.isReady()) return;
       pendingRender = false;
       const start = performance.now();
       updateProjection();
@@ -926,7 +950,15 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       // changes. Measure it only after layout, with a drawable CSS size.
       if (disposed || !host.isConnected || !host.clientWidth || !host.clientHeight) return;
       if (!resolution()) return;
+      const previousEdges = contactEdges;
       updateContactShadows();
+      if (contactEdges && contactEdges !== previousEdges) {
+        const currentEdges = contactEdges;
+        scene.executeWhenReady(() => {
+          if (disposed || host.dataset.renderer === "fallback" || contactEdges !== currentEdges) return;
+          requestRender();
+        });
+      }
       if (!cameraTouched && !overview) {
         const from = cameraTween ? pose() : undefined;
         fitCountry();

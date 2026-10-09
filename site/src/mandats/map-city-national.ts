@@ -1,3 +1,4 @@
+import { RURAL_FINE_SETTLEMENTS } from "./map-rural-infill.ts";
 import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRetainedTownPlanPoint } from "./map-camera-projection.ts";
 
 /** Fixed, named miniature quarters composed against the approved France reference.
@@ -7,7 +8,7 @@ import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRe
 export type NationalPoint = readonly [number, number];
 export type NationalRegion = "north" | "breton" | "stone" | "south" | "alsace";
 export type NationalBuilding = { id: string; model: string; x: number; z: number; angle: number;
-  width: number; depth: number; height: number; footprintOffset: number };
+  width: number; depth: number; height: number; footprintOffset: number; ruralInfill?: true };
 export type NationalBlock = { id: string; outline: readonly NationalPoint[]; buildings: readonly NationalBuilding[] };
 export type NationalTree = { x: number; z: number; height: number; model: "beech" | "oak" | "pine" | "cypress" | "olive" };
 export type NationalStreet = { id: string; width: number; points: readonly NationalPoint[] };
@@ -27775,7 +27776,7 @@ function transportNationalSettlement(town: NationalSettlement): NationalSettleme
 }
 
 export const NATIONAL_SETTLEMENTS: readonly NationalSettlement[] =
-  RETAINED_NATIONAL_SETTLEMENTS.map(transportNationalSettlement);
+  [...RETAINED_NATIONAL_SETTLEMENTS, ...RURAL_FINE_SETTLEMENTS].map(transportNationalSettlement);
 
 export function nationalBuildingFootprint(building: NationalBuilding): NationalPoint[] {
   const c = Math.cos(building.angle), s = Math.sin(building.angle),

@@ -343,10 +343,10 @@ export async function buildMapContext(
     borderIndices: number[] = [],
     borderColors: number[] = [];
   const palette = {
-    forest: Color3.FromHexString("#394735"),
-    clearing: Color3.FromHexString("#62675D"),
-    ridge: Color3.FromHexString("#787D73"),
-    stone: Color3.FromHexString("#96998C"),
+    forest: Color3.FromHexString("#3B4840"),
+    clearing: Color3.FromHexString("#6D716A"),
+    ridge: Color3.FromHexString("#7D827B"),
+    stone: Color3.FromHexString("#9DA194"),
   };
   for (const ring of rings) {
     const points = [...ring.points],
@@ -380,7 +380,7 @@ export async function buildMapContext(
       if (height > 0.44)
         color = Color3.Lerp(color, palette.stone, clamp((height - 0.44) * 2.0));
       color = color.scale(
-        0.89 + noise(point.x * 3.1 + 7, point.z * 2.9 + 39) * 0.11,
+        0.95 + noise(point.x * 3.1 + 7, point.z * 2.9 + 39) * 0.05,
       );
       colors.push(color.r, color.g, color.b, 1);
       uvs.push(point.x * 0.45, point.z * 0.45);
@@ -457,7 +457,7 @@ export async function buildMapContext(
         );
         borderIndices.push(at, at + 2, at + 1, at, at + 3, at + 2);
         for (let corner = 0; corner < 4; corner++)
-          borderColors.push(0.35, 0.41, 0.36, 1);
+          borderColors.push(0.49, 0.54, 0.53, 1);
       }
     }
   }
@@ -496,17 +496,16 @@ export async function buildMapContext(
     relief = new Float32Array(size * size), normals = new Uint8Array(size * size * 4);
   for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
     const u = x / size, v = z / size,
-      broad = periodicMaterialNoise(u * 7 + 19.3, v * 7 + 37.2, 7),
-      middle = periodicMaterialNoise(u * 19 + 4.6, v * 19 + 17.7, 19),
-      fine = periodicMaterialNoise(u * 79 + 41.5, v * 79 + 11.3, 79),
-      chips = smooth(clamp((periodicMaterialNoise(u * 43 + 43.4, v * 43 + 11.9, 43) - .54) * 5)),
-      ridge = 1 - Math.abs(middle * 2 - 1),
-      shade = Math.max(0, Math.min(255, 210 + (broad - .5) * 34 + (middle - .5) * 20 +
-        (fine - .5) * 22 + chips * 17)),
+      broad = periodicMaterialNoise(u * 23 + 19.3, v * 23 + 37.2, 23),
+      middle = periodicMaterialNoise(u * 47 + 4.6, v * 47 + 17.7, 47),
+      fine = periodicMaterialNoise(u * 127 + 41.5, v * 127 + 11.3, 127),
+      chips = smooth(clamp((periodicMaterialNoise(u * 79 + 43.4, v * 79 + 11.9, 79) - .58) * 4.8)),
+      shade = Math.max(0, Math.min(255, 224 + (broad - .5) * 9 + (middle - .5) * 13 +
+        (fine - .5) * 16 + chips * 10)),
       at = (z * size + x) * 4;
-    // Stone chips and smaller earth granules are local material relief. They do
-    // not bake illumination, broad hills, borders or a view of the scene.
-    relief[z * size + x] = .5 + broad * .12 + ridge * .15 + chips * .085 + fine * .035;
+    // Small mineral chips vary over a few native pixels, rather than forming
+    // broad cloudy hills. This texture contains no illumination or scene image.
+    relief[z * size + x] = .5 + broad * .02 + middle * .095 + chips * .065 + fine * .04;
     rgba.set([shade, shade + 1, Math.max(0, shade - 3), 255], at);
   }
   const heightAt = (x: number, z: number) => relief[
@@ -539,6 +538,10 @@ export async function buildMapContext(
   borderMaterial.diffuseColor = Color3.White();
   borderMaterial.specularColor = Color3.Black();
   borderMaterial.backFaceCulling = false;
+  // Political lines are a thin painted overlay, legible in the dark context.
+  // Keep their existing geometry and subdued stone/grey vertex colours.
+  borderMaterial.disableLighting = true;
+  borderMaterial.emissiveColor = new Color3(.64, .64, .64);
   const build = (
     name: string,
     p: number[],
@@ -561,9 +564,9 @@ export async function buildMapContext(
       for (let v = 0; v < p.length / 3; v++) {
         const slope = 1 - Math.abs(data.normals[v * 3 + 1]);
         const amount =
-          clamp((slope - 0.13) / 0.40) *
-          clamp((p[v * 3 + 1] - 0.16) / 0.25) *
-          0.48;
+          clamp((slope - 0.09) / 0.34) *
+          clamp((p[v * 3 + 1] - 0.13) / 0.24) *
+          0.58;
         const at = v * 4;
         const mineral = Color3.Lerp(
           new Color3(c[at], c[at + 1], c[at + 2]),

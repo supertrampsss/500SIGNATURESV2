@@ -85,7 +85,10 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   // White hulls and cloth keep a soft sky fill when their sunlit
   // side faces away from the camera. The sail's back must use its own normal.
   enamel.emissiveColor = new Color3(.095, .097, .090);
-  canvasMaterial.emissiveColor = new Color3(.065, .064, .057);
+  // Thin ivory cloth passes diffuse daylight to its rear. StandardMaterial
+  // has no cloth transmission, so keep a local fill in its gamma colour space;
+  // the scene's ACES conversion would crush a small .065 fill into near-black.
+  canvasMaterial.emissiveColor = new Color3(.65, .64, .60);
   canvasMaterial.backFaceCulling = false;
   canvasMaterial.twoSidedLighting = true;
   shipRed.emissiveColor = new Color3(.045, .009, .011);

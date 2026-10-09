@@ -12,7 +12,7 @@ import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapSourceCoordinates, mapAuthoredPosition, mapAuthoredCoordinates, mapAuthoredJacobian } from "./map-state.ts";
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
-import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey } from "./map-land-crags.ts";
+import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey, pyreneanSourceIncision } from "./map-land-crags.ts";
 import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES, COMPOSED_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
 import {
@@ -912,6 +912,39 @@ function coastalRockProfile(x: number, z: number, sx: number, sz: number): Coast
     cover: (1 - smooth(clamp((distance - .055) / .11))) * weight };
 }
 
+// Preserve the current wooded and cultivated Pyrenean soil, including small
+// trunk bases and crop edges that extend beyond the authored parcel centre.
+const pyreneanCoverCells = new Map<string, Point[][]>();
+for (const polygon of [
+  ...composedWoods.map(wood => wood.polygon),
+  ...[...NATIONAL_FIELDS, ...VALLEY_FIELDS].map(field =>
+    field.outline.map(([x, z]) => mapAuthoredPosition(x, z))),
+]) {
+  const minX = Math.min(...polygon.map(point => point.x)), maxX = Math.max(...polygon.map(point => point.x)),
+    minZ = Math.min(...polygon.map(point => point.z)), maxZ = Math.max(...polygon.map(point => point.z));
+  if (minZ > -2.35 || minX > 2.20) continue;
+  for (let x = Math.floor((minX - .14) / .5); x <= Math.floor((maxX + .14) / .5); x++)
+    for (let z = Math.floor((minZ - .14) / .5); z <= Math.floor((maxZ + .14) / .5); z++) {
+      const key = `${x}:${z}`, cell = pyreneanCoverCells.get(key) ?? [];
+      cell.push(polygon); pyreneanCoverCells.set(key, cell);
+    }
+}
+function composedPyreneanIncision(x: number, z: number, sx: number, sz: number) {
+  const incision = pyreneanSourceIncision(sx, sz);
+  if (incision === 0) return 0;
+  const clearance = cultivatedClearance(x, z), border = borderDistance(sx, sz);
+  if (clearance <= .24 || border <= .08 || riverContains(x, z, .15)) return 0;
+  let coverDistance = Infinity;
+  for (const polygon of pyreneanCoverCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
+    if (contains(polygon, x, z)) return 0;
+    for (let i = 0; i < polygon.length; i++)
+      coverDistance = Math.min(coverDistance, segmentDistance(x, z, polygon[i], polygon[(i + 1) % polygon.length]));
+  }
+  if (coverDistance <= .055) return 0;
+  return incision * smooth(clamp((clearance - .24) / .18)) *
+    smooth(clamp((border - .08) / .14)) * smooth(clamp((coverDistance - .055) / .085));
+}
+
 function unflattenedHeight(x: number, z: number) {
   const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z,
     massif = mountainSourceHeight(sx, sz),
@@ -921,7 +954,7 @@ function unflattenedHeight(x: number, z: number) {
     edge = smooth(clamp(borderDistance(sx, sz) / .30));
   // Houses, streets and works flatten this same surface in surveyedHeight.
   // The water is carved from it too. No former massif is mixed back into it.
-  return .115 + rolling + armorican + massif * edge +
+  return .115 + rolling + armorican + (massif - composedPyreneanIncision(x, z, sx, sz)) * edge +
     cultivatedRelief(x, z, sx, sz, massif) + coastalRockProfile(x, z, sx, sz).height;
 }
 
@@ -1361,8 +1394,8 @@ const meadowTones = ["#7D9743", "#92A14C", "#AEB65D", "#9CAD52", "#BAC173"];
 const stubbleTones = ["#BCA552", "#CDB567", "#D2BA63", "#AFAA58"];
 const openMeadowTones = ["#84A64D", "#A1BA67", "#B4C975", "#91AF56", "#C0CC87"];
 const openStubbleTones = ["#D5B66B", "#E3C985", "#D7BD73", "#CBAE63"];
-function countrysideColor(sx: number, sz: number, cultivation = 0) {
-  const width = .76, depth = .53, cx = Math.floor(sx / width), cz = Math.floor(sz / depth);
+function countrysideUnitColor(sx: number, sz: number, width: number, depth: number, cultivation = 0) {
+  const cx = Math.floor(sx / width), cz = Math.floor(sz / depth);
   let first = Infinity, second = Infinity, chosenX = 0, chosenZ = 0,
     nextX = 0, nextZ = 0;
   for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
@@ -1388,6 +1421,15 @@ function countrysideColor(sx: number, sz: number, cultivation = 0) {
   // A narrow irregular edge avoids the same smooth gradient over all France.
   return colorMix(tone(chosenX, chosenZ), tone(nextX, nextZ),
     (1 - smooth(clamp((second - first) / .065))) * .30);
+}
+
+function countrysideColor(sx: number, sz: number, cultivation = 0) {
+  if (cultivation === 0) return countrysideUnitColor(sx, sz, .76, .53);
+  // Smaller pasture/stubble units belong only to the open lowland surface.
+  // Fade them into the unchanged older cover along the existing exclusions.
+  const fine = countrysideUnitColor(sx, sz, .44, .31, 1);
+  if (cultivation === 1) return fine;
+  return colorMix(countrysideUnitColor(sx, sz, .76, .53), fine, cultivation);
 }
 
 function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFaceSurvey>, occupied?: AlpineOccupiedCover) {
@@ -1441,21 +1483,23 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
 // Broad irregular neves collect on the actual sculpted shelves and in
 // couloirs. Rocky ridges remain visible between them, including at high altitude.
 function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band = 0) {
-  const upperAlps = (band >= 100000 && band < 110000) ||
+  const pyrenean = (band >= 110000 && band < 120000) || (band >= 4560000 && band < 7120000),
+    upperAlps = (band >= 100000 && band < 110000) ||
       (band >= 200000 && band < 1480000) || (band >= 2000000 && band < 4560000),
     snowlineNoise = noise(sx * 2.7 + 17, sz * 3.9 + 5),
     warp = (snowlineNoise - .5) * .58,
     drift = noise(sx * 7.2 + 31, sz * 6.6 + 19),
     channel = noise(sx * 11.8 + sz * 3.6 + warp + 8, sz * 2.7 - sx * 1.9 + 23),
     branch = noise(sx * 5.2 - sz * 8.1 + 41, sz * 2.0 + sx * .8 - warp + 29),
-    altitude = smooth(clamp((y - .34 - snowlineNoise * .04) / .22)),
+    altitude = smooth(clamp((y - (pyrenean ? .28 : .34) - snowlineNoise * .04) / (pyrenean ? .15 : .22))),
     shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
-    pocket = smooth(clamp((drift - (upperAlps ? .45 : .59)) / (upperAlps ? .22 : .16))),
-    mainGully = smooth(clamp((channel - (upperAlps ? .33 : .53)) / (upperAlps ? .22 : .18))),
-    sideGully = smooth(clamp((branch - (upperAlps ? .36 : .60)) / (upperAlps ? .22 : .17))) * (upperAlps ? .92 : .84),
+    pocket = smooth(clamp((drift - (upperAlps ? .45 : pyrenean ? .49 : .59)) / (upperAlps ? .22 : .16))),
+    mainGully = smooth(clamp((channel - (upperAlps ? .33 : pyrenean ? .43 : .53)) / (upperAlps ? .22 : .18))),
+    sideGully = smooth(clamp((branch - (upperAlps ? .36 : pyrenean ? .47 : .60)) / (upperAlps ? .22 : .17))) * (upperAlps ? .92 : .84),
     gullySlope = smooth(clamp((slope - .12) / .34)) *
-      (1 - smooth(clamp((slope - (upperAlps ? 2.60 : 1.25)) / (upperAlps ? 1.80 : 1.30)))),
-    // Broad Alpine neves whiten upper fronts; the other ranges keep their existing cover.
+      (1 - smooth(clamp((slope - (upperAlps ? 2.60 : pyrenean ? 2.00 : 1.25)) / (upperAlps ? 1.80 : 1.30)))),
+    // Existing Alpine neves stay intact. Lower Pyrenean caps collect broken
+    // white pockets while the unchanged cover masks protect actual plantations.
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - .64) / .18)),
     accumulation = Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope);
