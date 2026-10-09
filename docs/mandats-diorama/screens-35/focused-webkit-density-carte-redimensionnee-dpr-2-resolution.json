@@ -1,0 +1,220 @@
+{
+  "url": "http://127.0.0.1:4180/mandats/?mode=national&v=12&seed=0&ambition=equilibre",
+  "viewport": {
+    "width": 320,
+    "height": 740
+  },
+  "raster": {
+    "width": 640,
+    "height": 474,
+    "cssWidth": 320,
+    "cssHeight": 236.796875,
+    "devicePixelRatio": 2
+  },
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": []
+  },
+  "state": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "turn": 0,
+    "finance": {
+      "revenue": 1490,
+      "operating": 1545.4,
+      "investment": 40,
+      "debt": 3200,
+      "cash": 0,
+      "rate": 0.018,
+      "marketRate": 0.035,
+      "repayment": 0,
+      "grants": 0,
+      "gdp": 2800,
+      "growth": 0.012,
+      "deflator": 0.018,
+      "stockFlow": 0
+    },
+    "metrics": {
+      "services": 57,
+      "cohesion": 52,
+      "resilience": 39,
+      "trust": 52,
+      "assets": 59
+    },
+    "areas": [
+      {
+        "id": "metropoles",
+        "name": "Métropoles",
+        "need": "Logement et services",
+        "services": 69,
+        "resilience": 48,
+        "x": 49,
+        "y": 28
+      },
+      {
+        "id": "industrie",
+        "name": "Bassins industriels",
+        "need": "Énergie et reconversion",
+        "services": 49,
+        "resilience": 25,
+        "x": 68,
+        "y": 44
+      },
+      {
+        "id": "rural",
+        "name": "Espaces ruraux",
+        "need": "Accès aux services",
+        "services": 39,
+        "resilience": 43,
+        "x": 34,
+        "y": 55
+      },
+      {
+        "id": "littoraux",
+        "name": "Territoires littoraux",
+        "need": "Adaptation climatique",
+        "services": 55,
+        "resilience": 32,
+        "x": 53,
+        "y": 75
+      }
+    ],
+    "pending": [],
+    "history": [],
+    "choices": [],
+    "politics": {
+      "blocs": [
+        {
+          "id": "presidential",
+          "label": "Majorité présidentielle",
+          "seats": 151,
+          "loyalty": 78,
+          "inGovernment": true
+        },
+        {
+          "id": "reformist",
+          "label": "Réformistes",
+          "seats": 114,
+          "loyalty": 60,
+          "inGovernment": true
+        },
+        {
+          "id": "social",
+          "label": "Gauche sociale",
+          "seats": 105,
+          "loyalty": 46,
+          "inGovernment": false
+        },
+        {
+          "id": "conservative",
+          "label": "Conservateurs",
+          "seats": 107,
+          "loyalty": 38,
+          "inGovernment": false
+        },
+        {
+          "id": "regional",
+          "label": "Territoires",
+          "seats": 100,
+          "loyalty": 45,
+          "inGovernment": false
+        }
+      ],
+      "legitimacy": 58,
+      "unrest": 18,
+      "cabinet": "stable",
+      "commitments": [],
+      "votes": [],
+      "scandalExposure": 0,
+      "misconduct": 0,
+      "failedBills": 0,
+      "emergencyUses": 0,
+      "ruleOfLaw": 72,
+      "institutionalBreaches": 0
+    },
+    "narrative": {
+      "context": "coalition",
+      "deferred": [],
+      "promises": [],
+      "promiseCandidates": [
+        {
+          "id": "renforts-nuit",
+          "label": "Aucune unité de soins ne fermera faute de renfort."
+        },
+        {
+          "id": "desservir-usine",
+          "label": "Le premier bus pour l’usine circulera avant l’hiver."
+        }
+      ],
+      "projects": [],
+      "relationships": [
+        {
+          "id": "samira",
+          "name": "Samira Benali",
+          "role": "urgentiste et représentante des équipes hospitalières",
+          "loyalty": 50,
+          "stance": "veut des équipes financées et des engagements tenus"
+        },
+        {
+          "id": "luc",
+          "name": "Luc Morel",
+          "role": "maire de Val-des-Forges et négociateur territorial",
+          "loyalty": 50,
+          "stance": "défend les services et les emplois du bassin"
+        },
+        {
+          "id": "ines",
+          "name": "Inès Vidal",
+          "role": "directrice d’usine et porte-parole des sous-traitants",
+          "loyalty": 50,
+          "stance": "soutient les investissements assortis d’un calendrier clair"
+        },
+        {
+          "id": "claire",
+          "name": "Claire Dumas",
+          "role": "rapporteure parlementaire chargée de l’éthique publique",
+          "loyalty": 50,
+          "stance": "demande des contrôles publics et la protection des alertes"
+        }
+      ],
+      "events": [
+        {
+          "id": "opening-coalition",
+          "turn": -1,
+          "kind": "opening",
+          "title": "La majorité réclame deux signatures",
+          "detail": "La majorité doit choisir comment financer deux promesses à Val-des-Forges : des renforts à l’hôpital et un bus pour les salariés. Les deux projets passent au même vote budgétaire.",
+          "causeTurn": -1,
+          "weight": 1
+        }
+      ],
+      "lastConsequences": [
+        "La majorité doit choisir comment financer deux promesses à Val-des-Forges : des renforts à l’hôpital et un bus pour les salariés. Les deux projets passent au même vote budgétaire."
+      ]
+    },
+    "social": {
+      "movements": [],
+      "budget": {
+        "year": 1,
+        "accruedOperating": 0,
+        "accruedRevenue": 0,
+        "operating": 0,
+        "revenue": 0
+      }
+    },
+    "society": {
+      "workers": 65,
+      "pensioners": 65,
+      "vulnerable": 60,
+      "businesses": 65,
+      "newcomers": 60,
+      "publicStaff": 65,
+      "affluent": 65
+    }
+  }
+}

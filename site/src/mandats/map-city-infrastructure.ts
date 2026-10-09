@@ -76,7 +76,21 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     material.specularPower = 48;
     return material;
   };
-  const gold = finish("harbour-golden-iron", "#DBA344", .22), navy = finish("harbour-navy-hull", "#22485B", .15);
+  const gold = finish("harbour-golden-iron", "#E8AF37", .16), navy = finish("harbour-navy-hull", "#22485B", .15),
+    enamel = finish("harbour-ivory-enamel", "#FCF7E8", .10),
+    canvasMaterial = finish("harbour-woven-canvas", "#FFF9ED", .035),
+    shipRed = finish("harbour-painted-red", "#BD2934", .08),
+    cargoBlue = finish("harbour-painted-blue", "#245780", .10),
+    coping = finish("harbour-ivory-coping", "#F1E7D1", .055);
+  // White hulls and cloth keep a soft sky fill when their sunlit
+  // side faces away from the camera. The sail's back must use its own normal.
+  enamel.emissiveColor = new Color3(.095, .097, .090);
+  canvasMaterial.emissiveColor = new Color3(.065, .064, .057);
+  canvasMaterial.backFaceCulling = false;
+  canvasMaterial.twoSidedLighting = true;
+  shipRed.emissiveColor = new Color3(.045, .009, .011);
+  gold.emissiveColor = new Color3(.075, .040, .008);
+  coping.emissiveColor = new Color3(.040, .037, .029);
   let quayStone = scene.getMaterialByName("harbour-pale-masonry") as StandardMaterial | null;
   if (!quayStone) {
     quayStone = new StandardMaterial("harbour-pale-masonry", scene);
@@ -84,8 +98,9 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     quayStone.diffuseTexture = materials.stone.diffuseTexture;
     quayStone.bumpTexture = materials.stone.bumpTexture;
     quayStone.specularPower = materials.stone.specularPower;
-    quayStone.diffuseColor = Color3.FromHexString("#C9BFA5");
+    quayStone.diffuseColor = Color3.FromHexString("#D7C9AE");
     quayStone.specularColor = new Color3(.065, .061, .055);
+    quayStone.emissiveColor = new Color3(.032, .028, .020);
   }
   const stonework = new CityGeometry(), pavement = new CityGeometry(), edge = new CityGeometry(), iron = new CityGeometry(), joints = new CityGeometry();
   const prism = (outline: HarbourPoint[], heights: number[], target: CityGeometry) => {
@@ -160,9 +175,9 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     }
   }
   tool.shape(`${place}-coastal-quay`, stonework, quayStone, node);
-  tool.shape(`${place}-waterfront-paving`, pavement, materials.cream, node);
+  tool.shape(`${place}-waterfront-paving`, pavement, coping, node);
   tool.shape(`${place}-quay-block-joints`, joints, materials.stone, node);
-  tool.shape(`${place}-quay-coping`, edge, materials.cream, node);
+  tool.shape(`${place}-quay-coping`, edge, coping, node);
   tool.shape(`${place}-bollards`, iron, navy, node);
   if (access.indices.length) tool.shape(`${place}-coastal-access`, access, materials.pavement, node);
 
@@ -198,6 +213,12 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     const foot = small ? .016 : .027, mast = height * .80,
       reach = small ? .12 : place === "marseille" ? .30 : .245;
     for (const side of [-1, 1]) {
+      // Interior portal columns add a solid silhouette within the four
+      // original feet; reach, height, bearings and ground contacts stay fixed.
+      for (const z of [-.012, .012])
+        steel.beam([side * foot * .5, .004, z], [side * foot * .5, mast - .001, z], small ? .004 : .006);
+      for (const z of [-1, 1])
+        steel.beam([side * foot, .004, z * .024], [side * foot * .5, .004, z * .012], small ? .003 : .005);
       for (const z of [-.024, .024]) steel.box(side * foot, -.002, z, small ? .008 : .012, .016, small ? .008 : .012);
       steel.beam([side * foot, .005, -.024], [side * foot * .5, mast, -.004], .006);
       steel.beam([side * foot, .005, .024], [side * foot * .5, mast, .018], .006);
@@ -214,6 +235,10 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
         const z0 = -.042 + section * (reach + .04) / 5, z1 = -.042 + (section + 1) * (reach + .04) / 5;
         steel.beam([side * foot * .5, mast - .012, z0], [side * foot * .5, mast + .008, z1], .0016);
       }
+    }
+    for (const fraction of [.08, .36, .65, .91]) {
+      const z = -.042 + fraction * (reach + .04);
+      steel.beam([-foot * .5, mast, z], [foot * .5, mast, z], small ? .003 : .005);
     }
     steel.beam([-foot * .6, mast - .010, .005], [foot * .6, mast - .010, .005], .005);
     cables.beam([0, mast, reach * .78], [0, .060, reach * .78], .0013); cables.box(0, .056, reach * .78, .009, .008, .008);
@@ -330,32 +355,61 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
       rigs.beam([0, freeboard + .090, -length * .23], [0, freeboard + .151, -length * .23], .002);
       rigs.beam([-.018, freeboard + .140, -length * .23], [.018, freeboard + .140, -length * .23], .0015);
       const funnel = new CityGeometry(); funnel.box(-beam * .13, freeboard + .080, -length * .37, beam * .18, .052, length * .052);
-      tool.shape("ship-funnel", funnel, materials.red, ship);
+      tool.shape("ship-funnel", funnel, shipRed, ship);
       if (kind === "ferry") {
         cabin.box(0, freeboard + .025, length * .068, beam * .81, .050, length * .39);
         cabin.box(0, freeboard + .053, length * .067, beam * .90, .005, length * .41);
+        // The ferry has a second passenger deck, narrower and shorter than
+        // the original roof. Its footprint and the current mast height bound it.
+        cabin.box(0, freeboard + .068, length * .068, beam * .70, .025, length * .30);
+        trim.box(0, freeboard + .0825, length * .068, beam * .75, .004, length * .32);
+        for (const side of [-1, 1]) for (let i = 0; i < 5; i++)
+          windows.box(side * beam * .353, freeboard + .068, (-.036 + i * .052) * length, .0015, .009, length * .026);
         for (const side of [-1, 1]) for (let i = 0; i < 6; i++) windows.box(side * beam * .412, freeboard + .032, (-.082 + i * .054) * length, .0015, .012, length * .031);
         trim.beam([-beam * .40, freeboard + .064, -length * .12], [-beam * .40, freeboard + .064, length * .26], .0017);
         trim.beam([beam * .40, freeboard + .064, -length * .12], [beam * .40, freeboard + .064, length * .26], .0017);
       } else {
-        const cargo = new CityGeometry(), cargoBlue = new CityGeometry();
+        const cargo = new CityGeometry(), blueFreight = new CityGeometry(), seams = new CityGeometry();
         for (let row = 0; row < 3; row++) for (let column = 0; column < 2; column++) {
-          const x = (column - .5) * beam * .35, z = (-.10 + row * .14) * length;
-          (row % 2 ? cargoBlue : cargo).box(x, freeboard + .012 + (row === 1 ? .018 : 0), z, beam * .31, row === 1 ? .052 : .033, length * .12);
-          trim.box(x, freeboard + .032 + (row === 1 ? .032 : 0), z, beam * .30, .0015, length * .115);
+          const x = (column - .5) * beam * .35, z = (-.10 + row * .14) * length,
+            baseY = freeboard + .012 + (row === 1 ? .018 : 0),
+            baseHeight = row === 1 ? .052 : .033, top = baseY + baseHeight / 2;
+          (row % 2 ? blueFreight : cargo).box(x, baseY, z, beam * .31, baseHeight, length * .12);
+          trim.box(x, top + .00075, z, beam * .30, .0015, length * .115);
+          if (row !== 1) {
+            (row === 0 ? blueFreight : cargo).box(x, top + .0145, z, beam * .30, .029, length * .115);
+            trim.box(x, top + .02975, z, beam * .295, .0015, length * .111);
+          }
+          for (const side of [-1, 1]) for (let rib = 0; rib < 4; rib++)
+            seams.box(x + side * (beam * .155 - .0002), baseY, z + (rib - 1.5) * length * .026,
+              .0007, baseHeight * .86, .001);
         }
-        tool.shape("cargo-red-freight", cargo, materials.red, ship); tool.shape("cargo-blue-freight", cargoBlue, navy, ship);
+        tool.shape("cargo-red-freight", cargo, shipRed, ship); tool.shape("cargo-blue-freight", blueFreight, cargoBlue, ship);
+        tool.shape("cargo-container-seams", seams, coping, ship);
       }
     } else {
       cabin.box(0, freeboard + .011, -length * .12, beam * .58, .022, length * .25);
       windows.box(0, freeboard + .014, length * .012, beam * .47, .011, .0012);
       if (kind === "sail") {
         const canvas = new CityGeometry(), mastHeight = length * 1.28;
+        const cloth = (a: [number, number, number], b: [number, number, number], c: [number, number, number], belly: number) => {
+          const divisions = 4,
+            point = (i: number, j: number): [number, number, number] => {
+              const u = i / divisions, v = j / divisions, w = 1 - u - v;
+              return [a[0] * w + b[0] * u + c[0] * v + belly * 27 * u * v * w,
+                a[1] * w + b[1] * u + c[1] * v, a[2] * w + b[2] * u + c[2] * v];
+            };
+          for (let i = 0; i < divisions; i++) for (let j = 0; j < divisions - i; j++) {
+            canvas.triangle(point(i, j), point(i + 1, j), point(i, j + 1));
+            if (i + j < divisions - 1)
+              canvas.triangle(point(i + 1, j), point(i + 1, j + 1), point(i, j + 1));
+          }
+        };
         rigs.beam([0, freeboard, 0], [0, freeboard + mastHeight, 0], .0018);
         rigs.beam([0, freeboard + .025, -.018], [0, freeboard + .025, -length * .36], .0014);
-        canvas.triangle([0, freeboard + .025, -length * .34], [0, freeboard + mastHeight, 0], [0, freeboard + .025, 0]);
-        canvas.triangle([.001, freeboard + .028, length * .42], [.001, freeboard + mastHeight * .78, .006], [.001, freeboard + .028, .006]);
-        tool.shape("yacht-double-canvas", canvas, materials.sail, ship);
+        cloth([0, freeboard + .025, -length * .34], [0, freeboard + mastHeight, 0], [0, freeboard + .025, 0], beam * .20);
+        cloth([.001, freeboard + .028, length * .42], [.001, freeboard + mastHeight * .78, .006], [.001, freeboard + .028, .006], beam * .16);
+        tool.shape("yacht-double-canvas", canvas, canvasMaterial, ship);
         rigs.beam([0, freeboard + mastHeight, 0], [0, freeboard, length * .42], .0007);
       } else {
         rigs.beam([0, freeboard + .024, -length * .13], [0, freeboard + .090, -length * .13], .002);
@@ -363,9 +417,9 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
         trim.box(0, freeboard + .005, length * .16, beam * .40, .010, length * .17);
       }
     }
-    tool.shape("ship-submerged-hull", lower, materials.red, ship); tool.shape("ship-painted-hull", hull, kind === "fishing" ? navy : materials.paint, ship);
-    tool.shape("ship-deck", deck, materials.timber, ship); tool.shape("ship-cabin", cabin, materials.paint, ship);
-    tool.shape("ship-gunwales", trim, materials.cream, ship); tool.shape("ship-windows", windows, materials.glass, ship); tool.shape("ship-rigging", rigs, navy, ship);
+    tool.shape("ship-submerged-hull", lower, shipRed, ship); tool.shape("ship-painted-hull", hull, kind === "fishing" ? navy : enamel, ship);
+    tool.shape("ship-deck", deck, large ? coping : materials.timber, ship); tool.shape("ship-cabin", cabin, enamel, ship);
+    tool.shape("ship-gunwales", trim, coping, ship); tool.shape("ship-windows", windows, materials.glass, ship); tool.shape("ship-rigging", rigs, navy, ship);
   };
   if (place === "ajaccio") {
     boat("island-ferry", .13, .185, .248, .065, "ferry"); boat("fishing-boat", -.17, .113, .112, .041, "fishing");

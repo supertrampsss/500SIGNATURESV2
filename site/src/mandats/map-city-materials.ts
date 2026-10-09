@@ -215,3 +215,25 @@ export function createCityMaterials(scene: Scene): CityMaterials {
   materials.sail.backFaceCulling = false;
   return materials;
 }
+
+
+export type CityTransportMaterials = Pick<CityMaterials,
+  "cream" | "pavement" | "asphalt" | "markings" | "quay" | "steel" | "timber">;
+
+/** A shared blue sky fill for transport surfaces, without recolouring façades. */
+export function createCityTransportMaterials(scene: Scene, source: CityMaterials): CityTransportMaterials {
+  const surfaces = {} as CityTransportMaterials;
+  for (const key of ["cream", "pavement", "asphalt", "markings", "quay", "steel", "timber"] as const) {
+    const original = source[key], surface = new StandardMaterial(`city-transport-${key}`, scene);
+    // Share the actual grain maps; cloning a DynamicTexture would recreate it.
+    surface.diffuseColor = original.diffuseColor.clone();
+    surface.diffuseTexture = original.diffuseTexture;
+    surface.bumpTexture = original.bumpTexture;
+    surface.specularColor = original.specularColor.clone();
+    surface.specularPower = original.specularPower;
+    surface.backFaceCulling = original.backFaceCulling;
+    surface.ambientColor = new Color3(.10, .16, .25);
+    surfaces[key] = surface;
+  }
+  return surfaces;
+}

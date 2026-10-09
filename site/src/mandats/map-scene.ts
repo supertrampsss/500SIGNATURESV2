@@ -223,8 +223,11 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     let pendingInspection: MapPlace | undefined;
     let vegetation: Array<{ root: TransformNode; x: number; z: number }> = [];
     const clearedTrees = new Set<TransformNode>();
+    // Start the existing GLB requests before the synchronous ground builders.
+    // Keep the result order and the same shared Scene/asset-kit cache.
+    const cityScenery = buildCities(scene);
     const scenery = Promise.all([
-      buildLandscape(scene), buildCities(scene), buildMapContext(scene), lighting,
+      buildLandscape(scene), cityScenery, buildMapContext(scene), lighting,
       buildRegionBoundaries(scene),
     ]);
     function finishScenery(staticGeometry: AbstractMesh[]) {

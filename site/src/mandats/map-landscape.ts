@@ -673,8 +673,53 @@ function cultivatedValleyBreakLines() {
 
 // Continuous cultivated faces replace the old diffuse shoulders only here.
 // They share their exact source-frame contours with fields and wooded crests.
+// Short secondary valleys belong to the three existing cultivated slopes.
+// Their incisions are applied only beyond the terrain's physical protections.
+const composedCoteauRills = [
+  { coteau: "touraine", x: -2.18, side: -1, lean: .18, width: .075, depth: .052, phase: .7 },
+  { coteau: "touraine", x: -1.67, side: 1, lean: -.22, width: .085, depth: .060, phase: 2.1 },
+  { coteau: "touraine", x: -1.05, side: -1, lean: -.15, width: .070, depth: .049, phase: 4.0 },
+  { coteau: "touraine", x: -.46, side: 1, lean: .24, width: .085, depth: .055, phase: 1.3 },
+  { coteau: "berry", x: -1.08, side: 1, lean: .20, width: .080, depth: .058, phase: 3.2 },
+  { coteau: "berry", x: -.48, side: -1, lean: -.24, width: .095, depth: .065, phase: .2 },
+  { coteau: "berry", x: .11, side: 1, lean: -.17, width: .075, depth: .052, phase: 2.7 },
+  { coteau: "berry", x: .73, side: -1, lean: .22, width: .085, depth: .060, phase: 4.5 },
+  { coteau: "berry", x: 1.23, side: 1, lean: .16, width: .070, depth: .046, phase: 1.8 },
+  { coteau: "lorraine", x: 2.11, side: -1, lean: -.20, width: .080, depth: .050, phase: 3.7 },
+  { coteau: "lorraine", x: 2.61, side: 1, lean: .23, width: .090, depth: .058, phase: 1.1 },
+  { coteau: "lorraine", x: 3.15, side: -1, lean: .17, width: .075, depth: .046, phase: 4.8 },
+] as const;
+function coteauRillAxis(rill: (typeof composedCoteauRills)[number], distance: number) {
+  return rill.x + rill.lean * distance + .025 * Math.sin(distance * 9 + rill.phase);
+}
+function composedCoteauIncision(coteau: string, x: number, offset: number, height: number) {
+  let incision = 0;
+  for (const rill of composedCoteauRills) {
+    if (rill.coteau !== coteau) continue;
+    const distance = offset * rill.side;
+    if (distance <= -.06 || distance >= .64) continue;
+    const transverse = Math.abs(x - coteauRillAxis(rill, distance)) / rill.width;
+    if (transverse >= 1) continue;
+    const head = smooth(clamp((distance + .06) / .16)),
+      mouth = 1 - smooth(clamp((distance - .43) / .21)),
+      channel = 1 - smooth(transverse);
+    incision = Math.max(incision, Math.min(height * .28, rill.depth * channel * head * mouth));
+  }
+  return incision;
+}
+function composedCoteauIncisionBreakLines() {
+  return composedCoteauRills.flatMap(rill => {
+    const coteau = COMPOSED_COTEAUX.find(coteau => coteau.id === rill.coteau)!;
+    return [-1, 0, 1].map(edge => Array.from({ length: 21 }, (_, index) => {
+      const distance = -.06 + index * .70 / 20,
+        x = coteauRillAxis(rill, distance) + edge * rill.width;
+      return mapAuthoredPosition(x, coteauSourceZ(coteau, x) + distance * rill.side);
+    }));
+  });
+}
+
 function composedCoteauProfile(sx: number, sz: number) {
-  let height = 0, influence = 0;
+  let height = 0, influence = 0, incision = 0;
   for (const coteau of COMPOSED_COTEAUX) {
     const first = coteau.spine[0][0], last = coteau.spine[coteau.spine.length - 1][0];
     if (sx <= first || sx >= last) continue;
@@ -691,8 +736,9 @@ function composedCoteauProfile(sx: number, sz: number) {
       break;
     }
     influence = weight;
+    incision = composedCoteauIncision(coteau.id, sx, offset, height);
   }
-  return { height, influence };
+  return { height, influence, incision };
 }
 function composedCoteauBreakLines() {
   return COMPOSED_COTEAUX.flatMap(coteau =>
@@ -737,8 +783,14 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
     section = cultivatedValleyProfile(x, z),
     influence = section.influence * smooth(clamp((borderDistance(sx, sz) - .27) / .15));
   const existing = mix(original, section.height * mineralBlend, influence),
-    composed = parisAreaAt(x, z) ? { height: 0, influence: 0 } : composedCoteauProfile(sx, sz);
-  return mix(existing, composed.height * mineralBlend, composed.influence) * protectedBlend * coastalBlend;
+    composed = parisAreaAt(x, z) ? { height: 0, influence: 0, incision: 0 } : composedCoteauProfile(sx, sz),
+    // Leave every protected parcel and the full river approach at its old
+    // height. This is a shallow incision in the shared terrain, not an overlay.
+    detailProtection = smooth(clamp((clearance - .24) / .18)),
+    detailRiver = smooth(clamp((riverDistance - .20) / .22)),
+    detailBorder = smooth(clamp((borderDistance(sx, sz) - .30) / .12)),
+    incision = composed.incision * composed.influence * mineralBlend * detailProtection * detailRiver * detailBorder;
+  return (mix(existing, composed.height * mineralBlend, composed.influence) - incision) * protectedBlend * coastalBlend;
 }
 
 type CoastalRockSample = { height: number; cover: number };
@@ -1307,7 +1359,9 @@ function alpineSurfaceMask(x: number, z: number, y: number,
 // Their boundaries are surface colours on the real mesh, not a scene image.
 const meadowTones = ["#7D9743", "#92A14C", "#AEB65D", "#9CAD52", "#BAC173"];
 const stubbleTones = ["#BCA552", "#CDB567", "#D2BA63", "#AFAA58"];
-function countrysideColor(sx: number, sz: number) {
+const openMeadowTones = ["#84A64D", "#A1BA67", "#B4C975", "#91AF56", "#C0CC87"];
+const openStubbleTones = ["#D5B66B", "#E3C985", "#D7BD73", "#CBAE63"];
+function countrysideColor(sx: number, sz: number, cultivation = 0) {
   const width = .76, depth = .53, cx = Math.floor(sx / width), cz = Math.floor(sz / depth);
   let first = Infinity, second = Infinity, chosenX = 0, chosenZ = 0,
     nextX = 0, nextZ = 0;
@@ -1321,8 +1375,15 @@ function countrysideColor(sx: number, sz: number) {
     else if (distance < second) { second = distance; nextX = ix; nextZ = iz; }
   }
   const tone = (ix: number, iz: number) => {
-    const palette = hash(ix + 107, iz * 9 + 27) < .30 ? stubbleTones : meadowTones;
-    return Color3.FromHexString(palette[Math.floor(hash(ix * 17 + 1, iz * 13 + 3) * palette.length) % palette.length]);
+    const family = hash(ix + 107, iz * 9 + 27),
+      slot = hash(ix * 17 + 1, iz * 13 + 3),
+      palette = family < .30 ? stubbleTones : meadowTones,
+      historical = Color3.FromHexString(palette[Math.floor(slot * palette.length) % palette.length]);
+    if (cultivation === 0) return historical;
+    // Only open lowland units gain the warmer harvest and fresher pasture.
+    // Mineral faces, wooded ground and urban palettes retain their old tones.
+    const open = family < .44 ? openStubbleTones : openMeadowTones;
+    return colorMix(historical, Color3.FromHexString(open[Math.floor(slot * open.length) % open.length]), cultivation);
   };
   // A narrow irregular edge avoids the same smooth gradient over all France.
   return colorMix(tone(chosenX, chosenZ), tone(nextX, nextZ),
@@ -1339,7 +1400,14 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
     return Color3.FromHexString(palette[area.kind]).scale(.95 + grain * .07);
   }
   if (nationalBlockAt(x, z)) return Color3.FromHexString("#CABB96").scale(.96 + grain * .06);
-  let color = countrysideColor(sx, sz).scale(.97 + grain * .06);
+  const massif = mountainSourceHeight(sx, sz),
+    covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
+    coastal = coastalRockProfile(x, z, sx, sz),
+    cultivation = area || covered || coastal.cover > 0 ? 0 :
+    (1 - smooth(clamp((forest - .35) / .22))) *
+    (1 - smooth(clamp((y - .32) / .10))) *
+    (1 - smooth(clamp((massif - .035) / .065)));
+  let color = countrysideColor(sx, sz, cultivation).scale(.97 + grain * .06);
   if (area?.kind === "field") color = colorMix(color, Color3.FromHexString("#CDB465"), .76);
   if (area?.kind === "garden") color = colorMix(color, Color3.FromHexString("#8FA44D"), .66);
   const forestCover = area?.kind === "wood" ? .90 : clamp((forest - .57) / .31) * .84;
@@ -1347,7 +1415,6 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
   const left = landHeight(x - .025, z), right = landHeight(x + .025, z),
     front = landHeight(x, z - .025), back = landHeight(x, z + .025),
     slope = Math.hypot(right - left, back - front) / .05,
-    massif = mountainSourceHeight(sx, sz),
     mask = alpineSurfaceMask(x, z, y, face, occupied),
     band = alpineStoneFamily(face?.band ?? mountainFaceBand(x, z)),
     family = hash(band, 37), warm = hash(band, 113),
@@ -1361,10 +1428,8 @@ function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFac
   color = colorMix(color, stone, exposed);
   const valleyShade = clamp((left + right + front + back - y * 4) * 2.1);
   color = color.scale(1 - valleyShade * .17);
-  const covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
-    snow = covered || !alpineGeologicalBand(face?.band ?? mountainFaceBand(x, z)) ? 0 :
+  const snow = covered || !alpineGeologicalBand(face?.band ?? mountainFaceBand(x, z)) ? 0 :
       alpineSnowCover(sx, sz, y, slope, face?.band ?? mountainFaceBand(x, z)) * mask;
-  const coastal = coastalRockProfile(x, z, sx, sz);
   if (coastal.cover > 0 && !covered) {
     const shelfStone = colorMix(Color3.FromHexString("#B89B71"), Color3.FromHexString("#DACAA6"),
       noise(sx * 4.1 + 93, sz * 3.3 + 57));
@@ -1613,6 +1678,16 @@ function buildGround(
           composedCoteauProfile(source.x, source.z).influence < .02) continue;
         points.push([point.x, point.z]);
       }
+    // Centre and side samples follow the actual secondary valleys. At most
+    // 756 extra controls refine these three slopes, never the country grid.
+    for (const line of composedCoteauIncisionBreakLines()) for (const point of line) {
+      if (!contains(outline, point.x, point.z) || cultivatedClearance(point.x, point.z) <= .24 ||
+        riverContains(point.x, point.z, .20) || constructionReservationContains(point.x, point.z, .20)) continue;
+      const source = mapAuthoredCoordinates(point.x, point.z);
+      if (borderDistance(source.x, source.z) <= .30 || mountainSourceHeight(source.x, source.z) > .13 ||
+        composedCoteauProfile(source.x, source.z).influence < .02) continue;
+      points.push([point.x, point.z]);
+    }
     // River beds need their own vertices; a coarse triangle spanning both banks
     // otherwise rises over the water even when the mathematical height is cut.
     for (const river of riverPaths)
@@ -2709,6 +2784,46 @@ function nearbyRiver(x: number, z: number) {
   return riverContains(x, z, 0.024);
 }
 
+// Move a shoreline trunk as a whole using its actual transformed foot, without
+// changing its model or introducing ground outside the existing country.
+function coastalTrunkTranslation(foot: Point[], polygons: Point[][]) {
+  const winding = polygons.map(polygon => Math.sign(polygon.reduce((sum, p, i) => {
+    const q = polygon[(i + 1) % polygon.length]; return sum + p.x * q.z - q.x * p.z;
+  }, 0)) || 1);
+  let dx = 0, dz = 0;
+  for (let pass = 0; pass < 8; pass++) {
+    let correction: { x: number; z: number; distance: number } | undefined;
+    for (const [part, polygon] of polygons.entries()) for (const point of foot) {
+      const x = point.x + dx, z = point.z + dz;
+      if (contains(polygon, x, z)) continue;
+      let nearest: { x: number; z: number; nx: number; nz: number; distance: number } | undefined;
+      for (let i = 0; i < polygon.length; i++) {
+        const a = polygon[i], b = polygon[(i + 1) % polygon.length],
+          ex = b.x - a.x, ez = b.z - a.z, length = Math.hypot(ex, ez);
+        if (length === 0) continue;
+        const t = clamp(((x - a.x) * ex + (z - a.z) * ez) / (length * length)),
+          qx = a.x + ex * t, qz = a.z + ez * t,
+          distance = Math.hypot(qx - x, qz - z);
+        if (!nearest || distance < nearest.distance) nearest = {
+          x: qx, z: qz, nx: -ez / length * winding[part],
+          nz: ex / length * winding[part], distance,
+        };
+      }
+      if (!nearest) return undefined;
+      // A millimetre of inward support keeps the real foot away from both the
+      // outline boundary and the mapped, densified terrain boundary.
+      const cx = nearest.x + nearest.nx * .001 - x,
+        cz = nearest.z + nearest.nz * .001 - z,
+        distance = Math.hypot(cx, cz);
+      if (!correction || distance > correction.distance) correction = { x: cx, z: cz, distance };
+    }
+    if (!correction) return { x: dx, z: dz };
+    dx += correction.x; dz += correction.z;
+    if (Math.hypot(dx, dz) > .018) return undefined;
+  }
+  return undefined;
+}
+
 async function buildForests(scene: Scene, orchards: Point[]) {
   const kit = await loadAssetKit(scene, MODEL_URLS.vegetation);
   if (scene.isDisposed) return [];
@@ -2949,6 +3064,79 @@ async function buildForests(scene: Scene, orchards: Point[]) {
       0.085 + hash(index, 52) * 0.023,
       hash(index, 8) * Math.PI * 2,
     );
+  }
+  const mappedCoasts = new Map<number, Point[]>();
+  for (const node of forestRoot.getChildren(undefined, true)) {
+    if (!(node instanceof TransformNode) || node.metadata?.asset === "rock") continue;
+    const source = mapAuthoredCoordinates(node.position.x, node.position.z);
+    // The actual kit's trunk bases are small; only roots in this narrow band
+    // need their cached, transformed contact vertices read and tested.
+    if (borderDistance(source.x, source.z) > .045) continue;
+    const frames = node.getChildMeshes().map(geometryContactFrame),
+      lowest = Math.min(...frames.map(frame => frame.minimumY)),
+      foot = frames.flatMap(frame => frame.below(lowest + .0001));
+    if (!foot.length) continue;
+    const part = outlines.findIndex(outline => contains(outline, node.position.x, node.position.z));
+    if (part < 0) continue;
+    let coast = mappedCoasts.get(part);
+    if (!coast) {
+      coast = densify(sourceOutlines[part], .035).map(point => mapAuthoredPosition(point.x, point.z));
+      mappedCoasts.set(part, coast);
+    }
+    const coastPolygon = coast;
+    if (foot.every(point => contains(outlines[part], point.x, point.z) && contains(coastPolygon, point.x, point.z))) continue;
+    let shift = coastalTrunkTranslation(foot, [outlines[part], coastPolygon]);
+    if (!shift) {
+      node.metadata = { ...node.metadata, coastalTrunkContactUnresolved: true }; continue;
+    }
+    const previousClearance = Math.min(.032, urbanClearance(node.position.x, node.position.z)),
+      previousFootClearance = Math.min(.011, ...foot.map(point => urbanClearance(point.x, point.z))),
+      oldReserved = constructionReservationContains(node.position.x, node.position.z, .035),
+      wood = composedWoods.find(wood => wood.id === node.metadata?.woodland),
+      spacing = wood?.minSpacing ?? .031,
+      transportClearance = (point: Point) => Math.min(Infinity,
+        ...(coastalTransportCells.get(`${Math.floor(point.x / .5)}:${Math.floor(point.z / .5)}`) ?? []).map(
+          segment => segmentDistance(point.x, point.z, segment.a, segment.b) - .026));
+    const clear = (offset: Point) => {
+      const x = node.position.x + offset.x, z = node.position.z + offset.z,
+        translated = foot.map(point => ({ x: point.x + offset.x, z: point.z + offset.z }));
+      return landContains(x, z) && !nearbyRiver(x, z) &&
+      !parisAreaAt(x, z) && !nationalBlockAt(x, z) &&
+      urbanClearance(x, z) >= previousClearance &&
+      (oldReserved || !constructionReservationContains(x, z, .035)) &&
+      forestRoot.getChildren(undefined, true).every(other => other === node ||
+        !(other instanceof TransformNode) || other.metadata?.asset === "rock" ||
+        Math.hypot(x - other.position.x, z - other.position.z) >= Math.min(spacing,
+          Math.hypot(node.position.x - other.position.x, node.position.z - other.position.z))) &&
+      translated.every((point, index) => contains(outlines[part], point.x, point.z) && contains(coastPolygon, point.x, point.z) &&
+        landContains(point.x, point.z) && !riverContains(point.x, point.z, .002) &&
+        urbanClearance(point.x, point.z) >= previousFootClearance &&
+        transportClearance(point) >= Math.min(.009, transportClearance(foot[index])) &&
+        !(coastalPortCells.get(`${Math.floor(point.x / .5)}:${Math.floor(point.z / .5)}`) ?? []).some(
+          polygon => harbourPolygonContains(polygon, point)));
+    };
+    if (!clear(shift)) {
+      // A nearby trunk or protected feature can block the shortest inward
+      // move. Try tiny shifts along the same shore while retaining every guard.
+      const length = Math.hypot(shift.x, shift.z),
+        tx = -shift.z / length, tz = shift.x / length;
+      let alternative: Point | undefined;
+      for (let step = 1; step <= 16; step++) for (const sign of [-1, 1]) {
+        const offset = { x: shift.x + tx * step * .0005 * sign,
+          z: shift.z + tz * step * .0005 * sign };
+        if (Math.hypot(offset.x, offset.z) > .018 || !clear(offset)) continue;
+        if (!alternative || Math.hypot(offset.x, offset.z) < Math.hypot(alternative.x, alternative.z)) alternative = offset;
+      }
+      if (!alternative) {
+        node.metadata = { ...node.metadata, coastalTrunkContactUnresolved: true }; continue;
+      }
+      shift = alternative;
+    }
+    const x = node.position.x + shift.x, z = node.position.z + shift.z,
+      previousGround = landHeight(node.position.x, node.position.z),
+      heightOffset = node.position.y - previousGround;
+    node.position.set(x, landHeight(x, z) + heightOffset, z);
+    node.metadata = { ...node.metadata, coastalTrunkReseat: { x: shift.x, z: shift.z } };
   }
   forestRoot.metadata = { treeCount, rockCount, authoredVegetation: true, woodlandCounts };
   return meshes;

@@ -388,8 +388,8 @@ export const PARIS_BLOCKS: readonly ParisBlock[] = [
       {
         "id": "chevet17-rue-haute-0",
         "model": "front_mitoyen_paris_01",
-        "x": 1.1863411807783597,
-        "z": 0.08097190835354681,
+        "x": 1.1480764979243883,
+        "z": 0.11886404534903704,
         "angle": -1.1707963267948966,
         "width": 0.172,
         "depth": 0.06580729653882134,
@@ -471,8 +471,8 @@ export const PARIS_BLOCKS: readonly ParisBlock[] = [
       {
         "id": "chevet17-rue-haute-8",
         "model": "hotel_angle_paris_01",
-        "x": 1.594973167719699,
-        "z": 0.9396242822793243,
+        "x": 1.5459638680742989,
+        "z": 1.0265730519558836,
         "angle": 3.541592653589793,
         "width": 0.078,
         "depth": 0.07093111236589497,

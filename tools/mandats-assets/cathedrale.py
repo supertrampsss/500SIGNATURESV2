@@ -35,7 +35,11 @@ parser.add_argument("--upper-profile", type=float, default=1.0,
     help="Optional geometry-only upper profile from the existing packed source; requires --lod-only")
 parser.add_argument("--facade-span", type=float, default=1.0,
     help="Optional GLTF-X facade stretch after export; requires --no-preview")
+parser.add_argument("--spire-width", type=float, default=1.0,
+    help="Optional narrow upper cones/pinnacles after the short upper and facade profiles")
 options = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+if options.spire_width != 1.0 and (not options.no_preview or options.shape_preview):
+    raise RuntimeError("Spire width requires --no-preview and the full exported kit")
 if not math.isfinite(options.facade_span) or not 1 <= options.facade_span <= 1.4:
     raise ValueError("Facade span must be finite and between 1 and 1.4")
 if options.facade_span != 1.0 and (not options.no_preview or options.shape_preview):
@@ -869,6 +873,14 @@ if options.facade_span != 1.0:
     report = span_module.stretch_facade(OUTPUT/"cathedrale.glb", OUTPUT/"cathedrale.json", options.facade_span)
     metadata = json.loads((OUTPUT/"cathedrale.json").read_text())["models"]
     print("CATHEDRALE_FACADE_SPAN", json.dumps(report), flush=True)
+
+if options.spire_width != 1.0:
+    spire_spec = importlib.util.spec_from_file_location("cathedral_spire_profile", SOURCE / "cathedral_spire_profile.py")
+    spire_module = importlib.util.module_from_spec(spire_spec)
+    spire_spec.loader.exec_module(spire_module)
+    report = spire_module.slim_spires(OUTPUT/"cathedrale.glb", OUTPUT/"cathedrale.json", options.spire_width)
+    metadata = json.loads((OUTPUT/"cathedrale.json").read_text())["models"]
+    print("CATHEDRALE_SPIRE_PROFILE", json.dumps(report), flush=True)
 
 if not options.no_preview:
     for index,obj in enumerate(MODELS):

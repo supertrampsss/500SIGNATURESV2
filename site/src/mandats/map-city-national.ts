@@ -266,13 +266,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "lille-ilot-0-maison-3",
-            "model": "maison_brique_02_dominante",
+            "model": "maison_brique_02",
             "x": -0.2856528926,
             "z": 0.0940820296,
             "angle": 2.98159,
             "width": 0.1288,
             "depth": 0.09818,
-            "height": 0.24472,
+            "height": 0.1452362765755622,
             "footprintOffset": 0.0048598563
           },
           {
@@ -412,13 +412,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "lille-ilot-1-maison-2",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.5806912925,
             "z": -0.3617418128,
             "angle": 3.27159,
             "width": 0.14525,
             "depth": 0.10792,
-            "height": 0.275975,
+            "height": 0.2094178453051675,
             "footprintOffset": 0.0047128959
           },
           {
@@ -567,13 +567,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "lille-ilot-1-maison-5",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.5168982149,
             "z": -0.0643044316,
             "angle": 0.13,
             "width": 0.14525,
             "depth": 0.13348,
-            "height": 0.275975,
+            "height": 0.2094178453051675,
             "footprintOffset": 0.005829108
           },
           {
@@ -920,13 +920,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rouen-ilot-0-maison-1",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.4332014249,
             "z": 0.212838313,
             "angle": 3.34159,
             "width": 0.15456,
             "depth": 0.12755,
-            "height": 0.293664,
+            "height": 0.2228407722572577,
             "footprintOffset": 0.0055701433
           },
           {
@@ -1177,13 +1177,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rouen-ilot-1-maison-1",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": -0.5033351631,
             "z": -0.7711129417,
             "angle": 2.97159,
             "width": 0.175,
             "depth": 0.14441,
-            "height": 0.31,
+            "height": 0.21991952492840086,
             "footprintOffset": 0.0065640899
           },
           {
@@ -1335,13 +1335,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rouen-ilot-1-maison-5",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": -0.3084148364,
             "z": -0.5102070582,
             "angle": -0.17,
             "width": 0.175,
             "depth": 0.14441,
-            "height": 0.34,
+            "height": 0.2412020595988913,
             "footprintOffset": 0.0065640899
           },
           {
@@ -2166,13 +2166,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "rennes-ilot-1-maison-2",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.6505077374,
             "z": -0.4670828179,
             "angle": 2.88159,
             "width": 0.14525,
             "depth": 0.15437,
-            "height": 0.293303,
+            "height": 0.1707367373169735,
             "footprintOffset": 0.0073944739
           },
           {
@@ -2555,13 +2555,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "rennes-ilot-2-maison-2",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": -1.1085612819,
             "z": 0.272475238,
             "angle": 3.26159,
             "width": 0.1645,
             "depth": 0.17482,
-            "height": 0.31,
+            "height": 0.21991952492840086,
             "footprintOffset": 0.0079463624
           },
           {
@@ -2693,13 +2693,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rennes-ilot-2-maison-5",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -1.1366082218,
             "z": 0.5076688811,
             "angle": 0.12,
             "width": 0.161,
             "depth": 0.17089,
-            "height": 0.31,
+            "height": 0.23178059042361077,
             "footprintOffset": 0.0076122135
           },
           {
@@ -3168,13 +3168,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "nantes-ilot-0-maison-1",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": -0.5492583429,
             "z": 0.2086293863,
             "angle": 2.82159,
             "width": 0.14525,
             "depth": 0.1238,
-            "height": 0.2977625,
+            "height": 0.20770214450422989,
             "footprintOffset": 0.0059946692
           },
           {
@@ -3329,13 +3329,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "nantes-ilot-0-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": -0.4856379556,
             "z": 0.5476678661,
             "angle": -0.32,
             "width": 0.14525,
             "depth": 0.1238,
-            "height": 0.275975,
+            "height": 0.16064980951797891,
             "footprintOffset": 0.005930141
           },
           {
@@ -3960,13 +3960,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "nantes-ilot-2-maison-3",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.1699731692,
             "z": 0.4251680141,
             "angle": 2.97159,
             "width": 0.1288,
             "depth": 0.0919,
-            "height": 0.24472,
+            "height": 0.1365823306950149,
             "footprintOffset": 0.0045489997
           },
           {
@@ -4581,13 +4581,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "bordeaux-ilot-1-maison-1",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.0744999748,
             "z": -0.9053898612,
             "angle": 2.96159,
             "width": 0.14525,
             "depth": 0.1238,
-            "height": 0.275975,
+            "height": 0.16064980951797891,
             "footprintOffset": 0.005930141
           },
           {
@@ -5239,13 +5239,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "bordeaux-ilot-2-maison-4",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": 0.7979764469,
             "z": 0.3822471188,
             "angle": -0.05,
             "width": 0.14875,
             "depth": 0.12678,
-            "height": 0.3049375,
+            "height": 0.21270701545613904,
             "footprintOffset": 0.0061389674
           },
           {
@@ -5366,13 +5366,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "bordeaux-ilot-2-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.463793143617,
             "z": 0.398808957096,
             "angle": -0.05,
             "width": 0.161,
             "depth": 0.11487,
-            "height": 0.3059,
+            "height": 0.1780696683813742,
             "footprintOffset": 0.0055023853
           },
           {
@@ -6288,13 +6288,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "lyon-ilot-1-maison-1",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": -0.1841135041,
             "z": 0.6662451775,
             "angle": 2.97159,
             "width": 0.14525,
             "depth": 0.1238,
-            "height": 0.275975,
+            "height": 0.15402626966965,
             "footprintOffset": 0.0061280323
           },
           {
@@ -6445,13 +6445,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "lyon-ilot-1-maison-5",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": -0.0990690591,
             "z": 1.029316263,
             "angle": -0.17,
             "width": 0.14525,
             "depth": 0.1238,
-            "height": 0.2977625,
+            "height": 0.20770214450422989,
             "footprintOffset": 0.0059946692
           },
           {
@@ -6878,13 +6878,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "lyon-ilot-1-maison-3",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": 0.1024157879,
             "z": 0.7141432632,
             "angle": 2.97159,
             "width": 0.14525,
             "depth": 0.10363,
-            "height": 0.275975,
+            "height": 0.17192004477130454,
             "footprintOffset": 0.0048593618
           },
           {
@@ -7481,13 +7481,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "toulouse-ilot-0-maison-7",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": 0.1514061894,
             "z": 0.2150196177,
             "angle": -1.6708,
             "width": 0.175,
             "depth": 0.14494,
-            "height": 0.31,
+            "height": 0.17192067257201152,
             "footprintOffset": 0.0066561703
           },
           {
@@ -7848,8 +7848,8 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           {
             "id": "toulouse-ilot-1-tissu14-2008",
             "model": "maison_sud_01",
-            "x": -0.917482757719,
-            "z": -0.897201698448,
+            "x": -0.923482757719,
+            "z": -0.909201698448,
             "angle": 3.14159,
             "width": 0.097,
             "depth": 0.069286,
@@ -7944,13 +7944,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "toulouse-ilot-2-maison-2",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.3032074955,
             "z": 0.6339086197,
             "angle": 3.01159,
             "width": 0.1645,
             "depth": 0.15436,
-            "height": 0.31,
+            "height": 0.17301619203765375,
             "footprintOffset": 0.0076407356
           },
           {
@@ -8117,13 +8117,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "toulouse-ilot-2-maison-4",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": 0.6228197136,
             "z": 0.8486521907,
             "angle": -0.13,
             "width": 0.14875,
             "depth": 0.1232,
-            "height": 0.282625,
+            "height": 0.15673896801827344,
             "footprintOffset": 0.0056577907
           },
           {
@@ -8626,13 +8626,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "montpellier-ilot-0-maison-1",
-            "model": "maison_brique_02_dominante",
+            "model": "maison_brique_02",
             "x": -0.100363311,
             "z": 0.3174001099,
             "angle": 3.27159,
             "width": 0.175,
             "depth": 0.14494,
-            "height": 0.34,
+            "height": 0.2017829929539521,
             "footprintOffset": 0.0071744507
           },
           {
@@ -8893,13 +8893,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "montpellier-ilot-0-maison-7",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": -0.24687989,
             "z": 0.5453533115,
             "angle": -1.4408,
             "width": 0.175,
             "depth": 0.14494,
-            "height": 0.31,
+            "height": 0.17301619203765375,
             "footprintOffset": 0.0071744507
           },
           {
@@ -8990,13 +8990,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "montpellier-ilot-1-maison-2",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": -0.4363966751,
             "z": 0.3707536505,
             "angle": 2.97159,
             "width": 0.14525,
             "depth": 0.1363,
-            "height": 0.275975,
+            "height": 0.15402626966965,
             "footprintOffset": 0.0067467754
           },
           {
@@ -9907,13 +9907,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "marseille-ilot-1-maison-1",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": 0.2590034025,
             "z": 0.0995176792,
             "angle": 3.33159,
             "width": 0.175,
             "depth": 0.14494,
-            "height": 0.31,
+            "height": 0.20879979855176378,
             "footprintOffset": 0.0069427677
           },
           {
@@ -10206,13 +10206,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "marseille-ilot-1-maison-7",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": 0.1259562392,
             "z": 0.3361707233,
             "angle": -1.3808,
             "width": 0.175,
             "depth": 0.14494,
-            "height": 0.31,
+            "height": 0.17192067257201152,
             "footprintOffset": 0.0066561703
           },
           {
@@ -10398,13 +10398,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "marseille-ilot-2-maison-1",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": -0.8573008016,
             "z": 1.1895472122,
             "angle": 3.42159,
             "width": 0.154,
             "depth": 0.12754,
-            "height": 0.2926,
+            "height": 0.162270931595389,
             "footprintOffset": 0.0058570992
           },
           {
@@ -10927,13 +10927,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "strasbourg-ilot-0-maison-1",
-            "model": "maison_brique_01_dominante",
+            "model": "maison_brique_01",
             "x": -0.2512304966,
             "z": 0.3065909135,
             "angle": 3.48159,
             "width": 0.15456,
             "depth": 0.1627,
-            "height": 0.30913,
+            "height": 0.23223003733443862,
             "footprintOffset": 0.0078782931
           },
           {
@@ -11254,13 +11254,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "strasbourg-ilot-1-maison-2",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.5901890208,
             "z": -0.1648813629,
             "angle": 3.20159,
             "width": 0.175,
             "depth": 0.13984,
-            "height": 0.31,
+            "height": 0.23178059042361077,
             "footprintOffset": 0.0062291061
           },
           {
@@ -11407,13 +11407,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "strasbourg-ilot-1-maison-5",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.5156881654,
             "z": 0.0539117129,
             "angle": 0.06,
             "width": 0.175,
             "depth": 0.18422,
-            "height": 0.31,
+            "height": 0.23178059042361077,
             "footprintOffset": 0.008205992
           }
         ]
@@ -11743,13 +11743,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "brest-bourg-0-maison-3",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": 0.4942409259,
             "z": 0.0543415259,
             "angle": 3.00159,
             "width": 0.137,
             "depth": 0.14542,
-            "height": 0.276298,
+            "height": 0.20966294708624753,
             "footprintOffset": 0.0063505311
           },
           {
@@ -11858,13 +11858,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "brest-bourg-0-maison-4",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.3673669251,
             "z": 0.2440412644,
             "angle": -0.14,
             "width": 0.137,
             "depth": 0.14542,
-            "height": 0.276298,
+            "height": 0.16083783339142504,
             "footprintOffset": 0.0069657602
           },
           {
@@ -12774,13 +12774,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "morlaix-bourg-0-maison-3",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": 0.2149164383,
             "z": -0.5316985479,
             "angle": 3.52159,
             "width": 0.137,
             "depth": 0.14542,
-            "height": 0.276298,
+            "height": 0.19601072547957193,
             "footprintOffset": 0.006609999
           },
           {
@@ -12917,13 +12917,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "morlaix-bourg-0-maison-5",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": 0.1967095997,
             "z": -0.3372110023,
             "angle": 0.38,
             "width": 0.137,
             "depth": 0.11305,
-            "height": 0.2603,
+            "height": 0.16215522295124762,
             "footprintOffset": 0.0053010793
           },
           {
@@ -13158,24 +13158,24 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "quimper-bourg-0-maison-3",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": 0.111439999,
             "z": -0.0625702011,
             "angle": 3.14159,
             "width": 0.11371,
             "depth": 0.1207,
-            "height": 0.22933,
+            "height": 0.14286230226434737,
             "footprintOffset": 0.0056597989
           },
           {
             "id": "quimper-bourg-0-maison-1",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.1114399994,
             "z": -0.064049942,
             "angle": 3.14159,
             "width": 0.11371,
             "depth": 0.09384,
-            "height": 0.216049,
+            "height": 0.1615353702594538,
             "footprintOffset": 0.004180058
           },
           {
@@ -13663,13 +13663,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "saint-brieuc-bourg-0-maison-5",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.3568278678,
             "z": -0.4298806425,
             "angle": -0.05,
             "width": 0.12604,
             "depth": 0.13379,
-            "height": 0.254201,
+            "height": 0.19289510171000593,
             "footprintOffset": 0.0058426458
           }
         ]
@@ -13789,13 +13789,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "saint-brieuc-bourg-0-maison-4",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": -0.041175088,
             "z": -0.4603363584,
             "angle": -0.05,
             "width": 0.11645,
             "depth": 0.0961,
-            "height": 0.2387225,
+            "height": 0.16935399609587154,
             "footprintOffset": 0.0043681812
           },
           {
@@ -13988,13 +13988,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "vannes-bourg-0-maison-3",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": 0.1548498635,
             "z": 0.0708005133,
             "angle": 2.88159,
             "width": 0.137,
             "depth": 0.14542,
-            "height": 0.276298,
+            "height": 0.20966294708624753,
             "footprintOffset": 0.0063505311
           },
           {
@@ -14138,13 +14138,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "vannes-bourg-0-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.0240596171,
             "z": 0.2160586665,
             "angle": -0.26,
             "width": 0.137,
             "depth": 0.11305,
-            "height": 0.2603,
+            "height": 0.15152512154191466,
             "footprintOffset": 0.0054152055
           },
           {
@@ -14674,13 +14674,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "caen-bourg-0-maison-4",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.2332484525,
             "z": -0.0685238744,
             "angle": 0.38,
             "width": 0.11645,
             "depth": 0.09925,
-            "height": 0.221255,
+            "height": 0.12879635331062747,
             "footprintOffset": 0.004754172
           },
           {
@@ -15199,13 +15199,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "arras-bourg-0-maison-5",
-            "model": "maison_brique_02_dominante",
+            "model": "maison_brique_02",
             "x": -0.468491283,
             "z": 0.6054693352,
             "angle": 0.19,
             "width": 0.11371,
             "depth": 0.1045,
-            "height": 0.216049,
+            "height": 0.12822062895502467,
             "footprintOffset": 0.0051726928
           },
           {
@@ -15549,13 +15549,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "reims-bourg-0-maison-2",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.1542338339,
             "z": -0.0517716403,
             "angle": 2.88159,
             "width": 0.12878,
             "depth": 0.09034,
-            "height": 0.244682,
+            "height": 0.13656112225857162,
             "footprintOffset": 0.0044717806
           }
         ]
@@ -15689,13 +15689,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "reims-bourg-0-maison-4",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": 0.3801454318,
             "z": 0.1488178999,
             "angle": -0.26,
             "width": 0.11645,
             "depth": 0.09925,
-            "height": 0.221255,
+            "height": 0.1654277888199226,
             "footprintOffset": 0.0044210439
           },
           {
@@ -16115,13 +16115,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "metz-bourg-0-maison-2",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.0133388847,
             "z": -0.0882581241,
             "angle": 3.29159,
             "width": 0.137,
             "depth": 0.10179,
-            "height": 0.2603,
+            "height": 0.1975232000468705,
             "footprintOffset": 0.0044451971
           },
           {
@@ -16261,13 +16261,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "metz-bourg-0-maison-4",
-            "model": "maison_ardoise_02_dominante",
+            "model": "maison_ardoise_02",
             "x": -0.0748958862,
             "z": 0.1003688787,
             "angle": 0.15,
             "width": 0.12056,
             "depth": 0.0919,
-            "height": 0.229064,
+            "height": 0.17382041604124604,
             "footprintOffset": 0.0040132981
           },
           {
@@ -16799,13 +16799,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "nancy-bourg-0-maison-3",
-            "model": "maison_paris_02_dominante",
+            "model": "maison_paris_02",
             "x": -0.0240437313,
             "z": -0.4017301549,
             "angle": 3.52159,
             "width": 0.137,
             "depth": 0.10443,
-            "height": 0.2603,
+            "height": 0.18466145915762175,
             "footprintOffset": 0.0047468175
           },
           {
@@ -16939,13 +16939,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "nancy-bourg-0-maison-5",
-            "model": "maison_paris_01_dominante",
+            "model": "maison_paris_01",
             "x": -0.0214887555,
             "z": -0.0961523621,
             "angle": 0.38,
             "width": 0.137,
             "depth": 0.1259,
-            "height": 0.2603,
+            "height": 0.18275125777553758,
             "footprintOffset": 0.0064471243
           },
           {
@@ -17205,13 +17205,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "le-mans-bourg-0-maison-2",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": -0.0525139791,
             "z": -0.0451128633,
             "angle": 3.02159,
             "width": 0.12878,
             "depth": 0.09034,
-            "height": 0.244682,
+            "height": 0.1524259095741728,
             "footprintOffset": 0.0042361743
           }
         ]
@@ -17345,13 +17345,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "le-mans-bourg-0-maison-4",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.1991904994,
             "z": 0.121895858,
             "angle": -0.12,
             "width": 0.11645,
             "depth": 0.09925,
-            "height": 0.221255,
+            "height": 0.12879635331062747,
             "footprintOffset": 0.004754172
           },
           {
@@ -17737,13 +17737,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "angers-bourg-0-maison-2",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.064210511,
             "z": -0.3918298706,
             "angle": 3.21159,
             "width": 0.137,
             "depth": 0.09611,
-            "height": 0.2603,
+            "height": 0.1452777896367783,
             "footprintOffset": 0.0047573924
           },
           {
@@ -17890,13 +17890,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "angers-bourg-0-maison-5",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": 0.1243085393,
             "z": -0.2202506207,
             "angle": 0.07,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.28085,
+            "height": 0.19590494868901545,
             "footprintOffset": 0.0056537769
           },
           {
@@ -18093,13 +18093,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "tours-bourg-0-maison-2",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.0108050138,
             "z": 0.1233163417,
             "angle": 3.00159,
             "width": 0.137,
             "depth": 0.09611,
-            "height": 0.2603,
+            "height": 0.1452777896367783,
             "footprintOffset": 0.0047573924
           }
         ]
@@ -18210,13 +18210,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "tours-bourg-0-maison-5",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.0060342797,
             "z": 0.4097251757,
             "angle": -0.14,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.2603,
+            "height": 0.19462092802343836,
             "footprintOffset": 0.0052010185
           },
           {
@@ -18793,13 +18793,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "blois-bourg-0-maison-3",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": 0.3675727771,
             "z": -0.3808359617,
             "angle": 3.02159,
             "width": 0.137,
             "depth": 0.09775,
-            "height": 0.28085,
+            "height": 0.19590494868901545,
             "footprintOffset": 0.0047332707
           },
           {
@@ -18933,13 +18933,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "blois-bourg-0-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.2232103493,
             "z": -0.1105828972,
             "angle": -0.12,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.2603,
+            "height": 0.15152512154191466,
             "footprintOffset": 0.0055929181
           },
           {
@@ -19339,13 +19339,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "poitiers-bourg-0-maison-4",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": 0.2186367161,
             "z": 0.0821757877,
             "angle": 0.07,
             "width": 0.11645,
             "depth": 0.09925,
-            "height": 0.221255,
+            "height": 0.1378319395085605,
             "footprintOffset": 0.0046539772
           },
           {
@@ -19729,13 +19729,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "la-rochelle-bourg-0-maison-3",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.4229086703,
             "z": -0.1373024846,
             "angle": 3.00159,
             "width": 0.11371,
             "depth": 0.08113,
-            "height": 0.216049,
+            "height": 0.12576585087978917,
             "footprintOffset": 0.0038862063
           },
           {
@@ -19875,13 +19875,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "la-rochelle-bourg-0-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.3293902908,
             "z": -0.0033820634,
             "angle": -0.14,
             "width": 0.11371,
             "depth": 0.09691,
-            "height": 0.216049,
+            "height": 0.12576585087978917,
             "footprintOffset": 0.0046420837
           }
         ]
@@ -20071,13 +20071,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "niort-bourg-0-maison-2",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.1509536625,
             "z": 0.1716544245,
             "angle": 3.17159,
             "width": 0.12604,
             "depth": 0.08842,
-            "height": 0.239476,
+            "height": 0.1394031118185615,
             "footprintOffset": 0.0042354044
           }
         ]
@@ -20182,13 +20182,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "niort-bourg-0-maison-3",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.0755850277,
             "z": 0.3547699236,
             "angle": 3.17159,
             "width": 0.11782,
             "depth": 0.08406,
-            "height": 0.223858,
+            "height": 0.12493889908762934,
             "footprintOffset": 0.004160924
           }
         ]
@@ -20518,13 +20518,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "limoges-bourg-0-maison-4",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": 0.2333720166,
             "z": 0.0117854899,
             "angle": 0.38,
             "width": 0.11645,
             "depth": 0.09925,
-            "height": 0.221255,
+            "height": 0.1654277888199226,
             "footprintOffset": 0.0044210439
           },
           {
@@ -20923,13 +20923,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "brive-bourg-0-maison-2",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": 0.0147908674,
             "z": -0.0254489182,
             "angle": 3.02159,
             "width": 0.12604,
             "depth": 0.08842,
-            "height": 0.239476,
+            "height": 0.17905125378156328,
             "footprintOffset": 0.0039386267
           }
         ]
@@ -21034,13 +21034,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "brive-bourg-0-maison-3",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": -0.08711927,
             "z": 0.1445410153,
             "angle": 3.02159,
             "width": 0.11782,
             "depth": 0.08406,
-            "height": 0.241531,
+            "height": 0.1684782558725533,
             "footprintOffset": 0.0040703707
           }
         ]
@@ -21200,13 +21200,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "perigueux-bourg-0-maison-2",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": 0.042180638,
             "z": -0.1468635295,
             "angle": 3.21159,
             "width": 0.12604,
             "depth": 0.08842,
-            "height": 0.239476,
+            "height": 0.14918280511514784,
             "footprintOffset": 0.0041461427
           },
           {
@@ -21333,13 +21333,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "perigueux-bourg-0-maison-3",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": -0.0258152682,
             "z": 0.0389822305,
             "angle": 3.21159,
             "width": 0.11782,
             "depth": 0.08406,
-            "height": 0.223858,
+            "height": 0.13945349173807298,
             "footprintOffset": 0.0039416959
           }
         ]
@@ -21658,13 +21658,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "agen-bourg-0-maison-3",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": -0.1910941611,
             "z": -0.0013145456,
             "angle": 2.76159,
             "width": 0.11782,
             "depth": 0.09011,
-            "height": 0.223858,
+            "height": 0.12414779974395278,
             "footprintOffset": 0.0041381779
           },
           {
@@ -21914,13 +21914,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "pau-bourg-0-maison-2",
-            "model": "maison_sud_01_dominante",
+            "model": "maison_sud_01",
             "x": 0.0077019503,
             "z": 0.4866444032,
             "angle": 3.29159,
             "width": 0.10332,
             "depth": 0.09695,
-            "height": 0.196308,
+            "height": 0.10886904319763369,
             "footprintOffset": 0.0044522955
           }
         ]
@@ -22411,13 +22411,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "tarbes-bourg-0-maison-4",
-            "model": "maison_sud_03_dominante",
+            "model": "maison_sud_03",
             "x": 0.5119068602,
             "z": 0.4279422126,
             "angle": 0.38,
             "width": 0.10584,
             "depth": 0.08766,
-            "height": 0.201096,
+            "height": 0.1049172796289617,
             "footprintOffset": 0.0039845449
           },
           {
@@ -22733,13 +22733,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "foix-bourg-0-maison-4",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.43451,
             "z": -0.4457915802,
             "angle": 0,
             "width": 0.08785,
             "depth": 0.07276,
-            "height": 0.166915,
+            "height": 0.09315805707730639,
             "footprintOffset": 0.0036015802
           },
           {
@@ -22861,24 +22861,24 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "carcassonne-bourg-0-maison-1",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": 0.107569697,
             "z": 0.3451757002,
             "angle": 3.09159,
             "width": 0.137,
             "depth": 0.11346,
-            "height": 0.2603,
+            "height": 0.1452777896367783,
             "footprintOffset": 0.0056162079
           },
           {
             "id": "carcassonne-bourg-0-maison-3",
-            "model": "maison_brique_02_dominante",
+            "model": "maison_brique_02",
             "x": 0.3812486801,
             "z": 0.3584360195,
             "angle": 3.09159,
             "width": 0.137,
             "depth": 0.10478,
-            "height": 0.2603,
+            "height": 0.15448268548798155,
             "footprintOffset": 0.0051865527
           },
           {
@@ -23224,13 +23224,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "perpignan-bourg-0-maison-2",
-            "model": "maison_brique_02_dominante",
+            "model": "maison_brique_02",
             "x": 0.020269131,
             "z": -0.0271863712,
             "angle": 2.88159,
             "width": 0.10332,
             "depth": 0.09695,
-            "height": 0.196308,
+            "height": 0.1165047522964836,
             "footprintOffset": 0.004798972
           }
         ]
@@ -23521,13 +23521,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "albi-bourg-0-maison-3",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": 0.4111156025,
             "z": 0.2715455711,
             "angle": 3.29159,
             "width": 0.12878,
             "depth": 0.0985,
-            "height": 0.244682,
+            "height": 0.1648050074491699,
             "footprintOffset": 0.0047182463
           },
           {
@@ -23656,13 +23656,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "albi-bourg-0-maison-4",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": 0.569511671,
             "z": 0.3844825584,
             "angle": 0.15,
             "width": 0.11645,
             "depth": 0.09644,
-            "height": 0.221255,
+            "height": 0.14902580460829193,
             "footprintOffset": 0.0046195703
           },
           {
@@ -23841,13 +23841,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rodez-bourg-0-maison-2",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.5131668042,
             "z": 0.1569574841,
             "angle": 3.52159,
             "width": 0.137,
             "depth": 0.09611,
-            "height": 0.2603,
+            "height": 0.19462092802343836,
             "footprintOffset": 0.0042811741
           },
           {
@@ -23980,13 +23980,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "rodez-bourg-0-maison-5",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": -0.4032557188,
             "z": 0.3028812334,
             "angle": 0.38,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.2603,
+            "height": 0.19462092802343836,
             "footprintOffset": 0.0052010185
           },
           {
@@ -24228,13 +24228,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "clermont-bourg-0-maison-3",
-            "model": "maison_pierre_03_dominante",
+            "model": "maison_pierre_03",
             "x": 0.6542600013,
             "z": 0.3621542271,
             "angle": 3.14159,
             "width": 0.137,
             "depth": 0.09775,
-            "height": 0.2603,
+            "height": 0.19462092802343836,
             "footprintOffset": 0.0043542271
           }
         ]
@@ -24349,13 +24349,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "clermont-bourg-0-maison-5",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": 0.54329,
             "z": 0.6480662231,
             "angle": 0,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.28085,
+            "height": 0.19590494868901545,
             "footprintOffset": 0.0056537769
           },
           {
@@ -25318,13 +25318,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "dijon-bourg-0-maison-2",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.0229018868,
             "z": -0.086104683,
             "angle": 2.88159,
             "width": 0.137,
             "depth": 0.09611,
-            "height": 0.2603,
+            "height": 0.15152512154191466,
             "footprintOffset": 0.004603763
           },
           {
@@ -25491,13 +25491,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "dijon-bourg-0-maison-5",
-            "model": "maison_pierre_01_dominante",
+            "model": "maison_pierre_01",
             "x": 0.0241107502,
             "z": 0.0958871799,
             "angle": -0.26,
             "width": 0.137,
             "depth": 0.11676,
-            "height": 0.2603,
+            "height": 0.15152512154191466,
             "footprintOffset": 0.0055929181
           }
         ]
@@ -25788,13 +25788,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "besancon-bourg-0-maison-1",
-            "model": "maison_alsace_01_dominante",
+            "model": "maison_alsace_01",
             "x": -1.0496184728105287,
             "z": 0.2083625046,
             "angle": 3.29159,
             "width": 0.137,
             "depth": 0.14422,
-            "height": 0.274018,
+            "height": 0.18763554301166405,
             "footprintOffset": 0.0065554536
           },
           {
@@ -25907,13 +25907,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "besancon-bourg-0-maison-5",
-            "model": "maison_alsace_02_dominante",
+            "model": "maison_alsace_02",
             "x": -0.8516785628105286,
             "z": 0.4637240844,
             "angle": 0.15,
             "width": 0.137,
             "depth": 0.14422,
-            "height": 0.274018,
+            "height": 0.18936115132453443,
             "footprintOffset": 0.007301239
           },
           {
@@ -26658,13 +26658,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "annecy-bourg-0-maison-2",
-            "model": "maison_paris_03_dominante",
+            "model": "maison_paris_03",
             "x": -0.7162209152207124,
             "z": 0.4413216441,
             "angle": 3.02159,
             "width": 0.10332,
             "depth": 0.07248,
-            "height": 0.196308,
+            "height": 0.13693326924423446,
             "footprintOffset": 0.0035096416
           },
           {
@@ -26793,13 +26793,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "annecy-bourg-0-maison-4",
-            "model": "maison_ardoise_01_dominante",
+            "model": "maison_ardoise_01",
             "x": -0.7020817228207124,
             "z": 0.5662012749,
             "angle": -0.12,
             "width": 0.10584,
             "depth": 0.09021,
-            "height": 0.201096,
+            "height": 0.12527378684058432,
             "footprintOffset": 0.0042300784
           },
           {
@@ -27052,13 +27052,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
         "buildings": [
           {
             "id": "avignon-bourg-0-maison-1",
-            "model": "maison_pierre_02_dominante",
+            "model": "maison_pierre_02",
             "x": -0.6064857977,
             "z": 0.0618594578,
             "angle": 3.21159,
             "width": 0.121,
             "depth": 0.10021,
-            "height": 0.2299,
+            "height": 0.12831104048211806,
             "footprintOffset": 0.0049603402
           },
           {
@@ -27390,13 +27390,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "bastia-haut-quartier-maison-rose",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": -0.037605,
             "z": -0.0735,
             "angle": 4.712389,
             "width": 0.07,
             "depth": 0.05,
-            "height": 0.1435,
+            "height": 0.09665410029734871,
             "footprintOffset": 0.002395
           }
         ]
@@ -27512,13 +27512,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "bastia-rue-des-pecheurs-maison-rose",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": -0.112902,
             "z": -0.329062,
             "angle": 4.341593,
             "width": 0.07,
             "depth": 0.05,
-            "height": 0.133,
+            "height": 0.08958184905607931,
             "footprintOffset": 0.002395
           }
         ]
@@ -27584,13 +27584,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "corte-venelle-nord-maison-rose",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": 0.162098,
             "z": 0.220938,
             "angle": 4.341593,
             "width": 0.07,
             "depth": 0.05,
-            "height": 0.1435,
+            "height": 0.09665410029734871,
             "footprintOffset": 0.002395
           }
         ]
@@ -27645,13 +27645,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "corte-venelle-sud-maison-rose",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": 0.128486561,
             "z": -0.159895939,
             "angle": 4.962389,
             "width": 0.07,
             "depth": 0.05,
-            "height": 0.133,
+            "height": 0.08958184905607931,
             "footprintOffset": 0.002395
           }
         ]
@@ -27717,13 +27717,13 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
           },
           {
             "id": "bonifacio-rue-haute-maison-rose",
-            "model": "maison_sud_02_dominante",
+            "model": "maison_sud_02",
             "x": -0.0141545,
             "z": 0.1625495,
             "angle": 3.141592673,
             "width": 0.07,
             "depth": 0.05,
-            "height": 0.1435,
+            "height": 0.09665410029734871,
             "footprintOffset": 0.002395
           }
         ]

@@ -172,8 +172,31 @@ const footprintGroups = [...groupedFootprints.values()].map(group => {
     maxZ: Math.max(...bounds.map(bound => bound.maxZ)) };
 });
 
+// These private footprint copies and their index remain fixed for this module.
+// Exact number keys preserve neighbouring doubles; extra unique queries simply
+// bypass insertion once the cache budget is full.
+const urbanFootprintValues = new Map<number, Map<number, number>>();
+const URBAN_FOOTPRINT_CACHE_LIMIT = 262_144;
+let urbanFootprintValueCount = 0;
+const footprintGroupQueries = footprintGroups.map(group => ({ group, lowerBound: 0 }));
+
 /** Exact signed distance to inhabited street strips; positive means outside. */
 export function urbanFootprint(x: number, z: number): number {
+  if (!Number.isFinite(x) || !Number.isFinite(z) || Object.is(x, -0) || Object.is(z, -0))
+    return calculateUrbanFootprint(x, z, false);
+  const row = urbanFootprintValues.get(x), cached = row?.get(z);
+  if (cached !== undefined) return cached;
+  const value = calculateUrbanFootprint(x, z, true);
+  if (urbanFootprintValueCount < URBAN_FOOTPRINT_CACHE_LIMIT) {
+    const values = row ?? new Map<number, number>();
+    if (!row) urbanFootprintValues.set(x, values);
+    values.set(z, value);
+    urbanFootprintValueCount++;
+  }
+  return value;
+}
+
+function calculateUrbanFootprint(x: number, z: number, reuseGroups: boolean): number {
   let clearance = Infinity;
   const distance = (footprint: typeof occupiedFootprints[number]) => {
     const dx = x - footprint.x, dz = z - footprint.z,
@@ -186,9 +209,18 @@ export function urbanFootprint(x: number, z: number): number {
   // Every footprint nearer than this reach is in the point's cell. Distant
   // queries use group bounds to retain the exact distance, rather than a cap.
   if (clearance < indexedReach) return clearance;
-  const groups = footprintGroups.map(group => ({ group,
+  const groups = reuseGroups ? footprintGroupQueries : footprintGroups.map(group => ({ group,
     lowerBound: Math.hypot(Math.max(group.minX - x, 0, x - group.maxX),
-      Math.max(group.minZ - z, 0, z - group.maxZ)) })).sort((a, b) => a.lowerBound - b.lowerBound);
+      Math.max(group.minZ - z, 0, z - group.maxZ)) }));
+  if (reuseGroups) for (let index = 0; index < footprintGroups.length; index++) {
+    const group = footprintGroups[index], query = groups[index];
+    // Restore the original group order before every stable sort. No callback
+    // in this synchronous calculation can recursively reuse these slots.
+    query.group = group;
+    query.lowerBound = Math.hypot(Math.max(group.minX - x, 0, x - group.maxX),
+      Math.max(group.minZ - z, 0, z - group.maxZ));
+  }
+  groups.sort((a, b) => a.lowerBound - b.lowerBound);
   for (const { group, lowerBound } of groups) {
     if (lowerBound > Math.max(0, clearance)) break;
     for (const footprint of group.footprints) clearance = Math.min(clearance, distance(footprint));

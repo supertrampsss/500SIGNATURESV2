@@ -14,7 +14,7 @@ import type { MapPlace } from "./map-state.ts";
 import { landContains, landHeight, riverContains } from "./map-landscape.ts";
 import { publicGround } from "./map-public-ground.ts";
 import { LYON_SCHOOL_SITE, publicEsplanadeOutline, publicEsplanadePlot, publicEsplanadePoint } from "./map-public-sites.ts";
-import { createCityMaterials } from "./map-city-materials.ts";
+import { createCityMaterials, createCityTransportMaterials } from "./map-city-materials.ts";
 import { CityGeometry as Geometry, createCityMesh } from "./map-city-geometry.ts";
 import { buildHarbour, buildPowerPlant, buildWindTurbines } from "./map-city-infrastructure.ts";
 import { surveyHarbour, harbourPolygonsOverlap } from "./map-city-port-plans.ts";
@@ -61,8 +61,9 @@ export async function buildCities(scene: Scene): Promise<{
     localStreets: Array<{ start: GroundPoint; end: GroundPoint; halfWidth: number }> = [],
     rng = random(729381);
 
-  const cityMaterials = createCityMaterials(scene);
-  const { stone, pale, brick, slate, glass, timber, steel, cream, pavement, asphalt, markings, quay, paint, red } = cityMaterials;
+  const cityMaterials = createCityMaterials(scene),
+    transportMaterials = createCityTransportMaterials(scene, cityMaterials);
+  const { stone, pale, brick, slate, glass, timber, steel, cream, pavement, quay, paint, red } = cityMaterials;
 
   let serial = 0;
   const record = (mesh: Mesh, mat: StandardMaterial, parent?: TransformNode) => {
@@ -222,9 +223,9 @@ export async function buildCities(scene: Scene): Promise<{
     }
     if (run.length > 1) runs.push(run);
     if (surface.positions.length) {
-      geometry(`${name}-shoulders`, paving, national ? cream : local ? pavement : quay);
-      geometry(`${name}-carriageway`, surface, local ? pavement : asphalt);
-      if (paintwork.positions.length) geometry(`${name}-markings`, paintwork, markings);
+      geometry(`${name}-shoulders`, paving, national ? transportMaterials.cream : local ? transportMaterials.pavement : transportMaterials.quay);
+      geometry(`${name}-carriageway`, surface, local ? transportMaterials.pavement : transportMaterials.asphalt);
+      if (paintwork.positions.length) geometry(`${name}-markings`, paintwork, transportMaterials.markings);
     }
     return runs;
   };
@@ -397,7 +398,7 @@ export async function buildCities(scene: Scene): Promise<{
     stonework.box(0, 0.025, length * 0.45, 0.067, 0.05, 0.018);
     geometry("bridge-masonry", stonework, cream, node);
     geometry("bridge-rails", ironwork, steel, node);
-    geometry("bridge-deck", deck, asphalt, node);
+    geometry("bridge-deck", deck, transportMaterials.asphalt, node);
   };
 
 
@@ -1022,7 +1023,7 @@ export async function buildCities(scene: Scene): Promise<{
   meshes.push(...buildWindTurbines(scene, [mapPosition(-4.76, 48.12), mapPosition(-4.99, 48.25),
     mapPosition(-5.18, 48.14), mapPosition(4.55, 44.48), mapPosition(4.4, 44.53)]
     .map(point => new Vector3(point.x, 0, point.z)), cityMaterials));
-  const railway = buildRailNetwork(scene, cityMaterials, stationSites, kit);
+  const railway = buildRailNetwork(scene, cityMaterials, stationSites, kit, transportMaterials);
   meshes.push(...railway.meshes);
   vehicles.push(...railway.vehicles);
 

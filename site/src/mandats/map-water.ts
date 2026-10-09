@@ -149,7 +149,7 @@ export function buildMapWater(scene: Scene) {
         // the broad horizontal bands of the first water material.
         float rippleA = sin(dot(p, vec2(51.0, 19.0)) + time * .39);
         float rippleB = sin(dot(p, vec2(-23.0, 43.0)) - time * .28);
-        color += vec3(.014, .023, .029) * (wave - .5);
+        color += vec3(.024, .039, .049) * (wave - .5);
         // The submitted river has a dark channel and brighter shallows.
         // Its longitudinal UVs follow the actual curved course.
         float current = .5 + .5 * sin(flow.y * 160.0 +
@@ -170,7 +170,7 @@ export function buildMapWater(scene: Scene) {
           smoothstep(.62, .86, seaNoise(p * 15.0 + drift));
         // Calm open water keeps isolated glints instead of a field of bright
         // speckles. River tint/current and their existing flecks stay intact.
-        color += vec3(.12, .18, .19) * flecks * (mix(.035, .2, riverChannel) + reflection * .9);
+        color += vec3(.12, .18, .19) * flecks * (mix(.10, .2, riverChannel) + reflection * .9);
         color += vec3(.024, .039, .048) * crest * (1.0 - riverChannel);
         // Broken near-rock wash stays thin and retains the existing clock.
         // The coarse patch interrupts it; the moving fine noise draws surf.

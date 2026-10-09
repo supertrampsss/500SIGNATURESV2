@@ -6,7 +6,7 @@ import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import type { AssetKit } from "./map-asset-kit.ts";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { CityGeometry, createCityMesh } from "./map-city-geometry.ts";
-import type { CityMaterials } from "./map-city-materials.ts";
+import type { CityMaterials, CityTransportMaterials } from "./map-city-materials.ts";
 import { MAP_PLACES, mapPosition, mapCoordinates } from "./map-state.ts";
 import type { MapPlace } from "./map-state.ts";
 import { landContains, landHeight } from "./map-landscape.ts";
@@ -46,7 +46,7 @@ function curve(points: Point[]) {
   return result;
 }
 
-export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets: Partial<Record<MapPlace, [number, number]>>, kit: AssetKit): { meshes: AbstractMesh[]; vehicles: Vehicle[] } {
+export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets: Partial<Record<MapPlace, [number, number]>>, kit: AssetKit, transport: CityTransportMaterials = materials): { meshes: AbstractMesh[]; vehicles: Vehicle[] } {
   const meshes: AbstractMesh[] = [], vehicles: Vehicle[] = [], stops = new Map<MapPlace, Point>();
   const shape = (name: string, geometry: CityGeometry, material = materials.steel, parent?: TransformNode) => {
     const mesh = createCityMesh(scene, name, geometry, material, parent);
@@ -148,9 +148,9 @@ export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets
     }
     if (run.length > 1) runs.push(run);
     if (!ballast.positions.length) continue;
-    shape(`railway-${index}-ballast`, ballast, materials.cream);
-    shape(`railway-${index}-tracks`, tracks, materials.steel);
-    shape(`railway-${index}-sleepers`, sleepers, materials.timber);
+    shape(`railway-${index}-ballast`, ballast, transport.cream);
+    shape(`railway-${index}-tracks`, tracks, transport.steel);
+    shape(`railway-${index}-sleepers`, sleepers, transport.timber);
     const path = runs.sort((a, b) => b.length - a.length)[0];
     if (!path || path.length < 4) continue;
     const coach = new CityGeometry();

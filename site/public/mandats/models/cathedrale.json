@@ -46,6 +46,7 @@
   "authoringProfile": {
     "facadeSpan": 1.2,
     "axis": "GLTF X only",
-    "normalTransform": "inverse transpose"
+    "normalTransform": "inverse transpose",
+    "spireWidth": 0.72
   }
 }
