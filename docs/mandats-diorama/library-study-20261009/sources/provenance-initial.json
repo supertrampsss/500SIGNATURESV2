@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "21104b4045261c28fc312360841ed1a7b0ac8782",
+  "files": [
+    {
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/J-Ponzo/gltf-medieval-village-megakit/21104b4045261c28fc312360841ed1a7b0ac8782/README.md",
+      "bytes": 1097,
+      "sha256": "7fbb530d9658acd1a23d1e735e7215e18eddbec606677b8927e1a1549ad0b6a7",
+      "gitBlobSHA": "2e5fc903c40f20f326ca74bba682fff94f349a10"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/J-Ponzo/gltf-medieval-village-megakit/21104b4045261c28fc312360841ed1a7b0ac8782/LICENSE",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "gitBlobSHA": "0e259d42c996742e9e3cba14c677129b2c1b6311"
+    },
+    {
+      "path": "Preview.jpg",
+      "url": "https://raw.githubusercontent.com/J-Ponzo/gltf-medieval-village-megakit/21104b4045261c28fc312360841ed1a7b0ac8782/Preview.jpg",
+      "bytes": 258320,
+      "sha256": "fe3544923b45cfb3fb99c8ef3c285d922fda8f08dc64aeb1dd6f5c9ef3a4c180",
+      "gitBlobSHA": "b4bcb6f792abf58a7e2144a29ac42c5faf8e7f5b"
+    }
+  ]
+}

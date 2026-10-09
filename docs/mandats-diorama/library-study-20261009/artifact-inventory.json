@@ -1,0 +1,460 @@
+{
+  "generatedAt": "2026-10-09T16:00:13.307603+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 6284,
+      "sha256": "ce649109c9c51cc1f4bd3bcd51db4a76a402f78b9e1e262ebed6c6d0cb52b40c"
+    },
+    {
+      "path": "adapt-boulder-v2.log",
+      "bytes": 1464,
+      "sha256": "a6d75b40625030c1609ac0bc70691a6cb5d144459adaa01e5883ed359cb38332"
+    },
+    {
+      "path": "adapt-boulder.log",
+      "bytes": 768,
+      "sha256": "72178abadada80c9f52f50162f2a63cf3e195b51f63cac99506d503aeb48b55b"
+    },
+    {
+      "path": "adapt-fir-v2.log",
+      "bytes": 589,
+      "sha256": "6d69a259ec92077f37b4a2a0affffd40480ba4e7815640d817bc60d46976514c"
+    },
+    {
+      "path": "adapt-fir-v3.log",
+      "bytes": 763,
+      "sha256": "4a7fb63beed7ec06285babee78e82283d1afde9a26e7f147843fbfccde6f6651"
+    },
+    {
+      "path": "adapt-fir.log",
+      "bytes": 583,
+      "sha256": "7095728c2691168a69ce8dec59bc7714cefce0df7bcd9044c8b21eeb5414de7b"
+    },
+    {
+      "path": "adaptation-failure-modes.md",
+      "bytes": 962,
+      "sha256": "085f6be1679d41ab4086c21de191d983a18c60947c0731414005e0f55571aabb"
+    },
+    {
+      "path": "assemble-library-house-miniature.log",
+      "bytes": 17718,
+      "sha256": "4092344cdec150838af547379fb19584f5d49d530d1ed3a0f2234033fc7e7273"
+    },
+    {
+      "path": "assemble-library-house-v2.log",
+      "bytes": 19420,
+      "sha256": "fb9ab998bf1bf736fb6984a07b783695f29d104360f58c60e39bb3f0c969fe14"
+    },
+    {
+      "path": "assemble-library-house.log",
+      "bytes": 2529,
+      "sha256": "4f0fb1afb013655aecddb532b860c4918d6ae2d80f44a8a74b51dbdfa292f252"
+    },
+    {
+      "path": "boulder-composition-receipt.json",
+      "bytes": 837,
+      "sha256": "241ca7fd80fe638f64f21cd2d756d59395889b76e59cfdd1315acdb68b2a4890"
+    },
+    {
+      "path": "boulder-connectivity-diagnostic.json",
+      "bytes": 306,
+      "sha256": "234f4537ff88fde7718f95d0147d598e0478b6a82b3dd08aafb5535674a016b1"
+    },
+    {
+      "path": "browser-boulder-probe/01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/01-national.json",
+      "bytes": 17164,
+      "sha256": "31efe927280eaabbed25a80b3257677a15b5f9ab4ce8c88c9a2a9b2a1f927bc0"
+    },
+    {
+      "path": "browser-boulder-probe/02-paris-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/02-paris-detail.json",
+      "bytes": 17290,
+      "sha256": "11d16e52217466306854d0a064c4f378765a9d8be23b3250d0c953a73955d4b7"
+    },
+    {
+      "path": "browser-boulder-probe/03-paris-seine-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/03-paris-seine.json",
+      "bytes": 17387,
+      "sha256": "0e37f261b3a8092589217320f0901ba1b9a06d4e4f04b6566ce30710557c3c68"
+    },
+    {
+      "path": "browser-boulder-probe/03b-close-state.json",
+      "bytes": 2657,
+      "sha256": "e47bc757ef6940ac0f1454fa1ffa05db2cb674fbd07e7e2c2d5a5f91dbc4b07d"
+    },
+    {
+      "path": "browser-boulder-probe/03b-paris-recentree-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/03b-paris-recentree.json",
+      "bytes": 17416,
+      "sha256": "4ac7be14ce8e7912a409130fbd6cbc0a9f87499675a1ed8adfa0b554d81d253d"
+    },
+    {
+      "path": "browser-boulder-probe/04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/04-lyon-detail.json",
+      "bytes": 17544,
+      "sha256": "282bbafc439c5083e48b902e8aaef49859f67a13b96ac48777fbb1f7489a2ce4"
+    },
+    {
+      "path": "browser-boulder-probe/05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/05-lyon-alpes.json",
+      "bytes": 17641,
+      "sha256": "9ecc85329b9f9173675613a1339503e80c4210c762ef32c1fef061395de006d8"
+    },
+    {
+      "path": "browser-boulder-probe/06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-boulder-probe/06-national-retour.json",
+      "bytes": 17702,
+      "sha256": "a843249f85f75227b553522cb95ee32bb13d5f40ecbd6a9a99c63aaf63c5fc65"
+    },
+    {
+      "path": "browser-boulder-probe.log",
+      "bytes": 4255,
+      "sha256": "4b600edc0602c39f35d66a7c994006a917cded0c032e0eebd0c92094c432dbcf"
+    },
+    {
+      "path": "browser-house-probe/01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/01-national.json",
+      "bytes": 17177,
+      "sha256": "e1160394e1ec29323be66648d4f581bac3453297d1eea988a0dfd42b1d459afc"
+    },
+    {
+      "path": "browser-house-probe/02-paris-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/02-paris-detail.json",
+      "bytes": 17304,
+      "sha256": "82a3f06feac410f49d9b1a7086643ea25e6b903410cf8c6c3a17260488c04f4c"
+    },
+    {
+      "path": "browser-house-probe/03-paris-seine-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/03-paris-seine.json",
+      "bytes": 17400,
+      "sha256": "9e3c62a26e6aa11de29a29c00370dcafb56a00a936e3fc49b31498975453711e"
+    },
+    {
+      "path": "browser-house-probe/03b-close-state.json",
+      "bytes": 2657,
+      "sha256": "e47bc757ef6940ac0f1454fa1ffa05db2cb674fbd07e7e2c2d5a5f91dbc4b07d"
+    },
+    {
+      "path": "browser-house-probe/03b-paris-recentree-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/03b-paris-recentree.json",
+      "bytes": 17429,
+      "sha256": "b003f103100e455ed333dd42f8bf4c5b773cfff8c4fb231e3d5590d7a141b733"
+    },
+    {
+      "path": "browser-house-probe/04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/04-lyon-detail.json",
+      "bytes": 17558,
+      "sha256": "0d54376c7e7a9d32d904be814e73d28245feb0919058dd8e9249ed19cffeacb7"
+    },
+    {
+      "path": "browser-house-probe/05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/05-lyon-alpes.json",
+      "bytes": 17654,
+      "sha256": "905d7f79bb0993233fb74ae0e201d31775c7ab98655051a42e6ec8646fc68a69"
+    },
+    {
+      "path": "browser-house-probe/06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-probe/06-national-retour.json",
+      "bytes": 17714,
+      "sha256": "8d3314b7b6caf32d84b706559328cde393e95050e0c0a14a3345ddb0205ea43a"
+    },
+    {
+      "path": "browser-house-probe.log",
+      "bytes": 4256,
+      "sha256": "2a097f9ebcaca9e098e87f0ec4290ee4d72efbdba41e1592ba7a23933daaad52"
+    },
+    {
+      "path": "browser-house-seated-probe/01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-seated-probe/01-national.json",
+      "bytes": 17172,
+      "sha256": "53dd92523cc36831ec244f3f7502ffbca332ae84513c99228a449ac77b258303"
+    },
+    {
+      "path": "browser-house-seated-probe/01-national.png",
+      "bytes": 1858188,
+      "sha256": "045b6403693ae19a1766bd548ec2cab5a71c0b212a1e1c1791d179136a3e4feb"
+    },
+    {
+      "path": "browser-house-seated-probe/04-lyon-detail-canvas.png",
+      "bytes": 1641793,
+      "sha256": "f672cc628453cac00e93d4b24eb22f697d3c27a22317e7f53750eda46f21fdb4"
+    },
+    {
+      "path": "browser-house-seated-probe/04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-seated-probe/04-lyon-detail.json",
+      "bytes": 17297,
+      "sha256": "bdeda957bd6c37153212872b4635c0dc082022471c27dff16c359cd2bbb13a30"
+    },
+    {
+      "path": "browser-house-seated-probe/05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-seated-probe/05-lyon-alpes.json",
+      "bytes": 17394,
+      "sha256": "f97f1b51b8ee309873592a32f43152cf0e08e29aa1ee65d278db49c836fac8f7"
+    },
+    {
+      "path": "browser-house-seated-probe/06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "path": "browser-house-seated-probe/06-national-retour.json",
+      "bytes": 17454,
+      "sha256": "91f4df72e1d04c60677608a57fa852aef25bc426d4d84484ab3c8ce8a63c8ad0"
+    },
+    {
+      "path": "browser-house-seated-probe.log",
+      "bytes": 2397,
+      "sha256": "39b63bcd1feaada8a8389e8edee0270e04b9f03ba8373f45cf2e0519f5cb9f24"
+    },
+    {
+      "path": "executed-scripts/capture-boulder-probe.mjs",
+      "bytes": 9764,
+      "sha256": "2dda43ae5ed342eb1f2aac57818c07b6688658c1bf568da480734086e0e1fbc3"
+    },
+    {
+      "path": "executed-scripts/capture-house-probe.mjs",
+      "bytes": 9779,
+      "sha256": "113530369180a882aa8234d51703c42fc445cd35ca758c7f725e7f2aa60cd830"
+    },
+    {
+      "path": "executed-scripts/capture-house-seated-probe.mjs",
+      "bytes": 7472,
+      "sha256": "2ce428e41f467cc974f44ed09fa47274148edb7c8a1c45d0b2eb11830134e54a"
+    },
+    {
+      "path": "executed-scripts/merge-boulder-probe.py",
+      "bytes": 3196,
+      "sha256": "94c5919946f46d4e8aad1ce6cac6c2c67c5c34ab18f7321fc0f3f429190f3990"
+    },
+    {
+      "path": "executed-scripts/merge-house-probe.py",
+      "bytes": 3486,
+      "sha256": "221108790a37bde08fb90c7d214384594815531d812823a3304d99b5964ee159"
+    },
+    {
+      "path": "executed-scripts/merge-house-seated-probe.py",
+      "bytes": 3507,
+      "sha256": "b89c355fc86c0e94f36b6b0e85e856269fc5c2e5026b2377c8e73b173f6d38ec"
+    },
+    {
+      "path": "execution-receipt.json",
+      "bytes": 3216,
+      "sha256": "610b333656864be68c68fa2f643425255431d41bb29194833af436d7ac804a9b"
+    },
+    {
+      "path": "fir-components.json",
+      "bytes": 2667,
+      "sha256": "5499ed6663e2372560ef20bdc2bca790fc24358e12d4fb9f5bd6c4a7cb30910b"
+    },
+    {
+      "path": "house-composition-receipt.json",
+      "bytes": 893,
+      "sha256": "aefa11d6d46a254394780af5b5cd9c642f0f6b07abc51c4271206066917b542e"
+    },
+    {
+      "path": "house-export-seating.json",
+      "bytes": 1163,
+      "sha256": "765ec3f57e9fdda8250c93e036f32b413371653392eb7458b14fe991a0206ac7"
+    },
+    {
+      "path": "house-prototype-failure-modes.md",
+      "bytes": 627,
+      "sha256": "7670a8b251b40eaef6e7332c977dd15bbda92e8d45a205e8738b6fba78d1c82b"
+    },
+    {
+      "path": "house-seated-composition-receipt.json",
+      "bytes": 893,
+      "sha256": "5c31caea4b04b4dab9988a32636c251a31b59ce2be3d5ffdb3b75e760904abde"
+    },
+    {
+      "path": "library-boulder-v2.glb",
+      "bytes": 195556,
+      "sha256": "065067f88004b49e1397642441220a050b1cdea411d50eda87fd12fb226f59a3"
+    },
+    {
+      "path": "library-glb-audit-seated.json",
+      "bytes": 11683,
+      "sha256": "70ba9b4b9982b4597e34a8445e163f86334ec129c6578c38208d5ba028b30c3f"
+    },
+    {
+      "path": "library-house-miniature-front.png",
+      "bytes": 1329493,
+      "sha256": "bfc511bf990094f089117a9ccf6f3a4b8f4391b3b09db906e46be2817b99450b"
+    },
+    {
+      "path": "library-house-miniature-seated.glb",
+      "bytes": 310700,
+      "sha256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0"
+    },
+    {
+      "path": "library-house-study-v2-front.png",
+      "bytes": 1369599,
+      "sha256": "cdf2f44cf774b25dc48efd385cdeeeccec1a1ef9cc63fdca5066adc0b8459b1c"
+    },
+    {
+      "path": "overbudget-fir-diagnostic.json",
+      "bytes": 417,
+      "sha256": "320db49e22febc3ae40cd892e77efac1d30f0f61d6e71346174820b2491aa45a"
+    },
+    {
+      "path": "portable-recipes-reproduction.json",
+      "bytes": 892,
+      "sha256": "4f1416ce1b1a25591479523333622043f67a51f2a0e33f0ca561f4fd83f1a878"
+    },
+    {
+      "path": "production-inputs-unchanged.json",
+      "bytes": 254,
+      "sha256": "f3a1cd7751154f6004bcc25b091e1b19cb4d372cbd01f7b4b48d021d355accf9"
+    },
+    {
+      "path": "reproduce-boulder.log",
+      "bytes": 1464,
+      "sha256": "1b7036793f626935a1943073bd9c7ebcc8fba172a9ea597441801ec952e85c7a"
+    },
+    {
+      "path": "reproduce-download.log",
+      "bytes": 125,
+      "sha256": "b2e77833844ef17bf06e97061bc317c590c0e5e178eb2a24f96525cb3fe12241"
+    },
+    {
+      "path": "reproduce-house.log",
+      "bytes": 18075,
+      "sha256": "2c0afd2d304471c6c895acb3a23dd4a563b7b4646ccd16d36a7bfd99b6ba7225"
+    },
+    {
+      "path": "reproduce-inspection.log",
+      "bytes": 2895,
+      "sha256": "488e87506a7f703465b685e73da04d138262d9cd0b0f54928923e35d5af6f5de"
+    },
+    {
+      "path": "root-image-review.json",
+      "bytes": 1760,
+      "sha256": "bbfca923136bbfbcf6804779c0ba3473e9299ab5fa95476ace5ada48c7a53e94"
+    },
+    {
+      "path": "sources/commit.json",
+      "bytes": 4437,
+      "sha256": "880baeab0575f8749959513af2148656eee3e8bd6ef3e66fb815988833b7a963"
+    },
+    {
+      "path": "sources/component-download-receipt-v2.json",
+      "bytes": 8960,
+      "sha256": "cab9d67c5623fd9143147e4d9bdc996882a6e0f66cfbf02bd5f3220e190f0edf"
+    },
+    {
+      "path": "sources/download-blend-receipt.json",
+      "bytes": 5773,
+      "sha256": "6bb6e9189b1b62c6db9101e8273d3825ac2b28ab2262e5c28c622334d2e9f06a"
+    },
+    {
+      "path": "sources/download-fir-tree-receipt.json",
+      "bytes": 4552,
+      "sha256": "3600bf62492f75f9a7f89e30a16f959fb79ebb235eafde16514d17680cada901"
+    },
+    {
+      "path": "sources/download-receipt.json",
+      "bytes": 3506,
+      "sha256": "f184cc8eebb21a76af6a18ed381e63a88dbd5d2820c75b33d58b1eaf8330d243"
+    },
+    {
+      "path": "sources/pack-history.json",
+      "bytes": 3379,
+      "sha256": "848ef26b954828fc81e6e6ef10b49441fefb486060bd737155bc9d218258a03f"
+    },
+    {
+      "path": "sources/polyhaven-current-license.txt",
+      "bytes": 72685,
+      "sha256": "9fb8b55b063f46301d876df5a51dc632d0358c3af984d7c60e6aeaf7aee443e0"
+    },
+    {
+      "path": "sources/provenance-initial.json",
+      "bytes": 1127,
+      "sha256": "43d8ea407a003a66ef040ee9edf025301e53d75018ca53fbd179b1eb0ba14694"
+    },
+    {
+      "path": "sources/quaternius-2025-CC0.txt",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "path": "sources/quaternius-mirror-README.txt",
+      "bytes": 1097,
+      "sha256": "7fbb530d9658acd1a23d1e735e7215e18eddbec606677b8927e1a1549ad0b6a7"
+    },
+    {
+      "path": "sources/quaternius-official-april2025.txt",
+      "bytes": 20077,
+      "sha256": "75d115bde77341909db54513ec31c206419cee73f62395c7c00082a159f882f2"
+    }
+  ]
+}

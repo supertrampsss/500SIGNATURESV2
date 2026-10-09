@@ -1,0 +1,106 @@
+[
+  {
+    "asset": "boulder_01",
+    "path": "boulder_01_1k.gltf",
+    "status": "downloaded-verified",
+    "bytes": 2773,
+    "md5": "26e2eef4a1f68c9557c65cd375b21d6c",
+    "sha256": "51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92"
+  },
+  {
+    "asset": "boulder_01",
+    "path": "textures/boulder_01_arm_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 659386,
+    "md5": "d632159982cc3121ed3d69b89a122146",
+    "sha256": "c57187c5746b6be913fa53846cb44ff78743e7ca5000f131c9627b99563c2b87"
+  },
+  {
+    "asset": "boulder_01",
+    "path": "textures/boulder_01_diff_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 987467,
+    "md5": "25f8a843f13369d56d37f49db05ea8c3",
+    "sha256": "c38f0e918f6dc16b8d386ba3cdd89805c78320c119a1ceec85856f82b09a65b8"
+  },
+  {
+    "asset": "boulder_01",
+    "path": "boulder_01.bin",
+    "status": "downloaded-verified",
+    "bytes": 2938808,
+    "md5": "27a19fa031d8b4c3a09261f19c444dc5",
+    "sha256": "7f5b06503d62bd95bfe9c6b8a354a5cc8ff04a4d271a8cf87a3e3125db4232d7"
+  },
+  {
+    "asset": "boulder_01",
+    "path": "textures/boulder_01_nor_gl_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 1183552,
+    "md5": "0c4da644d901144b53e4fe2446f3c389",
+    "sha256": "0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "fir_sapling_1k.gltf",
+    "status": "downloaded-verified",
+    "bytes": 10979,
+    "md5": "7b1a5ceae7be69954510b5a5c719b4fb",
+    "sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_twigs_nor_gl_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 474717,
+    "md5": "764771b717c54b86fa7d3eadc4a1ada5",
+    "sha256": "34928b2a9d1f722d2f64a7da468c790ecaca9b89c00ac0878a9e0bad26748368"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_branches_diff_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 776633,
+    "md5": "84f1d40b80a015d65c0ded042a10765b",
+    "sha256": "46d216526b6203dbd5dc3cfce5e49d7a4cc1770da2420faab45adf33671c7de4"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_twigs_diff_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 252678,
+    "md5": "cd218269e0b34bd1bdb48a8daf21be67",
+    "sha256": "a9900fafad850deeb5f79b928fd7590bca9e8ec8734d2368d4c64bba8b0c5b22"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_branches_nor_gl_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 1137599,
+    "md5": "db70c4595cf207cc04a02b49c195b78d",
+    "sha256": "dbe474f6cd593d51a19fb92a627ad900b9ab47dabd1bf60117a2cf9d110f79ea"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_twigs_arm_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 300249,
+    "md5": "cf97b5de863ebad9a48cb187ef3c3e74",
+    "sha256": "d1ec27a55bb67bfe5fa2c8a41a545dc71769934b142db56ad7c703d4146e1770"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "textures/fir_sapling_branches_arm_1k.jpg",
+    "status": "downloaded-verified",
+    "bytes": 793567,
+    "md5": "29a9ff22b8f7f224069b1254db171c05",
+    "sha256": "44c32b056b78c1046aeeb44c973a1d1352ea12d0d7ef2425527555f1256a0964"
+  },
+  {
+    "asset": "fir_sapling",
+    "path": "fir_sapling.bin",
+    "status": "downloaded-verified",
+    "bytes": 21677180,
+    "md5": "b329143a90d95201891afc52daeb9698",
+    "sha256": "efdebfae6ee4b3ea20c7a85eb9f798ff4953259a3616bcff0b7e580b00f34f40"
+  }
+]

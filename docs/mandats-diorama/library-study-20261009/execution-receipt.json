@@ -1,0 +1,118 @@
+{
+  "completedAt": "2026-10-09T16:00:13.293879+00:00",
+  "rootConsumedCommands": [
+    {
+      "command": "fresh source download",
+      "exitCode": 0,
+      "verifiedFiles": 44,
+      "verifiedBytes": 48634608,
+      "session": 78609
+    },
+    {
+      "command": "portable Blender boulder recipe",
+      "exitCode": 0,
+      "session": 2254
+    },
+    {
+      "command": "portable Blender house recipe",
+      "exitCode": 0,
+      "session": 67106
+    },
+    {
+      "command": "exported house bounds correction",
+      "exitCode": 0
+    },
+    {
+      "command": "GLB inspection",
+      "exitCode": 0
+    }
+  ],
+  "browserExperiments": [
+    {
+      "experiment": "browser-boulder-probe",
+      "views": 7,
+      "rootConsumedExitCode": 0,
+      "browserVersion": "151.0.7922.173",
+      "viewport": {
+        "width": 1672,
+        "height": 941,
+        "DPR": 1
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "modelOverrideSha256": "8f0d5a62efa3f29090997822aa7a9b8b73edde17674677bf13252fc68b999224",
+      "pageErrors": 0,
+      "httpErrors": 0,
+      "failedRequests": 0,
+      "consoleErrors": 0,
+      "servedJSAndCSSMatchArchive37": true,
+      "decisionsSpent": 0,
+      "scope": "Supplemental native Chromium model substitution, not production or original timing gates."
+    },
+    {
+      "experiment": "browser-house-probe",
+      "views": 7,
+      "rootConsumedExitCode": 0,
+      "browserVersion": "151.0.7922.173",
+      "viewport": {
+        "width": 1672,
+        "height": 941,
+        "DPR": 1
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "modelOverrideSha256": "78036721d2cc75d7396daa0cf886ab535d2e34d4d4276fb9fc76fa69676ef1a7",
+      "pageErrors": 0,
+      "httpErrors": 0,
+      "failedRequests": 0,
+      "consoleErrors": 0,
+      "servedJSAndCSSMatchArchive37": true,
+      "decisionsSpent": 0,
+      "scope": "Supplemental native Chromium model substitution, not production or original timing gates."
+    },
+    {
+      "experiment": "browser-house-seated-probe",
+      "views": 4,
+      "rootConsumedExitCode": 0,
+      "browserVersion": "151.0.7922.173",
+      "viewport": {
+        "width": 1672,
+        "height": 941,
+        "DPR": 1
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "modelOverrideSha256": "7c1d34f12a87b39b2eafff1a5d3310854240e49b9e8a297539be22174075ca89",
+      "pageErrors": 0,
+      "httpErrors": 0,
+      "failedRequests": 0,
+      "consoleErrors": 0,
+      "servedJSAndCSSMatchArchive37": true,
+      "decisionsSpent": 0,
+      "scope": "Supplemental native Chromium model substitution, not production or original timing gates."
+    }
+  ],
+  "productionInputs": "236 inputs match source37 lock; no production model changed.",
+  "artisticVerdict": "NONCONFORM",
+  "originalRework37": {
+    "passed": 20,
+    "failed": 3,
+    "skipped": 9,
+    "subsequentSuites": "unrun; unchanged by this study"
+  }
+}

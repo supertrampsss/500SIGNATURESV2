@@ -1,0 +1,123 @@
+[
+  {
+    "file": "library-boulder-v2.glb",
+    "bytes": 195556,
+    "meshes": [
+      {
+        "mesh": "rock_PROXY_5m.002",
+        "triangles": 900,
+        "primitives": 1,
+        "bounds": [
+          [
+            -0.3216630220413208,
+            -0.06521196663379669,
+            -0.26270708441734314
+          ],
+          [
+            0.3532716631889343,
+            0.4578305780887604,
+            0.2557070851325989
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.3521185038278816e-07
+      }
+    ],
+    "images": 3
+  },
+  {
+    "file": "library-house-miniature.glb",
+    "bytes": 310716,
+    "meshes": [
+      {
+        "mesh": "Cube.019",
+        "triangles": 1481,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.1588887982583174e-07
+      },
+      {
+        "mesh": "Cube.020",
+        "triangles": 287,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.001378210261464119,
+            -0.4449999928474426
+          ],
+          [
+            0.4649949371814728,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 0,
+        "maximumNormalLengthError": 1.0529929195257637e-07
+      }
+    ],
+    "images": 15
+  },
+  {
+    "file": "library-house-miniature-seated.glb",
+    "bytes": 310700,
+    "meshes": [
+      {
+        "mesh": "Cube.019",
+        "triangles": 1481,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.1588887982583174e-07
+      },
+      {
+        "mesh": "Cube.020",
+        "triangles": 287,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 0,
+        "maximumNormalLengthError": 3.978068197074691e-08
+      }
+    ],
+    "images": 15
+  }
+]

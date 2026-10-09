@@ -1,0 +1,24 @@
+{
+  "blender": "4.3.2",
+  "outputs": [
+    {
+      "file": "library-boulder-v2.glb",
+      "originalSHA256": "065067f88004b49e1397642441220a050b1cdea411d50eda87fd12fb226f59a3",
+      "reproducedSHA256": "065067f88004b49e1397642441220a050b1cdea411d50eda87fd12fb226f59a3",
+      "byteIdentical": true
+    },
+    {
+      "file": "library-house-miniature.glb",
+      "originalSHA256": "f6f1144e6b59a61d37baeba1f56ef77de9542b071f79eb704d292cb3c4b082ce",
+      "reproducedSHA256": "f6f1144e6b59a61d37baeba1f56ef77de9542b071f79eb704d292cb3c4b082ce",
+      "byteIdentical": true
+    },
+    {
+      "file": "library-house-miniature-seated.glb",
+      "originalSHA256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0",
+      "reproducedSHA256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0",
+      "byteIdentical": true
+    }
+  ],
+  "status": "byte-identical"
+}

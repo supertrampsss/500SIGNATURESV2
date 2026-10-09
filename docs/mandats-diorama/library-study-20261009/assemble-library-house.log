@@ -1,0 +1,45 @@
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.221
+15:13:07 | INFO: glTF import finished in 0.02s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Plane.030
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.027
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.023
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.110
+15:13:07 | INFO: glTF import finished in 0.02s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.182
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.054
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.153
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Cube.017_Retopology.006
+15:13:07 | INFO: glTF import finished in 0.01s
+15:13:07 | INFO: Data are loaded, start creating Blender stuff
+15:13:07 | INFO: Blender create Mesh node Plane.004
+15:13:07 | INFO: glTF import finished in 0.00s
+Traceback (most recent call last):
+  File "/workspace/mandats-verification/authored-3d/library-adaptation38/assemble-library-house.py", line 35, in <module>
+    bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/share/blender/scripts/modules/bpy/ops.py", line 109, in __call__
+    ret = _op_call(self.idname_py(), kw)
+RuntimeError: Error: Cannot apply to a multi user: Object "library_house_study", Mesh "Cube.221", aborting
+
+
+Error: script failed, file: '/workspace/mandats-verification/authored-3d/library-adaptation38/assemble-library-house.py', exiting.
+Error: Cannot apply to a multi user: Object "library_house_study", Mesh "Cube.221", aborting
+Blender 4.3.2
+
+Blender quit

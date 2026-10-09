@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir.py", line 34, in <module>
+    if not diffuse:raise RuntimeError('Unknown dead branch shader')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Unknown dead branch shader
+
+Error: script failed, file: '/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir.py', exiting.
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+Blender 4.3.2
+
+Blender quit

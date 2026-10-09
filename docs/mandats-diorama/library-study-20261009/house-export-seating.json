@@ -1,0 +1,45 @@
+{
+  "status": "candidate-not-integrated",
+  "sourceSha256": "f6f1144e6b59a61d37baeba1f56ef77de9542b071f79eb704d292cb3c4b082ce",
+  "outputSha256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0",
+  "bytes": 310700,
+  "changes": [
+    {
+      "name": "maison_alsace_01_distant",
+      "actualExportBoundsBefore": [
+        [
+          -0.4650000035762787,
+          0.001378210261464119,
+          -0.4449999928474426
+        ],
+        [
+          0.4649949371814728,
+          1.0169999599456787,
+          0.5339999794960022
+        ]
+      ],
+      "targetGLTFBounds": [
+        [
+          -0.4650000035762787,
+          0,
+          -0.4449999928474426
+        ],
+        [
+          0.4650000035762787,
+          1.0169999599456787,
+          0.5339999794960022
+        ]
+      ],
+      "positiveAffineScale": [
+        1.0000054477659865,
+        1.0013570113695307,
+        1.0
+      ],
+      "normalTransform": "Inverse diagonal scale, renormalized.",
+      "topologyAndUVUnchanged": true
+    }
+  ],
+  "limits": [
+    "This fixes exported local bounds only. Actual terrain contacts and original browser gates remain unvalidated."
+  ]
+}

@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir-v2.py", line 48, in <module>
+    if count>target+4:raise RuntimeError('Geometry budget exceeded')
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Geometry budget exceeded
+
+Error: script failed, file: '/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir-v2.py', exiting.
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+Blender 4.3.2
+
+Blender quit

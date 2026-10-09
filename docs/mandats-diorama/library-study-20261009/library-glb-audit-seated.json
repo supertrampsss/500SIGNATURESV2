@@ -1,0 +1,408 @@
+[
+  {
+    "file": "library-boulder-v2.glb",
+    "bytes": 195556,
+    "sha256": "065067f88004b49e1397642441220a050b1cdea411d50eda87fd12fb226f59a3",
+    "status": "structural-inspection-completed-not-production-validation",
+    "meshes": [
+      {
+        "mesh": "rock_PROXY_5m.002",
+        "triangles": 900,
+        "primitives": 1,
+        "bounds": [
+          [
+            -0.3216630220413208,
+            -0.06521196663379669,
+            -0.26270708441734314
+          ],
+          [
+            0.3532716631889343,
+            0.4578305780887604,
+            0.2557070851325989
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.3521185038278816e-07
+      }
+    ],
+    "images": [
+      {
+        "name": "boulder_01_nor_gl_1k",
+        "format": "JPEG",
+        "width": 512,
+        "height": 512,
+        "bytes": 65066,
+        "sha256": "ffca4388e2fa119f68ab54016132ddc123bd72847f9075eb3d0a91245572c539"
+      },
+      {
+        "name": "boulder_01_diff_1k",
+        "format": "JPEG",
+        "width": 512,
+        "height": 512,
+        "bytes": 57554,
+        "sha256": "46fe73926a2cdd7f386e142c40cea3e7a6a064dccc53d4018e9b1cc238378cb4"
+      },
+      {
+        "name": "boulder_01_arm_1k",
+        "format": "JPEG",
+        "width": 512,
+        "height": 512,
+        "bytes": 33394,
+        "sha256": "145704e511e01c93c8762dd0291f4c6e553afa42ed21cc5b2f3e6274cf8b72fc"
+      }
+    ],
+    "limits": [
+      "No claim of physical placement, GPU cadence, visual conformity or original timing-gate pass.",
+      "Face normal disagreements are recorded rather than hidden."
+    ]
+  },
+  {
+    "file": "library-house-miniature.glb",
+    "bytes": 310716,
+    "sha256": "f6f1144e6b59a61d37baeba1f56ef77de9542b071f79eb704d292cb3c4b082ce",
+    "status": "structural-inspection-completed-not-production-validation",
+    "meshes": [
+      {
+        "mesh": "Cube.019",
+        "triangles": 1481,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.1588887982583174e-07
+      },
+      {
+        "mesh": "Cube.020",
+        "triangles": 287,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.001378210261464119,
+            -0.4449999928474426
+          ],
+          [
+            0.4649949371814728,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 0,
+        "maximumNormalLengthError": 1.0529929195257637e-07
+      }
+    ],
+    "images": [
+      {
+        "name": "T_WoodTrim_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 14555,
+        "sha256": "3e1af0a8af7738c05ddecbcb714591dfab077dce7c63dcc921eebb7ba6ab3a20"
+      },
+      {
+        "name": "T_WoodTrim_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8883,
+        "sha256": "e90d9f92a330ed09dece8d2b9ca8bb7ecc84e35b3ecfc0c2270be02222ffecdf"
+      },
+      {
+        "name": "T_WoodTrim_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8727,
+        "sha256": "f9e31b5e70fab8696ae560c9c085e419dce00bf23e2f9345b6b87343eb1fbc9e"
+      },
+      {
+        "name": "T_Plaster_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 4893,
+        "sha256": "5db0a75edcb4a99dbe3454e118f7be59adacc9c0886c1d442465b8b97f366a81"
+      },
+      {
+        "name": "T_Plaster_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 4104,
+        "sha256": "cfc1f0b2d28037e29ae2b1e8e8948085f76aeefb6a52043967fc3bb729552715"
+      },
+      {
+        "name": "T_Plaster_ORM",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 6255,
+        "sha256": "150965937e3fde4566f18afe2dfb525d8fc151021544dc95c5148e6f2d7a8574"
+      },
+      {
+        "name": "T_RockTrim_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 12079,
+        "sha256": "d3a31ba038fec2cfc4c717751ce1f17aa480d7650d20a82cb7c83e34da3dc66c"
+      },
+      {
+        "name": "T_RockTrim_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8841,
+        "sha256": "3cb0d017bd965e63c43b5b50c7032eb72735cda64431f65bf7e752f51c54dbf3"
+      },
+      {
+        "name": "T_RockTrim_ORM",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 6152,
+        "sha256": "0ad84e01ebc34a42efe95aba7d52cbb2ddcec3f3a27f22357fc24a0a8355b276"
+      },
+      {
+        "name": "T_Brick_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 14354,
+        "sha256": "fe04f3c35cfd348b3b9e7df34f2b848778baba9e1e03dd724d27b905ef33801b"
+      },
+      {
+        "name": "T_Brick_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 9311,
+        "sha256": "c4e596aaab9507242bfa3238778e02eb1fea583b29df39b11bc13477515fd6a8"
+      },
+      {
+        "name": "T_Brick_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 3731,
+        "sha256": "8193ab36f3e6335f3a854ce10658812985c3a60caba999318ab1d48aa4bc1a50"
+      },
+      {
+        "name": "T_RoundTiles_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 11290,
+        "sha256": "4d6472535efb4c8f7554ebe5c194c213fd92be22848d673db1c4764d0f3e0cc6"
+      },
+      {
+        "name": "T_RoundTiles_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 7000,
+        "sha256": "c5ff086ba217dd65d7080ed4a9f67cdf000f435928642c6879a8f29b4f75dd5d"
+      },
+      {
+        "name": "T_RoundTiles_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 5092,
+        "sha256": "1510772b0d2ae470bb64ce9e0d664a37de28e16d9e446a3b5c7ab00646401539"
+      }
+    ],
+    "limits": [
+      "No claim of physical placement, GPU cadence, visual conformity or original timing-gate pass.",
+      "Face normal disagreements are recorded rather than hidden."
+    ]
+  },
+  {
+    "file": "library-house-miniature-seated.glb",
+    "bytes": 310700,
+    "sha256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0",
+    "status": "structural-inspection-completed-not-production-validation",
+    "meshes": [
+      {
+        "mesh": "Cube.019",
+        "triangles": 1481,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 2,
+        "maximumNormalLengthError": 1.1588887982583174e-07
+      },
+      {
+        "mesh": "Cube.020",
+        "triangles": 287,
+        "primitives": 6,
+        "bounds": [
+          [
+            -0.4650000035762787,
+            0.0,
+            -0.4449999928474426
+          ],
+          [
+            0.4650000035762787,
+            1.0169999599456787,
+            0.5339999794960022
+          ]
+        ],
+        "degenerateTrianglesThreshold1eMinus20": 0,
+        "faceNormalDisagreements": 0,
+        "maximumNormalLengthError": 3.978068197074691e-08
+      }
+    ],
+    "images": [
+      {
+        "name": "T_WoodTrim_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 14555,
+        "sha256": "3e1af0a8af7738c05ddecbcb714591dfab077dce7c63dcc921eebb7ba6ab3a20"
+      },
+      {
+        "name": "T_WoodTrim_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8883,
+        "sha256": "e90d9f92a330ed09dece8d2b9ca8bb7ecc84e35b3ecfc0c2270be02222ffecdf"
+      },
+      {
+        "name": "T_WoodTrim_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8727,
+        "sha256": "f9e31b5e70fab8696ae560c9c085e419dce00bf23e2f9345b6b87343eb1fbc9e"
+      },
+      {
+        "name": "T_Plaster_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 4893,
+        "sha256": "5db0a75edcb4a99dbe3454e118f7be59adacc9c0886c1d442465b8b97f366a81"
+      },
+      {
+        "name": "T_Plaster_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 4104,
+        "sha256": "cfc1f0b2d28037e29ae2b1e8e8948085f76aeefb6a52043967fc3bb729552715"
+      },
+      {
+        "name": "T_Plaster_ORM",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 6255,
+        "sha256": "150965937e3fde4566f18afe2dfb525d8fc151021544dc95c5148e6f2d7a8574"
+      },
+      {
+        "name": "T_RockTrim_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 12079,
+        "sha256": "d3a31ba038fec2cfc4c717751ce1f17aa480d7650d20a82cb7c83e34da3dc66c"
+      },
+      {
+        "name": "T_RockTrim_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 8841,
+        "sha256": "3cb0d017bd965e63c43b5b50c7032eb72735cda64431f65bf7e752f51c54dbf3"
+      },
+      {
+        "name": "T_RockTrim_ORM",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 6152,
+        "sha256": "0ad84e01ebc34a42efe95aba7d52cbb2ddcec3f3a27f22357fc24a0a8355b276"
+      },
+      {
+        "name": "T_Brick_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 14354,
+        "sha256": "fe04f3c35cfd348b3b9e7df34f2b848778baba9e1e03dd724d27b905ef33801b"
+      },
+      {
+        "name": "T_Brick_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 9311,
+        "sha256": "c4e596aaab9507242bfa3238778e02eb1fea583b29df39b11bc13477515fd6a8"
+      },
+      {
+        "name": "T_Brick_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 3731,
+        "sha256": "8193ab36f3e6335f3a854ce10658812985c3a60caba999318ab1d48aa4bc1a50"
+      },
+      {
+        "name": "T_RoundTiles_Normal",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 11290,
+        "sha256": "4d6472535efb4c8f7554ebe5c194c213fd92be22848d673db1c4764d0f3e0cc6"
+      },
+      {
+        "name": "T_RoundTiles_BaseColor",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 7000,
+        "sha256": "c5ff086ba217dd65d7080ed4a9f67cdf000f435928642c6879a8f29b4f75dd5d"
+      },
+      {
+        "name": "T_RoundTiles_Roughness",
+        "format": "JPEG",
+        "width": 256,
+        "height": 256,
+        "bytes": 5092,
+        "sha256": "1510772b0d2ae470bb64ce9e0d664a37de28e16d9e446a3b5c7ab00646401539"
+      }
+    ],
+    "limits": [
+      "No claim of physical placement, GPU cadence, visual conformity or original timing-gate pass.",
+      "Face normal disagreements are recorded rather than hidden."
+    ]
+  }
+]

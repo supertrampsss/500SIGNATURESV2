@@ -40,6 +40,8 @@ Pour chaque itération visuelle :
 
 Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pas la fidélité artistique. La passe actuelle et son verdict visuel sont documentés ci-dessous, séparément des preuves historiques.
 
+L'[atelier de modèles existants du 9 octobre](mandats-diorama/library-study-20261009/README.md) conserve une maison issue du kit Quaternius 2025 et un rocher Poly Haven, leurs sources CC0 vérifiées, leurs recettes Blender reproductibles et leurs imports expérimentaux dans Babylon. Ces substitutions de test ne modifient pas la source 37 ; la carte complète reste non conforme et aucune adoption en production n'est déclarée.
+
 ## Passe 37 capturée le 9 octobre 2026
 
 La [comparaison native 37](mandats-diorama/comparaison-37.html) conserve la référence intacte et cinq vues réellement examinées par root. Les petites fractures des roches et des côtes, les parcelles à plusieurs tons et la pierre sélective de la cathédrale sont appliquées. **Le verdict reste non conforme à la maquette** : grands fronts montagneux continus et anguleux, arrière-plan de plaques répétées et de houppiers volumineux, campagne moins fine et moins dense, cathédrale trop massive. Les ports et la mer restent moins riches que dans la référence. Cette passe ne constitue pas une reproduction à l'identique.
