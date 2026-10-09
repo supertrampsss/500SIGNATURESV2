@@ -1,0 +1,9 @@
+{
+  "build": "37",
+  "command": "node check-welcome37.mjs http://127.0.0.1:4191 welcome37-browser",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session77930 exit_code0",
+  "confirmedAt": "2026-10-09T12:50:04.930161+00:00",
+  "session": 77930,
+  "scope": "Supplemental actual welcome/PNG503/start/resume/directinitial journey; root image review pending, not fullsuite pass"
+}

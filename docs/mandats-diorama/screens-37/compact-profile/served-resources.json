@@ -1,0 +1,676 @@
+{
+  "servedResources": [
+    {
+      "path": "assets/mandats-B5H7aFd6.css",
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "status": 200,
+      "observedAtMs": 1249.413,
+      "bytes": 175231,
+      "sha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c",
+      "expectedBytes": 175231,
+      "expectedSha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c"
+    },
+    {
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "observedAtMs": 1259.341,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59",
+      "expectedBytes": 45671,
+      "expectedSha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "observedAtMs": 1259.469,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781",
+      "expectedBytes": 30543,
+      "expectedSha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "path": "assets/game-B_-L39w0.css",
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "status": 200,
+      "observedAtMs": 1281.465,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c",
+      "expectedBytes": 81756,
+      "expectedSha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "path": "assets/shared-design-BR6wKexh.js",
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "observedAtMs": 1282.533,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
+      "expectedBytes": 711,
+      "expectedSha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "path": "assets/mandats-lHN_ghvN.js",
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "status": 200,
+      "observedAtMs": 1486.825,
+      "bytes": 3180712,
+      "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c",
+      "expectedBytes": 3180712,
+      "expectedSha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+    },
+    {
+      "path": "assets/envTextureLoader-sHfoo1I9.js",
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+      "status": 200,
+      "observedAtMs": 9265.101,
+      "bytes": 8025,
+      "sha256": "0f723d493fea653cc57367f235166cd63073875f63ff354fc52721a48f069087",
+      "expectedBytes": 8025,
+      "expectedSha256": "0f723d493fea653cc57367f235166cd63073875f63ff354fc52721a48f069087"
+    },
+    {
+      "path": "assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "status": 200,
+      "observedAtMs": 9269.813,
+      "bytes": 3669,
+      "sha256": "627b981fe71831aab012d0ad94aaa16497c864a35c5e85de463d4b54789c2fc0",
+      "expectedBytes": 3669,
+      "expectedSha256": "627b981fe71831aab012d0ad94aaa16497c864a35c5e85de463d4b54789c2fc0"
+    },
+    {
+      "path": "assets/packingFunctions-BvVSbVFP.js",
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-BvVSbVFP.js",
+      "status": 200,
+      "observedAtMs": 9269.994,
+      "bytes": 530,
+      "sha256": "e976255aa6f5d9547443f9af40da78c31059c81e9eda48ff20df803e405a2558",
+      "expectedBytes": 530,
+      "expectedSha256": "e976255aa6f5d9547443f9af40da78c31059c81e9eda48ff20df803e405a2558"
+    },
+    {
+      "path": "assets/sceneVertexDeclaration-KFsLf99o.js",
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-KFsLf99o.js",
+      "status": 200,
+      "observedAtMs": 9270.054,
+      "bytes": 331,
+      "sha256": "38d8cbb24c384ff06adf677a3f400724068005228048ee392147a1e0a55ffe63",
+      "expectedBytes": 331,
+      "expectedSha256": "38d8cbb24c384ff06adf677a3f400724068005228048ee392147a1e0a55ffe63"
+    },
+    {
+      "path": "assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "status": 200,
+      "observedAtMs": 9270.138,
+      "bytes": 470,
+      "sha256": "a0a4207ee85ca0ee866d7a9bb2f6315fdf406ac2c06ac2eac8afa31b0a120009",
+      "expectedBytes": 470,
+      "expectedSha256": "a0a4207ee85ca0ee866d7a9bb2f6315fdf406ac2c06ac2eac8afa31b0a120009"
+    },
+    {
+      "path": "assets/shadowMap.fragment-DU-ilQIB.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-DU-ilQIB.js",
+      "status": 200,
+      "observedAtMs": 9270.206,
+      "bytes": 3371,
+      "sha256": "e25322711f8a49355f1f1d9ebff831f5ad681aaf4b9c35f7acab0885178b3762",
+      "expectedBytes": 3371,
+      "expectedSha256": "e25322711f8a49355f1f1d9ebff831f5ad681aaf4b9c35f7acab0885178b3762"
+    },
+    {
+      "path": "assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "status": 200,
+      "observedAtMs": 9270.27,
+      "bytes": 634,
+      "sha256": "0c2a36c38d4dc109cb52fd35830f1541058e2fedf083a8b242b68ef23488e9ae",
+      "expectedBytes": 634,
+      "expectedSha256": "0c2a36c38d4dc109cb52fd35830f1541058e2fedf083a8b242b68ef23488e9ae"
+    },
+    {
+      "path": "assets/shadowMap.vertex-fmBcca9o.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-fmBcca9o.js",
+      "status": 200,
+      "observedAtMs": 9270.318,
+      "bytes": 4616,
+      "sha256": "155df8aad7644f9fb327b0d24b53a1b7ccb017d3e871ac8520af1a3e312df245",
+      "expectedBytes": 4616,
+      "expectedSha256": "155df8aad7644f9fb327b0d24b53a1b7ccb017d3e871ac8520af1a3e312df245"
+    },
+    {
+      "path": "mandats/models/architecture.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+      "status": 200,
+      "observedAtMs": 9270.448,
+      "bytes": 11109712,
+      "sha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717",
+      "expectedBytes": 11109712,
+      "expectedSha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717"
+    },
+    {
+      "path": "mandats/models/vegetation.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+      "status": 200,
+      "observedAtMs": 9270.565,
+      "bytes": 721552,
+      "sha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a",
+      "expectedBytes": 721552,
+      "expectedSha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a"
+    },
+    {
+      "path": "mandats/models/paris.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "status": 200,
+      "observedAtMs": 9271.926,
+      "bytes": 9231336,
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491",
+      "expectedBytes": 9231336,
+      "expectedSha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    },
+    {
+      "path": "mandats/models/cathedrale.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+      "status": 200,
+      "observedAtMs": 9272.015,
+      "bytes": 11236112,
+      "sha256": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e",
+      "expectedBytes": 11236112,
+      "expectedSha256": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e"
+    },
+    {
+      "path": "assets/land-earth-grain-DRREWpxX.png",
+      "url": "http://127.0.0.1:4191/assets/land-earth-grain-DRREWpxX.png",
+      "status": 200,
+      "observedAtMs": 9466.296,
+      "bytes": 251667,
+      "sha256": "f5c5368a06e77792a3ce1c09668f3f6b5fa021d06861bb4f08332dbbc252b43f",
+      "expectedBytes": 251667,
+      "expectedSha256": "f5c5368a06e77792a3ce1c09668f3f6b5fa021d06861bb4f08332dbbc252b43f"
+    },
+    {
+      "path": "assets/land-crop-stalks-DqbEWteS.png",
+      "url": "http://127.0.0.1:4191/assets/land-crop-stalks-DqbEWteS.png",
+      "status": 200,
+      "observedAtMs": 9469.579,
+      "bytes": 337750,
+      "sha256": "1d0b3cce4271b7cdcff8f758e34f65be01c42564936959b919f2594f8fc34eec",
+      "expectedBytes": 337750,
+      "expectedSha256": "1d0b3cce4271b7cdcff8f758e34f65be01c42564936959b919f2594f8fc34eec"
+    },
+    {
+      "path": "assets/land-earth-normal-D8qTdGaP.png",
+      "url": "http://127.0.0.1:4191/assets/land-earth-normal-D8qTdGaP.png",
+      "status": 200,
+      "observedAtMs": 9471.836,
+      "bytes": 377245,
+      "sha256": "08d6a9a5e2d0f3dcac0e1c778debc3001fa13e7158e7fd301768a7a55a28484b",
+      "expectedBytes": 377245,
+      "expectedSha256": "08d6a9a5e2d0f3dcac0e1c778debc3001fa13e7158e7fd301768a7a55a28484b"
+    },
+    {
+      "path": "assets/land-leaf-grain-Dq3zfjHI.png",
+      "url": "http://127.0.0.1:4191/assets/land-leaf-grain-Dq3zfjHI.png",
+      "status": 200,
+      "observedAtMs": 9472.002,
+      "bytes": 54194,
+      "sha256": "8be3fe4ea75eaea6c570156882998b1a017a3dbabc18279b43a4d267637a12dd",
+      "expectedBytes": 54194,
+      "expectedSha256": "8be3fe4ea75eaea6c570156882998b1a017a3dbabc18279b43a4d267637a12dd"
+    },
+    {
+      "path": "assets/land-leaf-normal-KsVL2iP_.png",
+      "url": "http://127.0.0.1:4191/assets/land-leaf-normal-KsVL2iP_.png",
+      "status": 200,
+      "observedAtMs": 9472.132,
+      "bytes": 183565,
+      "sha256": "d1fcdf39068b069e32340e867e87578c401e6adcfbc98cebd3b6f6fcf2867c4c",
+      "expectedBytes": 183565,
+      "expectedSha256": "d1fcdf39068b069e32340e867e87578c401e6adcfbc98cebd3b6f6fcf2867c4c"
+    },
+    {
+      "path": "assets/land-stone-normal-CxQ85Rmx.png",
+      "url": "http://127.0.0.1:4191/assets/land-stone-normal-CxQ85Rmx.png",
+      "status": 200,
+      "observedAtMs": 9472.918,
+      "bytes": 171401,
+      "sha256": "98e58ca0a80d9b1865742e0af609378407962b8e9572090a7106d4df7168b46d",
+      "expectedBytes": 171401,
+      "expectedSha256": "98e58ca0a80d9b1865742e0af609378407962b8e9572090a7106d4df7168b46d"
+    },
+    {
+      "path": "assets/land-mineral-rock-DqRxmUfD.png",
+      "url": "http://127.0.0.1:4191/assets/land-mineral-rock-DqRxmUfD.png",
+      "status": 200,
+      "observedAtMs": 9474.319,
+      "bytes": 480970,
+      "sha256": "7fccdd8533a976145985f55bf9a39578c3769b48ca9e0c62c23b69c74a40995b",
+      "expectedBytes": 480970,
+      "expectedSha256": "7fccdd8533a976145985f55bf9a39578c3769b48ca9e0c62c23b69c74a40995b"
+    },
+    {
+      "path": "assets/land-coastal-normal-5Lv01LFJ.png",
+      "url": "http://127.0.0.1:4191/assets/land-coastal-normal-5Lv01LFJ.png",
+      "status": 200,
+      "observedAtMs": 9474.41,
+      "bytes": 88726,
+      "sha256": "1a06b1fd13e14f38bed8179903fbe407999a40afed6959540285aacec3f3a184",
+      "expectedBytes": 88726,
+      "expectedSha256": "1a06b1fd13e14f38bed8179903fbe407999a40afed6959540285aacec3f3a184"
+    },
+    {
+      "path": "assets/land-mineral-normal-B2VVWRH9.png",
+      "url": "http://127.0.0.1:4191/assets/land-mineral-normal-B2VVWRH9.png",
+      "status": 200,
+      "observedAtMs": 9475.099,
+      "bytes": 1292987,
+      "sha256": "895de5fdb6ab33fc128775d89f5744601e117b2ed4c024855bb17ab4b7d2c25f",
+      "expectedBytes": 1292987,
+      "expectedSha256": "895de5fdb6ab33fc128775d89f5744601e117b2ed4c024855bb17ab4b7d2c25f"
+    },
+    {
+      "path": "assets/pbrMaterial.pure-DqHS-_55.js",
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-DqHS-_55.js",
+      "status": 200,
+      "observedAtMs": 9521.957,
+      "bytes": 135103,
+      "sha256": "829dd7de88cb4c3db5b864848d39be5a7fc1dc498215286b0c10c34efbff5de3",
+      "expectedBytes": 135103,
+      "expectedSha256": "829dd7de88cb4c3db5b864848d39be5a7fc1dc498215286b0c10c34efbff5de3"
+    },
+    {
+      "path": "assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "status": 200,
+      "observedAtMs": 9522.125,
+      "bytes": 12528,
+      "sha256": "87acb688574135350a1e9d9a6474943f2eed2202cb8478cc8d47a37b110157d2",
+      "expectedBytes": 12528,
+      "expectedSha256": "87acb688574135350a1e9d9a6474943f2eed2202cb8478cc8d47a37b110157d2"
+    },
+    {
+      "path": "assets/brdfTextureTools-DbTuwmTk.js",
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-DbTuwmTk.js",
+      "status": 200,
+      "observedAtMs": 9522.262,
+      "bytes": 61404,
+      "sha256": "748cf9fbee8c634d8397f0cc36d3cce74325b6659fb7f13448caa8a9bbe5db67",
+      "expectedBytes": 61404,
+      "expectedSha256": "748cf9fbee8c634d8397f0cc36d3cce74325b6659fb7f13448caa8a9bbe5db67"
+    },
+    {
+      "path": "mandats/models/daylight.env",
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "status": 200,
+      "observedAtMs": 9648.538,
+      "bytes": 1102156,
+      "sha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8",
+      "expectedBytes": 1102156,
+      "expectedSha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8"
+    },
+    {
+      "path": "assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "status": 200,
+      "observedAtMs": 12615.323,
+      "bytes": 586,
+      "sha256": "7fd32688684d63c4c3287927838bde5f15aca297398ceb20cc100252217f44f7",
+      "expectedBytes": 586,
+      "expectedSha256": "7fd32688684d63c4c3287927838bde5f15aca297398ceb20cc100252217f44f7"
+    },
+    {
+      "path": "assets/postprocess.vertex-BIyaM03b.js",
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-BIyaM03b.js",
+      "status": 200,
+      "observedAtMs": 12787.491,
+      "bytes": 560,
+      "sha256": "48cbac63933d51a737021d26d75e6e567f87587e31322d6c396ce1cdbe5dec5a",
+      "expectedBytes": 560,
+      "expectedSha256": "48cbac63933d51a737021d26d75e6e567f87587e31322d6c396ce1cdbe5dec5a"
+    },
+    {
+      "path": "assets/mandats-B5H7aFd6.css",
+      "url": "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+      "status": 200,
+      "observedAtMs": 37501.834,
+      "bytes": 175231,
+      "sha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c",
+      "expectedBytes": 175231,
+      "expectedSha256": "7fa0cb1e9cf23892acf30f3ce8144ac462cb4df2f3109aad3155bca509368d8c"
+    },
+    {
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "observedAtMs": 37514.288,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59",
+      "expectedBytes": 45671,
+      "expectedSha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "path": "assets/game-B_-L39w0.css",
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "status": 200,
+      "observedAtMs": 37514.36,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c",
+      "expectedBytes": 81756,
+      "expectedSha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "path": "assets/shared-design-BR6wKexh.js",
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "observedAtMs": 37518.601,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
+      "expectedBytes": 711,
+      "expectedSha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "observedAtMs": 37519.471,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781",
+      "expectedBytes": 30543,
+      "expectedSha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "path": "assets/mandats-lHN_ghvN.js",
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "status": 200,
+      "observedAtMs": 37630.287,
+      "bytes": 3180712,
+      "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c",
+      "expectedBytes": 3180712,
+      "expectedSha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+    },
+    {
+      "path": "assets/welcome-diorama-D6QPWYbq.png",
+      "url": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+      "status": 200,
+      "observedAtMs": 37957.041,
+      "bytes": 1733114,
+      "sha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703",
+      "expectedBytes": 1733114,
+      "expectedSha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703"
+    },
+    {
+      "path": "assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-CChat9Os.js",
+      "status": 200,
+      "observedAtMs": 45779.496,
+      "bytes": 3669,
+      "sha256": "627b981fe71831aab012d0ad94aaa16497c864a35c5e85de463d4b54789c2fc0",
+      "expectedBytes": 3669,
+      "expectedSha256": "627b981fe71831aab012d0ad94aaa16497c864a35c5e85de463d4b54789c2fc0"
+    },
+    {
+      "path": "assets/envTextureLoader-sHfoo1I9.js",
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+      "status": 200,
+      "observedAtMs": 45779.615,
+      "bytes": 8025,
+      "sha256": "0f723d493fea653cc57367f235166cd63073875f63ff354fc52721a48f069087",
+      "expectedBytes": 8025,
+      "expectedSha256": "0f723d493fea653cc57367f235166cd63073875f63ff354fc52721a48f069087"
+    },
+    {
+      "path": "assets/shadowMap.fragment-DU-ilQIB.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-DU-ilQIB.js",
+      "status": 200,
+      "observedAtMs": 45786.842,
+      "bytes": 3371,
+      "sha256": "e25322711f8a49355f1f1d9ebff831f5ad681aaf4b9c35f7acab0885178b3762",
+      "expectedBytes": 3371,
+      "expectedSha256": "e25322711f8a49355f1f1d9ebff831f5ad681aaf4b9c35f7acab0885178b3762"
+    },
+    {
+      "path": "assets/packingFunctions-BvVSbVFP.js",
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-BvVSbVFP.js",
+      "status": 200,
+      "observedAtMs": 45786.898,
+      "bytes": 530,
+      "sha256": "e976255aa6f5d9547443f9af40da78c31059c81e9eda48ff20df803e405a2558",
+      "expectedBytes": 530,
+      "expectedSha256": "e976255aa6f5d9547443f9af40da78c31059c81e9eda48ff20df803e405a2558"
+    },
+    {
+      "path": "assets/sceneVertexDeclaration-KFsLf99o.js",
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-KFsLf99o.js",
+      "status": 200,
+      "observedAtMs": 45786.983,
+      "bytes": 331,
+      "sha256": "38d8cbb24c384ff06adf677a3f400724068005228048ee392147a1e0a55ffe63",
+      "expectedBytes": 331,
+      "expectedSha256": "38d8cbb24c384ff06adf677a3f400724068005228048ee392147a1e0a55ffe63"
+    },
+    {
+      "path": "assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-7AMcv5st.js",
+      "status": 200,
+      "observedAtMs": 45787.03,
+      "bytes": 634,
+      "sha256": "0c2a36c38d4dc109cb52fd35830f1541058e2fedf083a8b242b68ef23488e9ae",
+      "expectedBytes": 634,
+      "expectedSha256": "0c2a36c38d4dc109cb52fd35830f1541058e2fedf083a8b242b68ef23488e9ae"
+    },
+    {
+      "path": "assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js",
+      "status": 200,
+      "observedAtMs": 45787.101,
+      "bytes": 470,
+      "sha256": "a0a4207ee85ca0ee866d7a9bb2f6315fdf406ac2c06ac2eac8afa31b0a120009",
+      "expectedBytes": 470,
+      "expectedSha256": "a0a4207ee85ca0ee866d7a9bb2f6315fdf406ac2c06ac2eac8afa31b0a120009"
+    },
+    {
+      "path": "assets/shadowMap.vertex-fmBcca9o.js",
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-fmBcca9o.js",
+      "status": 200,
+      "observedAtMs": 45787.204,
+      "bytes": 4616,
+      "sha256": "155df8aad7644f9fb327b0d24b53a1b7ccb017d3e871ac8520af1a3e312df245",
+      "expectedBytes": 4616,
+      "expectedSha256": "155df8aad7644f9fb327b0d24b53a1b7ccb017d3e871ac8520af1a3e312df245"
+    },
+    {
+      "path": "mandats/models/architecture.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+      "status": 200,
+      "observedAtMs": 45787.255,
+      "bytes": 11109712,
+      "sha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717",
+      "expectedBytes": 11109712,
+      "expectedSha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717"
+    },
+    {
+      "path": "mandats/models/vegetation.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+      "status": 200,
+      "observedAtMs": 45790.449,
+      "bytes": 721552,
+      "sha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a",
+      "expectedBytes": 721552,
+      "expectedSha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a"
+    },
+    {
+      "path": "mandats/models/paris.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "status": 200,
+      "observedAtMs": 45794.456,
+      "bytes": 9231336,
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491",
+      "expectedBytes": 9231336,
+      "expectedSha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    },
+    {
+      "path": "assets/land-earth-grain-DRREWpxX.png",
+      "url": "http://127.0.0.1:4191/assets/land-earth-grain-DRREWpxX.png",
+      "status": 200,
+      "observedAtMs": 45796.448,
+      "bytes": 251667,
+      "sha256": "f5c5368a06e77792a3ce1c09668f3f6b5fa021d06861bb4f08332dbbc252b43f",
+      "expectedBytes": 251667,
+      "expectedSha256": "f5c5368a06e77792a3ce1c09668f3f6b5fa021d06861bb4f08332dbbc252b43f"
+    },
+    {
+      "path": "assets/land-crop-stalks-DqbEWteS.png",
+      "url": "http://127.0.0.1:4191/assets/land-crop-stalks-DqbEWteS.png",
+      "status": 200,
+      "observedAtMs": 45797.516,
+      "bytes": 337750,
+      "sha256": "1d0b3cce4271b7cdcff8f758e34f65be01c42564936959b919f2594f8fc34eec",
+      "expectedBytes": 337750,
+      "expectedSha256": "1d0b3cce4271b7cdcff8f758e34f65be01c42564936959b919f2594f8fc34eec"
+    },
+    {
+      "path": "assets/land-earth-normal-D8qTdGaP.png",
+      "url": "http://127.0.0.1:4191/assets/land-earth-normal-D8qTdGaP.png",
+      "status": 200,
+      "observedAtMs": 45797.622,
+      "bytes": 377245,
+      "sha256": "08d6a9a5e2d0f3dcac0e1c778debc3001fa13e7158e7fd301768a7a55a28484b",
+      "expectedBytes": 377245,
+      "expectedSha256": "08d6a9a5e2d0f3dcac0e1c778debc3001fa13e7158e7fd301768a7a55a28484b"
+    },
+    {
+      "path": "mandats/models/cathedrale.glb",
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+      "status": 200,
+      "observedAtMs": 45803.563,
+      "bytes": 11236112,
+      "sha256": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e",
+      "expectedBytes": 11236112,
+      "expectedSha256": "1bed2d87570df264b365f069914b03b7079ff72940f98cfbe4d5367c8523ea8e"
+    },
+    {
+      "path": "assets/land-leaf-grain-Dq3zfjHI.png",
+      "url": "http://127.0.0.1:4191/assets/land-leaf-grain-Dq3zfjHI.png",
+      "status": 200,
+      "observedAtMs": 45862.721,
+      "bytes": 54194,
+      "sha256": "8be3fe4ea75eaea6c570156882998b1a017a3dbabc18279b43a4d267637a12dd",
+      "expectedBytes": 54194,
+      "expectedSha256": "8be3fe4ea75eaea6c570156882998b1a017a3dbabc18279b43a4d267637a12dd"
+    },
+    {
+      "path": "assets/land-leaf-normal-KsVL2iP_.png",
+      "url": "http://127.0.0.1:4191/assets/land-leaf-normal-KsVL2iP_.png",
+      "status": 200,
+      "observedAtMs": 45862.763,
+      "bytes": 183565,
+      "sha256": "d1fcdf39068b069e32340e867e87578c401e6adcfbc98cebd3b6f6fcf2867c4c",
+      "expectedBytes": 183565,
+      "expectedSha256": "d1fcdf39068b069e32340e867e87578c401e6adcfbc98cebd3b6f6fcf2867c4c"
+    },
+    {
+      "path": "assets/land-stone-normal-CxQ85Rmx.png",
+      "url": "http://127.0.0.1:4191/assets/land-stone-normal-CxQ85Rmx.png",
+      "status": 200,
+      "observedAtMs": 45864.827,
+      "bytes": 171401,
+      "sha256": "98e58ca0a80d9b1865742e0af609378407962b8e9572090a7106d4df7168b46d",
+      "expectedBytes": 171401,
+      "expectedSha256": "98e58ca0a80d9b1865742e0af609378407962b8e9572090a7106d4df7168b46d"
+    },
+    {
+      "path": "assets/land-mineral-rock-DqRxmUfD.png",
+      "url": "http://127.0.0.1:4191/assets/land-mineral-rock-DqRxmUfD.png",
+      "status": 200,
+      "observedAtMs": 45865.381,
+      "bytes": 480970,
+      "sha256": "7fccdd8533a976145985f55bf9a39578c3769b48ca9e0c62c23b69c74a40995b",
+      "expectedBytes": 480970,
+      "expectedSha256": "7fccdd8533a976145985f55bf9a39578c3769b48ca9e0c62c23b69c74a40995b"
+    },
+    {
+      "path": "assets/land-mineral-normal-B2VVWRH9.png",
+      "url": "http://127.0.0.1:4191/assets/land-mineral-normal-B2VVWRH9.png",
+      "status": 200,
+      "observedAtMs": 45866.247,
+      "bytes": 1292987,
+      "sha256": "895de5fdb6ab33fc128775d89f5744601e117b2ed4c024855bb17ab4b7d2c25f",
+      "expectedBytes": 1292987,
+      "expectedSha256": "895de5fdb6ab33fc128775d89f5744601e117b2ed4c024855bb17ab4b7d2c25f"
+    },
+    {
+      "path": "assets/land-coastal-normal-5Lv01LFJ.png",
+      "url": "http://127.0.0.1:4191/assets/land-coastal-normal-5Lv01LFJ.png",
+      "status": 200,
+      "observedAtMs": 45867.736,
+      "bytes": 88726,
+      "sha256": "1a06b1fd13e14f38bed8179903fbe407999a40afed6959540285aacec3f3a184",
+      "expectedBytes": 88726,
+      "expectedSha256": "1a06b1fd13e14f38bed8179903fbe407999a40afed6959540285aacec3f3a184"
+    },
+    {
+      "path": "assets/brdfTextureTools-DbTuwmTk.js",
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-DbTuwmTk.js",
+      "status": 200,
+      "observedAtMs": 45891.858,
+      "bytes": 61404,
+      "sha256": "748cf9fbee8c634d8397f0cc36d3cce74325b6659fb7f13448caa8a9bbe5db67",
+      "expectedBytes": 61404,
+      "expectedSha256": "748cf9fbee8c634d8397f0cc36d3cce74325b6659fb7f13448caa8a9bbe5db67"
+    },
+    {
+      "path": "assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js",
+      "status": 200,
+      "observedAtMs": 45891.903,
+      "bytes": 12528,
+      "sha256": "87acb688574135350a1e9d9a6474943f2eed2202cb8478cc8d47a37b110157d2",
+      "expectedBytes": 12528,
+      "expectedSha256": "87acb688574135350a1e9d9a6474943f2eed2202cb8478cc8d47a37b110157d2"
+    },
+    {
+      "path": "assets/pbrMaterial.pure-DqHS-_55.js",
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-DqHS-_55.js",
+      "status": 200,
+      "observedAtMs": 45891.941,
+      "bytes": 135103,
+      "sha256": "829dd7de88cb4c3db5b864848d39be5a7fc1dc498215286b0c10c34efbff5de3",
+      "expectedBytes": 135103,
+      "expectedSha256": "829dd7de88cb4c3db5b864848d39be5a7fc1dc498215286b0c10c34efbff5de3"
+    },
+    {
+      "path": "mandats/models/daylight.env",
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "status": 200,
+      "observedAtMs": 46000.44,
+      "bytes": 1102156,
+      "sha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8",
+      "expectedBytes": 1102156,
+      "expectedSha256": "a27b2155c892bc0b491aa8c5191f9d1e4a6a19da6b355c40fbcf9809df2b6ec8"
+    },
+    {
+      "path": "assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-DbY-pkGz.js",
+      "status": 200,
+      "observedAtMs": 49184.972,
+      "bytes": 586,
+      "sha256": "7fd32688684d63c4c3287927838bde5f15aca297398ceb20cc100252217f44f7",
+      "expectedBytes": 586,
+      "expectedSha256": "7fd32688684d63c4c3287927838bde5f15aca297398ceb20cc100252217f44f7"
+    },
+    {
+      "path": "assets/postprocess.vertex-BIyaM03b.js",
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-BIyaM03b.js",
+      "status": 200,
+      "observedAtMs": 49325.811,
+      "bytes": 560,
+      "sha256": "48cbac63933d51a737021d26d75e6e567f87587e31322d6c396ce1cdbe5dec5a",
+      "expectedBytes": 560,
+      "expectedSha256": "48cbac63933d51a737021d26d75e6e567f87587e31322d6c396ce1cdbe5dec5a"
+    }
+  ],
+  "conditionalResponses": [],
+  "bodyErrors": []
+}

@@ -8,7 +8,7 @@
   "captureVerificationSha256": "54faa49479e605eddccc5517acd20981cf53a53894c40b18968db15393e25a4c",
   "referenceSha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
   "status": "Non conforme à la maquette",
-  "summary": "Le rendu37 applique les petites fractures minérales et côtières, les subdivisions agricoles et la pierre sélective de la cathédrale. Les vues réelles restent sensiblement différentes de la maquette : grandes masses et facettes de relief, contexte répétitif, campagne moins fine et moins dense, cathédrale trop massive. Les gardes physiques et captures techniques passent ; les deux contrôles E2E ciblés originaux passent. Les quatre suites complètes ne sont pas encore exécutées.",
+  "summary": "Le rendu37 applique les petites fractures minérales et côtières, les subdivisions agricoles et la pierre sélective de la cathédrale. Les vues réelles restent sensiblement différentes de la maquette : grandes masses et facettes de relief, contexte répétitif, campagne moins fine et moins dense, cathédrale trop massive. Les gardes physiques et captures techniques passent ; les deux contrôles E2E ciblés originaux passent. La suite rework complète échoue sur trois parcours compact/WebKit (reprise15s et durée180s), avec20 réussites et9 skips. Les trois autres suites complètes ne sont pas exécutées.",
   "observedDifferences": [
     "L’en-tête bleu nuit, le panneau ivoire et les titres serif gardent la composition générale de la référence ; les nombres et sujets affichés restent ceux du vrai moteur.",
     "Les champs ont plusieurs tons et de petites toitures, mais les zones rurales restent plus espacées et moins diverses que les villages, vergers et parcelles fines de la référence.",
@@ -32,7 +32,7 @@
     "native": "7 captures, zero browser errors, actual nine PNG response and decoded-byte proof",
     "focusedOriginal15s": "passed original held-GLB release and saved reload waits",
     "fullSuites": [
-      "rework unrun",
+      "rework failed:20 passed,3 failed,9 skipped",
       "social unrun",
       "header unrun",
       "test:mandats unrun"

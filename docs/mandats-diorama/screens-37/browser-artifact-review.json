@@ -1,0 +1,81 @@
+{
+  "kind": "Supplementary actual complete37 browser artifact inspection, not an E2E rerun",
+  "build": "37",
+  "reviewedBy": "proof_publish",
+  "reviewedAt": "2026-10-09T12:45:22.065344+00:00",
+  "basis": "Viewed three actual mobilisation screenshots and three actual failure screenshots with view_image; also viewed compact replay and 390 offline screenshots",
+  "images": [
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-390-mobilisation-active.png",
+      "sha256": "04d34fabfd1e5411db34a8bec66331eac1b52aeadffc64b44b9cefd44b907a8c",
+      "actualPngSize": [
+        390,
+        976
+      ],
+      "observation": "390 pixels : mobilisation lycéenne réelle après le regroupement de classes ; carte au-dessus du panneau ivoire et urgence en tête."
+    },
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-320-mobilisation-active.png",
+      "sha256": "0df823703020df756081657a08e47ec464293a82341f52c61b7bd71d0dd03af2",
+      "actualPngSize": [
+        320,
+        919
+      ],
+      "observation": "320 pixels : titres à empattements et trois sujets lisibles dans la capture complète ; les cartes occupent plusieurs hauteurs de viewport."
+    },
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-webkit-mobilisation-active.png",
+      "sha256": "5cc71c36dcfc383c35fc2c195900ba7c019fa5fbcf29dbfecda7cf39b80646f6",
+      "actualPngSize": [
+        390,
+        976
+      ],
+      "observation": "WebKit 390 pixels : même mobilisation sauvegardée et composition mobile ; cette image ne valide pas la reprise DPR2 ultérieure."
+    },
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-compact-density-failed.png",
+      "sha256": "4bf5f90359d2f4513bb6252155b935a3a143a7d622fb5272a3975bc7c5204f79",
+      "actualPngSize": [
+        780,
+        1688
+      ],
+      "observation": "Échec DPR2 compact après Reprendre : le rapport garde data-renderer=loading au délai original de 15 secondes, malgré les pixels de carte visibles."
+    },
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-webkit-density-failed.png",
+      "sha256": "61ea3a4cf9e1ec6db5c73a63faa4f8df5f42b7f3147764800a698775e02663af",
+      "actualPngSize": [
+        640,
+        1480
+      ],
+      "observation": "Échec DPR2 WebKit après Reprendre : renderer encore loading au délai de 15 secondes ; ce résultat complet reste distinct du ciblé réussi."
+    },
+    {
+      "path": "docs/mandats-diorama/screens-37/full-rework-compact-mandate-failed.png",
+      "sha256": "aecb824f5f218ef63709bdbdb17454023a200b74aef8131fd860af88d040351b",
+      "actualPngSize": [
+        320,
+        740
+      ],
+      "observation": "Échec du parcours complet à 320 pixels : une décision de la nouvelle trajectoire est visible au dépassement du délai total de 180 secondes."
+    }
+  ],
+  "artisticVerdict": "Root reference verdict remains NONCONFORM",
+  "observations": [
+    "The actual mobile captures keep the navy header, ivory subject panel, serif headings and red lycée urgency tied to the saved turn.",
+    "At 320 pixels, the three agenda cards and legend extend below the original viewport; these screenshots are full-page captures, not proof that all content fits on one screen.",
+    "The miniature preserves the same broad angular mountain fronts, massive cathedral and repeated neighbouring relief as the national reference review.",
+    "Visible rendered pixels in the DPR2 failure screenshots do not override the original failing data-renderer assertion.",
+    "The compact test reached the end of a mandate and started an actual alternative trajectory before its total timeout; the complete test remains failed."
+  ],
+  "technicalResult": {
+    "originalCompleteRework": "20 passed,3 failed,9 skipped",
+    "originalFocusedChecks": "passed separately",
+    "remainingFullSuites": "social,header,test:mandats unrun"
+  },
+  "limits": [
+    "No actual browser, Scene, GPU, performance probe or changed test executed by this documentation task.",
+    "No frame rate, final visual fidelity or complete test success inferred from these pictures.",
+    "Separate root compact diagnostic is not included as an E2E result."
+  ]
+}

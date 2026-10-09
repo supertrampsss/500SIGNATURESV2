@@ -1,0 +1,9 @@
+{
+  "build": "37",
+  "command": "node profile-compact37.mjs http://127.0.0.1:4191 compact37-profile",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session89743 exit_code0",
+  "confirmedAt": "2026-10-09T12:42:44.449004+00:00",
+  "session": 89743,
+  "scope": "Separate diagnostic only; original full rework three failures unchanged"
+}

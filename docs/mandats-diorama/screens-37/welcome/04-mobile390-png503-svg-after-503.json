@@ -1,0 +1,90 @@
+{
+  "url": "http://127.0.0.1:4191/mandats/",
+  "screen": "select",
+  "dataset": {
+    "mandateMap": "",
+    "renderer": "preview",
+    "movements": "0"
+  },
+  "previewReady": false,
+  "busy": "false",
+  "poster": {
+    "src": "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+    "complete": true,
+    "naturalWidth": 0,
+    "naturalHeight": 0,
+    "alt": "",
+    "ariaHidden": "true",
+    "draggable": false,
+    "decoding": "async",
+    "objectFit": "contain",
+    "style": {
+      "display": "none",
+      "visibility": "visible",
+      "opacity": "1",
+      "pointerEvents": "none"
+    }
+  },
+  "fallback": {
+    "tag": "svg",
+    "style": {
+      "display": "block",
+      "visibility": "visible",
+      "opacity": "1",
+      "pointerEvents": "auto"
+    }
+  },
+  "canvas": {
+    "width": 300,
+    "height": 150,
+    "bounds": {
+      "x": 0,
+      "y": 60,
+      "width": 390,
+      "height": 362.90625,
+      "top": 60,
+      "right": 390,
+      "bottom": 422.90625,
+      "left": 0
+    },
+    "style": {
+      "display": "block",
+      "visibility": "visible",
+      "opacity": "0",
+      "pointerEvents": "auto"
+    }
+  },
+  "layout": {
+    "viewportWidth": 390,
+    "viewportHeight": 844,
+    "devicePixelRatio": 1,
+    "scrollWidth": 390,
+    "map": {
+      "x": 0,
+      "y": 60,
+      "width": 390,
+      "height": 362.90625,
+      "top": 60,
+      "right": 390,
+      "bottom": 422.90625,
+      "left": 0
+    }
+  },
+  "markerCount": 0,
+  "rawSave": null,
+  "resourceURLs": [
+    "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+    "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+    "http://127.0.0.1:4191/assets/mandats-B5H7aFd6.css",
+    "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+    "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+    "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+    "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+    "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+    "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+    "http://127.0.0.1:4191/assets/welcome-diorama-D6QPWYbq.png",
+    "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+    "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+    "http://127.0.0.1:4191/brand/favicon.svg"
+  ]
+}
