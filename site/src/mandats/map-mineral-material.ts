@@ -36,14 +36,14 @@ class MiniatureMineral extends MaterialPluginBase {
         float mineralBed = sin(vPositionW.y * 139.0 + vPositionW.z * 13.0 + mineralWarp * 5.0);
         float mineralJoint = smoothstep(.91, .997, mineralBed) *
           smoothstep(.38, .65, mineralBroad);
-        baseColor.rgb *= .78 + mineralBroad * .27 + mineralGrain * .09;
+        baseColor.rgb *= ${this.snow ? ".91 + mineralBroad * .12 + mineralGrain * .04" : ".78 + mineralBroad * .27 + mineralGrain * .09"};
         ${this.snow ? `
           float mineralScarp = (1.0 - smoothstep(.28, .68, abs(normalW.y))) *
             smoothstep(.42, .66, mineralBroad + mineralWarp * .15);
           vec3 mineralExposed = mix(vec3(.38, .37, .34), vec3(.66, .63, .55), mineralBroad);
           // Ground vertex colours already retain the exposed rock between
           // neves. Keep this smaller grain from turning snowy faces grey again.
-          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .22);
+          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .12);
           // Thin fissures and inclined exposed ribs stay on the real surface,
           // giving broad neves a smaller scale without separate floating rocks.
           float mineralSnowRib = smoothstep(.60, .85, mineralWarp) *
@@ -54,7 +54,7 @@ class MiniatureMineral extends MaterialPluginBase {
               vPositionW.y * 31.0 + mineralWarp * 4.0)) *
             smoothstep(.43, .66, mineralBroad) *
             (1.0 - smoothstep(.80, .98, abs(normalW.y)));
-          baseColor.rgb *= 1.0 - mineralFissure * .34;
+          baseColor.rgb *= 1.0 - mineralFissure * .14;
         ` : `
           float mineralCrease = smoothstep(.94, .998,
             sin(mineralPlane.x * 43.0 - mineralPlane.y * 21.0 + mineralWarp * 3.0)) *
@@ -65,7 +65,7 @@ class MiniatureMineral extends MaterialPluginBase {
                 mineralWarp * 5.5 + vPositionW.y * 11.0)) *
               smoothstep(.46, .70, mineralBroad);
             baseColor.rgb *= 1.0 - max(mineralJoint * .18, mineralVertical * .36);
-          ` : `baseColor.rgb *= 1.0 - max(mineralJoint * .37, mineralCrease * .31);`}
+          ` : `baseColor.rgb *= 1.0 - max(mineralJoint * .17, mineralCrease * .16);`}
         `}
       `,
     };

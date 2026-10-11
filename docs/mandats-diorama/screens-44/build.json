@@ -1,0 +1,33 @@
+{
+  "entry": "assets/mandats-COZwlsud.js",
+  "bytes": 644177,
+  "sha256": "bb66a8449ea82053d81e2803eccc257b5ad24e28d3afb74b72ab193263457b75",
+  "command": "NODE_USE_ENV_PROXY=1 npm run check",
+  "log": "full-check-retained-i.log",
+  "assets": [
+    {
+      "name": "daylight.env",
+      "bytes": 238984,
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93",
+      "distByteIdentical": true
+    },
+    {
+      "name": "vegetation.glb",
+      "bytes": 697028,
+      "sha256": "b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.bin.gz",
+      "bytes": 11517192,
+      "sha256": "bffb1e4fe62fa7d3bf34de6336a035f64d56ff518189810a21c63a609a114347",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.json",
+      "bytes": 11153,
+      "sha256": "4395cb26a8dfb16144cd5a7a3005ddfd49affdf9b179903cf5a0744dd74adce2",
+      "distByteIdentical": true
+    }
+  ]
+}

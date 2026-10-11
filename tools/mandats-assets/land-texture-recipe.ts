@@ -149,10 +149,10 @@ function mineralTextures(scene: Scene) {
       // connect into closed rings or two crossing families of regular stripes.
       fracture = joint.fibres,
       grain = hash(x, y) - .5, index = y * size + x;
-    tones[index] = 246.65 + (fine - .5) * 10 + grain * 2 + (coarse - .5) * 9 -
-      fracture * 25 + (chip.clods - .08) * 7;
-    heights[index] = .5 + coarse * .09 + chip.clods * .033 -
-      fracture * .059 + fine * .028 + grain * .003;
+    tones[index] = 232.4 + (fine - .5) * 18 + grain * 4 + (coarse - .5) * 30 -
+      fracture * 37 + (chip.clods - .08) * 15;
+    heights[index] = .5 + coarse * .20 + chip.clods * .078 -
+      fracture * .12 + fine * .056 + grain * .009;
   }
   const rock = pixels(scene, "land-mineral-rock", size, (x, y) => {
     const tone = tones[y * size + x];

@@ -1,0 +1,271 @@
+{
+  "referenceSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "visualVerdict": "Still below the canonical reference. Continue the full miniature, architecture, mountain silhouette and river-to-sea junction.",
+  "files": [
+    {
+      "file": "all-monuments-diagnostics.json",
+      "bytes": 933660,
+      "sha256": "bf12a981a125b1932d461063b4cae046dacdb3b186ff9e94e48abffa900b61d7"
+    },
+    {
+      "file": "alpine-face-audit.json",
+      "bytes": 7698,
+      "sha256": "9e3aa97a3989990a52541de9b25210ced77dbda467cee7d3a64a75e8904b8bce"
+    },
+    {
+      "file": "build.json",
+      "bytes": 997,
+      "sha256": "16438d90d5834f823be7ccc841d8af419ef93bb78fe0758061c9c1009b943634"
+    },
+    {
+      "file": "ci-97d7714-rework.log",
+      "bytes": 23359,
+      "sha256": "427a6500215c50900d358c8ea43982fa8e9b43b18e6ed64352c99d89d2374e99"
+    },
+    {
+      "file": "ci-97d7714-site.log",
+      "bytes": 100668,
+      "sha256": "8a7403a78e1630d4d2c404f006c53b167a4a4ae069acf2f1dabfe8f4a1abb25e"
+    },
+    {
+      "file": "full-check-retained-i.log",
+      "bytes": 104595,
+      "sha256": "5bbb830c78dc9987877e06631a510555c76b25ed852076d2e5dfcacf93ca5508"
+    },
+    {
+      "file": "harbour-footprint-audit.json",
+      "bytes": 172,
+      "sha256": "561511b6ce8b34f06c02115950554eac893656d75452431f5eeec87aba59587b"
+    },
+    {
+      "file": "movement-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "movement-01-mobilisation.json",
+      "bytes": 19078,
+      "sha256": "031273a90bf708b381baa3c5cdfdd77cfb8716a246455092529170af055d1a88"
+    },
+    {
+      "file": "movement-01-mobilisation.png",
+      "bytes": 1967607,
+      "sha256": "381569664c9d46dd68ecabcacb08ccdae196e505193dd6fbb8a5441e8c6f9cda"
+    },
+    {
+      "file": "previous-ci.json",
+      "bytes": 1241,
+      "sha256": "dba07572215dd72281fc5d71a4915130fd8be5ba0d01c30163f55a41bb7dedee"
+    },
+    {
+      "file": "production-01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-01-national.json",
+      "bytes": 17734,
+      "sha256": "225dc666ab6daa9b9c7683c274b749c9767292e5c56fe3bef173799d3aa7375d"
+    },
+    {
+      "file": "production-01-national.png",
+      "bytes": 1969520,
+      "sha256": "bf347f459a262b40cd7f3ac7297a2efa38582cbb45e5158aad80b23deb5c9035"
+    },
+    {
+      "file": "production-04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-04-lyon-detail.json",
+      "bytes": 17860,
+      "sha256": "fd5074ee528a7dc6c5008516d918ab65e8d0526b300eb4091e623f2f0662e517"
+    },
+    {
+      "file": "production-04-lyon-detail.png",
+      "bytes": 1960814,
+      "sha256": "16a137e58be35dd09d55dcb60f77a2f9045c6c352f85e176bfbddaa7e1908b86"
+    },
+    {
+      "file": "production-05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-05-lyon-alpes.json",
+      "bytes": 17957,
+      "sha256": "4ad55854b01038ae265a175070aa3e3c99956e7417c34f2a137449eaa7d67cec"
+    },
+    {
+      "file": "production-05-lyon-alpes.png",
+      "bytes": 2083289,
+      "sha256": "3f5d6c0cecf54729d02cb360d96611fff569c084a3451c766837d4fde1d0b53a"
+    },
+    {
+      "file": "production-06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-06-national-retour.json",
+      "bytes": 18016,
+      "sha256": "1611a4ad7f24e2162bee7764b489a1c213c4aa5f75492b3c8e1d6d56f2e496c6"
+    },
+    {
+      "file": "production-06-national-retour.png",
+      "bytes": 1969520,
+      "sha256": "4bc6771ef27ca3db54ca6e4509b13aad21b491b151aae7f56d96c390c301c0b7"
+    },
+    {
+      "file": "production-07-paris-cathedrale-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-07-paris-cathedrale.json",
+      "bytes": 18134,
+      "sha256": "ad1709e23e94f6fe6fc6c84a5197a698efdc3da0507a839c0e7cf87c4f7dbd1b"
+    },
+    {
+      "file": "production-07-paris-cathedrale.png",
+      "bytes": 1838463,
+      "sha256": "a0b9a85275fa7bf753b2b4d192bc89d764d3790b7954ec92baf780dfbb22f169"
+    },
+    {
+      "file": "production-08-mediterranee-port-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-08-mediterranee-port.json",
+      "bytes": 18370,
+      "sha256": "5c026753acba12664fb986763fc62a511505fc25f03db2fbd26f2e99371fc6d9"
+    },
+    {
+      "file": "production-08-mediterranee-port.png",
+      "bytes": 1631703,
+      "sha256": "a152dbb1795342bcca4aa812200fab69425423531fec4233ae49e14f52e71089"
+    },
+    {
+      "file": "production-09-national-final-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-09-national-final.json",
+      "bytes": 18404,
+      "sha256": "a491fc5f02d2a8a1e852dcb1a4802c268c2f09d75350dfb9a158536eb9b74f46"
+    },
+    {
+      "file": "production-09-national-final.png",
+      "bytes": 1969520,
+      "sha256": "4bc6771ef27ca3db54ca6e4509b13aad21b491b151aae7f56d96c390c301c0b7"
+    },
+    {
+      "file": "production-320-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-320-01-mobilisation.json",
+      "bytes": 16366,
+      "sha256": "e0e0a02520d5b8b6e532a1cfa7d3b8580ef36f63a95b2b97c905689824182969"
+    },
+    {
+      "file": "production-320-01-mobilisation.png",
+      "bytes": 660940,
+      "sha256": "434d36af6c4e610d3937e1a7f51b83fedc87ace0a8be2cffd6ef53f1205e4a4e"
+    },
+    {
+      "file": "production-390-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-390-01-mobilisation.json",
+      "bytes": 16683,
+      "sha256": "afd15a6da611bbe18abc25d72db7f6a5d1f4b2c73f5e971c5adf5c256023223f"
+    },
+    {
+      "file": "production-390-01-mobilisation.png",
+      "bytes": 929653,
+      "sha256": "cb57b9a1d432276fa78f35766b5cc15372fadce6a6c6d702f5c0370a1ebc5f3f"
+    },
+    {
+      "file": "rendered-rock-contacts.json",
+      "bytes": 433583,
+      "sha256": "87460985831aa0478e7717aa3a59b46a00a17eaa64eff1044fbfd48683e9d09d"
+    },
+    {
+      "file": "rework-full-original-report.json",
+      "bytes": 94183,
+      "sha256": "f995a4acaf67ccaff2f42fc525a396cc5c4db5eaf545531639f84230c98320e7"
+    },
+    {
+      "file": "rework-full-retained-i.log",
+      "bytes": 12843,
+      "sha256": "5520fd57878b7c709dc1f00a4f36a069cf2dd028cc219d9d588d0ef1620b5aec"
+    },
+    {
+      "file": "scene-diagnostics.json",
+      "bytes": 932226,
+      "sha256": "d53ef24f3244578b157b21e6097d892955e19c4be7de78a950124d68593d6e76"
+    },
+    {
+      "file": "social-full-original-report.json",
+      "bytes": 47598,
+      "sha256": "aa45a082fc8d9c655eb5a46a8c2650368596aae15b2284133e2b70f671d5bc96"
+    },
+    {
+      "file": "social-full-retained-i.log",
+      "bytes": 3963,
+      "sha256": "b041d6491091c233c1df8311df7cb8ecad6a712ab8c7716f67d7033c941cd2bf"
+    },
+    {
+      "file": "terrain-reproduction.json",
+      "bytes": 454,
+      "sha256": "2f5e93560839b93d0b42ccbeed9459f5147efef26f46b42e53123de3159f8c45"
+    },
+    {
+      "file": "terrain-survey.json",
+      "bytes": 11153,
+      "sha256": "4395cb26a8dfb16144cd5a7a3005ddfd49affdf9b179903cf5a0744dd74adce2"
+    },
+    {
+      "file": "texture-reproduction.json",
+      "bytes": 605,
+      "sha256": "04739a0fff9bf3afc10e60ff0f82543c911a0afccd723e2be75fd96bce8ff6e1"
+    },
+    {
+      "file": "tree-ground-audit.json",
+      "bytes": 1049,
+      "sha256": "b600c7d6629f97db7ef1c642ccf6ea9de8bdff54b67789978c50d305b7a9d75a"
+    },
+    {
+      "file": "vegetation-material-bindings.json",
+      "bytes": 4961,
+      "sha256": "403fad58d85adc8d11639291397b0cc0dad6cce2be2cd92f3a6966ed47edecb7"
+    },
+    {
+      "file": "vegetation-reproduction.json",
+      "bytes": 8448,
+      "sha256": "1bcebdc13f58ee9b9e6a068e152798392ea8c6f1781267a40a16dbe6e72b228f"
+    },
+    {
+      "file": "verification.json",
+      "bytes": 6674,
+      "sha256": "780109dc5fd8a987e2a5bcdf1d3a407a428fae011f4aa094efbf730f3e272714"
+    },
+    {
+      "file": "webkit-reload-error.md",
+      "bytes": 11853,
+      "sha256": "10547aa5ce44f5d2b2e6b7ce879c42010458f23f5587b70b5504e1c77c9cb842"
+    },
+    {
+      "file": "webkit-reload-failed.png",
+      "bytes": 745311,
+      "sha256": "23301644cd10a9827565684550a868bce025a9d8a2e2f7e19d615abe250d5833"
+    }
+  ]
+}

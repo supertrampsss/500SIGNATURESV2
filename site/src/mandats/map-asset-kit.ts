@@ -158,6 +158,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
           tinted.metallicF0Factor = original.metallicF0Factor;
           tinted.twoSidedLighting = original.twoSidedLighting;
           tinted.alpha = original.alpha;
+          tinted.alphaCutOff = original.alphaCutOff;
           tinted.transparencyMode = original.transparencyMode;
           tinted.useAlphaFromAlbedoTexture = original.useAlphaFromAlbedoTexture;
           tinted.backFaceCulling = original.backFaceCulling;

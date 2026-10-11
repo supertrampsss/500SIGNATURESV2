@@ -1,0 +1,8 @@
+{
+  "command": "node tools/mandats-assets/bake-terrain.mjs",
+  "method": "Two independent exports from unchanged canonical sources; compare real compressed buffers and source manifests byte for byte. This is authoring reproduction, not browser timing or artistic conformity.",
+  "archiveByteIdentical": true,
+  "manifestByteIdentical": true,
+  "sha256": "bffb1e4fe62fa7d3bf34de6336a035f64d56ff518189810a21c63a609a114347",
+  "compressedBytes": 11517192
+}

@@ -7,7 +7,8 @@ from pathlib import Path
 from mathutils import Vector
 
 SOURCE = Path(__file__).resolve().parent
-DEST = SOURCE.parents[1] / "site/public/mandats/models/vegetation.glb"
+ROOT = SOURCE.parent.parent
+DEST = ROOT / "site/public/mandats/models/vegetation.glb"
 # Stable exported extents keep all existing placements and LOD sizes intact.
 BASELINE = json.loads((SOURCE / 'vegetation-bounds.json').read_text())
 DEST.parent.mkdir(parents=True, exist_ok=True)
@@ -40,7 +41,7 @@ silver = material('olive-silver', '909C70')
 rock_mat = material('weathered-limestone', 'B3A285')
 
 # Effective crown colours stay separate from the historical material names.
-# The country and close models keep exactly the same physical silhouettes.
+# Country and close levels retain the placement extents; leaf silhouettes evolve.
 CANOPY_TONES = {
     'canopy-olive': rgb('456735'),
     'canopy-sunlit': rgb('7C9448'),
@@ -73,12 +74,162 @@ def branch(a, b, radius, mat=bark, top=.45):
     obj = bpy.context.object
     obj.rotation_euler = delta.to_track_quat('Z', 'Y').to_euler()
     obj.data.materials.append(mat)
+    uv = obj.data.uv_layers.active or obj.data.uv_layers.new(name='bark-white')
+    uv.name = 'leaf-edges'
+    for coordinate in uv.data:
+        coordinate.uv = (.984, .984)
     for poly in obj.data.polygons:
         poly.use_smooth = True
     parts.append(obj)
     return obj
 
+# Static leaf surfaces add fine edges to the actual miniature branches.
+# Every branch and trunk remains real geometry; the atlas only cuts leaf edges.
+import bmesh
+
+def create_leaf_atlas():
+    size = 512
+    tile = size // 2
+    pixels = [0.0] * (size * size * 4)
+    for kind in range(4):
+        rng = random.Random(7919 + kind * 131)
+        ox, oy = (kind % 2) * tile, (kind // 2) * tile
+        for leaf_index in range(125 if kind == 2 else 75):
+            angle = rng.random() * math.tau
+            radius = math.sqrt(rng.random()) * .78
+            cx = math.cos(angle) * radius
+            cy = math.sin(angle) * radius * (1.02 if kind == 2 else .92)
+            rx = rng.uniform(.030, .065) if kind == 2 else rng.uniform(.055, .105)
+            ry = rng.uniform(.070, .160)
+            tilt = rng.uniform(-1.35, 1.35)
+            c, s = math.cos(tilt), math.sin(tilt)
+            extent = max(rx, ry)
+            for iy in range(max(0, int((cy - extent + 1) * tile / 2)),
+                            min(tile, int((cy + extent + 1) * tile / 2) + 2)):
+                for ix in range(max(0, int((cx - extent + 1) * tile / 2)),
+                                min(tile, int((cx + extent + 1) * tile / 2) + 2)):
+                    dx, dy = (ix + .5) * 2 / tile - 1 - cx, (iy + .5) * 2 / tile - 1 - cy
+                    u, v = (dx * c + dy * s) / rx, (-dx * s + dy * c) / ry
+                    rim = 1 + .07 * math.sin(math.atan2(v, u) * 7 + leaf_index)
+                    alpha = max(0, min(1, (rim - u * u - v * v) * 12))
+                    at = ((oy + iy) * size + ox + ix) * 4
+                    if alpha > pixels[at + 3]:
+                        pixels[at:at + 4] = [1, 1, 1, alpha]
+    # Opaque neutral corner belongs only to bark UVs, never leaf surfaces.
+    for iy in range(size - 12, size):
+        for ix in range(size - 12, size):
+            at = (iy * size + ix) * 4
+            pixels[at:at + 4] = [1, 1, 1, 1]
+    image = bpy.data.images.new('miniature-leaf-edges', width=size, height=size, alpha=True)
+    image.pixels.foreach_set(pixels)
+    image.filepath_raw = str(SOURCE / 'vegetation-card-atlas.png')
+    image.file_format = 'PNG'
+    image.save()
+    image.pack()
+    return image
+
+leaf_atlas = create_leaf_atlas()
+nodes, links = bark.node_tree.nodes, bark.node_tree.links
+shader = nodes.get('Principled BSDF')
+attribute = next(node for node in nodes if node.bl_idname == 'ShaderNodeVertexColor')
+texture = nodes.new('ShaderNodeTexImage')
+texture.image = leaf_atlas
+multiply = nodes.new('ShaderNodeMixRGB')
+multiply.blend_type = 'MULTIPLY'
+multiply.inputs[0].default_value = 1
+links.new(attribute.outputs['Color'], multiply.inputs[1])
+links.new(texture.outputs['Color'], multiply.inputs[2])
+links.new(multiply.outputs[0], shader.inputs['Base Color'])
+links.new(texture.outputs['Alpha'], shader.inputs['Alpha'])
+bark.use_backface_culling = False
+bark.surface_render_method = 'DITHERED'
+
+def folded_leaf_sprays(center, size, mat, seed, pine=False):
+    rng = random.Random(seed)
+    # A small opaque interior keeps real crown volume beneath the fine edges.
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.61, location=center)
+    core = bpy.context.object
+    for vertex in core.data.vertices:
+        vertex.co *= 1 + rng.uniform(-.10, .10)
+    core.scale = size
+    core.data.materials.append(mat)
+    uv = core.data.uv_layers.active or core.data.uv_layers.new(name='leaf-edges')
+    uv.name = 'leaf-edges'
+    for coordinate in uv.data:
+        coordinate.uv = (.984, .984)
+    group = core.vertex_groups.new(name='Canopy interior')
+    group.add(list(range(len(core.data.vertices))), 1, 'REPLACE')
+    for polygon in core.data.polygons:
+        polygon.use_smooth = True
+    parts.append(core)
+    vertices, faces, texcoords = [], [], []
+    kind = 2 if pine else 1 if mat == silver else seed % 2
+    tx, ty = (kind % 2) / 2, (kind // 2) / 2
+    count = 6
+    for i in range(count):
+        angle = i * 2.399 + seed * .37
+        c, s = math.cos(angle), math.sin(angle)
+        dx, dy = math.cos(angle) * .24, math.sin(angle) * .24
+        dz = (i % 3 - 1) * .17
+        tilt = .55 + (i % 4) * .26
+        ct, st = math.cos(tilt), math.sin(tilt)
+        offset = len(vertices)
+        points = [(-.82,0,-.62),(0,.16,-.62),(.82,0,-.62),
+                  (-.82,0,.80),(0,.16,.80),(.82,0,.80)]
+        for x, y, z in points:
+            y, z = y * ct - z * st, y * st + z * ct
+            vertices.append((x * c - y * s + dx, x * s + y * c + dy,
+                             z + dz + rng.uniform(-.055,.055)))
+        faces.extend([(offset,offset+1,offset+4,offset+3),
+                      (offset+1,offset+2,offset+5,offset+4)])
+        texcoords.extend([[(tx,ty),(tx+.25,ty),(tx+.25,ty+.5),(tx,ty+.5)],
+                          [(tx+.25,ty),(tx+.5,ty),(tx+.5,ty+.5),(tx+.25,ty+.5)]])
+    mesh = bpy.data.meshes.new('folded-leaf-sprays')
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    uv = mesh.uv_layers.new(name='leaf-edges')
+    for face, coordinates in zip(mesh.polygons, texcoords):
+        for loop_index, coordinate in zip(face.loop_indices, coordinates):
+            uv.data[loop_index].uv = coordinate
+        face.use_smooth = True
+    obj = bpy.data.objects.new('folded-leaf-sprays', mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.location, obj.scale = center, size
+    mesh.materials.append(mat)
+    parts.append(obj)
+    return obj
+
+def thin_distant_leaves(obj):
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    uv = bm.loops.layers.uv.active
+    if not uv:
+        bm.free()
+        return
+    lo = [min(v.co[a] for v in bm.verts) for a in range(3)]
+    hi = [max(v.co[a] for v in bm.verts) for a in range(3)]
+    def extreme(face):
+        return any(abs(v.co[a] - lo[a]) < 1e-7 or abs(v.co[a] - hi[a]) < 1e-7
+                   for v in face.verts for a in range(3))
+    def leaf_face(face):
+        return any(abs(loop[uv].uv.x - .984) > .002 or
+                   abs(loop[uv].uv.y - .984) > .002 for loop in face.loops)
+    removed = [face for face in bm.faces if leaf_face(face) and
+               (face.index // 2) % 3 != 0 and not extreme(face)]
+    bmesh.ops.delete(bm, geom=removed, context='FACES')
+    loose = [vertex for vertex in bm.verts if not vertex.link_faces]
+    if loose:
+        bmesh.ops.delete(bm, geom=loose, context='VERTS')
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+
+
 def crown(center, size, mat=leaf, irregular=.12, seed=0):
+    if mat != rock_mat:
+        return folded_leaf_sprays(center, size, mat, seed)
     rng = random.Random(seed)
     # A crown is a broken cluster of small sprays. Separate lobes give the
     # miniature a fine edge instead of the previous large smooth ellipsoids.
@@ -143,6 +294,10 @@ def needle_cluster(center, size, mat=needle, seed=0):
     data.materials.append(mat)
     for poly in data.polygons:
         poly.use_smooth = False
+    uv = obj.data.uv_layers.active or obj.data.uv_layers.new(name='leaf-edges')
+    uv.name = 'leaf-edges'
+    for coordinate in uv.data:
+        coordinate.uv = (.984, .984)
     parts.append(obj)
     return obj
 
@@ -282,11 +437,13 @@ for source in list(bpy.data.objects):
     distant.name = source.name + '_distant'
     bpy.context.collection.objects.link(distant)
     bpy.context.view_layer.objects.active = distant
+    thin_distant_leaves(distant)
     modifier = distant.modifiers.new('Country view geometry', 'DECIMATE')
     modifier.ratio = {'oak': .18, 'beech': .20, 'pine': .22,
         'cypress': .18, 'olive': .14, 'orchard': .15}[source.name]
     # The ground-connected stem must survive from every direction. Protect
-    # only its disconnected component on the distant copy, not every branch.
+    # its connected component, the small crown interiors and surviving leaf
+    # surfaces on the distant copy; collapse the other branch detail.
     edges = [[] for _ in distant.data.vertices]
     for edge in distant.data.edges:
         a, b = edge.vertices
@@ -300,6 +457,16 @@ for source in list(bpy.data.objects):
             continue
         stem.add(index)
         pending.extend(edges[index])
+    uv = distant.data.uv_layers.active
+    if uv:
+        for polygon in distant.data.polygons:
+            if any(abs(uv.data[i].uv.x - .984) > .002 or abs(uv.data[i].uv.y - .984) > .002 for i in polygon.loop_indices):
+                stem.update(polygon.vertices)
+    interior = distant.vertex_groups.get('Canopy interior')
+    if interior:
+        for vertex in distant.data.vertices:
+            if any(membership.group == interior.index and membership.weight > .5 for membership in vertex.groups):
+                stem.add(vertex.index)
     group = distant.vertex_groups.new(name='Country stem silhouette')
     group.add(list(stem), 1, 'REPLACE')
     modifier.vertex_group = group.name
@@ -318,6 +485,31 @@ options = dict(filepath=str(DEST), export_format='GLB', export_apply=True,
     export_materials='EXPORT', export_all_vertex_colors=True, export_colors=True,
     export_cameras=False, export_lights=False)
 bpy.ops.export_scene.gltf(**{k: v for k, v in options.items() if k in properties})
+# glTF alpha-test is explicit even when Blender exports its dithered preview.
+import struct
+blob = DEST.read_bytes()
+json_size = struct.unpack_from('<I', blob, 12)[0]
+document = json.loads(blob[20:20 + json_size])
+binary_start = 20 + json_size
+binary_size = struct.unpack_from('<I', blob, binary_start)[0]
+binary = blob[binary_start + 8:binary_start + 8 + binary_size]
+# Blender's Multiply node reserves white COLOR_0 and puts the authored
+# tint in COLOR_1. glTF renderers use COLOR_0 for the base-colour product.
+# Bind that actual corner-colour accessor on trees; rock keeps its old colour.
+for mesh in document.get('meshes', []):
+    for primitive in mesh['primitives']:
+        surface = document['materials'][primitive['material']]
+        attributes = primitive['attributes']
+        if surface['name'] == 'weathered-bark' and 'COLOR_1' in attributes:
+            attributes['COLOR_0'] = attributes.pop('COLOR_1')
+for surface in document.get('materials', []):
+    if surface.get('name') == 'weathered-bark':
+        surface.update(alphaMode='MASK', alphaCutoff=.45, doubleSided=True)
+encoded = json.dumps(document, separators=(',', ':')).encode()
+encoded += b' ' * (-len(encoded) % 4)
+DEST.write_bytes(struct.pack('<III', 0x46546C67, 2, 28 + len(encoded) + len(binary)) +
+    struct.pack('<II', len(encoded), 0x4E4F534A) + encoded +
+    struct.pack('<II', len(binary), 0x004E4942) + binary)
 print('VEGETATION_GLTF', DEST, DEST.stat().st_size)
 for obj in bpy.data.objects:
     if obj.type == 'MESH':

@@ -1428,9 +1428,11 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
     if (!snowy.length) continue;
     snowSurface ??= material(scene, "landscape-snow", "#FFFFFF");
     prepareMineralSurface(snowSurface, true);
+    snowSurface.bumpTexture = scene.getTextureByName("land-earth-normal");
     snowSurface.specularColor = new Color3(.065, .075, .085);
     snowSurface.specularPower = 20;
-    // The separate material omits the rock joints and coarse rock bump.
+    // Fine existing soil grain gives the snow a small surface scale while
+    // leaving coarse rock joints and their stronger bump on exposed mineral.
     // Positions and normals come directly from the actual surveyed terrain.
     const snowMesh = new Mesh(mesh.name.replace("mineral-", "snow-"), scene),
       data = new VertexData(), normals = mesh.getVerticesData("normal"),

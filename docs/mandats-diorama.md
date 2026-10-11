@@ -563,7 +563,7 @@ huit matériaux et 10 911 476 octets compressés. Son SHA256 est
 Deux fabrications du terrain et deux exports du GLB végétal retrouvent chaque
 fichier retenu octet par octet. L’inspection réelle compte 778 maisons acceptées,
 sept ports et 34 bateaux. Aucun bateau contrôlé ne croise celui d’un autre port,
-et les canopées contrôlées ne croisent aucun des douze monuments inspectés.
+et les canopées contrôlées ne croisent aucun des onze monuments locaux inspectés.
 
 Le check complet passe 1 082 tests, trois cibles TypeScript, le build,
 le pré-rendu et le précache de 150 ressources. La suite rework complète passe
@@ -588,3 +588,80 @@ maximale de 11,485 sur cet export ; il ne certifie aucune borne universelle
 et ne remplace pas l’inspection de leurs grandes surfaces. Le [manifeste 43](mandats-diorama/screens-43/manifest.json) conserve les
 pièces ; les suites complètes gardent aussi leurs rapports et parcours dans le
 workspace. SwiftShader ne certifie pas la fluidité d’un appareil physique.
+
+
+## Itération 44 — feuillages, replis et éclats, fidélité en cours
+
+La [comparaison 44](mandats-diorama/comparaison-44.html) conserve dix captures
+natives de production, les inspections de Paris, Lyon et du port méditerranéen,
+et une vraie mobilisation scolaire sur ordinateur et à 320/390 pixels.
+Le statut demeure **non conforme visuellement** : grandes faces alpines,
+falaises répétitives, embouchure méditerranéenne trop encaissée et façades simples.
+La PR 194 reste en brouillon ; la reconstruction continue.
+
+Les bouquets feuillus associent un petit cœur opaque et six surfaces de feuilles
+pliées, inclinées dans plusieurs directions. Un atlas local de 512 × 512 pixels
+rend leurs contours irréguliers ; ces surfaces restent fixes sur les branches.
+Le GLB embarque la texture, les UV et les couleurs réelles de sommets. Le masque
+alpha de 0,45 est conservé par le renderer et ses copies de matériaux.
+Les pins gardent leurs volumes de ramures. Les treize bornes et pivots restent
+exacts, et le rocher conserve ses attributs, indices et couleurs précédents.
+
+Le modèle végétal contient 5 136 triangles détaillés et 2 057 distants,
+avec une primitive par arbre et niveau. Il mesure 697 028 octets, SHA256
+`b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350`.
+Deux générations le reproduisent exactement. Les attributs sont finis,
+les normales unitaires, les indices valides, sans triangle dégénéré.
+Certaines couronnes distantes conservent davantage de triangles que précédemment ;
+ces comptes ne constituent pas une preuve d’amélioration de la fréquence d’affichage.
+
+Les faces alpines reçoivent des replis intermédiaires, en conservant la
+triangulation des grands parents et leurs limites partagées. Les épaules hautes
+sont plus larges. Cent nouveaux éclats sont orientés sur les faces réelles,
+75 dans les Alpes et 25 dans les Pyrénées, en plus des 88 rochers existants.
+Le [contrôle des bases rendues](mandats-diorama/screens-44/rendered-rock-contacts.json)
+mesure un dégagement maximal de −0,00235 sur leurs coins, centres et sondes
+intérieures : ces bases restent enfoncées dans le sol après les fractures.
+Ce relevé ne certifie pas toutes les collisions ni la conformité visuelle.
+
+Les textures de roche et leurs normales sont recuites depuis la recette locale.
+Deux des neuf cartes changent ; les sept autres restent identiques. Deux
+fabrications reproduisent les neuf PNG et leurs pixels. La neige conserve
+son matériau propre avec la normale de terre fine déjà chargée.
+Le terrain contient 320 329 triangles, 387 537 sommets, 17 maillages,
+huit matériaux et 11 517 192 octets compressés, SHA256
+`bffb1e4fe62fa7d3bf34de6336a035f64d56ff518189810a21c63a609a114347`.
+Deux fabrications reproduisent l’archive et son manifeste octet par octet.
+
+L’inspection réelle conserve 778 maisons acceptées, sept ports et 34 bateaux.
+Le [relevé des ports](mandats-diorama/screens-44/harbour-footprint-audit.json)
+ne relève aucun recouvrement entre leurs polygones de quais et bateaux respectifs.
+Le contrôle élargi porte sur quinze monuments et repère six recouvrements
+possibles de boîtes horizontales avec des arbres à Paris et Toulouse.
+Les triangles doivent encore être inspectés et les gardes communs complétés.
+Le relevé précédent portait seulement sur onze monuments locaux, tous dégagés ;
+la description de la passe 43 est corrigée en conséquence.
+
+Le check complet passe 1 082 tests, trois cibles TypeScript, le build,
+le pré-rendu et le précache de 150 ressources, version `ebc32c537c23c973`.
+La suite rework originale complète conserve 22 réussites, neuf omissions
+configurées et un échec de reprise DPR WebKit à la limite originale de
+15 secondes, en 20 minutes. La suite social originale complète passe 13 tests actifs avec ses trois omissions configurées, sans échec ni test instable, en 12,9 minutes.
+Les tests, délais, retries, workers et omissions restent inchangés.
+
+La [CI du commit précédent 97d7714](mandats-diorama/screens-44/previous-ci.json)
+conserve un échec rework sur la reprise DPR WebKit après les 15 secondes
+originales, avec 22 réussites et neuf omissions configurées. Site conserve
+231 réussites, 65 omissions et trois tests instables, avec un échec de création
+du contexte Playwright d’une partie v12 après les 60 secondes originales.
+Les sept autres jobs passent. Ces résultats concernent la passe 43.
+
+Les dix captures natives contrôlent zéro erreur de page, de console, de requête
+et HTTP. Leurs réponses JS/CSS correspondent au build réellement servi.
+Aucune caméra, sauvegarde, réponse réseau, modèle ou sélection de détail n’est
+forcée. L’inspection compte 2 660 261 triangles de modèles actifs dans la
+vue initiale ; le compteur toutes passes de Babylon comprend aussi les ombres.
+Les 80 176 sondes du terrain conservent exactement les hauteurs de l’ancien
+index. Le relevé alpin atteint une pente de 13,060 sur cet export, sans borne
+universelle ni verdict artistique. Le [manifeste 44](mandats-diorama/screens-44/manifest.json)
+conserve les pièces. SwiftShader ne certifie pas la fluidité d’un appareil physique.

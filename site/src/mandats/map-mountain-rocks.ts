@@ -4,7 +4,7 @@ import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/core/Meshes/instancedMesh";
 import { mountainFaceSurvey } from "./map-land-crags.ts";
 import { landContains, riverContains } from "./map-landscape.ts";
@@ -293,11 +293,83 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     placements.push({ x, z, radius, height, floor, groundMinimum: lowest, groundMaximum: highest, alpine: face.alpine, snowy, footprint });
     if (face.alpine) alpineCount++; else pyreneanCount++;
   }
-  scene.metadata = { ...scene.metadata, mountainRocks: { count: placements.length, alpineCount, pyreneanCount,
-    templates: templates.size, sourceTriangles: faces.length, placements,
+  // Fine protrusions grow out of the actual inclined facet. Their closed
+  // volumes sit below the sampled ground along its normal, with no terrain
+  // replacement and no billboard surface.
+  const facetPlacements: Array<{ x: number; y: number; z: number; radius: number;
+    height: number; embedded: number; maximumBaseClearance: number; alpine: boolean; footprint: Point[] }> = [];
+  let alpineFacets = 0, pyreneanFacets = 0;
+  for (const { face, i } of ranked) {
+    if (alpineFacets >= 75 && pyreneanFacets >= 25) break;
+    if (face.alpine ? alpineFacets >= 75 : pyreneanFacets >= 25) continue;
+    const [a, b, c] = face.polygon, [ay, by, cy] = face.heights,
+      denominator = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+    if (Math.abs(denominator) < 1e-10) continue;
+    const gx = ((by - ay) * (c.z - a.z) - (cy - ay) * (b.z - a.z)) / denominator,
+      gz = ((b.x - a.x) * (cy - ay) - (c.x - a.x) * (by - ay)) / denominator,
+      slope = Math.hypot(gx, gz);
+    if (slope < 1.10 || slope > 4.80) continue;
+    const x = (a.x + b.x + c.x) / 3, z = (a.z + b.z + c.z) / 3,
+      y = surfaceAt({ x, z });
+    if (!(y > (face.alpine ? .51 : .39)) || !Number.isFinite(y)) continue;
+    const radius = .029 + random(i, 307) * .032,
+      height = .046 + random(i, 311) * .050,
+      scaleZ = .52 + random(i, 313) * .32,
+      variant = random(i, 319) < .72 ? 3 : Math.floor(random(i, 317) * designs.length) % designs.length,
+      up = new Vector3(-gx, 1, -gz).normalize(),
+      forward = new Vector3(0, 0, 1).subtract(up.scale(up.z)).normalize(),
+      right = Vector3.Cross(up, forward).normalize(),
+      rotation = Quaternion.RotationQuaternionFromAxis(right, up, forward),
+      design = designs[variant].body.positions;
+    const world = (j: number, embedded = 0) => new Vector3(x, y, z)
+      .add(right.scale(design[j * 3] * radius))
+      .add(up.scale(design[j * 3 + 1] * height - embedded))
+      .add(forward.scale(design[j * 3 + 2] * radius * scaleZ));
+    const base = Array.from({ length: 6 }, (_, j) => world(j)),
+      contacts = [...base, ...base.map((p, j) => p.add(base[(j + 1) % 6]).scale(.5))];
+    let embedded = .006, valid = true;
+    for (const p of contacts) {
+      const ground = surfaceAt(p);
+      if (!Number.isFinite(ground)) { valid = false; break; }
+      embedded = Math.max(embedded, (p.y - ground) / up.y + .006);
+    }
+    if (!valid || embedded > height * .48) continue;
+    const shiftedBase = base.map(p => p.subtract(up.scale(embedded))),
+      shiftedContacts = [...shiftedBase, ...shiftedBase.map((p, j) => p.add(shiftedBase[(j + 1) % 6]).scale(.5))],
+      clearances = shiftedContacts.map(p => p.y - surfaceAt(p)),
+      maximumBaseClearance = Math.max(...clearances);
+    if (!clearances.every(Number.isFinite) || maximumBaseClearance > .0005) continue;
+    const vertices = Array.from({ length: design.length / 3 }, (_, j) => world(j, embedded)),
+      footprint = hull(vertices.map(p => ({ x: p.x, z: p.z }))),
+      padded = footprint.map(p => ({ x: x + (p.x - x) * 1.08, z: z + (p.z - z) * 1.08 }));
+    if (facetPlacements.some(p => Math.hypot(p.x - x, p.z - z) < (p.radius + radius) * .72)) continue;
+    if (footprint.some(p => !landContains(p.x, p.z) || riverContains(p.x, p.z, .035))) continue;
+    if ([...candidates(barriers, padded)].some(p => overlapping(p, padded)) ||
+      placements.some(p => overlapping(p.footprint, padded))) continue;
+    const exposed = vertices.some(p => {
+      const ground = surfaceAt(p);
+      return Number.isFinite(ground) && p.y - ground > .010;
+    });
+    if (!exposed) continue;
+    const snowy = face.mesh.name.includes("snow") && random(i, 353) > .88;
+    for (const white of snowy ? [false, true] : [false]) {
+      const instance = template(variant, white).createInstance(`mountain-facet-${white ? "snow" : "stone"}-${facetPlacements.length}`);
+      instance.position.copyFrom(new Vector3(x, y, z).subtract(up.scale(embedded)));
+      instance.rotationQuaternion = rotation;
+      instance.scaling.set(radius, height, radius * scaleZ);
+      instance.isPickable = false; instance.setEnabled(true);
+      instance.metadata = { assetInstance: true, mountainRock: true, castsShadow: !white };
+      output.push(instance);
+    }
+    facetPlacements.push({ x, y, z, radius, height, embedded, maximumBaseClearance, alpine: face.alpine, footprint });
+    if (face.alpine) alpineFacets++; else pyreneanFacets++;
+  }
+  scene.metadata = { ...scene.metadata, mountainRocks: { count: placements.length + facetPlacements.length,
+    alpineCount: alpineCount + alpineFacets, pyreneanCount: pyreneanCount + pyreneanFacets, coarseCount: placements.length,
+    templates: templates.size, sourceTriangles: faces.length, placements, facetPlacements, alpineFacets, pyreneanFacets,
     method: "Actual mineral triangles and full scenery footprints, grounded below the lowest true soil sample; shared rock/snow geometry." } };
   // Sculpt only unoccupied ground after all original stone/snow seats exist.
-  fractureMineralTerrain(scene, faces, barriers, placements.map(p => p.footprint), STEP);
+  fractureMineralTerrain(scene, faces, barriers, [...placements, ...facetPlacements].map(p => p.footprint), STEP);
   mineral.clear(); barriers.clear();
   return output;
 }

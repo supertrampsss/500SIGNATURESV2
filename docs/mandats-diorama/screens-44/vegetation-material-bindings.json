@@ -1,0 +1,223 @@
+{
+  "artifactRevision": 44,
+  "method": "Read actual GLB material, texture and accessor bindings and embedded PNG alpha. This is asset authoring evidence, not a visual or timing gate.",
+  "sha256": "b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350",
+  "primitives": [
+    {
+      "mesh": "Cone",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.009",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.020",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.051",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.052",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.060",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Icosphere.053",
+      "alphaMode": "OPAQUE",
+      "alphaCutoff": null,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5126,
+        "type": "VEC3",
+        "normalized": null
+      }
+    },
+    {
+      "mesh": "Cone.067",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.068",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.069",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.070",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.071",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    },
+    {
+      "mesh": "Cone.072",
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.45,
+      "doubleSided": true,
+      "colorAccessor": {
+        "componentType": 5123,
+        "type": "VEC4",
+        "normalized": true
+      },
+      "texture": 0,
+      "uvAccessor": {
+        "componentType": 5126,
+        "type": "VEC2"
+      }
+    }
+  ],
+  "images": [
+    {
+      "size": [
+        512,
+        512
+      ],
+      "pngBytes": 41398,
+      "pngSHA256": "8b3f3d849f3b4f3a4c51f71f7c16b635e9f211f3ed5c1523c490b7b5730fa9e6",
+      "rgbaSHA256": "2e50a372b3aa271fe8bcec162bab3d7c7d580c4b3036b76cc6655057d70e0bdf",
+      "transparentPixels": 178496,
+      "retainedPixelsAtCutoff": 83648
+    }
+  ]
+}

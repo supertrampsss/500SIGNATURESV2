@@ -160,11 +160,11 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
     const points = [
       // Unequal summits meet along a narrow arête. Lower saddles keep each
       // mountain distinct in the national view instead of a flat white roof.
-      [-.064,.133,1.23], [.108,.031,.97], [-.118,-.126,.84],
-      [-.018,.064,.84], [.033,-.029,.69], [-.070,-.048,.77], [.108,-.112,.60],
+      [-.064,.133,1.13], [.108,.031,1.00], [-.118,-.126,.91],
+      [-.018,.064,.91], [.033,-.029,.76], [-.070,-.048,.83], [.108,-.112,.60],
       // Broad shoulders meet at different levels, rather than radial spires.
-      [-.210,.103,.64], [-.183,.169,.43], [-.073,.214,.67], [.085,.169,.48],
-      [.205,.091,.59], [.188,-.041,.44], [.115,-.177,.35],
+      [-.210,.103,.77], [-.183,.169,.51], [-.073,.214,.86], [.085,.169,.48],
+      [.205,.091,.68], [.188,-.041,.49], [.115,-.177,.35],
       [-.067,-.203,.39], [-.215,-.127,.48], [-.260,-.020,.27],
       // Open couloirs have low mouths and one offset rock step above them.
       [-.036,.248,.29], [.215,.186,.30], [.267,-.083,.24], [.014,-.260,.25],
@@ -404,6 +404,43 @@ function fracturedRockFace(triangle: RockTriangle) {
   return result;
 }
 
+/** Medium rock folds share every edge sample. Fixed six-way subdivision
+ * keeps the original corners and never retriangulates the complete control set. */
+function foldedRockPlanes(triangle: RockTriangle): RockTriangle[] {
+  if (triangle.band < 100000 || triangle.band >= 110000) return [triangle];
+  const points = triangle.x.map((x, i) => ({ x, z: triangle.z[i], height: triangle.h[i] })),
+    strength = (height: number) => Math.max(0, Math.min(1, (height - .22) / .40));
+  const mids = points.map((a, i) => {
+    const b = points[(i + 1) % 3], x = (a.x + b.x) / 2, z = (a.z + b.z) / 2,
+      reach = Math.hypot(a.x - b.x, a.z - b.z),
+      fold = Math.sin(x * 23 + z * 17) * Math.sin(x * 7 - z * 11);
+    return { x, z, height: (a.height + b.height) / 2 +
+      Math.min(.035, reach * .17) * strength(Math.min(a.height, b.height)) * fold };
+  });
+  const x = triangle.x.reduce((sum, value) => sum + value / 3, 0),
+    z = triangle.z.reduce((sum, value) => sum + value / 3, 0),
+    height = triangle.h.reduce((sum, value) => sum + value / 3, 0),
+    area2 = Math.abs(1 / triangle.inverse),
+    longest = Math.max(...points.map((p, i) => Math.hypot(p.x - points[(i + 1) % 3].x, p.z - points[(i + 1) % 3].z))),
+    altitude = area2 / Math.max(longest, 1e-10),
+    centre = { x, z, height: height + Math.min(.045, altitude * .35) *
+      strength(height) * Math.sin(x * 17 - z * 19 + height * 4) },
+    rim = [points[0], mids[0], points[1], mids[1], points[2], mids[2]],
+    result: RockTriangle[] = [];
+  for (let i = 0; i < rim.length; i++) {
+    const corners = [rim[i], rim[(i + 1) % rim.length], centre],
+      xs = corners.map(p => p.x), zs = corners.map(p => p.z), hs = corners.map(p => p.height),
+      denominator = (zs[1] - zs[2]) * (xs[0] - xs[2]) + (xs[2] - xs[1]) * (zs[0] - zs[2]);
+    if (Math.abs(denominator) < 1e-12) continue;
+    const gx = ((hs[1] - hs[0]) * (zs[2] - zs[0]) - (hs[2] - hs[0]) * (zs[1] - zs[0])) / denominator,
+      gz = ((xs[1] - xs[0]) * (hs[2] - hs[0]) - (xs[2] - xs[0]) * (hs[1] - hs[0])) / denominator,
+      length = Math.hypot(gx, 1, gz);
+    result.push({ x: xs, z: zs, h: hs, inverse: 1 / denominator, band: triangle.band,
+      slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length });
+  }
+  return result;
+}
+
 for (const [part, massif] of sculptedMassifs.entries()) {
   const baseline = [...massif.boundary, ...massif.points].map(([lon, lat, height]) => ({ ...mapPosition(lon, lat), height }));
   const baselineFaces = Delaunator.from(baseline, point => point.x, point => point.z).triangles;
@@ -446,7 +483,8 @@ for (const [part, massif] of sculptedMassifs.entries()) {
     const triangle: RockTriangle = { x, z, h, inverse: 1 / denominator,
       band: 100000 + part * 10000 + face, slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length };
     indexRockFace(parentRockCells, triangle);
-    for (const shelf of steppedRockFace(triangle)) indexRockFace(rockCells, shelf);
+    for (const plane of foldedRockPlanes(triangle))
+      for (const shelf of steppedRockFace(plane)) indexRockFace(rockCells, shelf);
     for (let edge = 0; edge < 3; edge++) {
       const a = ids[edge], b = ids[(edge + 1) % 3], key = `${Math.min(a, b)}:${Math.max(a, b)}`;
       if (edges.has(key)) continue;

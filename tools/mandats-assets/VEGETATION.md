@@ -17,31 +17,37 @@ La génération crée `vegetation.blend` et exporte seulement
 conserve les dimensions exactes des treize modèles. La génération ne dépend
 ni d'un répertoire de vérification ni des sources d'architecture.
 
-## Modèles de l'itération 43
+## Modèles de l'itération 44
 
-Les feuillus portent des bouquets composés de petites pousses dissymétriques.
-Les pins gardent leurs ramures angulaires étagées et leur pointe. Les cyprès
-gardent un contour étroit interrompu. Des tons olive, éclairés et sombres,
-remplacent les feuillages trop pâles observés dans les captures précédentes.
-La teinte d'écorce est conservée.
+Les feuillus portent des bouquets associant un petit cœur opaque et six
+surfaces de feuilles pliées, inclinées dans plusieurs directions. Un atlas
+local de 512 × 512 pixels découpe leurs contours. Ces surfaces restent fixes
+dans les branches ; elles ne s'orientent pas vers la caméra. Les pins gardent
+leurs volumes de ramures angulaires et leur pointe. Les couleurs olive,
+éclairées et sombres restent portées par les sommets.
 
 Chaque arbre exporte une seule primitive : son écorce et ses feuillages partagent
-le même matériau mat, avec leurs couleurs distinctes dans `COLOR_0`. Cette
+le même matériau mat, avec leurs couleurs distinctes dans `COLOR_0`. L'atlas
+est embarqué dans le GLB. Les UV d'écorce et des cœurs opaques utilisent une
+zone blanche ; seules les feuilles reçoivent des contours découpés. Le mode
+glTF est `MASK`, avec un seuil de 0,45 et deux faces éclairées. Le renderer
+conserve ce seuil lors de la copie des matériaux régionaux. Cette
 organisation réduit le nombre de parties instanciées par Babylon. Les bornes,
 noms et pivots sont conservés exactement. La décimation protège le composant
-du tronc relié au sol sur chaque copie distante. La roche conserve ses attributs,
+du tronc relié au sol, les cœurs de couronne et les surfaces feuillues retenues
+sur chaque copie distante. Les autres branches sont décimées. La roche conserve ses attributs,
 indices et couleurs précédents.
 
 | Modèle | Triangles détaillés | Triangles distants | Primitives par niveau |
 | --- | ---: | ---: | ---: |
-| Chêne | 2596 | 426 | 1 |
-| Hêtre | 1804 | 340 | 1 |
+| Chêne | 964 | 516 | 1 |
+| Hêtre | 748 | 348 | 1 |
 | Pin | 1860 | 378 | 1 |
-| Cyprès | 1424 | 228 | 1 |
-| Olivier | 1312 | 135 | 1 |
-| Fruitier | 1148 | 136 | 1 |
+| Cyprès | 464 | 314 | 1 |
+| Olivier | 544 | 263 | 1 |
+| Fruitier | 476 | 238 | 1 |
 | Roche | 80 | aucune variante | 1 |
-| Total | 10224 | 1643 | |
+| Total | 5136 | 2057 | |
 
 Ce sont les triangles décodés dans le GLB exporté. Le
 [manifeste](vegetation-lod-manifest.json) conserve les empreintes, nombres de
@@ -50,16 +56,20 @@ reproduit le modèle retenu octet par octet. Les treize modèles ont des attribu
 finis, des normales unitaires et des indices valides. L'audit ne relève aucun
 triangle dégénéré ni désaccord entre la normale d'une face et ses sommets.
 
-GLB retenu : 1203012 octets ; SHA256
-`9614a8ab7d69bc8c3e9c13ae5252baf177519fabe77afa92f24cbc6772174872`.
+GLB retenu : 697028 octets ; SHA256
+`b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350`.
 La comparaison utilise les octets du GLB du commit précédent, dont le SHA256
-est `5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42`.
-Les feuillus utilisent sept petites pousses plus espacées par bouquet, contre
-cinq pousses plus volumineuses précédemment. Les couronnes détaillées et
-distantes sont modifiées ensemble. Le pin et la roche conservent leurs
-attributs, indices et couleurs exactement.
+est `9614a8ab7d69bc8c3e9c13ae5252baf177519fabe77afa92f24cbc6772174872`.
+Les couronnes détaillées et distantes sont modifiées ensemble. Les treize
+bornes restent exactes ; l'audit confirme les attributs, indices et couleurs
+de la roche. L'export Blender réserve un `COLOR_0` blanc sur le matériau
+texturé et place les couleurs d'angle dans `COLOR_1` : la fabrication relie
+cet accesseur au `COLOR_0` utilisé par glTF, avant de fixer le masque alpha.
+Le modèle détaillé est plus léger, tandis que certaines couronnes distantes
+conservent davantage de triangles. Ces comptes ne prouvent pas une hausse
+de fréquence d'affichage.
 
-La sélection réelle des modèles de végétation détaillés utilise maintenant
+Depuis l'itération 43, la sélection réelle des modèles détaillés utilise
 une couverture d'écran de 0,0024, contre 0,0012 précédemment. Les bâtiments
 gardent 0,0012. Cette modification appartient au moteur livré ; les captures
 n'imposent aucun niveau de détail. Les deux variantes de chaque arbre gardent
