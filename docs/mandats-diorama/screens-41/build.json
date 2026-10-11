@@ -1,0 +1,12 @@
+{
+  "parentCommit": "46fc27f",
+  "productionEntry": "assets/mandats-CEoD_WHs.js",
+  "entryBytes": 3213386,
+  "entrySHA256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26",
+  "completeCheck": "full-check.log",
+  "unitTests": 1082,
+  "unitFailures": 0,
+  "offlineResources": 149,
+  "offlineVersion": "bbb8e28e5aa6bea6",
+  "method": "Actual retained production build, native captures, no scene/camera/game/model-LOD overrides. Artistically nonconform, draft PR194. Software Chromium SwiftShader does not establish physical-device frame rate."
+}

@@ -591,6 +591,7 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
   background: linear-gradient(to right, #14579a 0 33%, #fffaf2 33% 66%, #b71829 66% 100%);
 }
 .map-agenda { display: grid; gap: 12px; }
+@media (min-width: 821px) { .map-agenda { margin-inline: -4px; } }
 .map-agenda__item {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);

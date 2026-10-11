@@ -398,3 +398,71 @@ Les 33 pièces et leurs empreintes sont dans
 [le manifeste 40](mandats-diorama/screens-40/manifest.json). Les rapports complets
 avec images des tests DPR restent aussi archivés dans le workspace, distincts
 des fichiers publiés du jeu.
+
+
+Complément de diagnostic après le point de contrôle 40 : les captures relevaient
+bien zéro erreur de page et zéro échec HTTP, mais leur console contenait trois
+messages SVG `M 26 26 L NaN NaN` lors de la première projection, avant le premier
+dessin. Les JSON archivés les conservent. L’itération 41 initialise les matrices
+et refuse les projections non finies ; ses captures source propres contrôlent
+aussi toutes les erreurs de console. La fidélité et la validation de cette
+itération restent en cours.
+
+
+## Itération 41 — précision du relief et des ports, fidélité en cours
+
+La [comparaison 41](mandats-diorama/comparaison-41.html) présente sept captures
+natives du build réel, dont la mobilisation lycéenne obtenue après un choix
+scolaire et les compositions de production à 320/390 pixels DPR 2. Le statut
+reste **non conforme visuellement** : grandes masses blanches, facettes,
+bois, arrière-plans et finition architecturale demandent encore du travail.
+La PR 194 reste en brouillon et ce point de contrôle ne termine pas la demande.
+
+Les arêtes rocheuses partagent leurs hauteurs et la variation intérieure est
+limitée selon la pente du plan parent. Le maximum relevé sur les triangles
+alpins réels passe de 10,777 à 7,273 ; ce n’est pas une limite universelle de 4,6.
+Les feuillus distants portent 314/256 triangles, sans changement des six arbres
+détaillés ni des treize bornes. Un grain suit le feuillage ; les arbres français
+varient en hauteur en conservant leurs emprises horizontales protégées.
+Cherbourg et Dunkerque ajoutent leurs quais aux bourgs décoratifs existants,
+sans lieu de jeu supplémentaire. L’inspection relève sept ports et 33 bateaux.
+Les protections des quais donnent 781 maisons acceptées. Les anciens phares
+isolés du Cotentin et de Flandre cèdent leur place aux nouveaux ouvrages portuaires.
+
+Les matrices de projection sont prêtes avant le premier repère SVG. Les captures
+contrôlent réellement zéro erreur de console, de page, de requête et HTTP.
+« Mobilisation lycéenne » tient sur une ligne dans l’agenda ; Lyon garde son
+libellé à droite quand il y a de la place. À 320/390 pixels, les anneaux restent
+à moins de 0,02 pixel de leur projection. Le rayon national mesuré est 14,02 sur
+ordinateur, 13,45 sur téléphone ; la vraie inspection de Lyon atteint 3,8.
+
+Le terrain conserve ses tableaux GPU float32 au chargement. L’index des
+fondations utilise les triangles réels sans dupliquer leurs sommets :
+[6 628 comparaisons](mandats-diorama/screens-41/ground-survey-audit.json)
+conservent exactement les hauteurs précédentes. L’éclairage distribué passe
+de 1 102 156 à 238 984 octets. Ses neuf coefficients diffus et ses 48 images de 128
+à 1 pixel sont identiques au cube retenu ; les six images de 256 pixels sont
+omises, avec un décalage réel de −0,2. Les surfaces les plus lisses peuvent perdre
+ce niveau fin. Cela réduit le travail de préparation sans supprimer les volumes.
+
+Le check complet passe 1 082 tests, les trois cibles TypeScript, le build,
+le pré-rendu et le précache de 149 ressources. Les deux parcours DPR originaux
+passent en 1,8 minute, dont WebKit en 36,7s, sans modification du délai de 15s.
+Le test original ciblé d’importation, export et reprise sur ordinateur passe en 7,9s.
+Ces trois tests ne sont pas les suites complètes : rework, social, header,
+mandats, board et story restent à contrôler sur la version finalement retenue.
+La [CI 40](mandats-diorama/screens-41/previous-ci.json) échoue sur la reprise DPR
+WebKit et un parcours d’importation v9 : 230 réussites, 65 omissions configurées,
+quatre tests instables et un échec dans le contrôle site. Ses autres jobs passent.
+Ces résultats antérieurs et les contrôles ciblés ne valident pas la CI 41.
+
+Le build capturé charge `mandats-CEoD_WHs.js`, SHA256
+`3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26`.
+Le terrain contient 299 798 triangles, huit matériaux et 17 meshes ; son SHA256
+est `490fdd3f6dcf3398d31a15885a631c12cb197442b0f9f38af1898ec506b87678`.
+Les reproductions du terrain, du GLB végétal et de la recomposition d’éclairage
+conservent les fichiers retenus octet par octet. Douze monuments ne croisent
+aucune canopée contrôlée et aucun bateau ne croise celui d’un autre port.
+Le [manifeste 41](mandats-diorama/screens-41/manifest.json) conserve les pièces.
+Les rapports complets des tests ciblés restent archivés dans le workspace.
+Ces preuves utilisent SwiftShader et ne mesurent pas la fluidité d’un appareil physique.

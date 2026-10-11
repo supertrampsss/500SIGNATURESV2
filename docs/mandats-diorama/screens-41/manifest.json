@@ -1,0 +1,200 @@
+{
+  "visualStatus": "nonconform, work continues, draft PR194",
+  "files": [
+    {
+      "file": "alpine-face-audit.json",
+      "bytes": 7675,
+      "sha256": "50e6178d6468cea326b143cfada23490d017b3b2100837cc0f21ab87ff22abde"
+    },
+    {
+      "file": "build.json",
+      "bytes": 562,
+      "sha256": "bd95ca1a4f1ae46ae29683caeddd47cdcee6444188456778a3c2835689749654"
+    },
+    {
+      "file": "compact-report.json",
+      "bytes": 7644,
+      "sha256": "b757b83b28a32344ba2a56fd8ecaac686aefd4f3f64f0c32ed5dbedd2d90d3cc"
+    },
+    {
+      "file": "full-check.log",
+      "bytes": 104504,
+      "sha256": "3986444f3bcda6251b1af900510269da08416ed6dd4d2363fe761ef2aefedf2a"
+    },
+    {
+      "file": "ground-survey-audit.json",
+      "bytes": 753,
+      "sha256": "c378c72422cb1352b67735ae50e444b0502d915928fc558c957cc7112956eea1"
+    },
+    {
+      "file": "harbour-footprint-audit.json",
+      "bytes": 172,
+      "sha256": "c90b386516253c9aff1e399bd047bf372b9820f271bb7abeacd5e22ec2eaa895"
+    },
+    {
+      "file": "lighting-reproduction.log",
+      "bytes": 144,
+      "sha256": "3471c20dcd83ea4ce8dcd206dea53bac3e5d72553d57da2b63e70502e45a2289"
+    },
+    {
+      "file": "mandats-import-original.log",
+      "bytes": 544,
+      "sha256": "fab7066aedb41145c53f27beb422d562f1d12771ad468eaa81e4663c6855ef23"
+    },
+    {
+      "file": "movement-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "movement-01-mobilisation.json",
+      "bytes": 18827,
+      "sha256": "1127e1e3cbad70204764497b844aefeb3b7615c5d56c866d42e85b811b1895b2"
+    },
+    {
+      "file": "movement-01-mobilisation.png",
+      "bytes": 1954532,
+      "sha256": "cefedef9419364a49e881447228ee055dccbf8aaf5966b5ca34629202543ffc5"
+    },
+    {
+      "file": "previous-ci.json",
+      "bytes": 1126,
+      "sha256": "6ffdc97d7370234884b67d826753d10b60f366d8b1eb18ca7a3e144d27023036"
+    },
+    {
+      "file": "production-01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-01-national.json",
+      "bytes": 17156,
+      "sha256": "ec73951f1696415600e6c1b72fb3e3a08ac2066f329d3de748710b46a00c75d9"
+    },
+    {
+      "file": "production-01-national.png",
+      "bytes": 1955526,
+      "sha256": "a4e0b25de31ba893a944fab2cc9b3b2ce4c0c9539268da9cf91b033f4b207f7b"
+    },
+    {
+      "file": "production-04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-04-lyon-detail.json",
+      "bytes": 17298,
+      "sha256": "660a5cb21f360e13b938bb9395657d6a7bd8f4ec890459bc0f6a4e17a1f946fb"
+    },
+    {
+      "file": "production-04-lyon-detail.png",
+      "bytes": 1905838,
+      "sha256": "d08d9129f6f5f56962455ef1fcf839f3be5c28d9697b512ecae8b0fc05984482"
+    },
+    {
+      "file": "production-05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-05-lyon-alpes.json",
+      "bytes": 17394,
+      "sha256": "781de6815c5bd2f29a71ef180c8ecc86461862aca5c693c0926477c1bf2b67bb"
+    },
+    {
+      "file": "production-05-lyon-alpes.png",
+      "bytes": 2059654,
+      "sha256": "9cac8bd9051ecf6399539f1f236de3fc7fd2fdaaf9fd737dd274ff2f2d990ff0"
+    },
+    {
+      "file": "production-06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-06-national-retour.json",
+      "bytes": 17453,
+      "sha256": "889f9a8b3bd4c2688b1c7f595ec807acbb3a52ff82c1db0c018a23125037aa12"
+    },
+    {
+      "file": "production-06-national-retour.png",
+      "bytes": 1955525,
+      "sha256": "42f53e7e224ce366b4a4b6c456a64aa1913a5f7ce166b35b00775ebb3ae1ce9f"
+    },
+    {
+      "file": "production-320-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-320-01-mobilisation.json",
+      "bytes": 16273,
+      "sha256": "34a2b09fbee5cc4d0b3f16656db8dddd6084f853959fbc228bb443fa76f36260"
+    },
+    {
+      "file": "production-320-01-mobilisation.png",
+      "bytes": 663047,
+      "sha256": "702bb6826f2d3cbbe41de03b3a43e9df721ee694b290f3a9f350d32d4d20bfc1"
+    },
+    {
+      "file": "production-390-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-390-01-mobilisation.json",
+      "bytes": 16271,
+      "sha256": "2fd76149cbdbb54b56ea1f9c572bc7eb7afed7a3a02dabbc5161bc0ee4533ea8"
+    },
+    {
+      "file": "production-390-01-mobilisation.png",
+      "bytes": 933265,
+      "sha256": "d4972ff75f12995a09eb3395307a7ca4b3be9c88f612aa3816f9decb02009020"
+    },
+    {
+      "file": "rework-density-original-report.json",
+      "bytes": 11497,
+      "sha256": "f81b8604aeb8201ab12c6f4538ddf51476edf78cfb43ab6c76b52084cdf345d6"
+    },
+    {
+      "file": "rework-density-original.log",
+      "bytes": 1050,
+      "sha256": "7c578651311bea263215a999dd843d9cbd3b0146d91f5b0b7bd9566f545b70c2"
+    },
+    {
+      "file": "scene-diagnostics.json",
+      "bytes": 432323,
+      "sha256": "b6a31d9e9795c02ec1bb93a13e2c484eb34a8ee46a19a071759d46bbf7151b6f"
+    },
+    {
+      "file": "terrain-reproduction.log",
+      "bytes": 2661,
+      "sha256": "d44cf36316dfabdf6547caec5f713a027499d4d009fea28d2054dfdd47db9e81"
+    },
+    {
+      "file": "terrain-survey.json",
+      "bytes": 11000,
+      "sha256": "537023f31bf2c335930e82ef9dac7b18bcdf72043251ccdc8afcaac6fd284186"
+    },
+    {
+      "file": "vegetation-lod-manifest.json",
+      "bytes": 8449,
+      "sha256": "a662cbc170b6532532b8ee2dec3a86018c6e8f8bbf4add0b40a34d7610c1d175"
+    },
+    {
+      "file": "vegetation-reproduction.json",
+      "bytes": 8471,
+      "sha256": "35e5d43b933da85c48e7a1c20de83342d24b1ff47166c5a07a54c98649f0f2dd"
+    },
+    {
+      "file": "vegetation-reproduction.log",
+      "bytes": 2388,
+      "sha256": "cc34cfb238ab35d68293f1981d5224c5fc2333ab1758b5371e613ade2032d4fc"
+    },
+    {
+      "file": "verification.json",
+      "bytes": 6823,
+      "sha256": "64abd24fc9d3572a3896139358ec3632424f6337442027d254d091d614746daf"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
+import { GroundSurvey } from "./map-ground-survey.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { Scene } from "@babylonjs/core/scene";
@@ -571,58 +572,14 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   const baseHousePlots = allAuthoredHousePlots.filter(plot => !plot.id.includes("-tissu14-"));
 
   const parisConflicts = new Map<string, string[]>();
-  const gardenTerrainCells = new Map<string, Point[][]>(), cropTerrainCells = new Map<string, Point[][]>();
-  for (const mesh of scene.meshes.filter(mesh => mesh.name.startsWith("landscape-terrain-") ||
-    ["landscape-agriculture", "landscape-crop-rows", "landscape-field-limits"].includes(mesh.name))) {
-    const cells = mesh.name.startsWith("landscape-terrain-") ? gardenTerrainCells : cropTerrainCells;
-    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
-    if (!positions || !indices) continue;
-    for (let i = 0; i < indices.length; i += 3) {
-      const triangle: Point[] = [0, 1, 2].map(j => {
-        const k = indices[i + j] * 3; return [positions[k], positions[k + 1], positions[k + 2]];
-      }),
-        minX = Math.min(...triangle.map(p => p[0])), maxX = Math.max(...triangle.map(p => p[0])),
-        minZ = Math.min(...triangle.map(p => p[2])), maxZ = Math.max(...triangle.map(p => p[2]));
-      for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
-        for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++) {
-          const key = `${x}:${z}`, cell = cells.get(key) ?? [];
-          cell.push(triangle); cells.set(key, cell);
-        }
-    }
-  }
-  // Retaining foundations cover the actual rendered terrain as well as the
-  // analytic ground survey. Planar triangle extrema occur at clipped vertices.
-  const renderedFootprintLevels = (outline: GroundPoint[], cells = gardenTerrainCells): number[] => {
-    const polygon = [...outline], signedArea = polygon.reduce((sum, p, i) => {
-      const q = polygon[(i + 1) % polygon.length]; return sum + p.x * q.z - q.x * p.z;
-    }, 0);
-    if (signedArea < 0) polygon.reverse();
-    const minX = Math.min(...polygon.map(p => p.x)), maxX = Math.max(...polygon.map(p => p.x)),
-      minZ = Math.min(...polygon.map(p => p.z)), maxZ = Math.max(...polygon.map(p => p.z)),
-      triangles = new Set<Point[]>(), levels: number[] = [];
-    for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
-      for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++)
-        for (const triangle of cells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
-    for (const triangle of triangles) {
-      let clipped = triangle.map(p => [...p] as Point);
-      for (let edge = 0; edge < polygon.length && clipped.length; edge++) {
-        const a = polygon[edge], b = polygon[(edge + 1) % polygon.length],
-          side = (p: Point) => (b.x - a.x) * (p[2] - a.z) - (b.z - a.z) * (p[0] - a.x),
-          next: Point[] = [];
-        for (let i = 0; i < clipped.length; i++) {
-          const p = clipped[i], q = clipped[(i + 1) % clipped.length], sp = side(p), sq = side(q);
-          if (sp >= -1e-10) next.push(p);
-          if ((sp < 0) !== (sq < 0)) {
-            const t = sp / (sp - sq);
-            next.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t]);
-          }
-        }
-        clipped = next;
-      }
-      levels.push(...clipped.map(p => p[1]));
-    }
-    return levels;
-  };
+  const terrainSurvey = (crop: boolean) => new GroundSurvey(scene.meshes.filter(mesh => crop
+    ? ["landscape-agriculture", "landscape-crop-rows", "landscape-field-limits"].includes(mesh.name)
+    : mesh.name.startsWith("landscape-terrain-")).flatMap(mesh => {
+      const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
+      return positions && indices ? [{ positions, indices }] : [];
+    }));
+  const gardenTerrain = terrainSurvey(false), cropTerrain = terrainSurvey(true),
+    renderedFootprintLevels = (outline: GroundPoint[], survey = gardenTerrain) => survey.levels(outline);
   const placeHouse = (root: TransformNode, town: string, region: UrbanRegion,
     x: number, z: number, angle: number, width: number, index: number,
     frontage?: { normalX: number; normalZ: number; side: number; streetWidth: number; maxDepth: number },
@@ -872,13 +829,8 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
         const next = world[(i + 1) % world.length]; return sum + p.x * next.z - next.x * p.z;
       }, 0);
       if (signedArea < 0) world.reverse();
-      const shape = new Geometry(), minX = Math.min(...world.map(p => p.x)), maxX = Math.max(...world.map(p => p.x)),
-        minZ = Math.min(...world.map(p => p.z)), maxZ = Math.max(...world.map(p => p.z)),
-        triangles = new Set<Point[]>();
-      for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
-        for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++)
-          for (const triangle of gardenTerrainCells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
-      for (const triangle of triangles) {
+      const shape = new Geometry();
+      for (const triangle of gardenTerrain.triangles(world)) {
         let polygon = triangle.map(p => [...p] as Point);
         for (let edge = 0; edge < world.length && polygon.length; edge++) {
           const a = world[edge], b = world[(edge + 1) % world.length],
@@ -1059,7 +1011,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
           intersectsCorridors(plot, localStreets, true) ||
           harbourReservations.some(polygon => harbourPolygonsOverlap(polygon,
             [footprint[0], footprint[2], footprint[8], footprint[6]]))) continue;
-      if (renderedFootprintLevels([footprint[0], footprint[2], footprint[8], footprint[6]], cropTerrainCells).length) continue;
+      if (renderedFootprintLevels([footprint[0], footprint[2], footprint[8], footprint[6]], cropTerrain).length) continue;
       if (town === "paris" || town === "lyon" &&
           (specialSites.lyon ?? []).some(other => collides({ ...plot, x, z }, other, .035))) continue;
       const levels = [...footprint.map(p => landHeight(p.x, p.z)),
@@ -1122,7 +1074,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
         intersectsRoad(plot, true) || intersectsCorridors(plot, railCorridors, true) ||
         intersectsCorridors(plot, localStreets, true) ||
         harbourReservations.some(polygon => harbourPolygonsOverlap(polygon, footprint))) continue;
-      if (renderedFootprintLevels(footprint, cropTerrainCells).length) continue;
+      if (renderedFootprintLevels(footprint, cropTerrain).length) continue;
       const coastDistance = Math.min(...shoreSegments.map(({ a, b }) => {
         const dx = b.x - a.x, dz = b.z - a.z,
           t = Math.max(0, Math.min(1, ((plot.x - a.x) * dx + (plot.z - a.z) * dz) / (dx * dx + dz * dz || 1)));

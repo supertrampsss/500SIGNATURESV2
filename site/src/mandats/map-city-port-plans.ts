@@ -87,10 +87,13 @@ function ribbon(points: HarbourPoint[], width: number): HarbourPoint[][] {
 export function surveyHarbour(place: string, origin: HarbourPoint,
   groundHeight: (x: number, z: number) => number = landHeight): HarbourPlan | undefined {
   if (!HARBOUR_SITES.some(site => site.name === place)) return;
-  const frontage = place === "ajaccio" ? .48 : place === "brest" ? .88 : place === "nantes" ? 1.04 : place === "la-rochelle" ? .70 : 1.28,
-    apronDepth = place === "ajaccio" ? .070 : place === "la-rochelle" ? .120 : .135,
+  const northern = place === "cherbourg" || place === "dunkerque",
+    frontage = place === "cherbourg" ? .56 : place === "dunkerque" ? .62 :
+      place === "ajaccio" ? .48 : place === "brest" ? .88 : place === "nantes" ? 1.04 : place === "la-rochelle" ? .70 : 1.28,
+    apronDepth = northern ? .095 : place === "ajaccio" ? .070 : place === "la-rochelle" ? .120 : .135,
     corsicaPreferred = mapCorsicaLocalVector(-.90, -.43),
-    preferred = place === "marseille" ? [-.20, -.98] : place === "ajaccio" ? [corsicaPreferred.x, corsicaPreferred.z] : [-.82, -.57];
+    preferred = northern ? [-.15, .99] : place === "marseille" ? [-.20, -.98] :
+      place === "ajaccio" ? [corsicaPreferred.x, corsicaPreferred.z] : [-.82, -.57];
   let selected: { stations: HarbourStation[]; score: number } | undefined;
   for (const polygon of projectedCoastlines()) {
     const lengths = polygon.map((a, i) => Math.hypot(polygon[(i + 1) % polygon.length].x - a.x, polygon[(i + 1) % polygon.length].z - a.z)),

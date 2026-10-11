@@ -122,6 +122,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const lighting = new Promise<void>((resolve, reject) => {
       scene.environmentTexture = new CubeTexture(MODEL_URLS.daylight, scene, {
         prefiltered: true, forcedExtension: ".env", createPolynomials: true,
+        lodOffset: -.2,
         onLoad: resolve,
         onError: (message, error) => reject(error ?? new Error(message ?? "Lighting unavailable")),
       });
@@ -759,6 +760,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       projectMarkers();
     }
     function projectMarkers() {
+      // Subjects can refresh before the first draw. Project against the
+      // current camera matrices rather than an uninitialised scene transform.
+      scene.updateTransformMatrix();
       const viewport = camera.viewport.toGlobal(
           engine.getRenderWidth(),
           engine.getRenderHeight(),
@@ -774,7 +778,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
           scene.getTransformMatrix(), viewport);
         const left = projected.x / engine.getRenderWidth() * width,
           top = projected.y / engine.getRenderHeight() * height;
-        const outside = projected.z < 0 || projected.z > 1 ||
+        const outside = !Number.isFinite(left) || !Number.isFinite(top) ||
+          !Number.isFinite(projected.z) || projected.z < 0 || projected.z > 1 ||
           camera.radius < countryOverview.radius * .6;
         label.hidden = outside;
         if (outside) continue;
@@ -810,7 +815,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
           y = (projected.y / engine.getRenderHeight()) * height;
         // Clamping distant towns to the inspection's edge gave them false
         // positions. Their subjects remain available in the agenda and Bilan.
-        element.hidden = projected.z < 0 || projected.z > 1 ||
+        element.hidden = !Number.isFinite(x) || !Number.isFinite(y) ||
+          !Number.isFinite(projected.z) || projected.z < 0 || projected.z > 1 ||
           x < 0 || x > width || y < 0 || y > height;
         if (element.hidden) continue;
         placeMarker(host, element, { x, y }, placed);
@@ -1072,7 +1078,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         host.querySelector<HTMLElement>("[data-map-status]")!.textContent = "";
         render();
       });
-    }).catch(() => {
+    }).catch(error => {
+      if (import.meta.env.DEV) console.error("MANDATS scenery preparation failed", error);
       if (disposed || host.dataset.renderer === "fallback") return;
       clearGpuWork();
       engine.stopRenderLoop(loop);
@@ -1190,7 +1197,10 @@ function placeMarker(
   placed: MarkerBox[],
 ) {
   const ground = { ...origin };
-  element.classList.toggle("map-marker--label-left", origin.x > host.clientWidth * .65);
+  element.classList.remove("map-marker--label-left");
+  const iconSize = element.querySelector<HTMLElement>(".map-marker__point")?.offsetWidth ?? 0;
+  element.classList.toggle("map-marker--label-left",
+    origin.x - iconSize / 2 + element.offsetWidth > host.clientWidth - 8);
   const anchor = element.querySelector<HTMLElement>("[data-map-anchor]");
   // Recalculate from the CSS dimensions on every projection. The previous
   // frame's displaced callout must never become the next geographic origin.

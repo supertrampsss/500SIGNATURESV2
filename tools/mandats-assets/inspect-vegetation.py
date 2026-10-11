@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--previous', type=Path)
 parser.add_argument('--reproduced-from', type=Path)
 parser.add_argument('--output', type=Path, required=True)
-parser.add_argument('--revision', type=int, default=40)
+parser.add_argument('--revision', type=int, default=41)
 args = parser.parse_args()
 source = Path(__file__).resolve().parent
 root = source.parent.parent
@@ -91,7 +91,7 @@ report = {'artifactRevision': args.revision, 'generator': 'Blender 4.3.2',
           'glbSHA256': current['sha256'], 'glbBytes': current['bytes'],
           'sourceSHA256': hashlib.sha256((source / 'vegetation.py').read_bytes()).hexdigest(),
           'boundsSourceSHA256': hashlib.sha256((source / 'vegetation-bounds.json').read_bytes()).hexdigest(),
-          'reproductionCommand': 'blender --background --threads 2 --python tools/mandats-assets/vegetation.py',
+          'reproductionCommand': 'blender -b --python tools/mandats-assets/vegetation.py',
           'reproductionMatchesRetainedGLB': reproduced == export.read_bytes() if reproduced is not None else None,
           'allHighAndDistantBoundsExact': True,
           'highTriangles': sum(model['triangles'] for name, model in current['models'].items() if not name.endswith('_distant')),

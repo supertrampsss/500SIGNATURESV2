@@ -6,7 +6,7 @@ import { basename } from 'node:path';
 // it never runs or changes a game, and is not a browser validation of the map.
 const origin = process.argv[2] ?? 'http://127.0.0.1:4179';
 const source = new URL('./prefilter.html', import.meta.url).pathname;
-const target = new URL('../../../site/public/mandats/models/daylight.env', import.meta.url);
+const target = new URL('./daylight-prefiltered-256.env', import.meta.url);
 const report = new URL('./prefilter-report.json', import.meta.url);
 // Vite intentionally serves only the site root. Keep its allow list intact
 // and stage the preparation page there for the lifetime of this command.
@@ -28,6 +28,7 @@ try {
   if (!metadata?.exportedHarmonics) throw new Error('The lighting prefilter returned no harmonics.');
   await writeFile(target, Buffer.from(bytes));
   await writeFile(report, JSON.stringify({ ...metadata, bytes: bytes.length }, null, 2) + '\n');
+  await import('./compact-env.mjs');
   process.stdout.write(JSON.stringify({ bytes: bytes.length, source, target: target.pathname }) + '\n');
 } finally {
   await browser?.close();

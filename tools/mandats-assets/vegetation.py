@@ -283,7 +283,7 @@ for source in list(bpy.data.objects):
     bpy.context.collection.objects.link(distant)
     bpy.context.view_layer.objects.active = distant
     modifier = distant.modifiers.new('Country view geometry', 'DECIMATE')
-    modifier.ratio = {'oak': .115, 'beech': .135, 'pine': .22,
+    modifier.ratio = {'oak': .18, 'beech': .20, 'pine': .22,
         'cypress': .18, 'olive': .14, 'orchard': .15}[source.name]
     # The ground-connected stem must survive from every direction. Protect
     # only its disconnected component on the distant copy, not every branch.

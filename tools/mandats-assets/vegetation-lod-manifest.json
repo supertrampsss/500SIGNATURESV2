@@ -1,16 +1,16 @@
 {
-  "artifactRevision": 40,
+  "artifactRevision": 41,
   "generator": "Blender 4.3.2",
   "method": "Decoded actual glTF accessors and indices. Exact per-model export bounds, finite attributes, valid indices and unit normals. No browser, timing gate, visual-conformity or hardware-frame-rate claim.",
-  "glbSHA256": "ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef",
-  "glbBytes": 910600,
-  "sourceSHA256": "338a4574641ed328eaf20ca0fcb4f4b51b5ab103631e9595348f87cbea0f5fb3",
+  "glbSHA256": "5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42",
+  "glbBytes": 945380,
+  "sourceSHA256": "c394333d1b6e9a1ba32244ed5aa304047a5587f00811b685e38dfaf1b8d1dade",
   "boundsSourceSHA256": "c6c54f96dc77702d6e6746f6f892df29214b17809c8a7375049ee819f8f767f9",
-  "reproductionCommand": "blender --background --threads 2 --python tools/mandats-assets/vegetation.py",
+  "reproductionCommand": "blender -b --python tools/mandats-assets/vegetation.py",
   "reproductionMatchesRetainedGLB": true,
   "allHighAndDistantBoundsExact": true,
   "highTriangles": 8104,
-  "distantTriangles": 1007,
+  "distantTriangles": 1311,
   "models": {
     "oak": {
       "triangles": 1916,
@@ -160,7 +160,7 @@
       "faceNormalDisagreements": 0
     },
     "beech_distant": {
-      "triangles": 134,
+      "triangles": 256,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -175,8 +175,8 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "1cdbeae8baf25342b72df457b73a88280e5e6594783a805a9c1da276eb42d241",
-      "maximumNormalLengthError": 1.1372363695194565e-07,
+      "fingerprint": "9fce6f7abfaf0029a3b4828fcb9e52db674c5050abcee31ef2d62543b798403d",
+      "maximumNormalLengthError": 1.1358724694154887e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
@@ -202,7 +202,7 @@
       "faceNormalDisagreements": 0
     },
     "oak_distant": {
-      "triangles": 132,
+      "triangles": 314,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -217,8 +217,8 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "330dce4992ae448201e56cbf686cb2f68f0f385065e61c156346bf755551410b",
-      "maximumNormalLengthError": 1.2268970439599514e-07,
+      "fingerprint": "cf6bae9a424817214a55f793c872e043e5b9df232615cd31cbaaa85ac0931704",
+      "maximumNormalLengthError": 1.276934475935576e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
@@ -286,6 +286,6 @@
       "faceNormalDisagreements": 0
     }
   },
-  "previousGLBSHA256": "ff03f10336871efcec8e2c2867044215eaa522b873283590c4f3e8387213c4de",
+  "previousGLBSHA256": "ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef",
   "rockGeometryAndColorsByteIdentical": true
 }

@@ -17,7 +17,7 @@ La génération crée `vegetation.blend` et exporte seulement
 conserve les dimensions exactes des treize modèles. La génération ne dépend
 ni d'un répertoire de vérification ni des sources d'architecture.
 
-## Modèles de l'itération 40
+## Modèles de l'itération 41
 
 Les feuillus portent des bouquets composés de petites pousses dissymétriques.
 Les pins gardent leurs ramures angulaires étagées et leur pointe. Les cyprès
@@ -34,14 +34,14 @@ indices et couleurs précédents.
 
 | Modèle | Triangles détaillés | Triangles distants | Primitives par niveau |
 | --- | ---: | ---: | ---: |
-| Chêne | 1916 | 132 | 1 |
-| Hêtre | 1364 | 134 | 1 |
+| Chêne | 1916 | 314 | 1 |
+| Hêtre | 1364 | 256 | 1 |
 | Pin | 1860 | 378 | 1 |
 | Cyprès | 1024 | 161 | 1 |
 | Olivier | 992 | 101 | 1 |
 | Fruitier | 868 | 101 | 1 |
 | Roche | 80 | aucune variante | 1 |
-| Total | 8104 | 1007 | |
+| Total | 8104 | 1311 | |
 
 Ce sont les triangles décodés dans le GLB exporté. Le
 [manifeste](vegetation-lod-manifest.json) conserve les empreintes, nombres de
@@ -50,12 +50,13 @@ reproduit le modèle retenu octet par octet. Les treize modèles ont des attribu
 finis, des normales unitaires et des indices valides. L'audit ne relève aucun
 triangle dégénéré ni désaccord entre la normale d'une face et ses sommets.
 
-GLB retenu : 910600 octets ; SHA256
-`ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef`.
+GLB retenu : 945380 octets ; SHA256
+`5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42`.
 La comparaison utilise les octets du GLB du commit précédent, dont le SHA256
-est `ff03f10336871efcec8e2c2867044215eaa522b873283590c4f3e8387213c4de`.
-Les ramures du pin et le contour du cyprès distants conservent davantage de
-triangles que dans l'itération 39. Les six modèles détaillés restent identiques.
+est `ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef`.
+Les couronnes du chêne et du hêtre distants conservent davantage de
+triangles que dans l'itération 40. Les pins et cyprès distants gardent leurs ramures.
+Les six modèles détaillés restent identiques.
 
 Le versionnement des URL et du cache hors connexion est recalculé au build.
 Ces contrôles établissent la structure et la reproductibilité des modèles.

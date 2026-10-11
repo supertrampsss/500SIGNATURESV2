@@ -41,8 +41,16 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
     const at = start + view.offset, size = view.type === "f64" ? 8 : 4;
     if (view.offset < 0 || view.count < 0 || at + view.count * size > buffer.byteLength)
       throw new Error("Invalid terrain buffer view.");
-    return Array.from(view.type === "f64" ? new Float64Array(buffer, at, view.count) :
-      view.type === "u32" ? new Uint32Array(buffer, at, view.count) : new Float32Array(buffer, at, view.count));
+    return view.type === "f64" ? Array.from(new Float64Array(buffer, at, view.count)) :
+      view.type === "u32" ? new Uint32Array(buffer, at, view.count) : new Float32Array(buffer, at, view.count);
+  };
+  const floats = (view: View) => {
+    if (view.type === "u32") throw new Error("Invalid floating terrain attribute.");
+    return read(view) as number[] | Float32Array;
+  };
+  const integers = (view: View) => {
+    if (view.type !== "u32") throw new Error("Invalid indexed terrain attribute.");
+    return read(view) as Uint32Array;
   };
   const materials = new Map<string, StandardMaterial>();
   for (const record of header.materials) {
@@ -62,8 +70,10 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
   const meshes: Mesh[] = [], colorTargets: Array<{ mesh: Mesh; surveys?: Map<number, { band: number }> }> = [];
   for (const record of header.meshes) {
     const mesh = new Mesh(record.name, scene), data = new VertexData();
-    data.positions = read(record.positions); data.normals = read(record.normals);
-    data.colors = read(record.colors); data.uvs = read(record.uvs); data.indices = read(record.indices);
+    // Keep the archive's exact GPU arrays instead of expanding every scalar
+    // into a boxed JavaScript number before uploading the same float32 value.
+    data.positions = floats(record.positions); data.normals = floats(record.normals);
+    data.colors = floats(record.colors); data.uvs = floats(record.uvs); data.indices = integers(record.indices);
     data.applyToMesh(mesh);
     mesh.material = materials.get(record.material)!;
     mesh.metadata = record.metadata; mesh.receiveShadows = true; mesh.isPickable = false;
@@ -71,7 +81,7 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
     if (["landscape-terrain-0", "landscape-terrain-mineral-0", "landscape-terrain-coastal-0"].includes(record.name)) {
       const surveys = record.bands ? new Map<number, { band: number }>() : undefined;
       if (record.bands) {
-        const bands = read(record.bands);
+        const bands = integers(record.bands);
         for (let i = 0; i < bands.length; i++) if (bands[i] !== 0xffffffff) surveys!.set(i, { band: bands[i] });
       }
       colorTargets.push({ mesh, surveys });

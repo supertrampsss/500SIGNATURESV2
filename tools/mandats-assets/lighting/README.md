@@ -1,6 +1,6 @@
 # Éclairage du diorama
 
-`daylight.env` est un cube de radiance préfiltré de 256 pixels par face,
+`daylight.env` est un cube de radiance préfiltré de 128 pixels par face,
 avec harmoniques sphériques. Il éclaire les matériaux PBR de la miniature ;
 le panorama source n'est pas affiché comme décor.
 
@@ -22,8 +22,16 @@ qui ne modifie ni les modèles ni leurs atlas.
 `prefilter-report.json` conserve la balance, les coefficients avant/après,
 les coefficients exportés et le moteur WebGL utilisé. Pour la normale verticale,
 l'irradiance RGB passe de `(0.748731, 0.948337, 1.386923)` à
-`(0.855447, 0.948337, 0.901500)`. Le `.env` version 2 distribué contient les
-54 images PNG des six faces et neuf niveaux de 256 à 1 pixel. Les empreintes
+`(0.855447, 0.948337, 0.901500)`. Le cube préfiltré de 256 pixels est conservé dans
+`daylight-prefiltered-256.env`. L’itération 41 distribue les 48 images PNG
+des niveaux de 128 à 1 pixel. Ces images sont copiées octet par octet, sans
+rééchantillonnage ; les neuf coefficients d’irradiance diffuse restent identiques.
+Les six images les plus fines de 256 pixels sont omises. Le décalage de mipmap
+`lodOffset: -.2` compense le niveau retiré pour les réflexions retenues. La
+radiance des surfaces les plus lisses peut perdre ce niveau fin : sa qualité
+et le chargement doivent être contrôlés dans le jeu, sans présumer leur succès.
+L’archive passe de 1 102 156 à 238 984 octets ; `compact-report.json` conserve
+les empreintes de chacune des images copiées. Les empreintes
 actuelles, originales et source sont dans `source.json`.
 
 Avec les dépendances de `site/` installées et Chromium disponible, lancer
@@ -36,7 +44,9 @@ node tools/mandats-assets/lighting/prefilter.mjs
 
 Le script prépare une page temporaire dans la racine autorisée par Vite et
 la retire ensuite. Il utilise le préfiltrage Babylon.js 9.30.0 puis exporte
-les mipmaps RGBD en PNG dans `site/public/mandats/models/daylight.env`.
+les mipmaps RGBD en PNG dans `daylight-prefiltered-256.env`, puis `compact-env.mjs` produit
+`site/public/mandats/models/daylight.env`. La recomposition déterministe peut
+aussi être lancée directement avec `node tools/mandats-assets/lighting/compact-env.mjs`.
 Le serveur peut être passé comme premier argument et l'exécutable Chromium
 avec `MANDATS_CHROMIUM_EXECUTABLE`. Régénérer ensuite les URL de modèles
 ou lancer le build. Le panorama brut ne se charge jamais chez le joueur.

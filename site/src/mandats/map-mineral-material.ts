@@ -41,6 +41,17 @@ class MiniatureMineral extends MaterialPluginBase {
             smoothstep(.42, .66, mineralBroad + mineralWarp * .15);
           vec3 mineralExposed = mix(vec3(.43, .38, .31), vec3(.69, .60, .47), mineralBroad);
           baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .83);
+          // Thin fissures and inclined exposed ribs stay on the real surface,
+          // giving broad neves a smaller scale without separate floating rocks.
+          float mineralSnowRib = smoothstep(.60, .85, mineralWarp) *
+            (1.0 - smoothstep(.63, .96, abs(normalW.y))) * .46;
+          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralSnowRib);
+          float mineralFissure = smoothstep(.93, .998,
+            sin((vPositionW.x * .73 + vPositionW.z * .41) * 67.0 +
+              vPositionW.y * 31.0 + mineralWarp * 4.0)) *
+            smoothstep(.43, .66, mineralBroad) *
+            (1.0 - smoothstep(.80, .98, abs(normalW.y)));
+          baseColor.rgb *= 1.0 - mineralFissure * .34;
         ` : `baseColor.rgb *= 1.0 - mineralJoint * .23;`}
       `,
     };

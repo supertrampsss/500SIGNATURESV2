@@ -9,6 +9,7 @@ import type { Material } from "@babylonjs/core/Materials/material";
 import type { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { prepareCathedralLimestone } from "./map-cathedral-material.ts";
+import { prepareCanopyMaterial } from "./map-canopy-material.ts";
 import "@babylonjs/loaders/glTF/2.0/glTFLoader";
 import "@babylonjs/loaders/glTF/glTFFileLoader";
 import "@babylonjs/core/Meshes/instancedMesh";
@@ -59,6 +60,7 @@ export function loadAssetKit(scene: Scene, url: string): Promise<AssetKit> {
 
 async function load(scene: Scene, url: string): Promise<AssetKit> {
   const cathedralKit = url.split("?")[0] === "/mandats/models/cathedrale.glb";
+  const vegetationKit = url.split("?")[0] === "/mandats/models/vegetation.glb";
   const container = await LoadAssetContainerAsync(url, scene, {
     pluginExtension: ".glb",
   });
@@ -69,8 +71,10 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
   // The lower miniature sun restores StandardMaterial slope shading. PBR
   // already keeps HDR light, so retain its existing direct-light power.
   for (const material of container.materials) {
-    if (material.getClassName() === "PBRMaterial")
+    if (material.getClassName() === "PBRMaterial") {
       (material as PBRMaterial).directIntensity *= 1.80 / 0.95;
+      if (vegetationKit) prepareCanopyMaterial(material as PBRMaterial);
+    }
   }
   if (architecturalKits.has(url.split("?")[0])) {
     for (const material of container.materials) {
@@ -157,6 +161,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
           tinted.useAlphaFromAlbedoTexture = original.useAlphaFromAlbedoTexture;
           tinted.backFaceCulling = original.backFaceCulling;
           if (cathedralKit) prepareCathedralLimestone(tinted);
+          if (vegetationKit) prepareCanopyMaterial(tinted);
           material = tinted;
         } else if (mesh.material instanceof StandardMaterial) {
           const original = mesh.material;

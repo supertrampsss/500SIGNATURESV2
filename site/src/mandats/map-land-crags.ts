@@ -249,7 +249,7 @@ function steppedRockFace(triangle: RockTriangle) {
   // The eastern survey is stretched horizontally. Final-world dimensions
   // determine the visible rock scale, rather than the old source triangle.
   const divisions = Math.max(3, Math.min(12, Math.ceil(longest / .075))),
-    points: Array<{ x: number; z: number; height: number }> = [],
+    points: Array<{ x: number; z: number; height: number; base: number }> = [],
     rough = (i: number, j: number) => {
       let n = Math.imul(i + triangle.band, 374761393) ^ Math.imul(j + 197, 668265263);
       n = Math.imul(n ^ (n >>> 13), 1274126177);
@@ -270,9 +270,9 @@ function steppedRockFace(triangle: RockTriangle) {
         (.036 * shoulder - .012 - crease * (.043 + rough(seed, seed + 71) * .023)) : 0;
     const x = value(triangle.x), z = value(triangle.z),
       weathering = weatheredRock(x, z), strength = Math.min(1, Math.max(0, (height - .10) / .15)),
-      grain = weathering.grain * strength,
+      grain = internal ? weathering.grain * inset * breadth * strength : 0,
       fold = internal ? weathering.fold * inset * breadth * strength : 0;
-    points.push({ x, z, height: Math.max(0, height + relief + grain + fold) });
+    points.push({ x, z, base: height, height: Math.max(0, height + relief + grain + fold) });
   };
   for (let row = 0; row <= divisions; row++) for (let column = 0; column <= row; column++) {
     const internal = row > 0 && row < divisions && column > 0 && column < row,
@@ -283,6 +283,30 @@ function steppedRockFace(triangle: RockTriangle) {
 
   const faces = Delaunator.from(points, point => point.x, point => point.z).triangles,
     result: RockTriangle[] = [], edges = new Set<string>();
+  const rendered = points.map(point => mapAuthoredPosition(point.x, point.z));
+  let detailScale = 1;
+  for (let face = 0; face < faces.length; face += 3) {
+    const ids = Array.from(faces.slice(face, face + 3)), [a, b, c] = ids.map(id => rendered[id]),
+      dx1 = b.x - a.x, dz1 = b.z - a.z, dx2 = c.x - a.x, dz2 = c.z - a.z,
+      determinant = dx1 * dz2 - dx2 * dz1;
+    if (Math.abs(determinant) < 1e-12) continue;
+    const gradient = (values: number[]) => {
+      const dh1 = values[1] - values[0], dh2 = values[2] - values[0];
+      return [(dh1 * dz2 - dh2 * dz1) / determinant,
+        (dx1 * dh2 - dx2 * dh1) / determinant];
+    }, base = gradient(ids.map(id => points[id].base)),
+      detail = gradient(ids.map(id => points[id].height - points[id].base)),
+      limit = Math.max(4.6, Math.hypot(...base)),
+      quadratic = detail[0] ** 2 + detail[1] ** 2,
+      linear = 2 * (base[0] * detail[0] + base[1] * detail[1]),
+      constant = base[0] ** 2 + base[1] ** 2 - limit ** 2;
+    if (quadratic > 1e-12) detailScale = Math.min(detailScale, Math.max(0,
+      (-linear + Math.sqrt(Math.max(0, linear ** 2 - 4 * quadratic * constant))) / (2 * quadratic)));
+  }
+  // Scale only interior weathering, never the surveyed crest or shared edges.
+  // Every subdivided face respects the gradient budget in the rendered world.
+  for (const point of points) point.height = point.base +
+    (point.height - point.base) * detailScale;
   for (let face = 0; face < faces.length; face += 3) {
     const ids = Array.from(faces.slice(face, face + 3)), corners = ids.map(id => points[id]),
       x = corners.map(point => point.x), z = corners.map(point => point.z), h = corners.map(point => point.height),

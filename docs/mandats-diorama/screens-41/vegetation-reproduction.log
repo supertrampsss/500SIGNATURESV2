@@ -1,0 +1,56 @@
+Warning: No mesh data to join
+Warning: No mesh data to join
+Info: Saved "vegetation.blend"
+ERROR Draco mesh compression is not available because library could not be found at /usr/bin/4.3/python/lib/python3.13/site-packages/libextern_draco.so
+18:09:30 | INFO: Starting glTF 2.0 export
+18:09:30 | INFO: Extracting primitive: Cone
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Cone.009
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Cone.020
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Cone.051
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Cone.052
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Cone.060
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Extracting primitive: Icosphere.265
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.067 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.067
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.068 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.068
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.069 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.069
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.070 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.070
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.071 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.071
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | WARNING: Mesh Cone.072 is not valid, and may be exported wrongly
+18:09:30 | INFO: Extracting primitive: Cone.072
+18:09:30 | INFO: Primitives created: 1
+18:09:30 | INFO: Finished glTF 2.0 export in 0.038713693618774414 s
+
+VEGETATION_GLTF /workspace/500SIGNATURESV2/site/public/mandats/models/vegetation.glb 945380
+PREFAB beech 814 1199
+PREFAB beech_distant 268 256
+PREFAB cypress 614 1009
+PREFAB cypress_distant 194 161
+PREFAB oak 1146 1781
+PREFAB oak_distant 360 314
+PREFAB olive 592 872
+PREFAB olive_distant 165 101
+PREFAB orchard 518 763
+PREFAB orchard_distant 149 101
+PREFAB pine 1054 1395
+PREFAB pine_distant 328 378
+PREFAB rock 42 80
+Blender 4.3.2
+
+Blender quit

@@ -3277,16 +3277,21 @@ async function buildForests(scene: Scene, orchards: Point[]) {
       }
       const variation = hash(candidate * 19 + 31, index * 17 + 419),
         name = wood.species ?? (variation < .48 ? "pine" : variation < .68 ? "cypress" : variation < .87 ? "beech" : "oak"),
-        height = candidate % 7 === 0 ? 0.145 + variation * 0.045 : 0.22 + variation * 0.085,
+        previousHeight = candidate % 7 === 0 ? 0.145 + variation * 0.045 : 0.22 + variation * 0.085,
+        stature = .94 + hash(candidate * 29 + 177, index * 13 + 907) * .58,
+        height = previousHeight * stature,
         root = plant(name, x, z, height, variation * Math.PI * 2);
       if (!(root instanceof TransformNode)) continue;
+      // Unequal mature trees break up the grove silhouette. Keep each crown's
+      // horizontal envelope and trunk footprint from the protected survey.
+      root.scaling.x /= stature; root.scaling.z /= stature;
       if (wood.maxSlope !== undefined) root.position.y = Math.min(ground,
         landHeight(x - .010, z), landHeight(x + .010, z),
         landHeight(x, z - .010), landHeight(x, z + .010)) + .001;
       if (name === "pine") { root.scaling.x *= 0.42; root.scaling.z *= 0.42; }
       if (name === "oak" || name === "beech") { root.scaling.x *= .62; root.scaling.z *= .62; }
       if (name === "cypress") { root.scaling.x *= 0.83; root.scaling.z *= 0.83; }
-      root.metadata = { ...root.metadata, region: "france", woodland: wood.id };
+      root.metadata = { ...root.metadata, region: "france", woodland: wood.id, authoredStature: stature };
       for (const mesh of root.getChildMeshes()) mesh.metadata = {
         ...mesh.metadata, region: "france", woodland: wood.id,
       };

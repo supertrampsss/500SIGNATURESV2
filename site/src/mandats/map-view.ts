@@ -90,7 +90,7 @@ function agendaTitle(item: Pick<StoryAgendaItem, "id" | "title">, game: Game): s
 }
 const agendaTitleClass = (title: string) => title.length > 64
   ? "map-agenda__item--long-title"
-  : title.length > 42 ? "map-agenda__item--medium-title" : "";
+  : title.length > 18 ? "map-agenda__item--medium-title" : "";
 function fallbackMap() {
   const paths = FRANCE_OUTLINES.map(
     (outline) =>
