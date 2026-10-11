@@ -328,6 +328,7 @@ function forestAmount(x: number, z: number) {
     hill(x, z, 8.05, 48.7, 0.55, 0.9, 0.25) +
     hill(x, z, 5.1, 50.15, 1.0, 0.6, 0.24) +
     hill(x, z, -2.8, 50.98, 1.8, 0.5, 0.38) +
+    hill(x, z, -4.90, 50.28, 1.4, .4, .65) +
     hill(x, z, 7.5, 49.65, 0.9, 0.7, 0.28) +
     hill(x, z, 8.4, 46.6, 1.35, .75, .16) +
     hill(x, z, .7, 42.25, 1.7, .55, .18)
@@ -431,8 +432,8 @@ export async function buildMapContext(
         b = ring.points[(i + 1) % ring.points.length],
         length = Math.hypot(b.x - a.x, b.z - a.z);
       if (length < 1e-6) continue;
-      const nx = (-(b.z - a.z) / length) * 0.004,
-        nz = ((b.x - a.x) / length) * 0.004,
+      const nx = (-(b.z - a.z) / length) * 0.006,
+        nz = ((b.x - a.x) / length) * 0.006,
         steps = Math.max(1, Math.ceil(length / 0.1));
       for (let step = 0; step < steps; step++) {
         const p = {
@@ -460,7 +461,7 @@ export async function buildMapContext(
         );
         borderIndices.push(at, at + 2, at + 1, at, at + 3, at + 2);
         for (let corner = 0; corner < 4; corner++)
-          borderColors.push(0.49, 0.54, 0.53, 1);
+          borderColors.push(0.72, 0.70, 0.62, 1);
       }
     }
   }
@@ -584,7 +585,7 @@ export async function buildMapContext(
   // Political lines are a thin painted overlay, legible in the dark context.
   // Keep their existing geometry and subdued stone/grey vertex colours.
   borderMaterial.disableLighting = true;
-  borderMaterial.emissiveColor = new Color3(.64, .64, .64);
+  borderMaterial.emissiveColor = new Color3(.78, .78, .78);
   const build = (
     name: string,
     p: number[],

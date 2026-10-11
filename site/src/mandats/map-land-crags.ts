@@ -172,7 +172,9 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
     ];
     for (const [u, v, relativeHeight] of points) vertices.push({
       x: cirque.x + reach * (dx * u + nx * v * alternate),
-      z: cirque.z + reach * (dz * u + nz * v * alternate),
+      // The central Pyrenean crest sits on the French face of the border,
+      // rather than in the coastal taper that flattened its entire summit.
+      z: cirque.z + (part === 1 && index === 1 ? .20 : 0) + reach * (dz * u + nz * v * alternate),
       height: cirque.height * relativeHeight * (part === 1 ? .76 : index === 0 ? .86 : index === 1 ? .89 : index === 5 ? .92 : 1),
     });
   }
@@ -197,8 +199,8 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
       const gx = ((b.height - a.height) * dz2 - (c.height - a.height) * dz1) / determinant,
         gz = (dx1 * (c.height - a.height) - dx2 * (b.height - a.height)) / determinant,
         slope = Math.hypot(gx, gz);
-      if (slope <= 4.6) continue;
-      const floor = Math.min(a.height, b.height, c.height), ratio = 4.6 / slope;
+      if (slope <= 6.0) continue;
+      const floor = Math.min(a.height, b.height, c.height), ratio = 6.0 / slope;
       for (const point of [a, b, c]) point.height = floor + (point.height - floor) * ratio;
       adjusted = true;
     }
@@ -244,10 +246,13 @@ function weatheredRock(x: number, z: number) {
 function steppedRockFace(triangle: RockTriangle) {
   const final = triangle.x.map((x, i) => mapAuthoredPosition(x, triangle.z[i])),
     longest = Math.max(...final.map((point, i) =>
-      Math.hypot(point.x - final[(i + 1) % 3].x, point.z - final[(i + 1) % 3].z)));
+      Math.hypot(point.x - final[(i + 1) % 3].x,
+        triangle.h[i] - triangle.h[(i + 1) % 3], point.z - final[(i + 1) % 3].z)));
   if (longest < .16 || Math.max(...triangle.h) < .15) return [triangle];
   // The eastern survey is stretched horizontally. Final-world dimensions
   // determine the visible rock scale, rather than the old source triangle.
+  // Include vertical extent: a tall cliff with a narrow ground projection
+  // still needs shelves across its visible face.
   const divisions = Math.max(3, Math.min(12, Math.ceil(longest / .075))),
     points: Array<{ x: number; z: number; height: number; base: number }> = [],
     rough = (i: number, j: number) => {
@@ -284,29 +289,50 @@ function steppedRockFace(triangle: RockTriangle) {
   const faces = Delaunator.from(points, point => point.x, point => point.z).triangles,
     result: RockTriangle[] = [], edges = new Set<string>();
   const rendered = points.map(point => mapAuthoredPosition(point.x, point.z));
-  let detailScale = 1;
+  const constraints: Array<{ ids: number[]; gx: number[]; gz: number[];
+    baseX: number; baseZ: number; limit: number }> = [];
   for (let face = 0; face < faces.length; face += 3) {
     const ids = Array.from(faces.slice(face, face + 3)), [a, b, c] = ids.map(id => rendered[id]),
       dx1 = b.x - a.x, dz1 = b.z - a.z, dx2 = c.x - a.x, dz2 = c.z - a.z,
       determinant = dx1 * dz2 - dx2 * dz1;
     if (Math.abs(determinant) < 1e-12) continue;
-    const gradient = (values: number[]) => {
-      const dh1 = values[1] - values[0], dh2 = values[2] - values[0];
-      return [(dh1 * dz2 - dh2 * dz1) / determinant,
-        (dx1 * dh2 - dx2 * dh1) / determinant];
-    }, base = gradient(ids.map(id => points[id].base)),
-      detail = gradient(ids.map(id => points[id].height - points[id].base)),
-      limit = Math.max(4.6, Math.hypot(...base)),
-      quadratic = detail[0] ** 2 + detail[1] ** 2,
-      linear = 2 * (base[0] * detail[0] + base[1] * detail[1]),
-      constant = base[0] ** 2 + base[1] ** 2 - limit ** 2;
-    if (quadratic > 1e-12) detailScale = Math.min(detailScale, Math.max(0,
-      (-linear + Math.sqrt(Math.max(0, linear ** 2 - 4 * quadratic * constant))) / (2 * quadratic)));
+    const gx = [(dz1 - dz2) / determinant, dz2 / determinant, -dz1 / determinant],
+      gz = [(dx2 - dx1) / determinant, -dx2 / determinant, dx1 / determinant],
+      baseX = ids.reduce((sum, id, i) => sum + points[id].base * gx[i], 0),
+      baseZ = ids.reduce((sum, id, i) => sum + points[id].base * gz[i], 0),
+      // A budget exactly equal to an already steep plane forces all interior
+      // erosion to zero. Small headroom keeps its fractures without moving
+      // the shared edges or rebuilding the crest as separate peak meshes.
+      limit = Math.max(4.6, Math.hypot(baseX, baseZ) + .85);
+    constraints.push({ ids, gx, gz, baseX, baseZ, limit });
   }
-  // Scale only interior weathering, never the surveyed crest or shared edges.
-  // Every subdivided face respects the gradient budget in the rendered world.
-  for (const point of points) point.height = point.base +
-    (point.height - point.base) * detailScale;
+  const scales = points.map(() => 1), deltas = points.map(point => point.height - point.base),
+    admissible = (face: typeof constraints[number]) => {
+      const dx = face.ids.reduce((sum, id, i) => sum + deltas[id] * scales[id] * face.gx[i], 0),
+        dz = face.ids.reduce((sum, id, i) => sum + deltas[id] * scales[id] * face.gz[i], 0),
+        quadratic = dx * dx + dz * dz,
+        linear = 2 * (face.baseX * dx + face.baseZ * dz),
+        constant = face.baseX ** 2 + face.baseZ ** 2 - face.limit ** 2;
+      if (quadratic + linear + constant <= 1e-8 || quadratic <= 1e-12) return 1;
+      return Math.min(1, Math.max(0,
+        (-linear + Math.sqrt(Math.max(0, linear ** 2 - 4 * quadratic * constant))) / (2 * quadratic)));
+    };
+  // Repair only the shared vertices of a stressed small triangle. A single
+  // narrow triangle must not erase the erosion of its entire parent face.
+  for (let pass = 0; pass < 32; pass++) {
+    let adjusted = false;
+    for (const face of constraints) {
+      const scale = admissible(face);
+      if (scale >= 1) continue;
+      for (const id of face.ids) scales[id] *= scale;
+      adjusted = true;
+    }
+    if (!adjusted) break;
+  }
+  // Final common reduction covers any remaining coupled constraint. It keeps
+  // every shared edge at its original height even at the iteration limit.
+  const remainder = constraints.reduce((scale, face) => Math.min(scale, admissible(face)), 1);
+  for (const [id, point] of points.entries()) point.height = point.base + deltas[id] * scales[id] * remainder;
   for (let face = 0; face < faces.length; face += 3) {
     const ids = Array.from(faces.slice(face, face + 3)), corners = ids.map(id => points[id]),
       x = corners.map(point => point.x), z = corners.map(point => point.z), h = corners.map(point => point.height),

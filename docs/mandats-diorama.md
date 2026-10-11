@@ -466,3 +466,60 @@ aucune canopée contrôlée et aucun bateau ne croise celui d’un autre port.
 Le [manifeste 41](mandats-diorama/screens-41/manifest.json) conserve les pièces.
 Les rapports complets des tests ciblés restent archivés dans le workspace.
 Ces preuves utilisent SwiftShader et ne mesurent pas la fluidité d’un appareil physique.
+
+## Itération 42 — détails et contacts au sol, fidélité en cours
+
+La [comparaison 42](mandats-diorama/comparaison-42.html) conserve dix captures
+natives du build de production, dont la cathédrale, le rivage méditerranéen et
+les compositions à 320/390 pixels. Le statut reste **non conforme visuellement**.
+Les falaises sont encore trop régulières, les façades trop simples et le raccord
+du fleuve à la mer trop abrupt. La silhouette montagneuse et la variété des bois
+restent éloignées de la référence. La PR 194 demeure en brouillon et le travail continue.
+
+La variation rocheuse se règle désormais sur les sommets partagés de chaque
+sous-face, plutôt qu’en aplatissant un parent entier. Les hauts panneaux côtiers
+sont subdivisés selon leur longueur en trois dimensions. Les fractures minérales
+sont plus grises, les joints plus marqués, les crêtes pyrénéennes intérieures
+relevées et les neiges alpines plus localisées. L’audit des triangles alpins
+réels relève un maximum de pente de 6,922, contre 7,273 précédemment ; il ne
+certifie pas une borne universelle. La variation du couvert et le bois anglais
+évoluent aussi. Les navires du Nord ont leurs propres gabarits plus compacts.
+L’inspection relève sept ports, 34 bateaux et 782 maisons acceptées, dont vingt
+en Corse. Les polygones contrôlés ne se croisent pas entre ports.
+
+Les pieds des arbres utilisent les vrais buffers du terrain sans dupliquer tous
+les triangles. [80 926 relevés](mandats-diorama/screens-42/tree-ground-audit.json)
+sur les racines réelles, les faces et leurs bords retrouvent exactement les
+hauteurs de l’ancien index. Cette vérification physique ne mesure pas la vitesse
+du navigateur. Le retrait de deux nouvelles parcelles corses refusées modifie
+localement les buffers insulaires : l’ensemble du terrain n’est donc pas identique
+à l’export intermédiaire. Deux fabrications du terrain finalement retenu sont
+identiques octet par octet : 306 768 triangles, 347 662 sommets, 17 maillages,
+huit matériaux et 10 663 282 octets compressés. Son SHA256 est
+`15b574c8e41c07b3f9ecca3c5072344ac6adadc336fa440cc27789c2cd13af9a`.
+
+Le check complet passe 1 082 tests, les trois cibles TypeScript, le build,
+le pré-rendu et le précache. Les deux contrôles DPR originaux passent sur
+ordinateur et WebKit en 1,9 minute. Les quatre parcours originaux ciblant le
+démarrage v12 et l’importation, export et reprise v9 passent sur téléphone et
+ordinateur en 59,9s. Aucun délai, retry, worker ou test n’a été modifié. Ces
+contrôles ciblés ne remplacent pas les suites complètes rework, social, header,
+mandats, board et story de la version finalement retenue.
+
+La [CI 41](mandats-diorama/screens-42/previous-ci.json) a terminé avec deux jobs
+en échec. Rework compte 22 réussites, neuf omissions configurées et une reprise
+DPR WebKit encore en chargement après les 15s d’origine ; son étape social
+n’a pas été atteinte. Site compte 229 réussites, 65 omissions configurées,
+quatre tests instables et deux échecs : démarrage/reprise v12 Android au-delà
+des 60s et chargement ou fermeture d’un contexte d’importation v9 sur ordinateur.
+Les traces montrent de longues attentes de rendu et de rechargement ; elles
+ne prouvent pas un crash GPU. Les sept autres jobs passent. Aucun résultat de
+cette CI précédente ni des contrôles ciblés ne certifie la CI 42.
+
+Les dix captures natives contrôlent zéro erreur de console, de page, de requête
+et HTTP. Leurs réponses JS/CSS correspondent au build conservé
+`mandats-CbyNRqPq.js` ; [les empreintes](mandats-diorama/screens-42/build.json)
+et [le manifeste](mandats-diorama/screens-42/manifest.json) identifient les pièces.
+L’inspection ne modifie ni caméra, ni état, ni modèles, ni choix de détail.
+Les images sont issues de Chromium/SwiftShader et ne certifient pas la fluidité
+d’un appareil physique. La comparaison artistique et la validation complète continuent.

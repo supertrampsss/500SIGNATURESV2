@@ -1,0 +1,32 @@
+{
+  "commit": "d964ee6",
+  "scope": "Previous iteration41, not a result for iteration42",
+  "site": {
+    "url": "https://github.com/supertrampsss/500SIGNATURESV2/actions/runs/38163841447/job/114542159139",
+    "passed": 229,
+    "configuredSkipped": 65,
+    "flaky": 4,
+    "failed": 2,
+    "failures": [
+      "Android Chromium fresh v12 start/save/focus/reload: original60000ms elapsed, including24-26s reload and7-11s DOM reads in the retained trace. State expectations completed; timeout still fails the gate.",
+      "Desktop Chromium v9 import/export/resume: first attempt blocked at a fresh page load; retry completed expectations but context teardown timed out."
+    ]
+  },
+  "rework": {
+    "url": "https://github.com/supertrampsss/500SIGNATURESV2/actions/runs/38163841443/job/114542158499",
+    "passed": 22,
+    "configuredSkipped": 9,
+    "failed": 1,
+    "failure": "WebKit DPR saved resume remains loading at the original15000ms gate. The full social step was not reached."
+  },
+  "otherJobsPassed": [
+    "database",
+    "python",
+    "visual-audit",
+    "story-e2e",
+    "canonical-domain",
+    "mandats-board",
+    "launch-consent"
+  ],
+  "limits": "Selected local passes do not certify CI42 or the full final suite. No test, timeout, retry, worker or configured omission was changed."
+}

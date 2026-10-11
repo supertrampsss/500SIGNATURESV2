@@ -189,7 +189,8 @@ export function buildMapWater(scene: Scene) {
           1.0, rippleB * .052 + (wave - .5) * .1));
         vec3 towardEye = normalize(eye - seaPosition);
         float reflection = pow(max(0.0, dot(reflect(normalize(vec3(.55, riverChannel > .5 ? -1.2 : -.80, .7)), normal), towardEye)), 48.0);
-        color += vec3(.56, .69, .76) * reflection * (.12 + wave * .22);
+        color += vec3(.56, .69, .76) * reflection * (.12 + wave * .22) *
+          mix(1.0, .38, riverChannel);
         float flecks = smoothstep(.72, .88, noise(p * 108.0 + drift)) *
           smoothstep(.52, .76, wave);
         // Sparse, short ripples catch light between the darker sea pockets.

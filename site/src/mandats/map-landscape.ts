@@ -24,6 +24,7 @@ import {
 } from "./map-urban-plans.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
 import { geometryContactFrame, geometryProjectionVertices } from "./map-geometry-cache.ts";
+import { GroundSurvey } from "./map-ground-survey.ts";
 import { prepareMineralSurface, prepareMeadowSurface } from "./map-mineral-material.ts";
 import { HARBOUR_SITES } from "./map-harbour-sites.ts";
 import { loadLandscapeSurvey } from "./map-landscape-cache.ts";
@@ -1144,38 +1145,13 @@ function colorMix(a: Color3, b: Color3, amount: number) {
   return Color3.Lerp(a, b, clamp(amount));
 }
 
-// This temporary index owns numeric triangles only. It is discarded after the
-// authored instances touch the same ground surfaces that the renderer draws.
+// This temporary index refers to the actual vertex buffers. It is discarded
+// after the authored instances touch the same surfaces that the renderer draws.
 function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
-  const cells = new Map<string, number[][]>(), step = .12;
-  for (const mesh of ground) {
-    if (!mesh.name.startsWith("landscape-terrain-")) continue;
+  const survey = new GroundSurvey(ground.filter(mesh => mesh.name.startsWith("landscape-terrain-")).flatMap(mesh => {
     const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
-    if (!positions || !indices) continue;
-    for (let i = 0; i < indices.length; i += 3) {
-      const triangle = [indices[i], indices[i + 1], indices[i + 2]].flatMap(index =>
-        [positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]]);
-      for (let x = Math.floor(Math.min(triangle[0], triangle[3], triangle[6]) / step);
-        x <= Math.floor(Math.max(triangle[0], triangle[3], triangle[6]) / step); x++)
-        for (let z = Math.floor(Math.min(triangle[2], triangle[5], triangle[8]) / step);
-          z <= Math.floor(Math.max(triangle[2], triangle[5], triangle[8]) / step); z++) {
-          const key = `${x}:${z}`, cell = cells.get(key) ?? [];
-          cell.push(triangle); cells.set(key, cell);
-        }
-    }
-  }
-  const heightAt = (x: number, z: number) => {
-    let height = -Infinity;
-    for (const p of cells.get(`${Math.floor(x / step)}:${Math.floor(z / step)}`) ?? []) {
-      const denominator = (p[5] - p[8]) * (p[0] - p[6]) + (p[6] - p[3]) * (p[2] - p[8]);
-      if (Math.abs(denominator) < 1e-12) continue;
-      const a = ((p[5] - p[8]) * (x - p[6]) + (p[6] - p[3]) * (z - p[8])) / denominator,
-        b = ((p[8] - p[2]) * (x - p[6]) + (p[0] - p[6]) * (z - p[8])) / denominator,
-        c = 1 - a - b;
-      if (Math.min(a, b, c) >= -1e-7) height = Math.max(height, a * p[1] + b * p[4] + c * p[7]);
-    }
-    return height;
-  };
+    return positions && indices ? [{ positions, indices }] : [];
+  }), .12);
   const roots = new Set<TransformNode>();
   for (const mesh of trees) {
     let node = mesh.parent;
@@ -1187,15 +1163,14 @@ function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
     const contacts = root.getChildMeshes().map(geometryContactFrame),
       baseY = Math.min(...contacts.map(contact => contact.minimumY)),
       foot = contacts.flatMap(contact => contact.below(baseY + .0001));
-    let lowest = heightAt(root.position.x, root.position.z);
+    let lowest = survey.heightAt(root.position.x, root.position.z);
     if (!Number.isFinite(lowest)) lowest = Infinity;
     for (const point of foot) {
-      const height = heightAt(point.x, point.z);
+      const height = survey.heightAt(point.x, point.z);
       if (Number.isFinite(height)) lowest = Math.min(lowest, height);
     }
     if (Number.isFinite(lowest)) root.position.y += lowest - baseY + .001;
   }
-  cells.clear();
 }
 
 type AlpineColorTarget = { mesh: Mesh; surveys?: Map<number, { band: number }> };
@@ -1482,10 +1457,10 @@ function terrainColor(x: number, z: number, face?: { band: number }, occupied?: 
     mask = alpineSurfaceMask(x, z, y, face, occupied),
     band = alpineStoneFamily(face?.band ?? mountainFaceBand(x, z)),
     family = hash(band, 37), warm = hash(band, 113),
-    rock = colorMix(Color3.FromHexString("#756452"),
-      Color3.FromHexString("#B8A58A"), .22 + family * .55),
+    rock = colorMix(Color3.FromHexString("#71695F"),
+      Color3.FromHexString("#B8B4A5"), .15 + family * .64),
     stone = colorMix(rock, Color3.FromHexString("#A88C72"),
-      smooth(clamp((warm - .29) / .56)) * .49),
+      smooth(clamp((warm - .29) / .56)) * .27),
     geology = smooth(clamp((massif - .13) / .31)),
     exposed = Math.max(mask * (.78 + .15 * smooth(clamp((slope - .45) / .85))),
       geology * smooth(clamp((slope - .38) / 1.05)) * (1 - forestCover * .75));
@@ -1516,16 +1491,20 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     altitude = smooth(clamp((y - SCULPTED_GROUND_DATUM -
       (pyrenean ? .165 : .225) - snowlineNoise * .04) / (pyrenean ? .15 : .22))),
     shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
-    pocket = smooth(clamp((drift - (upperAlps ? .45 : pyrenean ? .49 : .59)) / (upperAlps ? .22 : .16))),
-    mainGully = smooth(clamp((channel - (upperAlps ? .33 : pyrenean ? .43 : .53)) / (upperAlps ? .22 : .18))),
-    sideGully = smooth(clamp((branch - (upperAlps ? .36 : pyrenean ? .47 : .60)) / (upperAlps ? .22 : .17))) * (upperAlps ? .92 : .84),
+    pocket = smooth(clamp((drift - (upperAlps ? .49 : pyrenean ? .49 : .59)) / (upperAlps ? .22 : .16))),
+    mainGully = smooth(clamp((channel - (upperAlps ? .43 : pyrenean ? .43 : .53)) / (upperAlps ? .22 : .18))),
+    sideGully = smooth(clamp((branch - (upperAlps ? .48 : pyrenean ? .47 : .60)) / (upperAlps ? .22 : .17))) * (upperAlps ? .92 : .84),
     gullySlope = smooth(clamp((slope - .12) / .34)) *
       (1 - smooth(clamp((slope - (upperAlps ? 2.60 : pyrenean ? 2.00 : 1.25)) / (upperAlps ? 1.80 : 1.30)))),
-    // Existing Alpine neves stay intact. Lower Pyrenean caps collect broken
-    // white pockets while the unchanged cover masks protect actual plantations.
+    // Summit shelves carry smaller caps above the broken gullies. The cover
+    // masks still exclude actual plantations, fields and inhabited ground.
+    summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
+      (pyrenean ? .46 : .62)) / .21)) *
+      (1 - smooth(clamp((slope - .35) / 2.55))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
-      sz * 7.3 + sx * 2.1 + 61) - .64) / .18)),
-    accumulation = Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope);
+      sz * 7.3 + sx * 2.1 + 61) - .60) / .18)),
+    accumulation = Math.max(summit * .92,
+      Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
   return altitude * accumulation * (1 - rockRib * .78);
 }
 
@@ -1648,7 +1627,7 @@ function coastalFracturePoint(points: Array<{ x: number; y: number; z: number }>
   if (!direction || Math.abs(nx * inward.x + nz * inward.z) / norm < .40) return undefined;
   const shortest = Math.min(Math.hypot(ab.x, ab.y, ab.z), Math.hypot(cb.x, cb.y, cb.z),
     Math.hypot(a.x - c.x, a.y - c.y, a.z - c.z)),
-    depth = Math.min(.012, shortest * .22, (high - low) * .18, requestedDepth),
+    depth = Math.min(.017, shortest * .24, (high - low) * .20, requestedDepth),
     x = a.x * u + b.x * v + c.x * w + nx / norm * depth * direction,
     y = a.y * u + b.y * v + c.y * w + ny / norm * depth * direction,
     z = a.z * u + b.z * v + c.z * w + nz / norm * depth * direction;
@@ -1685,7 +1664,7 @@ async function buildGround(
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
   const pale = Color3.FromHexString("#F0E2C7");
-  let fractureBudget = 900;
+  let fractureBudget = 1800;
   for (const [part, outline] of outlines.entries()) {
     const sourceOutline = sourceOutlines[part],
       coast = densify(sourceOutline, 0.035).map(point => mapAuthoredPosition(point.x, point.z));
@@ -1973,10 +1952,10 @@ async function buildGround(
     const facadePanels: Array<{ start: number; end: number }> = [],
       segmentPanels: number[] = [];
     for (let start = 0; start < coast.length;) {
-      const panel = facadePanels.length, span = .060 + hash(panel + part * 719, 1283) * .060;
+      const panel = facadePanels.length, span = .045 + hash(panel + part * 719, 1283) * .045;
       let end = start + 1;
       while (end < coast.length && coastArcs[end] - coastArcs[start] < span &&
-        coastArcs[end + 1] - coastArcs[start] <= .120) {
+        coastArcs[end + 1] - coastArcs[start] <= .090) {
         const a = coast[(end + coast.length - 1) % coast.length], b = coast[end],
           c = coast[(end + 1) % coast.length],
           ax = b.x - a.x, az = b.z - a.z, bx = c.x - b.x, bz = c.z - b.z;
@@ -2191,8 +2170,8 @@ async function buildGround(
         rimVertices.set(key, index);
         return index;
       });
-      if (fractureBudget > 0 && dryFace && bed >= 2 && bed <= 4 &&
-        hash(face + part * 991, 1511) < .66) {
+      if (fractureBudget > 0 && dryFace && bed >= 1 && bed <= 4 &&
+        hash(face + part * 991, 1511) < .78) {
         const column = Math.max(...sourceCorners.map(index => Math.floor(index / (cliffLayers + 1)))),
           a = coast[(column + coast.length - 1) % coast.length], b = coast[column % coast.length],
           edgeLength = Math.hypot(b.x - a.x, b.z - a.z) || 1,
@@ -3495,8 +3474,8 @@ function curvedPath(points: Point[]) {
 function buildRivers(scene: Scene, meshes: Mesh[]) {
   const banks = geometry(), water = geometry();
   const bankColor = Color3.FromHexString("#C5B790"),
-    deepWater = Color3.FromHexString("#185B82"),
-    shallowWater = Color3.FromHexString("#35859F");
+    deepWater = Color3.FromHexString("#11466B"),
+    shallowWater = Color3.FromHexString("#2A758D");
   const quad = (
     data: Geometry,
     points: Array<{ x: number; y: number; z: number }>,

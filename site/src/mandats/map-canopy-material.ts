@@ -53,7 +53,8 @@ class CanopyGrain extends MaterialPluginBase {
           texture2D(canopyGrainSampler, vPositionW.xz * 3.6).rgb * canopyWeights.y +
           texture2D(canopyGrainSampler, vPositionW.xy * 3.6).rgb * canopyWeights.z;
         float canopyShade = dot(canopyGrainValue, vec3(.25, .5, .25));
-        surfaceAlbedo *= mix(1.0, .85 + canopyShade * .32, canopyMask);
+        surfaceAlbedo *= mix(vec3(1.0), vec3(1.03, .93, .77) *
+          (.80 + canopyShade * .29), canopyMask);
       `,
     };
   }

@@ -1,0 +1,33 @@
+{
+  "entry": "assets/mandats-CbyNRqPq.js",
+  "bytes": 3214497,
+  "sha256": "fd614424d8d3ba8ef075048ab2f29af8c1d0dd3c69d3c13c11d779b2d41786f8",
+  "command": "NODE_USE_ENV_PROXY=1 npm run check",
+  "log": "full-check-retained.log",
+  "assets": [
+    {
+      "name": "daylight.env",
+      "bytes": 238984,
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93",
+      "distByteIdentical": true
+    },
+    {
+      "name": "vegetation.glb",
+      "bytes": 945380,
+      "sha256": "5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.bin.gz",
+      "bytes": 10663282,
+      "sha256": "15b574c8e41c07b3f9ecca3c5072344ac6adadc336fa440cc27789c2cd13af9a",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.json",
+      "bytes": 11153,
+      "sha256": "102da8940f562eec3e3a38b2123ab244cfc5ce44990793c28fc3c74bd19e82ee",
+      "distByteIdentical": true
+    }
+  ]
+}

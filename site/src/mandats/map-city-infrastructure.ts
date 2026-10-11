@@ -75,7 +75,8 @@ function toolkit(scene: Scene, meshes: Mesh[]) {
 }
 
 export function buildHarbour(scene: Scene, root: TransformNode, place: string, materials: CityMaterials): Mesh[] {
-  const meshes: Mesh[] = [], plan = surveyHarbour(place, root.position);
+  const meshes: Mesh[] = [], plan = surveyHarbour(place, root.position),
+    northern = place === "cherbourg" || place === "dunkerque";
   if (!plan) return meshes;
   const tool = toolkit(scene, meshes), node = new TransformNode(`port-${place}`, scene);
   // The quay, land contact and hull clearance share world coordinates. The
@@ -228,7 +229,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     const steel = new CityGeometry(), cables = new CityGeometry(), cab = new CityGeometry(), glass = new CityGeometry();
     tower.parent = node; tower.position.set(point.x, point.height, point.z); tower.rotation.y = Math.atan2(point.nx, point.nz);
     const foot = small ? .016 : .027, mast = height * .80,
-      reach = small ? .12 : place === "marseille" ? .43 : .33;
+      reach = small ? .12 : northern ? .24 : place === "marseille" ? .43 : .33;
     for (const side of [-1, 1]) {
       // Interior portal columns add a solid silhouette within the four
       // original feet; reach, height, bearings and ground contacts stay fixed.
@@ -267,6 +268,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   const cranePositions = place === "ajaccio" ? [.32] : place === "brest" ? [-.13, .27] : [-.29, .025, .31];
   cranePositions.forEach((fraction, index) => crane(fraction,
     place === "ajaccio" ? .225 : place === "brest" ? .36 + index * .03 :
+      northern ? (place === "cherbourg" ? .31 : .40) - index * .025 :
       place === "marseille" ? .72 - index * .042 : .59 - index * .032,
     place === "ajaccio"));
 
@@ -453,6 +455,11 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     boat("channel-ferry-east", 0, 0, .54, .11, "ferry", .08, mapSourcePosition(-.4, 50.05));
     boat("channel-fishing-north", 0, 0, .23, .060, "fishing", .10, mapSourcePosition(1.1, 50.75));
     boat("atlantic-ferry-south", 0, 0, .46, .11, "ferry", .22, mapSourcePosition(-1.9, 44.05));
+  } else if (northern) {
+    boat("channel-ferry", .09, .190, .34, .080, "ferry");
+    boat("coastal-tug", -.32, .115, .12, .045, "fishing");
+    boat("channel-coaster", .30, .350, .27, .071, "cargo", .08);
+    boat("harbour-yacht", -.28, .420, .15, .045, "sail", .38);
   } else if (place === "nantes" || place === "la-rochelle") {
     boat("estuary-cargo", -.08, .186, .395, .089, "cargo", 0, undefined, { length: .58, beam: .132 }); boat("coaster", .33, .358, .275, .069, "cargo", .08);
     boat("harbour-tug", -.36, .115, .122, .045, "fishing"); boat("sailing-yacht", -.29, .445, .145, .043, "sail", .53);
