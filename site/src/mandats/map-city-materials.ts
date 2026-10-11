@@ -227,6 +227,8 @@ export function createCityTransportMaterials(scene: Scene, source: CityMaterials
     const original = source[key], surface = new StandardMaterial(`city-transport-${key}`, scene);
     // Share the actual grain maps; cloning a DynamicTexture would recreate it.
     surface.diffuseColor = original.diffuseColor.clone();
+    if (key === "asphalt") surface.diffuseColor = Color3.FromHexString("#6C797E");
+    if (key === "markings") surface.diffuseColor = Color3.FromHexString("#F2E8D3");
     surface.diffuseTexture = original.diffuseTexture;
     surface.bumpTexture = original.bumpTexture;
     surface.specularColor = original.specularColor.clone();

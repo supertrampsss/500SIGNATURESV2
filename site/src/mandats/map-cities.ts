@@ -179,7 +179,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       runs: Vector3[][] = [];
     let run: Vector3[] = [];
     const vehiclePosition = (point: GroundPoint) => {
-      let y = landHeight(point.x, point.z) + 0.035;
+      let y = landHeight(point.x, point.z) + .013;
       for (const bridge of bridgeDecks) {
         const dx = point.x - bridge.x, dz = point.z - bridge.z,
           lateral = dx * Math.cos(bridge.angle) - dz * Math.sin(bridge.angle),
@@ -387,7 +387,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     if (!onLand(root, x, z, length / 2)) return;
     const node = located("river-bridge", root, x, z, angle),
       stonework = new Geometry(), ironwork = new Geometry(), deck = new Geometry();
-    bridgeDecks.push({ x: root.position.x + x, z: root.position.z + z, angle, length, y: landHeight(root.position.x + x, root.position.z + z) + 0.073 });
+    bridgeDecks.push({ x: root.position.x + x, z: root.position.z + z, angle, length, y: landHeight(root.position.x + x, root.position.z + z) + .059 });
     deck.box(0, 0.054, 0, 0.045, 0.008, length);
     for (const side of [-1, 1]) {
       stonework.box(side * 0.027, 0.045, 0, 0.009, 0.012, length);
@@ -632,7 +632,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     // skyline. Survey the actual dimensions before all ground/contact checks.
     width *= .88;
     if (authored) authored = { ...authored, width,
-      depth: authored.depth * .88, height: authored.height * 1.22 };
+      depth: authored.depth * .88, height: authored.height * 1.10 };
     const family = families[region];
     const rural = !roots.has(town as MapPlace),
       farm = region === "breton" || region === "north" ? "ferme_02" : "ferme_01",
@@ -740,7 +740,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     const typeHeight = name.startsWith("ferme") ? 1.15 : name === "boutique_01" ? 1.23 :
       regionalHeight[region] - (rural ? .015 : 0),
       heightFactor = Math.max(1.15, Math.min(1.25, typeHeight + [-.01, .015, -.005, .01][index % 4]));
-    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor * 1.22 / .88;
+    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor * 1.10 / .88;
     asset.root.scaling.z *= depth / naturalDepth;
     asset.root.metadata = { ...asset.root.metadata, town, domestic: true,
       heightFactor: authored ? authored.height / (bounds.height * scale) : heightFactor,
@@ -750,11 +750,13 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     // its own surveyed building. Its masonry, roof and footing share that lot;
     // it never takes a neighbouring house, tree, road or future project site.
     if (authored?.national && name.endsWith("_dominante") && !accentedTowns.has(town)) {
-      const tower = located("regional-clock-tower", root, centreX, centreZ, angle),
-        span = Math.min(width, depth) * .80,
-        shaft = Math.max(.24, Math.min(.36, authored.height * 1.15)),
+      const majorTown = NATIONAL_SETTLEMENTS.find(settlement => settlement.name === town)?.major,
+        tower = located("regional-clock-tower", root, centreX, centreZ, angle),
+        span = Math.min(width, depth) * .72,
+        shaft = Math.max(majorTown ? .19 : .11,
+          Math.min(majorTown ? .30 : .22, authored.height * .95)),
         pointed = !["south", "alsace"].includes(region),
-        rise = pointed ? Math.min(.16, span * 1.85) : span * .75,
+        rise = pointed ? Math.min(majorTown ? .12 : .09, span * 1.12) : span * .65,
         masonry = new Geometry(), windows = new Geometry(), trim = new Geometry();
       tower.position.y = floor - root.position.y;
       tower.metadata = { authoredTownAccent: true, town, frontage: authored.id,
@@ -1260,6 +1262,9 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   const networkPaths: Vector3[][] = [];
   carShape.box(0, 0.012, 0, 0.022, 0.014, 0.048);
   carShape.box(0, 0.023, -0.003, 0.02, 0.01, 0.025);
+  const tyreStart = carShape.positions.length / 3;
+  for (const side of [-1, 1]) for (const axle of [-1, 1])
+    carShape.box(side * .012, .004, axle * .016, .004, .008, .010);
   for (const [index, route] of routes.entries()) {
     const points = [roadAnchor(route.from), ...route.via, roadAnchor(route.to)].map(([lon, lat]) => mapBaselinePosition(lon, lat)),
       runs = road(`national-road-${index}`, points, 0.033);
@@ -1275,7 +1280,10 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       mesh.position.copyFrom(Vector3.Lerp(path[segment], path[segment + 1], progress - segment));
       const forward = path[segment + 1].subtract(path[segment]);
       mesh.rotation.y = Math.atan2(forward.x, forward.z);
-      const colors = Array.from({ length: mesh.getTotalVertices() }, (_, vertex) => vertex >= 24 && vertex < 40 ? [0.27, 0.38, 0.4, 1] : [1, 1, 1, 1]).flat();
+      mesh.rotation.x = -Math.atan2(forward.y, Math.hypot(forward.x, forward.z));
+      const colors = Array.from({ length: mesh.getTotalVertices() }, (_, vertex) =>
+        vertex >= tyreStart ? [.06, .07, .07, 1] :
+          vertex >= 24 && vertex < 40 ? [.27, .38, .4, 1] : [1, 1, 1, 1]).flat();
       mesh.setVerticesData("color", colors);
       vehicles.push({ mesh, path, phase });
     }

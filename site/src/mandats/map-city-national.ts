@@ -1,5 +1,6 @@
 import { RURAL_FINE_SETTLEMENTS } from "./map-rural-infill.ts";
 import { REFERENCE_NORTH_SETTLEMENTS } from "./map-reference-north.ts";
+import { addReferenceIslandQuarter } from "./map-reference-corsica.ts";
 import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRetainedTownPlanPoint } from "./map-camera-projection.ts";
 
 /** Fixed, named miniature quarters composed against the approved France reference.
@@ -27741,6 +27742,7 @@ const RETAINED_NATIONAL_SETTLEMENTS: readonly NationalSettlement[] = [
  * The house's footprint centre is transported, rather than its off-centre GLB
  * origin. All consumers receive these same effective local coordinates. */
 function transportNationalSettlement(town: NationalSettlement): NationalSettlement {
+  town = addReferenceIslandQuarter(town);
   const corsica = CORSICA_SETTLEMENTS.has(town.name),
     yaw = corsica ? CORSE_REFERENCE_POSE.angle : 0;
   const point = (x: number, z: number): NationalPoint => {

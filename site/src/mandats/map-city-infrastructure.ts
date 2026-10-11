@@ -496,11 +496,17 @@ export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMa
   if (!concrete) {
     concrete = new StandardMaterial("station-ivory-concrete", scene);
     concrete.diffuseColor = Color3.FromHexString("#F5ECD8");
-    concrete.emissiveColor = new Color3(.16, .15, .13);
+    concrete.emissiveColor = new Color3(.06, .05, .035);
     concrete.specularColor = new Color3(.045, .043, .039);
   }
   const warehouseFooting = survey(0, -.13, .108, .065);
   tool.warehouse(node, 0.0, -0.13, materials.pale, materials, warehouseFooting);
+  let cavity = scene.getMaterialByName("station-cooling-cavity") as StandardMaterial | null;
+  if (!cavity) {
+    cavity = new StandardMaterial("station-cooling-cavity", scene);
+    cavity.diffuseColor = Color3.FromHexString("#394442");
+    cavity.specularColor = new Color3(.015, .018, .016);
+  }
   const coolingTower = (x: number, z: number) => {
     const shape = new CityGeometry(), height = 0.46, footing = survey(x, z, .113, .113),
       base = footing.floor - node.position.y;
@@ -516,8 +522,26 @@ export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMa
       }
     }
     tool.shape("cooling-tower", shape, concrete!, node);
-    tool.cylinder("cooling-tower-rim", x, base + height, z, 0.180, 0.011, 0.180, concrete!, node);
-    tool.cylinder("cooling-tower-interior", x, base + height - 0.002, z, 0.16, 0.003, 0.16, materials.glass, node);
+    const rim = new CityGeometry(), lining = new CityGeometry(),
+      top = base + height + .0055, lip = base + height - .0055,
+      bottom = base + height - .08,
+      point = (angle: number, radius: number, y: number): [number, number, number] =>
+        [x + Math.cos(angle) * radius, y, z + Math.sin(angle) * radius];
+    // The mouth is an annulus with a recessed lining, rather than a capped
+    // cylinder hiding a dark disc. Its geometry remains open at the top.
+    for (let side = 0; side < 24; side++) {
+      const a = side * Math.PI * 2 / 24, b = (side + 1) * Math.PI * 2 / 24;
+      rim.quad(point(a, .09, top), point(a, .0775, top),
+        point(b, .0775, top), point(b, .09, top));
+      rim.quad(point(a, .09, lip), point(a, .09, top),
+        point(b, .09, top), point(b, .09, lip));
+      lining.quad(point(a, .0775, top), point(a, .0685, bottom),
+        point(b, .0685, bottom), point(b, .0775, top));
+    }
+    tool.shape("cooling-tower-rim", rim, concrete!, node);
+    tool.shape("cooling-tower-inner-wall", lining, cavity!, node);
+    tool.cylinder("cooling-tower-interior-floor", x, bottom - .002, z,
+      .137, .004, .137, cavity!, node);
     return base;
   };
   const towerBase = coolingTower(-0.17, 0.06);
@@ -538,8 +562,8 @@ export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMa
   let panelMaterial = scene.getMaterialByName("station-blue-photovoltaics") as StandardMaterial | null;
   if (!panelMaterial) {
     panelMaterial = new StandardMaterial("station-blue-photovoltaics", scene);
-    panelMaterial.diffuseColor = Color3.FromHexString("#155887");
-    panelMaterial.emissiveColor = new Color3(.015, .045, .075);
+    panelMaterial.diffuseColor = Color3.FromHexString("#163C58");
+    panelMaterial.emissiveColor = new Color3(.005, .01, .018);
     panelMaterial.specularColor = new Color3(.20, .27, .32);
   }
   const solar = new CityGeometry(), feet = new CityGeometry(), cells = new CityGeometry();
@@ -547,15 +571,15 @@ export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMa
     for (let column = 0; column < 8; column++) {
       const px = 0.27 + column * 0.049, pz = -0.19 + row * 0.064,
         footing = survey(px + .0195, pz + .0215, .0195, .0215), base = footing.floor - node.position.y;
-      solar.quad([px, base + .023, pz], [px, base + .048, pz + .043],
-        [px + .039, base + .048, pz + .043], [px + .039, base + .023, pz]);
+      solar.quad([px, base + .023, pz], [px, base + .038, pz + .043],
+        [px + .039, base + .038, pz + .043], [px + .039, base + .023, pz]);
       for (const offset of [.009, .034]) {
-        const top = base + .023 + .025 * offset / .043,
+        const top = base + .023 + .015 * offset / .043,
           ground = survey(px + .02, pz + offset, .0015, .0015).floor - node.position.y;
         feet.box(px + .02, (top + ground) / 2, pz + offset, .003, top - ground, .003);
       }
       for (const offset of [.013, .026]) cells.beam([px + offset, base + .024, pz],
-        [px + offset, base + .049, pz + .043], .0007);
+        [px + offset, base + .039, pz + .043], .0007);
     }
   tool.shape("solar-modules", solar, panelMaterial, node);
   tool.shape("solar-cell-seams", cells, materials.cream, node);

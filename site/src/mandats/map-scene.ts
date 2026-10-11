@@ -114,7 +114,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     scene.skipPointerMovePicking = true;
     scene.imageProcessingConfiguration.toneMappingEnabled = true;
     scene.imageProcessingConfiguration.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-    scene.imageProcessingConfiguration.contrast = 1.16;
+    scene.imageProcessingConfiguration.contrast = 1.10;
     scene.imageProcessingConfiguration.exposure = 1.25;
     // The authored PBR stone, slate, iron and glass need diffuse irradiance
     // and prefiltered reflections as well as the direct miniature sunlight.
@@ -194,15 +194,15 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
     // StandardMaterial clamps diffuse light before multiplying terrain colour.
     // Fill shadowed faces while retaining a slope response on the ground.
-    sky.intensity = 0.28;
+    sky.intensity = 0.40;
     // Keep the previous StandardMaterial hemispheric specular power.
-    sky.specular = new Color3(0.12 / 0.28, 0.12 / 0.28, 0.12 / 0.28);
-    sky.diffuse = Color3.FromHexString("#CCDDF1");
+    sky.specular = new Color3(0.12 / 0.40, 0.12 / 0.40, 0.12 / 0.40);
+    sky.diffuse = Color3.FromHexString("#DCE6ED");
     // A stone/soil bounce below the hemisphere, rather than a second blue sky.
     sky.groundColor = balancedIlluminant("#817A6D", "#788797");
     const sun = new DirectionalLight("sun", new Vector3(0.55, -0.80, 0.7), scene);
     sun.position.set(-9, 16, -11);
-    sun.intensity = 0.95;
+    sun.intensity = 0.90;
     sun.diffuse = balancedIlluminant("#FFE2BD", "#FFF1DD");
     sun.shadowFrustumSize = 19;
     sun.shadowMinZ = 1;
@@ -214,7 +214,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     shadows.filteringQuality = ShadowGenerator.QUALITY_LOW;
     shadows.bias = 0.0003;
     shadows.normalBias = 0.012;
-    shadows.setDarkness(0.14);
+    shadows.setDarkness(0.30);
     const shadowMap = shadows.getShadowMap()!;
     shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
     function frameShadows(target?: Vector3) {
@@ -246,15 +246,21 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const clearedTrees = new Set<TransformNode>();
     // Start the existing GLB requests before the synchronous ground builders.
     // Keep the result order and the same shared Scene/asset-kit cache.
+    const preparationStart = performance.now();
+    const preparationPhase = <T>(name: string, work: Promise<T>): Promise<T> => work.then(value => {
+      host.dataset[name] = String(Math.round(performance.now() - preparationStart));
+      return value;
+    });
     let landscapeFinished!: () => void;
     const landscapeReady = new Promise<void>(resolve => { landscapeFinished = resolve; });
-    const cityScenery = buildCities(scene, landscapeReady);
-    const landscapeScenery = buildLandscape(scene).then(landscape => {
+    const cityScenery = preparationPhase("citiesReadyMs", buildCities(scene, landscapeReady));
+    const landscapeScenery = preparationPhase("terrainReadyMs", buildLandscape(scene)).then(landscape => {
       landscapeFinished();
       return landscape;
     });
     const scenery = Promise.all([
-      landscapeScenery, cityScenery, buildMapContext(scene), lighting,
+      landscapeScenery, cityScenery, preparationPhase("contextReadyMs", buildMapContext(scene)),
+      preparationPhase("lightingReadyMs", lighting),
       buildRegionBoundaries(scene),
     ]);
     function finishScenery(staticGeometry: AbstractMesh[]) {
@@ -478,25 +484,22 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       camera.beta = COUNTRY_BETA;
       camera.target.set(...COUNTRY_REFERENCE_POSE.target);
       camera.radius = COUNTRY_DESKTOP_RADIUS;
-      for (let iteration = 0; iteration < 6; iteration++) {
-        updateProjection();
-        camera.getViewMatrix(true);
-        camera.getProjectionMatrix(true);
-        scene.updateTransformMatrix(true);
-        const viewport = camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
-        const projected = countryPoints.map(point => Vector3.Project(point,
-          Matrix.Identity(), scene.getTransformMatrix(), viewport));
-        const halfWidth = engine.getRenderWidth() / 2,
-          halfHeight = engine.getRenderHeight() / 2;
-        // Keep the calibrated target and depth progression. Smaller viewports
-        // need more distance, while desktop keeps the reference composition.
-        let ratio = 0;
-        for (const point of projected) ratio = Math.max(ratio,
-          Math.abs(point.x - halfWidth) / (halfWidth * COUNTRY_COVERAGE),
-          Math.abs(point.y - halfHeight) / (halfHeight * COUNTRY_COVERAGE));
-        if (ratio <= 1.001) break;
-        camera.radius = Math.min(36, camera.radius * ratio);
+      updateProjection();
+      const view = camera.getViewMatrix(true),
+        vertical = 1 / Math.tan(camera.fov / 2),
+        horizontal = vertical * engine.getRenderHeight() / engine.getRenderWidth(),
+        initialRadius = camera.radius;
+      let requiredRadius = initialRadius;
+      // For the calibrated perspective, each real vertex gives the exact
+      // distance needed to fit its horizontal and vertical projection.
+      // One pass replaces six allocations/projections of the whole miniature.
+      for (const point of countryPoints) {
+        const local = Vector3.TransformCoordinates(point, view),
+          fit = Math.max(Math.abs(local.x) * horizontal,
+            Math.abs(local.y) * vertical) / COUNTRY_COVERAGE;
+        requiredRadius = Math.max(requiredRadius, fit - local.z + initialRadius);
       }
+      camera.radius = Math.min(36, requiredRadius);
     }
     fitCountry();
     let countryOverview = pose();
@@ -733,6 +736,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       state = next;
       lightMode = isLight;
       paused = adaptiveStill || isLight || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      camera.inertia = paused ? 0 : .68;
       host.dataset.turn = String(next.turn);
       host.dataset.movements = String(next.movements.length);
       host.dataset.projects = String(next.projects.length);
@@ -783,7 +787,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         label.style.left = `${Math.round(left)}px`;
         label.style.top = `${Math.round(top)}px`;
       }
-      for (const marker of [...state.markers, ...state.tracking]) {
+      const urgentIds = new Set(state.markers.filter(marker => marker.urgent).map(marker => marker.id));
+      for (const marker of [...state.markers, ...state.tracking].sort((a, b) =>
+        Number(urgentIds.has(b.id)) - Number(urgentIds.has(a.id)))) {
         const element = [
           ...host.querySelectorAll<HTMLElement>("[data-map-marker]"),
         ].find((item) => item.dataset.mapMarker === marker.id);
@@ -807,11 +813,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         element.hidden = projected.z < 0 || projected.z > 1 ||
           x < 0 || x > width || y < 0 || y > height;
         if (element.hidden) continue;
-        const point = placeMarker(host, element, { x, y }, placed);
-        const left = `${Math.round(point.x)}px`,
-          top = `${Math.round(point.y)}px`;
-        if (element.style.left !== left) element.style.left = left;
-        if (element.style.top !== top) element.style.top = top;
+        placeMarker(host, element, { x, y }, placed);
       }
     }
     function render() {
@@ -888,12 +890,10 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
               t - i,
             ),
           );
-          vehicle.mesh.rotation.y = Math.atan2(
-            vehicle.path[Math.min(i + 1, vehicle.path.length - 1)].x -
-              vehicle.path[i].x,
-            vehicle.path[Math.min(i + 1, vehicle.path.length - 1)].z -
-              vehicle.path[i].z,
-          );
+          const forward = vehicle.path[Math.min(i + 1, vehicle.path.length - 1)]
+            .subtract(vehicle.path[i]);
+          vehicle.mesh.rotation.y = Math.atan2(forward.x, forward.z);
+          vehicle.mesh.rotation.x = -Math.atan2(forward.y, Math.hypot(forward.x, forward.z));
         }
         for (const group of groups.values())
           for (const person of group.people) {
@@ -918,6 +918,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
           // changes, instead of continuously queuing decorative GPU frames.
           adaptiveStill = true;
           paused = true;
+          camera.inertia = 0;
           host.dataset.motion = "reduced";
           host.dataset.quality = "still";
         } else if (!paused && fps < 14) {
@@ -945,6 +946,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     };
     const onMotion = () => {
       paused = adaptiveStill || lightMode || media.matches;
+      camera.inertia = paused ? 0 : .68;
       host.dataset.motion = paused ? "reduced" : "active";
       render();
     };
@@ -1056,12 +1058,14 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       finishScenery([...landscape.meshes, ...cities.meshes, ...context.meshes, ...regions, boatWash, ...rocks]
         .filter(mesh => !moving.has(mesh)));
       sceneryReady = true;
+      host.dataset.geometryReadyMs = String(Math.round(performance.now() - preparationStart));
       update(state, lightMode);
       if (pendingInspection) inspect(pendingInspection);
       scene.executeWhenReady(() => {
         if (disposed || host.dataset.renderer === "fallback") return;
         measurementStart = performance.now();
         renderedFrames = 0;
+        host.dataset.shadersReadyMs = String(Math.round(performance.now() - preparationStart));
         shadowMap.resetRefreshCounter();
         host.dataset.renderer = "babylon";
         host.setAttribute("aria-busy", "false");
@@ -1185,12 +1189,18 @@ function placeMarker(
   origin: { x: number; y: number },
   placed: MarkerBox[],
 ) {
+  const ground = { ...origin };
+  element.classList.toggle("map-marker--label-left", origin.x > host.clientWidth * .65);
+  const anchor = element.querySelector<HTMLElement>("[data-map-anchor]");
+  // Recalculate from the CSS dimensions on every projection. The previous
+  // frame's displaced callout must never become the next geographic origin.
+  anchor?.style.removeProperty("left");
+  anchor?.style.removeProperty("top");
   const width = element.offsetWidth,
     height = element.offsetHeight;
   // The visual ring, rather than the centre of the complete icon and label,
   // locates the saved subject on the ground. CSS adapts its exact dimensions
   // for ordinary, urgent and small tracking pins on each screen size.
-  const anchor = element.querySelector<HTMLElement>("[data-map-anchor]");
   if (anchor) origin = {
     x: origin.x + width / 2 - anchor.offsetLeft - anchor.offsetWidth / 2,
     y: origin.y + height / 2 - anchor.offsetTop - anchor.offsetHeight / 2,
@@ -1202,16 +1212,18 @@ function placeMarker(
     y: Math.max(marginY, Math.min(host.clientHeight - marginY, origin.y)),
   };
   const candidates: MarkerBox[] = [];
-  for (const dx of [0, 1, -1, 2, -2])
-    for (const dy of [0, 1, -1, 2, -2, 3, -3])
+  for (const dx of [0, 12, -12, 24, -24, 36, -36, width + 12, -width - 12,
+    2 * (width + 12), -2 * (width + 12)])
+    for (const dy of [0, 12, -12, 24, -24, 36, -36, height + 12, -height - 12,
+      2 * (height + 12), -2 * (height + 12), 3 * (height + 12), -3 * (height + 12)])
       candidates.push({
         x: Math.max(
           marginX,
-          Math.min(host.clientWidth - marginX, origin.x + dx * (width + 12)),
+          Math.min(host.clientWidth - marginX, origin.x + dx),
         ),
         y: Math.max(
           marginY,
-          Math.min(host.clientHeight - marginY, origin.y + dy * (height + 12)),
+          Math.min(host.clientHeight - marginY, origin.y + dy),
         ),
         width,
         height,
@@ -1234,6 +1246,36 @@ function placeMarker(
       ),
     ) ?? candidates[0];
   placed.push(point);
+  element.style.left = `${Math.round(point.x)}px`;
+  element.style.top = `${Math.round(point.y)}px`;
+  const hostBounds = host.getBoundingClientRect(), bounds = element.getBoundingClientRect(),
+    left = bounds.left - hostBounds.left, top = bounds.top - hostBounds.top,
+    groundX = ground.x - left, groundY = ground.y - top;
+  // Only the callout avoids neighbouring controls and subjects. Its ground
+  // ring always stays on the projected town, including on narrow screens.
+  if (anchor) {
+    anchor.style.left = `${groundX - anchor.offsetWidth / 2}px`;
+    anchor.style.top = `${groundY - anchor.offsetHeight / 2}px`;
+  }
+  const icon = element.querySelector<HTMLElement>(".map-marker__point"),
+    leader = element.querySelector<SVGPathElement>("[data-map-leader] path");
+  if (icon && leader) leader.setAttribute("d",
+    `M ${icon.offsetLeft + icon.offsetWidth / 2} ${icon.offsetTop + icon.offsetHeight / 2} L ${groundX} ${groundY}`);
+  const subject = element.querySelector<HTMLElement>(".map-marker__subject");
+  if (subject) {
+    subject.style.left = `${Math.max(8 - left,
+      Math.min(host.clientWidth - 8 - left - subject.offsetWidth, icon?.offsetLeft ?? 2))}px`;
+    // The compact map has little space between Lille and Lyon. Place the
+    // urgent caption below its ground ring there, keeping both pins readable.
+    const captionTop = host.clientWidth <= 820 ? (icon?.offsetHeight ?? 48) + 31 : -subject.offsetHeight - 7;
+    subject.style.top = `${Math.max(8 - top,
+      Math.min(host.clientHeight - 8 - top - subject.offsetHeight, captionTop))}px`;
+    placed.push({ x: left + subject.offsetLeft + subject.offsetWidth / 2,
+      y: top + subject.offsetTop + subject.offsetHeight / 2,
+      width: subject.offsetWidth, height: subject.offsetHeight });
+  }
+  element.dataset.mapGroundX = String(ground.x);
+  element.dataset.mapGroundY = String(ground.y);
   return point;
 }
 function placeFallbackMarkers(host: HTMLElement, state: MandateMapState): void {
@@ -1242,7 +1284,9 @@ function placeFallbackMarkers(host: HTMLElement, state: MandateMapState): void {
     height = host.clientHeight,
     scale = Math.min(width / 1000, height / 920),
     placed = mapObstacles(host);
-  for (const item of [...state.markers, ...state.tracking]) {
+  const urgentIds = new Set(state.markers.filter(marker => marker.urgent).map(marker => marker.id));
+  for (const item of [...state.markers, ...state.tracking].sort((a, b) =>
+    Number(urgentIds.has(b.id)) - Number(urgentIds.has(a.id)))) {
     const element = [
       ...host.querySelectorAll<HTMLElement>("[data-map-marker]"),
     ].find((marker) => marker.dataset.mapMarker === item.id);
@@ -1252,9 +1296,7 @@ function placeFallbackMarkers(host: HTMLElement, state: MandateMapState): void {
       mapSourcePosition(MAP_PLACES[item.place].lon, MAP_PLACES[item.place].lat);
     const x = (width - 1000 * scale) / 2 + (500 + position.x * 72) * scale,
       y = (height - 920 * scale) / 2 + (450 - position.z * 72) * scale;
-    const point = placeMarker(host, element, { x, y }, placed);
-    element.style.left = `${Math.round(point.x)}px`;
-    element.style.top = `${Math.round(point.y)}px`;
+    placeMarker(host, element, { x, y }, placed);
   }
 }
 function watchPreviewImage(host: HTMLElement): (() => void) | undefined {

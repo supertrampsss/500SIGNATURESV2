@@ -13,10 +13,10 @@ envoyées à WebGL. Les coordonnées analytiques de `landHeight` restent en doub
 précision. Le manifeste mesure l'arrondi maximal par maillage : moins de
 `4,8 × 10⁻⁷` unité dans cet export, face à des dégagements de plusieurs millièmes.
 
-Les sommets sans indice sont retirés. Les 300 057 triangles visibles sont
-conservés, avec 321 097 sommets au lieu de 433 370. L'archive compte 17 maillages,
-8 matériaux et aucun point de verger dans ce relevé. Elle pèse 10 098 089 octets
-compressés pour 19 546 304 octets décodés. Cette ressource supplémentaire échange
+Les sommets sans indice sont retirés. Les 299 816 triangles visibles sont
+conservés, avec 326 044 sommets au lieu de 437 985. L'archive compte 17 maillages,
+8 matériaux et aucun point de verger dans ce relevé. Elle pèse 10 187 628 octets
+compressés pour 19 779 512 octets décodés. Cette ressource supplémentaire échange
 du transfert et du stockage hors connexion contre le calcul du terrain dans le
 navigateur ; les contrôles de chargement doivent établir le résultat réel.
 

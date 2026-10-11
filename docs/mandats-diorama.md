@@ -329,3 +329,72 @@ Une [mesure de chargement sur le build produit](mandats-diorama/runtime-desktop.
 Les captures réellement inspectées montrent un framebuffer de 1399 × 948 sur ordinateur DPR 1, de 780 × 760 pour 390 × 379,8 pixels CSS sur téléphone DPR 2, de 640 × 622 pour 320 × 310,8 pixels CSS au format compact, et de 780 × 760 dans WebKit DPR 2. Ces quatre captures ne produisent aucune erreur de page. Les textes et choix restent lisibles ; le troisième choix du format 320 px demande un court défilement. WebKit interdit le port 4190 avant le chargement du jeu : utiliser 4180 pour les suites et 4191 pour une preview de capture.
 
 Les mesures Chromium avec SwiftShader documentent le fonctionnement du navigateur de test. Le temps de rendu d'une capture, qui peut inclure la préparation des ombres et shaders, ne mesure pas une cadence stable. La mémoire JavaScript ne couvre pas la mémoire GPU. Un téléphone physique reste nécessaire pour conclure sur la fluidité mobile ; l'attrait et la difficulté du jeu demandent des parties avec des joueurs.
+
+
+## Itération 40 — contrôle de production, fidélité toujours en cours
+
+La [comparaison 40](mandats-diorama/comparaison-40.html) présente la référence,
+la véritable mobilisation lycéenne après une décision scolaire, les vues natives
+de Lyon et des Alpes, et les vues source à 320/390 pixels. Le statut reste
+**non conforme visuellement** : les grandes facettes alpines, les bois, les
+côtes et la finition des volumes doivent encore être repris. Le libellé de Lyon
+bascule trop tôt à gauche sur ordinateur et le titre urgent d’agenda se coupe
+sur deux lignes. La PR 194 reste en brouillon ; ce point de contrôle ne clôt pas
+la demande de reproduction de la maquette.
+
+Les volumes des maisons et horloges ont été réduits, les ouvertures des tours
+industrielles sont réellement creuses, les panneaux solaires sont moins inclinés
+et plus sombres. Les véhicules portent des roues, se placent au sol et suivent
+la pente. Les deux voies parallèles de Seine partagent un viaduc dimensionné
+pour leurs emprises ; l’inspection relève trois ouvrages, avec deux arches chacun.
+Les nouveaux quartiers et le relief révisé donnent 783 maisons acceptées, dont
+huit à Dunkerque et dix-neuf dans les quatre bourgs corses : Ajaccio 4, Bastia 9,
+Corte 2, Bonifacio 4. Les contrôles de parcelles restent appliqués.
+
+Le repère urgent porte le titre réel de son sujet. Les collisions déplacent la
+bulle, puis une ligne rejoint l’anneau resté sur la véritable projection de la
+ville. Les titres sont placés séparément. Les captures source à 320 et 390 pixels
+mesurent un écart inférieur à 0,1 pixel entre cette projection et le centre de
+l’anneau. Elles ne sont pas présentées comme des preuves de production WebKit.
+
+Les 1 082 tests existants, les trois cibles TypeScript et Vite passent dans
+`screens-40/full-check.log`. Ce premier lancement échoue ensuite en accédant
+aux données distantes sans le proxy de l’environnement. Le lancement complet
+avec `NODE_USE_ENV_PROXY=1` réussit dans `screens-40/build-proxy.log`, jusqu’au
+précache de 149 ressources. Les deux tests DPR originaux, ordinateur et WebKit,
+passent en 59,7 et 36,8 secondes, avec leurs attentes Babylon de 15 secondes
+inchangées. Le test ordinateur contrôle notamment le zoom après redimensionnement.
+La CI du commit précédent `f564cd1` avait échoué sur ces deux contrôles ; son
+scénario story, le site et le plateau passaient. Les suites complètes devront
+être exécutées sur la version finale, et aucun succès historique de l’itération
+39 n’est attribué à cette nouvelle version.
+
+Les quatre captures de production et la capture de la vraie décision ne relèvent
+aucune erreur de page ni requête échouée. Elles lisent l’archive de terrain,
+laissent les boutons natifs commander la caméra et conservent les empreintes
+des réponses JS/CSS reçues. Le module servi `mandats-BgeIZntc.js` a pour SHA256
+`6774e9028b34852c88153cbcb126c863531a74134e3efed87843f73e8763688c`.
+La pose nationale réellement calculée est de 13,88. Les durées de préparation
+sont désormais observables séparément ; la première capture prépare sa géométrie
+en 9 336 ms et ses shaders en 10 228 ms dans Chromium/SwiftShader. Ce sont des
+mesures de cette capture, sans promesse de fréquence sur GPU physique.
+
+L’inspection en lecture seule relève douze monuments, zéro intersection avec
+les canopées testées et une erreur WebGL égale à zéro pour l’eau. L’audit des
+polygones réels des cinq ports et vingt-six bateaux ne trouve aucune intersection
+entre ports. Son périmètre ne couvre pas toutes les intersections possibles.
+L’audit du terrain réel mesure encore des pentes alpines atteignant 10,78 malgré
+la limite de 4,6 sur les contrôles parents : le relief final demande une correction
+supplémentaire, pas seulement une nouvelle valeur de cette limite.
+
+Le terrain est reproduit octet par octet : 299 816 triangles, 326 044 sommets
+utilisés sur 437 985, dix-sept maillages, huit matériaux, 10 187 628 octets
+compressés. Son SHA256 est
+`52a7f00c388aaa1e73db24d2c4c5c7b9216f0fc5a8cabc0a73f2f921b16db07b`.
+Les arbres sont également reproduits à l’identique : 8 104 triangles détaillés
+et 1 007 distants, avec des ramures distantes plus détaillées pour pins et cyprès.
+Les bornes et la roche restent identiques au modèle précédent.
+Les 33 pièces et leurs empreintes sont dans
+[le manifeste 40](mandats-diorama/screens-40/manifest.json). Les rapports complets
+avec images des tests DPR restent aussi archivés dans le workspace, distincts
+des fichiers publiés du jeu.

@@ -1,24 +1,24 @@
 {
   "format": "MANDATS indexed terrain archive v1, gzip",
-  "sha256": "59447be34fc797502392c80d6cbc30506b30abec472ed2b44ee9de36b201b528",
-  "uncompressedSha256": "ff9c66e2f5b019fe90c6ed8a5cc4367e1bf687b7904300015000cac18713dfd5",
-  "compressedBytes": 10098089,
-  "uncompressedBytes": 19546304,
+  "sha256": "52a7f00c388aaa1e73db24d2c4c5c7b9216f0fc5a8cabc0a73f2f921b16db07b",
+  "uncompressedSha256": "2bc6f56cd2da50aedf5d4a23c3e808a213fb9b154f16c1ad10b4edbcc5c47f09",
+  "compressedBytes": 10187628,
+  "uncompressedBytes": 19779512,
   "materials": 8,
   "orchards": 0,
   "meshes": [
     {
       "name": "landscape-terrain-0",
-      "originalVertices": 129975,
-      "retainedVertices": 35088,
-      "triangles": 66866,
+      "originalVertices": 129598,
+      "retainedVertices": 35029,
+      "triangles": 66782,
       "maximumPositionRounding": 4.7408364878265274e-7
     },
     {
       "name": "landscape-terrain-mineral-0",
-      "originalVertices": 130845,
-      "retainedVertices": 130845,
-      "triangles": 98805,
+      "originalVertices": 130507,
+      "retainedVertices": 130507,
+      "triangles": 98653,
       "maximumPositionRounding": 2.3841533369761692e-7
     },
     {
@@ -30,23 +30,23 @@
     },
     {
       "name": "landscape-cliffs-0",
-      "originalVertices": 24072,
-      "retainedVertices": 23637,
+      "originalVertices": 29336,
+      "retainedVertices": 28901,
       "triangles": 20896,
-      "maximumPositionRounding": 4.750161597399938e-7
+      "maximumPositionRounding": 4.739681536136686e-7
     },
     {
       "name": "landscape-terrain-1",
       "originalVertices": 937,
-      "retainedVertices": 631,
-      "triangles": 990,
+      "retainedVertices": 645,
+      "triangles": 984,
       "maximumPositionRounding": 2.380336798779581e-7
     },
     {
       "name": "landscape-terrain-mineral-1",
-      "originalVertices": 835,
-      "retainedVertices": 835,
-      "triangles": 725,
+      "originalVertices": 848,
+      "retainedVertices": 848,
+      "triangles": 731,
       "maximumPositionRounding": 2.380336798779581e-7
     },
     {
@@ -58,8 +58,8 @@
     },
     {
       "name": "landscape-cliffs-1",
-      "originalVertices": 1740,
-      "retainedVertices": 1740,
+      "originalVertices": 1808,
+      "retainedVertices": 1808,
       "triangles": 1920,
       "maximumPositionRounding": 2.3833045403875985e-7
     },
@@ -79,9 +79,9 @@
     },
     {
       "name": "landscape-agriculture",
-      "originalVertices": 27637,
-      "retainedVertices": 27637,
-      "triangles": 11148,
+      "originalVertices": 27622,
+      "retainedVertices": 27622,
+      "triangles": 11143,
       "maximumPositionRounding": 4.7264946623215565e-7
     },
     {
@@ -146,7 +146,7 @@
     },
     {
       "file": "site/src/mandats/map-asset-kit.ts",
-      "sha256": "21b6725923dc66350529b9e5da02fb2677f6ad6bdf7627e3f252092068c1562a"
+      "sha256": "5a3cc6a5bb4ba5d983da39b2768526c0c6be3f056918434b4e788dfe80124f7a"
     },
     {
       "file": "site/src/mandats/map-camera-projection.ts",
@@ -158,7 +158,7 @@
     },
     {
       "file": "site/src/mandats/map-city-national.ts",
-      "sha256": "8a163945714a387e181df44686b0823991d898dd42ca4549b6a80d5712efd3c0"
+      "sha256": "faeaf03418f1609e0fb33a2fe57c7a94748d4b367975500bc5e8566765bd7a81"
     },
     {
       "file": "site/src/mandats/map-city-paris.ts",
@@ -190,11 +190,11 @@
     },
     {
       "file": "site/src/mandats/map-land-crags.ts",
-      "sha256": "b1e68f06fdf0b95a8a71dfb6804d5f279d0a4ba9ab7066473158f198f4d8ac75"
+      "sha256": "52f184d140b970942f34d32fbbef1b384ef01977f938d2c7177296b74e74662d"
     },
     {
       "file": "site/src/mandats/map-land-materials.ts",
-      "sha256": "303f3d66595b21d122dc2cf4f408191ea084535999182f42ec9675d749a8f189"
+      "sha256": "92b7f5f73173170d4ba72f8f38f8e407d5e014dea173703174253def6d861270"
     },
     {
       "file": "site/src/mandats/map-landscape-cache.ts",
@@ -202,7 +202,7 @@
     },
     {
       "file": "site/src/mandats/map-landscape.ts",
-      "sha256": "4c7e0c3e5ac753f95f0580ac78cae23af5db1cfb19cdd2e1c1a56f1e41801c7a"
+      "sha256": "092419534a165502336c1c432f890dce469ab20da6ed7f27d2a20f110297bf15"
     },
     {
       "file": "site/src/mandats/map-mineral-material.ts",
@@ -210,7 +210,7 @@
     },
     {
       "file": "site/src/mandats/map-model-revisions.ts",
-      "sha256": "9487bb3a762b32b98d09e7d8edae2d470b1d66f719dbe319f8b7eb20fc4cbb0c"
+      "sha256": "50eb7bce365706acdcc63fdce424bb2a9b802e23d1ec6f6b27016b8dfe68cac8"
     },
     {
       "file": "site/src/mandats/map-paris-terrain.ts",
@@ -221,8 +221,12 @@
       "sha256": "a2287b18aa975d6b8399536b4a45722820942d661d4e8e407cc802de9b40f654"
     },
     {
+      "file": "site/src/mandats/map-reference-corsica.ts",
+      "sha256": "926e9d448c2d22ff318ba4b392b405522676f6f19bfcbc0379f59fcafc48ceb2"
+    },
+    {
       "file": "site/src/mandats/map-reference-north.ts",
-      "sha256": "fd5023345bee7e5be5203624552f26adaab0b55f70741136228d5cbf6eee9739"
+      "sha256": "f0ba100e1459837dd8e9bb862b0e250222419b09a464fea8660f199bd0c8f670"
     },
     {
       "file": "site/src/mandats/map-rural-infill.ts",

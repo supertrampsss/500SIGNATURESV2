@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--previous', type=Path)
 parser.add_argument('--reproduced-from', type=Path)
 parser.add_argument('--output', type=Path, required=True)
+parser.add_argument('--revision', type=int, default=40)
 args = parser.parse_args()
 source = Path(__file__).resolve().parent
 root = source.parent.parent
@@ -85,7 +86,7 @@ def inspect(path):
 current = inspect(export)
 previous = inspect(args.previous) if args.previous else None
 reproduced = args.reproduced_from.read_bytes() if args.reproduced_from else None
-report = {'artifactRevision': 39, 'generator': 'Blender 4.3.2',
+report = {'artifactRevision': args.revision, 'generator': 'Blender 4.3.2',
           'method': 'Decoded actual glTF accessors and indices. Exact per-model export bounds, finite attributes, valid indices and unit normals. No browser, timing gate, visual-conformity or hardware-frame-rate claim.',
           'glbSHA256': current['sha256'], 'glbBytes': current['bytes'],
           'sourceSHA256': hashlib.sha256((source / 'vegetation.py').read_bytes()).hexdigest(),

@@ -39,11 +39,11 @@ export class CityGeometry {
     this.quad([x0, y0, z1], [x0, y0, z0], [x1, y0, z0], [x1, y0, z1]);
   }
 
-  beam(a: CityPoint, b: CityPoint, size: number) {
+  beam(a: CityPoint, b: CityPoint, size: number, height = size) {
     const start = new Vector3(...a), end = new Vector3(...b),
       direction = end.subtract(start).normalize(),
       side = Vector3.Cross(direction, Math.abs(direction.y) > 0.94 ? Vector3.Right() : Vector3.Up()).normalize().scale(size / 2),
-      up = Vector3.Cross(side, direction).normalize().scale(size / 2),
+      up = Vector3.Cross(side, direction).normalize().scale(height / 2),
       corner = (point: Vector3, sx: number, sy: number): CityPoint => {
         const value = point.add(side.scale(sx)).add(up.scale(sy));
         return [value.x, value.y, value.z];

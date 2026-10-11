@@ -309,12 +309,14 @@ function contextHeight(x: number, z: number) {
   // Compress distant peaks smoothly; never give the neighbours a flat cap.
   if (height > .48) height = .48 + .24 * (1 - Math.exp(-(height - .48) / .3));
   const shore = edgeDistance(coastCells, x, z, 0.45);
-  height = mix(-0.033, height, smooth(clamp(shore / 0.28)));
+  const coastRock = (noise(x * 9.5 + z * .2 + 31, z * 8.1 + 7) - .5) * .045 *
+    smooth(clamp(shore / .03)) * (1 - smooth(clamp(shore / .45)));
+  height = mix(-.033, height + .065 + coastRock, smooth(clamp(shore / .13)));
   const distance = edgeDistance(frontierCells, x, z, 0.7);
   // The playable country stands above the muted surrounding terrain, as in
   // the reference diorama. Keep that lower background above the water while
   // exposing the French rock edge instead of joining both plateaus.
-  const backdrop = Math.max(-.043, height * .58 - .048);
+  const backdrop = Math.max(-.043, height * .82 - .056);
   if (distance >= .6) return backdrop;
   const frontier = smooth(clamp((.6 - distance) / .6));
   return mix(backdrop, Math.min(backdrop, -.036), frontier);
@@ -344,10 +346,10 @@ export async function buildMapContext(
     borderIndices: number[] = [],
     borderColors: number[] = [];
   const palette = {
-    forest: Color3.FromHexString("#33454B"),
-    clearing: Color3.FromHexString("#596267"),
-    ridge: Color3.FromHexString("#646C71"),
-    stone: Color3.FromHexString("#84898A"),
+    forest: Color3.FromHexString("#384542"),
+    clearing: Color3.FromHexString("#636461"),
+    ridge: Color3.FromHexString("#707067"),
+    stone: Color3.FromHexString("#8A8578"),
   };
   for (const ring of rings) {
     const points = [...ring.points],
@@ -377,9 +379,9 @@ export async function buildMapContext(
         palette.forest,
         clamp((forest - 0.40) / 0.30),
       );
-      color = Color3.Lerp(color, palette.ridge, clamp((height - 0.23) * 1.35));
-      if (height > 0.44)
-        color = Color3.Lerp(color, palette.stone, clamp((height - 0.44) * 2.0));
+      color = Color3.Lerp(color, palette.ridge, clamp((height - .10) * 3.1));
+      if (height > .24)
+        color = Color3.Lerp(color, palette.stone, clamp((height - .24) * 3.5));
       color = color.scale(
         0.95 + noise(point.x * 3.1 + 7, point.z * 2.9 + 39) * 0.05,
       );

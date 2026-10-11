@@ -80,8 +80,9 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       // Calibrate only the architectural surfaces, preserving their atlas and
       // ORM channels. Compensate direct specular so slate does not turn white.
       surface.reflectionColor = surface.reflectionColor.multiply(architecturalDaylightBalance);
-      surface.directIntensity = 4.10;
-      surface.environmentIntensity = 1.00;
+      surface.directIntensity = 3.50;
+      surface.environmentIntensity = .85;
+      surface.albedoColor = surface.albedoColor.multiply(new Color3(1, .965, .88));
       surface.specularIntensity = 0.5;
       surface.ambientTextureStrength = 0.75;
       if (cathedralKit) prepareCathedralLimestone(surface);

@@ -197,8 +197,8 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
       const gx = ((b.height - a.height) * dz2 - (c.height - a.height) * dz1) / determinant,
         gz = (dx1 * (c.height - a.height) - dx2 * (b.height - a.height)) / determinant,
         slope = Math.hypot(gx, gz);
-      if (slope <= 6.8) continue;
-      const floor = Math.min(a.height, b.height, c.height), ratio = 6.8 / slope;
+      if (slope <= 4.6) continue;
+      const floor = Math.min(a.height, b.height, c.height), ratio = 4.6 / slope;
       for (const point of [a, b, c]) point.height = floor + (point.height - floor) * ratio;
       adjusted = true;
     }

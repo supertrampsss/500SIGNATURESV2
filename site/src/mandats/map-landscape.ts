@@ -41,6 +41,8 @@ import {
   parisRiverWeight,
 } from "./map-paris-terrain.ts";
 
+const SCULPTED_GROUND_DATUM = .215;
+
 type Point = { x: number; z: number };
 type Geometry = {
   positions: number[];
@@ -869,7 +871,7 @@ for (const segment of coastalTransportSegments) {
       cell.push(segment); coastalTransportCells.set(key, cell);
     }
 }
-function coastalRockProfile(x: number, z: number, sx: number, sz: number): CoastalRockSample {
+function coastalRockProfile(x: number, z: number, sx: number, sz: number, dryCliff = false): CoastalRockSample {
   const empty = { height: 0, cover: 0 }, distance = borderDistance(sx, sz);
   if (distance > .29 || constructionReservationContains(x, z, .16) || riverContains(x, z, .17)) return empty;
   const { lon, lat } = mapSourceCoordinates(sx, sz);
@@ -881,7 +883,13 @@ function coastalRockProfile(x: number, z: number, sx: number, sz: number): Coast
     if (support <= strength) continue;
     strength = support; height = tract.height; width = tract.width;
   }
-  if (strength === 0 || distance > width) return empty;
+  if (strength === 0) {
+    if (!dryCliff) return empty;
+    // Sculpt only the existing dry wall below its unchanged grass contact.
+    // The same port, river, building and transport clearances still apply.
+    strength = .50; width = .29;
+  }
+  if (distance > width) return empty;
   let clearance = urbanClearance(x, z);
   for (const footprint of lowlandProtectionCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
     const dx = x - footprint.x, dz = z - footprint.z,
@@ -949,7 +957,7 @@ function unflattenedHeight(x: number, z: number) {
     edge = smooth(clamp(borderDistance(sx, sz) / .30));
   // Houses, streets and works flatten this same surface in surveyedHeight.
   // The water is carved from it too. No former massif is mixed back into it.
-  return .215 + rolling + armorican + (massif - composedPyreneanIncision(x, z, sx, sz)) * edge +
+  return SCULPTED_GROUND_DATUM + rolling + armorican + (massif - composedPyreneanIncision(x, z, sx, sz)) * edge +
     cultivatedRelief(x, z, sx, sz, massif) * .60 + coastalRockProfile(x, z, sx, sz).height;
 }
 
@@ -1331,11 +1339,9 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
       if (index === undefined) {
         index = remap.size; remap.set(old, index);
         snowGeometry.positions.push(positions[old * 3], positions[old * 3 + 1], positions[old * 3 + 2]);
-        // A selected snow face is snow, rather than its former ochre rock tint.
-        // Physical light, terrain normals and shadows provide its blue grey shade.
-        const source = mapAuthoredCoordinates(positions[old * 3], positions[old * 3 + 2]),
-          tone = Color3.FromHexString("#F4F6F8").scale(.97 + noise(source.x * 7.1 + 5, source.z * 6.3 + 11) * .03);
-        snowGeometry.colors.push(tone.r, tone.g, tone.b, 1);
+        // Keep the surveyed rock/snow transition continuous across the material
+        // boundary. Selecting a snow material must not whiten a whole triangle.
+        snowGeometry.colors.push(colors[old * 4], colors[old * 4 + 1], colors[old * 4 + 2], 1);
         if (normals) snowNormals.push(normals[old * 3], normals[old * 3 + 1], normals[old * 3 + 2]);
         if (uvs) snowGeometry.uvs.push(uvs[old * 2], uvs[old * 2 + 1]);
       }
@@ -1476,8 +1482,8 @@ function terrainColor(x: number, z: number, face?: { band: number }, occupied?: 
     mask = alpineSurfaceMask(x, z, y, face, occupied),
     band = alpineStoneFamily(face?.band ?? mountainFaceBand(x, z)),
     family = hash(band, 37), warm = hash(band, 113),
-    rock = colorMix(Color3.FromHexString("#827767"),
-      Color3.FromHexString("#C5B397"), .22 + family * .63),
+    rock = colorMix(Color3.FromHexString("#756452"),
+      Color3.FromHexString("#B8A58A"), .22 + family * .55),
     stone = colorMix(rock, Color3.FromHexString("#A88C72"),
       smooth(clamp((warm - .29) / .56)) * .49),
     geology = smooth(clamp((massif - .13) / .31)),
@@ -1507,7 +1513,8 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     drift = noise(sx * 7.2 + 31, sz * 6.6 + 19),
     channel = noise(sx * 11.8 + sz * 3.6 + warp + 8, sz * 2.7 - sx * 1.9 + 23),
     branch = noise(sx * 5.2 - sz * 8.1 + 41, sz * 2.0 + sx * .8 - warp + 29),
-    altitude = smooth(clamp((y - (pyrenean ? .28 : .34) - snowlineNoise * .04) / (pyrenean ? .15 : .22))),
+    altitude = smooth(clamp((y - SCULPTED_GROUND_DATUM -
+      (pyrenean ? .165 : .225) - snowlineNoise * .04) / (pyrenean ? .15 : .22))),
     shelf = 1 - smooth(clamp((slope - .32) / 1.30)),
     pocket = smooth(clamp((drift - (upperAlps ? .45 : pyrenean ? .49 : .59)) / (upperAlps ? .22 : .16))),
     mainGully = smooth(clamp((channel - (upperAlps ? .33 : pyrenean ? .43 : .53)) / (upperAlps ? .22 : .18))),
@@ -1670,7 +1677,7 @@ async function buildGround(
   // This map describes sparse vertical joints and small chipped surfaces at
   // the existing rim UV scale. The larger broken beds remain actual geometry.
   cliffMaterial.bumpTexture = textures.coastNormal;
-  cliffMaterial.emissiveColor = new Color3(.16, .105, .052);
+  cliffMaterial.emissiveColor = new Color3(.04, .03, .016);
   cliffMaterial.specularColor = new Color3(.018, .015, .011);
   cliffMaterial.specularPower = 20;
   prepareMineralSurface(cliffMaterial);
@@ -2021,7 +2028,7 @@ async function buildGround(
           formation < .72 ? [0, .008, .028, .007, .038, .014, 0] :
           [0, .004, .010, .025, .013, .003, 0];
       const top = landHeight(p.x, p.z), source = mapAuthoredCoordinates(p.x, p.z),
-        rimWeight = coastalRockProfile(p.x, p.z, source.x, source.z).cover,
+        rimWeight = coastalRockProfile(p.x, p.z, source.x, source.z, true).cover,
         bedLeft = exposedBedLevels(block), bedRight = exposedBedLevels(block + 1),
         brokenJoint = exposedBedJoint(block) * (1 - smooth(clamp(across / .13))) +
           exposedBedJoint(block + 1) * (1 - smooth(clamp((1 - across) / .13))),
@@ -2169,9 +2176,9 @@ async function buildGround(
         const p = original * 3, c = original * 4, layer = original % (cliffLayers + 1),
           column = Math.floor(original / (cliffLayers + 1)), faceBlock = cliffFaceBlocks[face],
           family = hash(faceBlock + part * 211, 331),
-          bedColor = family < .35 ? coastalOchre : family < .86 ? coastalSandstone : coastalLimestone,
+          bedColor = family < .25 ? coastalOchre : family < .50 ? coastalSandstone : coastalLimestone,
           exposedColor = colorMix(bedColor, coastalIvory,
-            .04 + hash(faceBlock + part * 53, 811) * .14),
+            .10 + hash(faceBlock + part * 53, 811) * .18),
           // A face belongs to a surveyed block, not to its neighbour's column.
           // Sparse sediment variation never draws a continuous bright cap.
           color = layer === 0 ? new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]) :

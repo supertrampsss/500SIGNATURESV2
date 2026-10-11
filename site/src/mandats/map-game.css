@@ -329,6 +329,7 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
 .map-marker[hidden] { display: none; }
 .map-marker__point {
   position: relative;
+  z-index: 1;
   grid-column: 1;
   grid-row: 1;
   align-self: start;
@@ -344,17 +345,20 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
   flex: none;
   box-shadow: 0 2px 4px #051a2d55;
 }
-.map-marker__point::before {
-  content: "";
+.map-marker__leader {
   position: absolute;
-  left: calc(50% - 1px);
-  top: 100%;
-  width: 2px;
-  height: 14px;
-  background: var(--map-paper);
+  inset: 0 auto auto 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+  stroke: var(--map-paper);
+  stroke-width: 2px;
+  fill: none;
 }
 .map-marker__anchor {
   position: absolute;
+  z-index: 2;
   box-sizing: border-box;
   left: calc(var(--map-marker-size) / 2 - 6px);
   top: calc(var(--map-marker-size) + 8px);
@@ -365,18 +369,44 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
   background: var(--map-tone);
   box-shadow: 0 1px 5px #071b3266;
 }
-.map-marker--urgent { --map-marker-size: 68px; }
+.map-marker--urgent {
+  --map-marker-size: 76px;
+  --map-tone: #e9223f;
+}
+.map-marker__subject {
+  position: absolute;
+  z-index: 3;
+  top: -34px;
+  left: 2px;
+  max-width: 220px;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  overflow: hidden;
+  border: 1px solid var(--map-paper);
+  border-radius: 6px;
+  background: var(--map-navy);
+  color: var(--map-paper);
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 5px #051a2d55;
+}
 .map-marker--urgent .map-marker__point {
-  box-shadow: 0 0 0 5px #b7182926, 0 0 18px #b7182966;
+  background: radial-gradient(circle at 38% 30%, #ff4056, #df1534);
+  box-shadow: 0 0 0 3px #fff6e9d9, 0 0 0 7px #fa294c9c, 0 0 26px #fa173eb0;
   animation: map-urgent-glow 2.8s ease-in-out infinite;
 }
+.map-marker--urgent .map-marker__label { justify-self: start; }
 @keyframes map-urgent-glow {
-  50% { box-shadow: 0 0 0 8px #b718290d, 0 0 23px #b7182973; }
+  50% { box-shadow: 0 0 0 3px #fff6e9d9, 0 0 0 9px #fa294c73, 0 0 30px #fa173ec2; }
 }
 .mandate-map[data-motion="reduced"] .map-marker__point { animation: none; }
 .map-marker__point .map-icon { width: 29px; height: 29px; }
 .map-marker--urgent .map-marker__point .map-icon { width: 37px; height: 37px; }
 .map-marker__label {
+  position: relative;
+  z-index: 1;
   grid-column: 2;
   grid-row: 1;
   align-self: end;
@@ -389,6 +419,10 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
   line-height: 1.15;
   box-shadow: 0 1px 3px #071b3240;
 }
+.map-marker--label-left { grid-template-columns: max-content var(--map-marker-size); }
+.map-marker--label-left .map-marker__point { grid-column: 2; }
+.map-marker--label-left .map-marker__label { grid-column: 1; margin: 0 -8px 16px 0; }
+.map-marker--label-left .map-marker__anchor { left: calc(100% - var(--map-marker-size) / 2 - 6px); }
 .map-marker.is-selected .map-marker__point { border-width: 3px; }
 .map-marker.is-selected .map-marker__label {
   background: var(--map-navy);
@@ -798,7 +832,7 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
   .map-game__footer { display: none; }
   /* Keep the same canvas between the agenda and a decision. Resizing the
      miniature twice per turn needlessly redraws its geometry and shadows. */
-  .map-game { grid-template-columns: 1fr; grid-template-rows: 60px minmax(240px, 33svh) auto; overflow: visible; }
+  .map-game { grid-template-columns: 1fr; grid-template-rows: 60px minmax(300px, 38svh) auto; overflow: visible; }
   .map-game.map-game--focused:has(.mandate-map[data-inspection]:not([data-inspection=""])) { grid-template-rows: 60px minmax(290px, 45svh) auto; }
   .map-game__header { grid-column: 1; padding: 0 12px; gap: 8px; }
   .map-game__brand { flex: 0 0 auto; font-size: 28px; letter-spacing: -0.035em; }
@@ -852,6 +886,7 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
   .map-geographic-label[data-label-kind="sea"] { font-size: 10px; letter-spacing: .2em; max-width: 130px; }
   .map-marker { --map-marker-size: 36px; font-size: 11px; }
   .map-marker--urgent { --map-marker-size: 48px; }
+  .map-marker__subject { max-width: 180px; font-size: 11px; }
   .map-marker__point .map-icon { width: 21px; height: 21px; }
   .map-marker--urgent .map-marker__point .map-icon { width: 29px; height: 29px; }
   .map-marker--tracking { --map-marker-size: 27px; }
@@ -871,7 +906,7 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
   .map-summary .map-primary { margin-top: 16px; }
 }
 @media (max-width: 350px) {
-  .map-game { grid-template-rows: 54px minmax(220px, 32svh) auto; }
+  .map-game { grid-template-rows: 54px minmax(280px, 38svh) auto; }
   .map-game.map-game--focused:has(.mandate-map[data-inspection]:not([data-inspection=""])) { grid-template-rows: 54px minmax(260px, 42svh) auto; }
   .map-game__header { padding: 0 10px; gap: 5px; }
   .map-game__brand { font-size: 22px; }
