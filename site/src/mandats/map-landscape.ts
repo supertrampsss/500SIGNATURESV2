@@ -245,24 +245,6 @@ const rivers = [
     ]),
   },
 ];
-const riverPaths = rivers.map((river, index) => ({
-  ...river,
-  index,
-  path: curvedPath(river.points).map(point => mapFinalFromBaseline(point.x, point.z)),
-}));
-// The headwater begins as a point and grows with travelled distance. Using
-// distance rather than control-point index gives every watershed a gentle
-// source, including the sections stretched by the eastern projection.
-const riverDistances = riverPaths.map(river => {
-  const distances = [0];
-  for (let i = 1; i < river.path.length; i++)
-    distances.push(distances[i - 1] + Math.hypot(
-      river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
-  return distances;
-});
-function riverSourceBlend(river: (typeof riverPaths)[number], index: number) {
-  return smooth(clamp(riverDistances[river.index][index] / [.85, .90, .65, .72, .65][river.index]));
-}
 
 function contains(polygon: Point[], x: number, z: number) {
   const index = outlineRayIndices.get(polygon);
@@ -306,6 +288,61 @@ const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const clamp = (value: number, min = 0, max = 1) =>
   Math.max(min, Math.min(max, value));
+// River outlets, ground rims and planting contacts use the same surveyed shore.
+const renderedCoastlines = sourceOutlines.map(outline =>
+  densify(outline, .035).map(point => mapAuthoredPosition(point.x, point.z)));
+for (const coast of renderedCoastlines) outlineRayIndices.set(coast, outlineRayIndex(coast));
+function shoreCrossing(a: Point, b: Point): number | undefined {
+  const dx = b.x - a.x, dz = b.z - a.z;
+  let nearest = Infinity;
+  for (const coast of renderedCoastlines) for (let i = 0; i < coast.length; i++) {
+    const p = coast[i], q = coast[(i + 1) % coast.length],
+      sx = q.x - p.x, sz = q.z - p.z, determinant = dx * sz - dz * sx;
+    if (Math.abs(determinant) < 1e-12) continue;
+    const px = p.x - a.x, pz = p.z - a.z,
+      t = (px * sz - pz * sx) / determinant,
+      u = (px * dz - pz * dx) / determinant;
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) nearest = Math.min(nearest, t);
+  }
+  return Number.isFinite(nearest) ? nearest : undefined;
+}
+function extendRiverToCoast(path: Point[], river: number): Point[] {
+  // The authored Rhône stopped just inland. Continue its existing tangent to
+  // the actual shore; tributaries keep their inland confluence.
+  if (river !== 3) return path;
+  const end = path[path.length - 1], before = path[path.length - 2];
+  if (!renderedCoastlines.some(coast => contains(coast, end.x, end.z))) return path;
+  const length = Math.hypot(end.x - before.x, end.z - before.z) || 1,
+    direction = { x: (end.x - before.x) / length, z: (end.z - before.z) / length },
+    ray = { x: end.x + direction.x * .15, z: end.z + direction.z * .15 },
+    crossing = shoreCrossing(end, ray);
+  if (crossing === undefined) return path;
+  const reach = crossing * .15 + .025, count = Math.ceil(reach / .018);
+  return [...path, ...Array.from({ length: count }, (_, i) => ({
+    x: end.x + direction.x * reach * (i + 1) / count,
+    z: end.z + direction.z * reach * (i + 1) / count,
+  }))];
+}
+
+const riverPaths = rivers.map((river, index) => ({
+  ...river,
+  index,
+  path: extendRiverToCoast(curvedPath(river.points).map(point => mapFinalFromBaseline(point.x, point.z)), index),
+}));
+// The headwater begins as a point and grows with travelled distance. Using
+// distance rather than control-point index gives every watershed a gentle
+// source, including the sections stretched by the eastern projection.
+const riverDistances = riverPaths.map(river => {
+  const distances = [0];
+  for (let i = 1; i < river.path.length; i++)
+    distances.push(distances[i - 1] + Math.hypot(
+      river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
+  return distances;
+});
+function riverSourceBlend(river: (typeof riverPaths)[number], index: number) {
+  return smooth(clamp(riverDistances[river.index][index] / [.85, .90, .65, .72, .65][river.index]));
+}
+
 function noise(x: number, z: number) {
   const ix = Math.floor(x),
     iz = Math.floor(z);
@@ -518,7 +555,67 @@ const riverSections = riverPaths.map(river => river.path.map((center, index) => 
     width: riverSurveyWidth(river, index), distance: riverDistances[river.index][index],
     bank: (.012 + parisRiverWeight(center.x, center.z) * .004) * riverSourceBlend(river, index) };
 }));
-type RiverSegment = { a: Point; b: Point; widthA: number; widthB: number; mouth: number; water: Point[]; rendered: boolean };
+const riverMouthDistances = riverPaths.map(river => {
+  if (river.index === 4) return undefined;
+  for (let i = Math.floor(river.path.length * .70); i < river.path.length - 1; i++) {
+    const a = river.path[i], b = river.path[i + 1];
+    if (!renderedCoastlines.some(coast => contains(coast, a.x, a.z)) ||
+      renderedCoastlines.some(coast => contains(coast, b.x, b.z))) continue;
+    const crossing = shoreCrossing(a, b);
+    if (crossing !== undefined) return mix(riverDistances[river.index][i], riverDistances[river.index][i + 1], crossing);
+  }
+  return undefined;
+});
+// Add exact channel crossings to the existing shore edges. A coarse cliff
+// face must not span the open mouth after its analytic bed has been lowered.
+for (const coast of renderedCoastlines) {
+  const refined: Point[] = [];
+  for (let edge = 0; edge < coast.length; edge++) {
+    const p = coast[edge], q = coast[(edge + 1) % coast.length],
+      sx = q.x - p.x, sz = q.z - p.z, stations = [0];
+    for (const river of riverPaths) {
+      const outlet = riverMouthDistances[river.index];
+      if (outlet === undefined) continue;
+      const sections = riverSections[river.index];
+      for (let i = 1; i < sections.length; i++) {
+        const a = sections[i - 1], b = sections[i];
+        if (a.distance > outlet + .15 || b.distance < outlet - .15) continue;
+        for (const side of [-2, -1.32, -1, -.8, -.46, 0, .46, .8, 1, 1.32, 2]) {
+          const offset = (section: typeof a) => Math.abs(side) === 2
+            ? Math.sign(side) * (section.width / 2 + .18) : section.width * side / 2,
+            start = { x: a.center.x + a.nx * offset(a), z: a.center.z + a.nz * offset(a) },
+            end = { x: b.center.x + b.nx * offset(b), z: b.center.z + b.nz * offset(b) },
+            dx = end.x - start.x, dz = end.z - start.z,
+            determinant = dx * sz - dz * sx;
+          if (Math.abs(determinant) < 1e-12) continue;
+          const px = p.x - start.x, pz = p.z - start.z,
+            t = (px * sz - pz * sx) / determinant,
+            u = (px * dz - pz * dx) / determinant;
+          if (t >= 0 && t <= 1 && u > 1e-8 && u < 1 - 1e-8) stations.push(u);
+        }
+      }
+    }
+    stations.sort((a, b) => a - b);
+    let previous = -Infinity;
+    for (const station of stations) {
+      if ((station - previous) * Math.hypot(sx, sz) < .0005) continue;
+      refined.push({ x: p.x + sx * station, z: p.z + sz * station });
+      previous = station;
+    }
+  }
+  coast.splice(0, coast.length, ...refined);
+  outlineRayIndices.set(coast, outlineRayIndex(coast));
+}
+function riverMouthWeight(river: number, distance: number): number {
+  const outlet = riverMouthDistances[river];
+  // A short level estuary meets the sea before the cliff, with its descent
+  // distributed along the upstream reach rather than at the outermost face.
+  return outlet === undefined ? 0 : 1 - smooth(clamp((outlet - distance - .30) / 1.10));
+}
+type RiverSegment = {
+  a: Point; b: Point; widthA: number; widthB: number;
+  mouthA: number; mouthB: number; water: Point[]; rendered: boolean;
+};
 const riverCells = new Map<string, RiverSegment[]>();
 const riverQueryCandidates = new Map<string, readonly RiverSegment[]>();
 const riverQueryBounds = new WeakMap<RiverSegment, { minX: number; maxX: number; minZ: number; maxZ: number }>();
@@ -530,9 +627,14 @@ for (const river of riverPaths) {
       z: section.center.z + section.nz * side * section.width / 2,
     });
     const segment: RiverSegment = { a: a.center, b: b.center, widthA: a.width, widthB: b.width,
-      mouth: i / river.path.length, water: [edge(a, -1), edge(b, -1), edge(b, 1), edge(a, 1)],
-      rendered: landContains(a.center.x, a.center.z) && landContains(b.center.x, b.center.z) },
-      reach = Math.max(a.width, b.width) / 2 + .04;
+      mouthA: riverMouthWeight(river.index, a.distance), mouthB: riverMouthWeight(river.index, b.distance),
+      water: [edge(a, -1), edge(b, -1), edge(b, 1), edge(a, 1)],
+      rendered: (landContains(a.center.x, a.center.z) && landContains(b.center.x, b.center.z)) ||
+        (riverMouthDistances[river.index] !== undefined &&
+          a.distance >= riverMouthDistances[river.index]! - .050 &&
+          a.distance < riverMouthDistances[river.index]! + .018) },
+      reach = Math.max(a.width, b.width) / 2 + .04 +
+        .18 * Math.max(segment.mouthA, segment.mouthB);
     for (let x = Math.floor((Math.min(a.center.x, b.center.x) - reach) / .25); x <= Math.floor((Math.max(a.center.x, b.center.x) + reach) / .25); x++)
       for (let z = Math.floor((Math.min(a.center.z, b.center.z) - reach) / .25); z <= Math.floor((Math.max(a.center.z, b.center.z) + reach) / .25); z++) {
         const key = `${x}:${z}`, cell = riverCells.get(key) ?? [];
@@ -1002,6 +1104,28 @@ for (const footprint of surveyedFootprints) {
   }
 }
 
+function estuaryBankProtection(x: number, z: number) {
+  let clearance = .16;
+  const footprints = new Set<(typeof riverStructureFootprints)[number]>();
+  for (let ix = Math.floor((x - .16) / .5); ix <= Math.floor((x + .16) / .5); ix++)
+    for (let iz = Math.floor((z - .16) / .5); iz <= Math.floor((z + .16) / .5); iz++)
+      for (const footprint of riverStructureCells.get(`${ix}:${iz}`) ?? []) footprints.add(footprint);
+  for (const footprint of footprints) {
+    const dx = x - footprint.x, dz = z - footprint.z,
+      px = Math.abs(dx * footprint.cosine + dz * footprint.sine) - footprint.halfW,
+      pz = Math.abs(-dx * footprint.sine + dz * footprint.cosine) - footprint.halfD;
+    if (px <= .025 && pz <= .025) return 0;
+    clearance = Math.min(clearance, Math.hypot(Math.max(0, px), Math.max(0, pz)));
+  }
+  // Real quay joins and their land reservations stay at their surveyed height.
+  for (const polygon of coastalPortCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? []) {
+    if (contains(polygon, x, z)) return 0;
+    for (let i = 0; i < polygon.length; i++)
+      clearance = Math.min(clearance, segmentDistance(x, z, polygon[i], polygon[(i + 1) % polygon.length]));
+  }
+  return smooth(clamp((clearance - .025) / .075));
+}
+
 function surveyedHeightBase(x: number, z: number) {
   let height = unflattenedHeight(x, z),
     strongest = 0,
@@ -1032,25 +1156,28 @@ function surveyedHeightBase(x: number, z: number) {
   const segments =
     riverCells.get(`${Math.floor(x / 0.25)}:${Math.floor(z / 0.25)}`) ?? [];
   let influence = 0,
-    mouth = 0;
+    mouth = 0, estuaryBank = 0;
   for (const segment of segments) {
     const distance = segmentDistance(x, z, segment.a, segment.b);
     const physicalWidth = riverSegmentWidth(segment, x, z);
     const carve = 1 - smooth(clamp(
       (distance - physicalWidth * .40) / (physicalWidth * .10 + .025),
     ));
-    if (carve > influence) {
-      influence = carve;
-      mouth = segment.mouth;
-    }
+    influence = Math.max(influence, carve);
+    const dx = segment.b.x - segment.a.x, dz = segment.b.z - segment.a.z,
+      along = clamp(((x - segment.a.x) * dx + (z - segment.a.z) * dz) / (dx * dx + dz * dz)),
+      wetMouth = 1 - smooth(clamp((distance - physicalWidth * .50 - .014) / .011)),
+      alongMouth = mix(segment.mouthA, segment.mouthB, along);
+    // Lower the complete wet section, including the bilinear ground samples
+    // at both water edges. The taper retains its original outer reservation.
+    mouth = Math.max(mouth, alongMouth * wetMouth);
+    estuaryBank = Math.max(estuaryBank, alongMouth *
+      (1 - smooth(clamp((distance - physicalWidth * .50 - .025) / .155))));
   }
   height -= influence * 0.043;
-  if (mouth > 0.968)
-    height = mix(
-      height,
-      -0.09,
-      smooth(clamp((mouth - 0.968) / 0.032)) * influence,
-    );
+  if (estuaryBank > 0)
+    height = mix(height, Math.min(height, .035), estuaryBank * estuaryBankProtection(x, z));
+  height = mix(height, -.115, mouth);
   return height;
 }
 
@@ -1499,13 +1626,13 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     // Summit shelves carry smaller caps above the broken gullies. The cover
     // masks still exclude actual plantations, fields and inhabited ground.
     summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
-      (pyrenean ? .46 : .62)) / .21)) *
-      (1 - smooth(clamp((slope - .35) / 2.55))),
+      (pyrenean ? .46 : upperAlps ? .48 : .62)) / .21)) *
+      (1 - smooth(clamp((slope - .35) / (upperAlps ? 3.25 : 2.55)))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - .60) / .18)),
-    accumulation = Math.max(summit * .92,
+    accumulation = Math.max(summit * .96,
       Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
-  return altitude * accumulation * (1 - rockRib * .78);
+  return altitude * accumulation * (1 - rockRib * (upperAlps ? .64 : .78));
 }
 
 function material(scene: Scene, name: string, hex: string) {
@@ -1659,7 +1786,7 @@ async function buildGround(
   cliffMaterial.emissiveColor = new Color3(.04, .03, .016);
   cliffMaterial.specularColor = new Color3(.018, .015, .011);
   cliffMaterial.specularPower = 20;
-  prepareMineralSurface(cliffMaterial);
+  prepareMineralSurface(cliffMaterial, false, true);
   const stone = Color3.FromHexString("#E3D2AB");
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
@@ -1667,7 +1794,7 @@ async function buildGround(
   let fractureBudget = 1800;
   for (const [part, outline] of outlines.entries()) {
     const sourceOutline = sourceOutlines[part],
-      coast = densify(sourceOutline, 0.035).map(point => mapAuthoredPosition(point.x, point.z));
+      coast = renderedCoastlines[part];
     const points: Array<[number, number]> = coast.map(({ x, z }) => [x, z]);
     const minX = Math.min(...sourceOutline.map(({ x }) => x));
     const maxX = Math.max(...sourceOutline.map(({ x }) => x));
@@ -1909,7 +2036,7 @@ async function buildGround(
       if (part === 0) colorTargets.push({ mesh: shoreMesh });
     }
     const cliffs = geometry(), cliffFaceGroups: string[] = [], cliffFaceBlocks: number[] = [],
-      cliffColumnWeights: number[] = [];
+      cliffColumnWeights: number[] = [], cliffVertexWeights: number[] = [];
     const cliffLayers = 6;
     // Warm, exposed beds are taken from the confirmed miniature's lit coastal
     // faces. These remain material colours, with the scene providing lighting.
@@ -2014,8 +2141,14 @@ async function buildGround(
         brokenProfile = formation < .40 ? [0, .003, .010, .028, .029, .014, 0] :
           formation < .72 ? [0, .004, .026, .029, .010, .009, 0] :
             [0, .003, .006, .008, .032, .013, 0];
-      // The existing coast's protected port, river, urban and works margins
-      // also suppress this under-face sculpture. No new support is introduced.
+      // Upper town platforms remain intact. Lower dry scarps may weather only
+      // below their solid cap, away from ports, waterways, transport and works.
+      const lowerScarp = top > .18 && !riverContains(p.x, p.z, .060) &&
+        !constructionReservationContains(p.x, p.z, .075) &&
+        !(coastalPortCells.get(`${Math.floor(p.x / .5)}:${Math.floor(p.z / .5)}`) ?? [])
+          .some(polygon => harbourPolygonContains(polygon, p)) &&
+        !(coastalTransportCells.get(`${Math.floor(p.x / .5)}:${Math.floor(p.z / .5)}`) ?? [])
+          .some(segment => segmentDistance(p.x, p.z, segment.a, segment.b) < .045) ? .72 : 0;
       cliffColumnWeights.push(rimWeight);
       const shelf = hash(Math.floor(i / 9) + 241, 63),
         notch = hash(Math.floor(i / 4) + 337, 19);
@@ -2041,6 +2174,8 @@ async function buildGround(
           jag = layer === 0 || layer === cliffLayers ? contactJag :
             -coastWinding * mix(retreat, brokenRetreat, rimWeight);
         const y = mix(top, -0.105 - hash(Math.floor(i / 5), 71) * 0.024, t);
+        cliffVertexWeights.push(Math.max(rimWeight, lowerScarp *
+          smooth(clamp((top - y - .090) / .035)) * smooth(clamp((y - .015) / .030))));
         const familyStone = family < .52 ? stone : family < .82 ? brown : rock,
           lightFace = hash(block + part * 53, 811),
           sediment = hash(block + part * 283, layer < 3 ? 1013 : 1021);
@@ -2075,7 +2210,9 @@ async function buildGround(
               layer === 2 ? "shoulder" : layer <= 4 ? "wall" : "foot" :
               faceFormation < .72 ? layer <= 3 ? "upper-wall" : layer <= 5 ? "lower-wall" : "foot" :
                 layer <= 4 ? "wall" : "foot",
-            active = Math.max(cliffColumnWeights[i - 1], rimWeight) > 0,
+            active = Math.max(cliffColumnWeights[i - 1], rimWeight) > 0 ||
+              ([a, b, c, d].every(index => cliffs.positions[index * 3 + 1] > -.055) &&
+                Math.max(...[a, b, c, d].map(index => cliffVertexWeights[index])) > 0),
             panel = segmentPanels[i - 1],
             group = active ? `${faceBlock}:panel-${panel}:${rockGroup}` : `${faceBlock}:${protectedGroup}`;
           cliffFaceGroups.push(group, group);
@@ -2091,10 +2228,11 @@ async function buildGround(
       if (corners.some(index => cliffs.positions[index * 3 + 1] <= -.055))
         for (const index of corners) fixedWetVertices.add(index);
     }
+    for (const index of fixedWetVertices)
+      cliffVertexWeights[index] = cliffColumnWeights[Math.floor(index / (cliffLayers + 1))];
     const dryPositions = cliffs.positions.slice();
     for (let column = 0; column <= coast.length; column++) {
-      const weight = cliffColumnWeights[column];
-      if (weight === 0) continue;
+      if (!cliffVertexWeights.slice(column * (cliffLayers + 1), (column + 1) * (cliffLayers + 1)).some(weight => weight > 0)) continue;
       const p = coast[column % coast.length], a = coast[(column + coast.length - 1) % coast.length],
         b = coast[(column + 1) % coast.length], length = Math.hypot(b.x - a.x, b.z - a.z) || 1,
         nx = (b.z - a.z) / length, nz = -(b.x - a.x) / length,
@@ -2102,14 +2240,21 @@ async function buildGround(
         across = clamp((coastArcs[column] - coastArcs[limits.start]) /
           (coastArcs[limits.end] - coastArcs[limits.start] || 1)),
         left = panel + part * 827, right = (panel + 1) % facadePanels.length + part * 827,
-        clearance = Math.min(Math.hypot(p.x - a.x, p.z - a.z), Math.hypot(b.x - p.x, b.z - p.z)),
-        inwardLimit = Math.min(.016, clearance * .16),
+        // Coast sampling density is not a limit on erosion depth. Measure
+        // the available solid shore instead of the adjacent column spacing.
+        clearance = Math.min(Infinity, ...coast.flatMap((point, edge) => {
+          const distance = Math.min((edge - column + coast.length) % coast.length,
+            (column - edge + coast.length) % coast.length);
+          return distance <= 8 ? [] : [segmentDistance(p.x, p.z, point, coast[(edge + 1) % coast.length])];
+        })),
+        inwardLimit = Math.min(.045, clearance * .34),
         first = column * (cliffLayers + 1) * 3,
         last = first + cliffLayers * 3,
         topY = dryPositions[first + 1], bottomY = dryPositions[last + 1];
       for (let layer = 1; layer < cliffLayers; layer++) {
-        const index = column * (cliffLayers + 1) + layer, at = index * 3;
-        if (fixedWetVertices.has(index)) continue;
+        const index = column * (cliffLayers + 1) + layer, at = index * 3,
+          weight = cliffVertexWeights[index];
+        if (weight === 0 || fixedWetVertices.has(index)) continue;
         const above = dryPositions[at - 2],
           below = dryPositions[at + 4], y = dryPositions[at + 1],
           step = mix(hash(left, 1291 + layer * 17), hash(right, 1291 + layer * 17), across),
@@ -2129,14 +2274,22 @@ async function buildGround(
             (.005 + hash(right, 1451) * .009),
           chip = hash(left, 1459 + layer * 23) > .78 ?
             .003 + hash(left, 1463 + layer * 29) * .006 : 0,
-          faceRetreat = Math.min(clearance * .24, .024,
-            .0025 + opening * .004 + leftJoint + rightJoint + chip),
+          faceRetreat = Math.min(inwardLimit,
+            .009 + opening * .013 + leftJoint * 1.65 + rightJoint * 1.65 + chip * 1.5),
           verticality = (.52 + hash(left, 1543) * .24) * weight,
           oldX = dryPositions[at] - coastWinding * nx * inward,
           oldZ = dryPositions[at + 2] - coastWinding * nz * inward;
-        cliffs.positions[at] = mix(oldX, lineX - coastWinding * nx * faceRetreat, verticality);
+        let x = mix(oldX, lineX - coastWinding * nx * faceRetreat, verticality),
+          z = mix(oldZ, lineZ - coastWinding * nz * faceRetreat, verticality);
+        // A tight concavity may leave less rock than its normal suggests.
+        // Keep every changed dry column inside the actual solid coastline.
+        for (let attempt = 0; attempt < 8 && (!landContains(x, z) || !contains(coast, x, z)); attempt++) {
+          x = mix(x, lineX, .5); z = mix(z, lineZ, .5);
+        }
+        if (!landContains(x, z) || !contains(coast, x, z)) continue;
+        cliffs.positions[at] = x;
         cliffs.positions[at + 1] = y + shift;
-        cliffs.positions[at + 2] = mix(oldZ, lineZ - coastWinding * nz * faceRetreat, verticality);
+        cliffs.positions[at + 2] = z;
       }
     }
     const sculptedRim = geometry(), rimVertices = new Map<string, number>();
@@ -2144,7 +2297,7 @@ async function buildGround(
     for (let face = 0; face < cliffs.indices.length / 3; face++) {
       const sourceCorners = cliffs.indices.slice(face * 3, face * 3 + 3),
         dryFace = sourceCorners.every(index => !fixedWetVertices.has(index)) &&
-          sourceCorners.some(index => cliffColumnWeights[Math.floor(index / (cliffLayers + 1))] > 0),
+          sourceCorners.some(index => cliffVertexWeights[index] > 0),
         bed = Math.max(...sourceCorners.map(index => index % (cliffLayers + 1))),
         // Separate each exposed bed's normals. Smoothing over several beds
         // produced broad diagonal planks instead of short chipped rock faces.
@@ -2153,7 +2306,7 @@ async function buildGround(
         const key = `${original}:${group}`, saved = rimVertices.get(key);
         if (saved !== undefined) return saved;
         const p = original * 3, c = original * 4, layer = original % (cliffLayers + 1),
-          column = Math.floor(original / (cliffLayers + 1)), faceBlock = cliffFaceBlocks[face],
+          faceBlock = cliffFaceBlocks[face],
           family = hash(faceBlock + part * 211, 331),
           bedColor = family < .25 ? coastalOchre : family < .50 ? coastalSandstone : coastalLimestone,
           exposedColor = colorMix(bedColor, coastalIvory,
@@ -2163,7 +2316,7 @@ async function buildGround(
           color = layer === 0 ? new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]) :
             colorMix(new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]),
               exposedColor.scale(.89 + hash(faceBlock + part * 283, 1471 + layer * 31) * .11),
-              Math.max(.78, cliffColumnWeights[column])),
+              Math.max(.78, cliffVertexWeights[original])),
           index = vertex(sculptedRim, cliffs.positions[p], cliffs.positions[p + 1], cliffs.positions[p + 2], color);
         sculptedRim.uvs[index * 2] = cliffs.uvs[original * 2];
         sculptedRim.uvs[index * 2 + 1] = cliffs.uvs[original * 2 + 1];
@@ -3384,7 +3537,7 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     if (part < 0) continue;
     let coast = mappedCoasts.get(part);
     if (!coast) {
-      coast = densify(sourceOutlines[part], .035).map(point => mapAuthoredPosition(point.x, point.z));
+      coast = renderedCoastlines[part];
       mappedCoasts.set(part, coast);
     }
     const coastPolygon = coast;
@@ -3473,6 +3626,7 @@ function curvedPath(points: Point[]) {
 
 function buildRivers(scene: Scene, meshes: Mesh[]) {
   const banks = geometry(), water = geometry();
+  const coast = renderedCoastlines[0], clipBank = rejectedShoreClipper(coast);
   const bankColor = Color3.FromHexString("#C5B790"),
     deepWater = Color3.FromHexString("#11466B"),
     shallowWater = Color3.FromHexString("#2A758D");
@@ -3497,6 +3651,34 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
     triangle(data, start, start + (winding > 0 ? 1 : 2), start + (winding > 0 ? 2 : 1));
     triangle(data, start, start + (winding > 0 ? 2 : 3), start + (winding > 0 ? 3 : 2));
   };
+  const bankQuad = (points: Array<{ x: number; y: number; z: number }>, tones: Color3[]) => {
+    if (points.every(point => contains(coast, point.x, point.z))) {
+      quad(banks, points, bankColor, tones);
+      return;
+    }
+    // The wet ribbon reaches the sea, while its dry banks end at the same
+    // surveyed cliff contour. Interpolate the existing face's height/colour.
+    for (const face of [[0, 1, 2], [0, 2, 3]]) {
+      const [a, b, c] = face.map(index => points[index]),
+        denominator = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
+      if (Math.abs(denominator) < 1e-14) continue;
+      for (const polygon of clipBank([a.x, a.z], [b.x, b.z], [c.x, c.z])) {
+        const corners = polygon.map(([x, z]) => {
+          const u = ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / denominator,
+            v = ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / denominator,
+            w = 1 - u - v, [ca, cb, cc] = face.map(index => tones[index]);
+          return vertex(banks, x, a.y * u + b.y * v + c.y * w, z,
+            new Color3(ca.r * u + cb.r * v + cc.r * w,
+              ca.g * u + cb.g * v + cc.g * w, ca.b * u + cb.b * v + cc.b * w));
+        });
+        for (let j = 2; j < corners.length; j++) {
+          const p = polygon[0], q = polygon[j - 1], r = polygon[j],
+            winding = (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+          triangle(banks, corners[0], corners[winding > 0 ? j - 1 : j], corners[winding > 0 ? j : j - 1]);
+        }
+      }
+    }
+  };
   for (const river of riverPaths) {
     const sections = riverSections[river.index].map(({ center, nx, nz, width, bank, distance }) => {
       const waterY = Math.max(
@@ -3513,8 +3695,21 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
         leftBank: point(-1, true), rightBank: point(1, true), waterY };
     });
     for (let i = 1; i < sections.length; i++) {
-      const a = sections[i - 1], b = sections[i];
-      if (!landContains(a.center.x, a.center.z) || !landContains(b.center.x, b.center.z)) continue;
+      const a = sections[i - 1], outlet = riverMouthDistances[river.index];
+      let b = sections[i];
+      if (outlet !== undefined && a.distance >= outlet + .018) continue;
+      if ((!landContains(a.center.x, a.center.z) || !landContains(b.center.x, b.center.z)) &&
+        !(outlet !== undefined && a.distance >= outlet - .050)) continue;
+      if (outlet !== undefined && b.distance > outlet + .018) {
+        const t = clamp((outlet + .018 - a.distance) / (b.distance - a.distance)),
+          interpolate = (p: { x: number; y: number; z: number }, q: typeof p) => ({
+            x: mix(p.x, q.x, t), y: mix(p.y, q.y, t), z: mix(p.z, q.z, t),
+          });
+        b = { center: { x: mix(a.center.x, b.center.x, t), z: mix(a.center.z, b.center.z, t) },
+          distance: outlet + .018, waterY: mix(a.waterY, b.waterY, t),
+          left: interpolate(a.left, b.left), right: interpolate(a.right, b.right),
+          leftBank: interpolate(a.leftBank, b.leftBank), rightBank: interpolate(a.rightBank, b.rightBank) };
+      }
       const across = (section: typeof a, t: number) => ({
         x: mix(section.left.x, section.right.x, t),
         y: section.waterY,
@@ -3540,9 +3735,9 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
         : bankColor;
       const bankOuter = (point: { x: number; z: number }) => Color3.Lerp(tone, terrainColor(point.x, point.z), .48),
         bankWet = Color3.Lerp(tone, Color3.FromHexString("#576B66"), .46);
-      quad(banks, [a.leftBank, b.leftBank, b.left, a.left], tone,
+      bankQuad([a.leftBank, b.leftBank, b.left, a.left],
         [bankOuter(a.leftBank), bankOuter(b.leftBank), bankWet, bankWet]);
-      quad(banks, [a.right, b.right, b.rightBank, a.rightBank], tone,
+      bankQuad([a.right, b.right, b.rightBank, a.rightBank],
         [bankWet, bankWet, bankOuter(b.rightBank), bankOuter(a.rightBank)]);
     }
   }

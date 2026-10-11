@@ -1,19 +1,19 @@
 {
-  "artifactRevision": 41,
+  "artifactRevision": 43,
   "generator": "Blender 4.3.2",
   "method": "Decoded actual glTF accessors and indices. Exact per-model export bounds, finite attributes, valid indices and unit normals. No browser, timing gate, visual-conformity or hardware-frame-rate claim.",
-  "glbSHA256": "5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42",
-  "glbBytes": 945380,
-  "sourceSHA256": "c394333d1b6e9a1ba32244ed5aa304047a5587f00811b685e38dfaf1b8d1dade",
+  "glbSHA256": "9614a8ab7d69bc8c3e9c13ae5252baf177519fabe77afa92f24cbc6772174872",
+  "glbBytes": 1203012,
+  "sourceSHA256": "7c99c40d076303f49f584328681f497cc2c27fd5bbeeb4eb90f5b141cda6dd39",
   "boundsSourceSHA256": "c6c54f96dc77702d6e6746f6f892df29214b17809c8a7375049ee819f8f767f9",
   "reproductionCommand": "blender -b --python tools/mandats-assets/vegetation.py",
   "reproductionMatchesRetainedGLB": true,
   "allHighAndDistantBoundsExact": true,
-  "highTriangles": 8104,
-  "distantTriangles": 1311,
+  "highTriangles": 10224,
+  "distantTriangles": 1643,
   "models": {
     "oak": {
-      "triangles": 1916,
+      "triangles": 2596,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -28,13 +28,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "21a2378bcac5c69ea15290477afe977096a5a174493818aeac4afc350cc8e2cd",
-      "maximumNormalLengthError": 1.1359279272760148e-07,
+      "fingerprint": "47b403fe30d3ca9e01a77b45f61e4e3b87c1b5cf9401fa703d749ae2621a8e2b",
+      "maximumNormalLengthError": 1.223917407422448e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "beech": {
-      "triangles": 1364,
+      "triangles": 1804,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -49,8 +49,8 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "78d7a4829b2ca5f59e5b33875f3c610a11df4f899b4d682b82ab6c4de92bf301",
-      "maximumNormalLengthError": 1.2103178037570217e-07,
+      "fingerprint": "cd63161cbd89dd3c8daacec4a78542a119ef99082007d62fd2c07a89fc96235e",
+      "maximumNormalLengthError": 1.3262170983630028e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
@@ -76,7 +76,7 @@
       "faceNormalDisagreements": 0
     },
     "cypress": {
-      "triangles": 1024,
+      "triangles": 1424,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -91,13 +91,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "b30201e7278737af3eaee19b8113746d164f5fa17d2feb7d7fdafe4f2f4e36e0",
-      "maximumNormalLengthError": 1.293455662576548e-07,
+      "fingerprint": "46797d1ee8439f15bab9e3fa3051f7df7f95236e27ea2a879f8592641464874f",
+      "maximumNormalLengthError": 1.2640644220240915e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "olive": {
-      "triangles": 992,
+      "triangles": 1312,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -112,13 +112,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "cef54aca02b29d3e59657196d5cde4bdcab99b25c82eda9126be669c4c55cff5",
-      "maximumNormalLengthError": 1.1492378870769926e-07,
+      "fingerprint": "32442868de6005c17028f89ab65d8b20be8d3130377547cb8672d206c8f3a9f1",
+      "maximumNormalLengthError": 1.1395289178928181e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "orchard": {
-      "triangles": 868,
+      "triangles": 1148,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -133,8 +133,8 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "575e12a5d40d27ef610626c15b44da15a625ba77406734d0c2879054eb0db7ad",
-      "maximumNormalLengthError": 1.0440794850907764e-07,
+      "fingerprint": "fb65865c91692ce47ba9d3bfc2a27763ddd1ef9de6d6c1a6ea9c194bce52ed08",
+      "maximumNormalLengthError": 1.0958046359199614e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
@@ -160,7 +160,7 @@
       "faceNormalDisagreements": 0
     },
     "beech_distant": {
-      "triangles": 256,
+      "triangles": 340,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -175,13 +175,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "9fce6f7abfaf0029a3b4828fcb9e52db674c5050abcee31ef2d62543b798403d",
-      "maximumNormalLengthError": 1.1358724694154887e-07,
+      "fingerprint": "316ceaf5e0f90cbacc73e458acf0376c15df6cac52a4b0b14a942add7df629d0",
+      "maximumNormalLengthError": 1.1568582825027818e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "cypress_distant": {
-      "triangles": 161,
+      "triangles": 228,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -196,13 +196,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "b343d7aa18b79a40900c28269c5f1b9e93be42d81788ce505a176cbd3b92e7e9",
-      "maximumNormalLengthError": 1.1254682608097255e-07,
+      "fingerprint": "79f29133af39877d6288e79ba82f9161769a406d8f104c273b87f14c54a8f871",
+      "maximumNormalLengthError": 1.0258607052726632e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "oak_distant": {
-      "triangles": 314,
+      "triangles": 426,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -217,13 +217,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "cf6bae9a424817214a55f793c872e043e5b9df232615cd31cbaaa85ac0931704",
-      "maximumNormalLengthError": 1.276934475935576e-07,
+      "fingerprint": "47beed12be9c733971e72d976dd6aad9bd3e36fcf677e11f72c765a2537de927",
+      "maximumNormalLengthError": 1.080737515035679e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "olive_distant": {
-      "triangles": 101,
+      "triangles": 135,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -238,13 +238,13 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "98a29477935644254a0f0be44debb448d95da9730bc551bbd863fde31c0e867e",
-      "maximumNormalLengthError": 9.270714884657139e-08,
+      "fingerprint": "fc021e1e1b92ba7f8db33f24343a981fb99e861607a2d9f4f1b382b36f847ae9",
+      "maximumNormalLengthError": 1.0230080338402558e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
     "orchard_distant": {
-      "triangles": 101,
+      "triangles": 136,
       "primitives": 1,
       "bounds": {
         "min": [
@@ -259,8 +259,8 @@
         ]
       },
       "boundsExact": true,
-      "fingerprint": "ffe44d387b4b93dec1ea1d8879b9804634efa9b153eedd558371b07a9667f89a",
-      "maximumNormalLengthError": 1.0696741958859945e-07,
+      "fingerprint": "e8370f6dc934be69b012f3250a43f5128dc1b8a66b3af2b5043e972ea06b1a9a",
+      "maximumNormalLengthError": 1.024339488786552e-07,
       "degenerateTriangles": 0,
       "faceNormalDisagreements": 0
     },
@@ -286,6 +286,6 @@
       "faceNormalDisagreements": 0
     }
   },
-  "previousGLBSHA256": "ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef",
+  "previousGLBSHA256": "5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42",
   "rockGeometryAndColorsByteIdentical": true
 }

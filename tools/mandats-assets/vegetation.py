@@ -83,13 +83,13 @@ def crown(center, size, mat=leaf, irregular=.12, seed=0):
     # A crown is a broken cluster of small sprays. Separate lobes give the
     # miniature a fine edge instead of the previous large smooth ellipsoids.
     sprays = []
-    for i in range(5 if mat != rock_mat else 1):
+    for i in range(7 if mat != rock_mat else 1):
         angle = i * 2.399 + seed * .37
-        spread = .44 if mat != rock_mat else 0
+        spread = .62 if mat != rock_mat else 0
         offset = Vector((math.cos(angle) * spread, math.sin(angle) * spread,
-            (i % 3 - 1) * .28 if mat != rock_mat else 0))
+            (i % 3 - 1) * .36 if mat != rock_mat else 0))
         bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1 if mat != rock_mat else 2,
-            radius=.68 if mat != rock_mat else 1)
+            radius=.46 if mat != rock_mat else 1)
         spray = bpy.context.object
         for vertex in spray.data.vertices:
             vertex.co += offset

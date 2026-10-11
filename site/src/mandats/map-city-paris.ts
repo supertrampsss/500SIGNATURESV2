@@ -15,9 +15,9 @@ export const PARIS_CATHEDRAL_SITE = {
   "x": 0.34,
   "z": 0.685,
   "angle": 3.541592653589793,
-  "width": 0.84,
-  "depth": 0.84 * 2.9465 / 1.907,
-  "height": 0.84 * 3.84 / 1.907
+  "width": 0.94,
+  "depth": 0.94 * 2.9465 / 1.907,
+  "height": 0.94 * 3.84 / 1.907
 };
 
 export const PARIS_BLOCKS: readonly ParisBlock[] = [

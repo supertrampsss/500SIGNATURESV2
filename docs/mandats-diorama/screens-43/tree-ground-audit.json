@@ -1,0 +1,19 @@
+{
+  "source": "/workspace/500SIGNATURESV2/site/public/mandats/models/terrain-survey.bin.gz",
+  "sha256": "20fa6bceccbd67bd815e0ea1a332363835abe47ddb01e9b4e9490d63694d4921",
+  "method": "Authoring preservation audit of exact indexed baked faces: compare the previous retained planting algorithm with the new buffer-referencing index, at native tree roots, actual face interiors and edges, +/-1e-9 boundary probes and bounded dry/wet points. It does not alter a renderer, camera, game state or E2E gate. Node CPU/heap figures are a single authoring-process sample, not browser timing, retained memory or phone performance.",
+  "checked": 80616,
+  "missing": 1609,
+  "maxHeightDifference": 0,
+  "exactlyEqual": true,
+  "counts": {
+    "actual native tree root": 2606,
+    "actual triangle interior": 7651,
+    "actual triangle edge and boundary tolerance": 68859,
+    "bounded dry/wet survey": 1500
+  },
+  "oldIndexMs": 168.54977699999998,
+  "newIndexMs": 32.07143000000002,
+  "oldHeapAllocationBytes": 38012672,
+  "newHeapAllocationBytes": 34240640
+}

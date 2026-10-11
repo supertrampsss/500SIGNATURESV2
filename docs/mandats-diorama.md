@@ -523,3 +523,68 @@ et [le manifeste](mandats-diorama/screens-42/manifest.json) identifient les piè
 L’inspection ne modifie ni caméra, ni état, ni modèles, ni choix de détail.
 Les images sont issues de Chromium/SwiftShader et ne certifient pas la fluidité
 d’un appareil physique. La comparaison artistique et la validation complète continuent.
+
+## Itération 43 — estuaires et feuillage, fidélité en cours
+
+La [comparaison 43](mandats-diorama/comparaison-43.html) conserve la composition
+entière, les inspections de Paris, Lyon et du port méditerranéen, puis une vraie
+mobilisation scolaire sur ordinateur et à 320/390 pixels. Le statut reste
+**non conforme visuellement** : les falaises gardent des répétitions, les Alpes
+de grandes faces plates, et la végétation ainsi que les façades restent moins
+fines que la référence. La PR 194 reste en brouillon ; la reconstruction continue.
+
+Le démarrage charge le moteur 3D à l’ouverture d’une partie. L’aperçu et les
+versions explicites antérieures gardent leur propre parcours. Les actions
+pendant le chargement rejoignent le renderer avec la dernière sauvegarde réelle ;
+un échec d’import conserve les sujets et décisions sur la carte légère.
+Les règles du jeu et les résultats affichés restent calculés par le moteur.
+
+Les embouchures de la Seine, de la Loire, de la Garonne et du Rhône utilisent
+leurs intersections avec le rivage réellement rendu. Le dernier tronçon du
+Rhône rejoint cette côte ; la Dordogne n’a plus de fausse excavation terminale.
+Les fonds et tabliers d’estuaire protègent les emprises des maisons, quais et
+ouvrages. Les panneaux côtiers secs peuvent être fracturés sous les constructions
+en préservant leur contact supérieur. Le raccord méditerranéen demeure trop raide
+visuellement : ces changements ne suffisent pas à le déclarer terminé.
+
+Les arbres feuillus reçoivent sept bouquets plus petits. Les pins et le rocher
+conservent leur géométrie précédente ; les treize gabarits exportés restent exacts.
+Le renderer choisit réellement le niveau végétal selon une couverture de 0,0024,
+tandis que l’architecture conserve 0,0012. Les maisons ordinaires limitent leur
+étirement vertical et écartent les variantes dominantes de leur palette aléatoire.
+La cathédrale parisienne passe à une largeur commune de 0,94 avec ses emprises
+partagées, et ses pierres reçoivent des joints fins. Les matériaux architecturaux
+réduisent leur lumière directe. Les sommets alpins ont trois crêtes inégales et
+des neiges plus visibles, mais leurs grands plans demandent encore une reprise.
+
+Le terrain retenu contient 309 580 triangles, 357 151 sommets, 17 maillages,
+huit matériaux et 10 911 476 octets compressés. Son SHA256 est
+`20fa6bceccbd67bd815e0ea1a332363835abe47ddb01e9b4e9490d63694d4921`.
+Deux fabrications du terrain et deux exports du GLB végétal retrouvent chaque
+fichier retenu octet par octet. L’inspection réelle compte 778 maisons acceptées,
+sept ports et 34 bateaux. Aucun bateau contrôlé ne croise celui d’un autre port,
+et les canopées contrôlées ne croisent aucun des douze monuments inspectés.
+
+Le check complet passe 1 082 tests, trois cibles TypeScript, le build,
+le pré-rendu et le précache de 150 ressources. La suite rework complète passe
+23 tests actifs avec les neuf omissions prévues par sa configuration, en
+18 minutes. Les délais, retries, workers, tests et omissions restent inchangés.
+La suite social complète passe 13 tests actifs et les trois omissions prévues, en 11,4 minutes. Ces résultats ne certifient ni
+la conformité artistique ni les suites finales de la version qui sera livrée.
+
+La [CI précédente 42](mandats-diorama/screens-43/previous-ci.json) conserve un
+échec rework sur la reprise DPR WebKit après les 15s d’origine, avec 22 réussites
+et neuf omissions configurées. Site conserve 229 réussites, 65 omissions,
+cinq tests instables et un échec d’importation/reprise v9 au chargement d’une
+nouvelle page après les 60s d’origine. Les sept autres jobs passent. Ces
+résultats concernent le commit 6550163, avant les changements de l’itération 43.
+
+Les dix captures natives contrôlent zéro erreur de page, de console, de requête
+et HTTP, ainsi que leurs réponses JS/CSS contre le build réellement servi.
+Aucune caméra, sauvegarde, réponse réseau, modèle ou sélection de détail n’est
+forcée. Les 80 616 relevés des racines, triangles et bords conservent exactement
+les hauteurs de l’ancien index. Le relevé des faces alpines mesure une pente
+maximale de 11,485 sur cet export ; il ne certifie aucune borne universelle
+et ne remplace pas l’inspection de leurs grandes surfaces. Le [manifeste 43](mandats-diorama/screens-43/manifest.json) conserve les
+pièces ; les suites complètes gardent aussi leurs rapports et parcours dans le
+workspace. SwiftShader ne certifie pas la fluidité d’un appareil physique.

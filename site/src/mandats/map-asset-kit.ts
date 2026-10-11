@@ -61,6 +61,7 @@ export function loadAssetKit(scene: Scene, url: string): Promise<AssetKit> {
 async function load(scene: Scene, url: string): Promise<AssetKit> {
   const cathedralKit = url.split("?")[0] === "/mandats/models/cathedrale.glb";
   const vegetationKit = url.split("?")[0] === "/mandats/models/vegetation.glb";
+  const detailCoverage = vegetationKit ? .0024 : .0012;
   const container = await LoadAssetContainerAsync(url, scene, {
     pluginExtension: ".glb",
   });
@@ -84,7 +85,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       // Calibrate only the architectural surfaces, preserving their atlas and
       // ORM channels. Compensate direct specular so slate does not turn white.
       surface.reflectionColor = surface.reflectionColor.multiply(architecturalDaylightBalance);
-      surface.directIntensity = 3.50;
+      surface.directIntensity = 2.85;
       surface.environmentIntensity = .85;
       surface.albedoColor = surface.albedoColor.multiply(new Color3(1, .965, .88));
       surface.specularIntensity = 0.5;
@@ -184,7 +185,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
     const distant = distantSources.get(mesh);
     if (distant) {
       source.useLODScreenCoverage = true;
-      source.addLODLevel(.0012, sourceFor(distant, tone));
+      source.addLODLevel(detailCoverage, sourceFor(distant, tone));
     }
     return source;
   }
@@ -241,7 +242,7 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
       // Screen coverage keeps detail tied to the visible model size across
       // desktop, phone, country view and native camera inspection.
       part.useLODScreenCoverage = true;
-      part.addLODLevel(.0012, low);
+      part.addLODLevel(detailCoverage, low);
     }
   }
   // A decorative library has no camera, scene lighting or game animation.

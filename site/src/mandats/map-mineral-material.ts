@@ -3,7 +3,8 @@ import type { StandardMaterial } from "@babylonjs/core/Materials/standardMateria
 
 /** Grain belongs to the mineral volumes; it never paints foliage or buildings. */
 class MiniatureMineral extends MaterialPluginBase {
-  constructor(material: StandardMaterial, private readonly snow: boolean) {
+  constructor(material: StandardMaterial, private readonly snow: boolean,
+    private readonly coastal: boolean) {
     super(material, "mandats-weathered-mineral", 200, {}, true, true);
     this.doNotSerialize = true;
   }
@@ -40,11 +41,13 @@ class MiniatureMineral extends MaterialPluginBase {
           float mineralScarp = (1.0 - smoothstep(.28, .68, abs(normalW.y))) *
             smoothstep(.42, .66, mineralBroad + mineralWarp * .15);
           vec3 mineralExposed = mix(vec3(.38, .37, .34), vec3(.66, .63, .55), mineralBroad);
-          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .62);
+          // Ground vertex colours already retain the exposed rock between
+          // neves. Keep this smaller grain from turning snowy faces grey again.
+          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .22);
           // Thin fissures and inclined exposed ribs stay on the real surface,
           // giving broad neves a smaller scale without separate floating rocks.
           float mineralSnowRib = smoothstep(.60, .85, mineralWarp) *
-            (1.0 - smoothstep(.63, .96, abs(normalW.y))) * .33;
+            (1.0 - smoothstep(.63, .96, abs(normalW.y))) * .15;
           baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralSnowRib);
           float mineralFissure = smoothstep(.93, .998,
             sin((vPositionW.x * .73 + vPositionW.z * .41) * 67.0 +
@@ -56,16 +59,22 @@ class MiniatureMineral extends MaterialPluginBase {
           float mineralCrease = smoothstep(.94, .998,
             sin(mineralPlane.x * 43.0 - mineralPlane.y * 21.0 + mineralWarp * 3.0)) *
             smoothstep(.44, .67, mineralBroad);
-          baseColor.rgb *= 1.0 - max(mineralJoint * .37, mineralCrease * .31);
+          ${this.coastal ? `
+            float mineralVertical = smoothstep(.94, .998,
+              sin(vPositionW.x * 87.0 + vPositionW.z * 61.0 +
+                mineralWarp * 5.5 + vPositionW.y * 11.0)) *
+              smoothstep(.46, .70, mineralBroad);
+            baseColor.rgb *= 1.0 - max(mineralJoint * .18, mineralVertical * .36);
+          ` : `baseColor.rgb *= 1.0 - max(mineralJoint * .37, mineralCrease * .31);`}
         `}
       `,
     };
   }
 }
 
-export function prepareMineralSurface(material: StandardMaterial, snow = false) {
+export function prepareMineralSurface(material: StandardMaterial, snow = false, coastal = false) {
   if (!material.pluginManager?.getPlugin("mandats-weathered-mineral"))
-    new MiniatureMineral(material, snow);
+    new MiniatureMineral(material, snow, coastal);
 }
 
 /** Fine soil variation stays attached to the real ground when the camera moves. */

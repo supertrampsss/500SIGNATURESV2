@@ -147,7 +147,7 @@ function dividedVertices(massif: SculptedMassif, part: number) {
 }
 
 
-/** Connected medium-scale buttresses. Two unequal crest shoulders,
+/** Connected medium-scale buttresses. Three unequal crest shoulders,
  *  inset cols and sloping rock aprons replace the old clusters of thin tips.
  *  All points belong to the same ground triangulation. */
 function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
@@ -160,12 +160,12 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
     const points = [
       // Unequal summits meet along a narrow arête. Lower saddles keep each
       // mountain distinct in the national view instead of a flat white roof.
-      [-.045,.092,1.23], [.028,.045,1.07], [.104,.011,.83], [.088,-.088,.64],
-      [-.105,-.049,.62], [-.017,-.092,.57], [.017,.004,.91],
+      [-.064,.133,1.23], [.108,.031,.97], [-.118,-.126,.84],
+      [-.018,.064,.84], [.033,-.029,.69], [-.070,-.048,.77], [.108,-.112,.60],
       // Broad shoulders meet at different levels, rather than radial spires.
-      [-.210,.103,.57], [-.183,.169,.43], [-.073,.194,.53], [.085,.169,.49],
-      [.195,.091,.48], [.183,-.035,.42], [.115,-.177,.33],
-      [-.067,-.172,.35], [-.194,-.108,.36], [-.260,-.020,.29],
+      [-.210,.103,.64], [-.183,.169,.43], [-.073,.214,.67], [.085,.169,.48],
+      [.205,.091,.59], [.188,-.041,.44], [.115,-.177,.35],
+      [-.067,-.203,.39], [-.215,-.127,.48], [-.260,-.020,.27],
       // Open couloirs have low mouths and one offset rock step above them.
       [-.036,.248,.29], [.215,.186,.30], [.267,-.083,.24], [.014,-.260,.25],
       [-.278,.158,.24], [-.218,-.222,.23], [.250,.013,.42], [-.170,.028,.54],
@@ -175,7 +175,7 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
       // The central Pyrenean crest sits on the French face of the border,
       // rather than in the coastal taper that flattened its entire summit.
       z: cirque.z + (part === 1 && index === 1 ? .20 : 0) + reach * (dz * u + nz * v * alternate),
-      height: cirque.height * relativeHeight * (part === 1 ? .76 : index === 0 ? .86 : index === 1 ? .89 : index === 5 ? .92 : 1),
+      height: cirque.height * relativeHeight * (part === 1 ? .76 : index === 0 ? .95 : index === 1 ? .96 : index === 5 ? .96 : 1),
     });
   }
   // Adjacent buttresses share shoulders. Remove redundant close controls

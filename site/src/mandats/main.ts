@@ -37,7 +37,7 @@ import { showDecisionVerdict } from "./decision-verdict.ts";
 import type { VoteRecord } from "./politics-types.ts";
 import { mapEntry, mapReplay } from './map-view.ts';
 import { mapGovernmentPanel, mapProjectsPanel } from './map-panels.ts';
-import { syncMandateMap, moveMapCamera, inspectMapPlace } from './map-scene.ts';
+import { syncMandateMap, moveMapCamera, inspectMapPlace } from './map-runtime.ts';
 import { showMapDecisionVerdict } from './map-verdict.ts';
 import './map-game.css';
 

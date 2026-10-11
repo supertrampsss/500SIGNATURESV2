@@ -13,10 +13,10 @@ envoyées à WebGL. Les coordonnées analytiques de `landHeight` restent en doub
 précision. Le manifeste mesure l'arrondi maximal par maillage : moins de
 `4,8 × 10⁻⁷` unité dans cet export, face à des dégagements de plusieurs millièmes.
 
-Les sommets sans indice sont retirés. Les 306 768 triangles visibles sont
-conservés, avec 347 662 sommets utilisés. L'archive compte 17 maillages,
-8 matériaux et aucun point de verger dans ce relevé. Elle pèse 10 663 282 octets
-compressés pour 20 973 432 octets décodés. Cette ressource supplémentaire échange
+Les sommets sans indice sont retirés. Les 309 580 triangles visibles sont
+conservés, avec 357 151 sommets utilisés. L'archive compte 17 maillages,
+8 matériaux et aucun point de verger dans ce relevé. Elle pèse 10 911 476 octets
+compressés pour 21 501 848 octets décodés. Cette ressource supplémentaire échange
 du transfert et du stockage hors connexion contre le calcul du terrain dans le
 navigateur ; les contrôles de chargement doivent établir le résultat réel.
 
@@ -39,7 +39,7 @@ Le manifeste conserve les empreintes de 48 sources et de la version Babylon.
 Les commandes `build` et `build:client` refusent une archive périmée ou une URL
 qui ne correspond pas à ses octets. Après modification d'une dépendance du
 relevé, il faut réexporter avant le build. L'empreinte de l'archive actuelle est
-`15b574c8e41c07b3f9ecca3c5072344ac6adadc336fa440cc27789c2cd13af9a`.
+`20fa6bceccbd67bd815e0ea1a332363835abe47ddb01e9b4e9490d63694d4921`.
 
 NullEngine vérifie la fabrication des données ; il ne valide ni les shaders,
 ni le rendu artistique, ni le fonctionnement hors connexion dans un navigateur.

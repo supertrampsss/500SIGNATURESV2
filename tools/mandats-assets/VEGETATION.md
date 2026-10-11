@@ -17,7 +17,7 @@ La génération crée `vegetation.blend` et exporte seulement
 conserve les dimensions exactes des treize modèles. La génération ne dépend
 ni d'un répertoire de vérification ni des sources d'architecture.
 
-## Modèles de l'itération 41
+## Modèles de l'itération 43
 
 Les feuillus portent des bouquets composés de petites pousses dissymétriques.
 Les pins gardent leurs ramures angulaires étagées et leur pointe. Les cyprès
@@ -34,14 +34,14 @@ indices et couleurs précédents.
 
 | Modèle | Triangles détaillés | Triangles distants | Primitives par niveau |
 | --- | ---: | ---: | ---: |
-| Chêne | 1916 | 314 | 1 |
-| Hêtre | 1364 | 256 | 1 |
+| Chêne | 2596 | 426 | 1 |
+| Hêtre | 1804 | 340 | 1 |
 | Pin | 1860 | 378 | 1 |
-| Cyprès | 1024 | 161 | 1 |
-| Olivier | 992 | 101 | 1 |
-| Fruitier | 868 | 101 | 1 |
+| Cyprès | 1424 | 228 | 1 |
+| Olivier | 1312 | 135 | 1 |
+| Fruitier | 1148 | 136 | 1 |
 | Roche | 80 | aucune variante | 1 |
-| Total | 8104 | 1311 | |
+| Total | 10224 | 1643 | |
 
 Ce sont les triangles décodés dans le GLB exporté. Le
 [manifeste](vegetation-lod-manifest.json) conserve les empreintes, nombres de
@@ -50,13 +50,20 @@ reproduit le modèle retenu octet par octet. Les treize modèles ont des attribu
 finis, des normales unitaires et des indices valides. L'audit ne relève aucun
 triangle dégénéré ni désaccord entre la normale d'une face et ses sommets.
 
-GLB retenu : 945380 octets ; SHA256
-`5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42`.
+GLB retenu : 1203012 octets ; SHA256
+`9614a8ab7d69bc8c3e9c13ae5252baf177519fabe77afa92f24cbc6772174872`.
 La comparaison utilise les octets du GLB du commit précédent, dont le SHA256
-est `ae3495cea9ef8d8fcfea18afc80b65eb976a3b63b0ba422930554d58059229ef`.
-Les couronnes du chêne et du hêtre distants conservent davantage de
-triangles que dans l'itération 40. Les pins et cyprès distants gardent leurs ramures.
-Les six modèles détaillés restent identiques.
+est `5cd9595f3818e0123847db180d9b1dbac12260b190d35bf32f004e910acbdd42`.
+Les feuillus utilisent sept petites pousses plus espacées par bouquet, contre
+cinq pousses plus volumineuses précédemment. Les couronnes détaillées et
+distantes sont modifiées ensemble. Le pin et la roche conservent leurs
+attributs, indices et couleurs exactement.
+
+La sélection réelle des modèles de végétation détaillés utilise maintenant
+une couverture d'écran de 0,0024, contre 0,0012 précédemment. Les bâtiments
+gardent 0,0012. Cette modification appartient au moteur livré ; les captures
+n'imposent aucun niveau de détail. Les deux variantes de chaque arbre gardent
+leurs bornes exactes, y compris le composant du tronc relié au sol.
 
 Le versionnement des URL et du cache hors connexion est recalculé au build.
 Ces contrôles établissent la structure et la reproductibilité des modèles.

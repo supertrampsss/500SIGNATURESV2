@@ -54,8 +54,8 @@ source `.blend` existante, sans refaire les textures ni modifier cette source.
 
 L'itération 39 rétablit les proportions complètes de cette source, sans
 compression des flèches ni élargissement de la façade. Le GLB mesure
-1,907 × 2,9465 au sol pour 3,84 de haut. Paris applique une réduction uniforme
-à 0,84 de largeur ; les petits monuments utilisent également une échelle
+1,907 × 2,9465 au sol pour 3,84 de haut. Depuis l’itération 43, Paris applique une réduction uniforme
+à 0,94 de largeur ; les petits monuments utilisent également une échelle
 uniforme. L'export répété depuis la source produit les mêmes 11 171 848 octets,
 SHA-256 `60235a5e34d8c49f40c2d07d43a7914eae1aae2ac515c439991b19f969c288f4`.
 

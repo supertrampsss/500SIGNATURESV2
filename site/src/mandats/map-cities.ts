@@ -468,13 +468,16 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   };
   const intersectsRoad = (plot: Plot, precise = false) => intersectsCorridors(plot, transportCorridors, precise);
 
+  // Four-storey accents belong to explicitly authored addresses. They must
+  // not replace half of the ordinary houses in the procedural infill palette.
+  const ordinaryHouses = kit.names.filter(name => !name.endsWith("_dominante"));
   const families: Record<UrbanRegion, string[]> = {
-    paris: kit.names.filter(name => name.startsWith("maison_paris")),
-    north: kit.names.filter(name => name.startsWith("maison_brique")),
-    breton: kit.names.filter(name => name.startsWith("maison_ardoise") || name.startsWith("maison_pierre")),
-    alsace: kit.names.filter(name => name.startsWith("maison_alsace")),
-    stone: kit.names.filter(name => name.startsWith("maison_pierre") || name.startsWith("maison_ardoise")),
-    south: kit.names.filter(name => name.startsWith("maison_sud")),
+    paris: ordinaryHouses.filter(name => name.startsWith("maison_paris")),
+    north: ordinaryHouses.filter(name => name.startsWith("maison_brique")),
+    breton: ordinaryHouses.filter(name => name.startsWith("maison_ardoise") || name.startsWith("maison_pierre")),
+    alsace: ordinaryHouses.filter(name => name.startsWith("maison_alsace")),
+    stone: ordinaryHouses.filter(name => name.startsWith("maison_pierre") || name.startsWith("maison_ardoise")),
+    south: ordinaryHouses.filter(name => name.startsWith("maison_sud")),
   };
   const regionalHeight: Record<UrbanRegion, number> = {
     paris: 1.24, north: 1.21, breton: 1.19, alsace: 1.24, stone: 1.22, south: 1.19,
@@ -697,10 +700,17 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     const typeHeight = name.startsWith("ferme") ? 1.15 : name === "boutique_01" ? 1.23 :
       regionalHeight[region] - (rural ? .015 : 0),
       heightFactor = Math.max(1.15, Math.min(1.25, typeHeight + [-.01, .015, -.005, .01][index % 4]));
-    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor * 1.10 / .88;
+    // Ordinary national houses retain the proportions of their authored
+    // floors and windows. The old address heights could stretch a two-storey
+    // cottage into a tower; civic accents still use their explicit height.
+    const authoredHeight = authored?.national && !name.endsWith("_dominante")
+      ? Math.min(authored.height, bounds.height * scale * 1.45)
+      : authored?.height;
+    asset.root.scaling.y = authoredHeight !== undefined
+      ? authoredHeight / bounds.height : scale * heightFactor * 1.10 / .88;
     asset.root.scaling.z *= depth / naturalDepth;
     asset.root.metadata = { ...asset.root.metadata, town, domestic: true,
-      heightFactor: authored ? authored.height / (bounds.height * scale) : heightFactor,
+      heightFactor: authoredHeight !== undefined ? authoredHeight / (bounds.height * scale) : heightFactor,
       ...(authored ? { authoredParis: !authored.national, authoredNational: !!authored.national,
         block: authored.block, frontage: authored.id } : {}) };
     // A selected street accent becomes a civic bell tower integrated inside
