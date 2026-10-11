@@ -37,6 +37,13 @@ partage leur géométrie et leurs matériaux entre les exemplaires. Les quartier
 rivières, cultures et végétaux utilisent la même hauteur du terrain. Les acteurs
 des mobilisations et projets continuent de venir de la partie sauvegardée.
 
+La branche du diorama remplace `maison_alsace_01` et son niveau de distance par
+la maison CC0 finie de l'[atelier de bibliothèques](../mandats-library-assets/README.md).
+Après une régénération d'`architecture.py` et d'`architecture_lod.py`, exécuter la
+composition de cet atelier sur le nouveau kit et son JSON avant de reconstruire
+le site. Les sources d'auteur restent conservées ; le reçu identifie les deux
+racines remplacées et les 70 autres racines préservées.
+
 Le script de préparation hors connexion ajoute récursivement les modèles,
 buffers et textures du répertoire distribué au cache optionnel du jeu. Une
 modification des GLB change l'empreinte de ce cache.

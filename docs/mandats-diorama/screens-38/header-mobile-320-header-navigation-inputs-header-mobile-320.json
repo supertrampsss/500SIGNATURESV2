@@ -1,0 +1,77 @@
+{
+  "project": "header-mobile-320",
+  "browser": "154.0.8037.57",
+  "viewport": {
+    "width": 320,
+    "height": 640
+  },
+  "routes": [
+    {
+      "path": "/accueil/",
+      "page": "home",
+      "pathname": "/accueil/"
+    },
+    {
+      "path": "/bilan/",
+      "page": "france",
+      "pathname": "/bilan/"
+    },
+    {
+      "path": "/territoire",
+      "page": "territory",
+      "pathname": "/territoire"
+    },
+    {
+      "path": "/analyses/",
+      "page": "dossiers",
+      "pathname": "/analyses/"
+    },
+    {
+      "path": "/salaires/",
+      "page": "salaires",
+      "pathname": "/salaires/"
+    },
+    {
+      "page": "fallback",
+      "path": "/mandats/?mode=national&v=11&seed=0&ambition=equilibre",
+      "menu": "absent",
+      "nav": "visible"
+    },
+    {
+      "page": "fallback",
+      "path": "/confidentialite/",
+      "menu": "absent",
+      "nav": "visible"
+    },
+    {
+      "page": "mandats-v12",
+      "path": "/mandats/",
+      "navigation": "Ma partie puis Retour au site",
+      "escape": "closes and restores focus"
+    },
+    {
+      "page": "spa-repeat",
+      "path": "/analyses/",
+      "destinations": [
+        "France",
+        "Ville",
+        "France",
+        "Ville"
+      ]
+    }
+  ],
+  "interactions": [
+    "Escape closes and restores focus",
+    "outside click closes",
+    "France/Ville SPA links close menu",
+    "Dossiers native link reloads closed"
+  ],
+  "screenshots": [
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/header-menu-closed-header-mobile-320.png",
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/header-menu-open-header-mobile-320.png",
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/header-fallback--mandats--mode-national-v-11-seed-0-ambition-equilibre-header-mobile-320.png",
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/header-fallback--confidentialite--header-mobile-320.png",
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/mandats-map-header-header-mobile-320.png",
+    "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/mandats-site-navigation-header-mobile-320.png"
+  ]
+}

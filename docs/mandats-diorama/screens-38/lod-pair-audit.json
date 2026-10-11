@@ -1,0 +1,28 @@
+{
+  "purpose": "Static check of active GLB roots; actual camera and material pairing is verified separately in placement-and-lod.json.",
+  "kits": [
+    {
+      "kit": "architecture",
+      "checkedRootPairs": 36,
+      "singleSurfaceDistinctMaterialPairs": [
+        "maison_alsace_01"
+      ]
+    },
+    {
+      "kit": "vegetation",
+      "checkedRootPairs": 6,
+      "singleSurfaceDistinctMaterialPairs": []
+    },
+    {
+      "kit": "paris",
+      "checkedRootPairs": 3,
+      "singleSurfaceDistinctMaterialPairs": []
+    },
+    {
+      "kit": "cathedrale",
+      "checkedRootPairs": 1,
+      "singleSurfaceDistinctMaterialPairs": []
+    }
+  ],
+  "status": "only-adopted-house-needs-single-surface-fallback"
+}

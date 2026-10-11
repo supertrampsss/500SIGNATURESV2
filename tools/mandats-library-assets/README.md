@@ -1,7 +1,9 @@
 # Études de modèles existants pour MANDATS
 
-Ces recettes adaptent des modèles CC0 dans Blender. Elles produisent des candidats
-hors de `site/public/` ; le jeu livré reste la source 37. L'étude, ses images et
+Ces recettes adaptent des modèles CC0 dans Blender. Elles produisent leurs exports
+hors de `site/public/`. La maison finie est intégrée dans la branche du diorama,
+avec ses deux implantations à Besançon ; les autres études restent des candidats.
+L'étude initiale, ses images et
 ses limites sont dans [le dossier de preuve](../../docs/mandats-diorama/library-study-20261009/README.md).
 
 ## Sources retenues
@@ -40,7 +42,7 @@ dans le cache. Il refuse d'écraser un cache différent. `--all` inclut les étu
 de végétation. Le User-Agent déclaré identifie le projet auprès de Poly Haven.
 Les fichiers téléchargés ne déclenchent aucun script Blender embarqué.
 
-## Résultat vérifié
+## Résultat de l'étude initiale du 9 octobre
 
 Les commandes ont été exécutées. Un second téléchargement dans un cache vide a
 vérifié les 44 fichiers. Les trois GLB reproduits sont identiques octet par octet
@@ -57,3 +59,28 @@ les masque pas derrière un statut de conformité physique.
 Les images de studio sont des rendus 3D de ces composants, pas la carte finale.
 L'import expérimental dans Babylon ne remplace pas les contrôles de placement,
 la revue de la maquette, les délais des parcours existants ni les essais mobiles.
+
+## Finition et composition du kit
+
+La [finition de la maison](HOUSE-ATLAS.md) regroupe ses matières dans un atlas par
+niveau, corrige les normales et reconstruit un niveau de distance plus fidèle.
+La source est l'export recalé de l'atelier conservé, SHA256
+`faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0`.
+
+```bash
+blender --background --disable-autoexec --threads 2 --python-exit-code 1 --python tools/mandats-library-assets/finish-house.py -- --source docs/mandats-diorama/library-study-20261009/library-house-miniature-seated.glb --output-dir /workspace/mandats-house-finished
+python tools/mandats-library-assets/inspect-exports.py --directory /workspace/mandats-house-finished --files library-house-atlas.glb --report house-atlas-audit.json --strict-house
+git show 5cf6fcf4b0783188e21e27e38f9666ba0ff9946f:site/public/mandats/models/architecture.glb > /workspace/mandats-house-finished/architecture-before.glb
+git show 5cf6fcf4b0783188e21e27e38f9666ba0ff9946f:site/public/mandats/models/architecture.json > /workspace/mandats-house-finished/architecture-before.json
+python tools/mandats-library-assets/compose-house-kit.py --base /workspace/mandats-house-finished/architecture-before.glb --metadata /workspace/mandats-house-finished/architecture-before.json --house /workspace/mandats-house-finished/library-house-atlas.glb --output /workspace/mandats-house-finished/architecture.glb
+```
+
+La composition doit partir du kit d'auteur original, avant l'ajout de la maison
+CC0, ou du kit nouvellement régénéré par `architecture_lod.py`. Ne pas composer
+plusieurs fois à partir d'un export déjà composé : le script refuse ses racines
+dupliquées. Le reçu conserve les empreintes, les 70 autres racines actives
+et tous leurs tableaux JSON et octets d'origine. Après les contrôles du navigateur,
+copier ensemble les deux fichiers `architecture.glb` et `architecture.json`
+produits dans `site/public/mandats/models/`, puis reconstruire le site pour
+actualiser les URL versionnées et le précache. `--skip-preview` omet uniquement
+les deux rendus de studio et ne change pas l'export.

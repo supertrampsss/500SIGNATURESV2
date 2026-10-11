@@ -223,8 +223,13 @@ async function load(scene: Scene, url: string): Promise<AssetKit> {
     const parts = (node: TransformNode) => [node, ...node.getChildMeshes()]
       .filter((part): part is Mesh => part instanceof Mesh && part.getTotalVertices() > 0);
     const lower = parts(distant);
-    for (const part of parts(prefab)) {
-      const low = lower.find(candidate => candidate.material === part.material);
+    const detailed = parts(prefab);
+    for (const part of detailed) {
+      // A single-surface prefab may bake a smaller atlas for its distant mesh.
+      // Those two materials differ, but their sole surfaces form an unambiguous
+      // pair. Multi-part prefabs still require their shared material contract.
+      const low = lower.find(candidate => candidate.material === part.material) ??
+        (detailed.length === 1 && lower.length === 1 ? lower[0] : undefined);
       if (!low) continue;
       distantSources.set(part, low);
       // Screen coverage keeps detail tied to the visible model size across

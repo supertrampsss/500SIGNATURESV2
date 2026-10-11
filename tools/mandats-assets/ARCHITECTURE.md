@@ -64,7 +64,15 @@ dérive des dimensions supérieure à 1,5 %, puis rétablit les bornes exactes p
 que le passage entre les niveaux conserve l'emprise et le niveau du sol.
 
 Le JSON décrit 60 437 triangles détaillés et 28 593 triangles de distance.
-L'exporteur nettoie les triangles dégénérés ; le GLB distribué contient
+
+Ces comptes décrivent le kit d'auteur original. La branche du diorama conserve
+ses 70 autres racines et remplace `maison_alsace_01` et sa distance par la maison
+CC0 finie : 1 481 et 695 triangles réellement exportés, une primitive par niveau,
+atlas de 512 et 128 pixels. Les dimensions et pieds restent identiques. Sa
+licence, sa reproduction et ses contrôles figurent dans
+[l'atelier de bibliothèques](../mandats-library-assets/README.md).
+
+L'exporteur nettoie les triangles dégénérés ; le GLB d'auteur original contient
 88 841 triangles. Babylon choisit le niveau de détail selon la couverture à
 l'écran. Une inspection retrouve la géométrie complète.
 
@@ -74,7 +82,7 @@ la fidélité de la carte. La validation visuelle doit comparer le jeu exécuté
 `docs/mandats-diorama/reference-ordinateur.png`, en vue nationale et rapprochée,
 puis sur les formats mobiles.
 
-Les 154 adresses dominantes utilisent les nouvelles variantes avec une hauteur totale plafonnée à 0,34 unité et à 2,05 fois leur largeur ou profondeur maximale. Les autres bâtiments conservent leurs modèles et hauteurs. Le champ `bodyHeight` du JSON indique la hauteur du corps de chaque maison dans les unités du modèle, avant la mise à l’échelle du jeu.
+Les 154 adresses dominantes utilisent les nouvelles variantes avec une hauteur totale plafonnée à 0,34 unité et à 2,05 fois leur largeur ou profondeur maximale. Les autres bâtiments conservent leurs modèles et hauteurs. Le champ `bodyHeight`, lorsqu'il figure dans le JSON des modèles d'auteur, indique la hauteur de leur corps avant la mise à l'échelle du jeu. La maison CC0 assemblée ne reprend pas ce paramètre du générateur précédent.
 
 La palette source de l'ardoise utilise le bleu profond RGB linéaire
 `(0,025 ; 0,045 ; 0,075)`. Le changement concerne seulement l'albédo de ses

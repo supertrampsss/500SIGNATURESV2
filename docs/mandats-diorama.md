@@ -42,6 +42,14 @@ Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pa
 
 L'[atelier de modèles existants du 9 octobre](mandats-diorama/library-study-20261009/README.md) conserve une maison issue du kit Quaternius 2025 et un rocher Poly Haven, leurs sources CC0 vérifiées, leurs recettes Blender reproductibles et leurs imports expérimentaux dans Babylon. Ces substitutions de test ne modifient pas la source 37 ; la carte complète reste non conforme et aucune adoption en production n'est déclarée.
 
+## Passe 38 du 11 octobre 2026
+
+La [comparaison native 38](mandats-diorama/comparaison-38.html) reprend cet atelier et intègre la maison CC0 finie dans le kit de la branche, aux deux adresses existantes à Besançon. La géométrie détaillée conserve 1 481 triangles. Le niveau distant est reconstruit à 695 triangles : la planche Babylon a révélé des trous dans les façades du candidat précédent à 287 triangles. Chaque niveau possède désormais une primitive et son atlas, de 512 ou 128 pixels. Le chargeur raccorde ces deux surfaces malgré leurs matières différentes. Les 70 autres racines actives du kit restent identiques.
+
+La [recette Blender](../tools/mandats-library-assets/HOUSE-ATLAS.md), le modèle éditable et les exports sont conservés. Une seconde génération et une composition depuis le kit original produisent les mêmes GLB et métadonnées, octet par octet. Le [contrôle physique ciblé](mandats-diorama/screens-38/placement-and-lod.json), distinct du jeu, vérifie les deux pieds et le changement réel de niveau avec la caméra, avec les constructeurs et modèles distribués. Quatre vues natives du build final, sans substitution réseau ni injection d'état, documentent la carte et ses matières.
+
+**La carte complète reste non conforme à la maquette.** Cette intégration ne corrige pas la cathédrale trop massive, les reliefs anguleux, la campagne ou le contexte répétitif. Les petits raccords de toiture et le modèle distant demandent encore de la finesse. Les [résultats des parcours et leurs limites](mandats-diorama/screens-38/validation.md) distinguent la vérification technique de cette étape du travail artistique restant. La PR reste en brouillon.
+
 ## Passe 37 capturée le 9 octobre 2026
 
 La [comparaison native 37](mandats-diorama/comparaison-37.html) conserve la référence intacte et cinq vues réellement examinées par root. Les petites fractures des roches et des côtes, les parcelles à plusieurs tons et la pierre sélective de la cathédrale sont appliquées. **Le verdict reste non conforme à la maquette** : grands fronts montagneux continus et anguleux, arrière-plan de plaques répétées et de houppiers volumineux, campagne moins fine et moins dense, cathédrale trop massive. Les ports et la mer restent moins riches que dans la référence. Cette passe ne constitue pas une reproduction à l'identique.

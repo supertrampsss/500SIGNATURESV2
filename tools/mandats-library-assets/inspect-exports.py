@@ -4,10 +4,13 @@ from PIL import Image
 import argparse
 parser=argparse.ArgumentParser()
 parser.add_argument('--directory',type=Path,required=True)
+parser.add_argument('--files',nargs='+',default=['library-boulder-v2.glb','library-house-miniature.glb','library-house-miniature-seated.glb'])
+parser.add_argument('--report',default='library-glb-audit-seated.json')
+parser.add_argument('--strict-house',action='store_true',help='Reject broken normals, LoD bounds, surface count or house budgets.')
 args=parser.parse_args()
 ROOT=args.directory
 reports=[]
-for name in ['library-boulder-v2.glb','library-house-miniature.glb','library-house-miniature-seated.glb']:
+for name in args.files:
  b=(ROOT/name).read_bytes();magic,version,total=struct.unpack_from('<III',b);assert magic==0x46546c67 and version==2 and total==len(b)
  n,t=struct.unpack_from('<II',b,12);assert t==0x4e4f534a;j=json.loads(b[20:20+n]);off=20+n;n2,t2=struct.unpack_from('<II',b,off);assert t2==0x004e4942;binary=b[off+8:off+8+n2];assert off+8+n2==len(b)
  def values(index):
@@ -33,6 +36,19 @@ for name in ['library-boulder-v2.glb','library-house-miniature.glb','library-hou
  for im in j['images']:
   assert 'uri' not in im;v=j['bufferViews'][im['bufferView']];raw=binary[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']]
   with Image.open(io.BytesIO(raw)) as img:img.load();images.append({'name':im.get('name'),'format':img.format,'width':img.width,'height':img.height,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
- reports.append({'file':name,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'status':'structural-inspection-completed-not-production-validation','meshes':records,'images':images,'limits':['No claim of physical placement, GPU cadence, visual conformity or original timing-gate pass.','Face normal disagreements are recorded rather than hidden.']})
-(ROOT/'library-glb-audit-seated.json').write_text(json.dumps(reports,indent=2)+'\n')
+ if args.strict_house:
+  assert len(records)==2 and len(images)==6 and len(b)<=512000, 'House export budget exceeded.'
+  assert sorted(n['name'] for n in j['nodes'])==['maison_alsace_01','maison_alsace_01_distant']
+  for record,budget in zip(records,[1500,750]):
+   assert record['primitives']==1 and record['triangles']<=budget
+   assert record['degenerateTrianglesThreshold1eMinus20']==record['faceNormalDisagreements']==0
+   assert record['maximumNormalLengthError']<1e-4
+   assert abs(record['bounds'][0][1])<1e-7, 'Exported house does not start on the floor.'
+   assert all(abs(a-b1)<1e-6 for row,other in zip(record['bounds'],records[0]['bounds']) for a,b1 in zip(row,other)), 'LoD extents differ.'
+  for material in j['materials']:
+   assert material['normalTexture'].get('texCoord',0)==0
+   assert material['pbrMetallicRoughness']['baseColorTexture'].get('texCoord',0)==0
+   assert material['occlusionTexture']['index']==material['pbrMetallicRoughness']['metallicRoughnessTexture']['index']
+ reports.append({'file':name,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'status':'strict-house-structure-passed-not-production-validation' if args.strict_house else 'structural-inspection-completed-not-production-validation','meshes':records,'images':images,'limits':['No claim of physical placement, GPU cadence, visual conformity or original timing-gate pass.','Face normal disagreements are recorded rather than hidden.']})
+(ROOT/args.report).write_text(json.dumps(reports,indent=2)+'\n')
 print(json.dumps([{'file':i['file'],'bytes':i['bytes'],'meshes':i['meshes'],'images':len(i['images'])} for i in reports],indent=2))

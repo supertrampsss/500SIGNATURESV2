@@ -398,8 +398,10 @@
         1.0169999599456787,
         0.5339999794960022
       ],
-      "triangles": 940,
-      "bodyHeight": 0.51
+      "triangles": 1481,
+      "primitives": 1,
+      "atlasPixels": 512,
+      "source": "Quaternius Medieval Village MegaKit standard 2025, CC0"
     },
     "maison_alsace_01_distant": {
       "width": 0.93,
@@ -415,12 +417,14 @@
         1.0169999599456787,
         0.5339999794960022
       ],
-      "triangles": 450,
-      "bodyHeight": 0.51,
+      "triangles": 695,
       "lodOf": "maison_alsace_01",
-      "lodRatio": 0.48,
+      "lodRatio": 0.46927751519243754,
       "maximumExtentError": 0.0,
-      "decimationExtentError": 0.0
+      "decimationExtentError": 0.0,
+      "primitives": 1,
+      "atlasPixels": 128,
+      "source": "Quaternius Medieval Village MegaKit standard 2025, CC0"
     },
     "maison_alsace_02": {
       "width": 1.1,

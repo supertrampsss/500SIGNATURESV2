@@ -1,0 +1,62 @@
+[
+  {
+    "file": "rework-mobile-sujet.png",
+    "originalPath": "site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/carte-et-sujet.png",
+    "sha256": "09aadc958b497221592888eaf7a36b53a8332547c2f6e228099a6f18a89c8af8",
+    "project": "mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "sourceStage": "Final iteration38 after AO correction, architecture ee1602e90a669a33",
+    "inputsFromTestCase": {
+      "version": 12,
+      "mode": "national",
+      "seed": 0,
+      "ambition": "equilibre",
+      "choices": []
+    },
+    "sourceTest": "site/tests/mandats-rework.test.mjs:241",
+    "notes": "The original capture helper writes no replay JSON before the first saved choice. Reproduction inputs come from the executed original test case."
+  },
+  {
+    "file": "rework-compact-sujet.png",
+    "originalPath": "site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/carte-et-sujet.png",
+    "sha256": "861c27d2a59ee583e307d8868f585a1f0c25351fab46d1cd293a873f0e2d014b",
+    "project": "compact",
+    "viewport": {
+      "width": 320,
+      "height": 740
+    },
+    "sourceStage": "Final iteration38 after AO correction, architecture ee1602e90a669a33",
+    "inputsFromTestCase": {
+      "version": 12,
+      "mode": "national",
+      "seed": 0,
+      "ambition": "equilibre",
+      "choices": []
+    },
+    "sourceTest": "site/tests/mandats-rework.test.mjs:241",
+    "notes": "The original capture helper writes no replay JSON before the first saved choice. Reproduction inputs come from the executed original test case."
+  },
+  {
+    "file": "rework-webkit-sujet.png",
+    "originalPath": "site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/carte-et-sujet.png",
+    "sha256": "93a60d17d12085008606d0f8686fd7913cd5f8677dad3970d60d8f3d2aaee525",
+    "project": "webkit",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "sourceStage": "Final iteration38 after AO correction, architecture ee1602e90a669a33",
+    "inputsFromTestCase": {
+      "version": 12,
+      "mode": "national",
+      "seed": 0,
+      "ambition": "equilibre",
+      "choices": []
+    },
+    "sourceTest": "site/tests/mandats-rework.test.mjs:241",
+    "notes": "The original capture helper writes no replay JSON before the first saved choice. Reproduction inputs come from the executed original test case."
+  }
+]
