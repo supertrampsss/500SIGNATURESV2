@@ -252,13 +252,13 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     .sort((a, b) => a.priority - b.priority);
   let alpineCount = 0, pyreneanCount = 0;
   for (const { face, i } of ranked) {
-    if (alpineCount >= 250 && pyreneanCount >= 55) break;
-    if (face.alpine ? alpineCount >= 250 : pyreneanCount >= 55) continue;
+    if (alpineCount >= 70 && pyreneanCount >= 18) break;
+    if (face.alpine ? alpineCount >= 70 : pyreneanCount >= 18) continue;
     const x = face.polygon.reduce((sum, p) => sum + p.x, 0) / 3,
       z = face.polygon.reduce((sum, p) => sum + p.z, 0) / 3,
       y = surfaceAt({ x, z }); if (y < .31 || !Number.isFinite(y)) continue;
-    const size = random(i, 137), radius = size < .18 ? .12 + random(i, 139) * .035 :
-      size < .69 ? .065 + random(i, 149) * .035 : .036 + random(i, 151) * .024,
+    const size = random(i, 137), radius = size < .18 ? .070 + random(i, 139) * .018 :
+      size < .69 ? .045 + random(i, 149) * .020 : .025 + random(i, 151) * .016,
       variant = Math.floor(random(i, 157) * designs.length) % designs.length,
       levelsAround = [surfaceAt({ x: x - .014, z }), surfaceAt({ x: x + .014, z }),
         surfaceAt({ x, z: z - .014 }), surfaceAt({ x, z: z + .014 })],

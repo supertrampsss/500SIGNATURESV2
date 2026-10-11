@@ -9,7 +9,7 @@ import { CityGeometry, createCityMesh } from "./map-city-geometry.ts";
 import type { CityMaterials, CityTransportMaterials } from "./map-city-materials.ts";
 import { MAP_PLACES, mapPosition, mapCoordinates } from "./map-state.ts";
 import type { MapPlace } from "./map-state.ts";
-import { landContains, landHeight } from "./map-landscape.ts";
+import { landContains, landHeight, riverContains } from "./map-landscape.ts";
 
 type Point = { x: number; z: number };
 type Vehicle = { mesh: Mesh; path: Vector3[]; phase: number };
@@ -46,7 +46,8 @@ function curve(points: Point[]) {
   return result;
 }
 
-export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets: Partial<Record<MapPlace, [number, number]>>, kit: AssetKit, transport: CityTransportMaterials = materials): { meshes: AbstractMesh[]; vehicles: Vehicle[] } {
+export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets: Partial<Record<MapPlace, [number, number]>>, kit: AssetKit, transport: CityTransportMaterials = materials,
+  renderedLevels?: (footprint: Point[]) => number[]): { meshes: AbstractMesh[]; vehicles: Vehicle[] } {
   const meshes: AbstractMesh[] = [], vehicles: Vehicle[] = [], stops = new Map<MapPlace, Point>();
   const shape = (name: string, geometry: CityGeometry, material = materials.steel, parent?: TransformNode) => {
     const mesh = createCityMesh(scene, name, geometry, material, parent);
@@ -121,50 +122,156 @@ export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets
     }
   }
 
+  const viaductReport: Array<{ route: number; start: Point; end: Point; length: number; arches: number }> = [];
   for (const [index, [from, to, via]] of RAIL_ROUTES.entries()) {
     const start = stops.get(from), end = stops.get(to);
     if (!start || !end) continue;
     const points = curve([mapBaselineFromFinal(start.x, start.z), ...via.map(([lon, lat]) => mapBaselinePosition(lon, lat)), mapBaselineFromFinal(end.x, end.z)]).map(point => mapFinalFromBaseline(point.x, point.z)),
-      ballast = new CityGeometry(), tracks = new CityGeometry(), sleepers = new CityGeometry(), runs: Vector3[][] = [];
+      ballast = new CityGeometry(), tracks = new CityGeometry(), sleepers = new CityGeometry(),
+      masonry = new CityGeometry(), runs: Vector3[][] = [],
+      elevations = points.map(p => landHeight(p.x, p.z)), distances = [0];
+    for (let i = 1; i < points.length; i++) distances.push(distances[i - 1] +
+      Math.hypot(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z));
+    // A rail crossing stays above the river. The track and all four coaches
+    // share the same surveyed deck and short bank approaches.
+    for (let first = 1; first < points.length - 1; first++) {
+      if (!riverContains(points[first].x, points[first].z, .012)) continue;
+      let last = first;
+      while (last + 1 < points.length - 1 && riverContains(points[last + 1].x, points[last + 1].z, .012)) last++;
+      let left = first - 1, right = last + 1;
+      while (left > 0 && distances[first] - distances[left] < .12) left--;
+      while (right < points.length - 1 && distances[right] - distances[last] < .12) right++;
+      const length = distances[right] - distances[left],
+        top = Math.max(elevations[left], elevations[right]) + .075;
+      if (length < .12 || length > 1.1 || points.slice(left, right + 1).some(p => !landContains(p.x, p.z))) {
+        first = last;
+        continue;
+      }
+      for (let i = left; i <= right; i++) {
+        const bank = Math.max(0, Math.min(1, (distances[i] - distances[left]) / .09,
+          (distances[right] - distances[i]) / .09)), blend = bank * bank * (3 - 2 * bank);
+        elevations[i] = Math.max(elevations[i], elevations[i] + (top - elevations[i]) * blend);
+      }
+      const arches = Math.max(1, Math.ceil((length - .12) / .16)),
+        archStart = distances[left] + .06, archEnd = distances[right] - .06,
+        atDistance = (distance: number) => {
+          let at = left + 1;
+          while (at < right && distances[at] < distance) at++;
+          const t = (distance - distances[at - 1]) / (distances[at] - distances[at - 1] || 1);
+          return { x: points[at - 1].x + (points[at].x - points[at - 1].x) * t,
+            z: points[at - 1].z + (points[at].z - points[at - 1].z) * t,
+            y: elevations[at - 1] + (elevations[at] - elevations[at - 1]) * t + .032 };
+        };
+      for (let arch = 0; arch < arches; arch++) {
+        const a = atDistance(archStart + (archEnd - archStart) * arch / arches),
+          b = atDistance(archStart + (archEnd - archStart) * (arch + 1) / arches),
+          span = Math.hypot(b.x - a.x, b.z - a.z), nx = -(b.z - a.z) / span, nz = (b.x - a.x) / span,
+          point = (t: number, y: number, side: number): [number, number, number] =>
+            [a.x + (b.x - a.x) * t + nx * side, y, a.z + (b.z - a.z) * t + nz * side];
+        for (let section = 0; section < 10; section++) {
+          const t0 = section / 10, t1 = (section + 1) / 10,
+            deck0 = a.y + (b.y - a.y) * t0 - .004, deck1 = a.y + (b.y - a.y) * t1 - .004,
+            opening0 = deck0 - .064 + Math.sin(Math.PI * t0) * .052,
+            opening1 = deck1 - .064 + Math.sin(Math.PI * t1) * .052;
+          for (const side of [-.024, .024]) {
+            const face = [point(t0, opening0, side), point(t0, deck0, side),
+              point(t1, deck1, side), point(t1, opening1, side)];
+            if (side < 0) face.reverse();
+            masonry.quad(face[0], face[1], face[2], face[3]);
+          }
+          masonry.quad(point(t0, opening0, .024), point(t1, opening1, .024),
+            point(t1, opening1, -.024), point(t0, opening0, -.024));
+        }
+        for (const end of arch === arches - 1 ? [a, b] : [a]) {
+          const footprint = [-1, 1].flatMap(s => [-1, 1].map(t => ({
+            x: end.x + nx * s * .024 + (b.x - a.x) / span * t * .009,
+            z: end.z + nz * s * .024 + (b.z - a.z) / span * t * .009,
+          }))), levels = [...footprint.map(p => landHeight(p.x, p.z)),
+            ...(renderedLevels?.([footprint[0], footprint[1], footprint[3], footprint[2]]) ?? [])],
+            low = Math.min(...levels) - .002, cap = end.y - .008;
+          if (cap > low) {
+            // Orient the rectangular pier inside the existing rail corridor.
+            const bottom = footprint.map(p => [p.x, low, p.z] as [number, number, number]),
+              upper = footprint.map(p => [p.x, cap, p.z] as [number, number, number]), order = [0, 2, 3, 1];
+            for (let side = 0; side < 4; side++) {
+              const i = order[side], j = order[(side + 1) % 4];
+              masonry.quad(bottom[i], upper[i], upper[j], bottom[j]);
+            }
+            masonry.quad(upper[0], upper[1], upper[3], upper[2]);
+          }
+        }
+      }
+      viaductReport.push({ route: index, start: points[left], end: points[right], length, arches });
+      first = last;
+    }
     let run: Vector3[] = [];
     for (let i = 0; i < points.length - 1; i++) {
       const a = points[i], b = points[i + 1],
         length = Math.max(0.0001, Math.hypot(b.x - a.x, b.z - a.z)),
         px = -(b.z - a.z) / length, pz = (b.x - a.x) / length,
-        leftA: [number, number, number] = [a.x - px * 0.025, landHeight(a.x - px * 0.025, a.z - pz * 0.025) + 0.032, a.z - pz * 0.025],
-        rightA: [number, number, number] = [a.x + px * 0.025, landHeight(a.x + px * 0.025, a.z + pz * 0.025) + 0.032, a.z + pz * 0.025],
-        leftB: [number, number, number] = [b.x - px * 0.025, landHeight(b.x - px * 0.025, b.z - pz * 0.025) + 0.032, b.z - pz * 0.025],
-        rightB: [number, number, number] = [b.x + px * 0.025, landHeight(b.x + px * 0.025, b.z + pz * 0.025) + 0.032, b.z + pz * 0.025];
+        leftA: [number, number, number] = [a.x - px * 0.025, Math.max(elevations[i], landHeight(a.x - px * 0.025, a.z - pz * 0.025)) + 0.032, a.z - pz * 0.025],
+        rightA: [number, number, number] = [a.x + px * 0.025, Math.max(elevations[i], landHeight(a.x + px * 0.025, a.z + pz * 0.025)) + 0.032, a.z + pz * 0.025],
+        leftB: [number, number, number] = [b.x - px * 0.025, Math.max(elevations[i + 1], landHeight(b.x - px * 0.025, b.z - pz * 0.025)) + 0.032, b.z - pz * 0.025],
+        rightB: [number, number, number] = [b.x + px * 0.025, Math.max(elevations[i + 1], landHeight(b.x + px * 0.025, b.z + pz * 0.025)) + 0.032, b.z + pz * 0.025];
       if ([leftA, rightA, leftB, rightB].some(point => !landContains(point[0], point[2]))) {
         if (run.length > 1) runs.push(run);
         run = [];
         continue;
       }
       ballast.quad(leftA, rightA, rightB, leftB);
-      for (const side of [-1, 1]) tracks.beam([a.x + px * side * 0.01, landHeight(a.x, a.z) + 0.044, a.z + pz * side * 0.01], [b.x + px * side * 0.01, landHeight(b.x, b.z) + 0.044, b.z + pz * side * 0.01], 0.006);
-      if (i % 2 === 0) sleepers.beam([a.x - px * 0.018, landHeight(a.x, a.z) + 0.037, a.z - pz * 0.018], [a.x + px * 0.018, landHeight(a.x, a.z) + 0.037, a.z + pz * 0.018], 0.005);
-      if (!run.length) run.push(new Vector3(a.x, landHeight(a.x, a.z) + 0.047, a.z));
-      run.push(new Vector3(b.x, landHeight(b.x, b.z) + 0.047, b.z));
+      for (const side of [-1, 1]) tracks.beam([a.x + px * side * 0.01, elevations[i] + 0.044, a.z + pz * side * 0.01], [b.x + px * side * 0.01, elevations[i + 1] + 0.044, b.z + pz * side * 0.01], 0.006);
+      if (i % 2 === 0) sleepers.beam([a.x - px * 0.018, elevations[i] + 0.037, a.z - pz * 0.018], [a.x + px * 0.018, elevations[i] + 0.037, a.z + pz * 0.018], 0.005);
+      if (!run.length) run.push(new Vector3(a.x, elevations[i] + 0.047, a.z));
+      run.push(new Vector3(b.x, elevations[i + 1] + 0.047, b.z));
     }
     if (run.length > 1) runs.push(run);
     if (!ballast.positions.length) continue;
     shape(`railway-${index}-ballast`, ballast, transport.cream);
     shape(`railway-${index}-tracks`, tracks, transport.steel);
     shape(`railway-${index}-sleepers`, sleepers, transport.timber);
+    if (masonry.positions.length) shape(`railway-${index}-viaducts`, masonry, materials.cream);
     const path = runs.sort((a, b) => b.length - a.length)[0];
     if (!path || path.length < 4) continue;
-    const coach = new CityGeometry();
-    for (let car = 0; car < 3; car++) {
-      coach.box(0, 0.02, (car - 1) * 0.073, 0.034, 0.027, 0.067);
-      coach.box(0, 0.037, (car - 1) * 0.073, 0.033, 0.007, 0.064);
+    // Equal arc-length samples keep the articulated coaches together around
+    // curves. Each car follows the real track, including reduced-motion poses.
+    const lengths = [0];
+    for (let i = 1; i < path.length; i++) lengths.push(lengths[i - 1] + Vector3.Distance(path[i - 1], path[i]));
+    const totalLength = lengths.at(-1)!, railPath: Vector3[] = [],
+      samples = Math.max(2, Math.ceil(totalLength / .018));
+    let at = 1;
+    for (let i = 0; i <= samples; i++) {
+      const distance = totalLength * i / samples;
+      while (at < path.length - 1 && lengths[at] < distance) at++;
+      railPath.push(Vector3.Lerp(path[at - 1], path[at],
+        (distance - lengths[at - 1]) / (lengths[at] - lengths[at - 1] || 1)));
     }
-    const train = createCityMesh(scene, `train-${index}`, coach, materials.paint), phase = (index * 0.239 + 0.18) % 1,
-      progress = phase * (path.length - 1), segment = Math.floor(progress), forward = path[segment + 1].subtract(path[segment]);
-    train.position.copyFrom(Vector3.Lerp(path[segment], path[segment + 1], progress - segment));
-    train.rotation.y = Math.atan2(forward.x, forward.z);
-    const colors = Array.from({ length: train.getTotalVertices() }, (_, vertex) => vertex % 48 < 16 ? [0.035, 0.30, 0.64, 1] : [1, 1, 1, 1]).flat();
-    train.setVerticesData("color", colors);
-    vehicles.push({ mesh: train, path, phase });
+    for (let car = 0; car < 4; car++) {
+      const coach = new CityGeometry(), colors: number[] = [],
+        part = (draw: () => void, color: number[]) => {
+          const start = coach.positions.length / 3; draw();
+          for (let i = start; i < coach.positions.length / 3; i++) colors.push(...color, 1);
+        }, blue = index % 2 ? [.035, .23, .48] : [.72, .027, .048];
+      part(() => coach.box(0, .022, 0, .038, .033, .108), [.93, .92, .86]);
+      part(() => coach.box(0, .043, 0, .037, .009, .105), blue);
+      part(() => coach.box(0, .008, 0, .032, .011, .087), [.10, .12, .13]);
+      for (const side of [-1, 1]) {
+        part(() => coach.box(side * .0195, .030, 0, .0015, .012, .080), [.038, .10, .16]);
+        part(() => coach.box(side * .020, .017, 0, .0015, .005, .099), blue);
+      }
+      if (car === 0) {
+        part(() => coach.box(0, .028, .055, .036, .019, .018), blue);
+        part(() => coach.box(0, .036, .065, .028, .010, .0015), [.035, .08, .12]);
+      }
+      const train = createCityMesh(scene, `train-${index}-car-${car}`, coach, materials.paint),
+        phase = ((index * .239 + .18 - car * .119 / totalLength) % 1 + 1) % 1,
+        progress = phase * (railPath.length - 1), segment = Math.floor(progress),
+        forward = railPath[segment + 1].subtract(railPath[segment]);
+      train.position.copyFrom(Vector3.Lerp(railPath[segment], railPath[segment + 1], progress - segment));
+      train.rotation.y = Math.atan2(forward.x, forward.z);
+      train.setVerticesData("color", colors);
+      vehicles.push({ mesh: train, path: railPath, phase });
+    }
   }
+  scene.metadata = { ...scene.metadata, railwayViaducts: viaductReport };
   return { meshes, vehicles };
 }

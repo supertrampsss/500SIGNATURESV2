@@ -1,7 +1,9 @@
 import { mapCorsicaLocalVector } from "./map-camera-projection.ts";
+import { HARBOUR_SITES } from "./map-harbour-sites.ts";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { mapPosition } from "./map-state.ts";
 import { landContains, landHeight } from "./map-landscape.ts";
+
 
 export type HarbourPoint = { x: number; z: number };
 export type HarbourStation = HarbourPoint & {
@@ -28,8 +30,12 @@ export type HarbourPlan = {
   warehouses: Array<{ point: HarbourPoint; angle: number; width: number; depth: number; height: number; footprint: HarbourPoint[] }>;
 };
 
-const coastlines = FRANCE_OUTLINES.map(outline => outline.slice(0, -1).map(([lon, lat]) => mapPosition(lon, lat)));
-const cross = (a: HarbourPoint, b: HarbourPoint, c: HarbourPoint) => (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
+function projectedCoastlines() {
+  return FRANCE_OUTLINES.map(outline => outline.slice(0, -1).map(([lon, lat]) => mapPosition(lon, lat)));
+}
+function cross(a: HarbourPoint, b: HarbourPoint, c: HarbourPoint) {
+  return (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
+}
 
 export function harbourPolygonContains(polygon: HarbourPoint[], point: HarbourPoint): boolean {
   let inside = false;
@@ -80,13 +86,13 @@ function ribbon(points: HarbourPoint[], width: number): HarbourPoint[][] {
 /** The miniature's actual coastline supplies the curved quay and its land contact. */
 export function surveyHarbour(place: string, origin: HarbourPoint,
   groundHeight: (x: number, z: number) => number = landHeight): HarbourPlan | undefined {
-  if (!["brest", "nantes", "marseille", "ajaccio"].includes(place)) return;
-  const frontage = place === "ajaccio" ? .48 : place === "brest" ? .75 : place === "nantes" ? .85 : .90,
-    apronDepth = place === "ajaccio" ? .070 : .108,
+  if (!HARBOUR_SITES.some(site => site.name === place)) return;
+  const frontage = place === "ajaccio" ? .48 : place === "brest" ? .88 : place === "nantes" ? 1.04 : place === "la-rochelle" ? .70 : 1.28,
+    apronDepth = place === "ajaccio" ? .070 : place === "la-rochelle" ? .120 : .135,
     corsicaPreferred = mapCorsicaLocalVector(-.90, -.43),
     preferred = place === "marseille" ? [-.20, -.98] : place === "ajaccio" ? [corsicaPreferred.x, corsicaPreferred.z] : [-.82, -.57];
   let selected: { stations: HarbourStation[]; score: number } | undefined;
-  for (const polygon of coastlines) {
+  for (const polygon of projectedCoastlines()) {
     const lengths = polygon.map((a, i) => Math.hypot(polygon[(i + 1) % polygon.length].x - a.x, polygon[(i + 1) % polygon.length].z - a.z)),
       starts: number[] = [], perimeter = lengths.reduce((sum, length) => sum + length, 0);
     let accumulated = 0;
@@ -102,9 +108,9 @@ export function surveyHarbour(place: string, origin: HarbourPoint,
       if (!squared) continue;
       const t = Math.max(0, Math.min(1, ((origin.x - a.x) * dx + (origin.z - a.z) * dz) / squared)),
         start = starts[edge] + lengths[edge] * t, centre = along(start), distanceToTown = Math.hypot(centre.x - origin.x, centre.z - origin.z);
-      if (distanceToTown > .95) continue;
+      if (distanceToTown > (place === "la-rochelle" ? .45 : .95)) continue;
       const stations: HarbourStation[] = [], count = Math.ceil(frontage / .035);
-      let score = distanceToTown * 5;
+      let score = distanceToTown * (place === "la-rochelle" ? 20 : 5);
       for (let i = 0; i <= count; i++) {
         const distance = (i / count - .5) * frontage, point = along(start + distance),
           before = along(start + distance - .009), after = along(start + distance + .009), tangent = Math.hypot(after.x - before.x, after.z - before.z),

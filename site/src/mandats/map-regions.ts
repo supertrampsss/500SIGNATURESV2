@@ -15,7 +15,7 @@ export function buildRegionBoundaries(scene: Scene): Mesh[] {
       const a = mapPosition(...line[i - 1]), b = mapPosition(...line[i]);
       const dx = b.x - a.x, dz = b.z - a.z, length = Math.hypot(dx, dz);
       if (length < .00001) continue;
-      const nx = -dz / length * .0035, nz = dx / length * .0035;
+      const nx = -dz / length * .0050, nz = dx / length * .0050;
       const steps = Math.max(1, Math.ceil(length / .025));
       for (let step = 0; step < steps; step++) {
         const t0 = step / steps, t1 = (step + 1) / steps;
@@ -37,6 +37,7 @@ export function buildRegionBoundaries(scene: Scene): Mesh[] {
   data.applyToMesh(mesh);
   const material = new StandardMaterial("country-region-boundaries", scene);
   material.diffuseColor = Color3.FromHexString("#E8DEBD");
+  material.emissiveColor = new Color3(.26, .25, .22);
   material.specularColor = Color3.Black();
   material.backFaceCulling = false;
   mesh.material = material;

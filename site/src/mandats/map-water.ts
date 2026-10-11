@@ -3,7 +3,9 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Vector3, Vector4 } from "@babylonjs/core/Maths/math.vector";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
@@ -48,6 +50,23 @@ export function buildMapWater(scene: Scene) {
   // Concentrate vertices along the miniature's shore; the distant sea needs
   // no equally dense tessellation. Measuring segments preserves narrow bays.
   const coast = coastlines.flat();
+  // A coast-distance texture follows the actual outline between coarse sea
+  // vertices. Interpolating vertex distances alone erased thin near-rock wash.
+  const distanceSize = 768, distancePixels = new Uint8Array(distanceSize * distanceSize * 4),
+    minX = Math.min(...coast.map(p => p.x)) - .75, minZ = Math.min(...coast.map(p => p.z)) - .75,
+    spanX = Math.max(...coast.map(p => p.x)) + .75 - minX,
+    spanZ = Math.max(...coast.map(p => p.z)) + .75 - minZ;
+  for (let row = 0; row < distanceSize; row++) for (let column = 0; column < distanceSize; column++) {
+    const distance = shoreDistance(minX + (column + .5) / distanceSize * spanX,
+      minZ + (row + .5) / distanceSize * spanZ), at = (row * distanceSize + column) * 4;
+    distancePixels[at] = Math.round(distance / .65 * 255);
+    distancePixels[at + 3] = 255;
+  }
+  const distanceTexture = RawTexture.CreateRGBATexture(distancePixels, distanceSize, distanceSize,
+    scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+  distanceTexture.name = "sea-surveyed-coast-distance";
+  distanceTexture.gammaSpace = false;
+  distanceTexture.wrapU = distanceTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
   function axis(values: number[]) {
     const step = .08, start = Math.floor((Math.min(...values) - .75) / step) * step,
       end = Math.ceil((Math.max(...values) + .75) / step) * step;
@@ -109,6 +128,8 @@ export function buildMapWater(scene: Scene) {
       precision highp float;
       uniform float time;
       uniform vec3 eye;
+      uniform sampler2D coastDistanceMap;
+      uniform vec4 coastBounds;
       varying vec3 seaPosition;
       varying float coastDepth;
       varying float riverChannel;
@@ -134,15 +155,20 @@ export function buildMapWater(scene: Scene) {
       }
       void main(void) {
         vec2 p = seaPosition.xz;
+        vec2 coastUV = (p - coastBounds.xy) / coastBounds.zw;
+        float measuredCoast = texture2D(coastDistanceMap, coastUV).r;
+        float coastSurvey = all(greaterThanEqual(coastUV, vec2(0.0))) &&
+          all(lessThanEqual(coastUV, vec2(1.0))) ? measuredCoast : 1.0;
+        float shoreDepth = mix(coastSurvey, coastDepth, riverChannel);
         float broad = seaNoise(p * .45);
         // The reference sea has a navy blue body and small, local clear-water
         // pockets. A continuous cyan shelf used to extend .60 world unit out.
         vec3 deep = mix(vec3(.008, .137, .255), vec3(.039, .224, .365), broad);
         float coastPatch = noise(p * 4.7 + vec2(7.4, 13.1));
-        float shelfWidth = mix(.10, .25, coastPatch);
-        float shallows = (1.0 - smoothstep(.012, shelfWidth, coastDepth)) *
-          smoothstep(.31, .75, coastPatch) * (1.0 - riverChannel);
-        vec3 color = mix(deep, vec3(.016, .302, .427), shallows * .62);
+        float shelfWidth = mix(.20, .42, coastPatch);
+        float shallows = (1.0 - smoothstep(.012, shelfWidth, shoreDepth)) *
+          smoothstep(.20, .68, coastPatch) * (1.0 - riverChannel);
+        vec3 color = mix(deep, vec3(.012, .405, .510), shallows * .88);
         vec2 drift = vec2(time * .021, -time * .014);
         float wave = seaNoise(p * 23.0 + drift);
         // Several crossed ripples give the surface a fine grain instead of
@@ -177,18 +203,21 @@ export function buildMapWater(scene: Scene) {
           (.28 + shallows * .72) * (1.0 - riverChannel);
         // Broken near-rock wash stays thin and retains the existing clock.
         // The coarse patch interrupts it; the moving fine noise draws surf.
-        float wash = .5 + .5 * sin(coastDepth * 111.0 - time * .32 + coastPatch * 2.6);
-        float foam = (1.0 - smoothstep(.011, .075, coastDepth)) *
-          smoothstep(.44, .73, seaNoise(p * 27.0 + drift)) *
-          smoothstep(.20, .62, coastPatch) * (.30 + wash * .70) * (1.0 - riverChannel);
+        float wash = .5 + .5 * sin(shoreDepth * 111.0 - time * .32 + coastPatch * 2.6);
+        float foam = (1.0 - smoothstep(.016, .150, shoreDepth)) *
+          smoothstep(.45, .59, seaNoise(p * 27.0 + drift)) *
+          smoothstep(.20, .48, coastPatch) * (.55 + wash * .45) * (1.0 - riverChannel);
         color = mix(color, vec3(.835, .900, .901), foam * .86);
         gl_FragColor = vec4(color, 1.0);
       }`,
   }, {
     attributes: ["position", "shore", "channel", "color", "uv"],
-    uniforms: ["worldViewProjection", "time", "eye"],
+    uniforms: ["worldViewProjection", "time", "eye", "coastBounds"],
+    samplers: ["coastDistanceMap"],
   });
   material.setFloat("time", 0);
+  material.setTexture("coastDistanceMap", distanceTexture);
+  material.setVector4("coastBounds", new Vector4(minX, minZ, spanX, spanZ));
   material.onBindObservable.add(() => {
     if (scene.activeCamera) material.setVector3("eye", scene.activeCamera.globalPosition);
   });

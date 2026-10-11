@@ -1,4 +1,5 @@
 import { RURAL_FINE_SETTLEMENTS } from "./map-rural-infill.ts";
+import { REFERENCE_NORTH_SETTLEMENTS } from "./map-reference-north.ts";
 import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRetainedTownPlanPoint } from "./map-camera-projection.ts";
 
 /** Fixed, named miniature quarters composed against the approved France reference.
@@ -27776,7 +27777,7 @@ function transportNationalSettlement(town: NationalSettlement): NationalSettleme
 }
 
 export const NATIONAL_SETTLEMENTS: readonly NationalSettlement[] =
-  [...RETAINED_NATIONAL_SETTLEMENTS, ...RURAL_FINE_SETTLEMENTS].map(transportNationalSettlement);
+  [...RETAINED_NATIONAL_SETTLEMENTS, ...RURAL_FINE_SETTLEMENTS, ...REFERENCE_NORTH_SETTLEMENTS].map(transportNationalSettlement);
 
 export function nationalBuildingFootprint(building: NationalBuilding): NationalPoint[] {
   const c = Math.cos(building.angle), s = Math.sin(building.angle),

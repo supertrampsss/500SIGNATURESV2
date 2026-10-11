@@ -22,10 +22,10 @@ class CathedralLimestone extends MaterialPluginBase {
       // texture has supplied metallicRoughness.r, before its baseColor/lighting.
       CUSTOM_FRAGMENT_UPDATE_METALLICROUGHNESS: `
         float cathedralY = dot(surfaceAlbedo, vec3(.2126, .7152, .0722));
-        float cathedralStone = smoothstep(.22, .36, cathedralY) *
+        float cathedralStone = smoothstep(.14, .30, cathedralY) *
           smoothstep(.018, .075, surfaceAlbedo.r - surfaceAlbedo.b) *
           (1.0 - smoothstep(.02, .08, metallicRoughness.r));
-        vec3 cathedralWarm = surfaceAlbedo * vec3(1.08, 1.0, .76);
+        vec3 cathedralWarm = surfaceAlbedo * vec3(1.14, 1.0, .68);
         cathedralWarm *= cathedralY /
           max(dot(cathedralWarm, vec3(.2126, .7152, .0722)), .001);
         surfaceAlbedo = mix(surfaceAlbedo, cathedralWarm, cathedralStone);

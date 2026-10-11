@@ -1,0 +1,95 @@
+import { MaterialPluginBase } from "@babylonjs/core/Materials/materialPluginBase";
+import type { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+
+/** Grain belongs to the mineral volumes; it never paints foliage or buildings. */
+class MiniatureMineral extends MaterialPluginBase {
+  constructor(material: StandardMaterial, private readonly snow: boolean) {
+    super(material, "mandats-weathered-mineral", 200, {}, true, true);
+    this.doNotSerialize = true;
+  }
+
+  override getClassName() { return "MandatsWeatheredMineral"; }
+
+  override getCustomCode(shaderType: string) {
+    if (shaderType !== "fragment") return null;
+    return {
+      CUSTOM_FRAGMENT_DEFINITIONS: `
+        float miniatureMineralHash(vec2 p) {
+          vec3 h = fract(vec3(p.xyx) * .1031);
+          h += dot(h, h.yzx + 33.33);
+          return fract((h.x + h.y) * h.z);
+        }
+        float miniatureMineralNoise(vec2 p) {
+          vec2 c = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(miniatureMineralHash(c), miniatureMineralHash(c + vec2(1.0, 0.0)), f.x),
+            mix(miniatureMineralHash(c + vec2(0.0, 1.0)), miniatureMineralHash(c + vec2(1.0)), f.x), f.y);
+        }
+      `,
+      CUSTOM_FRAGMENT_BEFORE_LIGHTS: `
+        vec2 mineralPlane = vec2(vPositionW.x * .73 + vPositionW.z * .32,
+          vPositionW.y * 1.4 + vPositionW.z * .17);
+        float mineralBroad = miniatureMineralNoise(mineralPlane * 13.0);
+        float mineralGrain = miniatureMineralNoise(mineralPlane * 61.0);
+        float mineralWarp = miniatureMineralNoise(mineralPlane * 24.0 + vec2(13.0, 7.0));
+        float mineralBed = sin(vPositionW.y * 139.0 + vPositionW.z * 13.0 + mineralWarp * 5.0);
+        float mineralJoint = smoothstep(.91, .997, mineralBed) *
+          smoothstep(.38, .65, mineralBroad);
+        baseColor.rgb *= .86 + mineralBroad * .17 + mineralGrain * .07;
+        ${this.snow ? `
+          float mineralScarp = (1.0 - smoothstep(.28, .68, abs(normalW.y))) *
+            smoothstep(.42, .66, mineralBroad + mineralWarp * .15);
+          vec3 mineralExposed = mix(vec3(.43, .38, .31), vec3(.69, .60, .47), mineralBroad);
+          baseColor.rgb = mix(baseColor.rgb, mineralExposed, mineralScarp * .83);
+        ` : `baseColor.rgb *= 1.0 - mineralJoint * .23;`}
+      `,
+    };
+  }
+}
+
+export function prepareMineralSurface(material: StandardMaterial, snow = false) {
+  if (!material.pluginManager?.getPlugin("mandats-weathered-mineral"))
+    new MiniatureMineral(material, snow);
+}
+
+/** Fine soil variation stays attached to the real ground when the camera moves. */
+class MiniatureSoil extends MaterialPluginBase {
+  constructor(material: StandardMaterial) {
+    super(material, "mandats-meadow-soil", 200, {}, true, true);
+    this.doNotSerialize = true;
+  }
+
+  override getClassName() { return "MandatsMeadowSoil"; }
+
+  override getCustomCode(shaderType: string) {
+    if (shaderType !== "fragment") return null;
+    return {
+      CUSTOM_FRAGMENT_DEFINITIONS: `
+        float miniatureSoilHash(vec2 p) {
+          vec3 h = fract(vec3(p.xyx) * .1031);
+          h += dot(h, h.yzx + 33.33);
+          return fract((h.x + h.y) * h.z);
+        }
+        float miniatureSoilNoise(vec2 p) {
+          vec2 c = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(miniatureSoilHash(c), miniatureSoilHash(c + vec2(1.0, 0.0)), f.x),
+            mix(miniatureSoilHash(c + vec2(0.0, 1.0)), miniatureSoilHash(c + vec2(1.0)), f.x), f.y);
+        }
+      `,
+      CUSTOM_FRAGMENT_BEFORE_LIGHTS: `
+        float soilPatch = miniatureSoilNoise(vPositionW.xz * 8.0);
+        float soilGrain = miniatureSoilNoise(vPositionW.xz * 119.0);
+        float soilStubble = miniatureSoilNoise(vPositionW.xz * vec2(57.0, 93.0));
+        baseColor.rgb *= .83 + soilPatch * .22 + soilGrain * .12;
+        baseColor.rgb = mix(baseColor.rgb, baseColor.rgb * vec3(1.06, .96, .79),
+          smoothstep(.62, .84, soilStubble) * .22);
+      `,
+    };
+  }
+}
+
+export function prepareMeadowSurface(material: StandardMaterial) {
+  if (!material.pluginManager?.getPlugin("mandats-meadow-soil"))
+    new MiniatureSoil(material);
+}

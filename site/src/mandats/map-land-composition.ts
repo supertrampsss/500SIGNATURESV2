@@ -107,6 +107,18 @@ function lorraineBosquet(id: string, start: number, end: number,
   return { id, trees, outline: [...lower, ...upper.reverse()], groups, maxSlope: .62 };
 }
 
+export const REFERENCE_NORTH_FIELDS: readonly NationalField[] = [
+  { id: "flandre-cape-ble", region: "est", kind: "wheat", color: "#E7BC4D",
+    angle: .24, composedPalette: true,
+    outline: [[-.38,4.76],[-.12,4.78],[.02,4.97],[-.31,4.93]], hedgedEdges: [0] },
+  { id: "flandre-cape-prairie", region: "est", kind: "pasture", color: "#889C48",
+    angle: -.18, composedPalette: true,
+    outline: [[-.40,4.98],[-.14,5.01],[-.09,5.13],[-.30,5.12]] },
+  { id: "flandre-cape-cereales", region: "est", kind: "wheat", color: "#D3A34D",
+    angle: -.28, composedPalette: true,
+    outline: [[.10,4.83],[.24,4.88],[.22,5.03],[.02,5.00]] },
+];
+
 export const NATIONAL_FIELDS: readonly NationalField[] = [
   {
     id: "bretagne-cereales-ouest",
@@ -1028,6 +1040,12 @@ export const VALLEY_FIELDS: readonly NationalField[] = VALLEY_CROPS.flatMap((bas
   }
   return fields;
 });
+
+export const REFERENCE_NORTH_WOODS: readonly NationalWood[] = [
+  { id: "flandre-cape-bosquet", trees: 26,
+    outline: [[-.26,5.17],[-.06,5.22],[.00,5.31],[-.14,5.31]],
+    groups: [[-.15,5.23,.11,.06]], maxSlope: .8 },
+];
 
 export const NATIONAL_WOODS: readonly NationalWood[] = [
   {

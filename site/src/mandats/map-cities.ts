@@ -1,5 +1,6 @@
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
+import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -17,6 +18,8 @@ import { LYON_SCHOOL_SITE, publicEsplanadeOutline, publicEsplanadePlot, publicEs
 import { createCityMaterials, createCityTransportMaterials } from "./map-city-materials.ts";
 import { CityGeometry as Geometry, createCityMesh } from "./map-city-geometry.ts";
 import { buildHarbour, buildPowerPlant, buildWindTurbines } from "./map-city-infrastructure.ts";
+import { POWER_STATION_SITES, powerStationFootprints } from "./map-industrial-sites.ts";
+import { HARBOUR_SITES } from "./map-harbour-sites.ts";
 import { surveyHarbour, harbourPolygonsOverlap } from "./map-city-port-plans.ts";
 import { buildRailNetwork, RAIL_ROUTES } from "./map-city-rail.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
@@ -42,7 +45,7 @@ function random(seed: number) {
 }
 
 /** Authored buildings share their geometry; roads and public spaces are batched. */
-export async function buildCities(scene: Scene): Promise<{
+export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown>): Promise<{
   roots: Map<MapPlace, TransformNode>;
   meshes: AbstractMesh[];
   vehicles: Array<{ mesh: Mesh; path: Vector3[]; phase: number }>;
@@ -53,6 +56,9 @@ export async function buildCities(scene: Scene): Promise<{
     loadAssetKit(scene, MODEL_URLS.paris),
     loadAssetKit(scene, MODEL_URLS.cathedrale),
   ]);
+  // Ground construction now yields to input between batches. Await its real
+  // rendered triangles before surveying foundations, regardless of kit cache.
+  await landscapeReady;
   if (scene.isDisposed) return { roots: new Map(), meshes: [], vehicles: [] };
   const meshes: AbstractMesh[] = [],
     roots = new Map<MapPlace, TransformNode>(),
@@ -479,6 +485,7 @@ export async function buildCities(scene: Scene): Promise<{
   // public spaces and transport corridors determine each buildable footprint.
   const occupied: Plot[] = [];
   const counts: Record<string, number> = {};
+  const accentedTowns = new Set<string>();
   const usedArchetypes = new Set<string>();
   let candidates = 0, coastal = 0, waterside = 0, reserved = 0, overlaps = 0, roadside = 0, steep = 0;
   const cathedral = cathedralKit.bounds("cathedrale_paris"),
@@ -510,16 +517,16 @@ export async function buildCities(scene: Scene): Promise<{
     const path = smooth([mapBaselineFromFinal(stop(from).x, stop(from).z), ...via.map(([lon, lat]) => mapBaselinePosition(lon, lat)), mapBaselineFromFinal(stop(to).x, stop(to).z)], 20).map(point => mapFinalFromBaseline(point.x, point.z));
     return path.slice(1).map((end, i) => ({ start: path[i], end, halfWidth: .026 }));
   });
-  const allPublicPlots = [...roots.entries()].flatMap(([town, root]) => {
+  const industrialPlots = powerStationFootprints().map(site => ({ x: site.x, z: site.z,
+    halfX: site.halfW, halfZ: site.halfD }));
+  const allPublicPlots = [...industrialPlots, ...[...roots.entries()].flatMap(([town, root]) => {
     const sites = [...specialSites[town] ?? [], publicEsplanadePlot(town)];
     const station = stationSites[town];
     if (station) sites.push({ x: station[0] - .05, z: station[1], halfX: .11, halfZ: .19 });
     return sites.map(site => ({ ...site, x: root.position.x + site.x, z: root.position.z + site.z }));
-  });
-  const harbourReservations = ["brest", "nantes", "marseille", "ajaccio"].flatMap(place => {
-    const settlement = NATIONAL_SETTLEMENTS.find(town => town.name === place);
-    if (!settlement) return [];
-    return surveyHarbour(place, mapPosition(settlement.lon, settlement.lat))?.landReservations ?? [];
+  })];
+  const harbourReservations = HARBOUR_SITES.flatMap(site => {
+    return surveyHarbour(site.name, mapPosition(site.lon, site.lat))?.landReservations ?? [];
   });
   const collides = (a: Plot, b: Plot, gap = .001) => {
     if (Math.abs(a.x - b.x) >= a.halfX + b.halfX + gap ||
@@ -564,8 +571,10 @@ export async function buildCities(scene: Scene): Promise<{
   const baseHousePlots = allAuthoredHousePlots.filter(plot => !plot.id.includes("-tissu14-"));
 
   const parisConflicts = new Map<string, string[]>();
-  const gardenTerrainCells = new Map<string, Point[][]>();
-  for (const mesh of scene.meshes.filter(mesh => mesh.name.startsWith("landscape-terrain-"))) {
+  const gardenTerrainCells = new Map<string, Point[][]>(), cropTerrainCells = new Map<string, Point[][]>();
+  for (const mesh of scene.meshes.filter(mesh => mesh.name.startsWith("landscape-terrain-") ||
+    ["landscape-agriculture", "landscape-crop-rows", "landscape-field-limits"].includes(mesh.name))) {
+    const cells = mesh.name.startsWith("landscape-terrain-") ? gardenTerrainCells : cropTerrainCells;
     const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
     if (!positions || !indices) continue;
     for (let i = 0; i < indices.length; i += 3) {
@@ -576,14 +585,14 @@ export async function buildCities(scene: Scene): Promise<{
         minZ = Math.min(...triangle.map(p => p[2])), maxZ = Math.max(...triangle.map(p => p[2]));
       for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
         for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++) {
-          const key = `${x}:${z}`, cell = gardenTerrainCells.get(key) ?? [];
-          cell.push(triangle); gardenTerrainCells.set(key, cell);
+          const key = `${x}:${z}`, cell = cells.get(key) ?? [];
+          cell.push(triangle); cells.set(key, cell);
         }
     }
   }
   // Retaining foundations cover the actual rendered terrain as well as the
   // analytic ground survey. Planar triangle extrema occur at clipped vertices.
-  const renderedFootprintLevels = (outline: GroundPoint[]): number[] => {
+  const renderedFootprintLevels = (outline: GroundPoint[], cells = gardenTerrainCells): number[] => {
     const polygon = [...outline], signedArea = polygon.reduce((sum, p, i) => {
       const q = polygon[(i + 1) % polygon.length]; return sum + p.x * q.z - q.x * p.z;
     }, 0);
@@ -593,7 +602,7 @@ export async function buildCities(scene: Scene): Promise<{
       triangles = new Set<Point[]>(), levels: number[] = [];
     for (let x = Math.floor(minX / .10); x <= Math.floor(maxX / .10); x++)
       for (let z = Math.floor(minZ / .10); z <= Math.floor(maxZ / .10); z++)
-        for (const triangle of gardenTerrainCells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
+        for (const triangle of cells.get(`${x}:${z}`) ?? []) triangles.add(triangle);
     for (const triangle of triangles) {
       let clipped = triangle.map(p => [...p] as Point);
       for (let edge = 0; edge < polygon.length && clipped.length; edge++) {
@@ -619,6 +628,11 @@ export async function buildCities(scene: Scene): Promise<{
     frontage?: { normalX: number; normalZ: number; side: number; streetWidth: number; maxDepth: number },
     authored?: (Omit<ParisBuilding, "model"> & { model: string; footprintOffset?: number; national?: boolean; ruralInfill?: true }) & { kit: AssetKit; block: string }) => {
     candidates++;
+    // Narrower footprints and taller gables give the reference's fine urban
+    // skyline. Survey the actual dimensions before all ground/contact checks.
+    width *= .88;
+    if (authored) authored = { ...authored, width,
+      depth: authored.depth * .88, height: authored.height * 1.22 };
     const family = families[region];
     const rural = !roots.has(town as MapPlace),
       farm = region === "breton" || region === "north" ? "ferme_02" : "ferme_01",
@@ -726,12 +740,54 @@ export async function buildCities(scene: Scene): Promise<{
     const typeHeight = name.startsWith("ferme") ? 1.15 : name === "boutique_01" ? 1.23 :
       regionalHeight[region] - (rural ? .015 : 0),
       heightFactor = Math.max(1.15, Math.min(1.25, typeHeight + [-.01, .015, -.005, .01][index % 4]));
-    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor;
+    asset.root.scaling.y = authored ? authored.height / bounds.height : scale * heightFactor * 1.22 / .88;
     asset.root.scaling.z *= depth / naturalDepth;
     asset.root.metadata = { ...asset.root.metadata, town, domestic: true,
       heightFactor: authored ? authored.height / (bounds.height * scale) : heightFactor,
       ...(authored ? { authoredParis: !authored.national, authoredNational: !!authored.national,
         block: authored.block, frontage: authored.id } : {}) };
+    // A selected street accent becomes a civic bell tower integrated inside
+    // its own surveyed building. Its masonry, roof and footing share that lot;
+    // it never takes a neighbouring house, tree, road or future project site.
+    if (authored?.national && name.endsWith("_dominante") && !accentedTowns.has(town)) {
+      const tower = located("regional-clock-tower", root, centreX, centreZ, angle),
+        span = Math.min(width, depth) * .80,
+        shaft = Math.max(.24, Math.min(.36, authored.height * 1.15)),
+        pointed = !["south", "alsace"].includes(region),
+        rise = pointed ? Math.min(.16, span * 1.85) : span * .75,
+        masonry = new Geometry(), windows = new Geometry(), trim = new Geometry();
+      tower.position.y = floor - root.position.y;
+      tower.metadata = { authoredTownAccent: true, town, frontage: authored.id,
+        footprint: physicalFootprint, floor, height: shaft + rise };
+      masonry.box(0, shaft / 2, 0, span, shaft, span);
+      for (const side of [-1, 1]) {
+        for (const cross of [-1, 1])
+          trim.box(side * span * .44, shaft * .54, cross * span * .44,
+            span * .15, shaft * .91, span * .15);
+        for (const face of [-1, 1]) {
+          windows.box(side * span * .20, shaft * .83, face * (span / 2 + .001),
+            span * .20, shaft * .16, .002);
+          windows.box(face * (span / 2 + .001), shaft * .83, side * span * .20,
+            .002, shaft * .16, span * .20);
+        }
+      }
+      for (const y of [shaft * .33, shaft * .68, shaft])
+        trim.box(0, y, 0, span + .009, .007, span + .009);
+      geometry("regional-belfry-masonry", masonry,
+        region === "north" ? cityMaterials.brick : region === "south" ? cityMaterials.sand : cityMaterials.pale, tower);
+      geometry("regional-belfry-openings", windows, glass, tower);
+      geometry("regional-belfry-stonework", trim, cream, tower);
+      roof(tower, span + .006, span + .006, shaft, rise, "hip",
+        pointed ? slate : cityMaterials.tile);
+      const clock = cylinder("regional-clock-face", span * .55, .002, cream, tower,
+        0, shaft * .58, span / 2 + .002, span * .55, 16);
+      clock.rotation.x = Math.PI / 2;
+      const hands = new Geometry();
+      hands.beam([0, shaft * .58, span / 2 + .004], [0, shaft * .58 + span * .20, span / 2 + .004], .0018);
+      hands.beam([0, shaft * .58, span / 2 + .004], [span * .16, shaft * .58 - span * .08, span / 2 + .004], .0018);
+      geometry("regional-clock-hands", hands, steel, tower);
+      accentedTowns.add(town);
+    }
     meshes.push(...asset.meshes);
     counts[town] = (counts[town] ?? 0) + 1;
     usedArchetypes.add(name);
@@ -875,7 +931,7 @@ export async function buildCities(scene: Scene): Promise<{
           cx = root.position.x + house.x + s * house.footprintOffset,
           cz = root.position.z + house.z + c * house.footprintOffset,
           point = (x: number, z: number) => ({ x: cx + c * x + s * z, z: cz - s * x + c * z }),
-          width = house.width / 2, depth = house.depth / 2;
+          width = house.width * .88 / 2, depth = house.depth * .88 / 2;
         pave([point(-width - .006, depth + .002), point(width + .006, depth + .002),
           point(width + .006, depth + .017), point(-width - .006, depth + .017)]);
         doors.push(point(0, depth + .019));
@@ -956,6 +1012,156 @@ export async function buildCities(scene: Scene): Promise<{
   school(roots.get("lyon")!);
   for (const [town, root] of roots) esplanade(root, town);
 
+  // The adjoining trees must be present before surveying the small civic lots.
+  // Cached GLB responses must not change which plots survive canopy clearance.
+  if (scene.isDisposed) return { roots, meshes, vehicles };
+
+  // The reference has distinct vertical landmarks inside its compact towns.
+  // Survey a small real plot beside the existing frontages, without occupying
+  // a subject esplanade, railway, road, waterway or reserved future project.
+  const landmarkReport: Array<{ town: string; model: string; x: number; z: number;
+    width: number; depth: number; height: number; ground: number; grade: number }> = [];
+  const landmarkTowns = ["lyon", "bordeaux", "toulouse", "nantes", "rennes", "lille",
+    "marseille", "strasbourg", "reims", "tours", "orleans", "caen", "dijon",
+    "brest", "la-rochelle", "pau", "carcassonne", "ajaccio", "limoges", "poitiers",
+    "clermont-ferrand", "amiens", "le-mans", "perpignan", "avignon", "bayonne", "dunkerque"];
+  const existingCanopies = scene.transformNodes.filter(node => node.metadata?.authoredAsset &&
+    ["oak", "beech", "pine", "cypress", "olive", "orchard"].includes(node.metadata?.asset)).map(node => {
+      const bounds = node.getHierarchyBoundingVectors(true);
+      return { x: (bounds.min.x + bounds.max.x) / 2, z: (bounds.min.z + bounds.max.z) / 2,
+        halfX: (bounds.max.x - bounds.min.x) / 2, halfZ: (bounds.max.z - bounds.min.z) / 2 };
+    });
+  for (const [index, town] of landmarkTowns.entries()) {
+    const root = settlementRoots.get(town);
+    if (!root) continue;
+    const major = ["lyon", "bordeaux", "toulouse", "strasbourg"].includes(town),
+      name = index % 4 === 1 ? "beffroi_nord" : "cathedrale_paris",
+      library = name === "cathedrale_paris" ? cathedralKit : kit,
+      extent = library.bounds(name), width = major ? .19 : .12,
+      depth = width * extent.depth / extent.width,
+      height = width * extent.height / extent.width,
+      plots: Array<{ x: number; z: number; ground: number; low: number; grade: number; score: number }> = [];
+    for (let ix = -12; ix <= 12; ix++) for (let iz = -12; iz <= 12; iz++) {
+      const x = ix * .075, z = iz * .075,
+        plot: Plot = { x: root.position.x + x, z: root.position.z + z,
+          halfX: width / 2 + .012, halfZ: depth / 2 + .012 };
+      const footprint = [-1, 0, 1].flatMap(dx => [-1, 0, 1].map(dz => ({
+        x: plot.x + plot.halfX * dx, z: plot.z + plot.halfZ * dz,
+      })));
+      if (footprint.some(p => !landContains(p.x, p.z) || riverContains(p.x, p.z, .018)) ||
+          occupied.some(other => collides(plot, other, .014)) ||
+          fixedProjectPlots.some(other => collides(plot, other, .045)) ||
+          allPublicPlots.some(other => collides(plot, other, .014)) ||
+          existingCanopies.some(other => collides(plot, other, .008)) ||
+          intersectsRoad(plot, true) || intersectsCorridors(plot, railCorridors, true) ||
+          intersectsCorridors(plot, localStreets, true) ||
+          harbourReservations.some(polygon => harbourPolygonsOverlap(polygon,
+            [footprint[0], footprint[2], footprint[8], footprint[6]]))) continue;
+      if (renderedFootprintLevels([footprint[0], footprint[2], footprint[8], footprint[6]], cropTerrainCells).length) continue;
+      if (town === "paris" || town === "lyon" &&
+          (specialSites.lyon ?? []).some(other => collides({ ...plot, x, z }, other, .035))) continue;
+      const levels = [...footprint.map(p => landHeight(p.x, p.z)),
+          ...renderedFootprintLevels([footprint[0], footprint[2], footprint[8], footprint[6]])],
+        ground = Math.max(...levels), low = Math.min(...levels), grade = ground - low;
+      if (grade > .025 || ground > .60) continue;
+      const distance = Math.hypot(x, z),
+        nearest = Math.min(...occupied.filter(p => Math.hypot(p.x - root.position.x,
+          p.z - root.position.z) < 1.5).map(p => Math.hypot(p.x - plot.x, p.z - plot.z)));
+      if (nearest > .40) continue;
+      plots.push({ x, z, ground, low, grade, score: distance + grade * 3 + Math.abs(nearest - .26) });
+    }
+    plots.sort((a, b) => a.score - b.score);
+    const site = plots[0];
+    if (!site) continue;
+    const instance = library.instantiate(name, root), floor = site.ground + .003;
+    instance.root.position.set(site.x, floor - root.position.y, site.z);
+    instance.root.scaling.set(width / extent.width, height / extent.height, depth / extent.depth);
+    instance.root.rotation.y = Math.PI;
+    instance.root.metadata = { ...instance.root.metadata, town, monument: true,
+      townLandmark: true, ground: site.ground, grade: site.grade };
+    const footing = located("town-landmark-footing", root, site.x, site.z, Math.PI);
+    footing.position.y = floor - root.position.y;
+    box("town-landmark-stone-base", width, site.grade + .004, depth, stone,
+      footing, 0, -(site.grade + .004) / 2, 0);
+    meshes.push(...instance.meshes);
+    occupied.push({ x: root.position.x + site.x, z: root.position.z + site.z,
+      halfX: width / 2, halfZ: depth / 2 });
+    landmarkReport.push({ town, model: name, x: site.x, z: site.z, width, depth, height,
+      ground: site.ground, grade: site.grade });
+  }
+  scene.metadata = { ...scene.metadata, townLandmarks: landmarkReport };
+
+  const lighthousePlots: Plot[] = [], lighthouseReport: Array<{ id: string; x: number; z: number;
+    floor: number; grade: number; height: number }> = [],
+    lighthouseStone = new StandardMaterial("coastal-lighthouse-ivory", scene),
+    shoreSegments = FRANCE_OUTLINES.flatMap(ring => ring.slice(1).map(([lon, lat], i) => ({
+      a: mapPosition(ring[i][0], ring[i][1]), b: mapPosition(lon, lat),
+    })));
+  lighthouseStone.diffuseColor = Color3.FromHexString("#F6EEDC");
+  lighthouseStone.emissiveColor = new Color3(.24, .22, .18);
+  lighthouseStone.specularColor = new Color3(.035, .033, .028);
+  for (const [id, lon, lat] of [
+    ["finistere", -4.62, 48.43], ["leon", -4.42, 48.58], ["tregor", -3.07, 48.84],
+    ["cotentin", -1.74, 49.60], ["flandre", 2.38, 51.03], ["charente", -1.22, 45.87],
+    ["cap-ferret", -1.22, 44.67], ["cap-corse", 9.35, 42.98],
+  ] as const) {
+    const origin = mapPosition(lon, lat), candidates: Array<{ plot: Plot; floor: number; low: number; score: number }> = [];
+    for (let ix = -5; ix <= 5; ix++) for (let iz = -5; iz <= 5; iz++) {
+      const plot: Plot = { x: origin.x + ix * .045, z: origin.z + iz * .045, halfX: .052, halfZ: .052 },
+        corners = [-1, 0, 1].flatMap(dx => [-1, 0, 1].map(dz => ({
+          x: plot.x + dx * plot.halfX, z: plot.z + dz * plot.halfZ,
+        }))), footprint = [corners[0], corners[2], corners[8], corners[6]];
+      if (corners.some(p => !landContains(p.x, p.z) || riverContains(p.x, p.z, .02)) ||
+        occupied.some(other => collides(plot, other, .012)) ||
+        allPublicPlots.some(other => collides(plot, other, .012)) ||
+        fixedProjectPlots.some(other => collides(plot, other, .025)) ||
+        existingCanopies.some(other => collides(plot, other, .010)) ||
+        lighthousePlots.some(other => collides(plot, other, .10)) ||
+        intersectsRoad(plot, true) || intersectsCorridors(plot, railCorridors, true) ||
+        intersectsCorridors(plot, localStreets, true) ||
+        harbourReservations.some(polygon => harbourPolygonsOverlap(polygon, footprint))) continue;
+      if (renderedFootprintLevels(footprint, cropTerrainCells).length) continue;
+      const coastDistance = Math.min(...shoreSegments.map(({ a, b }) => {
+        const dx = b.x - a.x, dz = b.z - a.z,
+          t = Math.max(0, Math.min(1, ((plot.x - a.x) * dx + (plot.z - a.z) * dz) / (dx * dx + dz * dz || 1)));
+        return Math.hypot(plot.x - a.x - dx * t, plot.z - a.z - dz * t);
+      }));
+      if (coastDistance > .19) continue;
+      const levels = [...corners.map(p => landHeight(p.x, p.z)), ...renderedFootprintLevels(footprint)],
+        high = Math.max(...levels), low = Math.min(...levels);
+      if (high - low > .045 || high > .45) continue;
+      candidates.push({ plot, floor: high + .003, low: low - .001,
+        score: Math.hypot(plot.x - origin.x, plot.z - origin.z) + Math.abs(coastDistance - .09) });
+    }
+    candidates.sort((a, b) => a.score - b.score);
+    const site = candidates[0];
+    if (!site) continue;
+    const node = new TransformNode(`coastal-lighthouse-${id}`, scene), shaft = .31,
+      footing = site.floor - site.low, details = new Geometry(), railings = new Geometry();
+    node.position.set(site.plot.x, site.floor, site.plot.z);
+    node.metadata = { authoredLighthouse: true, id, footprint: site.plot, floor: site.floor };
+    cylinder("lighthouse-grounded-stone", .10, footing, stone, node, 0, -footing / 2, 0, .10, 16);
+    cylinder("lighthouse-limestone-shaft", .074, shaft, lighthouseStone, node, 0, shaft / 2, 0, .052, 16);
+    cylinder("lighthouse-red-band", .061, .018, red, node, 0, shaft * .74, 0, .060, 16);
+    cylinder("lighthouse-balcony", .090, .009, lighthouseStone, node, 0, shaft, 0, .090, 16);
+    cylinder("lighthouse-lantern", .043, .044, glass, node, 0, shaft + .027, 0, .043, 12);
+    cylinder("lighthouse-red-cap", .068, .027, red, node, 0, shaft + .063, 0, .006, 12);
+    details.box(0, .029, -.037, .017, .052, .003);
+    geometry("lighthouse-door", details, slate, node);
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6, b = (i + 1) * Math.PI / 6,
+        x = Math.cos(a) * .040, z = Math.sin(a) * .040;
+      railings.beam([x, shaft + .008, z], [x, shaft + .029, z], .002);
+      railings.beam([x, shaft + .029, z], [Math.cos(b) * .040, shaft + .029, Math.sin(b) * .040], .002);
+    }
+    geometry("lighthouse-balcony-iron", railings, steel, node);
+    lighthousePlots.push(site.plot);
+    occupied.push(site.plot);
+    lighthouseReport.push({ id, x: site.plot.x, z: site.plot.z, floor: site.floor,
+      grade: site.floor - .003 - site.low - .001, height: shaft + .0765 });
+  }
+  scene.metadata = { ...scene.metadata, coastalLighthouses: lighthouseReport };
+
   const planted: Plot[] = [], treeCounts: Record<string, number> = {};
   const surroundingTrees = scene.transformNodes.filter(node => node.metadata?.authoredAsset &&
     ["oak", "beech", "pine", "cypress", "olive", "orchard"].includes(node.metadata?.asset)).map(node => {
@@ -981,6 +1187,7 @@ export async function buildCities(scene: Scene): Promise<{
           { x: worldX + .035, z: worldZ + .035 }, { x: worldX - .035, z: worldZ + .035 },
         ])) ||
         fixedProjectPlots.some(plot => collides(plot, trunkPlot, .035)) ||
+        industrialPlots.some(plot => collides(plot, trunkPlot, .02)) ||
         occupied.some(plot => collides(plot, trunkPlot, .008)) ||
         surroundingTrees.some(plot => collides(plot, trunkPlot, .012)) ||
         planted.some(plot => collides(plot, { ...trunkPlot, halfX: .04, halfZ: .04 }))) return;
@@ -1002,6 +1209,18 @@ export async function buildCities(scene: Scene): Promise<{
       asset.root.scaling.x *= .58;
       asset.root.scaling.z *= .58;
     }
+    const canopy = asset.root.getHierarchyBoundingVectors(true),
+      canopyPlot: Plot = { x: (canopy.min.x + canopy.max.x) / 2,
+        z: (canopy.min.z + canopy.max.z) / 2,
+        halfX: (canopy.max.x - canopy.min.x) / 2, halfZ: (canopy.max.z - canopy.min.z) / 2 };
+    if (lighthousePlots.some(plot => collides(canopyPlot, plot, .008)) || landmarkReport.some(site => {
+      const monumentRoot = settlementRoots.get(site.town)!;
+      return collides(canopyPlot, { x: monumentRoot.position.x + site.x,
+        z: monumentRoot.position.z + site.z, halfX: site.width / 2, halfZ: site.depth / 2 }, .008);
+    })) {
+      asset.root.dispose(false);
+      return;
+    }
     meshes.push(...asset.meshes);
     planted.push(trunkPlot);
     treeCounts[town] = (treeCounts[town] ?? 0) + 1;
@@ -1012,19 +1231,18 @@ export async function buildCities(scene: Scene): Promise<{
     for (const tree of settlement.trees) plantTownTree(root, settlement.name, tree.x, tree.z, tree.height, tree.model);
   }
 
-  const marseille = roots.get("marseille")!, ajaccio = roots.get("ajaccio")!;
-  meshes.push(...buildHarbour(scene, marseille, "marseille", cityMaterials));
-  meshes.push(...buildHarbour(scene, roots.get("nantes")!, "nantes", cityMaterials));
-  meshes.push(...buildHarbour(scene, ajaccio, "ajaccio", cityMaterials));
-  const brest = ruralRoots.find(root => root.name === "village-brest");
-  if (brest) meshes.push(...buildHarbour(scene, brest, "brest", cityMaterials));
-  const rhonePlant = mapPosition(4.9, 44.6), lorrainePlant = mapPosition(5.82, 48.9);
-  meshes.push(...buildPowerPlant(scene, new Vector3(rhonePlant.x, 0, rhonePlant.z), cityMaterials));
-  meshes.push(...buildPowerPlant(scene, new Vector3(lorrainePlant.x, 0, lorrainePlant.z), cityMaterials));
-  meshes.push(...buildWindTurbines(scene, [mapPosition(-4.76, 48.12), mapPosition(-4.99, 48.25),
-    mapPosition(-5.18, 48.14), mapPosition(4.55, 44.48), mapPosition(4.4, 44.53)]
+  for (const site of HARBOUR_SITES) {
+    const root = settlementRoots.get(site.name);
+    if (root) meshes.push(...buildHarbour(scene, root, site.name, cityMaterials));
+  }
+  for (const site of POWER_STATION_SITES) {
+    const point = mapPosition(site.lon, site.lat);
+    meshes.push(...buildPowerPlant(scene, new Vector3(point.x, 0, point.z), cityMaterials, renderedFootprintLevels));
+  }
+  meshes.push(...buildWindTurbines(scene, [mapPosition(-4.35, 49.22), mapPosition(-4.0, 49.22),
+    mapPosition(-3.65, 49.22), mapPosition(4.55, 44.48), mapPosition(4.4, 44.53)]
     .map(point => new Vector3(point.x, 0, point.z)), cityMaterials));
-  const railway = buildRailNetwork(scene, cityMaterials, stationSites, kit, transportMaterials);
+  const railway = buildRailNetwork(scene, cityMaterials, stationSites, kit, transportMaterials, renderedFootprintLevels);
   meshes.push(...railway.meshes);
   vehicles.push(...railway.vehicles);
 
@@ -1127,8 +1345,7 @@ export async function buildCities(scene: Scene): Promise<{
       x: origin.x + x, z: origin.z + z,
     })));
   });
-  for (const plant of [rhonePlant, lorrainePlant])
-    publicSpaces.push({ x: plant.x + .14, z: plant.z, halfX: .42, halfZ: .24 });
+  publicSpaces.push(...industrialPlots, ...lighthousePlots);
   for (const [town, root] of roots) {
     const sites: Array<{ x: number; z: number; y: number }> = [];
     const trees = scene.transformNodes.filter(node => node.metadata?.authoredAsset &&
@@ -1190,7 +1407,8 @@ export async function buildCities(scene: Scene): Promise<{
     blocks: PARIS_BLOCKS.map(block => block.id), placements: parisReport,
     footprints: PARIS_BLOCKS.flatMap(block => block.buildings.filter(building =>
       parisReport.some(report => report.id === building.id && report.accepted)).map(building => ({
-        id: building.id, block: block.id, outline: parisBuildingFootprint(building), height: building.height,
+        id: building.id, block: block.id, outline: parisBuildingFootprint({ ...building,
+          width: building.width * .88, depth: building.depth * .88 }), height: building.height * 1.22,
       }))),
   }, authoredNational: { placements: nationalReport, lanes: settlementLanes }, authoredUrban: {
     houses: Object.values(counts).reduce((sum, count) => sum + count, 0),

@@ -2,6 +2,7 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { MODEL_URLS } from '../src/mandats/map-model-revisions.ts';
+import { TERRAIN_SURVEY_URL } from '../src/mandats/map-terrain-revision.ts';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
@@ -32,8 +33,8 @@ async function collectModels(directory: string): Promise<void> {
   for (const entry of await readdir(dist + directory, { withFileTypes: true })) {
     const path = `${directory}/${entry.name}`;
     if (entry.isDirectory()) await collectModels(path);
-    else if (entry.isFile() && /\.(?:glb|gltf|bin|env|png|webp|jpe?g|ktx2|json)$/i.test(entry.name))
-      core.push(Object.values(MODEL_URLS).find(url => url.split('?')[0] === '/' + path) ?? '/' + path);
+    else if (entry.isFile() && /\.(?:glb|gltf|bin|gz|env|png|webp|jpe?g|ktx2|json)$/i.test(entry.name))
+      core.push([...Object.values(MODEL_URLS), TERRAIN_SURVEY_URL].find(url => url.split('?')[0] === '/' + path) ?? '/' + path);
   }
 }
 await collectModels('mandats/models');

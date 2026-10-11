@@ -9,9 +9,20 @@ import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder"
 import { CityGeometry, createCityMesh } from "./map-city-geometry.ts";
 import type { CityMaterials } from "./map-city-materials.ts";
 import { landContains, landHeight } from "./map-landscape.ts";
-import { mapAuthoredPosition } from "./map-state.ts";
+import { mapAuthoredPosition, mapPosition, mapSourcePosition } from "./map-state.ts";
+import { MAP_CONTEXT_COUNTRIES } from "./map-context-geography.ts";
 import { surveyHarbour, harbourStation, harbourPolygonsOverlap, harbourPolygonContains } from "./map-city-port-plans.ts";
 import type { HarbourPoint } from "./map-city-port-plans.ts";
+
+const neighbouringCoasts = MAP_CONTEXT_COUNTRIES.flatMap(country => country.outlines.map(ring => {
+  const polygon = ring.map(([lon, lat]) => mapPosition(lon, lat));
+  return { polygon, minX: Math.min(...polygon.map(p => p.x)), maxX: Math.max(...polygon.map(p => p.x)),
+    minZ: Math.min(...polygon.map(p => p.z)), maxZ: Math.max(...polygon.map(p => p.z)) };
+}));
+function maritimeLandContains(x: number, z: number) {
+  return landContains(x, z) || neighbouringCoasts.some(coast => x >= coast.minX && x <= coast.maxX &&
+    z >= coast.minZ && z <= coast.maxZ && harbourPolygonContains(coast.polygon, { x, z }));
+}
 
 function toolkit(scene: Scene, meshes: Mesh[]) {
   let serial = 0;
@@ -37,10 +48,13 @@ function toolkit(scene: Scene, meshes: Mesh[]) {
     meshes.push(mesh);
     return mesh;
   };
-  const warehouse = (parent: TransformNode, x: number, z: number, material: StandardMaterial, materials: CityMaterials) => {
+  const warehouse = (parent: TransformNode, x: number, z: number, material: StandardMaterial, materials: CityMaterials,
+    footing?: { floor: number; low: number }) => {
     const node = new TransformNode("dock-warehouse", scene);
     node.parent = parent;
-    node.position.set(x, 0, z);
+    node.position.set(x, footing ? footing.floor - parent.getAbsolutePosition().y : 0, z);
+    if (footing) box("warehouse-stone-footing", 0, -(footing.floor - footing.low) / 2, 0,
+      .208, footing.floor - footing.low, .128, materials.cream, node);
     box("warehouse-walls", 0, 0.058, 0, 0.2, 0.116, 0.12, material, node);
     const roof = new CityGeometry(), panes = new CityGeometry(), stonework = new CityGeometry();
     roof.quad([-0.106, 0.116, -0.065], [-0.106, 0.116, 0.065], [0, 0.167, 0.065], [0, 0.167, -0.065]);
@@ -92,7 +106,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   canvasMaterial.backFaceCulling = false;
   canvasMaterial.twoSidedLighting = true;
   shipRed.emissiveColor = new Color3(.045, .009, .011);
-  gold.emissiveColor = new Color3(.075, .040, .008);
+  gold.emissiveColor = new Color3(.22, .13, .018);
   coping.emissiveColor = new Color3(.040, .037, .029);
   let quayStone = scene.getMaterialByName("harbour-pale-masonry") as StandardMaterial | null;
   if (!quayStone) {
@@ -214,18 +228,18 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     const steel = new CityGeometry(), cables = new CityGeometry(), cab = new CityGeometry(), glass = new CityGeometry();
     tower.parent = node; tower.position.set(point.x, point.height, point.z); tower.rotation.y = Math.atan2(point.nx, point.nz);
     const foot = small ? .016 : .027, mast = height * .80,
-      reach = small ? .12 : place === "marseille" ? .30 : .245;
+      reach = small ? .12 : place === "marseille" ? .43 : .33;
     for (const side of [-1, 1]) {
       // Interior portal columns add a solid silhouette within the four
       // original feet; reach, height, bearings and ground contacts stay fixed.
       for (const z of [-.012, .012])
-        steel.beam([side * foot * .5, .004, z], [side * foot * .5, mast - .001, z], small ? .004 : .006);
+        steel.beam([side * foot * .5, .004, z], [side * foot * .5, mast - .001, z], small ? .005 : .011);
       for (const z of [-1, 1])
         steel.beam([side * foot, .004, z * .024], [side * foot * .5, .004, z * .012], small ? .003 : .005);
       for (const z of [-.024, .024]) steel.box(side * foot, -.002, z, small ? .008 : .012, .016, small ? .008 : .012);
-      steel.beam([side * foot, .005, -.024], [side * foot * .5, mast, -.004], .006);
-      steel.beam([side * foot, .005, .024], [side * foot * .5, mast, .018], .006);
-      steel.beam([side * foot * .5, mast, -.052], [side * foot * .5, mast, reach], .005);
+      steel.beam([side * foot, .005, -.024], [side * foot * .5, mast, -.004], .010);
+      steel.beam([side * foot, .005, .024], [side * foot * .5, mast, .018], .010);
+      steel.beam([side * foot * .5, mast, -.052], [side * foot * .5, mast, reach], .010);
       steel.beam([side * foot * .5, mast, -.004], [side * foot * .32, height, .016], .005);
       cables.beam([side * foot * .32, height, .016], [side * foot * .5, mast, reach - .009], .0014);
       cables.beam([side * foot * .32, height, .016], [side * foot * .5, mast, -.052], .0014);
@@ -253,7 +267,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   const cranePositions = place === "ajaccio" ? [.32] : place === "brest" ? [-.13, .27] : [-.29, .025, .31];
   cranePositions.forEach((fraction, index) => crane(fraction,
     place === "ajaccio" ? .225 : place === "brest" ? .36 + index * .03 :
-      place === "marseille" ? .565 - index * .032 : .465 - index * .027,
+      place === "marseille" ? .72 - index * .042 : .59 - index * .032,
     place === "ajaccio"));
 
   const warehouse = (spec: (typeof plan.warehouses)[number], wall: StandardMaterial, roofMaterial: StandardMaterial) => {
@@ -305,10 +319,10 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
         const c = Math.cos(angle), s = Math.sin(angle);
         footprint = outline.map(([x, z]) => ({ x: point.x + c * x * (variant.beam + .006) + s * z * (variant.length + .006),
           z: point.z - s * x * (variant.beam + .006) + c * z * (variant.length + .006) }));
-        const shoreHit = footprint.some((a, i) => {
+        const shoreHit = maritimeLandContains(point.x, point.z) || footprint.some((a, i) => {
           const b = footprint[(i + 1) % footprint.length];
           return Array.from({ length: 10 }, (_, j) => j / 9)
-            .some(t => landContains(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t));
+            .some(t => maritimeLandContains(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t));
         });
         if (shoreHit || occupied.some(polygon => harbourPolygonsOverlap(polygon, footprint))) continue;
         pose = point; length = variant.length; beam = variant.beam; break;
@@ -435,7 +449,11 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
     boat("atlantic-sail-north", 0, 0, .153, .043, "sail", .65, { x: -5.23, z: 1.31 }, { length: .235, beam: .054 });
     boat("atlantic-sail-centre", 0, 0, .148, .041, "sail", -.40, { x: -4.83, z: .53 }, { length: .24, beam: .055 });
     boat("atlantic-sail-south", 0, 0, .161, .044, "sail", .27, { x: -4.34, z: -.38 }, { length: .25, beam: .057 });
-  } else if (place === "nantes") {
+    boat("channel-ferry-west", 0, 0, .57, .12, "ferry", -.12, mapSourcePosition(-2.25, 49.45));
+    boat("channel-ferry-east", 0, 0, .54, .11, "ferry", .08, mapSourcePosition(-.4, 50.05));
+    boat("channel-fishing-north", 0, 0, .23, .060, "fishing", .10, mapSourcePosition(1.1, 50.75));
+    boat("atlantic-ferry-south", 0, 0, .46, .11, "ferry", .22, mapSourcePosition(-1.9, 44.05));
+  } else if (place === "nantes" || place === "la-rochelle") {
     boat("estuary-cargo", -.08, .186, .395, .089, "cargo", 0, undefined, { length: .58, beam: .132 }); boat("coaster", .33, .358, .275, .069, "cargo", .08);
     boat("harbour-tug", -.36, .115, .122, .045, "fishing"); boat("sailing-yacht", -.29, .445, .145, .043, "sail", .53);
   } else {
@@ -446,7 +464,7 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   }
   const lastJetty = plan.jetties[0].points.at(-1)!, light = new TransformNode(`${place}-harbour-lighthouse`, scene);
   light.parent = node; light.position.set(lastJetty.x, jettyLevel, lastJetty.z);
-  const lighthouseHeight = place === "ajaccio" ? .133 : .176;
+  const lighthouseHeight = place === "ajaccio" ? .18 : .28;
   tool.cylinder("harbour-light-tower", 0, lighthouseHeight / 2, 0, .029, lighthouseHeight, .022, materials.paint, light);
   tool.cylinder("harbour-light-band", 0, lighthouseHeight * .70, 0, .025, .018, .024, materials.red, light);
   tool.cylinder("harbour-light-gallery", 0, lighthouseHeight, 0, .037, .006, .037, navy, light);
@@ -460,45 +478,87 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
   return meshes;
 }
 
-export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMaterials): Mesh[] {
+export function buildPowerPlant(scene: Scene, origin: Vector3, materials: CityMaterials,
+  renderedLevels?: (outline: HarbourPoint[]) => number[]): Mesh[] {
   const meshes: Mesh[] = [], tool = toolkit(scene, meshes);
-  if ([[0, 0], [-0.26, -0.23], [-0.26, 0.23], [0.54, -0.23], [0.54, 0.23]].some(([x, z]) => !landContains(origin.x + x, origin.z + z))) return meshes;
+  if ([[0, 0], [-0.28, -0.23], [-0.28, 0.23], [0.72, -0.23], [0.72, 0.23]].some(([x, z]) => !landContains(origin.x + x, origin.z + z))) return meshes;
   const node = new TransformNode("power-station", scene);
   node.position.set(origin.x, landHeight(origin.x, origin.z) + 0.013, origin.z);
-  tool.warehouse(node, 0.0, -0.13, materials.pale, materials);
+  const survey = (x: number, z: number, halfW: number, halfD: number) => {
+    const outline = [[-halfW,-halfD],[halfW,-halfD],[halfW,halfD],[-halfW,halfD]]
+      .map(([dx,dz]) => ({ x: origin.x + x + dx, z: origin.z + z + dz })),
+      heights = [...Array.from({ length: 9 }, (_, i) => Array.from({ length: 9 }, (_, j) =>
+        landHeight(origin.x + x - halfW + halfW * i / 4,
+          origin.z + z - halfD + halfD * j / 4))).flat(), ...renderedLevels?.(outline) ?? []];
+    return { floor: Math.max(...heights) + .003, low: Math.min(...heights) - .001 };
+  };
+  let concrete = scene.getMaterialByName("station-ivory-concrete") as StandardMaterial | null;
+  if (!concrete) {
+    concrete = new StandardMaterial("station-ivory-concrete", scene);
+    concrete.diffuseColor = Color3.FromHexString("#F5ECD8");
+    concrete.emissiveColor = new Color3(.16, .15, .13);
+    concrete.specularColor = new Color3(.045, .043, .039);
+  }
+  const warehouseFooting = survey(0, -.13, .108, .065);
+  tool.warehouse(node, 0.0, -0.13, materials.pale, materials, warehouseFooting);
   const coolingTower = (x: number, z: number) => {
-    const shape = new CityGeometry(), height = 0.34;
+    const shape = new CityGeometry(), height = 0.46, footing = survey(x, z, .113, .113),
+      base = footing.floor - node.position.y;
+    tool.cylinder("cooling-tower-footing", x, base - (footing.floor - footing.low) / 2, z,
+      .22, footing.floor - footing.low, .22, concrete!, node);
     for (let band = 0; band < 14; band++) {
       const t0 = band / 14, t1 = (band + 1) / 14,
-        radius = (t: number) => 0.051 + 0.079 * (t - 0.57) ** 2,
+        radius = (t: number) => 0.064 + 0.112 * (t - 0.57) ** 2,
         r0 = radius(t0), r1 = radius(t1);
       for (let side = 0; side < 24; side++) {
         const a = side * Math.PI * 2 / 24, b = (side + 1) * Math.PI * 2 / 24;
-        shape.quad([x + Math.cos(a) * r0, t0 * height, z + Math.sin(a) * r0], [x + Math.cos(a) * r1, t1 * height, z + Math.sin(a) * r1], [x + Math.cos(b) * r1, t1 * height, z + Math.sin(b) * r1], [x + Math.cos(b) * r0, t0 * height, z + Math.sin(b) * r0]);
+        shape.quad([x + Math.cos(a) * r0, base + t0 * height, z + Math.sin(a) * r0], [x + Math.cos(a) * r1, base + t1 * height, z + Math.sin(a) * r1], [x + Math.cos(b) * r1, base + t1 * height, z + Math.sin(b) * r1], [x + Math.cos(b) * r0, base + t0 * height, z + Math.sin(b) * r0]);
       }
     }
-    tool.shape("cooling-tower", shape, materials.cream, node);
-    tool.cylinder("cooling-tower-rim", x, height, z, 0.138, 0.011, 0.138, materials.stone, node);
-    tool.cylinder("cooling-tower-interior", x, height - 0.002, z, 0.12, 0.003, 0.12, materials.glass, node);
+    tool.shape("cooling-tower", shape, concrete!, node);
+    tool.cylinder("cooling-tower-rim", x, base + height, z, 0.180, 0.011, 0.180, concrete!, node);
+    tool.cylinder("cooling-tower-interior", x, base + height - 0.002, z, 0.16, 0.003, 0.16, materials.glass, node);
+    return base;
   };
-  coolingTower(-0.17, 0.06);
+  const towerBase = coolingTower(-0.17, 0.06);
   coolingTower(0.075, 0.08);
   const pipes = new CityGeometry(), fences = new CityGeometry();
+  let previousFence: [number, number, number] | undefined;
   for (let i = 0; i < 5; i++) {
-    pipes.beam([-0.17, 0.015 + i * 0.009, 0.07], [-0.045, 0.015 + i * 0.009, -0.12], 0.005);
-    fences.box(0.22, 0.02, -0.12 + i * 0.049, 0.013, 0.04, 0.013);
+    pipes.beam([-0.17, towerBase + .015 + i * .009, .07],
+      [-.045, warehouseFooting.floor - node.position.y + .015 + i * .009, -.12], .005);
+    const z = -.12 + i * .049, floor = survey(.22, z, .0065, .0065).floor - node.position.y,
+      current: [number, number, number] = [.22, floor + .031, z];
+    fences.box(.22, floor + .02, z, .013, .04, .013);
+    if (previousFence) fences.beam(previousFence, current, .003);
+    previousFence = current;
   }
-  fences.box(0.22, 0.031, -0.01, 0.003, 0.003, 0.26);
   tool.shape("station-pipes", pipes, materials.steel, node);
   tool.shape("station-fences", fences, materials.steel, node);
-  const solar = new CityGeometry(), feet = new CityGeometry();
+  let panelMaterial = scene.getMaterialByName("station-blue-photovoltaics") as StandardMaterial | null;
+  if (!panelMaterial) {
+    panelMaterial = new StandardMaterial("station-blue-photovoltaics", scene);
+    panelMaterial.diffuseColor = Color3.FromHexString("#155887");
+    panelMaterial.emissiveColor = new Color3(.015, .045, .075);
+    panelMaterial.specularColor = new Color3(.20, .27, .32);
+  }
+  const solar = new CityGeometry(), feet = new CityGeometry(), cells = new CityGeometry();
   for (let row = 0; row < 4; row++)
-    for (let column = 0; column < 5; column++) {
-      const px = 0.27 + column * 0.049, pz = -0.19 + row * 0.064;
-      solar.quad([px, 0.023, pz], [px, 0.048, pz + 0.043], [px + 0.039, 0.048, pz + 0.043], [px + 0.039, 0.023, pz]);
-      feet.box(px + 0.02, 0.018, pz + 0.024, 0.003, 0.036, 0.003);
+    for (let column = 0; column < 8; column++) {
+      const px = 0.27 + column * 0.049, pz = -0.19 + row * 0.064,
+        footing = survey(px + .0195, pz + .0215, .0195, .0215), base = footing.floor - node.position.y;
+      solar.quad([px, base + .023, pz], [px, base + .048, pz + .043],
+        [px + .039, base + .048, pz + .043], [px + .039, base + .023, pz]);
+      for (const offset of [.009, .034]) {
+        const top = base + .023 + .025 * offset / .043,
+          ground = survey(px + .02, pz + offset, .0015, .0015).floor - node.position.y;
+        feet.box(px + .02, (top + ground) / 2, pz + offset, .003, top - ground, .003);
+      }
+      for (const offset of [.013, .026]) cells.beam([px + offset, base + .024, pz],
+        [px + offset, base + .049, pz + .043], .0007);
     }
-  tool.shape("solar-modules", solar, materials.glass, node);
+  tool.shape("solar-modules", solar, panelMaterial, node);
+  tool.shape("solar-cell-seams", cells, materials.cream, node);
   tool.shape("solar-supports", feet, materials.steel, node);
   return meshes;
 }
@@ -509,7 +569,7 @@ export function buildWindTurbines(scene: Scene, points: Vector3[], materials: Ci
   if (!enamel) {
     enamel = new StandardMaterial("offshore-turbine-enamel", scene);
     enamel.diffuseColor = Color3.FromHexString("#F6F0DE");
-    enamel.emissiveColor = new Color3(.035, .035, .030);
+    enamel.emissiveColor = new Color3(.28, .28, .25);
     enamel.specularColor = new Color3(.12, .12, .11);
     enamel.backFaceCulling = false;
     enamel.twoSidedLighting = true;
@@ -517,20 +577,32 @@ export function buildWindTurbines(scene: Scene, points: Vector3[], materials: Ci
   for (const [index, point] of points.entries()) {
     const node = new TransformNode("wind-turbine", scene), offshore = !landContains(point.x, point.z), blades = new CityGeometry(),
       bretonOffshore = offshore && index < 3,
-      hub = bretonOffshore ? [.585, .615, .530][index] : .405,
+      hub = bretonOffshore ? [.68, .70, .66][index] : .405,
       mastHeight = hub - .025, paint = bretonOffshore ? enamel : materials.paint;
-    // The three Atlantic masts retain their pivots, footing and rotor width.
-    // Only their measured vertical silhouettes and white enamel become clearer.
+    // Solid tapered blades retain a visible chord on both sides of the rotor.
+    // The old pair of needle triangles disappeared below a pixel in country view.
     node.position.set(point.x, offshore ? -0.035 : landHeight(point.x, point.z), point.z);
     tool.cylinder("turbine-base", 0, 0.024, 0, 0.043, 0.048, 0.034, materials.cream, node);
-    tool.cylinder("turbine-mast", 0, .024 + mastHeight / 2, 0, 0.018, mastHeight, 0.012, paint, node);
+    tool.cylinder("turbine-mast", 0, .024 + mastHeight / 2, 0, 0.023, mastHeight, 0.016, paint, node);
     tool.box("turbine-nacelle", 0, hub, 0, 0.023, 0.022, 0.046, paint, node);
     for (let blade = 0; blade < 3; blade++) {
-      const a = blade * Math.PI * 2 / 3 + index * 0.31, b = a + 0.03,
-        tipX = Math.sin(a) * 0.18, tipY = hub + Math.cos(a) * 0.18,
-        shoulderX = Math.sin(b) * 0.052, shoulderY = hub + Math.cos(b) * 0.052;
-      blades.triangle([-0.003, hub, -0.026], [shoulderX - 0.005, shoulderY, -0.026], [tipX, tipY, -0.026]);
-      blades.triangle([0.003, hub, -0.026], [tipX, tipY, -0.026], [shoulderX + 0.005, shoulderY, -0.026]);
+      const a = blade * Math.PI * 2 / 3 + index * 0.14,
+        radial = [Math.sin(a), Math.cos(a)], across = [Math.cos(a), -Math.sin(a)],
+        outline = [[.008, -.006], [.053, -.015], [.19, -.004],
+          [.19, .002], [.060, .015], [.008, .006]],
+        point = (at: number, z: number): [number, number, number] => {
+          const [radius, chord] = outline[at];
+          return [radial[0] * radius + across[0] * chord,
+            hub + radial[1] * radius + across[1] * chord, z];
+        };
+      for (let i = 1; i < outline.length - 1; i++) {
+        blades.triangle(point(0, -.029), point(i, -.029), point(i + 1, -.029));
+        blades.triangle(point(0, -.025), point(i + 1, -.025), point(i, -.025));
+      }
+      for (let i = 0; i < outline.length; i++) {
+        const next = (i + 1) % outline.length;
+        blades.quad(point(i, -.029), point(next, -.029), point(next, -.025), point(i, -.025));
+      }
     }
     tool.shape("turbine-blades", blades, bretonOffshore ? enamel : materials.sail, node);
   }

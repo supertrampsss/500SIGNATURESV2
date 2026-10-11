@@ -42,10 +42,10 @@ rock_mat = material('weathered-limestone', 'B3A285')
 # Effective crown colours stay separate from the historical material names.
 # The country and close models keep exactly the same physical silhouettes.
 CANOPY_TONES = {
-    'canopy-olive': rgb('5D8039'),
-    'canopy-sunlit': rgb('A3B65E'),
-    'canopy-shade': rgb('375A2D'),
-    'pine-needles': rgb('4C7038'),
+    'canopy-olive': rgb('456735'),
+    'canopy-sunlit': rgb('7C9448'),
+    'canopy-shade': rgb('294B2E'),
+    'pine-needles': rgb('395C35'),
 }
 
 def stored_linear(value):
@@ -79,9 +79,28 @@ def branch(a, b, radius, mat=bark, top=.45):
     return obj
 
 def crown(center, size, mat=leaf, irregular=.12, seed=0):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1, location=center)
-    obj = bpy.context.object
     rng = random.Random(seed)
+    # A crown is a broken cluster of small sprays. Separate lobes give the
+    # miniature a fine edge instead of the previous large smooth ellipsoids.
+    sprays = []
+    for i in range(5 if mat != rock_mat else 1):
+        angle = i * 2.399 + seed * .37
+        spread = .44 if mat != rock_mat else 0
+        offset = Vector((math.cos(angle) * spread, math.sin(angle) * spread,
+            (i % 3 - 1) * .28 if mat != rock_mat else 0))
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1 if mat != rock_mat else 2,
+            radius=.68 if mat != rock_mat else 1)
+        spray = bpy.context.object
+        for vertex in spray.data.vertices:
+            vertex.co += offset
+        sprays.append(spray)
+    bpy.ops.object.select_all(action='DESELECT')
+    for spray in sprays:
+        spray.select_set(True)
+    bpy.context.view_layer.objects.active = sprays[0]
+    bpy.ops.object.join()
+    obj = bpy.context.object
+    obj.location = center
     for vertex in obj.data.vertices:
         vertex.co *= 1 + rng.uniform(-irregular, irregular)
         if mat != rock_mat:
@@ -161,8 +180,19 @@ def finish(name):
             p = obj.data.vertices[loop.vertex_index].co
             underside = max(0, -poly.normal.z)
             lower = max(0, .42 - p.z) / .42
-            shade = 1 - underside * (.14 if name == 'rock' else .08) - lower * (.1 if name == 'rock' else .04)
+            variation = 1 if name == 'rock' else random.Random(
+                loop.vertex_index * 131 + len(obj.data.vertices)).uniform(.91, 1.03)
+            shade = max(.64, min(1, (1 - underside * (.14 if name == 'rock' else .22)
+                - lower * (.1 if name == 'rock' else .12)) * variation))
             colors.data[index].color = canopy_colour(obj.data.materials[poly.material_index].name, tint, shade)
+    # Colour is already in COLOR_0. All source materials use the same
+    # roughness/metallic values, so one surface preserves it without seven
+    # material primitives for every tree in the country.
+    if name != 'rock':
+        obj.data.materials.clear()
+        obj.data.materials.append(bark)
+        for poly in obj.data.polygons:
+            poly.material_index = 0
     if name != 'rock':
         retain_bounds(obj, name)
     parts.clear()

@@ -42,6 +42,41 @@ Un succès de compilation ou la seule présence d'un contexte WebGL ne valide pa
 
 L'[atelier de modèles existants du 9 octobre](mandats-diorama/library-study-20261009/README.md) conserve une maison issue du kit Quaternius 2025 et un rocher Poly Haven, leurs sources CC0 vérifiées, leurs recettes Blender reproductibles et leurs imports expérimentaux dans Babylon. Ces substitutions de test ne modifient pas la source 37 ; la carte complète reste non conforme et aucune adoption en production n'est déclarée.
 
+## Passe 39 du 11 octobre 2026, en cours
+
+La [comparaison native 39](mandats-diorama/comparaison-39.html) reprend la scène
+entière : proportions des maisons et monuments, reliefs, sillons, végétation,
+littoral, ports, centrales, convois et mer. Les captures de production à
+1 672 × 941, sans substitution ou état injecté, montrent 774 maisons et le
+terrain précalculé réellement chargé. Les grandes faces alpines, la finesse
+des villages et la richesse du littoral restent en deçà de la maquette.
+**La conformité artistique reste non atteinte ; la PR demeure en brouillon.**
+
+Le générateur canonique exporte désormais [17 maillages de terrain](../tools/mandats-assets/TERRAIN.md)
+pour éviter de refaire leur construction dans le navigateur. Les 300 057
+triangles sont conservés ; 112 273 sommets sans indice sont retirés. La
+recoloration liée aux arbres et aux cultures demeure dans la scène. Le build
+contrôle les empreintes des sources et le précache inclut l'archive locale.
+Après correction du décodage HTTP, le parcours haute densité passe avec les
+délais originaux, une vraie décision et une reprise. La [suite 3D complète](mandats-diorama/screens-39/rework-report.json)
+passe 23 parcours sur desktop, 390 px, 320 px et WebKit, avec 9 exclusions
+prévues par sa configuration et aucun échec. Elle couvre le mandat complet,
+la reprise, le hors connexion, les mobilisations et les replis WebGL.
+Le [relevé de production](mandats-diorama/screens-39/scene-diagnostics.json)
+confirme les uniformes de côte sur le GPU, sans erreur WebGL, et aucune
+intersection entre canopées et les douze monuments contrôlés. L’[audit des
+emprises portuaires](mandats-diorama/screens-39/harbour-footprint-audit.json)
+ne relève aucun chevauchement entre les cinq ports et leurs 26 bateaux.
+Ces contrôles sont limités aux objets et polygones relevés ; ils ne démontrent
+pas une absence générale d’intersection ni la conformité artistique.
+La [suite sociale complète](mandats-diorama/screens-39/social-report.json)
+passe 13 parcours avec 3 exclusions configurées, dont les quatre imports causaux
+qui échouaient en CI au commit précédent. Le [contrôle WebKit ciblé](mandats-diorama/screens-39/story-webkit-focused-report.json)
+du démarrage national v12, de la sélection sauvegardée et de sa reprise passe
+également au délai original de 90 secondes ; il échouait aussi au commit précédent.
+Ce contrôle ciblé ne remplace pas la suite narrative complète. Les autres suites
+de compatibilité restent à lancer sur le rendu finalement retenu.
+
 ## Passe 38 du 11 octobre 2026
 
 La [comparaison native 38](mandats-diorama/comparaison-38.html) reprend cet atelier et intègre la maison CC0 finie dans le kit de la branche, aux deux adresses existantes à Besançon. La géométrie détaillée conserve 1 481 triangles. Le niveau distant est reconstruit à 695 triangles : la planche Babylon a révélé des trous dans les façades du candidat précédent à 287 triangles. Chaque niveau possède désormais une primitive et son atlas, de 512 ou 128 pixels. Le chargeur raccorde ces deux surfaces malgré leurs matières différentes. Les 70 autres racines actives du kit restent identiques.

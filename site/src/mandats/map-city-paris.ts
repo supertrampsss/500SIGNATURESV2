@@ -10,14 +10,14 @@ export type ParisSpace = { id: string; kind: "court" | "square" | "garden" | "fi
 export type ParisStreet = { id: string; width: number; points: readonly ParisPoint[]; quay?: boolean };
 export type ParisTree = { x: number; z: number; height: number; model: "oak" | "beech" | "cypress" | "pine" };
 
-/** Physical dimensions follow the widened source facade and its unchanged depth and height. */
+/** Slender nave and full western spires, measured in the common miniature frame. */
 export const PARIS_CATHEDRAL_SITE = {
-  "x": 0.4000000000000001,
-  "z": 0.7500000000000002,
+  "x": 0.34,
+  "z": 0.685,
   "angle": 3.541592653589793,
-  "width": 1.1856,
-  "depth": 1.526555846879916,
-  "height": 1.5205978397552151
+  "width": 0.84,
+  "depth": 0.84 * 2.9465 / 1.907,
+  "height": 0.84 * 3.84 / 1.907
 };
 
 export const PARIS_BLOCKS: readonly ParisBlock[] = [

@@ -37,12 +37,12 @@ function surfaceTexture(
 export function landMaterialTextures(scene: Scene) {
   const earth = surfaceTexture(scene, "land-earth-grain", earthUrl, true, 1, 8);
   const crops = surfaceTexture(scene, "land-crop-stalks", cropsUrl, true, 1, 8);
-  const earthNormal = surfaceTexture(scene, "land-earth-normal", earthNormalUrl, false, .55, 8);
+  const earthNormal = surfaceTexture(scene, "land-earth-normal", earthNormalUrl, false, .24, 8);
   const leaves = surfaceTexture(scene, "land-leaf-grain", leavesUrl);
   const leafNormal = surfaceTexture(scene, "land-leaf-normal", leafNormalUrl, false, .55);
   const stoneNormal = surfaceTexture(scene, "land-stone-normal", stoneNormalUrl, false, .55, 6);
   const rock = surfaceTexture(scene, "land-mineral-rock", rockUrl);
-  const rockNormal = surfaceTexture(scene, "land-mineral-normal", rockNormalUrl, false, .40);
+  const rockNormal = surfaceTexture(scene, "land-mineral-normal", rockNormalUrl, false, .24);
   const coastNormal = surfaceTexture(scene, "land-coastal-normal", coastNormalUrl, false, .36);
   return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal, coastNormal };
 }

@@ -311,12 +311,13 @@ function contextHeight(x: number, z: number) {
   const shore = edgeDistance(coastCells, x, z, 0.45);
   height = mix(-0.033, height, smooth(clamp(shore / 0.28)));
   const distance = edgeDistance(frontierCells, x, z, 0.7);
-  // The shared French survey is only needed within the frontier's blend band.
-  // Looking it up across Britain, Spain and Italy fills an unrelated fine grid.
-  if (distance >= 0.6) return height;
-  const continuity =
-    Math.exp(-((distance / 0.3) ** 2)) * smooth(clamp((0.6 - distance) / 0.1));
-  return mix(height, frenchHeight(x, z) - 0.012, continuity);
+  // The playable country stands above the muted surrounding terrain, as in
+  // the reference diorama. Keep that lower background above the water while
+  // exposing the French rock edge instead of joining both plateaus.
+  const backdrop = Math.max(-.043, height * .58 - .048);
+  if (distance >= .6) return backdrop;
+  const frontier = smooth(clamp((.6 - distance) / .6));
+  return mix(backdrop, Math.min(backdrop, -.036), frontier);
 }
 function forestAmount(x: number, z: number) {
   return (
@@ -343,10 +344,10 @@ export async function buildMapContext(
     borderIndices: number[] = [],
     borderColors: number[] = [];
   const palette = {
-    forest: Color3.FromHexString("#3B4840"),
-    clearing: Color3.FromHexString("#6D716A"),
-    ridge: Color3.FromHexString("#7D827B"),
-    stone: Color3.FromHexString("#9DA194"),
+    forest: Color3.FromHexString("#33454B"),
+    clearing: Color3.FromHexString("#596267"),
+    ridge: Color3.FromHexString("#646C71"),
+    stone: Color3.FromHexString("#84898A"),
   };
   for (const ring of rings) {
     const points = [...ring.points],
@@ -383,7 +384,7 @@ export async function buildMapContext(
         0.95 + noise(point.x * 3.1 + 7, point.z * 2.9 + 39) * 0.05,
       );
       colors.push(color.r, color.g, color.b, 1);
-      uvs.push(point.x * 0.45, point.z * 0.45);
+      uvs.push(point.x * 1.3, point.z * 1.3);
     }
     const triangles = Delaunator.from(
       points,
@@ -463,7 +464,7 @@ export async function buildMapContext(
   }
   // Keep the actual shared French frontier legible as a fine, muted stone line
   // above both surfaces, integrated into the miniature rather than outlining it.
-  const frontierColor = Color3.FromHexString("#B9B8A5");
+  const frontierColor = Color3.FromHexString("#F2E6C7");
   for (const edge of franceEdges) {
     const { a, b } = edge, dx = b.x - a.x, dz = b.z - a.z,
       length = Math.hypot(dx, dz);
@@ -473,8 +474,8 @@ export async function buildMapContext(
         z: centre.z + dx / length * 0.035 * side })),
       neighbour = sides.find(point => !frenchContains(point.x, point.z));
     if (!neighbour || !contextContains(neighbour)) continue;
-    const steps = Math.max(1, Math.ceil(length / 0.045)), nx = -dz / length * 0.004,
-      nz = dx / length * 0.004,
+    const steps = Math.max(1, Math.ceil(length / 0.045)), nx = -dz / length * 0.006,
+      nz = dx / length * 0.006,
       heightAt = (x: number, z: number) => Math.max(frenchHeight(x, z), contextHeight(x, z)) + 0.014;
     for (let step = 0; step < steps; step++) {
       const p = { x: mix(a.x, b.x, step / steps), z: mix(a.z, b.z, step / steps) },
@@ -534,7 +535,7 @@ export async function buildMapContext(
       chips = smooth(clamp((fine - .60) / .30));
     return {
       relief: .5 + slab - joint * .085 + (middle - .5) * .02 + (fine - .5) * .028,
-      shade: 226 + (mineral - .5) * 22 + (fine - .5) * 12 + chips * 7 - joint * 30,
+      shade: 232 + (mineral - .5) * 10 + (fine - .5) * 12 + chips * 7 - joint * 12,
     };
   }
   for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
@@ -569,7 +570,7 @@ export async function buildMapContext(
   surface.diffuseTexture = materialTexture("context-earth-grain", rgba);
   const rockNormal = materialTexture("context-rock-granules-normal", normals);
   rockNormal.gammaSpace = false;
-  rockNormal.level = .35;
+  rockNormal.level = .13;
   surface.bumpTexture = rockNormal;
   const borderMaterial = new StandardMaterial(
     "context-country-boundaries",
@@ -678,7 +679,7 @@ export async function buildMapContext(
   const kit = await loadAssetKit(scene, MODEL_URLS.vegetation);
   if (scene.isDisposed) return { meshes: [] };
   const forestRoot = new TransformNode("context-authored-forests", scene),
-    spacing = 0.105;
+    spacing = 0.085;
   const trunkFootCache = new Map<string, Vector3[]>();
   let count = 0;
   for (
@@ -697,17 +698,17 @@ export async function buildMapContext(
         frenchContains(x, z) ||
         !contextContains({ x, z }) ||
         edgeDistance(frontierCells, x, z, 0.7) < 0.075 ||
-        forestAmount(x, z) < 0.54
+        forestAmount(x, z) < 0.50
       )
         continue;
       const wooded = forestAmount(x, z),
-        edgeDensity = smooth(clamp((wooded - .54) / .14));
+        edgeDensity = smooth(clamp((wooded - .50) / .14));
       // Let grove interiors close into a mass while thinning their edges. The
       // broader low-detail crowns need fewer trunks than the previous seed grid.
       if (hash(ix * 17 + 53, iz * 19 + 71) > edgeDensity) continue;
       const height = contextHeight(x, z),
         variant = hash(ix * 7, iz * 11);
-      if (height < -.02 || height > .62) continue;
+      if (height < -.065 || height > .62) continue;
       const relief = Math.max(
         Math.abs(contextHeight(x + .035, z) - contextHeight(x - .035, z)),
         Math.abs(contextHeight(x, z + .035) - contextHeight(x, z - .035)),
@@ -717,8 +718,8 @@ export async function buildMapContext(
       const family = height > .32 || variant > .56 ? "pine" : variant > .27 ? "beech" : "oak",
         name = `${family}_distant`,
         extent = kit.bounds(name),
-        scale = (.18 + variant * .15 + noise(x * 2.1 + 61, z * 2.2 + 43) * .025) / Math.max(.01, extent.height),
-        canopy = family === "pine" ? 1.12 : family === "beech" ? 1.50 : 1.42,
+        scale = (.22 + variant * .15 + noise(x * 2.1 + 61, z * 2.2 + 43) * .018) / Math.max(.01, extent.height),
+        canopy = family === "pine" ? 1.05 : family === "beech" ? 1.25 : 1.15,
         yaw = variant * Math.PI * 2,
         point = mapAuthoredPosition(x, z),
         halfX = extent.width * scale * canopy / 2,
@@ -740,7 +741,7 @@ export async function buildMapContext(
       if (renderedGround === null) continue;
       const prefab = kit.instantiate(name, forestRoot, {
         key: variant > .5 ? "context-moss" : "context-wood",
-        tint: variant > .5 ? [.46, .48, .39] : [.39, .44, .35],
+        tint: variant > .5 ? [.52, .55, .43] : [.43, .49, .40],
       });
       prefab.root.position.set(point.x, renderedGround + .001, point.z);
       prefab.root.scaling.set(scale * canopy, scale, scale * canopy);

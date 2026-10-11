@@ -1,62 +1,63 @@
 # Végétation du diorama
 
-Le script `vegetation.py` génère sept modèles locaux avec Blender 4.3.2 : chêne,
+`vegetation.py` génère sept modèles locaux avec Blender 4.3.2 : chêne,
 hêtre, pin, cyprès, olivier, fruitier et roche. Les six arbres possèdent une
-variante `_distant` pour leur faible couverture à l’écran. Les couleurs sont
-portées par les sommets ; le kit garde ses matériaux mats et ses origines au sol.
+variante `_distant`. Les couleurs sont portées par les sommets, les matériaux
+sont mats et les origines restent au sol.
 
 Depuis la racine du dépôt :
 
 ```sh
-blender --background --threads 6 --python tools/mandats-assets/vegetation.py
+blender --background --threads 2 --python tools/mandats-assets/vegetation.py
+python3 tools/mandats-assets/inspect-vegetation.py --output /tmp/vegetation-audit.json
 ```
 
-La commande crée `tools/mandats-assets/vegetation.blend` et exporte uniquement
-`site/public/mandats/models/vegetation.glb`. Elle lit le relevé local
-`vegetation-bounds.json` pour conserver les dimensions des treize modèles.
-Elle ne dépend pas d’un répertoire de vérification ni des sources d’architecture.
+La génération crée `vegetation.blend` et exporte seulement
+`site/public/mandats/models/vegetation.glb`. Le relevé `vegetation-bounds.json`
+conserve les dimensions exactes des treize modèles. La génération ne dépend
+ni d'un répertoire de vérification ni des sources d'architecture.
 
-## Kit retenu pour la capture 22
+## Modèles de l'itération 39
 
-Les feuillus portent des bouquets plus petits, verticaux et dissymétriques.
-Les pins ont des ramures angulaires étagées et une pointe, conservées dans les
-variantes distantes. Le cyprès garde un contour étroit interrompu. Une palette
-olive avec des valeurs éclairées et sombres distinctes remplace les verts les
-plus noirs, sans changer la lumière du jeu. La teinte d’écorce reste la même.
-La géométrie, les attributs et les couleurs de la roche sont conservés exactement.
+Les feuillus portent des bouquets composés de petites pousses dissymétriques.
+Les pins gardent leurs ramures angulaires étagées et leur pointe. Les cyprès
+gardent un contour étroit interrompu. Des tons olive, éclairés et sombres,
+remplacent les feuillages trop pâles observés dans les captures précédentes.
+La teinte d'écorce est conservée.
 
-Les modèles détaillés et distants des arbres changent de géométrie et de couleur.
-Une normalisation finale conserve leurs bornes exportées exactes, leurs noms et
-leurs pivots. La décimation protège le composant du tronc relié au sol sur chaque
-copie distante. Babylon garde les correspondances de matériau entre les niveaux.
+Chaque arbre exporte une seule primitive : son écorce et ses feuillages partagent
+le même matériau mat, avec leurs couleurs distinctes dans `COLOR_0`. Cette
+organisation réduit le nombre de parties instanciées par Babylon. Les bornes,
+noms et pivots sont conservés exactement. La décimation protège le composant
+du tronc relié au sol sur chaque copie distante. La roche conserve ses attributs,
+indices et couleurs précédents.
 
-| Modèle | Détaillé 15 | Distant 15 | Détaillé 22 | Distant 22 |
-| --- | ---: | ---: | ---: | ---: |
-| Chêne | 1760 | 139 | 1576 | 172 |
-| Hêtre | 1352 | 116 | 1144 | 144 |
-| Pin | 3224 | 223 | 1860 | 228 |
-| Cyprès | 824 | 69 | 824 | 106 |
-| Olivier | 832 | 109 | 832 | 109 |
-| Fruitier | 728 | 102 | 728 | 102 |
-| Roche | 80 | aucun | 80 | aucun |
-| Total | 8800 | 758 | 7044 | 861 |
+| Modèle | Triangles détaillés | Triangles distants | Primitives par niveau |
+| --- | ---: | ---: | ---: |
+| Chêne | 1916 | 132 | 1 |
+| Hêtre | 1364 | 134 | 1 |
+| Pin | 1860 | 228 | 1 |
+| Cyprès | 1024 | 86 | 1 |
+| Olivier | 992 | 101 | 1 |
+| Fruitier | 868 | 101 | 1 |
+| Roche | 80 | aucune variante | 1 |
+| Total | 8104 | 782 | |
 
-Ce sont les triangles réellement exportés dans le GLB. Le
-[manifeste](vegetation-lod-manifest.json) conserve les counts, les empreintes et
-les bornes par modèle. La génération depuis le dépôt produit le même GLB que le
-candidat externe retenu, octet par octet. Les treize modèles ont des positions,
-couleurs et normales finies, des normales unitaires et des indices valides.
+Ce sont les triangles décodés dans le GLB exporté. Le
+[manifeste](vegetation-lod-manifest.json) conserve les empreintes, nombres de
+primitives et bornes par modèle. Une seconde génération depuis le dépôt a
+reproduit le modèle retenu octet par octet. Les treize modèles ont des attributs
+finis, des normales unitaires et des indices valides. L'audit ne relève aucun
+triangle dégénéré ni désaccord entre la normale d'une face et ses sommets.
 
-Le chargeur Babylon réel a été vérifié dans NullEngine avec ce GLB : sept
-préfabriqués, dix-neuf parties détaillées liées aux variantes distantes, couleurs
-présentes et réutilisation des variantes teintées. La destruction du kit retire
-ses maillages, transforms, matériaux et géométries ; seule la texture BRDF partagée
-appartenant à la scène reste jusqu’à la destruction de celle-ci. Après destruction
-de la scène et du moteur, aucun de ces éléments ni aucune texture ne reste.
+GLB retenu : 881696 octets ; SHA256
+`ff03f10336871efcec8e2c2867044215eaa522b873283590c4f3e8387213c4de`.
+La comparaison utilise les octets du GLB du commit précédent, dont le SHA256
+est `a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a`.
+L'ancien manifeste décrivait un export historique de l'itération 22 ; il ne
+décrivait plus ces octets précédents.
 
-GLB retenu : 721552 octets ; SHA256
-`44ba0d18ea0aa4e8f2211d20b88fb4b9904cf4f1b8518066fdd3ec278e700a0b`.
 Le versionnement des URL et du cache hors connexion est recalculé au build.
-Ces contrôles portent sur les modèles et leur chargement. La fidélité artistique,
-la sélection des niveaux et les performances dans le jeu restent à vérifier
-sur les captures et mesures de la prochaine version.
+Ces contrôles établissent la structure et la reproductibilité des modèles.
+La sélection des niveaux, les performances et la fidélité artistique doivent
+être évaluées dans le jeu réel ; un audit de GLB ne suffit pas à les établir.

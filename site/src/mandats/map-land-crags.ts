@@ -158,13 +158,14 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
       alternate = index % 2 === 0 ? 1 : -1,
       reach = cirque.reach * (part === 1 ? 1.24 : index === 2 || index === 4 ? 1.12 : 1.04);
     const points = [
-      // An oblique crest has a ledge on one side and a steeper broken front.
-      [-.095,.074,.96], [.012,.099,1.00], [.106,.032,.91], [.087,-.075,.82],
-      [-.103,-.047,.76], [-.013,-.081,.72], [.017,.004,.91],
+      // Unequal summits meet along a narrow arête. Lower saddles keep each
+      // mountain distinct in the national view instead of a flat white roof.
+      [-.045,.092,1.23], [.028,.045,1.07], [.104,.011,.83], [.088,-.088,.64],
+      [-.105,-.049,.62], [-.017,-.092,.57], [.017,.004,.91],
       // Broad shoulders meet at different levels, rather than radial spires.
-      [-.210,.103,.69], [-.183,.169,.58], [-.073,.194,.65], [.085,.169,.68],
-      [.195,.091,.64], [.183,-.035,.56], [.115,-.177,.49],
-      [-.067,-.172,.50], [-.194,-.108,.45], [-.260,-.020,.39],
+      [-.210,.103,.57], [-.183,.169,.43], [-.073,.194,.53], [.085,.169,.49],
+      [.195,.091,.48], [.183,-.035,.42], [.115,-.177,.33],
+      [-.067,-.172,.35], [-.194,-.108,.36], [-.260,-.020,.29],
       // Open couloirs have low mouths and one offset rock step above them.
       [-.036,.248,.29], [.215,.186,.30], [.267,-.083,.24], [.014,-.260,.25],
       [-.278,.158,.24], [-.218,-.222,.23], [.250,.013,.42], [-.170,.028,.54],
@@ -214,6 +215,28 @@ function indexRockFace(index: Map<string, RockTriangle[]>, triangle: RockTriangl
     }
 }
 
+// Continuous geological grain crosses the parent survey edges. Sampling it in
+// world coordinates avoids the old triangular patches of unrelated relief.
+function weatheredRock(x: number, z: number) {
+  const hash = (a: number, b: number) => {
+    let n = Math.imul(a, 374761393) ^ Math.imul(b + 197, 668265263);
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+  };
+  const noise = (px: number, pz: number) => {
+    const ix = Math.floor(px), iz = Math.floor(pz),
+      tx = px - ix, tz = pz - iz,
+      sx = tx * tx * (3 - 2 * tx), sz = tz * tz * (3 - 2 * tz),
+      a = hash(ix, iz) * (1 - sx) + hash(ix + 1, iz) * sx,
+      b = hash(ix, iz + 1) * (1 - sx) + hash(ix + 1, iz + 1) * sx;
+    return a * (1 - sz) + b * sz;
+  };
+  const ribs = 1 - Math.abs(noise(x * 19 + z * 4, z * 23 - x * 2) * 2 - 1);
+  const folded = 1 - Math.abs(noise(x * 5.3 + z * 1.6 + 11, z * 8.7 - x * 2.1 + 31) * 2 - 1);
+  return { grain: (ribs - .57) * .094 + (noise(x * 43 + 71, z * 47 + 13) - .5) * .036,
+    fold: (folded - .62) * .23 };
+}
+
 
 /** Visible rock shelves and open creases sculpt the real parent surface.
  *  Boundary heights are shared exactly. Intermediate rounded angular forms
@@ -225,7 +248,7 @@ function steppedRockFace(triangle: RockTriangle) {
   if (longest < .16 || Math.max(...triangle.h) < .15) return [triangle];
   // The eastern survey is stretched horizontally. Final-world dimensions
   // determine the visible rock scale, rather than the old source triangle.
-  const divisions = Math.max(3, Math.min(8, Math.ceil(longest / .15))),
+  const divisions = Math.max(3, Math.min(12, Math.ceil(longest / .075))),
     points: Array<{ x: number; z: number; height: number }> = [],
     rough = (i: number, j: number) => {
       let n = Math.imul(i + triangle.band, 374761393) ^ Math.imul(j + 197, 668265263);
@@ -244,8 +267,12 @@ function steppedRockFace(triangle: RockTriangle) {
       inset = Math.min(1, Math.min(...weights) * 8),
       breadth = Math.min(1, longest / .38),
       relief = internal ? inset * breadth *
-        (.052 * shoulder - .020 - crease * (.042 + rough(seed, seed + 71) * .040)) : 0;
-    points.push({ x: value(triangle.x), z: value(triangle.z), height: Math.max(0, height + relief) });
+        (.036 * shoulder - .012 - crease * (.043 + rough(seed, seed + 71) * .023)) : 0;
+    const x = value(triangle.x), z = value(triangle.z),
+      weathering = weatheredRock(x, z), strength = Math.min(1, Math.max(0, (height - .10) / .15)),
+      grain = weathering.grain * strength,
+      fold = internal ? weathering.fold * inset * breadth * strength : 0;
+    points.push({ x, z, height: Math.max(0, height + relief + grain + fold) });
   };
   for (let row = 0; row <= divisions; row++) for (let column = 0; column <= row; column++) {
     const internal = row > 0 && row < divisions && column > 0 && column < row,

@@ -13,8 +13,9 @@ import { MAP_PLACES, mapPosition, mapCoordinates, mapSourcePosition, mapSourceCo
 import { landMaterialTextures } from "./map-land-materials.ts";
 import type { LandMaterialTextures } from "./map-land-materials.ts";
 import { mountainSourceHeight, mountainFaceBand, mountainBreakLines, mountainFaceSurvey, mountainParentFaceSurvey, pyreneanSourceIncision } from "./map-land-crags.ts";
-import { NATIONAL_FIELDS, VALLEY_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, CENTRAL_FIELD_EDGES, COMPOSED_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
+import { NATIONAL_FIELDS, VALLEY_FIELDS, REFERENCE_NORTH_FIELDS, NATIONAL_WOODS, MOUNTAIN_WOODS, CENTRAL_WOODS, REFERENCE_NORTH_WOODS, CENTRAL_FIELD_EDGES, COMPOSED_COTEAUX, coteauSourceZ, coteauContour } from "./map-land-composition.ts";
 import { NATIONAL_SETTLEMENTS } from "./map-city-national.ts";
+import { powerStationFootprints } from "./map-industrial-sites.ts";
 import {
   cityEnvelopeFootprints,
   urbanFootprint,
@@ -23,6 +24,9 @@ import {
 } from "./map-urban-plans.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
 import { geometryContactFrame, geometryProjectionVertices } from "./map-geometry-cache.ts";
+import { prepareMineralSurface, prepareMeadowSurface } from "./map-mineral-material.ts";
+import { HARBOUR_SITES } from "./map-harbour-sites.ts";
+import { loadLandscapeSurvey } from "./map-landscape-cache.ts";
 import { surveyHarbour, harbourPolygonsOverlap, harbourPolygonContains } from "./map-city-port-plans.ts";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -76,6 +80,8 @@ const outlineRayIndices = new WeakMap<Point[], ReturnType<typeof outlineRayIndex
 );
 const schoolOrigin = mapPosition(MAP_PLACES[LYON_SCHOOL_SITE.town].lon, MAP_PLACES[LYON_SCHOOL_SITE.town].lat);
 const surveyedFootprints = [
+  ...powerStationFootprints().map(site => ({ ...site, settlement: site.id,
+    localLevel: true, schoolPlatform: false })),
   ...cityEnvelopeFootprints().map(footprint => ({ ...footprint, schoolPlatform: false })),
   { x: schoolOrigin.x + LYON_SCHOOL_SITE.x, z: schoolOrigin.z + LYON_SCHOOL_SITE.z,
     halfW: LYON_SCHOOL_SITE.halfW, halfD: LYON_SCHOOL_SITE.halfD,
@@ -98,7 +104,7 @@ const parisBounds = {
 const parisSector = (x: number, z: number) =>
   x > parisBounds.minX && x < parisBounds.maxX &&
   z > parisBounds.minZ && z < parisBounds.maxZ;
-const composedWoods = [...NATIONAL_WOODS, ...MOUNTAIN_WOODS, ...CENTRAL_WOODS].map((wood) => {
+const composedWoods = [...NATIONAL_WOODS, ...MOUNTAIN_WOODS, ...CENTRAL_WOODS, ...REFERENCE_NORTH_WOODS].map((wood) => {
   const sourcePolygon = wood.outline.map(([x, z]) => wood.geographic ? mapSourcePosition(x, z) : { x, z }),
     polygon = sourcePolygon.map(point => mapAuthoredPosition(point.x, point.z));
   const groups = wood.groups?.map(([x, z, rx, rz]) => ({ ...(wood.geographic ? mapSourcePosition(x, z) : { x, z }), rx, rz }));
@@ -112,7 +118,7 @@ const composedWoods = [...NATIONAL_WOODS, ...MOUNTAIN_WOODS, ...CENTRAL_WOODS].m
   };
 });
 const largeCropCells = new Map<string, Point[][]>();
-for (const field of NATIONAL_FIELDS) {
+for (const field of [...NATIONAL_FIELDS, ...REFERENCE_NORTH_FIELDS]) {
   const polygon = field.outline.map(([x, z]) => ({ x, z }));
   for (let x = Math.floor(Math.min(...polygon.map(p => p.x)) / .5); x <= Math.floor(Math.max(...polygon.map(p => p.x)) / .5); x++)
     for (let z = Math.floor(Math.min(...polygon.map(p => p.z)) / .5); z <= Math.floor(Math.max(...polygon.map(p => p.z)) / .5); z++) {
@@ -401,11 +407,11 @@ function centralCultivatedRelief(sx: number, sz: number) {
   }
   return (flank - floor) * smooth(clamp(margin / .13));
 }
-const constructionReservations = Object.entries(AUTHORED_PROJECT_RESERVATIONS).flatMap(([town, sites]) => {
+const constructionReservations = [...powerStationFootprints(), ...Object.entries(AUTHORED_PROJECT_RESERVATIONS).flatMap(([town, sites]) => {
   const place = MAP_PLACES[town as keyof typeof MAP_PLACES], origin = mapPosition(place.lon, place.lat);
   return sites!.map(site => ({ x: origin.x + site.x, z: origin.z + site.z,
     halfW: .235, halfD: .225, rotation: 0, cosine: 1, sine: 0 }));
-});
+})];
 // Width follows real foundations and reserved works, not town envelopes.
 // These extra service rectangles are the physical sites in map-cities and
 // map-city-infrastructure. Bridge end supports keep their existing spans.
@@ -422,10 +428,6 @@ const riverStructureFootprints = [
   ].map(([town, x, z, halfW, halfD]) => {
     const place = MAP_PLACES[town as keyof typeof MAP_PLACES], origin = mapPosition(place.lon, place.lat);
     return { x: origin.x + Number(x), z: origin.z + Number(z), halfW: Number(halfW), halfD: Number(halfD), rotation: 0, cosine: 1, sine: 0 };
-  }),
-  ...[[4.9, 44.6], [5.82, 48.9]].map(([lon, lat]) => {
-    const origin = mapPosition(lon, lat);
-    return { x: origin.x + .14, z: origin.z, halfW: .40, halfD: .23, rotation: 0, cosine: 1, sine: 0 };
   }),
   ...([
     ["paris", .543, -.318, .62, .16], ["rouen", -.06, .012, .16, .16],
@@ -766,8 +768,7 @@ function cultivatedRelief(x: number, z: number, sx: number, sz: number, mineral:
   }
   const cellX = Math.floor(x / .25), cellZ = Math.floor(z / .25);
   let valley = 0, riverDistance = Infinity;
-  for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++)
-    for (const segment of riverCells.get(`${cellX + dx}:${cellZ + dz}`) ?? []) {
+  for (const segment of riverCandidates(cellX, cellZ, 2)) {
       const distance = segmentDistance(x, z, segment.a, segment.b) -
         riverSegmentWidth(segment, x, z) / 2;
       riverDistance = Math.min(riverDistance, distance);
@@ -806,13 +807,7 @@ const rockyCoastTracts = [
 ];
 // Only XZ geometry is needed here. Passing the constant sampler deliberately
 // avoids landHeight, which has not finished initialising its survey yet.
-const coastalPortPlans = [
-  { name: "brest", lon: -4.49, lat: 48.39 },
-  ...["nantes", "marseille", "ajaccio"].map(name => {
-    const { lon, lat } = MAP_PLACES[name as "nantes" | "marseille" | "ajaccio"];
-    return { name, lon, lat };
-  }),
-].map(place => surveyHarbour(place.name, mapPosition(place.lon, place.lat), () => .14))
+const coastalPortPlans = HARBOUR_SITES.map(place => surveyHarbour(place.name, mapPosition(place.lon, place.lat), () => .14))
   .filter((plan): plan is NonNullable<typeof plan> => !!plan);
 const coastalPortPolygons = coastalPortPlans.flatMap(plan => [
   ...plan.quayPolygons, ...plan.coastalJoins, ...plan.landReservations,
@@ -917,7 +912,7 @@ function coastalRockProfile(x: number, z: number, sx: number, sz: number): Coast
 const pyreneanCoverCells = new Map<string, Point[][]>();
 for (const polygon of [
   ...composedWoods.map(wood => wood.polygon),
-  ...[...NATIONAL_FIELDS, ...VALLEY_FIELDS].map(field =>
+  ...[...NATIONAL_FIELDS, ...VALLEY_FIELDS, ...REFERENCE_NORTH_FIELDS].map(field =>
     field.outline.map(([x, z]) => mapAuthoredPosition(x, z))),
 ]) {
   const minX = Math.min(...polygon.map(point => point.x)), maxX = Math.max(...polygon.map(point => point.x)),
@@ -954,8 +949,8 @@ function unflattenedHeight(x: number, z: number) {
     edge = smooth(clamp(borderDistance(sx, sz) / .30));
   // Houses, streets and works flatten this same surface in surveyedHeight.
   // The water is carved from it too. No former massif is mixed back into it.
-  return .115 + rolling + armorican + (massif - composedPyreneanIncision(x, z, sx, sz)) * edge +
-    cultivatedRelief(x, z, sx, sz, massif) + coastalRockProfile(x, z, sx, sz).height;
+  return .215 + rolling + armorican + (massif - composedPyreneanIncision(x, z, sx, sz)) * edge +
+    cultivatedRelief(x, z, sx, sz, massif) * .60 + coastalRockProfile(x, z, sx, sz).height;
 }
 
 const settlementLevels = new Map<string, number>([
@@ -1195,7 +1190,7 @@ function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
   cells.clear();
 }
 
-type AlpineColorTarget = { mesh: Mesh; surveys?: Map<number, NonNullable<ReturnType<typeof mountainFaceSurvey>>> };
+type AlpineColorTarget = { mesh: Mesh; surveys?: Map<number, { band: number }> };
 type AlpineOccupiedCover = { contains: (x: number, z: number) => boolean;
   overlaps: (polygon: Point[]) => boolean; treeCount: number; cropTriangles: number };
 
@@ -1285,7 +1280,7 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
     const protectedVertices = new Set<number>();
     // Protect full triangles wherever a real canopy or a real crop is present.
     // Their interpolated soil color stays intact, including at the actual feet.
-    for (let i = 0; i < indices.length; i += 3) {
+    for (let i = 0; mesh.name.startsWith("landscape-terrain-mineral-") && i < indices.length; i += 3) {
       const vertices = [indices[i], indices[i + 1], indices[i + 2]],
         polygon = vertices.map(index => ({ x: positions[index * 3], z: positions[index * 3 + 2] })),
         x = polygon.reduce((sum, p) => sum + p.x, 0) / 3,
@@ -1322,6 +1317,7 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
     }
     if (!snowy.length) continue;
     snowSurface ??= material(scene, "landscape-snow", "#FFFFFF");
+    prepareMineralSurface(snowSurface, true);
     snowSurface.specularColor = new Color3(.065, .075, .085);
     snowSurface.specularPower = 20;
     // The separate material omits the rock joints and coarse rock bump.
@@ -1358,7 +1354,7 @@ function recolorAlpineGround(scene: Scene, meshes: Mesh[], targets: AlpineColorT
 
 // Local geological cover follows the authored Alpine survey. It has no effect
 // on the elevations, parcels, forests or the other mountain ranges.
-const alpineCropAreas = [...NATIONAL_FIELDS, ...VALLEY_FIELDS].map(field => {
+const alpineCropAreas = [...NATIONAL_FIELDS, ...VALLEY_FIELDS, ...REFERENCE_NORTH_FIELDS].map(field => {
   const polygon = field.outline.map(([x, z]) => ({ x, z }));
   return { polygon, minX: Math.min(...polygon.map(p => p.x)),
     maxX: Math.max(...polygon.map(p => p.x)),
@@ -1368,7 +1364,7 @@ const alpineCropAreas = [...NATIONAL_FIELDS, ...VALLEY_FIELDS].map(field => {
   area.maxZ >= -3.20 && area.minZ <= -.12);
 
 function alpineSurfaceMask(x: number, z: number, y: number,
-  face?: ReturnType<typeof mountainFaceSurvey>, occupied?: AlpineOccupiedCover) {
+  face?: { band: number }, occupied?: AlpineOccupiedCover) {
   if (y <= (occupied ? .18 : .225)) return 0;
   const survey = face ?? mountainFaceSurvey(x, z), band = survey?.band ?? 0;
   // The fractured Vanoise faces retain their original massif through this
@@ -1432,36 +1428,56 @@ function countrysideColor(sx: number, sz: number, cultivation = 0) {
   return colorMix(countrysideUnitColor(sx, sz, .76, .53), fine, cultivation);
 }
 
-function terrainColor(x: number, z: number, face?: ReturnType<typeof mountainFaceSurvey>, occupied?: AlpineOccupiedCover) {
-  const source = mapAuthoredCoordinates(x, z), sx = source.x, sz = source.z,
-    y = landHeight(x, z), grain = noise(sx * 3.9 + 8, sz * 4.1 + 44),
-    forest = forestAmount(x, z), area = parisAreaAt(x, z);
+type TerrainColorSample = {
+  sx: number; sz: number; y: number; grain: number; forest: number; massif: number;
+  area: ReturnType<typeof parisAreaAt>; block: ReturnType<typeof nationalBlockAt>;
+  coastal: CoastalRockSample; neighbours?: readonly [number, number, number, number];
+};
+// The second colouring pass changes canopy cover, not the surveyed ground.
+// Reuse only immutable Alpine samples during this build, then release them.
+const terrainColorSamples = new Map<number, Map<number, TerrainColorSample>>();
+function terrainColorSample(x: number, z: number): TerrainColorSample {
+  const cached = terrainColorSamples.get(x)?.get(z);
+  if (cached) return cached;
+  const { x: sx, z: sz } = mapAuthoredCoordinates(x, z),
+    sample: TerrainColorSample = { sx, sz, y: landHeight(x, z),
+      grain: noise(sx * 3.9 + 8, sz * 4.1 + 44), forest: forestAmount(x, z),
+      area: parisAreaAt(x, z), block: nationalBlockAt(x, z),
+      massif: mountainSourceHeight(sx, sz), coastal: coastalRockProfile(x, z, sx, sz) };
+  if (sample.massif > .10) {
+    const column = terrainColorSamples.get(x) ?? new Map<number, TerrainColorSample>();
+    column.set(z, sample); terrainColorSamples.set(x, column);
+  }
+  return sample;
+}
+
+function terrainColor(x: number, z: number, face?: { band: number }, occupied?: AlpineOccupiedCover) {
+  const sample = terrainColorSample(x, z), { sx, sz, y, grain, forest, area, massif, coastal } = sample;
   if (area && !["garden", "field", "wood"].includes(area.kind)) {
     const palette = { urban: "#BCAF8B", court: "#D0BE99", square: "#D5C6A8",
       garden: "#91A05A", field: "#C9B66F", wood: "#4A613E" };
     return Color3.FromHexString(palette[area.kind]).scale(.95 + grain * .07);
   }
-  if (nationalBlockAt(x, z)) return Color3.FromHexString("#CABB96").scale(.96 + grain * .06);
-  const massif = mountainSourceHeight(sx, sz),
-    covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
-    coastal = coastalRockProfile(x, z, sx, sz),
+  if (sample.block) return Color3.FromHexString("#CABB96").scale(.96 + grain * .06);
+  const covered = occupied ? occupied.contains(x, z) : !!nationalWoodAt(x, z),
     cultivation = area || covered || coastal.cover > 0 ? 0 :
     (1 - smooth(clamp((forest - .35) / .22))) *
-    (1 - smooth(clamp((y - .32) / .10))) *
+    (1 - smooth(clamp((y - .42) / .10))) *
     (1 - smooth(clamp((massif - .035) / .065)));
   let color = countrysideColor(sx, sz, cultivation).scale(.97 + grain * .06);
   if (area?.kind === "field") color = colorMix(color, Color3.FromHexString("#CDB465"), .76);
   if (area?.kind === "garden") color = colorMix(color, Color3.FromHexString("#8FA44D"), .66);
   const forestCover = area?.kind === "wood" ? .90 : clamp((forest - .57) / .31) * .84;
   color = colorMix(color, Color3.FromHexString("#61733C"), forestCover);
-  const left = landHeight(x - .025, z), right = landHeight(x + .025, z),
-    front = landHeight(x, z - .025), back = landHeight(x, z + .025),
+  const [left, right, front, back] = sample.neighbours ??= [landHeight(x - .025, z),
+    landHeight(x + .025, z), landHeight(x, z - .025), landHeight(x, z + .025)];
+  const
     slope = Math.hypot(right - left, back - front) / .05,
     mask = alpineSurfaceMask(x, z, y, face, occupied),
     band = alpineStoneFamily(face?.band ?? mountainFaceBand(x, z)),
     family = hash(band, 37), warm = hash(band, 113),
-    rock = colorMix(Color3.FromHexString("#747C7C"),
-      Color3.FromHexString("#A9A493"), .18 + family * .63),
+    rock = colorMix(Color3.FromHexString("#827767"),
+      Color3.FromHexString("#C5B397"), .22 + family * .63),
     stone = colorMix(rock, Color3.FromHexString("#A88C72"),
       smooth(clamp((warm - .29) / .56)) * .49),
     geology = smooth(clamp((massif - .13) / .31)),
@@ -1633,7 +1649,7 @@ function coastalFracturePoint(points: Array<{ x: number; y: number; z: number }>
   return { x, y, z, weights: [u, v, w], depth };
 }
 
-function buildGround(
+async function buildGround(
   scene: Scene,
   meshes: Mesh[],
   textures: LandMaterialTextures,
@@ -1642,19 +1658,22 @@ function buildGround(
   const surface = material(scene, "landscape-ground", "#FFFFFF");
   surface.diffuseTexture = textures.earth;
   surface.bumpTexture = textures.earthNormal;
+  prepareMeadowSurface(surface);
   const mineralSurface = material(scene, "landscape-mineral-ground", "#FFFFFF");
   mineralSurface.diffuseTexture = textures.rock;
   mineralSurface.bumpTexture = textures.rockNormal;
   mineralSurface.specularColor = new Color3(.035, .040, .046);
+  prepareMineralSurface(mineralSurface);
   const cliffMaterial = material(scene, "landscape-cliffs", "#FFFFFF");
   cliffMaterial.backFaceCulling = false;
   cliffMaterial.diffuseTexture = textures.rock;
   // This map describes sparse vertical joints and small chipped surfaces at
   // the existing rim UV scale. The larger broken beds remain actual geometry.
   cliffMaterial.bumpTexture = textures.coastNormal;
-  cliffMaterial.emissiveColor = new Color3(.038, .029, .018);
+  cliffMaterial.emissiveColor = new Color3(.16, .105, .052);
   cliffMaterial.specularColor = new Color3(.018, .015, .011);
   cliffMaterial.specularPower = 20;
+  prepareMineralSurface(cliffMaterial);
   const stone = Color3.FromHexString("#E3D2AB");
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
@@ -1777,13 +1796,22 @@ function buildGround(
 
     const terrain = geometry(), mineralTerrain = geometry(), shoreTerrain = geometry(),
       clipRejected = rejectedShoreClipper(outline);
-    for (const [x, z] of points)
+    for (const [index, [x, z]] of points.entries()) {
+      if (index % 256 === 0) {
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
+        if (scene.isDisposed) return;
+      }
       vertex(terrain, x, landHeight(x, z), z, terrainColor(x, z));
+    }
     const triangles = Delaunator.from(points).triangles;
     const rockVertices = new Map<string, number>(),
       mineralSurveys = new Map<number, NonNullable<ReturnType<typeof mountainFaceSurvey>>>(),
       rockAxes = new Map<number, "x" | "y" | "z">();
     for (let i = 0; i < triangles.length; i += 3) {
+      if (i % 768 === 0) {
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
+        if (scene.isDisposed) return;
+      }
       const a = triangles[i],
         b = triangles[i + 1],
         c = triangles[i + 2];
@@ -2100,7 +2128,7 @@ function buildGround(
           below = dryPositions[at + 4], y = dryPositions[at + 1],
           step = mix(hash(left, 1291 + layer * 17), hash(right, 1291 + layer * 17), across),
           opening = mix(hash(left, 1301 + layer * 19), hash(right, 1301 + layer * 19), across),
-          shift = Math.min(.009, Math.max(0, Math.min(above - y, y - below) * .12)) *
+          shift = Math.min(.019, Math.max(0, Math.min(above - y, y - below) * .24)) *
             (step * 2 - 1) * weight,
           inward = inwardLimit * (.15 + opening * .85) * weight;
         // Straight columns give the miniature its vertical rock thickness.
@@ -2117,7 +2145,7 @@ function buildGround(
             .003 + hash(left, 1463 + layer * 29) * .006 : 0,
           faceRetreat = Math.min(clearance * .24, .024,
             .0025 + opening * .004 + leftJoint + rightJoint + chip),
-          verticality = .82 * weight,
+          verticality = (.52 + hash(left, 1543) * .24) * weight,
           oldX = dryPositions[at] - coastWinding * nx * inward,
           oldZ = dryPositions[at + 2] - coastWinding * nz * inward;
         cliffs.positions[at] = mix(oldX, lineX - coastWinding * nx * faceRetreat, verticality);
@@ -2149,7 +2177,7 @@ function buildGround(
           color = layer === 0 ? new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]) :
             colorMix(new Color3(cliffs.colors[c], cliffs.colors[c + 1], cliffs.colors[c + 2]),
               exposedColor.scale(.89 + hash(faceBlock + part * 283, 1471 + layer * 31) * .11),
-              cliffColumnWeights[column]),
+              Math.max(.78, cliffColumnWeights[column])),
           index = vertex(sculptedRim, cliffs.positions[p], cliffs.positions[p + 1], cliffs.positions[p + 2], color);
         sculptedRim.uvs[index * 2] = cliffs.uvs[original * 2];
         sculptedRim.uvs[index * 2 + 1] = cliffs.uvs[original * 2 + 1];
@@ -2168,7 +2196,7 @@ function buildGround(
           middle = coastalFracturePoint(points, inward,
             .24 + hash(face + part * 997, 1513) * .20,
             .24 + hash(face + part * 1009, 1523) * .16,
-            .006 + hash(face + part * 1013, 1531) * .010);
+            .010 + hash(face + part * 1013, 1531) * .017);
         if (middle && landContains(middle.x, middle.z) && contains(coast, middle.x, middle.z)) {
           const source = mapAuthoredCoordinates(middle.x, middle.z),
             cover = coastalRockProfile(middle.x, middle.z, source.x, source.z).cover;
@@ -2309,6 +2337,25 @@ function strip(
   }
 }
 
+/** A crop row has two raised shoulders, following the same surveyed ground. */
+function cropRidge(data: Geometry, path: Point[], width: number, color: Color3, lift: number) {
+  const start = data.positions.length / 3;
+  for (let i = 0; i < path.length; i++) {
+    const a = path[Math.max(0, i - 1)], b = path[Math.min(path.length - 1, i + 1)],
+      length = Math.hypot(b.x - a.x, b.z - a.z) || 1,
+      nx = (b.z - a.z) / length * width / 2, nz = -(b.x - a.x) / length * width / 2;
+    for (const side of [-1, 0, 1]) {
+      const x = path[i].x + nx * side, z = path[i].z + nz * side;
+      vertex(data, x, landHeight(x, z) + lift + (side === 0 ? .012 : 0), z,
+        side === 0 ? color : color.scale(.86));
+    }
+    if (i > 0) for (let side = 0; side < 2; side++) {
+      const a = start + (i - 1) * 3 + side, b = a + 3;
+      triangle(data, a, a + 1, b); triangle(data, a + 1, b + 1, b);
+    }
+  }
+}
+
 // Curved centreline survey stays in the authored source frame. Every point is
 // projected individually, so the eastern correction also bends the crop rows.
 function sampleCropGuide(guide: readonly Point[]) {
@@ -2335,7 +2382,7 @@ function guidedCropRows(data: Geometry, polygon: Point[], sourceGuide: readonly 
     sourcePolygon = polygon.map(point => mapAuthoredCoordinates(point.x, point.z)),
     reach = Math.max(...sourcePolygon.map(point => Math.min(...guide.slice(1).map((b, i) =>
       segmentDistance(point.x, point.z, guide[i], b))))),
-    rowLimit = Math.ceil(reach / spacing), width = spacing * .28;
+    rowLimit = Math.ceil(reach / spacing), width = spacing * .44;
   const approved = (point: Point) => contains(polygon, point.x, point.z) &&
     available(point.x, point.z) && !constructionReservationContains(point.x, point.z, .016);
   type Section = readonly [Point, Point, Point];
@@ -2358,7 +2405,7 @@ function guidedCropRows(data: Geometry, polygon: Point[], sourceGuide: readonly 
         for (let i = 0; i < run.length; i++) {
           for (let side = 0; side < 3; side++) {
             const point = run[i][side];
-            vertex(data, point.x, landHeight(point.x, point.z) + lift + (side === 1 ? .004 : 0),
+            vertex(data, point.x, landHeight(point.x, point.z) + lift + (side === 1 ? .012 : 0),
               point.z, side === 1 ? color : color.scale(.93));
           }
           if (i > 0) {
@@ -2451,11 +2498,11 @@ function cropRows(
         available ? 0.025 : 0.075,
         false,
       );
-    if (!available) strip(data, path, spacing * 0.14, color, lift);
+    if (!available) cropRidge(data, path, spacing * .36, color, lift);
     else {
       let run: Point[] = [];
       const flush = () => {
-        if (run.length > 1) strip(data, run, spacing * 0.24, color, lift);
+        if (run.length > 1) cropRidge(data, run, spacing * .40, color, lift);
         run = [];
       };
       for (const point of path) {
@@ -2633,6 +2680,8 @@ function nationalCropAvailable(x: number, z: number, margin: number) {
     const clearance = urbanClearance(x, z);
     let ground = clearance > .008 && landContains(x, z) &&
       !parisAreaAt(x, z) && !nationalWoodAt(x, z) && !nationalBlockAt(x, z);
+    if (ground) ground = !(coastalPortCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? [])
+      .some(polygon => harbourPolygonContains(polygon, { x, z }));
     if (ground) ground = landHeight(x, z) < .46 && Math.hypot(
       landHeight(x + .018, z) - landHeight(x - .018, z),
       landHeight(x, z + .018) - landHeight(x, z - .018)) / .036 < .64;
@@ -2791,7 +2840,7 @@ function buildFields(
         }
     }
   let nationalParcels = 0;
-  for (const [fieldIndex, field] of [...NATIONAL_FIELDS, ...VALLEY_FIELDS].entries()) {
+  for (const [fieldIndex, field] of [...NATIONAL_FIELDS, ...VALLEY_FIELDS, ...REFERENCE_NORTH_FIELDS].entries()) {
     const sourcePolygon = field.outline.map(([x, z]) => ({ x, z })),
       polygon = sourcePolygon.map(point => mapAuthoredPosition(point.x, point.z)),
       minX = Math.min(...sourcePolygon.map(p => p.x)), maxX = Math.max(...sourcePolygon.map(p => p.x)),
@@ -2913,7 +2962,7 @@ function buildFields(
     nationalParcels++;
     if (field.kind !== "pasture") cropRows(rows, polygon, center, angle,
       field.rowGuide ? field.kind === "vines" ? .043 : .038 : field.kind === "vines" ? .027 : .022,
-      color.scale(field.kind === "vines" ? .60 : .79),
+      color.scale(field.kind === "vines" ? .46 : 1.10),
       .008, (x, z) => available(x, z, .012), field.rowGuide?.map(([x, z]) => ({ x, z })));
     for (const edge of field.hedgedEdges ?? []) {
       let run: Point[] = [];
@@ -2984,6 +3033,7 @@ function buildFields(
   cropMaterial.diffuseTexture = textures.crops;
   cropMaterial.bumpTexture = textures.earthNormal;
   cropMaterial.backFaceCulling = false;
+  prepareMeadowSurface(cropMaterial);
   const rowMaterial = material(scene, "landscape-crop-detail", "#FFFFFF");
   rowMaterial.backFaceCulling = false;
   const cropMesh = finish(scene, "landscape-agriculture", crops, cropMaterial, false);
@@ -3200,6 +3250,8 @@ async function buildForests(scene: Scene, orchards: Point[]) {
         { x, z } = mapAuthoredPosition(sx, sz);
       const ground = landHeight(x, z);
       if (!contains(wood.polygon, x, z) || !landContains(x, z) || parisSector(x, z) ||
+        (coastalPortCells.get(`${Math.floor(x / .5)}:${Math.floor(z / .5)}`) ?? [])
+          .some(polygon => harbourPolygonContains(polygon, { x, z })) ||
         ((wood.id.startsWith("bosquet-") || wood.id === "lisiere-loire-centre" ||
           wood.id === "bois-centre-sud" || wood.id === "lisiere-berry-bourbonnais" ||
           wood.id === "lisiere-champagne-ardenne" || wood.id === "lisiere-lorraine") &&
@@ -3217,14 +3269,15 @@ async function buildForests(scene: Scene, orchards: Point[]) {
           corsicaPortReservations.some(polygon => harbourPolygonsOverlap(polygon, trunk))) continue;
       }
       const variation = hash(candidate * 19 + 31, index * 17 + 419),
-        name = wood.species ?? (variation < 0.88 ? "pine" : variation < 0.95 ? "cypress" : "beech"),
+        name = wood.species ?? (variation < .48 ? "pine" : variation < .68 ? "cypress" : variation < .87 ? "beech" : "oak"),
         height = candidate % 7 === 0 ? 0.145 + variation * 0.045 : 0.22 + variation * 0.085,
         root = plant(name, x, z, height, variation * Math.PI * 2);
       if (!(root instanceof TransformNode)) continue;
       if (wood.maxSlope !== undefined) root.position.y = Math.min(ground,
         landHeight(x - .010, z), landHeight(x + .010, z),
         landHeight(x, z - .010), landHeight(x, z + .010)) + .001;
-      if (name === "pine") { root.scaling.x *= 0.52; root.scaling.z *= 0.52; }
+      if (name === "pine") { root.scaling.x *= 0.42; root.scaling.z *= 0.42; }
+      if (name === "oak" || name === "beech") { root.scaling.x *= .62; root.scaling.z *= .62; }
       if (name === "cypress") { root.scaling.x *= 0.83; root.scaling.z *= 0.83; }
       root.metadata = { ...root.metadata, region: "france", woodland: wood.id };
       for (const mesh of root.getChildMeshes()) mesh.metadata = {
@@ -3512,20 +3565,34 @@ function buildRivers(scene: Scene, meshes: Mesh[]) {
   meshes.push(finish(scene, "landscape-rivers", water, waterSurface, false));
 }
 
-/** Static, deterministic local geometry. No remote textures or scene-state effects. */
-export async function buildLandscape(
-  scene: Scene,
-): Promise<{ meshes: AbstractMesh[] }> {
+/** Deterministic ground geometry, also used by the offline mesh authoring tool. */
+export async function buildLandscapeSurvey(scene: Scene, textures: LandMaterialTextures) {
   const meshes: Mesh[] = [], colorTargets: AlpineColorTarget[] = [];
-  const textures = landMaterialTextures(scene);
-  buildGround(scene, meshes, textures, colorTargets);
+  await buildGround(scene, meshes, textures, colorTargets);
+  if (scene.isDisposed) {
+    terrainColorSamples.clear();
+    return { meshes, colorTargets, orchards: [] };
+  }
   const orchards = buildFields(scene, meshes, textures);
   buildRivers(scene, meshes);
+  return { meshes, colorTargets, orchards };
+}
+
+/** Static, deterministic local geometry. No remote textures or scene-state effects. */
+export async function buildLandscape(scene: Scene): Promise<{ meshes: AbstractMesh[] }> {
+  const textures = landMaterialTextures(scene);
+  const { meshes, colorTargets, orchards } = import.meta.env.DEV
+    ? await buildLandscapeSurvey(scene, textures)
+    : await loadLandscapeSurvey(scene, textures).catch(() => scene.isDisposed
+      ? { meshes: [], colorTargets: [], orchards: [] }
+      : buildLandscapeSurvey(scene, textures));
+  if (scene.isDisposed) return { meshes };
   const trees = await buildForests(scene, orchards);
   if (!scene.isDisposed) {
     seatTreesOnRenderedGround(trees, meshes);
     recolorAlpineGround(scene, meshes, colorTargets, alpineOccupiedCover(trees, meshes));
   }
   colorTargets.length = 0;
+  terrainColorSamples.clear();
   return { meshes: [...meshes, ...trees] };
 }

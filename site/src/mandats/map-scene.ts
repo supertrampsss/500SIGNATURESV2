@@ -114,7 +114,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     scene.skipPointerMovePicking = true;
     scene.imageProcessingConfiguration.toneMappingEnabled = true;
     scene.imageProcessingConfiguration.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-    scene.imageProcessingConfiguration.contrast = 1.10;
+    scene.imageProcessingConfiguration.contrast = 1.16;
     scene.imageProcessingConfiguration.exposure = 1.25;
     // The authored PBR stone, slate, iron and glass need diffuse irradiance
     // and prefiltered reflections as well as the direct miniature sunlight.
@@ -194,9 +194,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const sky = new HemisphericLight("sky", new Vector3(0, 1, -.35), scene);
     // StandardMaterial clamps diffuse light before multiplying terrain colour.
     // Fill shadowed faces while retaining a slope response on the ground.
-    sky.intensity = 0.21;
+    sky.intensity = 0.28;
     // Keep the previous StandardMaterial hemispheric specular power.
-    sky.specular = new Color3(0.12 / 0.21, 0.12 / 0.21, 0.12 / 0.21);
+    sky.specular = new Color3(0.12 / 0.28, 0.12 / 0.28, 0.12 / 0.28);
     sky.diffuse = Color3.FromHexString("#CCDDF1");
     // A stone/soil bounce below the hemisphere, rather than a second blue sky.
     sky.groundColor = balancedIlluminant("#817A6D", "#788797");
@@ -246,9 +246,15 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     const clearedTrees = new Set<TransformNode>();
     // Start the existing GLB requests before the synchronous ground builders.
     // Keep the result order and the same shared Scene/asset-kit cache.
-    const cityScenery = buildCities(scene);
+    let landscapeFinished!: () => void;
+    const landscapeReady = new Promise<void>(resolve => { landscapeFinished = resolve; });
+    const cityScenery = buildCities(scene, landscapeReady);
+    const landscapeScenery = buildLandscape(scene).then(landscape => {
+      landscapeFinished();
+      return landscape;
+    });
     const scenery = Promise.all([
-      buildLandscape(scene), cityScenery, buildMapContext(scene), lighting,
+      landscapeScenery, cityScenery, buildMapContext(scene), lighting,
       buildRegionBoundaries(scene),
     ]);
     function finishScenery(staticGeometry: AbstractMesh[]) {
@@ -286,6 +292,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       for (const mat of scene.materials)
         if (mat !== water.mesh.material) mat.freeze();
       host.dataset.landscape = "diorama";
+      host.dataset.terrainSource = scene.metadata?.bakedTerrain ? "precomputed" : "generated";
       host.dataset.staticBatches = String(compatible.size);
       host.dataset.staticInstances = String(batches.filter(mesh => mesh.metadata?.assetInstance).length);
       const urban = scene.metadata?.authoredUrban;
@@ -1017,10 +1024,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       for (const mesh of cities.meshes) {
         if (mesh.metadata?.assetTemplate || mesh.isDisposed()) continue;
         mesh.computeWorldMatrix(true);
-        // A diagonal route's axis-aligned box has empty corners far beyond
-        // its rendered hull. Fit its real vertices while retaining model bounds.
-        const positions = mesh instanceof Mesh && /^(national-road-|railway-)/.test(mesh.name)
-          ? mesh.getVerticesData("position") : null;
+        // Rotated roads, quays and tall cranes have empty bounding-box corners
+        // beyond their visible silhouettes. Fit their actual transformed vertices.
+        const positions = mesh instanceof Mesh ? mesh.getVerticesData("position") : null;
         if (positions?.length) {
           const world = mesh.getWorldMatrix();
           for (let index = 0; index < positions.length; index += 3)
