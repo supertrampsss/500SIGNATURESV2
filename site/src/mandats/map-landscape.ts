@@ -1,4 +1,4 @@
-import { majorMonumentCanopyReservations } from "./map-monument-sites.ts";
+import { majorMonumentCanopyReservations, nationalCathedralCanopyReservations } from "./map-monument-sites.ts";
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
@@ -538,12 +538,16 @@ const riverWidthProfiles = riverPaths.map(river => {
         riverOriginalWidth(river, river.path[index], index / river.path.length) * riverSourceBlend(river, index),
         Math.min(widths[index], limit));
   }
-  // A Lipschitz envelope broadens the river gradually after a bridge or house;
-  // it only lowers widths, so it cannot defeat the physical clearance cap.
+  // Sea outlets may flare after their last protected foundation. This still
+  // only lowers the already capped widths and leaves every clearance intact.
+  const broadeningRate = (index: number) => {
+    const remaining = riverDistances[river.index].at(-1)! - riverDistances[river.index][index];
+    return river.index === 4 ? .35 : .35 + .85 * smooth(clamp((.60 - remaining) / .40));
+  };
   for (let i = 1; i < widths.length; i++)
-    widths[i] = Math.min(widths[i], widths[i - 1] + .35 * Math.hypot(river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
+    widths[i] = Math.min(widths[i], widths[i - 1] + broadeningRate(i) * Math.hypot(river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
   for (let i = widths.length - 2; i >= 0; i--)
-    widths[i] = Math.min(widths[i], widths[i + 1] + .35 * Math.hypot(river.path[i + 1].x - river.path[i].x, river.path[i + 1].z - river.path[i].z));
+    widths[i] = Math.min(widths[i], widths[i + 1] + broadeningRate(i) * Math.hypot(river.path[i + 1].x - river.path[i].x, river.path[i + 1].z - river.path[i].z));
   return widths;
 });
 function riverSurveyWidth(river: (typeof riverPaths)[number], index: number) {
@@ -1195,10 +1199,24 @@ const toulouseTerraces = NATIONAL_SETTLEMENTS.filter(town => town.name === "toul
         halfD: house.depth / 2, level: surveyedHeightBase(x, z) };
     }));
 });
+// The small island church has one authored stone terrace. Its flat support is
+// limited to that actual plot, with a narrow transition to the shared hillside.
+const islandChurchTerraces = NATIONAL_SETTLEMENTS.filter(town => town.name === "corte").flatMap(town => {
+  const origin = mapPosition(town.lon, town.lat);
+  return town.blocks.flatMap(block => block.buildings.filter(house =>
+    house.id === "corte-eglise-reference").map(house => {
+      const cosine = Math.cos(house.angle), sine = Math.sin(house.angle),
+        x = origin.x + house.x + sine * house.footprintOffset,
+        z = origin.z + house.z + cosine * house.footprintOffset;
+      return { id: house.id, x, z, cosine, sine, halfW: house.width / 2,
+        halfD: house.depth / 2, level: surveyedHeightBase(x, z) };
+    }));
+});
+const authoredTerraces = [...toulouseTerraces, ...islandChurchTerraces];
 function surveyedHeight(x: number, z: number) {
   const height = surveyedHeightBase(x, z);
   let strongest = 0, level = height;
-  for (const terrace of toulouseTerraces) {
+  for (const terrace of authoredTerraces) {
     const dx = x - terrace.x, dz = z - terrace.z,
       u = Math.abs(dx * terrace.cosine - dz * terrace.sine) - terrace.halfW,
       v = Math.abs(dx * terrace.sine + dz * terrace.cosine) - terrace.halfD,
@@ -1629,10 +1647,10 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     // Summit shelves carry smaller caps above the broken gullies. The cover
     // masks still exclude actual plantations, fields and inhabited ground.
     summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
-      (pyrenean ? .46 : upperAlps ? .48 : .62)) / .21)) *
-      (1 - smooth(clamp((slope - .35) / (upperAlps ? 3.25 : 2.55)))),
+      (pyrenean ? .46 : upperAlps ? .53 : .62)) / .21)) *
+      (1 - smooth(clamp((slope - .35) / (upperAlps ? 2.70 : 2.55)))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
-      sz * 7.3 + sx * 2.1 + 61) - .60) / .18)),
+      sz * 7.3 + sx * 2.1 + 61) - (upperAlps ? .56 : .60)) / .18)),
     accumulation = Math.max(summit * .96,
       Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
   return altitude * accumulation * (1 - rockRib * (upperAlps ? .64 : .78));
@@ -1757,7 +1775,7 @@ function coastalFracturePoint(points: Array<{ x: number; y: number; z: number }>
   if (!direction || Math.abs(nx * inward.x + nz * inward.z) / norm < .40) return undefined;
   const shortest = Math.min(Math.hypot(ab.x, ab.y, ab.z), Math.hypot(cb.x, cb.y, cb.z),
     Math.hypot(a.x - c.x, a.y - c.y, a.z - c.z)),
-    depth = Math.min(.017, shortest * .24, (high - low) * .20, requestedDepth),
+    depth = Math.min(.032, shortest * .34, (high - low) * .28, requestedDepth),
     x = a.x * u + b.x * v + c.x * w + nx / norm * depth * direction,
     y = a.y * u + b.y * v + c.y * w + ny / norm * depth * direction,
     z = a.z * u + b.z * v + c.z * w + nz / norm * depth * direction;
@@ -1794,7 +1812,7 @@ async function buildGround(
   const brown = Color3.FromHexString("#C4A478");
   const rock = Color3.FromHexString("#B2B0A0");
   const pale = Color3.FromHexString("#F0E2C7");
-  let fractureBudget = 1800;
+  let fractureBudget = 2600;
   for (const [part, outline] of outlines.entries()) {
     const sourceOutline = sourceOutlines[part],
       coast = renderedCoastlines[part];
@@ -2338,11 +2356,12 @@ async function buildGround(
           middle = coastalFracturePoint(points, inward,
             .24 + hash(face + part * 997, 1513) * .20,
             .24 + hash(face + part * 1009, 1523) * .16,
-            .010 + hash(face + part * 1013, 1531) * .017);
+            .014 + hash(face + part * 1013, 1531) * .025);
         if (middle && landContains(middle.x, middle.z) && contains(coast, middle.x, middle.z)) {
           const source = mapAuthoredCoordinates(middle.x, middle.z),
             cover = coastalRockProfile(middle.x, middle.z, source.x, source.z).cover;
-          if (cover > .18 && middle.y < landHeight(middle.x, middle.z) - .012) {
+          if ((cover > .18 || Math.max(...sourceCorners.map(index => cliffVertexWeights[index])) > .18) &&
+            middle.y < landHeight(middle.x, middle.z) - .012) {
             const channels = [0, 1, 2].map(channel => corners.reduce((sum, index, i) =>
               sum + sculptedRim.colors[index * 4 + channel] * middle.weights[i], 0)),
               chipColor = colorMix(new Color3(channels[0], channels[1], channels[2]), coastalIvory,
@@ -3283,8 +3302,9 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     loadAssetKit(scene, MODEL_URLS.cathedrale),
   ]);
   if (scene.isDisposed) return [];
-  const majorMonumentPlots = majorMonumentCanopyReservations(site =>
-    (site.model === "cathedrale_paris" ? cathedral : architecture).bounds(site.model));
+  const monumentCanopyPlots = [...majorMonumentCanopyReservations(site =>
+    (site.model === "cathedrale_paris" ? cathedral : architecture).bounds(site.model)),
+    ...nationalCathedralCanopyReservations(() => cathedral.bounds("cathedrale_paris"))];
   const meshes: AbstractMesh[] = [],
     forestRoot = new TransformNode("landscape-authored-vegetation", scene);
   const spacing = 0.15;
@@ -3307,11 +3327,11 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     const canopyRadius = Math.hypot(extent.width, extent.depth) * scale / 2;
     // Centred kit bounds enclose every rotated canopy. Only nearby roots need
     // a full hierarchy update for the exact world-envelope rejection.
-    if (name !== "rock" && majorMonumentPlots.some(plot =>
+    if (name !== "rock" && monumentCanopyPlots.some(plot =>
       Math.abs(x - plot.x) < plot.halfX + canopyRadius + .008 &&
       Math.abs(z - plot.z) < plot.halfZ + canopyRadius + .008)) {
       const canopy = prefab.root.getHierarchyBoundingVectors(true);
-      if (majorMonumentPlots.some(plot =>
+      if (monumentCanopyPlots.some(plot =>
         canopy.min.x < plot.x + plot.halfX + .008 && canopy.max.x > plot.x - plot.halfX - .008 &&
         canopy.min.z < plot.z + plot.halfZ + .008 && canopy.max.z > plot.z - plot.halfZ - .008)) {
         prefab.root.dispose(false);

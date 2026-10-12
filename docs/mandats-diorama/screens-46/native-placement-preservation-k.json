@@ -1,0 +1,82 @@
+{
+  "method": "Compare actual read-only native scene snapshots before and after the two placement optimizations on the same authored L terrain and assets. These observations cover actual seed0 native placements and contacts, not all future states, timing/FPS, original E2E or reference conformity.",
+  "rows": [
+    {
+      "field": "landmarks",
+      "identical": true,
+      "sha256": "5ef915aa5b9ad7623ef820de1e8196b73cb21c30bcd5b979ba51fe91eca7abed"
+    },
+    {
+      "field": "overlaps",
+      "identical": true,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "field": "authoredUrban",
+      "identical": true,
+      "sha256": "9c9e9dafb4a79377aa06b86a897d94a45dfb39a720a2b2d9d78d9089cc265312"
+    },
+    {
+      "field": "authoredNational",
+      "identical": true,
+      "sha256": "4564bfdcc0e49a0705470003a69d5a13373a429d2f2215b208ff0e59e7169b76"
+    },
+    {
+      "field": "treeRoots",
+      "identical": true,
+      "sha256": "5d36dbfd31e424a7fac3ce7fa57fc89ec0dc839ff8936b059ade60814bce6de2"
+    },
+    {
+      "field": "context",
+      "identical": true,
+      "sha256": "ede5acb8d4fef94224ee55b7a662427f37c7daf207e268e192d82f84acf877cc"
+    },
+    {
+      "field": "railwayViaducts",
+      "identical": true,
+      "sha256": "47b8a57b3be580dbb0081245e97300bbc652e875a48523034497892bd6221f91"
+    },
+    {
+      "field": "coastalLighthouses",
+      "identical": true,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "field": "townLandmarks",
+      "identical": true,
+      "sha256": "0c550f69c6f18462d040bdb75962188c2216651083c23d37c4fdb1f445e5262a"
+    },
+    {
+      "field": "townAccents",
+      "identical": true,
+      "sha256": "8b1c4da8ac65190ab1f42aec768b0a7ff33144bc8b0194c476069e9f6c5a73f3"
+    },
+    {
+      "field": "harbours",
+      "identical": true,
+      "sha256": "cfd5c3a811c4511ae36815fd80dc282b74240a3a94e47e4021cb82364252e160"
+    },
+    {
+      "field": "rocks",
+      "identical": true
+    },
+    {
+      "field": "mineralFractures",
+      "identical": true
+    },
+    {
+      "field": "mountainRocks",
+      "identical": true
+    },
+    {
+      "field": "snowNormal",
+      "identical": true
+    }
+  ],
+  "houses": 781,
+  "monuments": 16,
+  "trees": 2563,
+  "canopyOverlaps": 0,
+  "rocks": 188,
+  "maximumRockBaseClearance": -0.0037251188779232614
+}

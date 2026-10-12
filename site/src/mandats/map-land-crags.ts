@@ -151,7 +151,105 @@ function dividedVertices(massif: SculptedMassif, part: number) {
 /** Connected medium-scale buttresses. Three unequal crest shoulders,
  *  inset cols and sloping rock aprons replace the old clusters of thin tips.
  *  All points belong to the same ground triangulation. */
+/** Smaller connected Alpine crests replace the broad three-shoulder plate.
+ * All controls belong to the common ground; explicit tips never sit above it. */
+function alpineCrestVertices(massif: SculptedMassif) {
+  // Keep the connected rock aprons of the retained survey. The new crests
+  // rise from these shoulders instead of turning into isolated brown cones.
+  const retained = retainedShoulderedMassifVertices(massif, 0),
+    retainedFaces = Delaunator.from(retained, p => p.x, p => p.z).triangles,
+    retainedSurvey = new Map<string, RockTriangle[]>();
+  for (let face = 0; face < retainedFaces.length; face += 3) {
+    const points = Array.from(retainedFaces.slice(face, face + 3)).map(id => retained[id]),
+      x = points.map(p => p.x), z = points.map(p => p.z), h = points.map(p => p.height),
+      denominator = (z[1] - z[2]) * (x[0] - x[2]) + (x[2] - x[1]) * (z[0] - z[2]);
+    if (Math.abs(denominator) < 1e-12) continue;
+    indexRockFace(retainedSurvey, { x, z, h, inverse: 1 / denominator,
+      band: 100000 + face / 3, slope: 0, normalX: 0, normalZ: 0 });
+  }
+  const boundary = massif.boundary.map(([lon, lat, height]) => ({ ...mapPosition(lon, lat), height })),
+    peaks = dividedCirques.filter(cirque => cirque.part === 0).flatMap((cirque, index) => {
+      const dx = Math.cos(cirque.angle), dz = Math.sin(cirque.angle), alternate = index % 2 === 0 ? 1 : -1;
+      return [[-.068,.100,1.04,.235,.270], [.098,.027,.96,.210,.240], [-.075,-.119,.87,.185,.205]]
+        .map(([u, v, height, rx, rz], tip) => ({
+          x: cirque.x + cirque.reach * (dx * u - dz * v * alternate),
+          z: cirque.z + cirque.reach * (dz * u + dx * v * alternate),
+          height: cirque.height * height * (index === 0 ? .90 : 1),
+          rx: rx * cirque.reach * (index === 0 ? 1.35 : 1),
+          rz: rz * cirque.reach * (index === 0 ? 1.30 : 1),
+          angle: cirque.angle + (tip - 1) * .14, family: index,
+        }));
+    });
+  const inside = (x: number, z: number) => {
+    let accepted = false;
+    for (let i = 0, j = boundary.length - 1; i < boundary.length; j = i++) {
+      const a = boundary[i], b = boundary[j];
+      if ((a.z > z) !== (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x)
+        accepted = !accepted;
+    }
+    return accepted;
+  };
+  const borderDistance = (x: number, z: number) => Math.min(...boundary.map((a, i) => {
+    const b = boundary[(i + 1) % boundary.length], dx = b.x - a.x, dz = b.z - a.z,
+      t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
+    return Math.hypot(x - a.x - dx * t, z - a.z - dz * t);
+  }));
+  const sections = peaks.filter((_, i) => i % 3 !== 0).map((peak, i) => {
+    const first = peaks[peak.family * 3];
+    return { a: first, b: peak, width: (i % 2 ? .105 : .125) * (peak.family === 0 ? 1.30 : 1) };
+  });
+  const altitude = (x: number, z: number) => {
+    const old = sculptedAt(x, z, retainedSurvey), retainedHeight = old?.height ?? 0,
+      geology = weatheredRock(x, z), strength = Math.max(0, Math.min(1, (retainedHeight - .18) / .42)),
+      // Shared world grain cuts the broad shoulder itself. The crests rise
+      // from its actual local level, so the gullies do not become added spires.
+      incision = Math.max(0, .055 - geology.fold) * 1.80 + Math.max(0, -geology.grain) * .60,
+      ripple = geology.grain * .55,
+      north = dividedCirques[0],
+      northernWeight = Math.max(0, Math.min(1, (.70 - Math.hypot(x - north.x, z - north.z)) / .35)),
+      base = Math.max(0, retainedHeight * .78 + (ripple - incision) * strength) *
+        (1 - .10 * northernWeight * northernWeight * (3 - 2 * northernWeight));
+    let height = base;
+    for (const peak of peaks) {
+      const dx = x - peak.x, dz = z - peak.z, cosine = Math.cos(peak.angle), sine = Math.sin(peak.angle),
+        u = dx * cosine + dz * sine, v = -dx * sine + dz * cosine,
+        distance = Math.abs(u) / peak.rx + Math.abs(v) / peak.rz,
+        crest = base + Math.max(0, peak.height - base) * Math.max(0, 1 - distance),
+        apron = base + Math.max(0, 1 - distance / 2.8) * peak.height * .10;
+      height = Math.max(height, crest, apron);
+    }
+    for (const section of sections) {
+      const dx = section.b.x - section.a.x, dz = section.b.z - section.a.z,
+        t = Math.max(0, Math.min(1, ((x - section.a.x) * dx + (z - section.a.z) * dz) / (dx * dx + dz * dz))),
+        distance = Math.hypot(x - section.a.x - dx * t, z - section.a.z - dz * t),
+        saddle = (section.a.height * (1 - t) + section.b.height * t) *
+          (.69 + .31 * Math.abs(2 * t - 1));
+      height = Math.max(height, base + Math.max(0, saddle - base) * Math.max(0, 1 - distance / section.width));
+    }
+    return height;
+  };
+  const spacing = .065, minimumX = Math.min(...boundary.map(p => p.x)), maximumX = Math.max(...boundary.map(p => p.x)),
+    minimumZ = Math.min(...boundary.map(p => p.z)), maximumZ = Math.max(...boundary.map(p => p.z)),
+    vertices = [...boundary];
+  for (let ix = Math.ceil(minimumX / spacing); ix * spacing < maximumX; ix++)
+    for (let iz = Math.ceil(minimumZ / spacing); iz * spacing < maximumZ; iz++) {
+      const x = ix * spacing, z = iz * spacing;
+      if (!inside(x, z) || borderDistance(x, z) < .032 ||
+        peaks.some(peak => Math.hypot(x - peak.x, z - peak.z) < spacing * .40)) continue;
+      vertices.push({ x, z, height: altitude(x, z) });
+    }
+  for (const peak of peaks) {
+    if (!inside(peak.x, peak.z) || borderDistance(peak.x, peak.z) < .032) continue;
+    vertices.push({ x: peak.x, z: peak.z, height: altitude(peak.x, peak.z) });
+  }
+  return vertices;
+}
+
 function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
+  return part === 0 ? alpineCrestVertices(massif) : retainedShoulderedMassifVertices(massif, part);
+}
+
+function retainedShoulderedMassifVertices(massif: SculptedMassif, part: number) {
   const vertices = [...massif.boundary, ...massif.points.filter(point => point[2] < .23)]
     .map(([lon, lat, height]) => ({ ...mapPosition(lon, lat), height }));
   for (const [index, cirque] of dividedCirques.filter(cirque => cirque.part === part).entries()) {
@@ -213,7 +311,7 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
 function indexRockFace(index: Map<string, RockTriangle[]>, triangle: RockTriangle) {
   const minX = Math.min(...triangle.x), maxX = Math.max(...triangle.x),
     minZ = Math.min(...triangle.z), maxZ = Math.max(...triangle.z);
-  if (index !== rockCells) {
+  if (index !== rockCells && index !== parentRockCells) {
     for (let ix = Math.floor(minX / legacyRockCellSize); ix <= Math.floor(maxX / legacyRockCellSize); ix++)
       for (let iz = Math.floor(minZ / legacyRockCellSize); iz <= Math.floor(maxZ / legacyRockCellSize); iz++) {
         const key = `${ix}:${iz}`, cell = index.get(key) ?? [];
@@ -497,7 +595,7 @@ for (const [part, massif] of sculptedMassifs.entries()) {
       gz = ((x[1] - x[0]) * (h[2] - h[0]) - (x[2] - x[0]) * (h[1] - h[0])) / denominator,
       length = Math.hypot(gx, 1, gz);
     const triangle: RockTriangle = { x, z, h, inverse: 1 / denominator,
-      band: 100000 + part * 10000 + face, slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length };
+      band: 100000 + part * 10000 + (part === 0 ? face / 3 : face), slope: Math.hypot(gx, gz), normalX: -gx / length, normalZ: -gz / length };
     indexRockFace(parentRockCells, triangle);
     for (const plane of foldedRockPlanes(triangle))
       for (const shelf of steppedRockFace(plane)) indexRockFace(rockCells, shelf);
@@ -509,7 +607,7 @@ for (const [part, massif] of sculptedMassifs.entries()) {
   }
 }
 function sculptedAt(x: number, z: number, index = rockCells) {
-  const fine = index === rockCells, step = fine ? rockCellSize : legacyRockCellSize,
+  const fine = index === rockCells || index === parentRockCells, step = fine ? rockCellSize : legacyRockCellSize,
     legacyX = Math.floor(x / legacyRockCellSize), legacyZ = Math.floor(z / legacyRockCellSize);
   for (const triangle of index.get(`${Math.floor(x / step)}:${Math.floor(z / step)}`) ?? []) {
     if (fine) {
@@ -716,19 +814,19 @@ const networks: readonly Ridge[] = [
   {
     width: 0.18,
     points: [
-      [9.04, 42.65, 0.3],
-      [8.96, 42.46, 0.53],
-      [9.1, 42.3, 0.62],
-      [9.04, 42.09, 0.45],
-      [9.14, 41.83, 0.26],
+      [9.04, 42.65, 0.20],
+      [8.96, 42.46, 0.32],
+      [9.1, 42.3, 0.36],
+      [9.04, 42.09, 0.28],
+      [9.14, 41.83, 0.18],
     ],
   },
   {
     width: 0.13,
     points: [
-      [8.96, 42.46, 0.49],
-      [8.8, 42.3, 0.27],
-      [8.73, 42.13, 0.12],
+      [8.96, 42.46, 0.30],
+      [8.8, 42.3, 0.18],
+      [8.73, 42.13, 0.08],
     ],
   },
 ];

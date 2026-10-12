@@ -11,7 +11,7 @@ import { landContains, riverContains } from "./map-landscape.ts";
 import { fractureMineralTerrain, type MineralFractureFace } from "./map-mineral-fractures.ts";
 
 type Point = { x: number; z: number };
-type Face = MineralFractureFace & { area: number };
+type Face = MineralFractureFace & { area: number; envelope: ReturnType<typeof bounds> };
 type Geometry = { positions: number[]; indices: number[]; colors: number[]; uvs: number[] };
 const STEP = .20;
 function random(a: number, b: number) {
@@ -55,6 +55,13 @@ function hull(points: Point[]) {
   lower.pop(); upper.pop(); return [...lower, ...upper];
 }
 function triangleHeight(face: Face, point: Point) {
+  // Accepted barycentric weights may extend at most two tolerances beyond
+  // either coordinate range. Reject the other coarse-cell faces cheaply.
+  const envelope = face.envelope,
+    epsilonX = (envelope.maxX - envelope.minX) * 2e-7 + 1e-9,
+    epsilonZ = (envelope.maxZ - envelope.minZ) * 2e-7 + 1e-9;
+  if (point.x < envelope.minX - epsilonX || point.x > envelope.maxX + epsilonX ||
+      point.z < envelope.minZ - epsilonZ || point.z > envelope.maxZ + epsilonZ) return undefined;
   const [a, b, c] = face.polygon,
     d = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
   if (Math.abs(d) < 1e-12) return undefined;
@@ -203,7 +210,7 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
         pyrenean = band >= 110000 && band < 120000 || band >= 4560000 && band < 7120000;
       if (!alpine && !pyrenean) continue;
       const face = { mesh, band,
-        polygon, heights: world.map(p => p.y), area, alpine };
+        polygon, heights: world.map(p => p.y), area, alpine, envelope: bounds(polygon) };
       faces.push(face); insert(mineral, polygon, face);
     }
   }

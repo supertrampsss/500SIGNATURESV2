@@ -10,7 +10,9 @@ import { CORSE_REFERENCE_POSE, CORSICA_SETTLEMENTS, mapCorsicaLocalVector, mapRe
 export type NationalPoint = readonly [number, number];
 export type NationalRegion = "north" | "breton" | "stone" | "south" | "alsace";
 export type NationalBuilding = { id: string; model: string; x: number; z: number; angle: number;
-  width: number; depth: number; height: number; footprintOffset: number; ruralInfill?: true };
+  width: number; depth: number; height: number; footprintOffset: number; ruralInfill?: true;
+  /** The authored plot follows the original model's uniform scale. */
+  rigidModel?: true };
 export type NationalBlock = { id: string; outline: readonly NationalPoint[]; buildings: readonly NationalBuilding[] };
 export type NationalTree = { x: number; z: number; height: number; model: "beech" | "oak" | "pine" | "cypress" | "olive" };
 export type NationalStreet = { id: string; width: number; points: readonly NationalPoint[] };

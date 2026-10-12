@@ -31,7 +31,7 @@ import { NATIONAL_SETTLEMENTS, nationalBuildingFootprint } from "./map-city-nati
 import type { NationalBuilding } from "./map-city-national.ts";
 import { URBAN_PLANS, RURAL_SETTLEMENTS, AUTHORED_PROJECT_RESERVATIONS } from "./map-urban-plans.ts";
 import type { UrbanRegion } from "./map-urban-plans.ts";
-import { MAJOR_MONUMENT_SITES, majorMonumentCanopyReservations } from "./map-monument-sites.ts";
+import { MAJOR_MONUMENT_SITES, majorMonumentCanopyReservations, nationalCathedralCanopyReservations } from "./map-monument-sites.ts";
 
 type Point = [number, number, number];
 type GroundPoint = { x: number; z: number };
@@ -587,7 +587,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   const placeHouse = (root: TransformNode, town: string, region: UrbanRegion,
     x: number, z: number, angle: number, width: number, index: number,
     frontage?: { normalX: number; normalZ: number; side: number; streetWidth: number; maxDepth: number },
-    authored?: (Omit<ParisBuilding, "model"> & { model: string; footprintOffset?: number; national?: boolean; ruralInfill?: true }) & { kit: AssetKit; block: string }) => {
+    authored?: (Omit<ParisBuilding, "model"> & { model: string; footprintOffset?: number; national?: boolean; ruralInfill?: true; rigidModel?: true }) & { kit: AssetKit; block: string }) => {
     candidates++;
     // Narrower footprints and taller gables give the reference's fine urban
     // skyline. Survey the actual dimensions before all ground/contact checks.
@@ -710,7 +710,9 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     asset.root.scaling.y = authoredHeight !== undefined
       ? authoredHeight / bounds.height : scale * heightFactor * 1.10 / .88;
     asset.root.scaling.z *= depth / naturalDepth;
-    asset.root.metadata = { ...asset.root.metadata, town, domestic: true,
+    if (authored?.rigidModel) asset.root.scaling.setAll(scale);
+    asset.root.metadata = { ...asset.root.metadata, town, domestic: name !== "cathedrale_paris",
+      ...(name === "cathedrale_paris" ? { monument: true, islandChurch: true } : {}),
       heightFactor: authoredHeight !== undefined ? authoredHeight / (bounds.height * scale) : heightFactor,
       ...(authored ? { authoredParis: !authored.national, authoredNational: !!authored.national,
         block: authored.block, frontage: authored.id } : {}) };
@@ -759,7 +761,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       accentedTowns.add(town);
     }
     meshes.push(...asset.meshes);
-    counts[town] = (counts[town] ?? 0) + 1;
+    if (name !== "cathedrale_paris") counts[town] = (counts[town] ?? 0) + 1;
     usedArchetypes.add(name);
     return true;
   };
@@ -818,7 +820,8 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     for (const block of settlement.blocks) for (const [index, building] of block.buildings.entries()) {
       const before = rejectionCounts(), accepted = !!placeHouse(root, settlement.name, settlement.region,
         building.x, building.z, building.angle, building.width, index, undefined,
-        { ...building, national: true, block: block.id, kit }), after = rejectionCounts(),
+        { ...building, national: true, block: block.id,
+          kit: building.model === "cathedrale_paris" ? cathedralKit : kit }), after = rejectionCounts(),
         reason = Object.keys(after).find(key => after[key as keyof typeof after] > before[key as keyof typeof before]);
       nationalReport.push({ id: building.id, town: settlement.name, block: block.id, accepted,
         ...(reason ? { reason } : {}), ...(parisConflicts.has(building.id) ? { corridors: parisConflicts.get(building.id) } : {}) });
@@ -968,8 +971,9 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     }
     meshes.push(...asset.meshes);
   };
-  const majorMonumentPlots = majorMonumentCanopyReservations(site =>
-    (site.model === "cathedrale_paris" ? cathedralKit : kit).bounds(site.model));
+  const monumentCanopyPlots = [...majorMonumentCanopyReservations(site =>
+    (site.model === "cathedrale_paris" ? cathedralKit : kit).bounds(site.model)),
+    ...nationalCathedralCanopyReservations(() => cathedralKit.bounds("cathedrale_paris"))];
   for (const site of MAJOR_MONUMENT_SITES) {
     const library = site.model === "cathedrale_paris" ? cathedralKit : kit,
       scale = site.width === undefined ? site.scale! : site.width / library.bounds(site.model).width;
@@ -999,6 +1003,28 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       return { x: (bounds.min.x + bounds.max.x) / 2, z: (bounds.min.z + bounds.max.z) / 2,
         halfX: (bounds.max.x - bounds.min.x) / 2, halfZ: (bounds.max.z - bounds.min.z) / 2 };
     });
+  const canopyCells = new Map<string, typeof existingCanopies>(), canopyStep = .35,
+    canopyIndexable = existingCanopies.every(plot =>
+      [plot.x, plot.z, plot.halfX, plot.halfZ].every(Number.isFinite));
+  if (canopyIndexable) for (const plot of existingCanopies) {
+    for (let x = Math.floor((plot.x - plot.halfX - 1e-9) / canopyStep);
+      x <= Math.floor((plot.x + plot.halfX + 1e-9) / canopyStep); x++)
+      for (let z = Math.floor((plot.z - plot.halfZ - 1e-9) / canopyStep);
+        z <= Math.floor((plot.z + plot.halfZ + 1e-9) / canopyStep); z++) {
+        const key = `${x}:${z}`, cell = canopyCells.get(key) ?? [];
+        cell.push(plot); canopyCells.set(key, cell);
+      }
+  }
+  const hasCanopyCollision = (plot: Plot) => {
+    if (!canopyIndexable) return existingCanopies.some(other => collides(plot, other, .008));
+    for (let x = Math.floor((plot.x - plot.halfX - .008 - 1e-9) / canopyStep);
+      x <= Math.floor((plot.x + plot.halfX + .008 + 1e-9) / canopyStep); x++)
+      for (let z = Math.floor((plot.z - plot.halfZ - .008 - 1e-9) / canopyStep);
+        z <= Math.floor((plot.z + plot.halfZ + .008 + 1e-9) / canopyStep); z++)
+        for (const other of canopyCells.get(`${x}:${z}`) ?? [])
+          if (collides(plot, other, .008)) return true;
+    return false;
+  };
   for (const [index, town] of landmarkTowns.entries()) {
     const root = settlementRoots.get(town);
     if (!root) continue;
@@ -1020,7 +1046,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
           occupied.some(other => collides(plot, other, .014)) ||
           fixedProjectPlots.some(other => collides(plot, other, .045)) ||
           allPublicPlots.some(other => collides(plot, other, .014)) ||
-          existingCanopies.some(other => collides(plot, other, .008)) ||
+          hasCanopyCollision(plot) ||
           intersectsRoad(plot, true) || intersectsCorridors(plot, railCorridors, true) ||
           intersectsCorridors(plot, localStreets, true) ||
           harbourReservations.some(polygon => harbourPolygonsOverlap(polygon,
@@ -1181,7 +1207,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       canopyPlot: Plot = { x: (canopy.min.x + canopy.max.x) / 2,
         z: (canopy.min.z + canopy.max.z) / 2,
         halfX: (canopy.max.x - canopy.min.x) / 2, halfZ: (canopy.max.z - canopy.min.z) / 2 };
-    if (majorMonumentPlots.some(plot => collides(canopyPlot, plot, .008)) ||
+    if (monumentCanopyPlots.some(plot => collides(canopyPlot, plot, .008)) ||
         lighthousePlots.some(plot => collides(canopyPlot, plot, .008)) || landmarkReport.some(site => {
       const monumentRoot = settlementRoots.get(site.town)!;
       return collides(canopyPlot, { x: monumentRoot.position.x + site.x,

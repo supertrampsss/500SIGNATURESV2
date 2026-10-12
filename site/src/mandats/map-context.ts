@@ -305,7 +305,9 @@ function contextHeight(x: number, z: number) {
     hill(x, z, -3.5, 50.8, 0.9, 0.5, 0.16) +
     hill(x, z, -3.1, 41.1, 2.1, 1.2, 0.12);
   const ridge = 1 - Math.abs(noise(x * 7.3 + 31, z * 6.5 + 9) * 2 - 1);
-  let height = -0.025 + rolling + uplands + watershed * (0.73 + ridge * 0.27);
+  let height = -0.025 + rolling + uplands + watershed * (0.61 + ridge * 0.39) +
+    (noise(x * 9.7 + 57, z * 10.1 + 23) - .5) * .045 *
+      smooth(clamp((watershed - .08) / .20));
   // Compress distant peaks smoothly; never give the neighbours a flat cap.
   if (height > .48) height = .48 + .24 * (1 - Math.exp(-(height - .48) / .3));
   const shore = edgeDistance(coastCells, x, z, 0.45);
@@ -317,8 +319,8 @@ function contextHeight(x: number, z: number) {
   // the reference diorama. Keep that lower background above the water while
   // exposing the French rock edge instead of joining both plateaus.
   const backdrop = Math.max(-.043, height * .82 - .056);
-  if (distance >= .6) return backdrop;
-  const frontier = smooth(clamp((.6 - distance) / .6));
+  if (distance >= .24) return backdrop;
+  const frontier = smooth(clamp((.24 - distance) / .24));
   return mix(backdrop, Math.min(backdrop, -.036), frontier);
 }
 function forestAmount(x: number, z: number) {
@@ -347,10 +349,10 @@ export async function buildMapContext(
     borderIndices: number[] = [],
     borderColors: number[] = [];
   const palette = {
-    forest: Color3.FromHexString("#384542"),
-    clearing: Color3.FromHexString("#636461"),
-    ridge: Color3.FromHexString("#707067"),
-    stone: Color3.FromHexString("#8A8578"),
+    forest: Color3.FromHexString("#354344"),
+    clearing: Color3.FromHexString("#575D63"),
+    ridge: Color3.FromHexString("#6B7073"),
+    stone: Color3.FromHexString("#898783"),
   };
   for (const ring of rings) {
     const points = [...ring.points],
@@ -538,7 +540,7 @@ export async function buildMapContext(
       chips = smooth(clamp((fine - .60) / .30));
     return {
       relief: .5 + slab - joint * .085 + (middle - .5) * .02 + (fine - .5) * .028,
-      shade: 232 + (mineral - .5) * 10 + (fine - .5) * 12 + chips * 7 - joint * 12,
+      shade: 226 + (mineral - .5) * 26 + (fine - .5) * 24 + chips * 9 - joint * 20,
     };
   }
   for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) {
@@ -573,7 +575,7 @@ export async function buildMapContext(
   surface.diffuseTexture = materialTexture("context-earth-grain", rgba);
   const rockNormal = materialTexture("context-rock-granules-normal", normals);
   rockNormal.gammaSpace = false;
-  rockNormal.level = .13;
+  rockNormal.level = .24;
   surface.bumpTexture = rockNormal;
   const borderMaterial = new StandardMaterial(
     "context-country-boundaries",
@@ -744,7 +746,7 @@ export async function buildMapContext(
       if (renderedGround === null) continue;
       const prefab = kit.instantiate(name, forestRoot, {
         key: variant > .5 ? "context-moss" : "context-wood",
-        tint: variant > .5 ? [.52, .55, .43] : [.43, .49, .40],
+        tint: variant > .5 ? [.49, .54, .50] : [.43, .49, .44],
       });
       prefab.root.position.set(point.x, renderedGround + .001, point.z);
       prefab.root.scaling.set(scale * canopy, scale, scale * canopy);

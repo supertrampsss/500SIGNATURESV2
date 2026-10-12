@@ -1,0 +1,7 @@
+{
+  "method": "Independent bake in isolated copied authoring sources with exact G snapshots. No canonical runtime mutations. G was reconstructed after the H client build had replaced the previous dist.",
+  "expectedDistributedG": "d5f77644c560bc1a73f36adb400aac05c0b495c62e5acb9179e27836d67fd5fa",
+  "reconstructedG": "d5f77644c560bc1a73f36adb400aac05c0b495c62e5acb9179e27836d67fd5fa",
+  "bytes": 10205163,
+  "byteExact": true
+}

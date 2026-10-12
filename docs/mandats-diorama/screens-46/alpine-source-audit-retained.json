@@ -1,0 +1,196 @@
+{
+  "method": "Independent authoring audit of the actual compiled source faces and query, before game promotion. Compare exact height/band/slope/normals at real historical and Pyrenean face vertices/interiors/edges and boundary offsets. Check finite geometry, source face normal lengths and reserved Alpine parent band range. It does not certify the final terrain bake, physical model contacts, native rendering, browser gates, frame rate or reference conformity.",
+  "preservation": [
+    {
+      "survey": "baseline",
+      "checked": 5642,
+      "allFiveFieldsBitIdentical": true
+    },
+    {
+      "survey": "previous",
+      "checked": 10478,
+      "allFiveFieldsBitIdentical": true
+    },
+    {
+      "survey": "Pyrenean parent",
+      "checked": 2340,
+      "allFiveFieldsBitIdentical": true
+    },
+    {
+      "survey": "Pyrenean rocks",
+      "checked": 100412,
+      "allFiveFieldsBitIdentical": true
+    }
+  ],
+  "alpineParents": 2090,
+  "totalParentFaces": 2270,
+  "totalRockFaces": 26982,
+  "alpineBandMinimum": 100000,
+  "alpineBandMaximum": 102089,
+  "maximumAlpineParentHeight": 0.8216000000000001,
+  "maximumAlpineParentSourceSlope": 8.750678734640154,
+  "worstAlpineParentFaces": [
+    {
+      "x": [
+        2.99,
+        2.8728,
+        3.4048000000000003
+      ],
+      "z": [
+        -0.26,
+        -0.12959999999999725,
+        -0.5075999999999988
+      ],
+      "h": [
+        0.336170006346737,
+        0,
+        0
+      ],
+      "band": 102042,
+      "slope": 8.750678734640154,
+      "sourceHorizontalArea": 0.01253560000000059
+    },
+    {
+      "x": [
+        3.055,
+        2.99,
+        3.4048000000000003
+      ],
+      "z": [
+        -0.325,
+        -0.26,
+        -0.5075999999999988
+      ],
+      "h": [
+        0.4542992198299661,
+        0.336170006346737,
+        0
+      ],
+      "band": 101941,
+      "slope": 8.03790646403968,
+      "sourceHorizontalArea": 0.00543400000000005
+    },
+    {
+      "x": [
+        2.909143676869762,
+        2.9250000000000003,
+        2.9250000000000003
+      ],
+      "z": [
+        -0.9466695913085491,
+        -0.91,
+        -0.9750000000000001
+      ],
+      "h": [
+        0.6612,
+        0.5094547532853916,
+        0.5983822605554745
+      ],
+      "band": 100798,
+      "slope": 6.55055043212772,
+      "sourceHorizontalArea": 0.0005153305017327497
+    },
+    {
+      "x": [
+        3.12,
+        3.12,
+        3.055
+      ],
+      "z": [
+        -1.105,
+        -1.17,
+        -1.17
+      ],
+      "h": [
+        0.49586855610159825,
+        0.3061817781819718,
+        0.6316453990445169
+      ],
+      "band": 100404,
+      "slope": 5.795481656137347,
+      "sourceHorizontalArea": 0.0021124999999999963
+    },
+    {
+      "x": [
+        3.055,
+        3.12,
+        3.055
+      ],
+      "z": [
+        -1.17,
+        -1.17,
+        -1.235
+      ],
+      "h": [
+        0.6316453990445169,
+        0.3061817781819718,
+        0.4926964694301528
+      ],
+      "band": 100390,
+      "slope": 5.444358103468346,
+      "sourceHorizontalArea": 0.0021125000000000037
+    },
+    {
+      "x": [
+        3.12,
+        3.25,
+        3.185
+      ],
+      "z": [
+        -0.39,
+        -0.455,
+        -0.455
+      ],
+      "h": [
+        0.3157498796997663,
+        0.1962094752418021,
+        0.3984776022951394
+      ],
+      "band": 101784,
+      "slope": 5.3765880722899,
+      "sourceHorizontalArea": 0.0021124999999999985
+    },
+    {
+      "x": [
+        3.101868638925718,
+        3.12,
+        3.12
+      ],
+      "z": [
+        -1.0194231032549168,
+        -0.9750000000000001,
+        -1.04
+      ],
+      "h": [
+        0.7296,
+        0.5925593361531034,
+        0.6607382183358605
+      ],
+      "band": 100662,
+      "slope": 5.097404062533504,
+      "sourceHorizontalArea": 0.0005892692349141621
+    },
+    {
+      "x": [
+        2.795,
+        2.8600000000000003,
+        2.8600000000000003
+      ],
+      "z": [
+        -1.17,
+        -1.17,
+        -1.235
+      ],
+      "h": [
+        0.2699815934894757,
+        0.5239592414096986,
+        0.32158622242790247
+      ],
+      "band": 100333,
+      "slope": 4.996080936399237,
+      "sourceHorizontalArea": 0.002112500000000018
+    }
+  ],
+  "allInspectedAttributesFinite": true,
+  "allInspectedSourceNormalsUnit": true
+}
