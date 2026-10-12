@@ -205,8 +205,8 @@ export function buildMapWater(scene: Scene) {
         // Broken near-rock wash stays thin and retains the existing clock.
         // The coarse patch interrupts it; the moving fine noise draws surf.
         float wash = .5 + .5 * sin(shoreDepth * 111.0 - time * .32 + coastPatch * 2.6);
-        float foam = (1.0 - smoothstep(.016, .150, shoreDepth)) *
-          smoothstep(.45, .59, seaNoise(p * 27.0 + drift)) *
+        float foam = (1.0 - smoothstep(.012, .105, shoreDepth)) *
+          smoothstep(.50, .65, seaNoise(p * 39.0 + drift)) *
           smoothstep(.20, .48, coastPatch) * (.55 + wash * .45) * (1.0 - riverChannel);
         color = mix(color, vec3(.835, .900, .901), foam * .86);
         gl_FragColor = vec4(color, 1.0);

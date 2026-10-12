@@ -305,7 +305,7 @@ export function buildRailNetwork(scene: Scene, materials: CityMaterials, offsets
         part = (draw: () => void, color: number[]) => {
           const start = coach.positions.length / 3; draw();
           for (let i = start; i < coach.positions.length / 3; i++) colors.push(...color, 1);
-        }, blue = index % 2 ? [.035, .23, .48] : [.72, .027, .048];
+        }, blue = index % 2 ? [.035, .23, .48] : [.04, .16, .36];
       part(() => coach.box(0, .022, 0, .038, .033, .108), [.93, .92, .86]);
       part(() => coach.box(0, .043, 0, .037, .009, .105), blue);
       part(() => coach.box(0, .008, 0, .032, .011, .087), [.10, .12, .13]);

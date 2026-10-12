@@ -1,0 +1,23 @@
+{
+  "method": "Two complete fresh source albedo bakes, deterministic high/distant mesh names and documented CC0 composition. GLB, metadata and atlas byte exact; not timing/artistic proof.",
+  "files": [
+    {
+      "file": "architecture.glb",
+      "bytes": 11953412,
+      "sha256": "0940846cb686aa691e2c35006281a6968a3e71f1fd4bc4ecff846badd6c4de16",
+      "byteIdentical": true
+    },
+    {
+      "file": "architecture.json",
+      "bytes": 30658,
+      "sha256": "b00d05dd42f638112f7ee91a200138403b201b1f866fa1d3aaff77df8ef688f4",
+      "byteIdentical": true
+    },
+    {
+      "file": "architecture-atlas.png",
+      "bytes": 3400197,
+      "sha256": "6daafdd458c5c076fb9da6cc6fdea6311f19565ba26d730c57ff03990239379d",
+      "byteIdentical": true
+    }
+  ]
+}

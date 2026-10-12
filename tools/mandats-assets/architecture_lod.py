@@ -38,12 +38,14 @@ def export_with_distance_lods(models):
     metadata = {}
     for high in models:
         name = high.parent.name
+        high.data.name = f"{name}_geometry"
         original = metrics(high)
         metadata[name] = original
         ratio = .45 if name == "cathedrale_paris" else .40 if name in {
             "mairie_sud", "beffroi_nord"} else .48
         mesh = high.copy()
         mesh.data = high.data.copy()
+        mesh.data.name = f"{name}_distant_geometry"
         mesh.name = f"{name}_distant_mesh"
         bpy.context.collection.objects.link(mesh)
         root = bpy.data.objects.new(f"{name}_distant", None)

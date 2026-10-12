@@ -95,3 +95,13 @@ identiques octet par octet. Les modèles détaillés et distants utilisent la m�
 image ; aucune couleur de toiture n'est appliquée globalement au matériau PBR.
 Une génération complète recuit directement la nouvelle palette enregistrée dans
 le générateur, sans retouche de la lumière dans les couleurs.
+
+
+La cuisson d’albédo seule (`--albedo-only --skip-preview`) reprend les UV de la
+source Blender existante et refuse un changement de sommets ou de polygones.
+Elle conserve les cartes de normales et ORM. Les pierres et calcaires utilisent
+une maçonnerie plus fine, moins contrastée ; les autres recettes restent identiques.
+Après cette cuisson, recomposer la maison CC0 comme décrit ci-dessus.
+L’exporteur attribue un nom stable aux données géométriques détaillées et distantes,
+indépendant des compteurs temporaires `Cube` de Blender. Les racines publiques,
+leurs attributs, UV, indices et dimensions restent inchangés.

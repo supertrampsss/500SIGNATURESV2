@@ -118,17 +118,18 @@ for name, color in PALETTE.items():
         links.new(separate.outputs["Z"],combine.inputs["Y"])
         bricks=nodes.new("ShaderNodeTexBrick")
         links.new(combine.outputs["Vector"],bricks.inputs["Vector"])
-        bricks.inputs["Scale"].default_value=2.7 if name.startswith("tuile") else 2.1
+        stone_surface = name in {"pierre", "calcaire"}
+        bricks.inputs["Scale"].default_value=2.7 if name.startswith("tuile") else 4.4 if stone_surface else 2.1
         bricks.inputs["Brick Width"].default_value=.33 if name.startswith("tuile") else .46
         bricks.inputs["Row Height"].default_value=.12 if name.startswith("tuile") else .17
         bricks.inputs["Mortar Size"].default_value=.006 if name.startswith("tuile") else .012
         bricks.inputs["Mortar Smooth"].default_value=.006
         bricks.inputs["Color1"].default_value=(*color,1)
-        bricks.inputs["Color2"].default_value=(*(c*.76 for c in color),1)
-        mortar=.69 if name.startswith("tuile") else .77
+        bricks.inputs["Color2"].default_value=(*(c*(.89 if stone_surface else .76) for c in color),1)
+        mortar=.69 if name.startswith("tuile") else .86 if stone_surface else .77
         bricks.inputs["Mortar"].default_value=(*(c*mortar for c in color),1)
         pattern=nodes.new("ShaderNodeMixRGB")
-        pattern.inputs[0].default_value=.38 if name in {"pierre","calcaire"} else .65
+        pattern.inputs[0].default_value=.24 if stone_surface else .65
         links.new(mix.outputs["Color"],pattern.inputs[1])
         links.new(bricks.outputs["Color"],pattern.inputs[2])
         links.new(pattern.outputs["Color"],shader.inputs["Base Color"])

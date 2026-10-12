@@ -174,9 +174,9 @@ function alpineCrestVertices(massif: SculptedMassif) {
         .map(([u, v, height, rx, rz], tip) => ({
           x: cirque.x + cirque.reach * (dx * u - dz * v * alternate),
           z: cirque.z + cirque.reach * (dz * u + dx * v * alternate),
-          height: cirque.height * height * (index === 0 ? .90 : 1),
-          rx: rx * cirque.reach * (index === 0 ? 1.35 : 1),
-          rz: rz * cirque.reach * (index === 0 ? 1.30 : 1),
+          height: cirque.height * height * (index === 0 ? .82 : 1),
+          rx: rx * cirque.reach * (index === 0 ? 1.55 : 1),
+          rz: rz * cirque.reach * (index === 0 ? 1.50 : 1),
           angle: cirque.angle + (tip - 1) * .14, family: index,
         }));
     });

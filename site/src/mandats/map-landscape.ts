@@ -521,8 +521,10 @@ const riverWidthProfiles = riverPaths.map(river => {
   const widths = river.path.map((point, i) => {
     const mouth = i / river.path.length,
       original = riverOriginalWidth(river, point, mouth),
+      marineBay = river.index === 3 ? .27 * smooth(clamp((.85 -
+        (riverDistances[3].at(-1)! - riverDistances[3][i])) / .70)) : 0,
       target = [.235, .210, .215, .185, .125][river.index] * (.73 + mouth * .27) +
-        (river.index === 0 ? .025 * parisRiverWeight(point.x, point.z) : 0);
+        (river.index === 0 ? .025 * parisRiverWeight(point.x, point.z) : 0) + marineBay;
     return Math.max(original, target) * riverSourceBlend(river, i);
   });
   for (let i = 1; i < river.path.length; i++) {
@@ -543,7 +545,8 @@ const riverWidthProfiles = riverPaths.map(river => {
   // only lowers the already capped widths and leaves every clearance intact.
   const broadeningRate = (index: number) => {
     const remaining = riverDistances[river.index].at(-1)! - riverDistances[river.index][index];
-    return river.index === 4 ? .35 : .35 + .85 * smooth(clamp((.60 - remaining) / .40));
+    return river.index === 4 ? .35 : .35 + (river.index === 3 ? 1.95 : .85) *
+      smooth(clamp((.60 - remaining) / .40));
   };
   for (let i = 1; i < widths.length; i++)
     widths[i] = Math.min(widths[i], widths[i - 1] + broadeningRate(i) * Math.hypot(river.path[i].x - river.path[i - 1].x, river.path[i].z - river.path[i - 1].z));
@@ -619,7 +622,7 @@ function riverMouthWeight(river: number, distance: number): number {
   return outlet === undefined ? 0 : 1 - smooth(clamp((outlet - distance - .30) / 1.10));
 }
 type RiverSegment = {
-  a: Point; b: Point; widthA: number; widthB: number;
+  river: number; a: Point; b: Point; widthA: number; widthB: number;
   mouthA: number; mouthB: number; water: Point[]; rendered: boolean;
 };
 const riverCells = new Map<string, RiverSegment[]>();
@@ -632,7 +635,7 @@ for (const river of riverPaths) {
       x: section.center.x + section.nx * side * section.width / 2,
       z: section.center.z + section.nz * side * section.width / 2,
     });
-    const segment: RiverSegment = { a: a.center, b: b.center, widthA: a.width, widthB: b.width,
+    const segment: RiverSegment = { river: river.index, a: a.center, b: b.center, widthA: a.width, widthB: b.width,
       mouthA: riverMouthWeight(river.index, a.distance), mouthB: riverMouthWeight(river.index, b.distance),
       water: [edge(a, -1), edge(b, -1), edge(b, 1), edge(a, 1)],
       rendered: (landContains(a.center.x, a.center.z) && landContains(b.center.x, b.center.z)) ||
@@ -1178,7 +1181,8 @@ function surveyedHeightBase(x: number, z: number) {
     // at both water edges. The taper retains its original outer reservation.
     mouth = Math.max(mouth, alongMouth * wetMouth);
     estuaryBank = Math.max(estuaryBank, alongMouth *
-      (1 - smooth(clamp((distance - physicalWidth * .50 - .025) / .155))));
+      (1 - smooth(clamp((distance - physicalWidth * .50 - .025) /
+        (segment.river === 3 ? .235 : .155)))));
   }
   height -= influence * 0.043;
   if (estuaryBank > 0)
@@ -1621,13 +1625,13 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     // Summit shelves carry smaller caps above the broken gullies. The cover
     // masks still exclude actual plantations, fields and inhabited ground.
     summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
-      (pyrenean ? .46 : upperAlps ? .53 : .62)) / .21)) *
-      (1 - smooth(clamp((slope - .35) / (upperAlps ? 2.70 : 2.55)))),
+      (pyrenean ? .37 : upperAlps ? .38 : .62)) / .21)) *
+      (1 - smooth(clamp((slope - .35) / (upperAlps ? 6.40 : pyrenean ? 3.20 : 2.55)))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - (upperAlps ? .56 : .60)) / .18)),
     accumulation = Math.max(summit * .96,
       Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
-  return altitude * accumulation * (1 - rockRib * (upperAlps ? .64 : .78));
+  return altitude * accumulation * (1 - rockRib * (upperAlps ? .44 : pyrenean ? .65 : .78));
 }
 
 function material(scene: Scene, name: string, hex: string) {
