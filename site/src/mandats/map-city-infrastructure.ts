@@ -436,9 +436,9 @@ export function buildHarbour(scene: Scene, root: TransformNode, place: string, m
         trim.box(0, freeboard + .005, length * .16, beam * .40, .010, length * .17);
       }
     }
-    tool.shape("ship-submerged-hull", lower, shipRed, ship); tool.shape("ship-painted-hull", hull, kind === "fishing" ? navy : enamel, ship);
+    tool.shape("ship-submerged-hull", lower, shipRed, ship); tool.shape("ship-painted-hull", hull, kind === "fishing" || kind === "cargo" ? navy : enamel, ship);
     tool.shape("ship-deck", deck, large ? coping : materials.timber, ship); tool.shape("ship-cabin", cabin, enamel, ship);
-    tool.shape("ship-gunwales", trim, coping, ship); tool.shape("ship-windows", windows, materials.glass, ship); tool.shape("ship-rigging", rigs, navy, ship);
+    tool.shape("ship-gunwales", trim, large ? shipRed : coping, ship); tool.shape("ship-windows", windows, materials.glass, ship); tool.shape("ship-rigging", rigs, navy, ship);
   };
   if (place === "ajaccio") {
     boat("island-ferry", .13, .185, .248, .065, "ferry"); boat("fishing-boat", -.17, .113, .112, .041, "fishing");

@@ -1,3 +1,4 @@
+import { sceneConstructionCheckpoint } from "./map-construction-checkpoint.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import type { Scene } from "@babylonjs/core/scene";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
@@ -341,6 +342,7 @@ function forestAmount(x: number, z: number) {
 export async function buildMapContext(
   scene: Scene,
 ): Promise<{ meshes: AbstractMesh[] }> {
+  const checkpoint = sceneConstructionCheckpoint(scene);
   const positions: number[] = [],
     indices: number[] = [],
     colors: number[] = [],
@@ -692,6 +694,7 @@ export async function buildMapContext(
     ix * spacing < franceBounds.maxX + 1.5;
     ix++
   ) {
+    if (!await checkpoint()) return { meshes: [] };
     for (
       let iz = Math.floor((franceBounds.minZ - 1.3) / spacing);
       iz * spacing < franceBounds.maxZ + 2.2;

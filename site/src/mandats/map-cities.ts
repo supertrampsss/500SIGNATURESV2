@@ -1,3 +1,4 @@
+import { sceneConstructionCheckpoint } from "./map-construction-checkpoint.ts";
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { GroundSurvey, placementGroundSurvey } from "./map-ground-survey.ts";
 import { seatTreeOnGround } from "./map-tree-ground.ts";
@@ -62,6 +63,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   // Ground construction now yields to input between batches. Await its real
   // rendered triangles before surveying foundations, regardless of kit cache.
   await landscapeReady;
+  const checkpoint = sceneConstructionCheckpoint(scene);
   if (scene.isDisposed) return { roots: new Map(), meshes: [], vehicles: [] };
   const meshes: AbstractMesh[] = [],
     roots = new Map<MapPlace, TransformNode>(),
@@ -701,11 +703,12 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     const typeHeight = name.startsWith("ferme") ? 1.15 : name === "boutique_01" ? 1.23 :
       regionalHeight[region] - (rural ? .015 : 0),
       heightFactor = Math.max(1.15, Math.min(1.25, typeHeight + [-.01, .015, -.005, .01][index % 4]));
-    // Ordinary national houses retain the proportions of their authored
-    // floors and windows. The old address heights could stretch a two-storey
-    // cottage into a tower; civic accents still use their explicit height.
-    const authoredHeight = authored?.national && !name.endsWith("_dominante")
-      ? Math.min(authored.height, bounds.height * scale * 1.45)
+    // Domestic roofs stay close to their model's storey proportions. A named
+    // frontage accent may rise a little higher, while civic towers keep their
+    // separate surveyed geometry rather than stretching every street house.
+    const authoredHeight = authored?.national
+      ? Math.min(authored.height, bounds.height * scale *
+        (name.endsWith("_dominante") ? 1.35 : 1.15))
       : authored?.height;
     asset.root.scaling.y = authoredHeight !== undefined
       ? authoredHeight / bounds.height : scale * heightFactor * 1.10 / .88;
@@ -719,7 +722,8 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     // A selected street accent becomes a civic bell tower integrated inside
     // its own surveyed building. Its masonry, roof and footing share that lot;
     // it never takes a neighbouring house, tree, road or future project site.
-    if (authored?.national && name.endsWith("_dominante") && !accentedTowns.has(town)) {
+    if (authored?.national && name.endsWith("_dominante") && !accentedTowns.has(town) &&
+      NATIONAL_SETTLEMENTS.some(settlement => settlement.name === town && settlement.major)) {
       const majorTown = NATIONAL_SETTLEMENTS.find(settlement => settlement.name === town)?.major,
         tower = located("regional-clock-tower", root, centreX, centreZ, angle),
         span = Math.min(width, depth) * .72,
@@ -807,6 +811,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   const ruralRoots: TransformNode[] = [], settlementRoots = new Map<string, TransformNode>(),
     nationalReport: Array<{ id: string; town: string; block: string; accepted: boolean; reason?: string; corridors?: string[] }> = [];
   for (const settlement of NATIONAL_SETTLEMENTS) {
+    if (!await checkpoint()) return { roots: new Map(), meshes: [], vehicles: [] };
     let root = roots.get(settlement.name as MapPlace);
     if (!root) {
       const point = mapPosition(settlement.lon, settlement.lat);
@@ -1222,6 +1227,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   };
   for (const tree of PARIS_TREES) plantTownTree(parisRoot, "paris", tree.x, tree.z, tree.height, tree.model);
   for (const settlement of NATIONAL_SETTLEMENTS) {
+    if (!await checkpoint()) return { roots: new Map(), meshes: [], vehicles: [] };
     const root = settlementRoots.get(settlement.name)!;
     for (const tree of settlement.trees) plantTownTree(root, settlement.name, tree.x, tree.z, tree.height, tree.model);
   }
@@ -1286,6 +1292,7 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   // block. A lane cannot cut through a roof, public site, harbour or river.
   const settlementLanes: Array<{ town: string; start: GroundPoint; end: GroundPoint }> = [];
   for (const settlement of NATIONAL_SETTLEMENTS) {
+    if (!await checkpoint()) return { roots: new Map(), meshes: [], vehicles: [] };
     const root = settlementRoots.get(settlement.name)!;
     for (const block of settlement.blocks) {
       const centre = { x: block.outline.reduce((sum, point) => sum + point[0], 0) / block.outline.length,

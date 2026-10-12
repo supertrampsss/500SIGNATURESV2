@@ -1,3 +1,4 @@
+import { sceneConstructionCheckpoint } from "./map-construction-checkpoint.ts";
 import { majorMonumentCanopyReservations, nationalCathedralCanopyReservations } from "./map-monument-sites.ts";
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
@@ -1626,12 +1627,12 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     // masks still exclude actual plantations, fields and inhabited ground.
     summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
       (pyrenean ? .37 : upperAlps ? .38 : .62)) / .21)) *
-      (1 - smooth(clamp((slope - .35) / (upperAlps ? 6.40 : pyrenean ? 3.20 : 2.55)))),
+      (1 - smooth(clamp((slope - .35) / (upperAlps ? 3.80 : pyrenean ? 3.20 : 2.55)))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - (upperAlps ? .56 : .60)) / .18)),
     accumulation = Math.max(summit * .96,
       Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
-  return altitude * accumulation * (1 - rockRib * (upperAlps ? .44 : pyrenean ? .65 : .78));
+  return altitude * accumulation * (1 - rockRib * (upperAlps ? .60 : pyrenean ? .65 : .78));
 }
 
 function material(scene: Scene, name: string, hex: string) {
@@ -3274,6 +3275,7 @@ function coastalTrunkTranslation(foot: Point[], polygons: Point[][]) {
 }
 
 async function buildForests(scene: Scene, orchards: Point[]) {
+  const checkpoint = sceneConstructionCheckpoint(scene);
   const [kit, architecture, cathedral] = await Promise.all([
     loadAssetKit(scene, MODEL_URLS.vegetation),
     loadAssetKit(scene, MODEL_URLS.architecture),
@@ -3348,6 +3350,7 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     ix * spacing < sourceBounds.maxX;
     ix++
   ) {
+    if (!await checkpoint()) return [];
     for (
       let iz = Math.floor(sourceBounds.minZ / spacing);
       iz * spacing < sourceBounds.maxZ;
@@ -3410,6 +3413,7 @@ async function buildForests(scene: Scene, orchards: Point[]) {
   for (const [index, wood] of composedWoods.entries()) {
     const planted: Point[] = [];
     for (let candidate = 0; candidate < wood.trees * 45 && planted.length < wood.trees; candidate++) {
+      if (candidate % 32 === 0 && !await checkpoint()) return [];
       const group = wood.groups?.[candidate % wood.groups.length],
         angle = hash(candidate * 37 + 1291, index * 41 + 73) * Math.PI * 2,
         radius = Math.sqrt(hash(candidate * 71 + 2579, index * 29 + 187)),
@@ -3545,6 +3549,7 @@ async function buildForests(scene: Scene, orchards: Point[]) {
   }
   const mappedCoasts = new Map<number, Point[]>();
   for (const node of forestRoot.getChildren(undefined, true)) {
+    if (!await checkpoint()) return [];
     if (!(node instanceof TransformNode) || node.metadata?.asset === "rock") continue;
     const source = mapAuthoredCoordinates(node.position.x, node.position.z);
     // The actual kit's trunk bases are small; only roots in this narrow band

@@ -259,8 +259,8 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     .sort((a, b) => a.priority - b.priority);
   let alpineCount = 0, pyreneanCount = 0;
   for (const { face, i } of ranked) {
-    if (alpineCount >= 70 && pyreneanCount >= 18) break;
-    if (face.alpine ? alpineCount >= 70 : pyreneanCount >= 18) continue;
+    if (alpineCount >= 24 && pyreneanCount >= 10) break;
+    if (face.alpine ? alpineCount >= 24 : pyreneanCount >= 10) continue;
     const x = face.polygon.reduce((sum, p) => sum + p.x, 0) / 3,
       z = face.polygon.reduce((sum, p) => sum + p.z, 0) / 3,
       y = surfaceAt({ x, z }); if (y < .31 || !Number.isFinite(y)) continue;
@@ -284,7 +284,7 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     if ([...candidates(barriers, padded)].some(p => overlapping(p, padded))) continue;
     const levels = samples.map(surfaceAt); if (levels.some(h => !Number.isFinite(h))) continue;
     const lowest = Math.min(...levels), highest = Math.max(...levels),
-      height = Math.max(radius * (.75 + random(i, 173) * .25), highest - lowest + .042);
+      height = Math.max(radius * (.48 + random(i, 173) * .25), highest - lowest + .024);
     if (height > .24 || height > radius * 2.20) continue;
     const floor = lowest - .006,
       snowy = y + height * .70 > (face.alpine ? .44 : .36) &&
@@ -307,8 +307,8 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     height: number; embedded: number; maximumBaseClearance: number; alpine: boolean; footprint: Point[] }> = [];
   let alpineFacets = 0, pyreneanFacets = 0;
   for (const { face, i } of ranked) {
-    if (alpineFacets >= 75 && pyreneanFacets >= 25) break;
-    if (face.alpine ? alpineFacets >= 75 : pyreneanFacets >= 25) continue;
+    if (alpineFacets >= 40 && pyreneanFacets >= 16) break;
+    if (face.alpine ? alpineFacets >= 40 : pyreneanFacets >= 16) continue;
     const [a, b, c] = face.polygon, [ay, by, cy] = face.heights,
       denominator = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
     if (Math.abs(denominator) < 1e-10) continue;

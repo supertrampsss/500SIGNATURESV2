@@ -10,7 +10,9 @@ import pathlib
 import re
 
 
-def compose(source_path, metadata_path, output_path):
+def compose(source_path, metadata_path, output_path, major_accents=2, minor_accents=1):
+    if major_accents not in (0, 1, 2) or minor_accents not in (0, 1, 2):
+        raise ValueError("Accent counts must be zero, one or two")
     source_path, output_path = pathlib.Path(source_path), pathlib.Path(output_path)
     if source_path.resolve() == output_path.resolve():
         raise ValueError("Write an external candidate, never overwrite the input table")
@@ -22,7 +24,7 @@ def compose(source_path, metadata_path, output_path):
         accents = [h for block in town["blocks"] for h in block["buildings"]
                    if h["model"].endswith("_dominante")]
         # Wider footprints support real four-storey accents without narrow towers.
-        retained = sorted(accents, key=lambda h: (-h["width"] * h["depth"], h["id"]))[:2 if town["major"] else 1]
+        retained = sorted(accents, key=lambda h: (-h["width"] * h["depth"], h["id"]))[:major_accents if town["major"] else minor_accents]
         kept.extend({"town": town["name"], "id": h["id"], "model": h["model"]} for h in retained)
         retained_ids = {h["id"] for h in retained}
         for house in accents:
@@ -62,11 +64,13 @@ if __name__ == "__main__":
     parser.add_argument("models", type=pathlib.Path)
     parser.add_argument("output", type=pathlib.Path)
     parser.add_argument("--audit", type=pathlib.Path, required=True)
+    parser.add_argument("--major-accents", type=int, choices=(0, 1, 2), default=2)
+    parser.add_argument("--minor-accents", type=int, choices=(0, 1, 2), default=1)
     args = parser.parse_args()
-    report = compose(args.source, args.models, args.output)
+    report = compose(args.source, args.models, args.output, args.major_accents, args.minor_accents)
     args.audit.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"changed": len(report["changes"]), "retainedAccents": len(report["keptAccents"]),
-        "minHeightRatio": min(h["ratio"] for h in report["changes"]),
-        "maxHeightRatio": max(h["ratio"] for h in report["changes"]),
+        "minHeightRatio": min((h["ratio"] for h in report["changes"]), default=1),
+        "maxHeightRatio": max((h["ratio"] for h in report["changes"]), default=1),
         "highTriangleDelta": sum(h["highTriangleDelta"] for h in report["changes"]),
         "lodTriangleDelta": sum(h["lodTriangleDelta"] for h in report["changes"])}))

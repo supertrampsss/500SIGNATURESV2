@@ -743,3 +743,70 @@ Le check complet passe 1 082 vérifications, trois cibles TypeScript, le build, 
 Douze captures natives contrôlent zéro erreur de page, console, requête ou HTTP ; leurs réponses JS/CSS correspondent au build figé. Les vraies entrées sauvegardées produisent la mobilisation scolaire et les deux étapes hospitalières. Les formats mobiles DPR 2 gardent les rasters 640 × 562 et 780 × 642, sans débordement. Aucune sauvegarde fictive, caméra par API, réponse réseau, modèle ou LOD n’est imposé. SwiftShader ne certifie pas la fluidité d’un appareil physique.
 
 La [CI précédente sur 2574f7c](mandats-diorama/screens-48/previous-ci.json) valide le workflow général, story, board, launch et canonical. La suite 3D originale distante passe 23 cas et neuf omissions en 20,2 minutes ; la suite sociale conserve un échec du parcours à quatre imports à sa limite originale de 180 secondes, avec 12 réussites et trois omissions en 12,4 minutes. Son retry original échoue également. Les résultats locaux de cette passe ne transforment pas cet échec distant en réussite. L’[archive 48](mandats-diorama/screens-48/manifest.json) conserve 59 fichiers, 23 732 064 octets et leurs empreintes.
+
+## Passe 49 capturée le 12 octobre 2026
+
+La [comparaison native 49](mandats-diorama/comparaison-49.html) conserve la
+référence confirmée, les vues nationales et rapprochées et les captures mobiles
+réelles. **Le diorama reste en dessous de la maquette.** Les silhouettes de
+Paris, les grands pans alpins et côtiers, l’entrée encaissée du Rhône et la
+richesse photographique des matériaux demandent encore du travail. La PR 194
+reste en brouillon ; cette validation intermédiaire ne termine pas la livraison.
+
+52 adresses secondaires passent de leur variante à quatre étages à leur modèle
+existant plus bas. Les dimensions XZ et pivots au sol détaillés et distants sont
+vérifiés à l’identique avant chaque substitution. Onze accents sont conservés
+pour les grands ensembles ; seuls ceux-ci reçoivent un clocher civique ajouté.
+Les maisons nationales sont également moins étirées verticalement. Les kits GLB,
+leurs atlas et l’environnement restent identiques au parent 48, vérification
+consignée dans [le relevé des modèles](mandats-diorama/screens-49/unchanged-models.json).
+Il ne s’agit pas d’une nouvelle cuisson des modèles d’architecture.
+
+Les épaules des Alpes sont abaissées et leurs couloirs creusés dans le terrain
+triangulé commun. Les crêtes du premier cirque sont plus hautes et plus étroites
+que dans la passe 48 ; l’alternance neige/roche est ajustée. Les affleurements
+ajoutés passent de 188 à 90. Les cargos ont une coque bleu marine et les grands
+navires des éléments peints rouges ; leurs géométries et trajets sont conservés.
+La construction des arbres, bourgs et forêts voisines rend régulièrement la main
+au navigateur et s’arrête si la scène est détruite, sans changer l’ordre des
+placements. Les parcours vérifient les décisions et sauvegardes réelles pendant
+cette préparation.
+
+Le build complet réussit : 1 082 tests unitaires, les trois contrôles de types,
+Vite, le pré-rendu et 150 ressources hors connexion, version
+`a6d9b189dbc7dcb9`. Une nouvelle cuisson complète reproduit à l’identique le
+binaire du terrain et son relevé de sources. Les suites originales rework et
+social réussissent respectivement **23 parcours avec neuf omissions prévues en
+15,4 minutes**, et **13 parcours avec trois omissions prévues en 6,1 minutes**,
+sans échec ni reprise instable. Les contrôles originaux WebKit ciblés de densité,
+nouvelle partie portrait et paysage réussissent. Aucun test, délai, worker,
+omission ou réglage de reprise n’est modifié. Ces durées sont celles des
+parcours locaux ; elles ne mesurent pas les performances d’un appareil physique.
+
+Les [treize captures de production](mandats-diorama/screens-49/verification.json)
+contrôlent les empreintes des bundles réellement servis et n’enregistrent aucune
+erreur JavaScript, console, HTTP ou requête. Elles comprennent une capture WPE
+WebKit 390 × 844/DPR2 après affichage de Babylon et fin du rendu. La capture du
+parcours scolaire original WebKit montre encore la préparation : elle est
+archivée comme preuve fonctionnelle, sans prétendre montrer la 3D terminée.
+Les vues Chromium 320 × 740 et 390 × 844/DPR2 affichent la vraie mobilisation,
+avec des rasters de 640 × 562 et 780 × 642 et sans débordement horizontal.
+
+Le [relevé géométrique final](mandats-diorama/screens-49/rendered-ground-contacts.json)
+trouve 2 544 sections de pieds d’arbres français sans sol manquant ni section
+au-dessus de quatre millimètres ; le maximum est −0,00099947. Les 90 bases de
+rochers sont soutenues, avec un maximum de −0,00599992. Les
+[17 monuments visibles](mandats-diorama/screens-49/all-monuments-diagnostics.json)
+ne chevauchent aucune canopée. L’observation utilise les matrices et triangles
+réellement rendus après les fractures minérales ; elle ne certifie pas toutes
+les collisions ni toutes les parties possibles. La rénovation hospitalière est
+financée au tour 1 et livrée au tour 3 par de vraies décisions. Son emplacement
+est déjà libre : aucun masquage/restauration d’arbre chevauchant n’est exercé.
+
+La [CI distante du parent 48](mandats-diorama/screens-49/previous-ci.json) conserve
+deux échecs : rework 22 réussites, neuf omissions et une attente WebKit de reprise
+dépassée ; story 24 réussites, 23 omissions et une nouvelle partie iPhone WebKit
+dépassant son délai à l’essai initial comme à la reprise configurée. La suite
+sociale suivante n’a pas été exécutée. Les journaux et traces originaux ont été
+récupérés ; les succès locaux de la passe 49 ne remplacent pas ces résultats.
+La validation distante de la nouvelle version doit être suivie séparément.

@@ -105,3 +105,24 @@ Après cette cuisson, recomposer la maison CC0 comme décrit ci-dessus.
 L’exporteur attribue un nom stable aux données géométriques détaillées et distantes,
 indépendant des compteurs temporaires `Cube` de Blender. Les racines publiques,
 leurs attributs, UV, indices et dimensions restent inchangés.
+
+### Hiérarchie des bourgs de la passe 49
+
+Le générateur de table `urban_miniature_roles.py` accepte maintenant
+`--major-accents` et `--minor-accents` (zéro, un ou deux ; valeurs historiques par
+défaut : deux et un). La passe 49 retient un accent par grand ensemble et aucun
+accent secondaire. Elle substitue 52 modèles à moins d’étages, après égalité des
+dimensions XZ et du pivot au sol des géométries détaillées et distantes. Les kits,
+UV, textures et géométries sources ne sont pas régénérés. Une réapplication sur
+la table déjà composée produit la même table sans erreur.
+
+Reproduire depuis la table immuable du parent, sans écraser l’entrée :
+
+```sh
+git show 0e2ce9f52ed5d1bf3fa87d1e47f32b928119bc07:site/src/mandats/map-city-national.ts > /tmp/mandats-before49.ts
+python tools/mandats-assets/urban_miniature_roles.py /tmp/mandats-before49.ts site/public/mandats/models/architecture.json /tmp/mandats-hierarchy49.ts --audit /tmp/mandats-hierarchy49.json --major-accents 1 --minor-accents 0
+```
+
+Le relevé de table ne prouve pas l’ancrage ni la fidélité artistique. Ceux-ci
+sont contrôlés séparément dans le jeu réellement rendu, en vue entière,
+rapprochée et mobile.

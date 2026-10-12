@@ -174,9 +174,9 @@ function alpineCrestVertices(massif: SculptedMassif) {
         .map(([u, v, height, rx, rz], tip) => ({
           x: cirque.x + cirque.reach * (dx * u - dz * v * alternate),
           z: cirque.z + cirque.reach * (dz * u + dx * v * alternate),
-          height: cirque.height * height * (index === 0 ? .82 : 1),
-          rx: rx * cirque.reach * (index === 0 ? 1.55 : 1),
-          rz: rz * cirque.reach * (index === 0 ? 1.50 : 1),
+          height: cirque.height * height * (index === 0 ? .96 : 1),
+          rx: rx * cirque.reach * (index === 0 ? 1.20 : 1),
+          rz: rz * cirque.reach * (index === 0 ? 1.20 : 1),
           angle: cirque.angle + (tip - 1) * .14, family: index,
         }));
     });
@@ -207,7 +207,7 @@ function alpineCrestVertices(massif: SculptedMassif) {
       ripple = geology.grain * .55,
       north = dividedCirques[0],
       northernWeight = Math.max(0, Math.min(1, (.70 - Math.hypot(x - north.x, z - north.z)) / .35)),
-      base = Math.max(0, retainedHeight * .78 + (ripple - incision) * strength) *
+      base = Math.max(0, retainedHeight * .58 + (ripple - incision) * strength) *
         (1 - .10 * northernWeight * northernWeight * (3 - 2 * northernWeight));
     let height = base;
     for (const peak of peaks) {
@@ -226,7 +226,23 @@ function alpineCrestVertices(massif: SculptedMassif) {
           (.69 + .31 * Math.abs(2 * t - 1));
       height = Math.max(height, base + Math.max(0, saddle - base) * Math.max(0, 1 - distance / section.width));
     }
-    return height;
+    // Incised side gullies break the large snow shoulders while leaving each
+    // summit and low valley mouth on the shared survey. Lower shoulders
+    // expose the connecting arêtes instead of forming one broad plate.
+    // Erosion tapers at both ends: it cannot make an isolated raised tip.
+    let gully = 0;
+    for (const peak of peaks) {
+      const dx = x - peak.x, dz = z - peak.z,
+        u = dx * Math.cos(peak.angle) + dz * Math.sin(peak.angle),
+        v = -dx * Math.sin(peak.angle) + dz * Math.cos(peak.angle),
+        radial = Math.abs(u) / peak.rx + Math.abs(v) / peak.rz,
+        envelope = Math.max(0, Math.min(1, (radial - .12) / .28)) *
+          Math.max(0, Math.min(1, (1.65 - radial) / .55)),
+        channel = Math.pow(Math.max(0, Math.cos(
+          Math.atan2(v / peak.rz, u / peak.rx) * 3 + peak.family * .91 + radial * 1.7)), 8);
+      gully = Math.max(gully, channel * envelope * .100);
+    }
+    return Math.max(0, height - gully);
   };
   const spacing = .065, minimumX = Math.min(...boundary.map(p => p.x)), maximumX = Math.max(...boundary.map(p => p.x)),
     minimumZ = Math.min(...boundary.map(p => p.z)), maximumZ = Math.max(...boundary.map(p => p.z)),

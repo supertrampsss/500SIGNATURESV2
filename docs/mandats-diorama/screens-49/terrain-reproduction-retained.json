@@ -1,0 +1,8 @@
+{
+  "method": "Compare actual complete fresh terrain bake to the retained candidate, including binary and full source provenance JSON. Source immutable during both bakes. No E2E/performance/visual conformity claim.",
+  "byteIdentical": true,
+  "files": {
+    "site/public/mandats/models/terrain-survey.bin.gz": "fd6048c3943ac1936514f5ac8c412bf7ac9d9e4ac6bae52ce38056a4f46dca8b",
+    "site/public/mandats/models/terrain-survey.json": "808025c611e56ba139385cc0b44d2744cd2bdacd4919a5f5ab0e27d36e5211a0"
+  }
+}

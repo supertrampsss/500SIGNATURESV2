@@ -1,0 +1,41 @@
+{
+  "method": "Compare actual retained model/environment bytes to immutable parent48. No new architecture/model bake is claimed for49; the fresh two-bake architecture proof belongs to48. Placement/model selection and terrain change here.",
+  "parent": "0e2ce9f52ed5d1bf3fa87d1e47f32b928119bc07",
+  "files": [
+    {
+      "name": "daylight.env",
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "vegetation.glb",
+      "sha256": "b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "architecture.glb",
+      "sha256": "0940846cb686aa691e2c35006281a6968a3e71f1fd4bc4ecff846badd6c4de16",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "architecture.json",
+      "sha256": "b00d05dd42f638112f7ee91a200138403b201b1f866fa1d3aaff77df8ef688f4",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "paris.glb",
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "cathedrale.glb",
+      "sha256": "fd8d587d9a82beeb889365969d1c2b1c57f202db84a42b947a31f86099a17a1e",
+      "byteIdenticalToParent": true
+    },
+    {
+      "name": "cathedrale.json",
+      "sha256": "be411e2da18cec7f99d5ca94c828c6619f5754665f5354880558e6b3249960bd",
+      "byteIdenticalToParent": true
+    }
+  ]
+}

@@ -1,0 +1,370 @@
+{
+  "method": "Strict actual production records including native WPE WebKit. Every served JS/CSS response hash equals the frozen production file. Existing DOM/pointer controls only, no camera/state/network/model/LOD override. Not a physical-device FPS or artistic-conformity proof.",
+  "records": [
+    {
+      "record": "production-01-national.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-04-lyon-detail.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-05-lyon-alpes.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-06-national-retour.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-07-paris-cathedrale.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-08-mediterranee-port.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-09-national-final.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "movement-01-mobilisation.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-320-01-mobilisation.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 640,
+        "height": 562
+      },
+      "viewport": [
+        320,
+        740
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-390-01-mobilisation.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 780,
+        "height": 642
+      },
+      "viewport": [
+        390,
+        844
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "production-webkit-390-01-mobilisation.json",
+      "browserVersion": "26.5",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 780,
+        "height": 642
+      },
+      "viewport": [
+        390,
+        844
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "hospital-01-chantier.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 1,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-soins-garde-nuit-renover-service"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    },
+    {
+      "record": "hospital-02-livraison.json",
+      "browserVersion": "154.0.8037.57",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "renderer": "babylon",
+      "turn": "3",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 1,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-soins-garde-nuit-renover-service",
+          "r01a",
+          "r02a"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false,
+      "servedBundleHashesMatchFrozenProduction": true
+    }
+  ]
+}
