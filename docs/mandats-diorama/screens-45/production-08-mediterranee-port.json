@@ -1,0 +1,572 @@
+{
+  "experimentalModelOverride": [],
+  "productionBuild": "iteration45 production build, full-check-retained-e.log; parentaedc937; native diagnostics are not original timing gates",
+  "browserVersion": "154.0.8037.57",
+  "servedBundleResponses": [
+    {
+      "url": "http://127.0.0.1:4194/assets/site-shell-v2-DKHbEmDf.css",
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-D17Vxp_n.css",
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-De3egIe0.css",
+      "path": "assets/mandats-De3egIe0.css",
+      "status": 200,
+      "bytes": 176255,
+      "sha256": "51b542390978f19c3957a205390c77dd7fdd05d0c2ff7f92e2daa87370d715cc"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/game-B_-L39w0.css",
+      "path": "assets/game-B_-L39w0.css",
+      "status": 200,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-BR6wKexh.js",
+      "path": "assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-D0J74-_B.js",
+      "path": "assets/mandats-D0J74-_B.js",
+      "status": 200,
+      "bytes": 644177,
+      "sha256": "29aca037c8c653310f5ae2fc6224b8b0f2d9be8182f98c47bc47b79cb1d035fc"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/map-scene-4HQEU1PW.js",
+      "path": "assets/map-scene-4HQEU1PW.js",
+      "status": 200,
+      "bytes": 2583444,
+      "sha256": "d4d3b182a95415210d031d560e7190cdba02421839451233431805512d3cfe81"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/cubemapToSphericalPolynomial-CVAg7mdy.js",
+      "path": "assets/cubemapToSphericalPolynomial-CVAg7mdy.js",
+      "status": 200,
+      "bytes": 3671,
+      "sha256": "12c994c9e5c17935ec073fccb78d11036877b6082ba74f5b92ece21d88555c2d"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/postprocess.vertex-DkZxJHJY.js",
+      "path": "assets/postprocess.vertex-DkZxJHJY.js",
+      "status": 200,
+      "bytes": 592,
+      "sha256": "08dddca1f2e16cba3cb82cc6c2618d5d541f930dbae845f102757d37ddc14f02"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/ssao2.fragment-BgtUlUQ7.js",
+      "path": "assets/ssao2.fragment-BgtUlUQ7.js",
+      "status": 200,
+      "bytes": 5497,
+      "sha256": "757823966abf16208fd01e3417adc1262eb706f5f747e8e0821709ea3f92657d"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/envTextureLoader-dOkkFLOO.js",
+      "path": "assets/envTextureLoader-dOkkFLOO.js",
+      "status": 200,
+      "bytes": 8101,
+      "sha256": "48f73812371b75a6cda8ec6566edd60c3a9639a3aadec6d9cc50297b5682756d"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/ssaoCombine.fragment-CujLvdbF.js",
+      "path": "assets/ssaoCombine.fragment-CujLvdbF.js",
+      "status": 200,
+      "bytes": 703,
+      "sha256": "7887dded263dfd97fcf5bba724dcfe8808ef9d26d2cdda3439590cc3d80537d3"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/geometry.vertex-CDnRTJMY.js",
+      "path": "assets/geometry.vertex-CDnRTJMY.js",
+      "status": 200,
+      "bytes": 7717,
+      "sha256": "e84447714b74c1939c54e7404218d49de89906018c074517e24757300c8497ab"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/openpbrTransmissionLayerData-3wcg0JrS.js",
+      "path": "assets/openpbrTransmissionLayerData-3wcg0JrS.js",
+      "status": 200,
+      "bytes": 17368,
+      "sha256": "a91559912c8f83afbc5f7b2c98c5f6a9a883c3302ff0d078a75d0362f912bd83"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/geometry.fragment-CEb60T5h.js",
+      "path": "assets/geometry.fragment-CEb60T5h.js",
+      "status": 200,
+      "bytes": 11100,
+      "sha256": "6ec0b898d4e95f7b1aec18c87a0443c63980250c6bcc0c865b7d66decf6ef13a"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pass.fragment-DJ82VMXU.js",
+      "path": "assets/pass.fragment-DJ82VMXU.js",
+      "status": 200,
+      "bytes": 450,
+      "sha256": "9ed7ef107bab69f0eef6ee49a131a6c285b8997664c41477329cd584f15341b0"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/packingFunctions-By1_j_qy.js",
+      "path": "assets/packingFunctions-By1_j_qy.js",
+      "status": 200,
+      "bytes": 532,
+      "sha256": "b3a7455c18456b3ec5fe2f6945f114a855b0af21cdc66cda13fd0a572fd36207"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.fragment-DEXIfe-U.js",
+      "path": "assets/shadowMap.fragment-DEXIfe-U.js",
+      "status": 200,
+      "bytes": 3403,
+      "sha256": "6a8e6df2ab1c53d5f7d8f72f9b99bc56a4a3107a22d0a46c610e3e8925d6cf79"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.vertex-2ZtRhY6l.js",
+      "path": "assets/shadowMap.vertex-2ZtRhY6l.js",
+      "status": 200,
+      "bytes": 4648,
+      "sha256": "2a8dc4482ee32820bb538777bda985230ecdc5979089d525d8f150cfc7ddc21e"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/sceneVertexDeclaration-D95s-ckf.js",
+      "path": "assets/sceneVertexDeclaration-D95s-ckf.js",
+      "status": 200,
+      "bytes": 333,
+      "sha256": "89c10e2bd7cc280c01222fbdd76d6bcde5524ecbd2e846bdcf8ce50f8c96ca9a"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/depthBoxBlur.fragment-iIdhRYhh.js",
+      "path": "assets/depthBoxBlur.fragment-iIdhRYhh.js",
+      "status": 200,
+      "bytes": 666,
+      "sha256": "ff54ead238592e9960a65f9cc8d2efe43a638ccf6e77ce8929fe9bce4ef86c07"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMapFragmentSoftTransparentShadow-DDMJlyu3.js",
+      "path": "assets/shadowMapFragmentSoftTransparentShadow-DDMJlyu3.js",
+      "status": 200,
+      "bytes": 502,
+      "sha256": "193e41b7529ca84f2e17a8dd02dd2a06613b672344e83530cc1ce8ba2fd6c364"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/brdfTextureTools-CuwN_9D5.js",
+      "path": "assets/brdfTextureTools-CuwN_9D5.js",
+      "status": 200,
+      "bytes": 61481,
+      "sha256": "e359474e332492bd28e82ec41d13c0b35665087d8238da1265b7b8a32497d192"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterial.pure-Bo_iT0z1.js",
+      "path": "assets/pbrMaterial.pure-Bo_iT0z1.js",
+      "status": 200,
+      "bytes": 135185,
+      "sha256": "66d1fd57fcb7a18fd8d608e73d279df67b85efd0cd54debceecf1afad83f6439"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterialLoadingAdapter-kcu73J01.js",
+      "path": "assets/pbrMaterialLoadingAdapter-kcu73J01.js",
+      "status": 200,
+      "bytes": 12560,
+      "sha256": "32e3e4d587b04802524d28579b7621abe8f6f125d60afe7b94bb70d1838647b0"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/rgbdDecode.fragment-BkfCXb7o.js",
+      "path": "assets/rgbdDecode.fragment-BkfCXb7o.js",
+      "status": 200,
+      "bytes": 618,
+      "sha256": "81a0899c17a85d6db61916f7042929a5917d9246e4c2fa41dbb77db5d5c10735"
+    }
+  ],
+  "responseBodyErrors": [],
+  "failedResponses": [],
+  "consoleMessages": [
+    {
+      "type": "log",
+      "text": "BJS - [23:23:42]: Babylon.js v9.30.0 - WebGL2",
+      "location": {
+        "url": "http://127.0.0.1:4194/assets/map-scene-4HQEU1PW.js",
+        "line": 1,
+        "column": 12463,
+        "lineNumber": 1,
+        "columnNumber": 12463
+      },
+      "at": "2026-10-11T23:23:42.747Z"
+    }
+  ],
+  "capturedAt": "2026-10-11T23:25:17.725Z",
+  "origin": "http://127.0.0.1:4194",
+  "description": "Native pointer pan and four zoom-button clicks toward the southern port; no camera API or decision",
+  "actions": [
+    "Click Recentrer",
+    "Click the real education-lycees marker",
+    "Click Voir le lieu for Lyon",
+    "Click Réduire la carte to include Alpine surroundings",
+    "Click Recentrer",
+    "Click Fermer le sujet",
+    "Click the actual Assembly subject marker",
+    "Click Voir le lieu for the actual Assembly location",
+    "Click Recentrer",
+    "Click Fermer le sujet",
+    "Native right-button pan from the Mediterranean port toward the centre, pointer962,741 to635,449",
+    "Click Agrandir la carte four times after native pan"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": []
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1268x801",
+    "contactShadows": "true",
+    "edgeAntialiasing": "fxaa",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "contextReadyMs": "1523",
+    "lightingReadyMs": "1617",
+    "terrainReadyMs": "5300",
+    "citiesReadyMs": "8314",
+    "mountainRocks": "188",
+    "landscape": "diorama",
+    "terrainSource": "precomputed",
+    "staticBatches": "51",
+    "staticInstances": "8681",
+    "authoredHouses": "778",
+    "geometryReadyMs": "9549",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "shadersReadyMs": "10441",
+    "renderPending": "false",
+    "activeTriangles": "1964702",
+    "activeMeshes": "369",
+    "cameraRadius": "5.57",
+    "renderMs": "14",
+    "inspection": "",
+    "fps": "0"
+  },
+  "layout": {
+    "scrollWidth": 1672,
+    "viewportWidth": 1672,
+    "viewportHeight": 941,
+    "devicePixelRatio": 1,
+    "scrollY": 0,
+    "canvas": {
+      "x": 0,
+      "y": 66,
+      "width": 1268,
+      "height": 801,
+      "top": 66,
+      "right": 1268,
+      "bottom": 867,
+      "left": 0
+    }
+  },
+  "raster": {
+    "width": 1268,
+    "height": 801
+  },
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-D0J74-_B.js",
+      "initiator": "script",
+      "transfer": 188150,
+      "duration": 57
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-BR6wKexh.js",
+      "initiator": "other",
+      "transfer": 1011,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-De3egIe0.css",
+      "initiator": "link",
+      "transfer": 33316,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/site-shell-v2-DKHbEmDf.css",
+      "initiator": "link",
+      "transfer": 7098,
+      "duration": 35
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/game-B_-L39w0.css",
+      "initiator": "link",
+      "transfer": 16984,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-D17Vxp_n.css",
+      "initiator": "link",
+      "transfer": 6697,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/fonts/source-sans-3-variable.woff2",
+      "initiator": "css",
+      "transfer": 170488,
+      "duration": 63
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/fonts/mandats-serif-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 52568,
+      "duration": 63
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-600-latin.woff2",
+      "initiator": "css",
+      "transfer": 23236,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 23336,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-500-latin.woff2",
+      "initiator": "css",
+      "transfer": 23136,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/map-scene-4HQEU1PW.js",
+      "initiator": "script",
+      "transfer": 681462,
+      "duration": 92
+    },
+    {
+      "url": "http://127.0.0.1:4194/brand/favicon.svg",
+      "initiator": "other",
+      "transfer": 713,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/envTextureLoader-dOkkFLOO.js",
+      "initiator": "script",
+      "transfer": 3535,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/cubemapToSphericalPolynomial-CVAg7mdy.js",
+      "initiator": "script",
+      "transfer": 1936,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/ssao2.fragment-BgtUlUQ7.js",
+      "initiator": "script",
+      "transfer": 2052,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/postprocess.vertex-DkZxJHJY.js",
+      "initiator": "script",
+      "transfer": 892,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/ssaoCombine.fragment-CujLvdbF.js",
+      "initiator": "script",
+      "transfer": 1003,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/geometry.vertex-CDnRTJMY.js",
+      "initiator": "script",
+      "transfer": 2230,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/geometry.fragment-CEb60T5h.js",
+      "initiator": "script",
+      "transfer": 3382,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/openpbrTransmissionLayerData-3wcg0JrS.js",
+      "initiator": "script",
+      "transfer": 4307,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pass.fragment-DJ82VMXU.js",
+      "initiator": "script",
+      "transfer": 750,
+      "duration": 1
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.fragment-DEXIfe-U.js",
+      "initiator": "script",
+      "transfer": 1508,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/packingFunctions-By1_j_qy.js",
+      "initiator": "script",
+      "transfer": 832,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.vertex-2ZtRhY6l.js",
+      "initiator": "script",
+      "transfer": 1881,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/sceneVertexDeclaration-D95s-ckf.js",
+      "initiator": "script",
+      "transfer": 633,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/depthBoxBlur.fragment-iIdhRYhh.js",
+      "initiator": "script",
+      "transfer": 966,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMapFragmentSoftTransparentShadow-DDMJlyu3.js",
+      "initiator": "script",
+      "transfer": 802,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/architecture.glb?v=ee1602e90a669a33",
+      "initiator": "xmlhttprequest",
+      "transfer": 11597672,
+      "duration": 1596
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/vegetation.glb?v=b3eb53de00352151",
+      "initiator": "xmlhttprequest",
+      "transfer": 697328,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "initiator": "xmlhttprequest",
+      "transfer": 9231636,
+      "duration": 1531
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/cathedrale.glb?v=fd8d587d9a82beeb",
+      "initiator": "xmlhttprequest",
+      "transfer": 11764376,
+      "duration": 1598
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/terrain-survey.bin.gz?v=bffb1e4fe62fa7d3",
+      "initiator": "fetch",
+      "transfer": 11517492,
+      "duration": 1624
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-earth-grain-DRREWpxX.png",
+      "initiator": "img",
+      "transfer": 251967,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-crop-stalks-DqbEWteS.png",
+      "initiator": "img",
+      "transfer": 338050,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-earth-normal-D8qTdGaP.png",
+      "initiator": "img",
+      "transfer": 377545,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-leaf-grain-Dq3zfjHI.png",
+      "initiator": "img",
+      "transfer": 54494,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-leaf-normal-KsVL2iP_.png",
+      "initiator": "img",
+      "transfer": 183865,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-stone-normal-CxQ85Rmx.png",
+      "initiator": "img",
+      "transfer": 171701,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-mineral-rock-BoiS0dS5.png",
+      "initiator": "img",
+      "transfer": 681658,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-mineral-normal-B5XqE9Nd.png",
+      "initiator": "img",
+      "transfer": 1866719,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-coastal-normal-5Lv01LFJ.png",
+      "initiator": "img",
+      "transfer": 89026,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterial.pure-Bo_iT0z1.js",
+      "initiator": "script",
+      "transfer": 26082,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/brdfTextureTools-CuwN_9D5.js",
+      "initiator": "script",
+      "transfer": 45118,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterialLoadingAdapter-kcu73J01.js",
+      "initiator": "script",
+      "transfer": 2741,
+      "duration": 30
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/daylight.env?v=893b475a4e2c4bc8",
+      "initiator": "xmlhttprequest",
+      "transfer": 235744,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/rgbdDecode.fragment-BkfCXb7o.js",
+      "initiator": "script",
+      "transfer": 918,
+      "duration": 4
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Native game capture without any network or game-state override. This is a frozen production build capture, not an original timing gate. Fresh Chromium context at1672x941 with fonts loaded/reduced motion. Each capture waits for data-render-pending=false after two animation frames, using the existing45000ms native timeout. Browser version comes from browser.version(); HTTP failures and every console level come from page events; served JS/CSS hashes come from the actual response bodies. Native DOM controls, pointer panning and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

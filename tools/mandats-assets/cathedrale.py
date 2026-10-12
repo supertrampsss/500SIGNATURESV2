@@ -218,48 +218,73 @@ def pointed_outline(width, spring, rise, count=6):
     return points
 
 
-def gothic_window(x, face, bottom, width, spring, rise, tracery=True, door=False):
+def gothic_window(x, face, bottom, width, spring, rise, tracery=True, door=False, depth=.11):
+    detail_scale = min(1.0, width / .17)
+    recess = min(.047, depth * .43)
+    tracery_recess = min(.020, depth * .20)
     outline = [(x-width/2, bottom), (x+width/2, bottom)]
     outline += [(x+xx, zz) for xx,zz in reversed(pointed_outline(width,spring,rise))]
-    poly([(xx, face+.047, zz) for xx,zz in outline], [tuple(range(len(outline)))], "bois" if door else "verre")
+    poly([(xx, face+recess, zz) for xx,zz in outline], [tuple(range(len(outline)))], "bois" if door else "verre")
     # Bright glass is a separate recessed plane, not a painted wall window.
     if not door:
         strip = width*.15
-        box((x+width*.13,face+.043,(bottom+spring)/2),
+        box((x+width*.13,face+recess-.004,(bottom+spring)/2),
             (strip,.004,(spring-bottom)*.86),"verre_reflet")
     profile = [(x-width/2,bottom),(x-width/2,spring)]
     profile += [(x+xx,zz) for xx,zz in pointed_outline(width,spring,rise)[1:]]
     profile += [(x+width/2,bottom)]
     for thickness, offset, material in ((.018,-.019,"pierre_taille"),(.010,.007,"pierre_patinee")):
         for a,b in zip(profile,profile[1:]):
-            beam((a[0],face+offset,a[1]),(b[0],face+offset,b[1]),thickness,material,width=.026)
-    box((x,face-.013,bottom-.013),(width+.056,.063,.026),"pierre_taille")
+            beam((a[0],face+offset,a[1]),(b[0],face+offset,b[1]),thickness*detail_scale,material,width=.026*detail_scale)
+    box((x,face-.013,bottom-.013),(width+.056*detail_scale,.063*detail_scale,.026*detail_scale),"pierre_taille")
     if tracery and not door:
-        beam((x,face+.020,bottom),(x,face+.020,spring+rise*.61),.011,"pierre_taille",width=.020)
+        beam((x,face+tracery_recess,bottom),(x,face+tracery_recess,spring+rise*.61),.011*detail_scale,"pierre_taille",width=.020*detail_scale)
         for side in (-1,1):
-            beam((x+side*width*.24,face+.020,bottom),(x+side*width*.24,face+.020,spring),.008,"pierre_taille",width=.015)
-            beam((x+side*width*.24,face+.019,spring),(x,face+.019,spring+rise*.60),.009,"pierre_taille",width=.016)
+            beam((x+side*width*.24,face+tracery_recess,bottom),(x+side*width*.24,face+tracery_recess,spring),.008*detail_scale,"pierre_taille",width=.015*detail_scale)
+            beam((x+side*width*.24,face+tracery_recess-.001,spring),(x,face+tracery_recess-.001,spring+rise*.60),.009*detail_scale,"pierre_taille",width=.016*detail_scale)
         # Tiny circular foil in the upper point remains real geometry.
-        ring(x,face+.016,spring+rise*.53,width*.125,.006)
+        ring(x,face+tracery_recess-.004,spring+rise*.53,width*.125,.006*detail_scale)
 
 
-def gothic_wall(x,face,z0,top,width,opening,bottom,spring,rise,door=False):
-    """A perforated stone panel with a real recessed pointed opening."""
+def gothic_wall(x,face,z0,top,width,opening,bottom,spring,rise,door=False,depth=None):
+    """A perforated stone panel; corner masonry stays outside its glazing."""
+    depth = min(.11, width * .24) if depth is None else depth
     for side in (-1,1):
-        box((x+side*(width+opening)/4,face+.055,(z0+top)/2),
-            ((width-opening)/2,.11,top-z0),"calcaire")
+        box((x+side*(width+opening)/4,face+depth/2,(z0+top)/2),
+            ((width-opening)/2,depth,top-z0),"calcaire")
     if bottom>z0:
-        box((x,face+.055,(z0+bottom)/2),(opening,.11,bottom-z0),"calcaire")
+        box((x,face+depth/2,(z0+bottom)/2),(opening,depth,bottom-z0),"calcaire")
     arch=pointed_outline(opening,spring,rise)
     vertices,faces=[],[]
     for xx,zz in arch:
         vertices += [(x+xx,face,zz),(x+xx,face,top),
-            (x+xx,face+.11,zz),(x+xx,face+.11,top)]
+            (x+xx,face+depth,zz),(x+xx,face+depth,top)]
     for index in range(len(arch)-1):
         a,b=index*4,(index+1)*4
         faces += [(a,b,b+1,a+1),(a+2,a+3,b+3,b+2),(a,a+2,b+2,b),(a+1,b+1,b+3,a+3)]
     poly(vertices,faces,"calcaire")
-    gothic_window(x,face,bottom,opening,spring,rise,tracery=not door,door=door)
+    gothic_window(x,face,bottom,opening,spring,rise,tracery=not door,door=door,depth=depth)
+
+
+
+def gothic_gable_wall(x, face, bottom, top, half_width, opening, sill, spring, rise, depth=.098):
+    """Closed triangular gable whose lancet passes through the masonry."""
+    def roof_at(xx):
+        return top - (top-bottom)*abs(xx)/half_width
+    def stone(outline):
+        count=len(outline)
+        vertices=[(x+xx,y,zz) for y in (face,face+depth) for xx,zz in outline]
+        faces=[tuple(range(count)),tuple(reversed(range(count,count*2)))]
+        faces += [(i,count+i,count+(i+1)%count,(i+1)%count) for i in range(count)]
+        poly(vertices,faces,"calcaire")
+    half=opening/2
+    stone([(-half_width,bottom),(-half,bottom),(-half,roof_at(-half))])
+    stone([(half,bottom),(half_width,bottom),(half,roof_at(half))])
+    stone([(-half,bottom),(half,bottom),(half,sill),(-half,sill)])
+    curve=pointed_outline(opening,spring,rise)
+    for a,b in zip(curve,curve[1:]):
+        stone([a,b,(b[0],roof_at(b[0])),(a[0],roof_at(a[0]))])
+    gothic_window(x,face-.005,sill,opening,spring,rise,depth=depth)
 
 
 def ring(x,face,z,radius,thickness=.009):
@@ -268,8 +293,27 @@ def ring(x,face,z,radius,thickness=.009):
         beam(a,b,thickness,"pierre_taille",width=thickness*1.5)
 
 
+def rose_wall(x, face, z, half_width, half_height, radius, depth=.11):
+    """Closed rectangular stone annulus with an actual circular opening."""
+    angles = sorted({i*math.tau/48 for i in range(48)} |
+        {math.atan2(sy*half_height, sx*half_width) % math.tau
+            for sx in (-1,1) for sy in (-1,1)})
+    vertices=[]
+    for yy in (face, face+depth):
+        for angle in angles:
+            cx,cz=math.cos(angle),math.sin(angle)
+            reach=min(half_width/max(abs(cx),1e-12),half_height/max(abs(cz),1e-12))
+            vertices.extend([(x+reach*cx,yy,z+reach*cz),(x+radius*cx,yy,z+radius*cz)])
+    faces=[]; back=2*len(angles)
+    for i in range(len(angles)):
+        a,b=2*i,2*((i+1)%len(angles))
+        faces.extend([(a,b,b+1,a+1),(back+a,back+a+1,back+b+1,back+b),
+            (a,back+a,back+b,b),(a+1,b+1,back+b+1,back+a+1)])
+    return poly(vertices,faces,"calcaire")
+
+
 def rose(x,face,z,radius):
-    vertices=[(x+radius*math.cos(i*math.tau/20),face+.030,z+radius*math.sin(i*math.tau/20)) for i in range(20)]
+    vertices=[(x+radius*math.cos(i*math.tau/20),face+.062,z+radius*math.sin(i*math.tau/20)) for i in range(20)]
     poly(vertices,[tuple(range(20))],"verre")
     ring(x,face,z,radius,.023)
     ring(x,face-.007,z,radius*.84,.009)
@@ -363,6 +407,24 @@ def flying_buttress(side,y):
         poly(vertices,faces,"pierre_taille")
 
 
+def chapel_body(x, y, angle, radius=.135, bottom=.045, top=.665):
+    """Octagonal masonry with one truly recessed outward lancet."""
+    half_width=radius*math.sin(math.pi/8)
+    apothem=radius*math.cos(math.pi/8)
+    for i in range(8):
+        direction=angle+i*math.tau/8
+        start=len(PARTS)
+        if i == 0:
+            gothic_wall(0,0,bottom,top,half_width*2,.070,.18,.44,.15,depth=.018)
+        else:
+            box((0,.009,(bottom+top)/2),(half_width*2,.018,top-bottom),"calcaire")
+        transform_new(start,x+apothem*math.cos(direction),y+apothem*math.sin(direction),direction+math.pi/2)
+    outline=[(x+radius*math.cos(angle-math.pi/8+i*math.tau/8),
+        y+radius*math.sin(angle-math.pi/8+i*math.tau/8)) for i in range(8)]
+    poly([(px,py,bottom) for px,py in outline],[tuple(reversed(range(8)))],"calcaire")
+    poly([(px,py,top) for px,py in outline],[tuple(range(8))],"calcaire")
+
+
 def reprofile_upper_geometry(obj, slope, hinge=2.03):
     """Shorten the upper monument while retaining its packed UV/material atlas.
 
@@ -439,16 +501,13 @@ def cathedral():
     face=-.93
     for x in (-.25,0,.25):
         gothic_wall(x,face,.04,.81,.25,.172,.072,.46,.26,door=True)
-    box((0,face+.055,1.10),(.73,.11,.58),"calcaire")
+    rose_wall(0,face,1.10,.365,.29,.187)
     rose(0,face-.027,1.10,.183)
     for z in (.82,1.36):
         box((0,face-.014,z),(.82,.09,.040),"pierre_taille")
     for x in (-.30,-.20,-.10,0,.10,.20,.30):
         cylinder((x,face-.058,.875),.010,.080,"pierre_taille",6)
-    vertices=[(-.40,face-.018,1.395),(.40,face-.018,1.395),(0,face-.018,1.93),
-        (-.40,face+.080,1.395),(.40,face+.080,1.395),(0,face+.080,1.93)]
-    poly(vertices,[(0,1,2),(3,5,4),(0,3,4,1),(0,2,5,3),(1,4,5,2)],"calcaire")
-    gothic_window(0,face-.023,1.43,.18,1.61,.18)
+    gothic_gable_wall(0,face-.018,1.395,1.93,.40,.18,1.43,1.61,.18)
     for side in (-1,1):
         beam((side*.41,face-.034,1.39),(0,face-.034,1.96),.031,"pierre_taille")
         pinnacle(side*.41,face+.01,1.36,.46,.074)
@@ -489,13 +548,10 @@ def cathedral():
     cylinder((0,1.10,1.39),.37,.095,"pierre_taille",14)
     cylinder((0,1.10,1.66),.39,.45,"ardoise",14,radius_top=.04)
     for i in range(5):
-        angle=math.pi*i/4
+        angle=math.pi*(i+.5)/5
         x,y=.47*math.cos(angle),1.05+.46*math.sin(angle)
-        cylinder((x,y,.355),.135,.62,"calcaire",8)
+        chapel_body(x,y,angle)
         cylinder((x,y,.75),.153,.20,"ardoise",8,radius_top=.03)
-        before=len(PARTS)
-        gothic_window(0,0,.18,.090,.44,.15)
-        transform_new(before,x+.137*math.cos(angle),y+.137*math.sin(angle),angle+math.pi/2)
         pinnacle(x+.10*math.cos(angle),y+.10*math.sin(angle),.67,.29,.063)
     # Sculptural bases and corner columns remain visible in the inspection view.
     for x in (-.67,.67):
@@ -517,6 +573,50 @@ def cathedral():
     offset=Vector(((minimum[0]+maximum[0])/2,(minimum[1]+maximum[1])/2,minimum[2]))
     for v in obj.data.vertices:
         v.co-=offset
+    # The sampled pointed outlines contain collinear edges. Triangulate the
+    # completed source before UV packing and remove collapsed authoring faces,
+    # so the exported triangles carry their actual surface normals.
+    data=bmesh.new()
+    data.from_mesh(obj.data)
+    bmesh.ops.dissolve_degenerate(data,dist=1e-7,edges=list(data.edges))
+    bmesh.ops.triangulate(data,faces=list(data.faces),quad_method="FIXED",ngon_method="BEAUTY")
+    bmesh.ops.dissolve_degenerate(data,dist=1e-7,edges=list(data.edges))
+    data.normal_update()
+    data.to_mesh(obj.data)
+    data.free()
+    obj.data.update()
+    bpy.context.view_layer.update()
+    # Source-space ray evidence distinguishes an opening from glass hidden by
+    # masonry. This inspects the completed mesh before its materials are baked.
+    probes=[]
+    for i in range(12):
+        a=(i+.5)*math.tau/12
+        probes.append(("rose",Vector((.183*.65*math.cos(a),-.93-.16,1.10+.183*.65*math.sin(a))),Vector((0,1,0))))
+    for side in (-1,1):
+        probes.append(("gable",Vector((side*.18*.14,-.93-.16,1.52)),Vector((0,1,0))))
+    for tx,ty,width,height in [(-.51,-.78,.295,2.75),(.51,-.78,.295,2.38)]:
+        for face_angle in (0,math.pi/2,math.pi,math.pi*1.5):
+            rotation=Matrix.Rotation(face_angle,3,"Z")
+            for side in (-1,1):
+                local=Vector((side*width*.24+width*.23*.14,-width/2-.16,(1.52+height-.21)/2))
+                probes.append(("tower",rotation@local+Vector((tx,ty,0)),rotation@Vector((0,1,0))))
+    for i in range(5):
+        a=math.pi*(i+.5)/5
+        centre=Vector((.47*math.cos(a),1.05+.46*math.sin(a),0))
+        panel=centre+Vector((.135*math.cos(math.pi/8)*math.cos(a),.135*math.cos(math.pi/8)*math.sin(a),0))
+        rotation=Matrix.Rotation(a+math.pi/2,3,"Z")
+        probes.append(("chapel",rotation@Vector((.070*.14,-.16,.355))+panel,rotation@Vector((0,1,0))))
+    results=[]
+    for label,origin,direction in probes:
+        hit,location,normal,face_index=obj.ray_cast(origin-offset,direction,distance=.55)
+        name=obj.data.materials[obj.data.polygons[face_index].material_index].name if hit else None
+        results.append({"opening":label,"origin":list(origin-offset),"direction":list(direction),
+            "hit":bool(hit),"firstMaterial":name,"firstHitIsGlazing":bool(name and "source verre" in name),
+            "position":list(location) if hit else None})
+    (EVIDENCE/"cathedral-openings.json").write_text(json.dumps({
+        "method":"Read-only rays against actual completed source triangles before baking. First-hit source material identifies glass or intervening masonry. Does not certify the exported atlas, native rendering, frame rate or visual conformity.",
+        "probes":results},ensure_ascii=False,indent=2)+"\n")
+    print("CATHEDRAL_OPENING_RAYS",sum(p["firstHitIsGlazing"] for p in results),"/",len(results),flush=True)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(68),island_margin=.002)
@@ -558,6 +658,7 @@ def export_distance_geometry(models):
         metadata[name] = original
         low = high.copy()
         low.data = high.data.copy()
+        low.data.name = name + "_distant_geometry"
         low.name = name + "_distant_mesh"
         bpy.context.collection.objects.link(low)
         root = bpy.data.objects.new(name + "_distant", None)

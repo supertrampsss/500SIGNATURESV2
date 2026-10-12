@@ -1,3 +1,4 @@
+import { majorMonumentCanopyReservations } from "./map-monument-sites.ts";
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { LYON_SCHOOL_SITE } from "./map-public-sites.ts";
@@ -3276,8 +3277,14 @@ function coastalTrunkTranslation(foot: Point[], polygons: Point[][]) {
 }
 
 async function buildForests(scene: Scene, orchards: Point[]) {
-  const kit = await loadAssetKit(scene, MODEL_URLS.vegetation);
+  const [kit, architecture, cathedral] = await Promise.all([
+    loadAssetKit(scene, MODEL_URLS.vegetation),
+    loadAssetKit(scene, MODEL_URLS.architecture),
+    loadAssetKit(scene, MODEL_URLS.cathedrale),
+  ]);
   if (scene.isDisposed) return [];
+  const majorMonumentPlots = majorMonumentCanopyReservations(site =>
+    (site.model === "cathedrale_paris" ? cathedral : architecture).bounds(site.model));
   const meshes: AbstractMesh[] = [],
     forestRoot = new TransformNode("landscape-authored-vegetation", scene);
   const spacing = 0.15;
@@ -3297,6 +3304,20 @@ async function buildForests(scene: Scene, orchards: Point[]) {
       scale = height / Math.max(0.01, extent.height);
     prefab.root.scaling.setAll(scale);
     prefab.root.rotation.y = angle;
+    const canopyRadius = Math.hypot(extent.width, extent.depth) * scale / 2;
+    // Centred kit bounds enclose every rotated canopy. Only nearby roots need
+    // a full hierarchy update for the exact world-envelope rejection.
+    if (name !== "rock" && majorMonumentPlots.some(plot =>
+      Math.abs(x - plot.x) < plot.halfX + canopyRadius + .008 &&
+      Math.abs(z - plot.z) < plot.halfZ + canopyRadius + .008)) {
+      const canopy = prefab.root.getHierarchyBoundingVectors(true);
+      if (majorMonumentPlots.some(plot =>
+        canopy.min.x < plot.x + plot.halfX + .008 && canopy.max.x > plot.x - plot.halfX - .008 &&
+        canopy.min.z < plot.z + plot.halfZ + .008 && canopy.max.z > plot.z - plot.halfZ - .008)) {
+        prefab.root.dispose(false);
+        return;
+      }
+    }
     if (name === "rock") {
       const gx = (landHeight(x + 0.035, z) - landHeight(x - 0.035, z)) / 0.07;
       const gz = (landHeight(x, z + 0.035) - landHeight(x, z - 0.035)) / 0.07;
@@ -3463,7 +3484,8 @@ async function buildForests(scene: Scene, orchards: Point[]) {
         0.21 + variant * 0.075,
         variant * Math.PI * 2,
       );
-      if (root instanceof TransformNode) {
+      if (!(root instanceof TransformNode)) continue;
+      {
         root.scaling.x *= name === "pine" ? 0.52 : 0.83;
         root.scaling.z *= name === "pine" ? 0.52 : 0.83;
         root.metadata = {

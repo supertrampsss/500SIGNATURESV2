@@ -92,7 +92,8 @@ const sculptedMassifs: readonly SculptedMassif[] = [
   },
 ];
 
-type RockTriangle = { x: number[]; z: number[]; h: number[]; inverse: number; band: number; slope: number; normalX: number; normalZ: number };
+type RockTriangle = { x: number[]; z: number[]; h: number[]; inverse: number; band: number; slope: number; normalX: number; normalZ: number; legacyCells?: readonly [number, number, number, number] };
+const rockCellSize = .06, legacyRockCellSize = .24;
 const rockCells = new Map<string, RockTriangle[]>();
 const baselineRockCells = new Map<string, RockTriangle[]>();
 const parentRockCells = new Map<string, RockTriangle[]>();
@@ -210,8 +211,23 @@ function shoulderedMassifVertices(massif: SculptedMassif, part: number) {
 }
 
 function indexRockFace(index: Map<string, RockTriangle[]>, triangle: RockTriangle) {
-  for (let ix = Math.floor(Math.min(...triangle.x) / .24); ix <= Math.floor(Math.max(...triangle.x) / .24); ix++)
-    for (let iz = Math.floor(Math.min(...triangle.z) / .24); iz <= Math.floor(Math.max(...triangle.z) / .24); iz++) {
+  const minX = Math.min(...triangle.x), maxX = Math.max(...triangle.x),
+    minZ = Math.min(...triangle.z), maxZ = Math.max(...triangle.z);
+  if (index !== rockCells) {
+    for (let ix = Math.floor(minX / legacyRockCellSize); ix <= Math.floor(maxX / legacyRockCellSize); ix++)
+      for (let iz = Math.floor(minZ / legacyRockCellSize); iz <= Math.floor(maxZ / legacyRockCellSize); iz++) {
+        const key = `${ix}:${iz}`, cell = index.get(key) ?? [];
+        cell.push(triangle); index.set(key, cell);
+      }
+    return;
+  }
+  // Preserve the previous coarse-cell eligibility and first-face order, even
+  // at its boundaries. Expand fine bounds for the unchanged barycentric tolerance.
+  triangle.legacyCells = [Math.floor(minX / legacyRockCellSize), Math.floor(maxX / legacyRockCellSize),
+    Math.floor(minZ / legacyRockCellSize), Math.floor(maxZ / legacyRockCellSize)];
+  const marginX = (maxX - minX) * 2e-7 + 1e-9, marginZ = (maxZ - minZ) * 2e-7 + 1e-9;
+  for (let ix = Math.floor((minX - marginX) / rockCellSize); ix <= Math.floor((maxX + marginX) / rockCellSize); ix++)
+    for (let iz = Math.floor((minZ - marginZ) / rockCellSize); iz <= Math.floor((maxZ + marginZ) / rockCellSize); iz++) {
       const key = `${ix}:${iz}`, cell = index.get(key) ?? [];
       cell.push(triangle); index.set(key, cell);
     }
@@ -493,7 +509,13 @@ for (const [part, massif] of sculptedMassifs.entries()) {
   }
 }
 function sculptedAt(x: number, z: number, index = rockCells) {
-  for (const triangle of index.get(`${Math.floor(x / .24)}:${Math.floor(z / .24)}`) ?? []) {
+  const fine = index === rockCells, step = fine ? rockCellSize : legacyRockCellSize,
+    legacyX = Math.floor(x / legacyRockCellSize), legacyZ = Math.floor(z / legacyRockCellSize);
+  for (const triangle of index.get(`${Math.floor(x / step)}:${Math.floor(z / step)}`) ?? []) {
+    if (fine) {
+      const bounds = triangle.legacyCells!;
+      if (legacyX < bounds[0] || legacyX > bounds[1] || legacyZ < bounds[2] || legacyZ > bounds[3]) continue;
+    }
     const a = ((triangle.z[1] - triangle.z[2]) * (x - triangle.x[2]) + (triangle.x[2] - triangle.x[1]) * (z - triangle.z[2])) * triangle.inverse;
     const b = ((triangle.z[2] - triangle.z[0]) * (x - triangle.x[2]) + (triangle.x[0] - triangle.x[2]) * (z - triangle.z[2])) * triangle.inverse;
     const c = 1 - a - b;

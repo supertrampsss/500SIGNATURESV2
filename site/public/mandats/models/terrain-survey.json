@@ -198,7 +198,7 @@
     },
     {
       "file": "site/src/mandats/map-land-crags.ts",
-      "sha256": "5a41728a41df20577db9fedd4d831f594c64f31cf01e0f87b61acf70017dd188"
+      "sha256": "23d17012b25d0c7fb0f1f9d985c13c4d6bf2d0d2428777fe76329b7d81da2451"
     },
     {
       "file": "site/src/mandats/map-land-materials.ts",
@@ -210,7 +210,7 @@
     },
     {
       "file": "site/src/mandats/map-landscape.ts",
-      "sha256": "b70daab5be13605d3648efcad272606518c193295f2b68b5de25d489e4ddcd4d"
+      "sha256": "530c77b19b9534aced994bee6ee3666975ba423523dcb52773ac676cbefd0750"
     },
     {
       "file": "site/src/mandats/map-mineral-material.ts",
@@ -218,7 +218,11 @@
     },
     {
       "file": "site/src/mandats/map-model-revisions.ts",
-      "sha256": "20ebc8dea553f4d5fa05b90b131461a301b6247350d0187668ccfc964de1f857"
+      "sha256": "f1250bf8311c6f90631f3b327775458d62798eecddab3e68e7318f0226ff0f4e"
+    },
+    {
+      "file": "site/src/mandats/map-monument-sites.ts",
+      "sha256": "18133b550785b21dedc318952050a725af5d48fe1b420a051acfc5a9a5d81f58"
     },
     {
       "file": "site/src/mandats/map-paris-terrain.ts",

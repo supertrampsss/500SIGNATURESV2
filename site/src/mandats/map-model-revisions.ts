@@ -3,6 +3,6 @@ export const MODEL_URLS = {
   "architecture": "/mandats/models/architecture.glb?v=ee1602e90a669a33",
   "vegetation": "/mandats/models/vegetation.glb?v=b3eb53de00352151",
   "paris": "/mandats/models/paris.glb?v=d4754e30a6dae603",
-  "cathedrale": "/mandats/models/cathedrale.glb?v=60235a5e34d8c49f",
+  "cathedrale": "/mandats/models/cathedrale.glb?v=fd8d587d9a82beeb",
   "daylight": "/mandats/models/daylight.env?v=893b475a4e2c4bc8"
 } as const;

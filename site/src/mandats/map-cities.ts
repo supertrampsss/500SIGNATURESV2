@@ -31,6 +31,7 @@ import { NATIONAL_SETTLEMENTS, nationalBuildingFootprint } from "./map-city-nati
 import type { NationalBuilding } from "./map-city-national.ts";
 import { URBAN_PLANS, RURAL_SETTLEMENTS, AUTHORED_PROJECT_RESERVATIONS } from "./map-urban-plans.ts";
 import type { UrbanRegion } from "./map-urban-plans.ts";
+import { MAJOR_MONUMENT_SITES, majorMonumentCanopyReservations } from "./map-monument-sites.ts";
 
 type Point = [number, number, number];
 type GroundPoint = { x: number; z: number };
@@ -967,10 +968,13 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     }
     meshes.push(...asset.meshes);
   };
-  placeMonument("cathedrale_paris", "paris", cathedralSite.x, cathedralSite.z, cathedralScale, cathedralSite.angle, cathedralKit);
-  placeMonument("beffroi_nord", "lille", -.48, .13, .135, .03);
-  placeMonument("mairie_sud", "toulouse", -.35, .51, .16, -.03);
-  placeMonument("mairie_sud", "lyon", -.42, .57, .12, .06);
+  const majorMonumentPlots = majorMonumentCanopyReservations(site =>
+    (site.model === "cathedrale_paris" ? cathedralKit : kit).bounds(site.model));
+  for (const site of MAJOR_MONUMENT_SITES) {
+    const library = site.model === "cathedrale_paris" ? cathedralKit : kit,
+      scale = site.width === undefined ? site.scale! : site.width / library.bounds(site.model).width;
+    placeMonument(site.model, site.town, site.x, site.z, scale, site.angle, library);
+  }
   factory(roots.get("lille")!, -.70, -.65, true);
   hospital(roots.get("rennes")!, .37, .47);
   school(roots.get("lyon")!);
@@ -1177,7 +1181,8 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       canopyPlot: Plot = { x: (canopy.min.x + canopy.max.x) / 2,
         z: (canopy.min.z + canopy.max.z) / 2,
         halfX: (canopy.max.x - canopy.min.x) / 2, halfZ: (canopy.max.z - canopy.min.z) / 2 };
-    if (lighthousePlots.some(plot => collides(canopyPlot, plot, .008)) || landmarkReport.some(site => {
+    if (majorMonumentPlots.some(plot => collides(canopyPlot, plot, .008)) ||
+        lighthousePlots.some(plot => collides(canopyPlot, plot, .008)) || landmarkReport.some(site => {
       const monumentRoot = settlementRoots.get(site.town)!;
       return collides(canopyPlot, { x: monumentRoot.position.x + site.x,
         z: monumentRoot.position.z + site.z, halfX: site.width / 2, halfZ: site.depth / 2 }, .008);
