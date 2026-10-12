@@ -182,7 +182,7 @@
     },
     {
       "file": "site/src/mandats/map-ground-survey.ts",
-      "sha256": "7efe392e288f542e6557ed344c101c47ac79fe892e6b47656a056894dd234ba0"
+      "sha256": "3736099a2222086ef981038f155c57fde88d2f9d34c77111a667d2cceb6ba481"
     },
     {
       "file": "site/src/mandats/map-harbour-sites.ts",
@@ -210,7 +210,7 @@
     },
     {
       "file": "site/src/mandats/map-landscape.ts",
-      "sha256": "30c88c6eaf4e5a76859b4688083fa3bb6c04837530a1f4a577df9aea8c783cb8"
+      "sha256": "904daa1bcc48632d04ce48b5d17e38d42f40782649dd83559f55b14c1c199d01"
     },
     {
       "file": "site/src/mandats/map-mineral-material.ts",
@@ -247,6 +247,10 @@
     {
       "file": "site/src/mandats/map-state.ts",
       "sha256": "bb0cca073af3950b118550cc0f7c1b22d7be631a6d061c27ec9c36e6c59ce0d1"
+    },
+    {
+      "file": "site/src/mandats/map-tree-ground.ts",
+      "sha256": "4d5e71164cfde707ae9c1abd448a32f43c5f2e89866a7b9b52e42cf9f1216b1c"
     },
     {
       "file": "site/src/mandats/map-urban-plans.ts",

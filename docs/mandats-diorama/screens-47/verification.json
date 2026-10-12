@@ -1,0 +1,353 @@
+{
+  "method": "Strict actual production records; every served JS/CSS response hash equals its frozen dist file. Existing DOM and pointer controls only. No camera, game state, network, model or LOD override. Every captured console/page/request/HTTP error is checked. Software Chromium captures do not prove original browser timing, physical-device FPS or artistic conformity.",
+  "records": [
+    {
+      "record": "production-01-national.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-04-lyon-detail.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "3.8",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-05-lyon-alpes.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "5.8",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-06-national-retour.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-07-paris-cathedrale.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "5.48",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-08-mediterranee-port.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "5.57",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-09-national-final.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8185",
+      "shadersReadyMs": "8976",
+      "renderer": "babylon",
+      "turn": "0",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "movement-01-mobilisation.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8166",
+      "shadersReadyMs": "8966",
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-320-01-mobilisation.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.45",
+      "geometryReadyMs": "7712",
+      "shadersReadyMs": "8551",
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 640,
+        "height": 562
+      },
+      "viewport": [
+        320,
+        740
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "production-390-01-mobilisation.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.45",
+      "geometryReadyMs": "7643",
+      "shadersReadyMs": "8499",
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "raster": {
+        "width": 780,
+        "height": 642
+      },
+      "viewport": [
+        390,
+        844
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "hospital-01-chantier.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8611",
+      "shadersReadyMs": "9678",
+      "renderer": "babylon",
+      "turn": "1",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 1,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-soins-garde-nuit-renover-service"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    },
+    {
+      "record": "hospital-02-livraison.json",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "httpErrors": 0,
+      "cameraRadius": "13.57",
+      "geometryReadyMs": "8611",
+      "shadersReadyMs": "9678",
+      "renderer": "babylon",
+      "turn": "3",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 1,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-soins-garde-nuit-renover-service",
+          "r01a",
+          "r02a"
+        ]
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "viewport": [
+        1672,
+        941
+      ],
+      "layoutOverflow": false
+    }
+  ]
+}

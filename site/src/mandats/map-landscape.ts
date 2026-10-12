@@ -25,7 +25,8 @@ import {
 } from "./map-urban-plans.ts";
 import { loadAssetKit } from "./map-asset-kit.ts";
 import { geometryContactFrame, geometryProjectionVertices } from "./map-geometry-cache.ts";
-import { GroundSurvey } from "./map-ground-survey.ts";
+import { placementGroundSurvey } from "./map-ground-survey.ts";
+import { seatTreeOnGround } from "./map-tree-ground.ts";
 import { prepareMineralSurface, prepareMeadowSurface } from "./map-mineral-material.ts";
 import { HARBOUR_SITES } from "./map-harbour-sites.ts";
 import { loadLandscapeSurvey } from "./map-landscape-cache.ts";
@@ -1291,33 +1292,6 @@ function colorMix(a: Color3, b: Color3, amount: number) {
   return Color3.Lerp(a, b, clamp(amount));
 }
 
-// This temporary index refers to the actual vertex buffers. It is discarded
-// after the authored instances touch the same surfaces that the renderer draws.
-function seatTreesOnRenderedGround(trees: AbstractMesh[], ground: Mesh[]) {
-  const survey = new GroundSurvey(ground.filter(mesh => mesh.name.startsWith("landscape-terrain-")).flatMap(mesh => {
-    const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
-    return positions && indices ? [{ positions, indices }] : [];
-  }), .12);
-  const roots = new Set<TransformNode>();
-  for (const mesh of trees) {
-    let node = mesh.parent;
-    while (node?.parent && node.parent.name !== "landscape-authored-vegetation") node = node.parent;
-    if (node instanceof TransformNode && node.parent?.name === "landscape-authored-vegetation" &&
-      node.metadata?.asset !== "rock") roots.add(node);
-  }
-  for (const root of roots) {
-    const contacts = root.getChildMeshes().map(geometryContactFrame),
-      baseY = Math.min(...contacts.map(contact => contact.minimumY)),
-      foot = contacts.flatMap(contact => contact.below(baseY + .0001));
-    let lowest = survey.heightAt(root.position.x, root.position.z);
-    if (!Number.isFinite(lowest)) lowest = Infinity;
-    for (const point of foot) {
-      const height = survey.heightAt(point.x, point.z);
-      if (Number.isFinite(height)) lowest = Math.min(lowest, height);
-    }
-    if (Number.isFinite(lowest)) root.position.y += lowest - baseY + .001;
-  }
-}
 
 type AlpineColorTarget = { mesh: Mesh; surveys?: Map<number, { band: number }> };
 type AlpineOccupiedCover = { contains: (x: number, z: number) => boolean;
@@ -3307,6 +3281,7 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     ...nationalCathedralCanopyReservations(() => cathedral.bounds("cathedrale_paris"))];
   const meshes: AbstractMesh[] = [],
     forestRoot = new TransformNode("landscape-authored-vegetation", scene);
+  const groundSurvey = placementGroundSurvey(scene);
   const spacing = 0.15;
   let treeCount = 0,
     rockCount = 0;
@@ -3318,10 +3293,14 @@ async function buildForests(scene: Scene, orchards: Point[]) {
     angle: number,
   ) => {
     if (!kit.names.includes(name)) return;
+    const extent = kit.bounds(name),
+      scale = height / Math.max(0.01, extent.height),
+      naturalCanopyReach = Math.hypot(extent.width, extent.depth) * scale * .55;
+    // Natural crowns need their full model envelope around authored buildings.
+    // The small allowance also encloses the current kit's off-centre crowns.
+    if (name !== "rock" && urbanClearance(x, z) < naturalCanopyReach + .010) return;
     const prefab = kit.instantiate(name, forestRoot);
     prefab.root.position.set(x, landHeight(x, z) + 0.002, z);
-    const extent = kit.bounds(name),
-      scale = height / Math.max(0.01, extent.height);
     prefab.root.scaling.setAll(scale);
     prefab.root.rotation.y = angle;
     const canopyRadius = Math.hypot(extent.width, extent.depth) * scale / 2;
@@ -3351,6 +3330,9 @@ async function buildForests(scene: Scene, orchards: Point[]) {
         Quaternion.RotationAxis(Vector3.Up(), angle),
       );
       prefab.root.position.y -= height * 0.16;
+    }
+    if (name !== "rock" && !seatTreeOnGround(prefab.root, groundSurvey, height)) {
+      prefab.root.dispose(false); return;
     }
     meshes.push(...prefab.meshes);
     if (name === "rock") rockCount++;
@@ -3457,15 +3439,8 @@ async function buildForests(scene: Scene, orchards: Point[]) {
         height = previousHeight * stature,
         root = plant(name, x, z, height, variation * Math.PI * 2);
       if (!(root instanceof TransformNode)) continue;
-      // Unequal mature trees break up the grove silhouette. Keep each crown's
-      // horizontal envelope and trunk footprint from the protected survey.
-      root.scaling.x /= stature; root.scaling.z /= stature;
-      if (wood.maxSlope !== undefined) root.position.y = Math.min(ground,
-        landHeight(x - .010, z), landHeight(x + .010, z),
-        landHeight(x, z - .010), landHeight(x, z + .010)) + .001;
-      if (name === "pine") { root.scaling.x *= 0.42; root.scaling.z *= 0.42; }
-      if (name === "oak" || name === "beech") { root.scaling.x *= .62; root.scaling.z *= .62; }
-      if (name === "cypress") { root.scaling.x *= 0.83; root.scaling.z *= 0.83; }
+      // Mature trees vary in size with one uniform model scale. Their crowns
+      // keep the authored proportions instead of becoming narrow columns.
       root.metadata = { ...root.metadata, region: "france", woodland: wood.id, authoredStature: stature };
       for (const mesh of root.getChildMeshes()) mesh.metadata = {
         ...mesh.metadata, region: "france", woodland: wood.id,
@@ -3506,8 +3481,6 @@ async function buildForests(scene: Scene, orchards: Point[]) {
       );
       if (!(root instanceof TransformNode)) continue;
       {
-        root.scaling.x *= name === "pine" ? 0.52 : 0.83;
-        root.scaling.z *= name === "pine" ? 0.52 : 0.83;
         root.metadata = {
           ...root.metadata,
           region: "paris",
@@ -3819,7 +3792,6 @@ export async function buildLandscape(scene: Scene): Promise<{ meshes: AbstractMe
   if (scene.isDisposed) return { meshes };
   const trees = await buildForests(scene, orchards);
   if (!scene.isDisposed) {
-    seatTreesOnRenderedGround(trees, meshes);
     recolorAlpineGround(scene, meshes, colorTargets, alpineOccupiedCover(trees, meshes));
   }
   colorTargets.length = 0;

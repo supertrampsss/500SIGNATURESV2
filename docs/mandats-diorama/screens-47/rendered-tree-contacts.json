@@ -1,0 +1,202 @@
+{
+  "source": "rendered-tree-and-rock-contacts.json",
+  "method": "Read actual placed French tree geometry and world transforms, caching each actual model local lowest section (minimumY+.01) as in the existing context-tree support. Query actual final indexed land after mineral fractures. This conservative section may include small stem-side vertices; positive clearance is an authoring observation, not an automatic artistic failure. No camera, game, LOD, geometry or root transform mutation.",
+  "count": 2544,
+  "unsupported": [],
+  "above4mm": 0,
+  "maximumLowestSectionClearance": -0.0009994699772343518,
+  "worst": [
+    {
+      "asset": "pine",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-pine-10608",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009994699772343518
+    },
+    {
+      "asset": "pine",
+      "woodland": "lisiere-sud-ouest",
+      "name": "asset-pine-12168",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999540923976014
+    },
+    {
+      "asset": "pine",
+      "woodland": "bois-cour-ouest",
+      "name": "asset-pine-14668",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009995919127661068
+    },
+    {
+      "asset": "pine",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-pine-10616",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009996076179663582
+    },
+    {
+      "asset": "pine",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-pine-10636",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999610027743042
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-ouest",
+      "name": "asset-pine-13912",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999625448284247
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-central",
+      "name": "asset-pine-14152",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009996325165156361
+    },
+    {
+      "asset": "beech",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-beech-10768",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999643275492762
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-central",
+      "name": "asset-pine-14162",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999645737109034
+    },
+    {
+      "asset": "pine",
+      "woodland": "versants-mercantour",
+      "name": "asset-pine-13772",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009996656504477897
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-central",
+      "name": "asset-pine-14200",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997003488309009
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-est",
+      "name": "asset-pine-14258",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.00099971740332494
+    },
+    {
+      "asset": "pine",
+      "woodland": "lisiere-sud-ouest",
+      "name": "asset-pine-12192",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997174542092369
+    },
+    {
+      "asset": "oak",
+      "woodland": "piedmont-pyrenees-central",
+      "name": "asset-oak-14166",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997197441655725
+    },
+    {
+      "asset": "pine",
+      "woodland": "lisiere-sud-ouest",
+      "name": "asset-pine-12172",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999762604563706
+    },
+    {
+      "asset": "beech",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-beech-10742",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999763643963994
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-ouest",
+      "name": "asset-pine-14008",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999768559764802
+    },
+    {
+      "asset": "pine",
+      "woodland": "versants-mercantour",
+      "name": "asset-pine-13652",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997686328923616
+    },
+    {
+      "asset": "beech",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-beech-10700",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997828536324471
+    },
+    {
+      "asset": "pine",
+      "woodland": "bois-cour-ouest",
+      "name": "asset-pine-14632",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997855171275383
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-central",
+      "name": "asset-pine-14040",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997924049117701
+    },
+    {
+      "asset": "beech",
+      "woodland": "bois-pays-de-caux",
+      "name": "asset-beech-10640",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009997933420015093
+    },
+    {
+      "asset": "pine",
+      "woodland": "piedmont-pyrenees-ouest",
+      "name": "asset-pine-13868",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.000999797849455475
+    },
+    {
+      "asset": "beech",
+      "woodland": "versants-mercantour",
+      "name": "asset-beech-13836",
+      "samples": 14,
+      "finite": true,
+      "maximumLowestSectionClearance": -0.0009998007223174787
+    }
+  ]
+}

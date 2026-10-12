@@ -1,6 +1,24 @@
+import type { Scene } from "@babylonjs/core/scene";
+
 type Point = [number, number, number];
 type GroundPoint = { x: number; z: number };
 export type GroundTriangles = { positions: ArrayLike<number>; indices: ArrayLike<number> };
+
+const placementSurveys = new WeakMap<Scene, GroundSurvey>();
+
+/** Shared original land buffers for initial scenery placement, before the
+ * later mineral fractures. Trees and architecture use the same triangle index. */
+export function placementGroundSurvey(scene: Scene): GroundSurvey {
+  const existing = placementSurveys.get(scene);
+  if (existing) return existing;
+  const survey = new GroundSurvey(scene.meshes.filter(mesh =>
+    mesh.name.startsWith("landscape-terrain-")).flatMap(mesh => {
+      const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
+      return positions && indices ? [{ positions, indices }] : [];
+    }));
+  placementSurveys.set(scene, survey);
+  return survey;
+}
 
 /** Index actual rendered triangles without duplicating their vertex arrays.
  * Only triangles touching the requested foundation are expanded and clipped. */

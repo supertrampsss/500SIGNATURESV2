@@ -244,7 +244,8 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
     let vehicles: Awaited<ReturnType<typeof buildCities>>["vehicles"] = [];
     let sceneryReady = false;
     let pendingInspection: MapPlace | undefined;
-    let vegetation: Array<{ root: TransformNode; x: number; z: number }> = [];
+    let vegetation: Array<{ root: TransformNode; minX: number; maxX: number;
+      minZ: number; maxZ: number }> = [];
     const clearedTrees = new Set<TransformNode>();
     // Start the existing GLB requests before the synchronous ground builders.
     // Keep the result order and the same shared Scene/asset-kit cache.
@@ -716,11 +717,14 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       const footprints = [...projectGroups.values()].filter(group =>
         !group.root.metadata?.unplaced && ["funded", "blocked", "delivered"].includes(group.status)).map(group => {
           group.root.computeWorldMatrix(true);
-          return group.root.getAbsolutePosition();
+          const bounds = group.root.getHierarchyBoundingVectors(true);
+          return { minX: bounds.min.x, maxX: bounds.max.x,
+            minZ: bounds.min.z, maxZ: bounds.max.z };
         });
       for (const tree of vegetation) {
-        const clear = footprints.some(point => Math.abs(point.x - tree.x) < .110 &&
-          Math.abs(point.z - tree.z) < .085);
+        const clear = footprints.some(plot => tree.minX < plot.maxX + .008 &&
+          tree.maxX > plot.minX - .008 && tree.minZ < plot.maxZ + .008 &&
+          tree.maxZ > plot.minZ - .008);
         if (clear === clearedTrees.has(tree.root)) continue;
         tree.root.setEnabled(!clear);
         if (clear) clearedTrees.add(tree.root);
@@ -1056,8 +1060,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         ["oak", "beech", "pine", "cypress", "olive", "orchard"].includes(node.metadata.asset))
         .map(root => {
           root.computeWorldMatrix(true);
-          const position = root.getAbsolutePosition();
-          return { root, x: position.x, z: position.z };
+          const bounds = root.getHierarchyBoundingVectors(true);
+          return { root, minX: bounds.min.x, maxX: bounds.max.x,
+            minZ: bounds.min.z, maxZ: bounds.max.z };
         });
       const rocks = buildMountainRocks(scene);
       host.dataset.mountainRocks = String(scene.metadata?.mountainRocks?.count ?? 0);

@@ -1,5 +1,6 @@
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
-import { GroundSurvey } from "./map-ground-survey.ts";
+import { GroundSurvey, placementGroundSurvey } from "./map-ground-survey.ts";
+import { seatTreeOnGround } from "./map-tree-ground.ts";
 import { MODEL_URLS } from "./map-model-revisions.ts";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
 import { Scene } from "@babylonjs/core/scene";
@@ -576,12 +577,11 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
   const baseHousePlots = allAuthoredHousePlots.filter(plot => !plot.id.includes("-tissu14-"));
 
   const parisConflicts = new Map<string, string[]>();
-  const terrainSurvey = (crop: boolean) => new GroundSurvey(scene.meshes.filter(mesh => crop
-    ? ["landscape-agriculture", "landscape-crop-rows", "landscape-field-limits"].includes(mesh.name)
-    : mesh.name.startsWith("landscape-terrain-")).flatMap(mesh => {
+  const terrainSurvey = (crop: boolean) => crop ? new GroundSurvey(scene.meshes.filter(mesh =>
+    ["landscape-agriculture", "landscape-crop-rows", "landscape-field-limits"].includes(mesh.name)).flatMap(mesh => {
       const positions = mesh.getVerticesData("position"), indices = mesh.getIndices();
       return positions && indices ? [{ positions, indices }] : [];
-    }));
+    })) : placementGroundSurvey(scene);
   const gardenTerrain = terrainSurvey(false), cropTerrain = terrainSurvey(true),
     renderedFootprintLevels = (outline: GroundPoint[], survey = gardenTerrain) => survey.levels(outline);
   const placeHouse = (root: TransformNode, town: string, region: UrbanRegion,
@@ -1199,15 +1199,12 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     asset.root.position.set(x, landHeight(worldX, worldZ) + .002 - root.position.y, z);
     asset.root.rotation.y = rng() * Math.PI * 2;
     asset.root.scaling.setAll(height / bounds.height);
-    if (name === "pine") {
-      asset.root.scaling.x *= .58;
-      asset.root.scaling.z *= .58;
-    }
     const canopy = asset.root.getHierarchyBoundingVectors(true),
       canopyPlot: Plot = { x: (canopy.min.x + canopy.max.x) / 2,
         z: (canopy.min.z + canopy.max.z) / 2,
         halfX: (canopy.max.x - canopy.min.x) / 2, halfZ: (canopy.max.z - canopy.min.z) / 2 };
-    if (monumentCanopyPlots.some(plot => collides(canopyPlot, plot, .008)) ||
+    if (occupied.some(plot => collides(canopyPlot, plot, .008)) ||
+        monumentCanopyPlots.some(plot => collides(canopyPlot, plot, .008)) ||
         lighthousePlots.some(plot => collides(canopyPlot, plot, .008)) || landmarkReport.some(site => {
       const monumentRoot = settlementRoots.get(site.town)!;
       return collides(canopyPlot, { x: monumentRoot.position.x + site.x,
@@ -1215,6 +1212,9 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
     })) {
       asset.root.dispose(false);
       return;
+    }
+    if (!seatTreeOnGround(asset.root, gardenTerrain, height)) {
+      asset.root.dispose(false); return;
     }
     meshes.push(...asset.meshes);
     planted.push(trunkPlot);

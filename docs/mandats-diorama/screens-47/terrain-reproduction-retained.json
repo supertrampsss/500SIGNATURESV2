@@ -1,0 +1,17 @@
+{
+  "method": "Two complete current bakes, unchanged sources, exact binary/manifest comparison. Terrain binary also byteexact46; natural tree proportions and actual stem seating occur at runtime. No normal LOD/camera/game state forced.",
+  "rows": [
+    {
+      "file": "terrain-survey.bin.gz",
+      "bytes": 10029351,
+      "sha256": "2f190fc67015e83fa331a2ff45ec9bfe23a68de0131cd39dd0e7941489c9e5ea",
+      "byteExact": true
+    },
+    {
+      "file": "terrain-survey.json",
+      "bytes": 11452,
+      "sha256": "389b5a167f9f10847825dfab522edb916d8c781a221556cbd837f5876a6be15b",
+      "byteExact": true
+    }
+  ]
+}
