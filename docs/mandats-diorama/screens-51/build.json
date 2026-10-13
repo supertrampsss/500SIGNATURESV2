@@ -1,0 +1,66 @@
+{
+  "parent": "0619af833d813b4cb4e856312db9979054b8d28b",
+  "command": "NODE_USE_ENV_PROXY=1 npm run check",
+  "log": "full-check-d.log",
+  "unitTestsPassed": 1082,
+  "offlineResources": 152,
+  "offlineVersion": "876602dfe8f7eaec",
+  "entry": "assets/mandats-ciXEK_V4.js",
+  "entrySHA256": "12e8f18a91450ac301b25cc94ce0ac2e0567cc3dfad6146bcdf9b1cef5039653",
+  "assets": [
+    {
+      "name": "daylight.env",
+      "bytes": 238984,
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93",
+      "distByteIdentical": true
+    },
+    {
+      "name": "vegetation.glb",
+      "bytes": 697028,
+      "sha256": "b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350",
+      "distByteIdentical": true
+    },
+    {
+      "name": "architecture.glb",
+      "bytes": 11953412,
+      "sha256": "0940846cb686aa691e2c35006281a6968a3e71f1fd4bc4ecff846badd6c4de16",
+      "distByteIdentical": true
+    },
+    {
+      "name": "architecture.json",
+      "bytes": 30658,
+      "sha256": "b00d05dd42f638112f7ee91a200138403b201b1f866fa1d3aaff77df8ef688f4",
+      "distByteIdentical": true
+    },
+    {
+      "name": "paris.glb",
+      "bytes": 9231336,
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491",
+      "distByteIdentical": true
+    },
+    {
+      "name": "cathedrale.glb",
+      "bytes": 11897980,
+      "sha256": "8b42cafd65caa982d3dc44f1f42ac3530f11e03e1227d599e14f96fc072a1448",
+      "distByteIdentical": true
+    },
+    {
+      "name": "cathedrale.json",
+      "bytes": 1179,
+      "sha256": "dfdcfaccc36b438a8081e6684e746b605f9b9a928af2ec9b158dde9ea792d63f",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.bin.gz",
+      "bytes": 11786506,
+      "sha256": "2200e6b7298a7352453d37c2a009a7800b844986863b7f2e2c0b7b9432467738",
+      "distByteIdentical": true
+    },
+    {
+      "name": "terrain-survey.json",
+      "bytes": 12047,
+      "sha256": "b242e39aaa0b4a4646731a430aa70fabb235e898b4ceaaf6e7ff1e099c7b3636",
+      "distByteIdentical": true
+    }
+  ]
+}

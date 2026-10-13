@@ -16,6 +16,9 @@ type Bedding = { x: number; z: number; nx: number; ny: number; nz: number; count
 // The existing .026 mineral grid supplies all vertices. No new triangle,
 // height-field query, GLB scan or per-face scan of the full obstacle list.
 const MAX_FACES = 70_000;
+// Only the cheap exposure selection scans this many survey faces. The more
+// expensive topology, obstacle and normal work retains its original limit.
+const MAX_SURVEY_FACES = MAX_FACES * 2;
 const MAX_COORDINATES = 160_000;
 const MAX_LOCAL_CANDIDATES = 256;
 const MAX_FACE_CELLS = 64;
@@ -54,18 +57,36 @@ function touching(a: Point[], b: Point[]) {
  * hulls. An exceeded work budget leaves the complete original terrain intact.
  */
 export function fractureMineralTerrain(
-  scene: Scene, faces: MineralFractureFace[], barriers: Map<string, Point[][]>,
+  scene: Scene, surveyedFaces: MineralFractureFace[], barriers: Map<string, Point[][]>,
   rockFootprints: Point[][], step: number,
 ) {
-  const report = { version: 37, status: "skipped", reason: "", sourceTriangles: faces.length,
+  const report = { version: 51, status: "skipped", reason: "", sourceTriangles: surveyedFaces.length,
+    exposedTriangles: 0, unchangedLowTriangles: 0,
     barrierTests: 0, protectedTriangles: 0, frozenCoordinates: 0, movedCoordinates: 0, layeredCoordinates: 0,
     maximumDepth: 0, originalVertices: 0, outputVertices: 0,
     addedTriangles: 0, addedVertices: 0, queriedHeights: 0, scannedGLBs: 0 };
   const skip = (reason: string) => {
     report.reason = reason; scene.metadata = { ...scene.metadata, mineralFractures: report };
   };
-  if (scene.isDisposed || !faces.length) return skip("No live mineral surface");
-  if (faces.length > MAX_FACES || !(step > 0)) return skip("Face/index work budget");
+  if (scene.isDisposed || !surveyedFaces.length) return skip("No live mineral surface");
+  if (surveyedFaces.length > MAX_SURVEY_FACES || !(step > 0)) return skip("Survey selection work budget");
+  const faces: MineralFractureFace[] = [], unchangedCoordinates = new Set<string>();
+  for (const face of surveyedFaces) {
+    // These are the same exposure thresholds formerly checked after building
+    // topology for the whole massif. Low faces never needed fracture work.
+    const highFace = Math.min(...face.heights) >= .34 &&
+      face.heights.reduce((sum, height) => sum + height / 3, 0) >= .42;
+    if (highFace) faces.push(face);
+    else {
+      report.unchangedLowTriangles++;
+      for (const point of face.polygon) unchangedCoordinates.add(key(point));
+    }
+    if (faces.length > MAX_FACES || unchangedCoordinates.size > MAX_COORDINATES)
+      return skip("Exposed face/coordinate work budget");
+  }
+  report.exposedTriangles = faces.length;
+  report.protectedTriangles = report.unchangedLowTriangles;
+  if (!faces.length) return skip("No exposed mineral faces");
   const meshes = [...new Set(faces.map(face => face.mesh))];
   // Production terrain is in world coordinates before static batching. Refuse
   // another transform rather than guessing at a contact or changing its frame.
@@ -128,7 +149,10 @@ export function fractureMineralTerrain(
     for (const [i, p] of face.polygon.entries()) {
       let point = points.get(keys[i]);
       if (!point) {
-        point = { ...p, y: face.heights[i], frozen: false, bands: new Set(), depth: 0, layered: false };
+        // Freeze every shared copy at the boundary of an omitted low face,
+        // including a vertex-only contact with another part of the survey.
+        point = { ...p, y: face.heights[i], frozen: unchangedCoordinates.has(keys[i]),
+          bands: new Set(), depth: 0, layered: false };
         points.set(keys[i], point);
       }
       if (!Number.isFinite(p.x + p.z + face.heights[i])) return skip("Nonfinite mineral coordinate");
@@ -142,7 +166,7 @@ export function fractureMineralTerrain(
       const a = keys[i], b = keys[(i + 1) % 3], edge = edgeKey(a, b), previous = edges.get(edge);
       if (previous) previous.count++; else edges.set(edge, { a, b, count: 1 });
     }
-    if (points.size > MAX_COORDINATES) return skip("Coordinate work budget");
+    if (points.size + unchangedCoordinates.size > MAX_COORDINATES) return skip("Coordinate work budget");
     const [a, b, c] = face.polygon, [ay, by, cy] = face.heights,
       abx = a.x - b.x, aby = ay - by, abz = a.z - b.z,
       cbx = c.x - b.x, cby = cy - by, cbz = c.z - b.z,
@@ -154,14 +178,6 @@ export function fractureMineralTerrain(
     frame.nx += nx / length; frame.ny += ny / length; frame.nz += nz / length; frame.count++;
     beds.set(face.band, frame);
 
-    // Lower mineral slopes remain untouched and spend no obstacle queries.
-    const highFace = Math.min(...face.heights) >= .34 &&
-      face.heights.reduce((sum, height) => sum + height / 3, 0) >= .42;
-    if (!highFace) {
-      report.protectedTriangles++;
-      for (const pointKey of keys) points.get(pointKey)!.frozen = true;
-      continue;
-    }
     const bounds = extent(face.polygon), candidates = new Set<Point[]>(),
       minX = Math.floor(bounds.minX / step), maxX = Math.floor(bounds.maxX / step),
       minZ = Math.floor(bounds.minZ / step), maxZ = Math.floor(bounds.maxZ / step);

@@ -867,3 +867,62 @@ Le [manifeste](mandats-diorama/screens-50/manifest.json) précise les empreintes
 la portée des observations. Les comparaisons exactes du cache réalisées sur les
 prototypes B/C précèdent le décalage final de Paris ; elles ne sont pas
 présentées comme une égalité géométrique entre le rendu final et son parent.
+
+## Passe 51 capturée le 13 octobre 2026
+
+La [comparaison 51](mandats-diorama/comparaison-51.html) conserve quatorze captures
+natives du build complet et leurs sauvegardes réelles. Les empreintes des bundles
+servis correspondent au build immuable ; aucune erreur JavaScript, console,
+HTTP ou requête n’est enregistrée. La comparaison comprend la composition
+nationale après une vraie décision scolaire, les vues rapprochées, le port,
+320 et 390 pixels, WPE WebKit à DPR2 et l’hôpital réellement financé au tour 1
+puis livré au tour 3. La capture scolaire originale WebKit montre la préparation ;
+elle reste distinguée de la vue native complète.
+
+Les deux causes établies à la passe précédente sont corrigées. La préparation
+des fractures sélectionne les faces hautes exposées avant le travail coûteux ;
+les budgets de topologie, de coordonnées, d’obstacles et de buffers restent
+bornés. Les coordonnées communes aux faces basses sont figées, ainsi que les
+contacts avec les occupants, les emprises publiques et les rochers. Le relevé
+final trouve 82 234 faces minérales, dont 33 105 exposées, et 333 coordonnées
+réellement creusées, jusqu’à 0,02776. La passe n’ajoute aucun vertex ni triangle
+et conserve les indices, les UV et les couleurs du terrain qu’elle reçoit.
+
+Le chargement de l’archive restaure le réglage côtier déjà utilisé par le
+constructeur canonique. Les fragment shaders réellement attachés aux programmes
+WebGL sont observés séparément : la roche conserve ses plis minéraux, les
+falaises leurs fissures côtières verticales, la neige ses creux exposés. Ils
+ne partagent pas accidentellement le même réglage de surface.
+
+Le relevé alpin utilise un pas de 0,035 au lieu de 0,065. Le grain géologique
+continu creuse aussi les faces des crêtes, avec une amplitude diminuant vers
+les sommets et les fonds de vallée. Les épaules gardent leurs proportions :
+leur abaissement expérimental étendait les forêts et réduisait trop les zones
+blanches. La couverture neigeuse des hauteurs est ajustée, avec les mêmes
+exclusions pour les plantations, les parcelles et les bâtiments. Les modèles
+GLB et l’environnement sont identiques au parent 50 ; aucune nouvelle cuisson
+de modèles n’est revendiquée ici. Deux exports frais du terrain reproduisent
+exactement le binaire et la métadonnée complète des sources.
+
+Le build complet passe : 1 082 tests, trois vérifications TypeScript, Vite,
+pré-rendu et 152 ressources hors connexion. Les configurations originales
+rework et social passent 23 et 13 parcours, avec neuf et trois omissions
+prévues, sans échec ni résultat instable. Aucun test, délai, worker ou réglage
+de reprise n’est modifié. Le relevé final observe 21 monuments sans chevauchement
+de canopée, les 2 540 pieds d’arbres soutenus et les 90 bases de rochers soutenues,
+avec un écart maximal négatif de 0,002557 sous le terrain. Les pieds de la
+cathédrale et son socle restent soutenus sans recouvrir l’eau. Ces observations
+ne certifient pas toutes les collisions, tous les états futurs ou les FPS sur
+un appareil physique.
+
+Les six workflows distants du parent 50 réussissent. Les journaux réels du job
+115159812017 confirment 23 réussites et neuf omissions dans rework, puis 13
+réussites et trois omissions dans social. Ces conclusions sont distinctes des
+contrôles locaux de la passe 51 et de sa nouvelle CI à suivre après publication.
+
+**La fidélité artistique reste en cours.** Les crêtes gardent des pans facettés
+et des pointes régulières ; les falaises, le débouché du Rhône, les maisons,
+les flèches et les feuillages restent moins riches que la référence. La PR 194
+reste en brouillon et la modélisation de toute la scène continue. Le
+[manifeste](mandats-diorama/screens-51/manifest.json) précise la portée des
+relevés et conserve les empreintes de chaque pièce.

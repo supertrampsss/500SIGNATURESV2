@@ -1,0 +1,96 @@
+{
+  "parent": "0619af833d813b4cb4e856312db9979054b8d28b",
+  "visualVerdict": "Still below the confirmed reference. Continue whole genuine3D scene; no final/merge yet.",
+  "retainedD": [
+    "Actual coastal-specific fragment shader restored when loading baked land.",
+    "Mineral fracture selection on exposed high faces within original expensive work/coordinate/index budgets; all low/shared/occupied contacts preserved.",
+    "Alpine crest survey spacing.035, continuous geological grain incisions on exposed planes, old summit/valley envelope taper.",
+    "UpperAlps snow summitthreshold.32/steepslope denominator4.8/rockribatten.45; real plantation/field/urban exclusions retained."
+  ],
+  "rejectedB": "Lowering aprons to.46 expanded forests and reducedwhiteAlps away from reference; restored.58.",
+  "inspectedPrototypeViews": [
+    "preview-d/01-national.png",
+    "preview-d/05-lyon-alpes-canvas.png"
+  ],
+  "prototypePhysics": "physD:333fracturedcoords/33105exposedof82234,maximumdepth.0277607;0addedgeometry;2540stems0missing/0>4mm;90rocksmax-.00255698. These scoped observations preceded fullproduction.",
+  "remaining": [
+    "Broad and faceted mineral/snow shoulders, narrow geometric spikes.",
+    "Regular coarse coastal faces and deepRhône opening.",
+    "Repetitive simplistic houses, opaquecathedralspires.",
+    "Foliage and materials lessphotographic thanreference."
+  ],
+  "claimScope": "All original local rework/social cases and strict full-production native captures passed. Artistically still below reference. All six parent50 remote workflows succeed; new51remote not yet run. Full scene remains below reference.",
+  "productionCaptures": [
+    "production-01-national.json",
+    "production-04-lyon-detail.json",
+    "production-05-lyon-alpes.json",
+    "production-06-national-retour.json",
+    "production-07-paris-cathedrale.json",
+    "production-08-mediterranee-port.json",
+    "production-09-national-final.json",
+    "production-10-port-ensemble.json",
+    "movement-01-mobilisation.json",
+    "production-320-01-mobilisation.json",
+    "production-390-01-mobilisation.json",
+    "production-webkit-390-01-mobilisation.json",
+    "hospital-01-chantier.json",
+    "hospital-02-livraison.json"
+  ],
+  "finalPhysics": {
+    "mineralFractures": {
+      "version": 51,
+      "status": "applied",
+      "reason": "Exposed existing geological faces only",
+      "sourceTriangles": 82234,
+      "exposedTriangles": 33105,
+      "unchangedLowTriangles": 49129,
+      "barrierTests": 186445,
+      "protectedTriangles": 67474,
+      "frozenCoordinates": 17279,
+      "movedCoordinates": 333,
+      "layeredCoordinates": 0,
+      "maximumDepth": 0.027760707559345885,
+      "originalVertices": 117559,
+      "outputVertices": 117559,
+      "addedTriangles": 0,
+      "addedVertices": 0,
+      "queriedHeights": 0,
+      "scannedGLBs": 0
+    },
+    "treeFeet": 2540,
+    "treeAbove4mm": 0,
+    "rockCount": 90,
+    "maximumRockClearance": -0.0025569798872857596,
+    "monuments": 21,
+    "canopyOverlaps": 0,
+    "coastalShader": {
+      "method": "Read source of the fragment shader actually attached to the live WebGL program. No shader/material mutation.",
+      "actualCompiledProgram": true,
+      "verticalCoastalFracture": true,
+      "mountainCrease": false
+    },
+    "mineralShaders": [
+      {
+        "name": "landscape-mineral-ground",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": false,
+        "mountainCrease": true,
+        "snowScarp": false
+      },
+      {
+        "name": "landscape-cliffs",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": true,
+        "mountainCrease": false,
+        "snowScarp": false
+      },
+      {
+        "name": "landscape-snow",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": false,
+        "mountainCrease": false,
+        "snowScarp": true
+      }
+    ]
+  }
+}

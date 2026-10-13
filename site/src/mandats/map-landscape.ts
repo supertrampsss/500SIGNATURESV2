@@ -1652,13 +1652,13 @@ function alpineSnowCover(sx: number, sz: number, y: number, slope: number, band 
     // Summit shelves carry smaller caps above the broken gullies. The cover
     // masks still exclude actual plantations, fields and inhabited ground.
     summit = smooth(clamp((y - SCULPTED_GROUND_DATUM -
-      (pyrenean ? .37 : upperAlps ? .38 : .62)) / .21)) *
-      (1 - smooth(clamp((slope - .35) / (upperAlps ? 3.80 : pyrenean ? 3.20 : 2.55)))),
+      (pyrenean ? .37 : upperAlps ? .32 : .62)) / .21)) *
+      (1 - smooth(clamp((slope - .35) / (upperAlps ? 4.80 : pyrenean ? 3.20 : 2.55)))),
     rockRib = smooth(clamp((noise(sx * 5.7 - sz * 1.4 + 53,
       sz * 7.3 + sx * 2.1 + 61) - (upperAlps ? .56 : .60)) / .18)),
     accumulation = Math.max(summit * .96,
       Math.max(shelf * pocket, Math.max(mainGully, sideGully) * gullySlope));
-  return altitude * accumulation * (1 - rockRib * (upperAlps ? .60 : pyrenean ? .65 : .78));
+  return altitude * accumulation * (1 - rockRib * (upperAlps ? .45 : pyrenean ? .65 : .78));
 }
 
 function material(scene: Scene, name: string, hex: string) {

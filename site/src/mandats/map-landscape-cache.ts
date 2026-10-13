@@ -76,7 +76,8 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
     if (record.diffuseTexture) material.diffuseTexture = textures[record.diffuseTexture];
     if (record.bumpTexture) material.bumpTexture = textures[record.bumpTexture];
     if (["landscape-ground", "landscape-crops"].includes(record.name)) prepareMeadowSurface(material);
-    if (["landscape-mineral-ground", "landscape-cliffs"].includes(record.name)) prepareMineralSurface(material);
+    if (["landscape-mineral-ground", "landscape-cliffs"].includes(record.name))
+      prepareMineralSurface(material, false, record.name === "landscape-cliffs");
     materials.set(record.name, material);
   }
   const meshes: Mesh[] = [], colorTargets: Array<{ mesh: Mesh; surveys?: Map<number, { band: number }> }> = [];

@@ -230,7 +230,7 @@ function alpineCrestVertices(massif: SculptedMassif) {
     // summit and low valley mouth on the shared survey. Lower shoulders
     // expose the connecting arêtes instead of forming one broad plate.
     // Erosion tapers at both ends: it cannot make an isolated raised tip.
-    let gully = 0;
+    let gully = 0, exposedEnvelope = 0;
     for (const peak of peaks) {
       const dx = x - peak.x, dz = z - peak.z,
         u = dx * Math.cos(peak.angle) + dz * Math.sin(peak.angle),
@@ -241,10 +241,17 @@ function alpineCrestVertices(massif: SculptedMassif) {
         channel = Math.pow(Math.max(0, Math.cos(
           Math.atan2(v / peak.rz, u / peak.rx) * 3 + peak.family * .91 + radial * 1.7)), 8);
       gully = Math.max(gully, channel * envelope * .100);
+      exposedEnvelope = Math.max(exposedEnvelope, envelope);
     }
-    return Math.max(0, height - gully);
+    // The same continuous geological grain also cuts the exposed crest
+    // planes. Previously their linear roofs hid the weathered apron below.
+    // Cuts taper at the original tips and valley mouths; no raised tip or
+    // disconnected rock object substitutes for the shared ground.
+    const fineIncision = (Math.max(0, -geology.grain) * .75 +
+      Math.max(0, -geology.fold) * .16) * exposedEnvelope;
+    return Math.max(0, height - gully - fineIncision);
   };
-  const spacing = .065, minimumX = Math.min(...boundary.map(p => p.x)), maximumX = Math.max(...boundary.map(p => p.x)),
+  const spacing = .035, minimumX = Math.min(...boundary.map(p => p.x)), maximumX = Math.max(...boundary.map(p => p.x)),
     minimumZ = Math.min(...boundary.map(p => p.z)), maximumZ = Math.max(...boundary.map(p => p.z)),
     vertices = [...boundary];
   for (let ix = Math.ceil(minimumX / spacing); ix * spacing < maximumX; ix++)

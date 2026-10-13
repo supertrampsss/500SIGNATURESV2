@@ -1,0 +1,315 @@
+{
+  "referenceSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "visualVerdict": "Still below confirmed reference. Continue whole artist work; PR194 remains draft.",
+  "proofScopes": {
+    "rendered-ground-contacts.json": "Actual final indexed terrain after APPLIED bounded mineral fractures; all French stem sections and90rock bases observed. No all-collision/future-state/FPS guarantee.",
+    "all-monuments-diagnostics.json": "Actual final21monuments/canopies and actual compiled coastal-specific WebGL fragment shader.",
+    "actual-paris-contact.json": "Actual indexed cathedral bottom and large stone support faces, current water/domestic contact. Not all collisions.",
+    "visual-review-d.json": "RetainedD artist changes and remaining visible differences. Prototype observations distinguished from final native production records.",
+    "ci50-findings.json": "Actual all-six remote workflow successes on immutable parent50;23rework/13social counts from connected job log. Does not prove new51CI or art completion.",
+    "original-webkit-mobilisation-functional.png": "Original functional school screenshot, shows the loading preview; separate strictnativeWebKit image waits for completeBabylon.",
+    "production-webkit-390-01-mobilisation.png": "StrictnativeWPE390DPR2 afterBabylon/renderPendingfalse, actual servedbundles hashed."
+  },
+  "files": [
+    {
+      "file": "actual-paris-contact.json",
+      "bytes": 1391,
+      "sha256": "7376740974275f60aadf08b126c8e5e3cebe659601e5dfc005fd55772e091cf9"
+    },
+    {
+      "file": "all-monuments-diagnostics.json",
+      "bytes": 902957,
+      "sha256": "5b8d8afb7728383606dc355052ff53cea143b104261f560495784000eb21e8a1"
+    },
+    {
+      "file": "build.json",
+      "bytes": 2047,
+      "sha256": "a7aca3b44ca85da56183baab1b25fad4dabf116d2b550f1faa51904b8c581ced"
+    },
+    {
+      "file": "ci50-findings.json",
+      "bytes": 926,
+      "sha256": "534b6ef10a2a30fe2022b4907801b96d059bd228cd6ce12d07a15b1451d43fd7"
+    },
+    {
+      "file": "full-check-d.log",
+      "bytes": 104739,
+      "sha256": "9b840e2275049d6fb07b4635b411877d5c4c9984b801fcb30b0c9b4ced7327c1"
+    },
+    {
+      "file": "hospital-01-chantier-inputs.json",
+      "bytes": 146,
+      "sha256": "22e4d49efc59a54f410d47c8a1848d3e26dc65cbd36ac740ccba69059629ea16"
+    },
+    {
+      "file": "hospital-01-chantier-projects.json",
+      "bytes": 19626,
+      "sha256": "cbde0ea30d8bc7844ddfbaaf0c480d6933533a5dc1261788f998fd8b1a52b535"
+    },
+    {
+      "file": "hospital-01-chantier.json",
+      "bytes": 19605,
+      "sha256": "a6a1dbb72d1493c92daf3bbd0372d0386b207479fa957f2653e5bfae8c1da93e"
+    },
+    {
+      "file": "hospital-01-chantier.png",
+      "bytes": 1968481,
+      "sha256": "002b7de1350bea04b42945dd44ec369d8bb6fdfce95b702ed2ff3fbe6c5c718a"
+    },
+    {
+      "file": "hospital-02-livraison-inputs.json",
+      "bytes": 170,
+      "sha256": "b25398a316abcc3ac6a91413eb26b66b44c2a4fe5a63c55aeaa58f85caca2a38"
+    },
+    {
+      "file": "hospital-02-livraison-projects.json",
+      "bytes": 38871,
+      "sha256": "4dca53aefa459321d9fee2e4b5c7382dee45ff2f5b44c1c7048a9992b9dee6fe"
+    },
+    {
+      "file": "hospital-02-livraison.json",
+      "bytes": 19706,
+      "sha256": "47ff25b9672b65612445eca98bd26feb708c9868a51d71b0e1968f81107a2f5a"
+    },
+    {
+      "file": "hospital-02-livraison.png",
+      "bytes": 1973596,
+      "sha256": "d20115985f6fb3f45ee719ffadc97722638d9c7ecd2ba993f61f577131791343"
+    },
+    {
+      "file": "movement-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "movement-01-mobilisation.json",
+      "bytes": 19530,
+      "sha256": "a9d60a0f5bb8dce3b4bb8b53f1946989c0e76f95469272b4df7f14f395b0b84c"
+    },
+    {
+      "file": "movement-01-mobilisation.png",
+      "bytes": 1970363,
+      "sha256": "f3a17f25746a3748921e3188bd653e6ca4fa66043660ef8c8d3d1fd9d9c37646"
+    },
+    {
+      "file": "original-rework-d.log",
+      "bytes": 5941,
+      "sha256": "694f8d5b46120bdd0904b3320cd2ef35ae7b89ea828ac59f02488aef1969afe3"
+    },
+    {
+      "file": "original-social-d.log",
+      "bytes": 3956,
+      "sha256": "95d6b6dbf26107d78b74f4b0d43b2bcee5b8c9b1fcbd17c49d4974b33bf0075b"
+    },
+    {
+      "file": "original-webkit-mobilisation-functional.png",
+      "bytes": 90651,
+      "sha256": "4217efe8cf01badfb03505a99a32b078b9511209326c5b7feef283aec8111fba"
+    },
+    {
+      "file": "original-webkit-resumed-dpr-2.png",
+      "bytes": 866519,
+      "sha256": "43a387f3d3262976979a6c4b3be1238ed82b97d31aa250a8df8f5fd8e2935ca5"
+    },
+    {
+      "file": "production-01-national-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-01-national.json",
+      "bytes": 18019,
+      "sha256": "be81ec5008a251e997ca35756f0afdeeee138544e2114ff2c2ce200aceef2bab"
+    },
+    {
+      "file": "production-01-national.png",
+      "bytes": 1971016,
+      "sha256": "8848c9fad9dfc73befa822953afca3be1207a51d0e19ac95d5dfab71a3e73730"
+    },
+    {
+      "file": "production-04-lyon-detail-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-04-lyon-detail.json",
+      "bytes": 18145,
+      "sha256": "a47ea505ff63271e0d7d0dcf985ed06c4aedcba447eff2ef535e63ef3592aea1"
+    },
+    {
+      "file": "production-04-lyon-detail.png",
+      "bytes": 1921186,
+      "sha256": "53788a11b3b164b58bfb16a334ad16e4afb5c4dc4389bd1bc8ae0fffa87c1bb2"
+    },
+    {
+      "file": "production-05-lyon-alpes-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-05-lyon-alpes.json",
+      "bytes": 18242,
+      "sha256": "994b4dd77a83eaa909d33b7e5dcae0db5cefa4459eae857951cba6859be8ac46"
+    },
+    {
+      "file": "production-05-lyon-alpes.png",
+      "bytes": 2047298,
+      "sha256": "f2bf9cc7ff78dac99fa6c19f492acb492303ced6364a9b64b16ab3caced435ff"
+    },
+    {
+      "file": "production-06-national-retour-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-06-national-retour.json",
+      "bytes": 18301,
+      "sha256": "a975a1804c0ccc62cb97c4799ebf1d8c57daa864ccf80a5a49bfa4cfa72a6b43"
+    },
+    {
+      "file": "production-06-national-retour.png",
+      "bytes": 1971017,
+      "sha256": "d671110bc21e93b6bd236086d2b2ca90dbe63a35bc491bd61577ec2e31398b61"
+    },
+    {
+      "file": "production-07-paris-cathedrale-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-07-paris-cathedrale.json",
+      "bytes": 18419,
+      "sha256": "65dfb2161da04d8623b6c40f22e1057141f14f1311ca08f35439b35d3c3de3b3"
+    },
+    {
+      "file": "production-07-paris-cathedrale.png",
+      "bytes": 1842232,
+      "sha256": "3403645fe1be2106a2e80ed8f2ef5af03bb8cf199af9eb24a0cc83f0439441ea"
+    },
+    {
+      "file": "production-08-mediterranee-port-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-08-mediterranee-port.json",
+      "bytes": 18656,
+      "sha256": "f4ba8485c91812a2b870dee9840c7f720f1411584834d53795040732b5e24804"
+    },
+    {
+      "file": "production-08-mediterranee-port.png",
+      "bytes": 1854385,
+      "sha256": "e03f6261f5483e5d4cf64a6e2bb024d4e6353f086874557d9d7ad9090d0d342b"
+    },
+    {
+      "file": "production-09-national-final-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-09-national-final.json",
+      "bytes": 18689,
+      "sha256": "e4d9947e147b95368be34833803eb3eeaebbf6097abb549e0a4e085d288c5385"
+    },
+    {
+      "file": "production-09-national-final.png",
+      "bytes": 1971017,
+      "sha256": "d671110bc21e93b6bd236086d2b2ca90dbe63a35bc491bd61577ec2e31398b61"
+    },
+    {
+      "file": "production-10-port-ensemble-inputs.json",
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    {
+      "file": "production-10-port-ensemble.json",
+      "bytes": 18256,
+      "sha256": "191567f002d95433d1f40bd5e8cd8014e8c493c2f7179de739a1757238ef176f"
+    },
+    {
+      "file": "production-10-port-ensemble.png",
+      "bytes": 1565496,
+      "sha256": "c703ec2d061485db2b0f1491ea1249787c938f81dfdbe2a47228d79dab3abbbb"
+    },
+    {
+      "file": "production-320-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-320-01-mobilisation.json",
+      "bytes": 16813,
+      "sha256": "b33d4927cc1331d3b01d945120781d3dc3d8a2fd30474371c6e23e928b90a9bf"
+    },
+    {
+      "file": "production-320-01-mobilisation.png",
+      "bytes": 665362,
+      "sha256": "d322ea347f93e5f591e8445e05c4e80b22c122dba6b49e26f305a1f06309d848"
+    },
+    {
+      "file": "production-390-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-390-01-mobilisation.json",
+      "bytes": 17145,
+      "sha256": "4f96bc2a51cdef0ac9aa45487159ef90c8463448bd015711e0da5a4f6d73e6f5"
+    },
+    {
+      "file": "production-390-01-mobilisation.png",
+      "bytes": 937191,
+      "sha256": "bb6b3f84a131f33d05a4eb4f94e6ecc13f05bc39ab4160d5ad106d40f4ac9294"
+    },
+    {
+      "file": "production-webkit-390-01-mobilisation-inputs.json",
+      "bytes": 140,
+      "sha256": "f819d5a544434931e97eade2569da73dbf0fc4f2a19b20669ea01a5ea1d719c0"
+    },
+    {
+      "file": "production-webkit-390-01-mobilisation.json",
+      "bytes": 18170,
+      "sha256": "b10da129117c3a8acad5e9b807de11355455195505820a0ad655f750b285bbf5"
+    },
+    {
+      "file": "production-webkit-390-01-mobilisation.png",
+      "bytes": 1051261,
+      "sha256": "12e9e2101ebb0ab99634b14f8b1efb684ab3ccd0beb1ff023f20d6f6e6bb3213"
+    },
+    {
+      "file": "rendered-ground-contacts.json",
+      "bytes": 313467,
+      "sha256": "5249789136766849ccdf8b9eca63b087667b7a9876bd4ebccfb74fd7c6d3b633"
+    },
+    {
+      "file": "rework-full-original-report.json",
+      "bytes": 86177,
+      "sha256": "86627be9ed028beba2ed1f566dcaa016a95d3ac119a058d85d5139e5b6bdd975"
+    },
+    {
+      "file": "social-full-original-report.json",
+      "bytes": 47590,
+      "sha256": "d8dff93f9a32f0ed40f5df0cb2c98efdcae3a668a81aa6e4df623323dda82925"
+    },
+    {
+      "file": "terrain-reproduction-d.json",
+      "bytes": 587,
+      "sha256": "be208e0c4fca92bea6b349c92700eba2e8175d69da70ad89b915b120714c84f7"
+    },
+    {
+      "file": "unchanged-models.json",
+      "bytes": 1129,
+      "sha256": "05ebcf07c1d4828536e3f1b7e2736a832e9f8a32811c613162f936944cf0dd8f"
+    },
+    {
+      "file": "verification.json",
+      "bytes": 5102,
+      "sha256": "d5641546f47e528346caf51f6d4c5bff555019e3b0c894124dc9e446df8d2f34"
+    },
+    {
+      "file": "visual-review-d.json",
+      "bytes": 3916,
+      "sha256": "025b1e799227d1f27d3ded7c76fc7384c24aa6e823b24710d6ce78cf59d55757"
+    }
+  ]
+}
