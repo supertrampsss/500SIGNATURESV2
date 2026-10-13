@@ -926,3 +926,42 @@ les flèches et les feuillages restent moins riches que la référence. La PR 19
 reste en brouillon et la modélisation de toute la scène continue. Le
 [manifeste](mandats-diorama/screens-51/manifest.json) précise la portée des
 relevés et conserve les empreintes de chaque pièce.
+
+## Passe 52 : feuillages, parcelles et compilation des matières
+
+La [comparaison 52](mandats-diorama/comparaison-52.html) conserve les vues réelles
+du build complet face à la référence confirmée. Les feuillus utilisent neuf
+bouquets pliés fixes autour d’un cœur opaque plus petit. Les treize limites des
+modèles restent exactes, les pivots au sol sont conservés et la roche garde ses
+attributs et couleurs. Deux générations fraîches reproduisent le GLB retenu
+(767 428 octets) à l’identique. Le manifeste provient de l’audit explicite de la
+révision 52 ; la comparaison initiale du manifeste historique n’est pas une
+reproduction de ce nouvel audit. Les triangles passent à 5 772 détaillés et
+2 269 distants ; cela ne prouve pas une hausse de FPS.
+
+Les rangs guidés des parcelles sont plus fins et moins hauts. Les faces internes
+sèches des falaises sont plus verticales, avec les mêmes contacts protégés.
+Le relevé des normales ne montre pas de correction majeure de l’éclairage côtier.
+Les roches et falaises partagent désormais un programme GPU ; le relevé du
+buffer GPU distingue leurs paramètres propres, respectivement 0 et 1. Les
+transformations UV des normales et les formules de couleur sont conservées.
+La neige garde son programme distinct. Aucun drapeau de disponibilité, niveau
+de détail ou état de partie n’est forcé pour obtenir ces résultats.
+
+Le build complet passe avec 1 082 tests, trois vérifications TypeScript, Vite,
+pré-rendu et 152 ressources hors connexion. Les suites originales passent
+23 parcours rework et 13 social, avec neuf et trois omissions prévues, sans
+échec ni résultat instable. Le test original WebKit haute densité passe aussi
+séparément. Tests, délais, reprises et workers restent inchangés.
+
+La CI du parent 51 a toutefois échoué au test WebKit haute densité : 22 parcours
+réussis, neuf omissions et un échec au délai original de 15 secondes. Social
+n’a pas été exécuté dans ce workflow ; les cinq autres workflows ont réussi.
+La trace mesure une première image de 5 525 ms après la préparation des shaders ;
+un affichage observé après le délai ne transforme pas cet échec en réussite.
+Les résultats locaux de la passe 52 ne préjugent pas de sa CI distante.
+
+**La fidélité reste en cours.** Les maisons se répètent trop, les flèches restent
+opaques, les montagnes ont de grands versants lisses ou facettés et les falaises
+restent régulières. Les matières et ramures n’atteignent pas la richesse de la
+référence. La PR 194 reste en brouillon ; la modélisation de toute la scène continue.

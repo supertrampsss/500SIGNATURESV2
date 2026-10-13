@@ -44,6 +44,10 @@ export function landMaterialTextures(scene: Scene) {
   const rock = surfaceTexture(scene, "land-mineral-rock", rockUrl);
   const rockNormal = surfaceTexture(scene, "land-mineral-normal", rockNormalUrl, false, .82);
   const coastNormal = surfaceTexture(scene, "land-coastal-normal", coastNormalUrl, false, .60, 3);
+  // Both surfaces use the same shader UV path. The mountain transform is
+  // still identity; the coastal transform retains its authored tiling.
+  rockNormal.optimizeUVAllocation = false;
+  coastNormal.optimizeUVAllocation = false;
   return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal, coastNormal };
 }
 export type LandMaterialTextures = ReturnType<typeof landMaterialTextures>;

@@ -1,9 +1,9 @@
 {
   "format": "MANDATS indexed terrain archive v1, gzip",
-  "sha256": "2200e6b7298a7352453d37c2a009a7800b844986863b7f2e2c0b7b9432467738",
-  "uncompressedSha256": "9e5eb18e7dad3f51c70294ceac081810ef82a3b64af5df003bc6b5ea73bd3488",
-  "compressedBytes": 11786506,
-  "uncompressedBytes": 25144640,
+  "sha256": "456f991761605c00933f6896a2bde6c489749b6599a5f2382d32024cbd62cb47",
+  "uncompressedSha256": "6d086420ea3d8a0f544971dd99ba9f5cbf714fcc325f4fe5fb1197580524e667",
+  "compressedBytes": 11978382,
+  "uncompressedBytes": 25527632,
   "materials": 8,
   "orchards": 0,
   "meshes": [
@@ -31,9 +31,9 @@
     {
       "name": "landscape-cliffs-0",
       "originalVertices": 52887,
-      "retainedVertices": 49811,
+      "retainedVertices": 49817,
       "triangles": 25732,
-      "maximumPositionRounding": 4.761856224888561e-7
+      "maximumPositionRounding": 4.756674893968693e-7
     },
     {
       "name": "landscape-terrain-1",
@@ -86,9 +86,9 @@
     },
     {
       "name": "landscape-crop-rows",
-      "originalVertices": 67167,
-      "retainedVertices": 67167,
-      "triangles": 80092,
+      "originalVertices": 73239,
+      "retainedVertices": 73239,
+      "triangles": 87696,
       "maximumPositionRounding": 4.7587549900640624e-7
     },
     {
@@ -132,7 +132,7 @@
     "minimumZ": -265,
     "width": 861,
     "height": 826,
-    "samples": 290627
+    "samples": 290665
   },
   "sourceInputs": [
     {
@@ -217,7 +217,7 @@
     },
     {
       "file": "site/src/mandats/map-land-materials.ts",
-      "sha256": "cc3c5161f33c50fabc6a954acc4c9dbfd9407cd56ea94b35ae4f07de9ba7d960"
+      "sha256": "f1752fdcc09a6a2ed4d24f5fbc3cad3e85f846d894a1708049c4836013556d88"
     },
     {
       "file": "site/src/mandats/map-landscape-cache.ts",
@@ -225,15 +225,15 @@
     },
     {
       "file": "site/src/mandats/map-landscape.ts",
-      "sha256": "4579149ebc7576abfee26d2a3d885c5b052f0f5381bafcba320abcdbc1961c4c"
+      "sha256": "54200303be44485d61caa25cf6647cd463d1fdae81d43e843e57b64797d13629"
     },
     {
       "file": "site/src/mandats/map-mineral-material.ts",
-      "sha256": "6176a0805a33ee49585ee86700d9bc1428787c7777ea7fe6ef45ddcffa6d8582"
+      "sha256": "61022dcfabb8185b02d4afcd0b95fa4dc3d20865447e6287819a9a3f38fb1d61"
     },
     {
       "file": "site/src/mandats/map-model-revisions.ts",
-      "sha256": "b9554580bc148366d3023cce3b5e2fb394faa8eb40ef120c6e54b7dd5e419ba6"
+      "sha256": "eed7298a30d97852691ba0e50ddbda2de971d59273a0b5ab8dcf6bedef42b3a0"
     },
     {
       "file": "site/src/mandats/map-monument-sites.ts",

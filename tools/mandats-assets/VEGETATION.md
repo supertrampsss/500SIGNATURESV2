@@ -9,7 +9,7 @@ Depuis la racine du dépôt :
 
 ```sh
 blender --background --threads 2 --python tools/mandats-assets/vegetation.py
-python3 tools/mandats-assets/inspect-vegetation.py --output /tmp/vegetation-audit.json
+python3 tools/mandats-assets/inspect-vegetation.py --revision 52 --output /tmp/vegetation-audit.json
 ```
 
 La génération crée `vegetation.blend` et exporte seulement
@@ -17,9 +17,9 @@ La génération crée `vegetation.blend` et exporte seulement
 conserve les dimensions exactes des treize modèles. La génération ne dépend
 ni d'un répertoire de vérification ni des sources d'architecture.
 
-## Modèles de l'itération 44
+## Modèles de l'itération 52
 
-Les feuillus portent des bouquets associant un petit cœur opaque et six
+Les feuillus portent des bouquets associant un cœur opaque réduit et neuf
 surfaces de feuilles pliées, inclinées dans plusieurs directions. Un atlas
 local de 512 × 512 pixels découpe leurs contours. Ces surfaces restent fixes
 dans les branches ; elles ne s'orientent pas vers la caméra. Les pins gardent
@@ -40,14 +40,14 @@ indices et couleurs précédents.
 
 | Modèle | Triangles détaillés | Triangles distants | Primitives par niveau |
 | --- | ---: | ---: | ---: |
-| Chêne | 964 | 516 | 1 |
-| Hêtre | 748 | 348 | 1 |
+| Chêne | 1168 | 586 | 1 |
+| Hêtre | 880 | 394 | 1 |
 | Pin | 1860 | 378 | 1 |
-| Cyprès | 464 | 314 | 1 |
-| Olivier | 544 | 263 | 1 |
-| Fruitier | 476 | 238 | 1 |
+| Cyprès | 584 | 352 | 1 |
+| Olivier | 640 | 293 | 1 |
+| Fruitier | 560 | 266 | 1 |
 | Roche | 80 | aucune variante | 1 |
-| Total | 5136 | 2057 | |
+| Total | 5772 | 2269 | |
 
 Ce sont les triangles décodés dans le GLB exporté. Le
 [manifeste](vegetation-lod-manifest.json) conserve les empreintes, nombres de
@@ -56,17 +56,17 @@ reproduit le modèle retenu octet par octet. Les treize modèles ont des attribu
 finis, des normales unitaires et des indices valides. L'audit ne relève aucun
 triangle dégénéré ni désaccord entre la normale d'une face et ses sommets.
 
-GLB retenu : 697028 octets ; SHA256
-`b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350`.
+GLB retenu : 767428 octets ; SHA256
+`a9c329f886f98544e7bf7ab06ac0e81d8f622188f9e860268bb404f7378c86a5`.
 La comparaison utilise les octets du GLB du commit précédent, dont le SHA256
-est `9614a8ab7d69bc8c3e9c13ae5252baf177519fabe77afa92f24cbc6772174872`.
+est `b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350`.
 Les couronnes détaillées et distantes sont modifiées ensemble. Les treize
 bornes restent exactes ; l'audit confirme les attributs, indices et couleurs
 de la roche. L'export Blender réserve un `COLOR_0` blanc sur le matériau
 texturé et place les couleurs d'angle dans `COLOR_1` : la fabrication relie
 cet accesseur au `COLOR_0` utilisé par glTF, avant de fixer le masque alpha.
-Le modèle détaillé est plus léger, tandis que certaines couronnes distantes
-conservent davantage de triangles. Ces comptes ne prouvent pas une hausse
+Les surfaces feuillues supplémentaires augmentent les triangles des modèles
+détaillés et distants. Ces comptes ne prouvent pas une hausse
 de fréquence d'affichage.
 
 Depuis l'itération 43, la sélection réelle des modèles détaillés utilise

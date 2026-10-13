@@ -2302,7 +2302,7 @@ async function buildGround(
             .003 + hash(left, 1463 + layer * 29) * .006 : 0,
           faceRetreat = Math.min(inwardLimit,
             .009 + opening * .013 + leftJoint * 1.65 + rightJoint * 1.65 + chip * 1.5),
-          verticality = (.52 + hash(left, 1543) * .24) * weight,
+          verticality = (.82 + hash(left, 1543) * .12) * weight,
           oldX = dryPositions[at] - coastWinding * nx * inward,
           oldZ = dryPositions[at + 2] - coastWinding * nz * inward;
         let x = mix(oldX, lineX - coastWinding * nx * faceRetreat, verticality),
@@ -2548,7 +2548,7 @@ function guidedCropRows(data: Geometry, polygon: Point[], sourceGuide: readonly 
     sourcePolygon = polygon.map(point => mapAuthoredCoordinates(point.x, point.z)),
     reach = Math.max(...sourcePolygon.map(point => Math.min(...guide.slice(1).map((b, i) =>
       segmentDistance(point.x, point.z, guide[i], b))))),
-    rowLimit = Math.ceil(reach / spacing), width = spacing * .44;
+    rowLimit = Math.ceil(reach / spacing), width = spacing * .28;
   const approved = (point: Point) => contains(polygon, point.x, point.z) &&
     available(point.x, point.z) && !constructionReservationContains(point.x, point.z, .016);
   type Section = readonly [Point, Point, Point];
@@ -2571,7 +2571,7 @@ function guidedCropRows(data: Geometry, polygon: Point[], sourceGuide: readonly 
         for (let i = 0; i < run.length; i++) {
           for (let side = 0; side < 3; side++) {
             const point = run[i][side];
-            vertex(data, point.x, landHeight(point.x, point.z) + lift + (side === 1 ? .012 : 0),
+            vertex(data, point.x, landHeight(point.x, point.z) + lift + (side === 1 ? .006 : 0),
               point.z, side === 1 ? color : color.scale(.93));
           }
           if (i > 0) {
@@ -3127,8 +3127,8 @@ function buildFields(
     if (crops.indices.length === start) continue;
     nationalParcels++;
     if (field.kind !== "pasture") cropRows(rows, polygon, center, angle,
-      field.rowGuide ? field.kind === "vines" ? .043 : .038 : field.kind === "vines" ? .027 : .022,
-      color.scale(field.kind === "vines" ? .46 : 1.10),
+      field.rowGuide ? field.kind === "vines" ? .029 : .026 : field.kind === "vines" ? .027 : .022,
+      color.scale(field.kind === "vines" ? .58 : 1.10),
       .008, (x, z) => available(x, z, .012), field.rowGuide?.map(([x, z]) => ({ x, z })));
     for (const edge of field.hedgedEdges ?? []) {
       let run: Point[] = [];

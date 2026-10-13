@@ -1,5 +1,6 @@
 import { MaterialPluginBase } from "@babylonjs/core/Materials/materialPluginBase";
 import type { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import type { UniformBuffer } from "@babylonjs/core/Materials/uniformBuffer";
 
 /** Grain belongs to the mineral volumes; it never paints foliage or buildings. */
 class MiniatureMineral extends MaterialPluginBase {
@@ -10,6 +11,19 @@ class MiniatureMineral extends MaterialPluginBase {
   }
 
   override getClassName() { return "MandatsWeatheredMineral"; }
+
+  // The two rock surfaces share their shader code. A per-material constant
+  // selects the existing coastal formula without compiling a second program.
+  override getUniforms() {
+    return {
+      ubo: [{ name: "miniatureCoastal", size: 1, type: "float" }],
+      fragment: "#ifndef UNIFORMBUFFERS\nuniform float miniatureCoastal;\n#endif",
+    };
+  }
+
+  override bindForSubMesh(buffer: UniformBuffer) {
+    buffer.updateFloat("miniatureCoastal", this.coastal ? 1 : 0);
+  }
 
   override getCustomCode(shaderType: string) {
     if (shaderType !== "fragment") return null;
@@ -59,13 +73,15 @@ class MiniatureMineral extends MaterialPluginBase {
           float mineralCrease = smoothstep(.94, .998,
             sin(mineralPlane.x * 43.0 - mineralPlane.y * 21.0 + mineralWarp * 3.0)) *
             smoothstep(.44, .67, mineralBroad);
-          ${this.coastal ? `
+          if (miniatureCoastal > .5) {
             float mineralVertical = smoothstep(.94, .998,
               sin(vPositionW.x * 87.0 + vPositionW.z * 61.0 +
                 mineralWarp * 5.5 + vPositionW.y * 11.0)) *
               smoothstep(.46, .70, mineralBroad);
             baseColor.rgb *= 1.0 - max(mineralJoint * .18, mineralVertical * .36);
-          ` : `baseColor.rgb *= 1.0 - max(mineralJoint * .17, mineralCrease * .16);`}
+          } else {
+            baseColor.rgb *= 1.0 - max(mineralJoint * .17, mineralCrease * .16);
+          }
         `}
       `,
     };

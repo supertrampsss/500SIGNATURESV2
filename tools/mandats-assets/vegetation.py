@@ -147,7 +147,7 @@ bark.surface_render_method = 'DITHERED'
 def folded_leaf_sprays(center, size, mat, seed, pine=False):
     rng = random.Random(seed)
     # A small opaque interior keeps real crown volume beneath the fine edges.
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.61, location=center)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.47, location=center)
     core = bpy.context.object
     for vertex in core.data.vertices:
         vertex.co *= 1 + rng.uniform(-.10, .10)
@@ -165,7 +165,7 @@ def folded_leaf_sprays(center, size, mat, seed, pine=False):
     vertices, faces, texcoords = [], [], []
     kind = 2 if pine else 1 if mat == silver else seed % 2
     tx, ty = (kind % 2) / 2, (kind // 2) / 2
-    count = 6
+    count = 9
     for i in range(count):
         angle = i * 2.399 + seed * .37
         c, s = math.cos(angle), math.sin(angle)
