@@ -1,0 +1,1446 @@
+{
+  "parent53": "fa2296fb47c9333ba1df2071223d890eac76e7d8",
+  "candidate": {
+    "bytes": 17904108,
+    "sha256": "7c7973ee3923bb6846ac8f08660baa53c1dab8b1f91acbfbc04f4e9fe9b29fd1",
+    "models": {
+      "maison_pierre_01": {
+        "triangles": 2216,
+        "vertices": 4436,
+        "minimum": [
+          -0.5450000166893005,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.5450000166893005,
+          0.8776000142097473,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 7.170542282164405e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_02": {
+        "triangles": 2286,
+        "vertices": 4574,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6299999952316284,
+          0.854699969291687,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 4.109529339046958e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_03": {
+        "triangles": 3028,
+        "vertices": 6064,
+        "minimum": [
+          -0.4699999988079071,
+          0.0,
+          -0.45500001311302185
+        ],
+        "maximum": [
+          0.4699999988079071,
+          1.1115000247955322,
+          0.543999969959259
+        ],
+        "maximumNormalLengthError": 6.573013378030623e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_01": {
+        "triangles": 2376,
+        "vertices": 4764,
+        "minimum": [
+          -0.574999988079071,
+          0.0,
+          -0.4300000071525574
+        ],
+        "maximum": [
+          0.574999988079071,
+          0.9444000124931335,
+          0.5189999938011169
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_02": {
+        "triangles": 3026,
+        "vertices": 6058,
+        "minimum": [
+          -0.47999998927116394,
+          0.0,
+          -0.4650000035762787
+        ],
+        "maximum": [
+          0.47999998927116394,
+          1.130199909210205,
+          0.5540000200271606
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_01": {
+        "triangles": 3156,
+        "vertices": 6324,
+        "minimum": [
+          -0.5699999928474426,
+          0.0,
+          -0.38999998569488525
+        ],
+        "maximum": [
+          0.5699999928474426,
+          1.053399920463562,
+          0.4790000021457672
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_02": {
+        "triangles": 3028,
+        "vertices": 6064,
+        "minimum": [
+          -0.48500001430511475,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.48500001430511475,
+          1.0576000213623047,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_03": {
+        "triangles": 3442,
+        "vertices": 6894,
+        "minimum": [
+          -0.6549999713897705,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.6549999713897705,
+          1.0731000900268555,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 6.182369083340689e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_01": {
+        "triangles": 3028,
+        "vertices": 6064,
+        "minimum": [
+          -0.5,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.5,
+          1.12309992313385,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 6.182369083340689e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_02": {
+        "triangles": 2286,
+        "vertices": 4574,
+        "minimum": [
+          -0.6050000190734863,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6050000190734863,
+          0.904699981212616,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 4.109529339046958e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_02": {
+        "triangles": 2216,
+        "vertices": 4436,
+        "minimum": [
+          -0.550000011920929,
+          0.0,
+          -0.39500001072883606
+        ],
+        "maximum": [
+          0.550000011920929,
+          1.0428000688552856,
+          0.48399999737739563
+        ],
+        "maximumNormalLengthError": 9.084210295107198e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_01": {
+        "triangles": 2274,
+        "vertices": 4550,
+        "minimum": [
+          -0.5849999785423279,
+          0.0,
+          -0.4399999976158142
+        ],
+        "maximum": [
+          0.5849999785423279,
+          0.8108000159263611,
+          0.5289999842643738
+        ],
+        "maximumNormalLengthError": 6.037147670667764e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_02": {
+        "triangles": 3104,
+        "vertices": 6212,
+        "minimum": [
+          -0.4950000047683716,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.4950000047683716,
+          0.9821000099182129,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 7.745503793898934e-09,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_03": {
+        "triangles": 2346,
+        "vertices": 4694,
+        "minimum": [
+          -0.6399999856948853,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6399999856948853,
+          0.770799994468689,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 8.274566298815955e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "ferme_01": {
+        "triangles": 1530,
+        "vertices": 3062,
+        "minimum": [
+          -0.7549999952316284,
+          0.0,
+          -0.36500000953674316
+        ],
+        "maximum": [
+          0.7549999952316284,
+          0.7275999784469604,
+          0.45399999618530273
+        ],
+        "maximumNormalLengthError": 4.510399054247216e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "ferme_02": {
+        "triangles": 1532,
+        "vertices": 3068,
+        "minimum": [
+          -0.6899999976158142,
+          0.0,
+          -0.46000000834465027
+        ],
+        "maximum": [
+          0.6899999976158142,
+          0.7972999811172485,
+          0.5489999651908875
+        ],
+        "maximumNormalLengthError": 3.3216036698924256e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "boutique_01": {
+        "triangles": 2420,
+        "vertices": 4844,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4000000059604645
+        ],
+        "maximum": [
+          0.6299999952316284,
+          0.9204999804496765,
+          0.48899999260902405
+        ],
+        "maximumNormalLengthError": 2.3841858043383013e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_01_dominante": {
+        "triangles": 3872,
+        "vertices": 7748,
+        "minimum": [
+          -0.5450000166893005,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.5450000166893005,
+          1.5076000690460205,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 7.170542282164405e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_02_dominante": {
+        "triangles": 4086,
+        "vertices": 8174,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6299999952316284,
+          1.5313999652862549,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 8.133576856472757e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_03_dominante": {
+        "triangles": 3808,
+        "vertices": 7624,
+        "minimum": [
+          -0.4699999988079071,
+          0.0,
+          -0.45500001311302185
+        ],
+        "maximum": [
+          0.4699999988079071,
+          1.4865999221801758,
+          0.543999969959259
+        ],
+        "maximumNormalLengthError": 8.339641333066083e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_01_dominante": {
+        "triangles": 3936,
+        "vertices": 7884,
+        "minimum": [
+          -0.574999988079071,
+          0.0,
+          -0.4300000071525574
+        ],
+        "maximum": [
+          0.574999988079071,
+          1.5160000324249268,
+          0.5189999938011169
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_02_dominante": {
+        "triangles": 3806,
+        "vertices": 7618,
+        "minimum": [
+          -0.47999998927116394,
+          0.0,
+          -0.4650000035762787
+        ],
+        "maximum": [
+          0.47999998927116394,
+          1.4893999099731445,
+          0.5540000200271606
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_01_dominante": {
+        "triangles": 3936,
+        "vertices": 7884,
+        "minimum": [
+          -0.5699999928474426,
+          0.0,
+          -0.38999998569488525
+        ],
+        "maximum": [
+          0.5699999928474426,
+          1.5004000663757324,
+          0.4790000021457672
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_02_dominante": {
+        "triangles": 3808,
+        "vertices": 7624,
+        "minimum": [
+          -0.48500001430511475,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.48500001430511475,
+          1.490799903869629,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 4.607592773986369e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_03_dominante": {
+        "triangles": 4342,
+        "vertices": 8694,
+        "minimum": [
+          -0.6549999713897705,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.6549999713897705,
+          1.5383999347686768,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 5.255259116765387e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_01_dominante": {
+        "triangles": 3808,
+        "vertices": 7624,
+        "minimum": [
+          -0.5,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.5,
+          1.494999885559082,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 5.255259116765387e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_02_dominante": {
+        "triangles": 4086,
+        "vertices": 8174,
+        "minimum": [
+          -0.6050000190734863,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6050000190734863,
+          1.524399995803833,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 8.133576856472757e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_01_dominante": {
+        "triangles": 3776,
+        "vertices": 7556,
+        "minimum": [
+          -0.4650000035762787,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.4650000035762787,
+          1.4851999282836914,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 2.5032866779461926e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_02_dominante": {
+        "triangles": 3776,
+        "vertices": 7556,
+        "minimum": [
+          -0.550000011920929,
+          0.0,
+          -0.39500001072883606
+        ],
+        "maximum": [
+          0.550000011920929,
+          1.5090000629425049,
+          0.48399999737739563
+        ],
+        "maximumNormalLengthError": 8.89616305066454e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_01_dominante": {
+        "triangles": 3930,
+        "vertices": 7862,
+        "minimum": [
+          -0.5849999785423279,
+          0.0,
+          -0.4399999976158142
+        ],
+        "maximum": [
+          0.5849999785423279,
+          1.4619998931884766,
+          0.5289999842643738
+        ],
+        "maximumNormalLengthError": 6.037147670667764e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_02_dominante": {
+        "triangles": 3932,
+        "vertices": 7868,
+        "minimum": [
+          -0.4950000047683716,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.4950000047683716,
+          1.4581000804901123,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 7.745503793898934e-09,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_03_dominante": {
+        "triangles": 4350,
+        "vertices": 8702,
+        "minimum": [
+          -0.6399999856948853,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6399999856948853,
+          1.4774000644683838,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 8.274566298815955e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "cathedrale_paris": {
+        "triangles": 7177,
+        "vertices": 13372,
+        "minimum": [
+          -0.9599999785423279,
+          -2.60770320892334e-08,
+          -1.6099998950958252
+        ],
+        "maximum": [
+          0.9599999785423279,
+          2.8999998569488525,
+          1.2549999952316284
+        ],
+        "maximumNormalLengthError": 1.2250770997646043e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "mairie_sud": {
+        "triangles": 1298,
+        "vertices": 2486,
+        "minimum": [
+          -0.9049999713897705,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.9049999713897705,
+          1.524999976158142,
+          0.5049999952316284
+        ],
+        "maximumNormalLengthError": 6.258457663221861e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "beffroi_nord": {
+        "triangles": 828,
+        "vertices": 1528,
+        "minimum": [
+          -0.6200000047683716,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6200000047683716,
+          2.3600001335144043,
+          0.5149999856948853
+        ],
+        "maximumNormalLengthError": 7.363908416380127e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "beffroi_nord_distant": {
+        "triangles": 322,
+        "vertices": 802,
+        "minimum": [
+          -0.6200000047683716,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6200000047683716,
+          2.3600001335144043,
+          0.5149999856948853
+        ],
+        "maximumNormalLengthError": 1.1335855232275094e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "boutique_01_distant": {
+        "triangles": 1118,
+        "vertices": 2718,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4000000059604645
+        ],
+        "maximum": [
+          0.6299999952316284,
+          0.9204999804496765,
+          0.48899999260902405
+        ],
+        "maximumNormalLengthError": 8.823868813401248e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "cathedrale_paris_distant": {
+        "triangles": 3088,
+        "vertices": 7198,
+        "minimum": [
+          -0.9599999785423279,
+          -2.60770320892334e-08,
+          -1.6099998950958252
+        ],
+        "maximum": [
+          0.9599999785423279,
+          2.8999998569488525,
+          1.2549999952316284
+        ],
+        "maximumNormalLengthError": 1.1663818444418439e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "ferme_01_distant": {
+        "triangles": 714,
+        "vertices": 1778,
+        "minimum": [
+          -0.7549999952316284,
+          0.0,
+          -0.36500000953674316
+        ],
+        "maximum": [
+          0.7549999952316284,
+          0.7275999784469604,
+          0.45399999618530273
+        ],
+        "maximumNormalLengthError": 9.85318990842643e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "ferme_02_distant": {
+        "triangles": 713,
+        "vertices": 1751,
+        "minimum": [
+          -0.6899999976158142,
+          0.0,
+          -0.46000000834465027
+        ],
+        "maximum": [
+          0.6899999976158142,
+          0.7972999811172485,
+          0.5489999651908875
+        ],
+        "maximumNormalLengthError": 1.1002420241545963e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "mairie_sud_distant": {
+        "triangles": 500,
+        "vertices": 1314,
+        "minimum": [
+          -0.9049999713897705,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.9049999713897705,
+          1.524999976158142,
+          0.5049999952316284
+        ],
+        "maximumNormalLengthError": 1.2793950165956858e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_01_dominante_distant": {
+        "triangles": 1748,
+        "vertices": 4292,
+        "minimum": [
+          -0.4650000035762787,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.4650000035762787,
+          1.4851999282836914,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 9.82648975522693e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_02_dominante_distant": {
+        "triangles": 1748,
+        "vertices": 4316,
+        "minimum": [
+          -0.550000011920929,
+          0.0,
+          -0.39500001072883606
+        ],
+        "maximum": [
+          0.550000011920929,
+          1.5090000629425049,
+          0.48399999737739563
+        ],
+        "maximumNormalLengthError": 1.210082469782492e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_02_distant": {
+        "triangles": 1030,
+        "vertices": 2584,
+        "minimum": [
+          -0.550000011920929,
+          0.0,
+          -0.39500001072883606
+        ],
+        "maximum": [
+          0.550000011920929,
+          1.0428000688552856,
+          0.48399999737739563
+        ],
+        "maximumNormalLengthError": 8.93585174743805e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_01_dominante_distant": {
+        "triangles": 1820,
+        "vertices": 4600,
+        "minimum": [
+          -0.574999988079071,
+          0.0,
+          -0.4300000071525574
+        ],
+        "maximum": [
+          0.574999988079071,
+          1.5160000324249268,
+          0.5189999938011169
+        ],
+        "maximumNormalLengthError": 1.0722055177048162e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_01_distant": {
+        "triangles": 1104,
+        "vertices": 2806,
+        "minimum": [
+          -0.574999988079071,
+          0.0,
+          -0.4300000071525574
+        ],
+        "maximum": [
+          0.574999988079071,
+          0.9444000124931335,
+          0.5189999938011169
+        ],
+        "maximumNormalLengthError": 1.0056293775484448e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_02_dominante_distant": {
+        "triangles": 1760,
+        "vertices": 4268,
+        "minimum": [
+          -0.47999998927116394,
+          0.0,
+          -0.4650000035762787
+        ],
+        "maximum": [
+          0.47999998927116394,
+          1.4893999099731445,
+          0.5540000200271606
+        ],
+        "maximumNormalLengthError": 9.919861199136903e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_ardoise_02_distant": {
+        "triangles": 1402,
+        "vertices": 3408,
+        "minimum": [
+          -0.47999998927116394,
+          0.0,
+          -0.4650000035762787
+        ],
+        "maximum": [
+          0.47999998927116394,
+          1.130199909210205,
+          0.5540000200271606
+        ],
+        "maximumNormalLengthError": 9.935522982118528e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_01_dominante_distant": {
+        "triangles": 1760,
+        "vertices": 4278,
+        "minimum": [
+          -0.5,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.5,
+          1.494999885559082,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 1.0678225836890931e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_01_distant": {
+        "triangles": 1402,
+        "vertices": 3422,
+        "minimum": [
+          -0.5,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.5,
+          1.12309992313385,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 9.611296913902834e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_02_dominante_distant": {
+        "triangles": 1882,
+        "vertices": 4544,
+        "minimum": [
+          -0.6050000190734863,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6050000190734863,
+          1.524399995803833,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 9.099533126999404e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_brique_02_distant": {
+        "triangles": 1058,
+        "vertices": 2566,
+        "minimum": [
+          -0.6050000190734863,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6050000190734863,
+          0.904699981212616,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 1.0559882679395116e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_01_dominante_distant": {
+        "triangles": 1820,
+        "vertices": 4482,
+        "minimum": [
+          -0.5699999928474426,
+          0.0,
+          -0.38999998569488525
+        ],
+        "maximum": [
+          0.5699999928474426,
+          1.5004000663757324,
+          0.4790000021457672
+        ],
+        "maximumNormalLengthError": 9.845848514267175e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_01_distant": {
+        "triangles": 1462,
+        "vertices": 3600,
+        "minimum": [
+          -0.5699999928474426,
+          0.0,
+          -0.38999998569488525
+        ],
+        "maximum": [
+          0.5699999928474426,
+          1.053399920463562,
+          0.4790000021457672
+        ],
+        "maximumNormalLengthError": 9.611296913902834e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_02_dominante_distant": {
+        "triangles": 1760,
+        "vertices": 4324,
+        "minimum": [
+          -0.48500001430511475,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.48500001430511475,
+          1.490799903869629,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 1.1877627525969103e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_02_distant": {
+        "triangles": 1402,
+        "vertices": 3458,
+        "minimum": [
+          -0.48500001430511475,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.48500001430511475,
+          1.0576000213623047,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 9.611296913902834e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_03_dominante_distant": {
+        "triangles": 2002,
+        "vertices": 4850,
+        "minimum": [
+          -0.6549999713897705,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.6549999713897705,
+          1.5383999347686768,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 1.0193975352734697e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_paris_03_distant": {
+        "triangles": 1590,
+        "vertices": 3884,
+        "minimum": [
+          -0.6549999713897705,
+          0.0,
+          -0.41499999165534973
+        ],
+        "maximum": [
+          0.6549999713897705,
+          1.0731000900268555,
+          0.5040000081062317
+        ],
+        "maximumNormalLengthError": 1.0221864621406951e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_01_dominante_distant": {
+        "triangles": 1794,
+        "vertices": 4512,
+        "minimum": [
+          -0.5450000166893005,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.5450000166893005,
+          1.5076000690460205,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 8.123198669274245e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_01_distant": {
+        "triangles": 1030,
+        "vertices": 2534,
+        "minimum": [
+          -0.5450000166893005,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.5450000166893005,
+          0.8776000142097473,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 8.749017865739006e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_02_dominante_distant": {
+        "triangles": 1882,
+        "vertices": 4544,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6299999952316284,
+          1.5313999652862549,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 9.053072402842588e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_02_distant": {
+        "triangles": 1056,
+        "vertices": 2570,
+        "minimum": [
+          -0.6299999952316284,
+          0.0,
+          -0.4050000011920929
+        ],
+        "maximum": [
+          0.6299999952316284,
+          0.854699969291687,
+          0.49400001764297485
+        ],
+        "maximumNormalLengthError": 9.339922724116434e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_03_dominante_distant": {
+        "triangles": 1760,
+        "vertices": 4388,
+        "minimum": [
+          -0.4699999988079071,
+          0.0,
+          -0.45500001311302185
+        ],
+        "maximum": [
+          0.4699999988079071,
+          1.4865999221801758,
+          0.543999969959259
+        ],
+        "maximumNormalLengthError": 1.1600189742111411e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_pierre_03_distant": {
+        "triangles": 1402,
+        "vertices": 3496,
+        "minimum": [
+          -0.4699999988079071,
+          0.0,
+          -0.45500001311302185
+        ],
+        "maximum": [
+          0.4699999988079071,
+          1.1115000247955322,
+          0.543999969959259
+        ],
+        "maximumNormalLengthError": 9.611296913902834e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_01_dominante_distant": {
+        "triangles": 1818,
+        "vertices": 4436,
+        "minimum": [
+          -0.5849999785423279,
+          0.0,
+          -0.4399999976158142
+        ],
+        "maximum": [
+          0.5849999785423279,
+          1.4619998931884766,
+          0.5289999842643738
+        ],
+        "maximumNormalLengthError": 1.0258706417687335e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_01_distant": {
+        "triangles": 1054,
+        "vertices": 2620,
+        "minimum": [
+          -0.5849999785423279,
+          0.0,
+          -0.4399999976158142
+        ],
+        "maximum": [
+          0.5849999785423279,
+          0.8108000159263611,
+          0.5289999842643738
+        ],
+        "maximumNormalLengthError": 1.2777679048170398e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_02_dominante_distant": {
+        "triangles": 1818,
+        "vertices": 4514,
+        "minimum": [
+          -0.4950000047683716,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.4950000047683716,
+          1.4581000804901123,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 9.193031558218934e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_02_distant": {
+        "triangles": 1436,
+        "vertices": 3518,
+        "minimum": [
+          -0.4950000047683716,
+          0.0,
+          -0.41999998688697815
+        ],
+        "maximum": [
+          0.4950000047683716,
+          0.9821000099182129,
+          0.5090000033378601
+        ],
+        "maximumNormalLengthError": 1.0682239026671425e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_03_dominante_distant": {
+        "triangles": 2010,
+        "vertices": 4944,
+        "minimum": [
+          -0.6399999856948853,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6399999856948853,
+          1.4774000644683838,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 1.0974192266033356e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_sud_03_distant": {
+        "triangles": 1088,
+        "vertices": 2680,
+        "minimum": [
+          -0.6399999856948853,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.6399999856948853,
+          0.770799994468689,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 9.258198852002408e-08,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "maison_alsace_01": {
+        "triangles": 1481,
+        "vertices": 3414,
+        "minimum": [
+          -0.4650000035762787,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.4650000035762787,
+          1.0169999599456787,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 1.2564939377845974e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 1
+      },
+      "maison_alsace_01_distant": {
+        "triangles": 695,
+        "vertices": 1827,
+        "minimum": [
+          -0.4650000035762787,
+          0.0,
+          -0.4449999928474426
+        ],
+        "maximum": [
+          0.4650000035762787,
+          1.0169999599456787,
+          0.5339999794960022
+        ],
+        "maximumNormalLengthError": 1.1724700654802689e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 2
+      }
+    },
+    "materialCount": 3,
+    "images": [
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "4ebccb4c0b795734427d088c5caae7244a9b2dd1bf58b9fc25a24dda19575481"
+      },
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "beba7200901e0d2c10044380d437a096085fbf87b0b49ef3f4410cd2850fff0d"
+      },
+      {
+        "size": [
+          2048,
+          2048
+        ],
+        "rgbaPixelSHA256": "8b187ceff358ff25f1b23383532eb4b5e7a026367b685564a2b05000e9794fa0"
+      },
+      {
+        "size": [
+          512,
+          512
+        ],
+        "rgbaPixelSHA256": "2fdd222d77e52561a370c9e1bbb30bf66078339650ed1d2c126cbdce684d4f91"
+      },
+      {
+        "size": [
+          512,
+          512
+        ],
+        "rgbaPixelSHA256": "d2d2575c63b4f96fae05039b2dde3c70e504ac9cedbfd73195f71bb27d2dee0d"
+      },
+      {
+        "size": [
+          512,
+          512
+        ],
+        "rgbaPixelSHA256": "18bbff8342a35a060da067250a73bc581f101971001c79078813739819d00c2b"
+      },
+      {
+        "size": [
+          128,
+          128
+        ],
+        "rgbaPixelSHA256": "493de947e592d1c14b7ce1bdb323f99a3fb01b2e3515bfdfc945fab20c8a71db"
+      },
+      {
+        "size": [
+          128,
+          128
+        ],
+        "rgbaPixelSHA256": "282e550bddb72a1b7bdf4fed42343a146d693bddfdf9efe921a0415c0d025ab0"
+      },
+      {
+        "size": [
+          128,
+          128
+        ],
+        "rgbaPixelSHA256": "f73e6b2772971cca2ba0c9cb6077d17a4a4fef0f58f4b709c35e1241d0c70a64"
+      }
+    ]
+  },
+  "all72BoundsExactWithParent": true,
+  "twoFreshComposedExportsByteIdentical": true,
+  "method": "Actual active scene roots HIGH/LOD raw accessor/normal/UV/index/bounds audit; no browser or artistic/FPS claim."
+}

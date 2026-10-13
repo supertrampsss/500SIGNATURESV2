@@ -281,7 +281,7 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
         if (mesh.isDisposed()) continue;
         // Keep the shared geometry and instancing of imported models. Merging
         // an authored kit expands every house and destroys its GPU instances.
-        if (!(mesh instanceof Mesh) || mesh.metadata?.assetInstance || mesh.metadata?.assetTemplate) {
+        if (!(mesh instanceof Mesh) || mesh.hasThinInstances || mesh.metadata?.assetInstance || mesh.metadata?.assetTemplate) {
           if (!mesh.metadata?.assetTemplate) record(mesh, mesh.metadata?.castsShadow !== false);
           continue;
         }
@@ -303,7 +303,9 @@ function mount(host: HTMLElement, initial: MandateMapState, light: boolean) {
       host.dataset.landscape = "diorama";
       host.dataset.terrainSource = scene.metadata?.bakedTerrain ? "precomputed" : "generated";
       host.dataset.staticBatches = String(compatible.size);
-      host.dataset.staticInstances = String(batches.filter(mesh => mesh.metadata?.assetInstance).length);
+      host.dataset.staticInstances = String(batches.reduce((sum, mesh) => sum +
+        (mesh instanceof Mesh && mesh.hasThinInstances ? mesh.thinInstanceCount :
+          mesh.metadata?.assetInstance ? 1 : 0), 0));
       const urban = scene.metadata?.authoredUrban;
       if (urban) host.dataset.authoredHouses = String(urban.houses);
     }

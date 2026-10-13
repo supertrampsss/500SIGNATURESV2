@@ -1,0 +1,36 @@
+{
+  "browserVersion": "154.0.8037.57",
+  "report": {
+    "method": "Read actual indexed lowest cathedral contact faces, actual generated static support triangles (including its stone footing) and actual indexed domestic bottom faces. No model/LOD/state/camera/network mutation. Contact-face overlaps are narrower than a bounding-box guess; this is not all future-state/road/collision or artistic proof.",
+    "planningScope": "Actual current lowest contact faces against rendered supports, river and domestic faces. Zero translation; scene transforms unchanged.",
+    "retainingSupport": {
+      "method": "Read the large actual flat stone-support faces at the cathedral base level; compare their full indexed face area with actual river faces. No inferred source rectangle.",
+      "faces": 2,
+      "wetContactArea": 0
+    },
+    "proposedOffsets": [
+      {
+        "dx": 0,
+        "dz": 0,
+        "wetContactArea": 0,
+        "houseContactArea": 0,
+        "distance": 0
+      }
+    ],
+    "cathedralContactFaces": 50,
+    "samples": 150,
+    "missingSupport": 0,
+    "maximumBaseClearance": 1.3203023702113015e-8,
+    "supportMeshes": [
+      "house-stone-footing-33_merged"
+    ],
+    "houseOverlaps": [],
+    "bounds": {
+      "minX": -0.4593104827779406,
+      "maxX": 1.0575329889104275,
+      "minZ": 3.565876589561011,
+      "maxZ": 5.180336558657206
+    }
+  },
+  "errors": []
+}

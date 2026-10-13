@@ -4,11 +4,13 @@ import { MODEL_URLS } from "./map-model-revisions.ts";
 import type { Scene } from "@babylonjs/core/scene";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
+import "@babylonjs/core/Meshes/thinInstanceMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import Delaunator from "delaunator";
 import { MAP_CONTEXT_COUNTRIES } from "./map-context-geography.ts";
 import { FRANCE_OUTLINES } from "./map-geography.ts";
@@ -711,8 +713,57 @@ export async function buildMapContext(
       count++;
     }
   }
+  // These neighbouring-country trees never move or take part in projects.
+  // Retain their actual seated world matrices and shared geometry/materials,
+  // while removing thousands of individual active-mesh traversals.
+  const batches = new Map<Mesh, number[]>(), originalRoots = forestRoot.getChildren();
+  if (scene.getEngine().getCaps().instancedArrays) {
+    for (const mesh of meshes) {
+      if (!(mesh instanceof InstancedMesh)) continue;
+      const matrices = batches.get(mesh.sourceMesh) ?? [];
+      matrices.push(...mesh.computeWorldMatrix(true).m);
+      batches.set(mesh.sourceMesh, matrices);
+    }
+    const grouped: AbstractMesh[] = [];
+    for (const [source, matrices] of batches) {
+      const batch = new Mesh(`context-forest-batch-${grouped.length}`, scene);
+      source.geometry?.applyToMesh(batch);
+      // Thin-instance matrix attributes belong to Geometry. Each material
+      // group needs its own buffer; sharing it overwrites another group's
+      // matrices and the ordinary French instances of this prefab.
+      batch.makeGeometryUnique();
+      batch.material = source.material;
+      batch.overrideMaterialSideOrientation = source.overrideMaterialSideOrientation;
+      batch.parent = forestRoot;
+      // Retain the glTF source's handedness for Babylon's two-sided lighting.
+      // Thin-instance matrices are local to this base world transform.
+      const baseWorld = source.computeWorldMatrix(true).clone(), inverseBase = baseWorld.clone().invert(),
+        localMatrices = new Float32Array(matrices.length);
+      batch.rotationQuaternion = Quaternion.Identity();
+      baseWorld.decompose(batch.scaling, batch.rotationQuaternion, batch.position);
+      let maximumMatrixError = 0;
+      for (let at = 0; at < matrices.length; at += 16) {
+        const world = Matrix.FromArray(matrices, at), local = world.multiply(inverseBase);
+        local.copyToArray(localMatrices, at);
+        const restored = local.multiply(baseWorld).m;
+        for (let i = 0; i < 16; i++) maximumMatrixError = Math.max(maximumMatrixError,
+          Math.abs(restored[i] - matrices[at + i]));
+      }
+      batch.receiveShadows = source.receiveShadows;
+      batch.isPickable = false;
+      batch.thinInstanceSetBuffer("matrix", localMatrices, 16, true);
+      batch.thinInstanceRefreshBoundingInfo();
+      batch.metadata = { contextTreeBatch: true, contextVegetation: true,
+        treeCount: matrices.length / 16, sourceAsset: source.name, maximumMatrixError,
+        region: "context", castsShadow: false };
+      grouped.push(batch);
+    }
+    for (const root of originalRoots) root.dispose(false, false);
+    meshes.splice(0, meshes.length, ...grouped);
+  }
   forestRoot.metadata = {
     treeCount: count,
+    contextBatches: batches.size,
     contextVegetation: true,
     region: "context",
     castsShadow: false,

@@ -126,3 +126,38 @@ python tools/mandats-assets/urban_miniature_roles.py /tmp/mandats-before49.ts si
 Le relevé de table ne prouve pas l’ancrage ni la fidélité artistique. Ceux-ci
 sont contrôlés séparément dans le jeu réellement rendu, en vue entière,
 rapprochée et mobile.
+
+### Façades percées de la passe 54
+
+La passe 54 donne aux façades domestiques des ouvertures géométriques. Les
+quatre murs sont découpés autour des fenêtres et portes ; les vitrages sont
+reculés de 0,018 unité dans les murs. Les encadrements arrière sont tournés
+vers l’extérieur. Les rangées suivent les étages réels sur toutes les faces,
+et les bandeaux de pierre sont placés entre ces rangées. La toiture, les socles,
+les corniches, les chaînages et les emprises restent conservés.
+
+`architecture-bounds.json` fixe les limites détaillées du parent 53. La
+fabrication refuse une dérive supérieure à 0,000001 et corrige les seuls
+arrondis avant le dépliage et la cuisson. Les 72 modèles actifs, y compris leurs
+niveaux distants et la maison CC0 réintégrée depuis le kit conservé, retrouvent
+exactement les limites brutes précédentes. Deux exports frais de niveaux
+partant de la source recuite, puis deux compositions avec la maison CC0,
+reproduisent les GLB et JSON. Cela ne constitue pas deux cuissons complètes
+indépendantes des textures.
+
+Le GLB retenu mesure 17 904 108 octets, SHA256
+`7c7973ee3923bb6846ac8f08660baa53c1dab8b1f91acbfbc04f4e9fe9b29fd1`.
+Les UV et indices sont valides, les attributs finis et les normales unitaires.
+L’audit des racines actives ne trouve aucun triangle dégénéré ni désaccord de
+normale. Les données inactives de la maison remplacée restent dans le buffer,
+conformément au composeur existant ; elles sont exclues du comptage actif.
+
+Un relevé ciblé des facettes verticales bleues de l’atlas, orientées vers
+l’extérieur et suffisamment grandes, retrouve un texel bleu au premier impact
+pour 2 548 des 2 552 rayons sélectionnés dans 58 modèles détaillés et distants.
+Les quatre impacts restants touchent les colombages de `maison_alsace_02` et
+sa distance. Ce relevé exclut les petites surfaces et la maison CC0 ; il peut
+sélectionner un détail bleu de façade ou de toiture. Il ne certifie pas chaque
+ouverture, le filtrage du navigateur ou la fidélité du diorama entier. Le
+bandeau coupant les fenêtres basses du premier candidat a été corrigé, sans
+modifier la sélection du relevé pour masquer ce défaut.

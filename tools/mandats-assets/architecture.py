@@ -231,9 +231,9 @@ def roof_y(x,y,z,w,d,rise,mat="ardoise",hip=False):
         obj.matrix_world=transform@obj.matrix_world
 
 
-def window(x, y, z, w=.125, h=.155, shutters=False, stone="calcaire", mullion=True):
+def window(x, y, z, w=.125, h=.155, shutters=False, stone="calcaire", mullion=True, inset=0):
     # Street-facing openings are real inset coloured planes with thin stone reveals.
-    box((x,y,z),(w,.011,h),"vitrage")
+    box((x,y+inset,z),(w,.011,h),"vitrage")
     t = .016 if CURRENT.startswith(("maison", "ferme", "boutique")) else .011
     box((x-w/2-t/2,y-.008,z),(t,.021,h+t*2),stone)
     box((x+w/2+t/2,y-.008,z),(t,.021,h+t*2),stone)
@@ -284,6 +284,20 @@ def finish(name):
     bpy.context.scene.cursor.location = (0,0,0)
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    # Joining a different number of wall pieces can change float32 extrema by
+    # one ULP. Retain the published ground pivot and footprint before UVs/bake.
+    bounds=json.loads((SOURCE/"architecture-bounds.json").read_text())["models"][name]
+    retained_min=(bounds["min"][0],-bounds["max"][2],bounds["min"][1])
+    retained_max=(bounds["max"][0],-bounds["min"][2],bounds["max"][1])
+    for axis in range(3):
+        low=min(vertex.co[axis] for vertex in obj.data.vertices)
+        high=max(vertex.co[axis] for vertex in obj.data.vertices)
+        if max(abs(low-retained_min[axis]),abs(high-retained_max[axis]))>1e-6:
+            raise RuntimeError("Source shape changed retained architecture bounds: "+name)
+        for vertex in obj.data.vertices:
+            t=(vertex.co[axis]-low)/(high-low)
+            vertex.co[axis]=retained_min[axis]+t*(retained_max[axis]-retained_min[axis])
+    obj.data.update()
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.normals_make_consistent(inside=False) if hasattr(bpy.ops.mesh,"normals_make_consistent") else None
@@ -294,10 +308,49 @@ def finish(name):
     return obj
 
 
+def perforated_house_wall(width,height,holes,material):
+    # Partition the wall at opening edges. Closed small wall panels surround
+    # actual voids; neither a face decal nor a black replacement hides stone.
+    xs=sorted({-width/2,width/2,*[edge for x,z,w,h in holes
+        for edge in (x-w/2,x+w/2)]})
+    zs=sorted({0,height,*[edge for x,z,w,h in holes
+        for edge in (z-h/2,z+h/2)]})
+    for left,right in zip(xs,xs[1:]):
+        for low,high in zip(zs,zs[1:]):
+            if right-left<1e-6 or high-low<1e-6:
+                continue
+            x,z=(left+right)/2,(low+high)/2
+            if any(abs(x-cx)<w/2 and abs(z-cz)<h/2 for cx,cz,w,h in holes):
+                continue
+            box((x,.020,z),(right-left,.040,high-low),material)
+
+
 def house(name,w=1,d=.78,h=.51,rise=.30,wall="enduit",cover="tuile",floors=2,
           style="simple",hip=False,shutters=False,offset=0):
     start(name)
-    box((0,0,h/2),(w,d,h),wall,bevel=.007)
+    xs = [-w*.31,w*.31] if w<1.1 else [-w*.34,0,w*.34]
+    storey_centres=[.14+floor*((h-.26)/max(floors-1,1)) for floor in range(floors)]
+    window_width=.12 if floors<3 else .105
+    window_height=.14 if floors<3 else .125
+    front_windows=[(x,storey_centres[floor],window_width,window_height)
+        for floor in range(floors) for x in xs
+        if not (floor==0 and abs(x-offset)<.10)]
+    door_height=.23 if floors<3 else .21
+    front_holes=front_windows+[(offset,door_height/2+.014,.14,door_height)]
+    rear_levels = storey_centres
+    rear_windows=[(x,level,.11,.125 if floors>=4 else .135)
+        for x in (-w*.29,w*.29) for level in rear_levels]
+    side_levels = storey_centres
+    side_windows=[(0,level,.115,.125 if floors>=4 else .145) for level in side_levels]
+    for span,holes,location,angle in (
+        (w,front_holes,(0,-d/2,0),0),(w,rear_windows,(0,d/2,0),math.pi),
+        (d,side_windows,(w/2,0,0),math.pi/2),(d,side_windows,(-w/2,0,0),-math.pi/2)):
+        before=len(PARTS)
+        perforated_house_wall(span,h,holes,wall)
+        transform=Matrix.Translation(location)@Matrix.Rotation(angle,4,"Z")
+        for obj in PARTS[before:]:
+            obj.matrix_world=transform@obj.matrix_world
+    box((0,0,h-.027),(w-.080,d-.080,.040),wall)
     box((0,0,.029),(w+.025,d+.025,.058),"pierre")
     box((0,0,h-.018),(w+.075,d+.075,.045),"calcaire")
     # Broad pale bands and corner quoins remain readable in the miniature view.
@@ -306,30 +359,32 @@ def house(name,w=1,d=.78,h=.51,rise=.30,wall="enduit",cover="tuile",floors=2,
             box((side*(w/2-.012), front*(d/2-.007), h*.49),
                 (.040,.026,h*.94), "calcaire")
     if floors>1:
-        bands = [h*level/floors for level in range(1,floors)] if floors>=4 else [h*.49]
+        bands = [(low+high)/2 for low,high in zip(storey_centres,storey_centres[1:])]
         for band in bands:
             box((0,-d/2-.012,band),(w+.025,.025,.018),"calcaire")
     xs = [-w*.31,w*.31] if w<1.1 else [-w*.34,0,w*.34]
     for floor in range(floors):
-        z = .18 + floor*((h-.30)/max(floors-1,1))
+        z = storey_centres[floor]
         for x in xs:
             if floor == 0 and abs(x-offset)<.10:
                 continue
             window(x,-d/2-.006,z,w=.12 if floors<3 else .105,h=.14 if floors<3 else .125,
-                   shutters=shutters,stone="pierre" if wall=="brique" else "calcaire")
+                   shutters=shutters,stone="pierre" if wall=="brique" else "calcaire",inset=.018)
     door(offset,-d/2-.009,w=.14,h=.23 if floors<3 else .21)
-    # Rear and side openings are deliberately simpler, avoiding blank cubes at orbit angles.
-    rear_levels = [.18 + floor*((h-.30)/max(floors-1,1)) for floor in range(floors)] if floors>=4 else [h*.60]
-    for x in (-w*.29,w*.29):
-        for level in rear_levels:
-            window(x,d/2+.006,level,w=.11,h=.125 if floors>=4 else .135,mullion=False)
+    # Rear frames face outward and their glazing is recessed into the wall.
+    before=len(PARTS)
+    for x,level,ww,hh in rear_windows:
+        window(x,-.006,level,w=ww,h=hh,mullion=False,inset=.018)
+    transform=Matrix.Translation((0,d/2,0))@Matrix.Rotation(math.pi,4,"Z")
+    for obj in PARTS[before:]:
+        obj.matrix_world=transform@obj.matrix_world
     # Side walls carry openings too, so inspection does not expose blank cubes.
-    side_levels = [.18 + floor*((h-.30)/max(floors-1,1)) for floor in range(floors)] if floors>=4 else [h*.59]
+    side_levels = storey_centres
     for side in (-1, 1):
         before = len(PARTS)
         for level in side_levels:
             window(0, 0, level, w=.115, h=.125 if floors>=4 else .145,
-                   shutters=False, stone="calcaire", mullion=False)
+                   shutters=False, stone="calcaire", mullion=False,inset=.018)
         transform = Matrix.Translation((side*(w/2+.008), 0, 0)) @ Matrix.Rotation(side*math.pi/2,4,"Z")
         for obj in PARTS[before:]:
             obj.matrix_world = transform @ obj.matrix_world

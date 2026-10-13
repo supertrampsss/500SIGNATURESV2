@@ -1014,3 +1014,66 @@ encore régulières, le débouché du Rhône reste encaissé et les versants alp
 gardent de grandes faces lisses ou facettées. Les matières et ramures restent
 moins riches que la référence. La PR 194 reste en brouillon ; le travail continue
 sur toute la scène.
+
+
+## Passe 54 : façades percées et boisements groupés
+
+La [comparaison 54](mandats-diorama/comparaison-54.html) conserve les images
+réelles face à la référence. Les façades domestiques possèdent des ouvertures
+géométriques et des vitrages en retrait. Les cadres arrière sont tournés vers
+l’extérieur ; les côtés et l’arrière portent des fenêtres aux étages réels.
+Les bandeaux de pierre suivent les espaces entre les rangées au lieu de couper
+les fenêtres basses. Les toitures, socles, corniches et emprises sont conservés.
+
+Les 72 modèles actifs, détaillés et distants, retrouvent exactement leurs
+limites précédentes. Le relevé source fixe ces bornes et refuse une correction
+supérieure à 0,000001 avant la cuisson. Deux exports frais depuis la source
+recuite, puis deux compositions avec la maison CC0 conservée, reproduisent les
+GLB et JSON. Cela ne constitue pas deux cuissons indépendantes des textures.
+Les attributs sont finis, les normales unitaires et les UV et indices valides.
+Aucun triangle dégénéré ou désaccord de normale n’est relevé dans les racines
+actives. Le contrôle ciblé des facettes bleues retrouve le verre au premier
+impact pour 2 548 des 2 552 rayons sélectionnés ; quatre touchent les colombages
+d’un modèle et de sa distance. Ce relevé exclut les petites surfaces et la
+maison CC0, et ne certifie pas chaque ouverture ou le filtrage du navigateur.
+
+Les 4 883 arbres des pays voisins gardent leurs géométries et matériaux
+précédents. Leurs matrices réellement calées sur le terrain sont regroupées
+dans cinq buffers statiques. Les positions, normales, UV, couleurs et indices
+sont identiques aux sources ; les matériaux sont les mêmes et les matrices
+reconstituent les poses avec un écart mesuré nul. Les groupes disposent de
+buffers indépendants et conservent la transformation du modèle glTF source,
+nécessaire à l’éclairage des deux faces. L’assembleur des décors préserve ces
+instances fines et compte réellement leur nombre.
+
+Les candidats utilisant des silhouettes de contexte plus grossières sont
+écartés ; la végétation et ses sources sont restaurées. Le premier regroupement
+perdait les arbres lors de l’assemblage et le suivant partageait incorrectement
+les buffers de matrices. Ces vues incomplètes ou déformées ne sont pas des
+preuves de performance réussie. Les variantes retenues sont revues dans les
+captures natives complètes, avec la végétation française détaillée conservée.
+
+Le build complet passe : 1 082 tests, trois vérifications TypeScript, Vite,
+pré-rendu et 152 ressources hors connexion. Deux exports frais du terrain
+reproduisent le binaire et toute la métadonnée des sources. Le test original
+WebKit haute densité passe localement, avec son délai de 15 secondes inchangé.
+Les suites originales complètes passent également : 23 parcours rework et
+13 parcours social, avec neuf et trois omissions prévues, sans échec ni résultat
+instable. Aucun délai, worker ou test original n’est modifié.
+Les mesures de première image des captures natives sont locales et distinctes
+de ce parcours original ; elles ne certifient pas la CI distante ou les FPS
+sur appareil physique.
+
+La CI du parent 53 échoue au démarrage WebKit haute densité : 22 parcours
+rework réussis, neuf omissions et un échec au délai original. La suite sociale
+suivante n’a pas été exécutée ; les cinq autres workflows réussissent. La trace
+réelle situe la géométrie à 11 612 ms, les shaders à 12 878 ms, puis une première
+image de 5 327 ms. Un instantané Babylon observé après le délai ne transforme
+pas cet échec en réussite. La CI de la nouvelle passe doit être suivie après
+publication.
+
+**La fidélité reste en cours.** Les silhouettes des maisons se répètent encore,
+les falaises et quais restent réguliers, le débouché du Rhône est encaissé et
+les Alpes gardent de grandes surfaces facettées. Les matières sont moins
+photographiques que la référence. La PR 194 reste en brouillon et le travail
+continue sur toute la scène.

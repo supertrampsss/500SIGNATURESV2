@@ -1,0 +1,1193 @@
+{
+  "savedGame": {
+    "version": 12,
+    "mode": "national",
+    "seed": 1,
+    "ambition": "equilibre",
+    "turn": 3,
+    "finance": {
+      "revenue": 1490,
+      "operating": 1513.4,
+      "investment": 41.6,
+      "debt": 3200,
+      "cash": 0,
+      "rate": 0.018,
+      "marketRate": 0.035,
+      "repayment": 0,
+      "grants": 0,
+      "gdp": 2800,
+      "growth": 0.012,
+      "deflator": 0.018,
+      "stockFlow": 0
+    },
+    "metrics": {
+      "services": 56,
+      "cohesion": 50,
+      "resilience": 39,
+      "trust": 53,
+      "assets": 58
+    },
+    "areas": [
+      {
+        "id": "metropoles",
+        "name": "Métropoles",
+        "need": "Logement et services",
+        "services": 68,
+        "resilience": 48,
+        "x": 49,
+        "y": 28
+      },
+      {
+        "id": "industrie",
+        "name": "Bassins industriels",
+        "need": "Énergie et reconversion",
+        "services": 48,
+        "resilience": 25,
+        "x": 68,
+        "y": 44
+      },
+      {
+        "id": "rural",
+        "name": "Espaces ruraux",
+        "need": "Accès aux services",
+        "services": 38,
+        "resilience": 43,
+        "x": 34,
+        "y": 55
+      },
+      {
+        "id": "littoraux",
+        "name": "Territoires littoraux",
+        "need": "Adaptation climatique",
+        "services": 54,
+        "resilience": 32,
+        "x": 53,
+        "y": 75
+      }
+    ],
+    "pending": [],
+    "history": [
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "n11-0-soins-garde-nuit-renover-service",
+        "title": "Engager la rénovation du service",
+        "messages": [
+          "Des locaux plus sûrs à la livraison.",
+          "Compromis : La capacité d’accueil sera réduite pendant le chantier..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Financement voté : Rénovation du service de soins. Ses bénéfices arriveront à la livraison.",
+          "Engagement pris : Le service de soins rénové sera livré."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.4,
+          "interest": 57.599999999999994,
+          "savings": -113.00000000000009,
+          "repayment": 0,
+          "investment": 41.6,
+          "grants": 0,
+          "borrowing": 154.5999999999999,
+          "cashChange": 0,
+          "deficit": 154.5999999999999,
+          "debt": 3354.6,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 55,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 52,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 67,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 47,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 37,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 53,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Santé",
+          "title": "Une garde sans équipe complète",
+          "story": "À l’hôpital des Rives, les équipes de nuit manquent de personnel et les locaux vieillissent. Les renforts aideraient tout de suite; les travaux réduiraient temporairement l’accueil.",
+          "advisor": "Équipe de mandat",
+          "choices": [
+            {
+              "id": "n11-0-soins-garde-nuit-financer-renforts",
+              "title": "Financer six mois de renfort",
+              "description": "Ouvrir une enveloppe temporaire pour les gardes de nuit et publier les postes à pourvoir.",
+              "cost": "0,4 Md€ pour six mois",
+              "benefit": "Davantage de gardes couvertes pendant six mois.",
+              "sacrifice": "La mesure s’arrête si les recrutements durables n’aboutissent pas.",
+              "effect": {
+                "operating": 0.4,
+                "services": 3,
+                "cohesion": 1
+              },
+              "delayed": {
+                "after": 1,
+                "label": "Le renfort de six mois prend fin; toute prolongation doit être revotée.",
+                "effect": {
+                  "operating": -0.4
+                }
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "social": 2,
+                  "regional": 1
+                }
+              },
+              "narrative": {
+                "eventId": "soins-garde-nuit",
+                "press": "La Gazette des Rives : « Six mois de renfort votés, le recrutement durable reste à faire. »",
+                "promise": {
+                  "id": "renforts-nuit",
+                  "label": "Des renforts seront présents aux gardes les plus fragiles.",
+                  "dueAfter": 2,
+                  "keepWhen": "services_improved"
+                },
+                "relationships": {
+                  "social": 2,
+                  "regional": 1
+                }
+              }
+            },
+            {
+              "id": "n11-0-soins-garde-nuit-renover-service",
+              "title": "Engager la rénovation du service",
+              "description": "Lancer les travaux par phases, avec maintien d’un accueil réduit.",
+              "cost": "1,6 Md€ d’investissement",
+              "benefit": "Des locaux plus sûrs à la livraison.",
+              "sacrifice": "La capacité d’accueil sera réduite pendant le chantier.",
+              "effect": {
+                "investment": 1.6,
+                "services": -1
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "social": 1,
+                  "regional": 1
+                }
+              },
+              "narrative": {
+                "eventId": "soins-garde-nuit",
+                "promise": {
+                  "id": "service-rives",
+                  "label": "Le service de soins rénové sera livré.",
+                  "dueAfter": 2,
+                  "targetProject": "service-rives",
+                  "keepWhen": "project_delivered"
+                },
+                "project": {
+                  "id": "service-rives",
+                  "kind": "hospital",
+                  "label": "Rénovation du service de soins",
+                  "place": "hopital-des-rives",
+                  "dueAfter": 2,
+                  "action": "fund",
+                  "pressByStatus": {
+                    "funded": "La Gazette des Rives : « Les travaux des Rives sont financés, deux décisions de chantier annoncées. »",
+                    "blocked": "La Gazette des Rives : « Le chantier des Rives est bloqué, les équipes demandent un nouveau calendrier. »",
+                    "delivered": "La Gazette des Rives : « Le service rénové des Rives ouvre ses portes. »",
+                    "withdrawn": "La Gazette des Rives : « Faute de crédits, le projet de rénovation est retiré. »"
+                  },
+                  "deliveryEffect": {
+                    "services": 3,
+                    "assets": 1
+                  }
+                },
+                "relationships": {
+                  "social": 1,
+                  "regional": 1
+                }
+              }
+            },
+            {
+              "id": "n11-0-soins-garde-nuit-organiser-garde",
+              "title": "Réorganiser les gardes existantes",
+              "description": "Mutualiser les plannings entre services voisins et garantir les transferts.",
+              "cost": "0,2 Md€ de fonctionnement",
+              "benefit": "Un relais identifié chaque nuit.",
+              "sacrifice": "Des équipes se déplacent davantage et certains services ferment plus tôt.",
+              "effect": {
+                "operating": 0.35,
+                "services": 2,
+                "cohesion": -1
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 2,
+                  "regional": 1,
+                  "social": -1
+                }
+              },
+              "amendment": {
+                "id": "amend-garde-trajets",
+                "label": "Ajouter une navette pour les équipes de nuit",
+                "effect": {
+                  "operating": 0.15,
+                  "services": 1
+                },
+                "support": 2
+              },
+              "narrative": {
+                "eventId": "soins-garde-nuit",
+                "relationships": {
+                  "regional": 1,
+                  "social": -1
+                }
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-0-n11-0-soins-garde-nuit-renover-service",
+          "kind": "law",
+          "title": "Engager la rénovation du service",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 295,
+          "against": 241,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 103,
+              "against": 39,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 85,
+              "against": 23,
+              "abstain": 6
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 26,
+              "against": 68,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 37,
+              "against": 62,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 44,
+              "against": 49,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "r01a",
+        "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+        "messages": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée.",
+          "Le texte est rejeté. Aucun crédit ni projet de ce texte n’est engagé."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.4,
+          "interest": 57.599999999999994,
+          "savings": -113.00000000000009,
+          "repayment": 0,
+          "investment": 41.6,
+          "grants": 0,
+          "borrowing": 154.5999999999999,
+          "cashChange": 0,
+          "deficit": 154.5999999999999,
+          "debt": 3354.6,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 55,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 52,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 67,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 47,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 37,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 53,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Retraites",
+          "title": "Faut-il réduire les pensions pour diminuer le déficit ?",
+          "story": "Les pensions sont des revenus versés après la retraite. Le scénario radical propose ici une baisse nominale de 20 % sur l’ensemble des pensions ; l’autre option augmente l’impôt des retraités concernés.",
+          "advisor": "Enveloppes distinctes et rendements hypothétiques du jeu. Les conséquences sociales continuent de modifier le budget, même sans carte de crise.",
+          "choices": [
+            {
+              "id": "r01a",
+              "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+              "effect": {
+                "operating": -35,
+                "services": -2,
+                "cohesion": -2,
+                "trust": -1,
+                "society": {
+                  "pensioners": -15
+                }
+              },
+              "sacrifice": "Toutes les pensions baissent fortement ; la consommation et les revenus des retraités reculent.",
+              "description": "Toutes les pensions baissent fortement ; la consommation et les revenus des retraités reculent.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "−35 Md€/an de charges"
+            },
+            {
+              "id": "r01b",
+              "title": "Supprimer l’abattement fiscal des pensions",
+              "effect": {
+                "revenue": 4.5,
+                "trust": -2,
+                "society": {
+                  "pensioners": -3
+                }
+              },
+              "sacrifice": "Les retraités imposables paient davantage.",
+              "description": "Les retraités imposables paient davantage.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+4,5 Md€/an de recettes"
+            },
+            {
+              "id": "r01c",
+              "title": "Préserver les pensions et financer l’aide à domicile",
+              "effect": {
+                "operating": 2,
+                "services": 2,
+                "cohesion": 1,
+                "society": {
+                  "pensioners": 4
+                }
+              },
+              "sacrifice": "Les pensions restent intactes et les personnes dépendantes reçoivent davantage d’aide. Le budget doit financer 2 Md€ de plus chaque année.",
+              "description": "Les pensions restent intactes et les personnes dépendantes reçoivent davantage d’aide. Le budget doit financer 2 Md€ de plus chaque année.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+2 Md€/an de charges"
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-1-r01a",
+          "kind": "law",
+          "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 259,
+          "against": 278,
+          "abstain": 40,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 114,
+              "against": 29,
+              "abstain": 8
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 52,
+              "against": 53,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 39,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 23,
+              "against": 76,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 31,
+              "against": 62,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "r02a",
+        "title": "Supprimer un poste public sur cinq en deux ans",
+        "messages": [
+          "La décision « Supprimer un poste public sur cinq en deux ans » dégrade leurs conditions dans le scénario.",
+          "La décision modifie la trajectoire et les dossiers suivants.",
+          "Compromis : Les effectifs chutent rapidement ; des services ferment ou fonctionnent avec des délais très dégradés..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "La décision modifie la trajectoire et les dossiers suivants.",
+          "Mise en service : Rénovation du service de soins. Le programme est mis en service ; ses bénéfices sont désormais appliqués.",
+          "Engagement tenu : Le service de soins rénové sera livré."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1513.4,
+          "interest": 57.599999999999994,
+          "savings": -81.00000000000009,
+          "repayment": 0,
+          "investment": 41.6,
+          "grants": 0,
+          "borrowing": 122.59999999999991,
+          "cashChange": 0,
+          "deficit": 122.59999999999991,
+          "debt": 3322.6,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 56,
+          "cohesion": 50,
+          "resilience": 39,
+          "trust": 53,
+          "assets": 58
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 68,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 48,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 38,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 54,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Fonction publique",
+          "title": "Faut-il réduire les effectifs administratifs ?",
+          "story": "Les agents accueillent le public et instruisent les dossiers. Le scénario radical supprime un poste sur cinq en deux ans ; préserver ou recréer les postes limite la fermeture des services et l’allongement des délais.",
+          "advisor": "Enveloppes distinctes et rendements hypothétiques du jeu. Les conséquences sociales continuent de modifier le budget, même sans carte de crise.",
+          "choices": [
+            {
+              "id": "r02a",
+              "title": "Supprimer un poste public sur cinq en deux ans",
+              "effect": {
+                "operating": -32,
+                "services": -2,
+                "cohesion": -2,
+                "trust": -1,
+                "society": {
+                  "publicStaff": -6
+                }
+              },
+              "sacrifice": "Les effectifs chutent rapidement ; des services ferment ou fonctionnent avec des délais très dégradés.",
+              "description": "Les effectifs chutent rapidement ; des services ferment ou fonctionnent avec des délais très dégradés.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "−32 Md€/an de charges"
+            },
+            {
+              "id": "r02b",
+              "title": "Financer les postes par une contribution sur les hauts revenus",
+              "effect": {
+                "revenue": 8,
+                "trust": -2,
+                "society": {
+                  "affluent": -3
+                }
+              },
+              "sacrifice": "Les contribuables ciblés financent le maintien des emplois.",
+              "description": "Les contribuables ciblés financent le maintien des emplois.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+8 Md€/an de recettes"
+            },
+            {
+              "id": "r02c",
+              "title": "Remplacer les départs et ouvrir davantage de guichets",
+              "effect": {
+                "operating": 2,
+                "services": 2,
+                "cohesion": 1,
+                "society": {
+                  "publicStaff": 4
+                }
+              },
+              "sacrifice": "Les postes sont préservés et l’accueil est renforcé. Les contribuables financent 2 Md€ de dépenses annuelles supplémentaires.",
+              "description": "Les postes sont préservés et l’accueil est renforcé. Les contribuables financent 2 Md€ de dépenses annuelles supplémentaires.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+2 Md€/an de charges"
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-2-r02a",
+          "kind": "law",
+          "title": "Supprimer un poste public sur cinq en deux ans",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 284,
+          "against": 250,
+          "abstain": 43,
+          "threshold": 268,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 93,
+              "against": 46,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 80,
+              "against": 26,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 48,
+              "against": 49,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 31,
+              "against": 67,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 32,
+              "against": 62,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    ],
+    "choices": [
+      "n11-0-soins-garde-nuit-renover-service",
+      "r01a",
+      "r02a"
+    ],
+    "politics": {
+      "blocs": [
+        {
+          "id": "presidential",
+          "label": "Majorité présidentielle",
+          "seats": 151,
+          "loyalty": 78,
+          "inGovernment": true
+        },
+        {
+          "id": "reformist",
+          "label": "Réformistes",
+          "seats": 114,
+          "loyalty": 60,
+          "inGovernment": true
+        },
+        {
+          "id": "social",
+          "label": "Gauche sociale",
+          "seats": 105,
+          "loyalty": 47,
+          "inGovernment": false
+        },
+        {
+          "id": "conservative",
+          "label": "Conservateurs",
+          "seats": 107,
+          "loyalty": 38,
+          "inGovernment": false
+        },
+        {
+          "id": "regional",
+          "label": "Territoires",
+          "seats": 100,
+          "loyalty": 46,
+          "inGovernment": false
+        }
+      ],
+      "legitimacy": 56,
+      "unrest": 27.65,
+      "cabinet": "stable",
+      "commitments": [],
+      "votes": [
+        {
+          "id": "law-0-n11-0-soins-garde-nuit-renover-service",
+          "kind": "law",
+          "title": "Engager la rénovation du service",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 295,
+          "against": 241,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 103,
+              "against": 39,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 85,
+              "against": 23,
+              "abstain": 6
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 26,
+              "against": 68,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 37,
+              "against": 62,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 44,
+              "against": 49,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "id": "law-1-r01a",
+          "kind": "law",
+          "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 259,
+          "against": 278,
+          "abstain": 40,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 114,
+              "against": 29,
+              "abstain": 8
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 52,
+              "against": 53,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 39,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 23,
+              "against": 76,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 31,
+              "against": 62,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "id": "law-2-r02a",
+          "kind": "law",
+          "title": "Supprimer un poste public sur cinq en deux ans",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 284,
+          "against": 250,
+          "abstain": 43,
+          "threshold": 268,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 93,
+              "against": 46,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 80,
+              "against": 26,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 48,
+              "against": 49,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 31,
+              "against": 67,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 32,
+              "against": 62,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "scandalExposure": 0,
+      "misconduct": 0,
+      "failedBills": 0,
+      "emergencyUses": 0,
+      "ruleOfLaw": 72,
+      "institutionalBreaches": 0,
+      "lastVote": {
+        "id": "law-2-r02a",
+        "kind": "law",
+        "title": "Supprimer un poste public sur cinq en deux ans",
+        "chamber": "Assemblée nationale",
+        "total": 577,
+        "for": 284,
+        "against": 250,
+        "abstain": 43,
+        "threshold": 268,
+        "passed": true,
+        "groups": [
+          {
+            "id": "presidential",
+            "label": "Majorité présidentielle",
+            "for": 93,
+            "against": 46,
+            "abstain": 12
+          },
+          {
+            "id": "reformist",
+            "label": "Réformistes",
+            "for": 80,
+            "against": 26,
+            "abstain": 8
+          },
+          {
+            "id": "social",
+            "label": "Gauche sociale",
+            "for": 48,
+            "against": 49,
+            "abstain": 8
+          },
+          {
+            "id": "conservative",
+            "label": "Conservateurs",
+            "for": 31,
+            "against": 67,
+            "abstain": 9
+          },
+          {
+            "id": "regional",
+            "label": "Territoires",
+            "for": 32,
+            "against": 62,
+            "abstain": 6
+          }
+        ],
+        "consequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    },
+    "narrative": {
+      "context": "hospital",
+      "deferred": [
+        {
+          "eventId": "eau-equipes",
+          "dueTurn": 2,
+          "expiresTurn": 5,
+          "originTurn": 1
+        }
+      ],
+      "promises": [
+        {
+          "id": "service-rives",
+          "label": "Le service de soins rénové sera livré.",
+          "status": "kept",
+          "causeTurn": 0,
+          "dueTurn": 2,
+          "targetProject": "service-rives",
+          "keepWhen": "project_delivered",
+          "funded": true,
+          "baseline": 57,
+          "resolvedTurn": 2
+        }
+      ],
+      "promiseCandidates": [
+        {
+          "id": "renforts-nuit",
+          "label": "Des renforts seront présents aux gardes les plus fragiles."
+        },
+        {
+          "id": "service-rives",
+          "label": "Le service de soins sera rénové avant la fin du mandat."
+        }
+      ],
+      "projects": [
+        {
+          "id": "service-rives",
+          "kind": "hospital",
+          "label": "Rénovation du service de soins",
+          "place": "hopital-des-rives",
+          "status": "delivered",
+          "startedTurn": 0,
+          "dueTurn": 2,
+          "sourceChoice": "n11-0-soins-garde-nuit-renover-service",
+          "causeTurn": 0,
+          "deliveryEffect": {
+            "services": 3,
+            "assets": 1
+          },
+          "pressByStatus": {
+            "funded": "La Gazette des Rives : « Les travaux des Rives sont financés, deux décisions de chantier annoncées. »",
+            "blocked": "La Gazette des Rives : « Le chantier des Rives est bloqué, les équipes demandent un nouveau calendrier. »",
+            "delivered": "La Gazette des Rives : « Le service rénové des Rives ouvre ses portes. »",
+            "withdrawn": "La Gazette des Rives : « Faute de crédits, le projet de rénovation est retiré. »"
+          },
+          "note": "Le programme est mis en service ; ses bénéfices sont désormais appliqués.",
+          "resolvedTurn": 2,
+          "deliveredTurn": 2
+        }
+      ],
+      "relationships": [
+        {
+          "id": "samira",
+          "name": "Samira Benali",
+          "role": "urgentiste et représentante des équipes hospitalières",
+          "loyalty": 51,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 0
+        },
+        {
+          "id": "luc",
+          "name": "Luc Morel",
+          "role": "maire de Val-des-Forges et négociateur territorial",
+          "loyalty": 51,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 0
+        },
+        {
+          "id": "ines",
+          "name": "Inès Vidal",
+          "role": "directrice d’usine et porte-parole des sous-traitants",
+          "loyalty": 50,
+          "stance": "soutient les investissements assortis d’un calendrier clair"
+        },
+        {
+          "id": "claire",
+          "name": "Claire Dumas",
+          "role": "rapporteure parlementaire chargée de l’éthique publique",
+          "loyalty": 50,
+          "stance": "demande des contrôles publics et la protection des alertes"
+        }
+      ],
+      "events": [
+        {
+          "id": "opening-hospital",
+          "turn": -1,
+          "kind": "opening",
+          "title": "La nuit où les urgences débordent",
+          "detail": "À l’hôpital des Rives, les gardes manquent de personnel et les locaux doivent être rénovés. Le budget ne permet pas de financer les deux projets en même temps.",
+          "causeTurn": -1,
+          "weight": 1
+        },
+        {
+          "kind": "decision",
+          "title": "Une garde sans équipe complète",
+          "detail": "Des locaux plus sûrs à la livraison.",
+          "causeTurn": 0,
+          "weight": 1.82,
+          "id": "decision-0-1",
+          "turn": 0
+        },
+        {
+          "kind": "rejected",
+          "title": "Le texte ne passe pas",
+          "detail": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "causeTurn": 1,
+          "weight": -3,
+          "id": "rejected-1-2",
+          "turn": 1
+        },
+        {
+          "kind": "decision",
+          "title": "Faut-il réduire les effectifs administratifs ?",
+          "detail": "La décision modifie la trajectoire et les dossiers suivants.",
+          "causeTurn": 2,
+          "weight": 7,
+          "id": "decision-2-3",
+          "turn": 2
+        },
+        {
+          "kind": "project",
+          "title": "Une réalisation ouvre ses portes",
+          "detail": "Rénovation du service de soins. Le programme est mis en service ; ses bénéfices sont désormais appliqués.",
+          "causeTurn": 0,
+          "weight": 6,
+          "id": "project-2-4",
+          "turn": 2
+        },
+        {
+          "kind": "promise",
+          "title": "Une promesse tenue",
+          "detail": "Le service de soins rénové sera livré.",
+          "causeTurn": 0,
+          "weight": 4,
+          "id": "promise-2-5",
+          "turn": 2
+        },
+        {
+          "id": "mvt-agents-2-3-0",
+          "turn": 3,
+          "kind": "mobilization",
+          "title": "Agents publics : la mobilisation commence",
+          "detail": "La décision « Supprimer un poste public sur cinq en deux ans » dégrade leurs conditions dans le scénario.",
+          "causeTurn": 2,
+          "weight": -3
+        }
+      ],
+      "lastConsequences": [
+        "La décision modifie la trajectoire et les dossiers suivants.",
+        "Mise en service : Rénovation du service de soins. Le programme est mis en service ; ses bénéfices sont désormais appliqués.",
+        "Engagement tenu : Le service de soins rénové sera livré.",
+        "La décision « Supprimer un poste public sur cinq en deux ans » dégrade leurs conditions dans le scénario."
+      ]
+    },
+    "social": {
+      "movements": [
+        {
+          "id": "mvt-agents-2",
+          "actor": "agents",
+          "demand": "Des équipes et des moyens pour assurer le service",
+          "grievance": "La décision « Supprimer un poste public sur cinq en deux ans » dégrade leurs conditions dans le scénario.",
+          "status": "active",
+          "stage": "petition",
+          "pressure": 37,
+          "causeTurn": 2,
+          "sourceChoice": "r02a",
+          "sourceTitle": "Supprimer un poste public sur cinq en deux ans",
+          "startedTurn": 3,
+          "causes": [
+            {
+              "turn": 2,
+              "choice": "r02a",
+              "title": "Supprimer un poste public sur cinq en deux ans"
+            }
+          ],
+          "lastDetail": "La décision « Supprimer un poste public sur cinq en deux ans » dégrade leurs conditions dans le scénario."
+        }
+      ],
+      "budget": {
+        "year": 1,
+        "accruedOperating": 0,
+        "accruedRevenue": 0,
+        "operating": 0,
+        "revenue": 0
+      }
+    },
+    "society": {
+      "workers": 65,
+      "pensioners": 65,
+      "vulnerable": 60,
+      "businesses": 65,
+      "newcomers": 60,
+      "publicStaff": 59,
+      "affluent": 65
+    }
+  },
+  "sceneAudit": {
+    "projects": [
+      {
+        "id": "project-service-rives",
+        "min": [
+          -3.1544646340608598,
+          0.2386524852643403,
+          2.4996513235569
+        ],
+        "max": [
+          -2.9910646361112594,
+          0.39648798003196717,
+          2.659251321554184
+        ]
+      }
+    ],
+    "visibleTrees": 2540,
+    "hiddenTrees": 0,
+    "overlaps": []
+  }
+}
