@@ -810,3 +810,60 @@ dépassant son délai à l’essai initial comme à la reprise configurée. La s
 sociale suivante n’a pas été exécutée. Les journaux et traces originaux ont été
 récupérés ; les succès locaux de la passe 49 ne remplacent pas ces résultats.
 La validation distante de la nouvelle version doit être suivie séparément.
+
+## Passe 50 capturée le 13 octobre 2026
+
+La [comparaison 50](mandats-diorama/comparaison-50.html) conserve quatorze captures
+natives du build complet, dont la décision scolaire réelle, les vues rapprochées,
+le port élargi, les formats 320 et 390 pixels, WPE WebKit à DPR2 et la rénovation
+hospitalière financée au tour 1 puis livrée au tour 3. Les bundles réellement
+servis correspondent au build immuable. Les événements et les valeurs de la
+maquette ne sont pas injectés dans le jeu.
+
+La façade gothique est élargie de 25 % et son profil supérieur est abaissé avec
+les options existantes de l’export Blender. Les limites glTF des deux niveaux
+mesurent 2,38375 × 2,918 au sol et 3,2065 de haut. Deux exports frais sont
+identiques ; la source `.blend` et les textures déjà cuites sont réutilisées.
+Paris conserve une échelle uniforme et la même profondeur réelle. Le décalage
+local de 0,025 et le socle couvrant toute l’emprise corrigent l’appui des
+contreforts : les 150 points des 50 faces inférieures sont soutenus, avec un
+écart maximal de 1,32e-8 ; les pieds et les deux grandes faces du socle ne
+recouvrent pas l’eau, et les pieds ne recouvrent pas les maisons voisines.
+
+Les deux textures du contexte sont précuites avec des pixels identiques au
+calcul précédent, vérifiés jusque dans l’upload GPU. L’archive du terrain
+conserve désormais 290 625 valeurs Float64 du calcul canonique ; les cellules
+absentes conservent le calcul analytique. Seul le tableau numérique est gardé,
+sans conserver l’archive entière après destruction de la scène. Deux exports
+frais reproduisent exactement les 12 023 938 octets compressés et la métadonnée
+complète du terrain. Les normales côtières utilisent une échelle plus fine.
+
+Le build complet du 12 octobre passe : 1 082 tests, trois vérifications
+TypeScript, Vite, pré-rendu et 152 ressources hors connexion. Les configurations
+originales rework et social passent respectivement 23 et 13 parcours, avec neuf
+et trois omissions prévues, sans échec ni résultat instable. Le cas original
+WebKit de haute densité passe aussi séparément. Aucun test, délai, worker ou
+réglage de reprise n’est modifié. Les captures du 13 octobre n’enregistrent
+aucune erreur JavaScript, console, HTTP ou requête. Le relevé trouve 21 monuments
+sans chevauchement de canopée, 2 540 pieds d’arbres et 90 bases de rochers
+soutenus. Il ne certifie pas toutes les collisions ou tous les états futurs.
+
+**La fidélité artistique reste en cours.** Les bâtiments sont encore trop
+répétitifs, les flèches opaques, les versants alpins larges et facettés, les
+falaises régulières et le Rhône encaissé. Le relevé du rendu réel établit deux
+causes à corriger à la passe suivante : la passe de fractures minérales est
+ignorée parce que ses 88 276 faces dépassent le budget de 70 000 ; le chargement
+du terrain précuit omet le réglage côtier spécifique du matériau, ce que confirme
+le fragment shader réellement attaché au programme WebGL. Aucune application
+de ces fractures n’est revendiquée pour cette passe.
+
+La CI distante du parent 49 conserve un échec WebKit sur le chargement initial
+à haute densité : 22 réussites, neuf omissions et un échec dans rework ; social
+n’a pas été exécuté ensuite. Les autres workflows du parent réussissent. Ces
+faits restent distincts des réussites locales de la passe 50. La PR 194 reste
+en brouillon ; la reconstruction de toute la carte continue.
+
+Le [manifeste](mandats-diorama/screens-50/manifest.json) précise les empreintes et
+la portée des observations. Les comparaisons exactes du cache réalisées sur les
+prototypes B/C précèdent le décalage final de Paris ; elles ne sont pas
+présentées comme une égalité géométrique entre le rendu final et son parent.

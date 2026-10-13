@@ -1,0 +1,36 @@
+{
+  "method": "Independent asset observation against the frozen parent49 context kernel. Evaluate the original deterministic recipe without creating a Scene/Engine and compare every actual RGBA byte to the generated maps. This is not a unit/E2E/performance/artistic-conformity proof. Generator independently losslessly reconstructs its PNG scanlines.",
+  "parent": "da8d35e7febae22151d9f73ec6e9d02a7ae44f54",
+  "maps": [
+    {
+      "name": "context-earth-grain",
+      "rgbaSha256": "7d00a800d26c25971d39041c6c9a680ff1a74e41e7f88ff78d31c602a047ab4a",
+      "byteIdentical": true,
+      "width": 512,
+      "height": 512,
+      "generateMipMaps": true,
+      "invertY": false,
+      "samplingMode": 3,
+      "gammaSpace": true,
+      "level": 1,
+      "wrapU": 1,
+      "wrapV": 1,
+      "anisotropicFilteringLevel": 4
+    },
+    {
+      "name": "context-rock-granules-normal",
+      "rgbaSha256": "7886276015bc6d936e664dea32590a14886e26edd0fbc51b63c3391d4a5a0230",
+      "byteIdentical": true,
+      "width": 512,
+      "height": 512,
+      "generateMipMaps": true,
+      "invertY": false,
+      "samplingMode": 3,
+      "gammaSpace": false,
+      "level": 0.24,
+      "wrapU": 1,
+      "wrapV": 1,
+      "anisotropicFilteringLevel": 4
+    }
+  ]
+}

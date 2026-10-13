@@ -1,3 +1,4 @@
+import { bakedHeightAt } from "./map-height-survey.ts";
 import { sceneConstructionCheckpoint } from "./map-construction-checkpoint.ts";
 import { majorMonumentCanopyReservations, nationalCathedralCanopyReservations } from "./map-monument-sites.ts";
 import { mapBaselinePosition, mapFinalFromBaseline, mapBaselineFromFinal } from "./map-camera-projection.ts";
@@ -1240,6 +1241,8 @@ function surveyedHeight(x: number, z: number) {
 const heightGrid = new Map<number, Map<number, number>>();
 const surveySpacing = 0.018;
 function sampledHeight(ix: number, iz: number) {
+  const baked = bakedHeightAt(ix, iz);
+  if (baked !== undefined) return baked;
   let column = heightGrid.get(ix);
   if (!column) { column = new Map(); heightGrid.set(ix, column); }
   let value = column.get(iz);
@@ -1249,6 +1252,29 @@ function sampledHeight(ix: number, iz: number) {
   }
   return value;
 }
+/** Export only cells already evaluated by the canonical bake. Float64
+ * preserves each numeric sample; NaN marks a missing cell, never rendered soil. */
+export function heightSurveySnapshot() {
+  let minimumX = Infinity, minimumZ = Infinity, maximumX = -Infinity, maximumZ = -Infinity;
+  for (const [x, column] of heightGrid) {
+    minimumX = Math.min(minimumX, x); maximumX = Math.max(maximumX, x);
+    for (const z of column.keys()) {
+      minimumZ = Math.min(minimumZ, z); maximumZ = Math.max(maximumZ, z);
+    }
+  }
+  if (!Number.isFinite(minimumX + minimumZ + maximumX + maximumZ))
+    throw new Error("Authored height survey is empty.");
+  const width = maximumX - minimumX + 1, height = maximumZ - minimumZ + 1,
+    values = new Float64Array(width * height).fill(NaN);
+  let samples = 0;
+  for (const [x, column] of heightGrid) for (const [z, value] of column) {
+    if (!Number.isFinite(value)) throw new Error("Invalid authored height sample.");
+    values[(z - minimumZ) * width + x - minimumX] = value;
+    samples++;
+  }
+  return { minimumX, minimumZ, width, height, values, samples };
+}
+
 export function landHeight(x: number, z: number): number {
   const gx = x / surveySpacing,
     gz = z / surveySpacing,

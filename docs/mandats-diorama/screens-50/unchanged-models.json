@@ -1,0 +1,26 @@
+{
+  "parent": "da8d35e7febae22151d9f73ec6e9d02a7ae44f54",
+  "method": "Actual model/environment bytes compared with immutable parent49. Cathedral profile/export and terrain change; other models are reused.",
+  "files": [
+    {
+      "name": "daylight.env",
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93"
+    },
+    {
+      "name": "vegetation.glb",
+      "sha256": "b3eb53de00352151171db066afeb1311a112a11f6c7509d502a09415f370a350"
+    },
+    {
+      "name": "architecture.glb",
+      "sha256": "0940846cb686aa691e2c35006281a6968a3e71f1fd4bc4ecff846badd6c4de16"
+    },
+    {
+      "name": "architecture.json",
+      "sha256": "b00d05dd42f638112f7ee91a200138403b201b1f866fa1d3aaff77df8ef688f4"
+    },
+    {
+      "name": "paris.glb",
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    }
+  ]
+}

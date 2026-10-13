@@ -961,8 +961,10 @@ export async function buildCities(scene: Scene, landscapeReady?: Promise<unknown
       const footingHeight = floor - Math.min(...levels) + .002,
         footing = located("cathedral-stone-footing", root, x, z, angle);
       footing.position.y = floor - root.position.y;
-      box("cathedral-retaining-footing", bounds.width * scale * .98, footingHeight,
-        bounds.depth * scale * .98, stone, footing, 0, -footingHeight / 2, 0);
+      // The full model envelope includes the outer buttress bases.
+      // A smaller rectangle left those feet beyond their stone support.
+      box("cathedral-retaining-footing", bounds.width * scale, footingHeight,
+        bounds.depth * scale, stone, footing, 0, -footingHeight / 2, 0);
       const minimum = [Infinity, Infinity, Infinity], maximum = [-Infinity, -Infinity, -Infinity];
       for (const mesh of asset.meshes) {
         mesh.computeWorldMatrix(true);

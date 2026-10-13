@@ -1,9 +1,9 @@
 {
   "format": "MANDATS indexed terrain archive v1, gzip",
-  "sha256": "fd6048c3943ac1936514f5ac8c412bf7ac9d9e4ac6bae52ce38056a4f46dca8b",
-  "uncompressedSha256": "5ad1e986d48415bbc9c38ac54c2dac46c8ef6d950b43f459d70b30bb7ce2bbe9",
-  "compressedBytes": 10041099,
-  "uncompressedBytes": 20287392,
+  "sha256": "ddf4b83558c4142229b7d53e20b6c88b25f10981cbef53ecaa7aa0049f237cd9",
+  "uncompressedSha256": "141397a7ca6f556805175188ca91f6b73c617fd4e96570e817612075be98f798",
+  "compressedBytes": 12023938,
+  "uncompressedBytes": 25998824,
   "materials": 8,
   "orchards": 0,
   "meshes": [
@@ -79,16 +79,16 @@
     },
     {
       "name": "landscape-agriculture",
-      "originalVertices": 26977,
-      "retainedVertices": 26977,
-      "triangles": 10928,
+      "originalVertices": 26968,
+      "retainedVertices": 26968,
+      "triangles": 10925,
       "maximumPositionRounding": 4.7264946623215565e-7
     },
     {
       "name": "landscape-crop-rows",
-      "originalVertices": 66810,
-      "retainedVertices": 66810,
-      "triangles": 79752,
+      "originalVertices": 67182,
+      "retainedVertices": 67182,
+      "triangles": 80112,
       "maximumPositionRounding": 4.7587549900640624e-7
     },
     {
@@ -100,8 +100,8 @@
     },
     {
       "name": "landscape-farm-lanes",
-      "originalVertices": 414,
-      "retainedVertices": 414,
+      "originalVertices": 416,
+      "retainedVertices": 416,
       "triangles": 358,
       "maximumPositionRounding": 2.3820293204579457e-7
     },
@@ -127,6 +127,13 @@
       "maximumPositionRounding": 2.3819121519608188e-7
     }
   ],
+  "heightSurvey": {
+    "minimumX": -450,
+    "minimumZ": -265,
+    "width": 861,
+    "height": 826,
+    "samples": 290625
+  },
   "sourceInputs": [
     {
       "file": "site/node_modules/@babylonjs/core/package.json",
@@ -166,7 +173,7 @@
     },
     {
       "file": "site/src/mandats/map-city-paris.ts",
-      "sha256": "90949fca4e8fd33d36d6a50544c4975aba23dcd50ae80288c3e5a07b66555368"
+      "sha256": "26695376873a9364f611907fd7a3d9232fcb513b2f1de46d1c0d8e1619f38c50"
     },
     {
       "file": "site/src/mandats/map-city-port-plans.ts",
@@ -193,6 +200,10 @@
       "sha256": "ea9b0d691534bcb39dd7cad073960102737ec9abe9eed4ccc4ca082cb5157825"
     },
     {
+      "file": "site/src/mandats/map-height-survey.ts",
+      "sha256": "0bd0f46b3b1b1e9d010eb6d96e6b1e83c49930b069725e39730bcc6ab89f6018"
+    },
+    {
       "file": "site/src/mandats/map-industrial-sites.ts",
       "sha256": "62103214d19920f7123bd7f2683ea7bfd1755bc4b0fe9f95e36185a0a12b20d7"
     },
@@ -206,15 +217,15 @@
     },
     {
       "file": "site/src/mandats/map-land-materials.ts",
-      "sha256": "2bddaa6e203d2745d8c7bd783e925cbcc15ecbc456bf6798d2779c58216589f2"
+      "sha256": "cc3c5161f33c50fabc6a954acc4c9dbfd9407cd56ea94b35ae4f07de9ba7d960"
     },
     {
       "file": "site/src/mandats/map-landscape-cache.ts",
-      "sha256": "abe1f6ca5a0a2665040097d93866269fe87b8716f63b5dafe90b50156fda7970"
+      "sha256": "3b6a53ae7f51fc831f21648f0f16f531d604226de28d849e4d8d74fa6b3f1839"
     },
     {
       "file": "site/src/mandats/map-landscape.ts",
-      "sha256": "bdd8323b231302df3a60d613f56f4202f0a0674a6b0c6f4f70a40205139fb3d6"
+      "sha256": "a2312283cc949497fd9e2c8409ec413c9165ee37cff5f55cc4d1a64475baef11"
     },
     {
       "file": "site/src/mandats/map-mineral-material.ts",
@@ -222,7 +233,7 @@
     },
     {
       "file": "site/src/mandats/map-model-revisions.ts",
-      "sha256": "18c0dca0a6fc1e0309955543d42254598ecbe50a2858852e9f81ce83b561d957"
+      "sha256": "b9554580bc148366d3023cce3b5e2fb394faa8eb40ef120c6e54b7dd5e419ba6"
     },
     {
       "file": "site/src/mandats/map-monument-sites.ts",
@@ -334,7 +345,7 @@
     },
     {
       "file": "tools/mandats-assets/bake-terrain.ts",
-      "sha256": "c18326e68b919906c19986f9a544006e8a5a8570cebef89b1a13b341dd801d27"
+      "sha256": "33e089a253a0a73139103cb632560b4e1ec09ce03bfded86eec7ac4eb3beafa1"
     }
   ],
   "method": "Same canonical survey as development. Unused vertices removed; all attributes retain the float32 values actually uploaded to WebGL. Position rounding from the analytic double-precision survey is measured per mesh. No camera, state or image baked."

@@ -79,4 +79,29 @@ le générateur, sans retouche de la lumière dans les couleurs.
 
 L’itération 45 répare la maçonnerie de la rosace et du fronton, amincit les murs des tours selon leur largeur et adapte les cadres des petites lancettes. Les chapelles possèdent huit panneaux, avec une ouverture réelle tournée vers l’extérieur ; leur distribution évite les contreforts terminaux. La source est triangulée et nettoyée avant son dépliage et sa cuisson complète. Les 35 rayons de contrôle atteignent le verre dans la source puis des texels bleus dans les deux niveaux de détail exportés. Ce contrôle d’actif ne certifie pas les filtres du rendu natif ni la fidélité du diorama entier.
 
-Le kit actuel mesure 1,907 × 2,918 au sol pour 3,84 de haut : la largeur et la hauteur restent celles du kit précédent ; la profondeur diminue d’environ 1 %. Il comporte 81 012 triangles détaillés et 4 141 distants, sans triangle dégénéré ni désaccord de normale dans les accès glTF contrôlés. Deux exports depuis la nouvelle source cuite donnent les mêmes 11 764 076 octets, SHA-256 `fd8d587d9a82beeb889365969d1c2b1c57f202db84a42b947a31f86099a17a1e`. Le nom explicite de la géométrie distante évite les noms temporaires différents selon les objets encore présents dans Blender. L’intégralité du buffer binaire reste identique à l’export issu de la cuisson complète, y compris les normales, les UV et les trois images intégrées.
+Le kit des itérations 45 à 49 mesure 1,907 × 2,918 au sol pour 3,84 de haut : la largeur et la hauteur restent celles du kit précédent ; la profondeur diminue d’environ 1 %. Il comporte 81 012 triangles détaillés et 4 141 distants, sans triangle dégénéré ni désaccord de normale dans les accès glTF contrôlés. Deux exports depuis la nouvelle source cuite donnent les mêmes 11 764 076 octets, SHA-256 `fd8d587d9a82beeb889365969d1c2b1c57f202db84a42b947a31f86099a17a1e`. Le nom explicite de la géométrie distante évite les noms temporaires différents selon les objets encore présents dans Blender. L’intégralité du buffer binaire reste identique à l’export issu de la cuisson complète, y compris les normales, les UV et les trois images intégrées.
+
+L’itération 50 rapproche la façade et la hauteur des tours de la miniature de
+référence. L’export applique les options existantes à la source détaillée :
+
+```sh
+blender --background --disable-autoexec --threads 2 --python-exit-code 1 \
+  --python tools/mandats-assets/cathedrale.py -- \
+  --lod-only --no-preview --upper-profile .65 --facade-span 1.25
+```
+
+Les limites mesurées directement dans les deux niveaux glTF sont désormais
+2,38375 × 2,918 au sol et 3,2065 de haut. Le profil supérieur est recoupé avant
+la création du niveau distant ; celui-ci partage toujours l’atlas du modèle
+détaillé. Deux exports frais donnent les mêmes 11 897 980 octets, avec
+83 956 triangles détaillés et 4 271 distants. Cette opération conserve la source
+`.blend` et réutilise les textures déjà cuites ; elle ne constitue pas une
+nouvelle cuisson des matières.
+
+Paris utilise une largeur de 1,175, avec la même échelle uniforme et la même
+profondeur réelle qu’avant cet élargissement. Le centre local passe de x = 0,34
+à x = 0,365. Le socle couvre toute l’emprise du monument pour soutenir les
+contreforts extérieurs. Une observation des 50 faces inférieures dans Babylon
+relève 150 points soutenus par la maçonnerie du socle, sans contact avec l’eau
+ni recouvrement des faces inférieures des maisons voisines. Ces observations
+locales ne certifient pas la fidélité artistique de la carte entière.

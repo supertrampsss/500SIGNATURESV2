@@ -43,7 +43,7 @@ export function landMaterialTextures(scene: Scene) {
   const stoneNormal = surfaceTexture(scene, "land-stone-normal", stoneNormalUrl, false, .55, 6);
   const rock = surfaceTexture(scene, "land-mineral-rock", rockUrl);
   const rockNormal = surfaceTexture(scene, "land-mineral-normal", rockNormalUrl, false, .82);
-  const coastNormal = surfaceTexture(scene, "land-coastal-normal", coastNormalUrl, false, .60);
+  const coastNormal = surfaceTexture(scene, "land-coastal-normal", coastNormalUrl, false, .60, 3);
   return { earth, earthNormal, crops, leaves, leafNormal, stoneNormal, rock, rockNormal, coastNormal };
 }
 export type LandMaterialTextures = ReturnType<typeof landMaterialTextures>;

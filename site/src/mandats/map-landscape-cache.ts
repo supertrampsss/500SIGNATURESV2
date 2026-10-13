@@ -1,3 +1,4 @@
+import { installBakedHeightSurvey } from "./map-height-survey.ts";
 import { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
@@ -15,6 +16,7 @@ type MaterialRecord = {
 };
 export type LandscapeArchive = {
   version: 1;
+  heightSurvey?: { minimumX: number; minimumZ: number; width: number; height: number; samples: number; values: View };
   materials: MaterialRecord[];
   meshes: Array<{ name: string; material: string; metadata: Record<string, unknown> | null;
     positions: View; normals: View; colors: View; uvs: View; indices: View; bands?: View }>;
@@ -52,6 +54,16 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
     if (view.type !== "u32") throw new Error("Invalid indexed terrain attribute.");
     return read(view) as Uint32Array;
   };
+  if (header.heightSurvey) {
+    const record = header.heightSurvey, view = record.values;
+    if (view.type !== "f64" || view.offset < 0 || view.count < 0 ||
+        start + view.offset + view.count * 8 > buffer.byteLength)
+      throw new Error("Invalid height survey buffer.");
+    installBakedHeightSurvey({ minimumX: record.minimumX, minimumZ: record.minimumZ,
+      width: record.width, height: record.height,
+      // Keep only the numeric grid when a scene is disposed, not the whole land archive.
+      values: new Float64Array(new Float64Array(buffer, start + view.offset, view.count)) });
+  }
   const materials = new Map<string, StandardMaterial>();
   for (const record of header.materials) {
     const material = new StandardMaterial(record.name, scene);
@@ -87,6 +99,7 @@ export async function loadLandscapeSurvey(scene: Scene, textures: LandMaterialTe
       colorTargets.push({ mesh, surveys });
     }
   }
-  scene.metadata = { ...scene.metadata, bakedTerrain: { meshes: meshes.length, bytes: buffer.byteLength } };
+  scene.metadata = { ...scene.metadata, bakedTerrain: { meshes: meshes.length, bytes: buffer.byteLength,
+    heightSamples: header.heightSurvey?.samples ?? 0 } };
   return { meshes, colorTargets, orchards: header.orchards };
 }

@@ -1,0 +1,56 @@
+{
+  "parent": "da8d35e7febae22151d9f73ec6e9d02a7ae44f54",
+  "method": "Two fresh Blender packed-source LOD exports with upper-profile .65 and facade-span1.25 produced identical GLB and JSON; source blend unchanged, no new texture bake. Actual raw glTF bounds corroborate metadata. Native Paris contact proof recorded separately. Not artistic conformity.",
+  "command": "blender --background --disable-autoexec --threads 2 --python-exit-code 1 --python tools/mandats-assets/cathedrale.py -- --lod-only --no-preview --upper-profile .65 --facade-span 1.25",
+  "bytes": 11897980,
+  "sha256": "8b42cafd65caa982d3dc44f1f42ac3530f11e03e1227d599e14f96fc072a1448",
+  "models": {
+    "cathedrale_paris": {
+      "width": 2.38375,
+      "depth": 2.918,
+      "height": 3.2065,
+      "min": [
+        -1.1918749809265137,
+        0.0,
+        -1.4589999914169312
+      ],
+      "max": [
+        1.1918749809265137,
+        3.2065000534057617,
+        1.4589999914169312
+      ],
+      "triangles": 83956
+    },
+    "cathedrale_paris_distant": {
+      "width": 2.38375,
+      "depth": 2.918,
+      "height": 3.2065,
+      "min": [
+        -1.1918749809265137,
+        0.0,
+        -1.4589999914169312
+      ],
+      "max": [
+        1.1918749809265137,
+        3.2065000534057617,
+        1.4589999914169312
+      ],
+      "triangles": 4271,
+      "lodOf": "cathedrale_paris",
+      "lodRatio": 0.050872,
+      "decimationRatio": 0.2,
+      "omittedInspectionComponents": 4914,
+      "decimationExtentError": 0.000703,
+      "sourceTriangles": 4584
+    }
+  },
+  "site": {
+    "x": 0.365,
+    "z": 0.685,
+    "width": 1.175,
+    "reservedDepth": 1.4523911903513371,
+    "actualDepth": 1.438342947037231,
+    "uniformScale": 0.4929208180388044
+  },
+  "contactProof": "paris-contact-d/actual-contact-observation.json"
+}

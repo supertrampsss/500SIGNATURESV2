@@ -2,7 +2,7 @@ import { NullEngine } from "../../site/node_modules/@babylonjs/core/Engines/null
 import { Scene } from "../../site/node_modules/@babylonjs/core/scene.js";
 import { Texture } from "../../site/node_modules/@babylonjs/core/Materials/Textures/texture.js";
 import { StandardMaterial } from "../../site/node_modules/@babylonjs/core/Materials/standardMaterial.js";
-import { buildLandscapeSurvey } from "../../site/src/mandats/map-landscape.ts";
+import { buildLandscapeSurvey, heightSurveySnapshot } from "../../site/src/mandats/map-landscape.ts";
 import type { LandscapeArchive } from "../../site/src/mandats/map-landscape-cache.ts";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname, relative } from "node:path";
@@ -31,8 +31,9 @@ try {
   const { meshes, colorTargets, orchards } = await buildLandscapeSurvey(scene, textures);
   const header: LandscapeArchive = { version: 1, meshes: [], materials: [], orchards };
   const chunks: Buffer[] = [], reports: object[] = []; let offset = 0;
-  const view = (values: number[], type: "f64" | "f32" | "u32") => {
-    if (!values.every(Number.isFinite)) throw new Error("Nonfinite terrain attribute.");
+  const view = (values: number[], type: "f64" | "f32" | "u32", missingCells = false) => {
+    if (!values.every(value => Number.isFinite(value) || (missingCells && Number.isNaN(value))))
+      throw new Error("Nonfinite terrain attribute.");
     const padding = (8 - offset % 8) % 8;
     if (padding) { chunks.push(Buffer.alloc(padding)); offset += padding; }
     const array = type === "f64" ? new Float64Array(values) : type === "u32" ? new Uint32Array(values) : new Float32Array(values);
@@ -66,6 +67,10 @@ try {
     specularPower: material.specularPower, alpha: material.alpha, backFaceCulling: material.backFaceCulling,
     ...(material.diffuseTexture ? { diffuseTexture: material.diffuseTexture.name as keyof typeof textures } : {}),
     ...(material.bumpTexture ? { bumpTexture: material.bumpTexture.name as keyof typeof textures } : {}) });
+  const heightSurvey = heightSurveySnapshot();
+  header.heightSurvey = { minimumX: heightSurvey.minimumX, minimumZ: heightSurvey.minimumZ,
+    width: heightSurvey.width, height: heightSurvey.height, samples: heightSurvey.samples,
+    values: view(Array.from(heightSurvey.values), "f64", true) };
   const json = Buffer.from(JSON.stringify(header)), start = Math.ceil((json.length + 4) / 8) * 8,
     prefix = Buffer.alloc(start); prefix.writeUInt32LE(json.length); json.copy(prefix, 4);
   const bytes = Buffer.concat([prefix, ...chunks]), compressed = gzipSync(bytes, { level: 9 }), digest = sha(compressed);
@@ -74,6 +79,7 @@ try {
     format: "MANDATS indexed terrain archive v1, gzip", sha256: digest,
     uncompressedSha256: sha(bytes), compressedBytes: compressed.length, uncompressedBytes: bytes.length,
     materials: header.materials.length, orchards: orchards.length, meshes: reports,
+    heightSurvey: { ...header.heightSurvey, values: undefined },
     sourceInputs: [...inputs].sort(([a], [b]) => a.localeCompare(b)).map(([file, sha256]) => ({ file, sha256 })),
     method: "Same canonical survey as development. Unused vertices removed; all attributes retain the float32 values actually uploaded to WebGL. Position rounding from the analytic double-precision survey is measured per mesh. No camera, state or image baked." }, null, 2) + "\n");
   writeFileSync(path("site/src/mandats/map-terrain-revision.ts"),
