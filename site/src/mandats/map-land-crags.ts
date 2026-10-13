@@ -239,17 +239,21 @@ function alpineCrestVertices(massif: SculptedMassif) {
         envelope = Math.max(0, Math.min(1, (radial - .12) / .28)) *
           Math.max(0, Math.min(1, (1.65 - radial) / .55)),
         channel = Math.pow(Math.max(0, Math.cos(
-          Math.atan2(v / peak.rz, u / peak.rx) * 3 + peak.family * .91 + radial * 1.7)), 8);
-      gully = Math.max(gully, channel * envelope * .100);
+          Math.atan2(v / peak.rz, u / peak.rx) * (4 + peak.family % 3) +
+          peak.family * .91 + radial * (1.7 + peak.family % 2 * .43))), 8);
+      gully = Math.max(gully, channel * envelope * .135);
       exposedEnvelope = Math.max(exposedEnvelope, envelope);
     }
     // The same continuous geological grain also cuts the exposed crest
     // planes. Previously their linear roofs hid the weathered apron below.
     // Cuts taper at the original tips and valley mouths; no raised tip or
     // disconnected rock object substitutes for the shared ground.
-    const fineIncision = (Math.max(0, -geology.grain) * .75 +
-      Math.max(0, -geology.fold) * .16) * exposedEnvelope;
-    return Math.max(0, height - gully - fineIncision);
+    const fineIncision = (Math.max(0, -geology.grain) * 1.25 +
+      Math.max(0, -geology.fold) * .32) * exposedEnvelope;
+    // Small positive bed ribs share the same tapered exposed envelope as
+    // erosion. They break the smooth planes without moving tips or valleys.
+    const bedRib = Math.max(0, geology.grain) * 1.10 * exposedEnvelope;
+    return Math.max(0, height + bedRib - gully - fineIncision);
   };
   const spacing = .035, minimumX = Math.min(...boundary.map(p => p.x)), maximumX = Math.max(...boundary.map(p => p.x)),
     minimumZ = Math.min(...boundary.map(p => p.z)), maximumZ = Math.max(...boundary.map(p => p.z)),

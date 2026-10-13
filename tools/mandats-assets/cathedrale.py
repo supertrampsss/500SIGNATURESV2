@@ -356,6 +356,22 @@ def stone_bands(x,y,width,depth,levels):
             box((x+side*(width/2+.002),y,z-.025),(.022,depth+.026,.016),"pierre_patinee")
 
 
+def openwork_spire(x,y,base,height,radius):
+    levels=(0,.22,.43,.63,.81,1)
+    def point(side,level):
+        angle=side*math.tau/8
+        span=.006+(radius-.006)*(1-level)
+        return (x+span*math.cos(angle),y+span*math.sin(angle),base+height*level)
+    for side in range(8):
+        for low,high in zip(levels,levels[1:]):
+            beam(point(side,low),point(side,high),.013-.007*low,"pierre_taille")
+        for level in levels[1:-1]:
+            beam(point(side,level),point(side+1,level),.008-.003*level,"pierre_taille")
+        for low,high in zip(levels[:-2],levels[1:-1]):
+            beam(point(side,low),point(side+1,high),.006,"pierre_taille")
+            beam(point(side+1,low),point(side,high),.006,"pierre_taille")
+
+
 def tower(x,y,width,height,spire_height):
     # Tall slim tower body, two vertically paired lancets on each face.
     for angle in (0,math.pi/2,math.pi,math.pi*1.5):
@@ -373,13 +389,10 @@ def tower(x,y,width,height,spire_height):
         for sy in (-1,1):
             box((x+sx*(width/2-.013),y+sy*(width/2-.013),height/2),(.038,.038,height),"pierre_taille")
             pinnacle(x+sx*width*.51,y+sy*width*.51,height-.009,.38,.080)
-    # Faceted roof taper is a long, narrow Gothic spire, not a wide cone.
+    # Open stone ribs and cross-braced panels let the sky show through the
+    # upper spire. The existing tower body, crown and apex retain their poses.
     cylinder((x,y,height+.025),width*.65,.085,"pierre_taille",8,radius_top=width*.49)
-    cylinder((x,y,height+spire_height/2+.057),width*.49,spire_height,"ardoise",8,radius_top=.006)
-    for index in range(8):
-        angle=index*math.tau/8
-        beam((x+width*.49*math.cos(angle),y+width*.49*math.sin(angle),height+.057),
-            (x+.006*math.cos(angle),y+.006*math.sin(angle),height+spire_height+.057),.009,"zinc")
+    openwork_spire(x,y,height+.057,spire_height,width*.49)
     beam((x,y,height+spire_height),(x,y,height+spire_height+.17),.007,"fer")
     beam((x-.035,y,height+spire_height+.125),(x+.035,y,height+spire_height+.125),.007,"fer")
 
@@ -536,7 +549,7 @@ def cathedral():
         angle=i*math.tau/8
         beam((.109*math.cos(angle),.35+.109*math.sin(angle),1.85),
             (.109*math.cos(angle),.35+.109*math.sin(angle),2.13),.016,"pierre_taille")
-    cylinder((0,.35,2.40),.125,.57,"ardoise",8,radius_top=.006)
+    openwork_spire(0,.35,2.115,.57,.125)
     beam((0,.35,2.69),(0,.35,2.86),.007,"fer")
     beam((-.03,.35,2.81),(.03,.35,2.81),.007,"fer")
     # Faceted apse with five radiating, individually glazed chapels.
@@ -680,6 +693,7 @@ def export_distance_geometry(models):
         remaining=set(data.verts)
         remove=[]
         detail_components=0
+        spire_vertices=[]
         limits_min=[min(v.co[axis] for v in data.verts) for axis in range(3)]
         limits_max=[max(v.co[axis] for v in data.verts) for axis in range(3)]
         while remaining:
@@ -699,11 +713,40 @@ def export_distance_geometry(models):
             spans=sorted(upper[axis]-lower[axis] for axis in range(3))
             at_limit=any(abs(lower[axis]-limits_min[axis])<.0001 or
                 abs(upper[axis]-limits_max[axis])<.0001 for axis in range(3))
-            if (not at_limit and spans[0]<=.028 and spans[1]<=.050 and
+            # The new openwork is the spire silhouette, not an optional
+            # inspection ornament. Keep whole connected ribs before decimating
+            # the lower body, so the national view retains actual openings.
+            slope=high.get("cathedrale_upper_profile",1)
+            hinge=high.get("cathedrale_upper_hinge",2.03)
+            in_spire = any(all(
+                vertex.co.z >= hinge+(bottom-hinge)*slope-.008 and
+                (vertex.co.x-cx)**2+(vertex.co.y-cy)**2 < radius**2
+                for vertex in component)
+                for cx,cy,radius,bottom in ((-.51,-.99825,.16,2.807),
+                    (.51,-.99825,.16,2.437),(0,.13175,.14,2.115)))
+            if in_spire:
+                spire_vertices.extend(component)
+            elif (not at_limit and spans[0]<=.028 and spans[1]<=.050 and
                 spans[0]*spans[1]<=.001 and spans[2]<.95):
                 remove.extend(component)
                 detail_components+=1
-        bmesh.ops.delete(data,geom=remove,context="VERTS")
+        # Separate those disconnected components without changing their
+        # positions, UVs or material; reunite them after body decimation.
+        data.verts.index_update()
+        keep_ids={vertex.index for vertex in spire_vertices}
+        spire_data=data.copy()
+        spire_data.verts.ensure_lookup_table()
+        bmesh.ops.delete(spire_data,geom=[vertex for vertex in spire_data.verts
+            if vertex.index not in keep_ids],context="VERTS")
+        spire_mesh=bpy.data.meshes.new(name+"_distant_openwork")
+        spire_data.to_mesh(spire_mesh)
+        spire_data.free()
+        spire=bpy.data.objects.new(name+"_distant_openwork",spire_mesh)
+        bpy.context.collection.objects.link(spire)
+        spire.matrix_world=low.matrix_world.copy()
+        for material in low.data.materials:
+            spire.data.materials.append(material)
+        bmesh.ops.delete(data,geom=remove+spire_vertices,context="VERTS")
         data.to_mesh(low.data)
         data.free()
         low.data.update()
@@ -712,6 +755,11 @@ def export_distance_geometry(models):
         modifier.ratio = .20
         modifier.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier=modifier.name)
+        bpy.ops.object.select_all(action="DESELECT")
+        low.select_set(True)
+        spire.select_set(True)
+        bpy.context.view_layer.objects.active=low
+        bpy.ops.object.join()
         low.data.update()
         measured = dimensions(low)
         errors = [abs(measured[edge][axis]-original[edge][axis]) /

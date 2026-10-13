@@ -1,0 +1,109 @@
+{
+  "parent": "98bc72692f519d223e53e7ebfa5a1a532ca7be06",
+  "visualVerdict": "Still below confirmed reference; whole scene work continues; PR194 draft.",
+  "retainedF": [
+    "Actual open stone spires, preserved in detailed/distant models; fullsource/PBRrebake, two fresh LODexportsbyteexact, parentbounds EXACT.",
+    "Alpine sidegullies .135, unequal channel frequency/curvature, grain/fold incisions1.25/.32 and positive bed ribs1.10, same exposed taper and base.58.",
+    "Coarse rock floors survey actual triangles clipped to their full footprint, including interior groove minima. Original size/height and eligibility budgets retained."
+  ],
+  "rejected": "A discarded smallspirecomponents inLOD; B overprotectedupperbody and exceededexisting14percentLODgate; E coarse rock17 interior basegap+.008256 unsupported. F fixes actualfullfootprintseat; no observerthreshold changed. InvestigationE explicitly FAILED_UNSUPPORTED_ROCK, notpassingproof.",
+  "inspectedPrototypeViews": [
+    "preview-c/01-national.png",
+    "preview-c/07-paris-cathedrale-canvas.png",
+    "physics-preview-f/05-lyon-alpes-canvas.png"
+  ],
+  "prototypePhysics": "F27416DONE0:2540Frenchstems0missing0>4mm;90rockmax-.000386677;21monuments0canopy;actualParisfootgap1.32e-8/twofoundationfaces0wet. Scoped candidate observations before fullproduction.",
+  "remaining": [
+    "Repeated simplistic domestic silhouettes and textures.",
+    "Large smooth/faceted Alpine snow shoulders and narrow geometric peaks.",
+    "Regular coastal scarps and deepRhône opening.",
+    "Foliage/materials less photographic thanreference.",
+    "Cathedral body proportions and masonry still need whole-scene review."
+  ],
+  "claimScope": "Original local rework/social and14strict full-production native captures passed. Artistically below reference. All six parent52 remote workflows passed, connected job115258483159 confirms23rework9skip/13social3skip. No new53CI claim.",
+  "productionCaptures": [
+    "production-01-national.json",
+    "production-04-lyon-detail.json",
+    "production-05-lyon-alpes.json",
+    "production-06-national-retour.json",
+    "production-07-paris-cathedrale.json",
+    "production-08-mediterranee-port.json",
+    "production-09-national-final.json",
+    "production-10-port-ensemble.json",
+    "movement-01-mobilisation.json",
+    "production-320-01-mobilisation.json",
+    "production-390-01-mobilisation.json",
+    "production-webkit-390-01-mobilisation.json",
+    "hospital-01-chantier.json",
+    "hospital-02-livraison.json"
+  ],
+  "finalPhysics": {
+    "mineralFractures": {
+      "version": 51,
+      "status": "applied",
+      "reason": "Exposed existing geological faces only",
+      "sourceTriangles": 85614,
+      "exposedTriangles": 35676,
+      "unchangedLowTriangles": 49938,
+      "barrierTests": 197629,
+      "protectedTriangles": 69726,
+      "frozenCoordinates": 18705,
+      "movedCoordinates": 343,
+      "layeredCoordinates": 0,
+      "maximumDepth": 0.027510448474657195,
+      "originalVertices": 124675,
+      "outputVertices": 124675,
+      "addedTriangles": 0,
+      "addedVertices": 0,
+      "queriedHeights": 0,
+      "scannedGLBs": 0
+    },
+    "treeFeet": 2540,
+    "treeAbove4mm": 0,
+    "rockCount": 90,
+    "maximumRockClearance": -0.0003866769704298223,
+    "monuments": 21,
+    "canopyOverlaps": 0,
+    "coastalShader": {
+      "method": "Read source of the fragment shader actually attached to the live WebGL program. No shader/material mutation.",
+      "actualCompiledProgram": true,
+      "verticalCoastalFracture": true,
+      "mountainCrease": true
+    },
+    "mineralShaders": [
+      {
+        "name": "landscape-mineral-ground",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": true,
+        "mountainCrease": true,
+        "snowScarp": false,
+        "coastalGPU": 0,
+        "coastalCPU": 0,
+        "useUbo": true,
+        "programSharedWithMountain": true
+      },
+      {
+        "name": "landscape-cliffs",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": true,
+        "mountainCrease": true,
+        "snowScarp": false,
+        "coastalGPU": 1,
+        "coastalCPU": 1,
+        "useUbo": true,
+        "programSharedWithMountain": true
+      },
+      {
+        "name": "landscape-snow",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": false,
+        "mountainCrease": false,
+        "snowScarp": true,
+        "coastalGPU": 0,
+        "coastalCPU": 0,
+        "useUbo": true,
+        "programSharedWithMountain": false
+      }
+    ]
+  }
+}

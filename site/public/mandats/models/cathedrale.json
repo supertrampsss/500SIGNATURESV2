@@ -18,7 +18,7 @@
         3.2065000534057617,
         1.4589999914169312
       ],
-      "triangles": 83956
+      "triangles": 88576
     },
     "cathedrale_paris_distant": {
       "width": 2.38375,
@@ -34,13 +34,13 @@
         3.2065000534057617,
         1.4589999914169312
       ],
-      "triangles": 4271,
+      "triangles": 9036,
       "lodOf": "cathedrale_paris",
-      "lodRatio": 0.050872,
+      "lodRatio": 0.102014,
       "decimationRatio": 0.2,
-      "omittedInspectionComponents": 4914,
+      "omittedInspectionComponents": 4912,
       "decimationExtentError": 0.000703,
-      "sourceTriangles": 4584
+      "sourceTriangles": 9344
     }
   },
   "authoringProfile": {

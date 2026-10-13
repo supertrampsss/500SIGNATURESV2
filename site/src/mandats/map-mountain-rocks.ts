@@ -7,6 +7,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/core/Meshes/instancedMesh";
 import { mountainFaceSurvey } from "./map-land-crags.ts";
+import { placementGroundSurvey } from "./map-ground-survey.ts";
 import { landContains, riverContains } from "./map-landscape.ts";
 import { fractureMineralTerrain, type MineralFractureFace } from "./map-mineral-fractures.ts";
 
@@ -230,6 +231,7 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
         node.position.z + site.z - .24, node.position.z + site.z + .24); insert(barriers, polygon, polygon);
     }
   }
+  const groundSurvey = placementGroundSurvey(scene);
   const surfaceAt = (point: Point) => {
     let height = -Infinity;
     for (const face of mineral.get(`${Math.floor(point.x / STEP)}:${Math.floor(point.z / STEP)}`) ?? []) {
@@ -283,7 +285,13 @@ export function buildMountainRocks(scene: Scene): AbstractMesh[] {
     const padded = footprint.map(p => ({ x: x + (p.x - x) * 1.10, z: z + (p.z - z) * 1.10 }));
     if ([...candidates(barriers, padded)].some(p => overlapping(p, padded))) continue;
     const levels = samples.map(surfaceAt); if (levels.some(h => !Number.isFinite(h))) continue;
-    const lowest = Math.min(...levels), highest = Math.max(...levels),
+    // A narrow bed groove can lie between the corner/centre samples. Clip
+    // actual land triangles to the full supporting footprint: a flat rock
+    // base must sit below its lowest interior point as well as its boundary.
+    const interiorLevels = groundSurvey.levels(footprint);
+    if (!interiorLevels.length || interiorLevels.some(h => !Number.isFinite(h))) continue;
+    const lowest = Math.min(...levels, ...interiorLevels),
+      highest = Math.max(...levels, ...interiorLevels),
       height = Math.max(radius * (.48 + random(i, 173) * .25), highest - lowest + .024);
     if (height > .24 || height > radius * 2.20) continue;
     const floor = lowest - .006,

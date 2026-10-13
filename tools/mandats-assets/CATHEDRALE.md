@@ -33,7 +33,7 @@ des triangles détaillés.
 Il vérifie les UV, les coordonnées finies, le partage
 du matériau et une dérive des limites inférieure à 2 %, puis rétablit les
 limites exactes du niveau détaillé. Les dimensions et triangles mesurés des deux
-niveaux figurent dans `cathedrale.json`. L’export actuel comporte 79 444 triangles
+niveaux figurent dans `cathedrale.json`. L’export initial comportait 79 444 triangles
 détaillés et 4 180 triangles de distance, soit 5,26 %. L’atlas utilise 48,17 %
 de surface UV utile. Les axes de l’export sont Y vertical,
 façade principale vers +Z, origine centrée sur l’emprise au niveau du sol.
@@ -105,3 +105,27 @@ contreforts extérieurs. Une observation des 50 faces inférieures dans Babylon
 relève 150 points soutenus par la maçonnerie du socle, sans contact avec l’eau
 ni recouvrement des faces inférieures des maisons voisines. Ces observations
 locales ne certifient pas la fidélité artistique de la carte entière.
+
+
+La passe 53 remplace les trois cônes sombres par une ossature de pierre
+réellement ajourée : nervures montantes, traverses et croisillons. La toiture
+principale reste en ardoise. Ces composants font partie de la silhouette et
+sont conservés avant la décimation du corps distant, puis réunis à celui-ci.
+Ils ne sont plus retirés avec les petits ornements d’inspection. La sélection
+utilise leurs emplacements et leurs niveaux de départ après le profil supérieur ;
+le budget distant de 14 % n’est pas assoupli.
+
+La source et ses cartes PBR sont recuites. Deux exports frais de cette source,
+avec les profils `.65` et `1.25` conservés, reproduisent le GLB et sa métadonnée
+exactement. Le modèle détaillé comporte 88 576 triangles et le distant 9 036,
+soit 10,20 %. Les limites brutes des deux niveaux restent exactement celles du
+parent 52 : 2,38375 × 2,918 au sol et 3,2065 de haut. Le GLB mesure 12 596 984
+octets, SHA256 `6fbfb563eb405ce148957e41031369795f943be554fc70b2395ec3e74fc75121`.
+
+Les attributs sont finis, les normales unitaires, les UV et indices valides ;
+l’audit ne trouve aucun triangle dégénéré ou désaccord de normale. Les 35 rayons
+existants sont transformés selon les mêmes profils et répétés sur les triangles
+exportés : chacun atteint un texel de verre bleu dans les deux niveaux. Il
+s’agit d’un contrôle d’actif, pas d’une garantie sur le filtrage ou les FPS.
+La vue native de Paris montre le ciel à travers les flèches. La fidélité du
+diorama entier reste à améliorer et doit toujours être jugée face à la maquette.

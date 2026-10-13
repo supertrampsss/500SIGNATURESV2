@@ -1,0 +1,34 @@
+[WebServer] (node:31002) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:31015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 16 tests using 1 worker
+
+(node:31033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/mandats-social.test.mjs:8:1 › workers, pensioners, staff and households get distinct funded responses from real contested decisions (31.9s)
+  ✓   2 [desktop-chromium] › tests/mandats-social.test.mjs:173:1 › an adopted school regrouping creates a visible student movement and survives reload and forged imports (29.2s)
+  ✓   3 [desktop-chromium] › tests/mandats-social.test.mjs:226:1 › student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery (43.0s)
+  ✓   4 [desktop-chromium] › tests/mandats-social.test.mjs:303:1 › a pilot keeps its deadline while inspected and a rejected bill applies no regrouping (25.0s)
+(node:31642) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   5 [android-chromium] › tests/mandats-social.test.mjs:8:1 › workers, pensioners, staff and households get distinct funded responses from real contested decisions
+  ✓   6 [android-chromium] › tests/mandats-social.test.mjs:173:1 › an adopted school regrouping creates a visible student movement and survives reload and forged imports (38.0s)
+  ✓   7 [android-chromium] › tests/mandats-social.test.mjs:226:1 › student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery (50.1s)
+  ✓   8 [android-chromium] › tests/mandats-social.test.mjs:303:1 › a pilot keeps its deadline while inspected and a rejected bill applies no regrouping (29.8s)
+(node:32092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   9 [compact-chromium] › tests/mandats-social.test.mjs:8:1 › workers, pensioners, staff and households get distinct funded responses from real contested decisions
+  ✓  10 [compact-chromium] › tests/mandats-social.test.mjs:173:1 › an adopted school regrouping creates a visible student movement and survives reload and forged imports (29.1s)
+  ✓  11 [compact-chromium] › tests/mandats-social.test.mjs:226:1 › student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery (38.1s)
+  ✓  12 [compact-chromium] › tests/mandats-social.test.mjs:303:1 › a pilot keeps its deadline while inspected and a rejected bill applies no regrouping (24.2s)
+(node:32537) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -  13 [iphone-webkit] › tests/mandats-social.test.mjs:8:1 › workers, pensioners, staff and households get distinct funded responses from real contested decisions
+  ✓  14 [iphone-webkit] › tests/mandats-social.test.mjs:173:1 › an adopted school regrouping creates a visible student movement and survives reload and forged imports (25.2s)
+  ✓  15 [iphone-webkit] › tests/mandats-social.test.mjs:226:1 › student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery (29.4s)
+  ✓  16 [iphone-webkit] › tests/mandats-social.test.mjs:303:1 › a pilot keeps its deadline while inspected and a rejected bill applies no regrouping (23.4s)
+
+  3 skipped
+  13 passed (7.0m)

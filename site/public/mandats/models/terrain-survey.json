@@ -1,24 +1,24 @@
 {
   "format": "MANDATS indexed terrain archive v1, gzip",
-  "sha256": "456f991761605c00933f6896a2bde6c489749b6599a5f2382d32024cbd62cb47",
-  "uncompressedSha256": "6d086420ea3d8a0f544971dd99ba9f5cbf714fcc325f4fe5fb1197580524e667",
-  "compressedBytes": 11978382,
-  "uncompressedBytes": 25527632,
+  "sha256": "987b0a88417cfabfc9743d7648a6f7e4b081ea853875163292699dc4ebb42f0a",
+  "uncompressedSha256": "2d1d366d893aefdb78d1cd7840bcc4d5a6ad6b3edd956a6cc36884e0e60339b3",
+  "compressedBytes": 12164931,
+  "uncompressedBytes": 25929200,
   "materials": 8,
   "orchards": 0,
   "meshes": [
     {
       "name": "landscape-terrain-0",
-      "originalVertices": 114094,
-      "retainedVertices": 35701,
-      "triangles": 68100,
+      "originalVertices": 122959,
+      "retainedVertices": 35742,
+      "triangles": 68173,
       "maximumPositionRounding": 4.7408364878265274e-7
     },
     {
       "name": "landscape-terrain-mineral-0",
-      "originalVertices": 108593,
-      "retainedVertices": 108593,
-      "triangles": 82345,
+      "originalVertices": 115476,
+      "retainedVertices": 115476,
+      "triangles": 85747,
       "maximumPositionRounding": 2.3836568185942042e-7
     },
     {
@@ -213,7 +213,7 @@
     },
     {
       "file": "site/src/mandats/map-land-crags.ts",
-      "sha256": "108a847b199428bf7f55721571eea25bd2e7d6dae3555bc4b50f61eee8822310"
+      "sha256": "ccfbe9aa1b9a185a1b5eb064e39d929a4ea932f49d43eab65a7ca1dab0723c64"
     },
     {
       "file": "site/src/mandats/map-land-materials.ts",
@@ -233,7 +233,7 @@
     },
     {
       "file": "site/src/mandats/map-model-revisions.ts",
-      "sha256": "eed7298a30d97852691ba0e50ddbda2de971d59273a0b5ab8dcf6bedef42b3a0"
+      "sha256": "71fa6faef6e077662f01ffe55ad79f10d9c25e70d3ff0b7747ed20d60e3d4635"
     },
     {
       "file": "site/src/mandats/map-monument-sites.ts",

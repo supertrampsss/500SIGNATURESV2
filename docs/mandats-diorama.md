@@ -965,3 +965,52 @@ Les résultats locaux de la passe 52 ne préjugent pas de sa CI distante.
 opaques, les montagnes ont de grands versants lisses ou facettés et les falaises
 restent régulières. Les matières et ramures n’atteignent pas la richesse de la
 référence. La PR 194 reste en brouillon ; la modélisation de toute la scène continue.
+
+## Passe 53 : flèches ajourées et versants alpins
+
+La [comparaison 53](mandats-diorama/comparaison-53.html) conserve la composition
+entière et les vues rapprochées du jeu réel face à la référence. Les trois
+flèches sombres de la cathédrale deviennent une ossature de pierre réellement
+ajourée. Les nervures font partie de la silhouette et sont préservées avant la
+décimation du corps distant, puis réunies à celui-ci. Le candidat qui supprimait
+ces petites pièces en vue nationale et celui qui dépassait le budget de 14 %
+ne sont pas retenus. La toiture principale reste en ardoise.
+
+La source et ses cartes PBR sont recuites. Deux exports frais du modèle avec
+les profils supérieur `.65` et de façade `1.25` conservés produisent les mêmes
+GLB et JSON. Les limites des deux niveaux restent exactement celles du parent
+52. Le modèle compte 88 576 triangles détaillés et 9 036 distants, soit 10,20 %.
+Les 35 rayons existants, transformés selon les profils, retrouvent un texel de
+verre bleu dans les deux niveaux exportés. Aucun triangle dégénéré ou désaccord
+de normale n’est relevé. La vue native de Paris montre le ciel à travers les
+flèches ; ces contrôles d’actif ne suffisent pas à valider le diorama entier.
+
+Les couloirs alpins ont des fréquences et courbures moins régulières. Le grain
+minéral creuse les plans exposés et y forme de petites nervures ; l’amplitude
+diminue vers les sommets et fonds de vallée. Le socle reste à `.58`, avec les
+mêmes protections des contacts occupés. Le candidat ajoutant ces nervures a
+révélé une base rocheuse au-dessus d’une rainure intérieure. Le calage des bases
+larges utilise maintenant les triangles réels découpés sur toute leur emprise,
+y compris les creux situés entre les anciens points de sondage. Le candidat
+laissant un écart de 0,008256 n’est pas une preuve de réussite. Le relevé suivant
+retrouve les 90 bases soutenues, avec un écart maximal négatif de 0,000387.
+
+La végétation, l’architecture ordinaire et l’environnement sont identiques au
+parent 52. Deux exports frais du terrain reproduisent le binaire et la métadonnée
+complète des sources. Le build complet passe : 1 082 tests, trois TypeScript,
+Vite, pré-rendu et 152 ressources hors connexion.
+
+Les configurations originales passent 23 parcours rework et 13 social, avec
+neuf et trois omissions prévues, sans échec ni résultat instable. Aucun test,
+délai, worker ou réglage de reprise n’est modifié.
+
+Les six workflows distants du parent 52 réussissent. Le journal réel du job
+115258483159 confirme 23 réussites et neuf omissions rework, puis 13 réussites
+et trois omissions social. Le test WebKit haute densité passe en 35,6 secondes.
+Ces résultats sont distincts de la nouvelle passe et de sa CI après publication.
+
+**La fidélité reste en cours.** Les maisons se répètent trop, les falaises sont
+encore régulières, le débouché du Rhône reste encaissé et les versants alpins
+gardent de grandes faces lisses ou facettées. Les matières et ramures restent
+moins riches que la référence. La PR 194 reste en brouillon ; le travail continue
+sur toute la scène.
