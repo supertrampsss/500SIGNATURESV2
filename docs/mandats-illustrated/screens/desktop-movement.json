@@ -1,0 +1,106 @@
+{
+  "browser": "154.0.8037.57",
+  "engine": "chromium",
+  "url": "http://127.0.0.1:4194/mandats/",
+  "viewport": {
+    "width": 1672,
+    "height": 941
+  },
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:4194/mandats/?mode=national&v=12&seed=0&ambition=equilibre",
+    "http://127.0.0.1:4194/assets/mandats-CIuPSCcd.js",
+    "http://127.0.0.1:4194/assets/shared-design-BR6wKexh.js",
+    "http://127.0.0.1:4194/assets/mandats-BFJgAREu.css",
+    "http://127.0.0.1:4194/assets/game-B_-L39w0.css",
+    "http://127.0.0.1:4194/assets/site-shell-v2-DKHbEmDf.css",
+    "http://127.0.0.1:4194/assets/shared-design-D17Vxp_n.css",
+    "http://127.0.0.1:4194/mandats/fonts/source-sans-3-variable.woff2",
+    "http://127.0.0.1:4194/polices/spectral-700-latin.woff2",
+    "http://127.0.0.1:4194/mandats/fonts/barlow-semi-condensed-600.woff2",
+    "http://127.0.0.1:4194/mandats/fonts/mandats-serif-700-latin.woff2",
+    "http://127.0.0.1:4194/polices/spectral-600-latin.woff2",
+    "http://127.0.0.1:4194/polices/spectral-500-latin.woff2",
+    "http://127.0.0.1:4194/assets/reference-map-B9Mf7JdQ.svg",
+    "http://127.0.0.1:4194/brand/favicon.svg",
+    "http://127.0.0.1:4194/brand/favicon.svg"
+  ],
+  "assets": [
+    {
+      "path": "/assets/shared-design-D17Vxp_n.css",
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781",
+      "bytes": 30543
+    },
+    {
+      "path": "/assets/site-shell-v2-DKHbEmDf.css",
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59",
+      "bytes": 45671
+    },
+    {
+      "path": "/assets/mandats-BFJgAREu.css",
+      "sha256": "19d690fc1d71d4fcd3bcca18a287c799429f17ee841e3ad8089151b8ace7b3ab",
+      "bytes": 177212
+    },
+    {
+      "path": "/assets/shared-design-BR6wKexh.js",
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
+      "bytes": 711
+    },
+    {
+      "path": "/assets/game-B_-L39w0.css",
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c",
+      "bytes": 81756
+    },
+    {
+      "path": "/assets/mandats-CIuPSCcd.js",
+      "sha256": "78d35152c53a77b35be4679a7b04eb31bec956cacc5e8135c1aa1a989600e8d7",
+      "bytes": 642648
+    },
+    {
+      "path": "/assets/reference-map-B9Mf7JdQ.svg",
+      "sha256": "33f4d29ac1887a8c20fe277629129c1fadf42f1dd264fd7731b49313539b495a",
+      "bytes": 7575170
+    }
+  ],
+  "game": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "choices": [
+      "n11-0-education-lycees-regrouper"
+    ],
+    "ambition": "equilibre"
+  },
+  "map": {
+    "mandateMap": "",
+    "renderer": "illustrated",
+    "movements": "1",
+    "renderPending": "false",
+    "turn": "1",
+    "projects": "0",
+    "motion": "reduced",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "mapZoom": "1",
+    "mapCentreX": "0.5",
+    "mapCentreY": "0.5",
+    "mapScale": "1",
+    "dragging": "false"
+  },
+  "image": {
+    "src": "http://127.0.0.1:4194/assets/reference-map-B9Mf7JdQ.svg",
+    "naturalWidth": 1268,
+    "naturalHeight": 801,
+    "rect": {
+      "x": 0,
+      "y": 66,
+      "width": 1268,
+      "height": 801,
+      "top": 66,
+      "right": 1268,
+      "bottom": 867,
+      "left": 0
+    }
+  },
+  "overflow": false
+}

@@ -1,5 +1,11 @@
 # MANDATS : référence du diorama 3D
 
+**15 octobre 2026 : changement de direction validé.** Le propriétaire demande
+l’illustration de la maquette elle-même et abandonne sa modélisation 3D.
+Le [contrat de la carte illustrée](mandats-illustrated.md) remplace les exigences
+3D ci-dessous. Cette page conserve l’historique des essais et leurs résultats.
+
+
 ## Références visuelles
 
 Le 8 octobre 2026, le propriétaire a explicitement confirmé cette maquette avec la consigne : « C’est elle donc tu rapproches systématiquement de ça quand tu penses avoir terminé ».

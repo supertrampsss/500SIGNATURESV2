@@ -1,8 +1,6 @@
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { MODEL_URLS } from '../src/mandats/map-model-revisions.ts';
-import { TERRAIN_SURVEY_URL } from '../src/mandats/map-terrain-revision.ts';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
 const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
@@ -13,7 +11,7 @@ const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
 const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture']
   .map(name => `/mandats/art/${name}.webp`);
 const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
-// Follow the game's dependencies, including Babylon's local shader chunks.
+// Follow the game's dependencies, including the approved illustrated map.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {
   const asset=entryAssets[i];
@@ -22,22 +20,11 @@ for (let i=0; i<entryAssets.length; i++) {
   const source = await readFile(dist+asset,'utf8');
   for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
   for (const m of source.matchAll(/import\(["']\.\/([^"']+\.js)["']\)/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
-  // Procedural surface PNGs are content-hashed Vite imports in these chunks.
-  for (const m of source.matchAll(/["'](\/assets\/[^"']+\.(?:png|webp|jpe?g))["']/g)) core.push(m[1]);
+  // The map SVG embeds its artwork and needs no external image dependencies.
+  for (const m of source.matchAll(/["'](\/assets\/[^"']+\.(?:svg|png|webp|jpe?g))["']/g)) core.push(m[1]);
   for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);
-// The authored GLB kits embed their materials. Include any neighbouring local
-// buffers and textures too, so the same 3D scene loads after an offline restart.
-async function collectModels(directory: string): Promise<void> {
-  for (const entry of await readdir(dist + directory, { withFileTypes: true })) {
-    const path = `${directory}/${entry.name}`;
-    if (entry.isDirectory()) await collectModels(path);
-    else if (entry.isFile() && /\.(?:glb|gltf|bin|gz|env|png|webp|jpe?g|ktx2|json)$/i.test(entry.name))
-      core.push([...Object.values(MODEL_URLS), TERRAIN_SURVEY_URL].find(url => url.split('?')[0] === '/' + path) ?? '/' + path);
-  }
-}
-await collectModels('mandats/models');
 const precache = [...new Set(core)];
 const digest = createHash('sha256');
 digest.update(await readFile(fileURLToPath(import.meta.url)));

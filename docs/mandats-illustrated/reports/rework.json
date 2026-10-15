@@ -1,0 +1,1928 @@
+{
+  "config": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/500SIGNATURESV2/site/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.rework.config.ts"
+    ],
+    "configFile": "/workspace/500SIGNATURESV2/site/playwright.rework.config.ts",
+    "rootDir": "/workspace/500SIGNATURESV2/site/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "compact",
+        "name": "compact",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./rework-artifacts/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./rework-artifacts/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite preview --host 127.0.0.1 --port 4180 --strictPort",
+      "url": "http://127.0.0.1:4180/mandats/",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "mandats-rework.test.mjs",
+      "file": "mandats-rework.test.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a high density display keeps the reference illustration readable through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11054,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:05:24.153Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-07c993b67c404fde5dfd828c9b14be7c9d900235.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-resolution-6e0a689a7534973e71d84202bb2ede9dfd575cda.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-6aeb943dc93082d1e0ee0e8ac2db8be77b057c4f.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-resolution-c545adf7c8e81cb37a43abaec04eaa39068860d9.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-69f36680f1d06dd1eafaa4332f85fc013443ff95.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-replay-1e477427752b285f99c599ca5f759280eecaa214.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-resolution-c20e1c64bb2651969c207299023ce90a0956425e.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-e3c5a5b45d01d198feb3",
+          "file": "mandats-rework.test.mjs",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration opens subjects without advancing the game and preserves its artboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3112,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:05:35.525Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-chargee",
+                      "contentType": "application/json",
+                      "body": "ewogICJhcnR3b3JrIjogWwogICAgewogICAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9hc3NldHMvcmVmZXJlbmNlLW1hcC1COU1mN0pkUS5zdmciLAogICAgICAic3RhdHVzIjogMjAwCiAgICB9CiAgXSwKICAibW9kZWxSZXF1ZXN0cyI6IFtdCn0="
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-desktop/attachments/carte-et-sujet-b1c7c692c10f8e539c281a1c82c70a80187290ce.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-desktop/attachments/menu-ma-partie-450563e892f6d112fe8d67734b697e101fa4d21b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-16539970f728c7c7b2ce",
+          "file": "mandats-rework.test.mjs",
+          "line": 254,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:05:38.652Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-d76229cdf0a295d7bc2beb7be1175ada0a42a1d5.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-replay-ef610d7a180575b443217070cc247ac5c2893438.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-7a1b0a58ce2503ce9f802d8e39c0b1bb90b25a74.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-replay-4d467fb33261a44a2471cf39380b03345f0c7dd5.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-a89b9ecc535ead418f11",
+          "file": "mandats-rework.test.mjs",
+          "line": 372,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 38797,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:05:43.786Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-c2d11ed01be608da28b80afdad65f3efba3fbf72.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-replay-e23e0590b6b5be065c262f0b9dd975a37f99ea2a.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-4f47c98de0b6b2e0512fe9856aee9fc7514ef793.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-replay-9fdcedc4c97897ab5c541c483c7de6d7a44fd3f3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-280b16864a70212069bd",
+          "file": "mandats-rework.test.mjs",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration and keyboard controls work without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3107,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:22.590Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-desktop/attachments/carte-sans-webgl-284261cf04d2902c5dea19f59d320a1e1898dca5.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-desktop/attachments/carte-sans-webgl-replay-4ce0d1d86d3582e643df4332cdfc448bb5e37837.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-ca9cee24cd1792be7d49",
+          "file": "mandats-rework.test.mjs",
+          "line": 493,
+          "column": 1
+        },
+        {
+          "title": "the reference artwork loads after a real decision and a failed image preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6043,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:25.710Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-apres-decision",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-apres-decision-b6f358b95dd0d9277109186645a9da43f75a731c.png"
+                    },
+                    {
+                      "name": "illustration-apres-decision-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-apres-decision-replay-706cbea08c31dda42faae44056bc3d8a6a14baad.json"
+                    },
+                    {
+                      "name": "illustration-indisponible-repli",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-indisponible-repli-8071828e9b0c3b2e9769546d48adfdb963b8a810.png"
+                    },
+                    {
+                      "name": "illustration-indisponible-repli-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-indisponible-repli-replay-2b1e0ffdbcfbb9212dfc40778a8a3b867dcb93a6.json"
+                    },
+                    {
+                      "name": "illustration-et-engagement-repris",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-et-engagement-repris-4830f28021fe232cf5cebf063b0e5da1f0c43dd4.png"
+                    },
+                    {
+                      "name": "illustration-et-engagement-repris-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-293ea-preserves-the-saved-mandate-desktop/attachments/illustration-et-engagement-repris-replay-dfe9ccf8bfee4f6d8938ace505d51126ec4460e2.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-e56550ae746a1e4d27d7",
+          "file": "mandats-rework.test.mjs",
+          "line": 525,
+          "column": 1
+        },
+        {
+          "title": "the prepared reference illustration reloads and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 586,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 209,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:31.771Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 586,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-d39f70e6199520bb7541",
+          "file": "mandats-rework.test.mjs",
+          "line": 582,
+          "column": 1
+        },
+        {
+          "title": "a failed active illustration keeps funded projects, saved decisions and navigation usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:31.993Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-indisponible-projet-finance",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/illustration-indisponible-projet-finance-520fd6f4fc471211e58f2cdb3f0ac21aa615fa07.png"
+                    },
+                    {
+                      "name": "illustration-indisponible-projet-finance-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/illustration-indisponible-projet-finance-replay-77be15edf8d10e3ed7da56d341e53dbbad52f4a1.json"
+                    },
+                    {
+                      "name": "reprise-apres-image-indisponible",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/reprise-apres-image-indisponible-322d2a4273bb70902db25d7f44a721dfa1998034.png"
+                    },
+                    {
+                      "name": "reprise-apres-image-indisponible-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/reprise-apres-image-indisponible-replay-abb4fbc3165ffd6dde194259efb71c540117cad3.json"
+                    },
+                    {
+                      "name": "gouvernement-apres-vote-reel",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/gouvernement-apres-vote-reel-37b784dbdbfe65542d61e8de8be51e7939fed1ff.png"
+                    },
+                    {
+                      "name": "gouvernement-apres-vote-reel-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/gouvernement-apres-vote-reel-replay-3c07ce2ce596a721a0562df8edb62ce726f4194f.json"
+                    },
+                    {
+                      "name": "projet-reel-dans-navigation",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/projet-reel-dans-navigation-6b4a5626d86fbcc2632a8c7728b0e45637f91c10.png"
+                    },
+                    {
+                      "name": "projet-reel-dans-navigation-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/projet-reel-dans-navigation-replay-fa74d7afa41af1498f8a601ec90e879c1e62e1c2.json"
+                    },
+                    {
+                      "name": "illustration-pageerrors",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-failed-ac-a98dc-sions-and-navigation-usable-desktop/attachments/illustration-pageerrors-f7a8f5b60df0cc340283a6911b7dcb00848adeb2.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-1960d6e8ff58e204b951",
+          "file": "mandats-rework.test.mjs",
+          "line": 634,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the reference illustration readable through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6312,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:38.829Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-890f37e3a614956048ad150c08cc7a2377133908.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-resolution-b37a9d72f9cb1c5af9233000ba1e94178375a79a.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-3ccd5cc47dc329b51820074ebd574d34b77be4cc.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-resolution-bdf2498fed1d0d8609c5773284201e4b7af9d73f.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-b6faa58afced373867158aa949841184ae34810b.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-replay-53709c38874eba571a81d03883b5ba260d07cd05.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-resolution-4facfa7b6d68542ea5d1731f01ea184ab49f5d18.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-63541d26059a7b7a859f",
+          "file": "mandats-rework.test.mjs",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration opens subjects without advancing the game and preserves its artboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2466,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:45.415Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-chargee",
+                      "contentType": "application/json",
+                      "body": "ewogICJhcnR3b3JrIjogWwogICAgewogICAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9hc3NldHMvcmVmZXJlbmNlLW1hcC1COU1mN0pkUS5zdmciLAogICAgICAic3RhdHVzIjogMjAwCiAgICB9CiAgXSwKICAibW9kZWxSZXF1ZXN0cyI6IFtdCn0="
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-mobile/attachments/carte-et-sujet-69214199e0af9dc1ce9af0954861d6e4aaf63d9a.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-mobile/attachments/menu-ma-partie-43c28a9b9e1c2c9f469f147a6613594be493f2ff.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-f343b9985914469c5e2c",
+          "file": "mandats-rework.test.mjs",
+          "line": 254,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3861,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:47.895Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-5e8e31650b5419a067bb7ac8be501b04827a1f4d.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-replay-c76323554de78285817f9ef4a88ce3986e66b7b0.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-74259e6cbea018761777541f375b21d66b0368bc.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-replay-35b52090a628da3656415dc9df6d9d603ee7d80f.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-261924465116339a7cca",
+          "file": "mandats-rework.test.mjs",
+          "line": 372,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 30440,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:06:51.766Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-6ca195c15270e65b42c9c034dae8d931132fa728.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-replay-53ff46155bb93891c4857970d992c96935efe884.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-3e0df3581a7ea77216d0ab28613c1b75fe38efd5.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-replay-948b131243757cb66d147b56ee1ab9ffc06af34b.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-247520488b6eb69790a2",
+          "file": "mandats-rework.test.mjs",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration and keyboard controls work without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1843,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:22.220Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-mobile/attachments/carte-sans-webgl-fc53af8ee7ea1e95883572bfa400ff92400f393b.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-mobile/attachments/carte-sans-webgl-replay-8a756bfe95b918deff6ef016fc564c9fac1fed66.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-ed7026ce3cd96a9be0e2",
+          "file": "mandats-rework.test.mjs",
+          "line": 493,
+          "column": 1
+        },
+        {
+          "title": "the reference artwork loads after a real decision and a failed image preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 526,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:24.072Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 526,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-8eda45311562b946c2c2",
+          "file": "mandats-rework.test.mjs",
+          "line": 525,
+          "column": 1
+        },
+        {
+          "title": "the prepared reference illustration reloads and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3214,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:24.279Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-hors-connexion",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbGx1c3RyYXRpb25QYXRoIjogIi9hc3NldHMvcmVmZXJlbmNlLW1hcC1COU1mN0pkUS5zdmciLAogICJjYWNoZWRBc3NldHMiOiBbCiAgICBbCiAgICAgICIvbWFuZGF0cy8iLAogICAgICAiL21hbmRhdHMvZnJhbmNlL2hpdmVyLyIsCiAgICAgICIvbWFuZGF0cy9hcnQvd2ludGVyLXF1YXJ0ZXItc21hbGwud2VicCIsCiAgICAgICIvbWFuZGF0cy9hcnQvd2ludGVyLXF1YXJ0ZXIud2VicCIsCiAgICAgICIvbWFuZGF0cy9hcnQvb2ZmaWNlLndlYnAiLAogICAgICAiL21hbmRhdHMvYXJ0L3NjaG9vbC53ZWJwIiwKICAgICAgIi9tYW5kYXRzL2FydC9ob3NwaXRhbC53ZWJwIiwKICAgICAgIi9tYW5kYXRzL2FydC9uYXRpb24ud2VicCIsCiAgICAgICIvbWFuZGF0cy9hcnQvY2hhcHRlci53ZWJwIiwKICAgICAgIi9tYW5kYXRzL2FydC9sZWdhY3kud2VicCIsCiAgICAgICIvbWFuZGF0cy9hcnQvZW5lcmd5LndlYnAiLAogICAgICAiL21hbmRhdHMvYXJ0L3BhcmxpYW1lbnQud2VicCIsCiAgICAgICIvbWFuZGF0cy9hcnQvY291bmNpbC53ZWJwIiwKICAgICAgIi9tYW5kYXRzL2FydC9ydXB0dXJlLndlYnAiLAogICAgICAiL21hbmRhdHMvbWV0aG9kZS8iLAogICAgICAiL21hbmRhdHMvbWFuaWZlc3Qud2VibWFuaWZlc3QiLAogICAgICAiL21hbmRhdHMvaWNvbi0xOTIucG5nIiwKICAgICAgIi9tYW5kYXRzL2ljb24tNTEyLnBuZyIsCiAgICAgICIvYXNzZXRzL21hbmRhdHMtQzFfVTJjQ1EuanMiLAogICAgICAiL2Fzc2V0cy9zaGFyZWQtZGVzaWduLUJSNndLZXhoLmpzIiwKICAgICAgIi9hc3NldHMvbWFuZGF0cy1DN2xxcGhPZS5jc3MiLAogICAgICAiL2Fzc2V0cy9nYW1lLUJfLUwzOXcwLmNzcyIsCiAgICAgICIvYXNzZXRzL3NpdGUtc2hlbGwtdjItREtIYkVtRGYuY3NzIiwKICAgICAgIi9hc3NldHMvc2hhcmVkLWRlc2lnbi1EMTdWeHBfbi5jc3MiLAogICAgICAiL2Fzc2V0cy9yZWZlcmVuY2UtbWFwLUI5TWY3SmRRLnN2ZyIsCiAgICAgICIvcG9saWNlcy9zcGVjdHJhbC02MDAtbGF0aW4ud29mZjIiLAogICAgICAiL3BvbGljZXMvc3BlY3RyYWwtNzAwLWxhdGluLndvZmYyIiwKICAgICAgIi9tYW5kYXRzL2ZvbnRzL21hbmRhdHMtc2VyaWYtNzAwLWxhdGluLndvZmYyIiwKICAgICAgIi9tYW5kYXRzL2ZvbnRzL3NvdXJjZS1zYW5zLTMtdmFyaWFibGUud29mZjIiLAogICAgICAiL21hbmRhdHMvZm9udHMvYmFybG93LXNlbWktY29uZGVuc2VkLTYwMC53b2ZmMiIsCiAgICAgICIvcG9saWNlcy9wdWJsaWMtc2Fucy1sYXRpbi53b2ZmMiIsCiAgICAgICIvcG9saWNlcy9zcGVjdHJhbC01MDAtbGF0aW4ud29mZjIiLAogICAgICAiL21hbmRhdHMvYXJ0L2NpdHktaW5oZXJpdGVkLTc2OC53ZWJwIiwKICAgICAgIi9tYW5kYXRzL2FydC9jaXR5LXJlbmV3ZWQtNzY4LndlYnAiLAogICAgICAiL21hbmRhdHMvYXJ0L25hdGlvbmFsLXJlbGllZi03Njgud2VicCIKICAgIF0KICBdCn0="
+                    },
+                    {
+                      "name": "hors-connexion-illustre",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-prepare-d6451-ues-a-real-movement-offline-mobile/attachments/hors-connexion-illustre-54b89918abdb62d1c781bc8a3f67b6e2ceb8ab30.png"
+                    },
+                    {
+                      "name": "hors-connexion-illustre-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-prepare-d6451-ues-a-real-movement-offline-mobile/attachments/hors-connexion-illustre-replay-1616ff6b712069d03812c82e61b67c9d5874909a.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-1456901d10b586e14561",
+          "file": "mandats-rework.test.mjs",
+          "line": 582,
+          "column": 1
+        },
+        {
+          "title": "a failed active illustration keeps funded projects, saved decisions and navigation usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual image-failure lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 637,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:27.506Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual image-failure lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 637,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-349b3c479f3951db9ceb",
+          "file": "mandats-rework.test.mjs",
+          "line": 634,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the reference illustration readable through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6305,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:28.162Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-86a8a4f7aafb2fe3cddca2a74657af85043f85f8.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-resolution-1aa1a9eb49c4f4711f1c1fce4652a2eb35008e75.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-fa0b62dda1fc03a7e7697412f3121d11360cc26a.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-resolution-0ccd285179ea21c7dde72788d5c98b632eb96a5c.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-reprise-dpr-2-61c5e4427efed1ef2f08e9c8373a16044020ce27.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-reprise-dpr-2-replay-156476101cb7041995a4c08565f873b657529152.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-compact/attachments/carte-reprise-dpr-2-resolution-abea4d20eeff470b59fe1f4f451873ff344482e0.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-c934096bd3b47883ea29",
+          "file": "mandats-rework.test.mjs",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration opens subjects without advancing the game and preserves its artboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2387,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:34.681Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-chargee",
+                      "contentType": "application/json",
+                      "body": "ewogICJhcnR3b3JrIjogWwogICAgewogICAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9hc3NldHMvcmVmZXJlbmNlLW1hcC1COU1mN0pkUS5zdmciLAogICAgICAic3RhdHVzIjogMjAwCiAgICB9CiAgXSwKICAibW9kZWxSZXF1ZXN0cyI6IFtdCn0="
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-compact/attachments/carte-et-sujet-0a1fc6661307b8557ace5939eeb76ed0c6b16d00.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-compact/attachments/menu-ma-partie-1a75b4eb77f12c69d0e247ec832066f2716bb1e1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-a4faccc83008cd027182",
+          "file": "mandats-rework.test.mjs",
+          "line": 254,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3585,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:37.084Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-d730f43871046b0384ede2607ce5fc5ec8d4cf57.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-replay-b33e78821fc64032de8a8fd258fc3e712a4c2d30.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-db71d2bd2b5fba0c596faf4d5e429526b60e5d10.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-replay-4c27afb8de9b89df08751c809c2d6072a1b39f75.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-7bb589cf37f3799ee383",
+          "file": "mandats-rework.test.mjs",
+          "line": 372,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29570,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:07:40.681Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-7abadb754a09e8cc2f929c4ed002cdc634b6c00b.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-replay-fcf9a22307092593522dbd64ec7e6033c81e66a9.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-a2cc5101f9774ef34b08c675104e6086153441b6.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-replay-a48857510a5605ae79e04547e48e0f015bf26985.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-e83c0e8cb70fb46c6b58",
+          "file": "mandats-rework.test.mjs",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration and keyboard controls work without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1758,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:10.260Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-compact/attachments/carte-sans-webgl-ef83fb4263ffa4ecb4bf6fa602864e427fbaa5c9.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-compact/attachments/carte-sans-webgl-replay-4381ae5fa321a7340257db6aefd7f8b1b75f3d39.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-d9298b826807f2efd501",
+          "file": "mandats-rework.test.mjs",
+          "line": 493,
+          "column": 1
+        },
+        {
+          "title": "the reference artwork loads after a real decision and a failed image preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 526,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 158,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:12.037Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 526,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-e3a377886cd79eb5eda6",
+          "file": "mandats-rework.test.mjs",
+          "line": 525,
+          "column": 1
+        },
+        {
+          "title": "the prepared reference illustration reloads and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 586,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 140,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:12.212Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 586,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-5259eb878304c516246b",
+          "file": "mandats-rework.test.mjs",
+          "line": 582,
+          "column": 1
+        },
+        {
+          "title": "a failed active illustration keeps funded projects, saved decisions and navigation usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual image-failure lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 637,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 170,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:12.360Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual image-failure lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 637,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-76856181a7723adcfa30",
+          "file": "mandats-rework.test.mjs",
+          "line": 634,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the reference illustration readable through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5658,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:12.967Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-3a7e226c513510cd28fc740b48987a93bd21198a.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-8977a90afd27ddceeb1aa24e2a3b837231651774.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-7b9bab8626c37df3d071db2cda6ce962910034c1.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-614b647890fadf06591d3680e8bb37f1e76c8bec.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-a057c39a048ccb7a97bc5c487eee6965d2f8da32.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-replay-c430628664e3fad53657154dc1d58463c8bb4f7a.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-83d9e-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-resolution-04d77abf9b1bd995279a35e75ce6d5ed0db2decb.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-d2f009222fb8d0bf8874",
+          "file": "mandats-rework.test.mjs",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration opens subjects without advancing the game and preserves its artboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:18.722Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "illustration-chargee",
+                      "contentType": "application/json",
+                      "body": "ewogICJhcnR3b3JrIjogWwogICAgewogICAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9hc3NldHMvcmVmZXJlbmNlLW1hcC1COU1mN0pkUS5zdmciLAogICAgICAic3RhdHVzIjogMjAwCiAgICB9CiAgXSwKICAibW9kZWxSZXF1ZXN0cyI6IFtdCn0="
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-webkit/attachments/carte-et-sujet-b99c7c80f3eb7520e075364ad773446ed229ec59.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-ac07e--and-preserves-its-artboard-webkit/attachments/menu-ma-partie-8f2e54d8f81c5ca58de45f4c9d8f09280656a516.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-8528cce7751b4a65f638",
+          "file": "mandats-rework.test.mjs",
+          "line": 254,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:22.007Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-4556d657e5f385016395daa23accd5487af00424.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-replay-8438524c52fe39929e7f6b0bbd4e2d17146a2b5c.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-e7ff4bd85da3f50da971543bf3cfe0a82fa0c37d.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-replay-6e529a2b3f2e2697991337dbedbeadb6c9cf4fd2.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-be104d6535866adecd2e",
+          "file": "mandats-rework.test.mjs",
+          "line": 372,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 30908,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:26.141Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-5254ea690deee1b687eb0c94b769966b20342b9c.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-replay-2d83b9a0050832e30d7ec05a68377d514086561d.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-1c959d8360628f6c3adc0a22af470e1a27ecbb58.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-replay-a0ebbd0145c1ae8332e16f561af3d75c5057586e.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-ed4065083619933877ed",
+          "file": "mandats-rework.test.mjs",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "the reference illustration and keyboard controls work without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1934,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:57.060Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-webkit/attachments/carte-sans-webgl-629fd976007c500169e6e8fc366ee1bbd5b3313e.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-referen-a1430-controls-work-without-WebGL-webkit/attachments/carte-sans-webgl-replay-6bfb4d103c34857c229cdbb9a49937649d2f59bf.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-b2a77fce614277993c0c",
+          "file": "mandats-rework.test.mjs",
+          "line": 493,
+          "column": 1
+        },
+        {
+          "title": "the reference artwork loads after a real decision and a failed image preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 526,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 193,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:59.002Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 526,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-af20fb3230778d166d77",
+          "file": "mandats-rework.test.mjs",
+          "line": 525,
+          "column": 1
+        },
+        {
+          "title": "the prepared reference illustration reloads and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 586,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 193,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:59.204Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 586,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-101c4987db9228bc4b24",
+          "file": "mandats-rework.test.mjs",
+          "line": 582,
+          "column": 1
+        },
+        {
+          "title": "a failed active illustration keeps funded projects, saved decisions and navigation usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual image-failure lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 637,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 187,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-15T07:08:59.410Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual image-failure lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 637,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-a8aaa5ec51d786ba31d8",
+          "file": "mandats-rework.test.mjs",
+          "line": 634,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-15T07:05:22.625Z",
+    "duration": 217050.461,
+    "expected": 23,
+    "skipped": 9,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

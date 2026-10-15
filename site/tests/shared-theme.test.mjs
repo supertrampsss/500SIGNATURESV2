@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-test('Mandats : carte 3D, lancement v12 et navigation accessibles',async({page},info)=>{
+test('Mandats : carte illustrée, lancement v12 et navigation accessibles',async({page},info)=>{
  await page.goto('/mandats/');
  await expect(page.locator('.map-game--entry')).toBeVisible();
  await expect(page.getByRole('heading',{name:'Tenir cinq ans.',exact:true})).toBeVisible();

@@ -21,7 +21,7 @@ import { iconForTopic, mapIcon, toneForTopic } from "./map-icons.ts";
 import type { Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
 
-const welcomeDioramaUrl = new URL("./textures/welcome-diorama.png", import.meta.url).href;
+const referenceMapUrl = new URL("./textures/reference-map.svg", import.meta.url).href;
 
 export const cleanGameText = (text: string) =>
   text
@@ -101,26 +101,12 @@ function fallbackMap() {
         })
         .join(" ") + "Z",
   );
-  return `<svg data-map-fallback class="mandate-map__fallback" viewBox="0 0 1000 920" role="img" aria-label="Carte de France : les sujets restent accessibles même sans rendu 3D"><defs><linearGradient id="country-ground" x2="0.8" y2="1"><stop stop-color="#b7b78d"/><stop offset="1" stop-color="#7f936b"/></linearGradient></defs>${paths.map((path) => `<path d="${path}" fill="url(#country-ground)" stroke="#e3d7ac" stroke-width="2"/>`).join("")}</svg>`;
-}
-function geographicLabels(): string {
-  const labels = [
-    { id: "manche", name: "Manche", lon: -2.8, lat: 50.55, kind: "sea" },
-    { id: "atlantique", name: "Océan Atlantique", lon: -4.1, lat: 45.5, kind: "sea" },
-    { id: "mediterranee", name: "Mer Méditerranée", lon: 6.1, lat: 42.7, kind: "sea" },
-    { id: "belgique", name: "Belgique", lon: 4.8, lat: 50.9, kind: "country" },
-    { id: "allemagne", name: "Allemagne", lon: 8.1, lat: 50.2, kind: "country" },
-    { id: "suisse", name: "Suisse", lon: 7.9, lat: 46.8, kind: "country" },
-    { id: "italie", name: "Italie", lon: 9.1, lat: 45.3, kind: "country" },
-    { id: "espagne", name: "Espagne", lon: -1.9, lat: 43.0, kind: "country" },
-    { id: "corse", name: "Corse", lon: 9.25, lat: 41.7, kind: "island" },
-  ];
-  return `<div class="map-geography-labels" aria-hidden="true">${labels.map(label => `<span hidden class="map-geographic-label" data-map-label="${label.id}" data-lon="${label.lon}" data-lat="${label.lat}" data-label-kind="${label.kind}">${label.kind === "sea" ? label.name.split(" ").join("<br>") : label.name}</span>`).join("")}</div>`;
+  return `<svg data-map-fallback class="mandate-map__fallback" viewBox="0 0 1000 920" role="img" aria-label="Carte de France simplifiée : les sujets restent accessibles"><defs><linearGradient id="country-ground" x2="0.8" y2="1"><stop stop-color="#b7b78d"/><stop offset="1" stop-color="#7f936b"/></linearGradient></defs>${paths.map((path) => `<path d="${path}" fill="url(#country-ground)" stroke="#e3d7ac" stroke-width="2"/>`).join("")}</svg>`;
 }
 export function mapWorld(game: Game | null): string {
   const state = mapState(game);
-  return `<section class="mandate-map" data-mandate-map data-renderer="loading" data-movements="${state.movements.length}" aria-label="Carte de France et sujets du mandat">
-    ${fallbackMap()}${game === null ? `<img class="mandate-map__preview" src="${e(welcomeDioramaUrl)}" width="1268" height="801" alt="" aria-hidden="true" draggable="false" decoding="async">` : ""}<canvas data-map-canvas class="mandate-map__canvas" aria-hidden="true"></canvas>${geographicLabels()}
+  return `<section class="mandate-map" data-mandate-map data-renderer="loading" data-movements="${state.movements.length}" tabindex="0" aria-label="Carte de France et sujets du mandat. Utilisez les flèches pour déplacer la carte et les boutons pour zoomer.">
+    ${fallbackMap()}<div class="mandate-map__artboard" data-map-artboard><img class="mandate-map__illustration" data-map-illustration src="${e(referenceMapUrl)}" width="1268" height="801" alt="Carte illustrée de la France : villes, campagnes, montagnes et ports" draggable="false" decoding="async" fetchpriority="high"><div class="mandate-map__effects" data-map-effects aria-live="off"></div></div>
     <div class="mandate-map__markers" data-map-markers>${state.markers
       .map((item, index) => {
         const { x, z } = item.id.startsWith("policy:") ? { x: 0, z: 0 } :
@@ -130,7 +116,7 @@ export function mapWorld(game: Game | null): string {
       .join(
         "",
       )}${state.tracking.map((item) => `<button class="map-marker map-marker--tracking map-tone--blue" data-map-marker="${e(item.id)}" data-action="map-track" data-track-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)} · En préparation"><svg class="map-marker__leader" data-map-leader viewBox="0 0 1 1" aria-hidden="true"><path /></svg><span class="map-marker__point" aria-hidden="true">${mapIcon("project")}</span><span class="map-marker__anchor" data-map-anchor aria-hidden="true"></span><span class="map-marker__label">${e(item.label)}<small>En préparation</small></span></button>`).join("")}</div>
-    <div class="map-camera" aria-label="Caméra de la carte"><div class="map-camera__zoom"><button data-action="map-camera" data-camera="in" aria-label="Agrandir la carte">+</button><button data-action="map-camera" data-camera="out" aria-label="Réduire la carte">−</button></div><button class="map-camera__overview" data-action="map-camera" data-camera="reset">${mapIcon("locate")}<span>Vue France</span></button></div>
+    <div class="map-camera" aria-label="Déplacement et zoom de la carte"><div class="map-camera__zoom"><button data-action="map-camera" data-camera="in" aria-label="Agrandir la carte">+</button><button data-action="map-camera" data-camera="out" aria-label="Réduire la carte">−</button></div><button class="map-camera__overview" data-action="map-camera" data-camera="reset">${mapIcon("locate")}<span>Vue France</span></button></div>
     <p class="map-geography-note">France · situations simulées</p>
     <p class="map-render-status" data-map-status role="status">La carte se prépare.</p>
   </section>`;
@@ -204,7 +190,7 @@ export function mapGame(game: Game, shared = false): string {
               .join(
                 "",
               )}</div>${focus.id.startsWith("policy:") ? "" : `<button class="map-inspect" data-action="map-inspect" data-place="${placeForTopic(focus)}">Voir le lieu</button>`}${details}`
-          : `<h1 tabindex="-1" class="map-agenda__heading">À traiter</h1><div class="map-agenda">${agenda.map((item, index) => { const title = agendaTitle(item, game); return `<button class="map-agenda__item map-tone--${toneForTopic(item)} ${agendaTitleClass(title)} ${item.urgent ? "map-agenda__item--urgent" : ""} ${index === 0 ? "map-agenda__item--primary" : ""}" data-action="story-select" data-story-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)}${item.urgent ? " · Urgent" : ""}"><span class="map-topic-icon">${mapIcon(iconForTopic(item))}</span><span class="map-agenda__copy"><strong>${e(title)}</strong><span class="map-agenda__meta">${e(item.label)}${item.urgent ? ' · <b>Urgent</b>' : ""}</span></span>${index === 0 ? '<span class="map-agenda__action" aria-hidden="true">Ouvrir le sujet</span>' : ""}</button>`; }).join("")}</div><ul class="map-agenda__legend" aria-label="Repères de la carte"><li class="map-tone--red"><span class="map-topic-icon">${mapIcon("people")}</span>Urgent</li><li class="map-tone--gold"><span class="map-topic-icon">${mapIcon("health")}</span>À surveiller</li><li class="map-tone--blue"><span class="map-topic-icon">${mapIcon("industry")}</span>Projet</li></ul>`
+          : `<h1 tabindex="-1" class="map-agenda__heading">À traiter</h1><div class="map-agenda">${agenda.map((item, index) => { const title = agendaTitle(item, game); return `<button class="map-agenda__item map-tone--${toneForTopic(item)} ${agendaTitleClass(title)} ${item.urgent ? "map-agenda__item--urgent" : ""} ${index === 0 ? "map-agenda__item--primary" : ""}" data-action="story-select" data-story-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)}${item.urgent ? " · Urgent" : ""}"><span class="map-topic-icon">${mapIcon(iconForTopic(item))}</span><span class="map-agenda__copy"><strong>${e(title)}</strong><span class="map-agenda__meta">${e(item.label)}${item.urgent ? ' · <b>Urgent</b>' : ""}</span></span><svg class="map-agenda__chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="m3 3 6 7-6 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>${index === 0 ? '<span class="map-agenda__action" aria-hidden="true">Ouvrir le sujet</span>' : ""}</button>`; }).join("")}</div><ul class="map-agenda__legend" aria-label="Repères de la carte"><li class="map-tone--red"><span class="map-topic-icon">${mapIcon("people")}</span>Urgent</li><li class="map-tone--gold"><span class="map-topic-icon">${mapIcon("health")}</span>À surveiller</li><li class="map-tone--blue"><span class="map-topic-icon">${mapIcon("industry")}</span>Projet</li></ul>`
       }
       ${shared ? '<p class="map-fiction-note">Parcours partagé. Votre sauvegarde reste intacte.</p>' : ""}
     </section>${mapFooter("country")}

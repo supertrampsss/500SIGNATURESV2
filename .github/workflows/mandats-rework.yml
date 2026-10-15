@@ -1,4 +1,4 @@
-name: Mandats 3D and social consequences
+name: Mandats illustrated map and social consequences
 
 on:
   pull_request:
@@ -25,7 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium webkit
-      - name: Verify map, full mandates, actual replay and WebGL fallback
+      - name: Verify illustration, full mandates, actual replay and image fallback
         run: npx playwright test --config playwright.rework.config.ts
       - name: Verify delivery, rejected votes and imported saves
         run: npx playwright test --config playwright.social.config.ts --project desktop-chromium --project android-chromium --project compact-chromium --project iphone-webkit

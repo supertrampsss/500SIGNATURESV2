@@ -24,10 +24,10 @@ html body[data-rework="true"] {
   --map-navy: #071b32;
   --map-ink: #0b2340;
   --map-muted: #596574;
-  --map-paper: #fcf7ee;
+  --map-paper: #fef6ec;
   --map-card: #fffbf4;
   --map-line: #ded3c2;
-  --map-red: #bd1830;
+  --map-red: #b51c2a;
   --map-blue: #1261ad;
   --map-gold: #d38b08;
   --design-navy: var(--map-navy);
@@ -185,8 +185,10 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
 @media (min-width: 1451px) {
   .map-game__metric--blue { padding-left: 56px; gap: 16px; }
   .map-game__metric--blue .map-game__metric-copy { flex: 0 1 154px; }
+  .map-game__metric--blue .map-game__metric-title { padding-right: 30px; }
   .map-game__metric--red { padding-left: 49px; gap: 19px; }
   .map-game__metric--red .map-game__metric-copy { flex: 0 1 153px; }
+  .map-game__metric--red .map-game__metric-title { padding-right: 20px; }
 }
 .map-game__header .map-game__budget {
   display: flex;
@@ -268,32 +270,57 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
   overflow: hidden;
   touch-action: none;
 }
-.mandate-map__canvas,
 .mandate-map__fallback,
-.mandate-map__preview,
 .mandate-map__markers {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
-.mandate-map__preview {
-  display: none;
-  object-fit: contain;
+.mandate-map__artboard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1268px;
+  height: 801px;
+  transform-origin: 0 0;
+}
+.mandate-map__illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
   pointer-events: none;
 }
-.mandate-map[data-renderer="preview"].mandate-map--preview-ready .mandate-map__preview { display: block; }
-.mandate-map[data-renderer="preview"].mandate-map--preview-ready .mandate-map__fallback { visibility: hidden; }
-.mandate-map__canvas {
-  display: block;
-  outline: none;
-  touch-action: none;
-  opacity: 0;
-  transition: opacity 0.2s;
+.mandate-map[data-renderer="illustrated"] { cursor: grab; }
+.mandate-map[data-dragging="true"] { cursor: grabbing; }
+.mandate-map[data-renderer="illustrated"] .mandate-map__fallback { visibility: hidden; }
+.mandate-map[data-renderer="fallback"] .mandate-map__artboard { visibility: hidden; }
+.mandate-map__markers { pointer-events: none; z-index: 1; }
+.mandate-map__effects { position: absolute; inset: 0; pointer-events: none; }
+.map-illustrated-effect {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  transform: translate(-50%, -100%);
+  color: #fff9ef;
+  filter: drop-shadow(0 2px 2px #06182c80);
 }
-.mandate-map[data-renderer="babylon"] .mandate-map__canvas { opacity: 1; }
-.mandate-map[data-renderer="babylon"] .mandate-map__fallback { visibility: hidden; }
-.mandate-map__markers { pointer-events: none; }
+.map-illustrated-effect > svg { display: block; width: 44px; height: 40px; }
+.map-illustrated-effect__label {
+  padding: 3px 6px;
+  max-width: 140px;
+  border-radius: 3px;
+  background: #071b32e8;
+  color: #fff9ef;
+  font: 600 12px/1.2 "Source Sans 3", Arial, sans-serif;
+  text-align: center;
+}
+.map-illustrated-effect--movement .map-illustrated-effect__label { display: none; }
+.map-illustrated-effect--blocked .map-illustrated-effect__label { background: #a8182adf; }
+.map-illustrated-effect--delivered .map-illustrated-effect__label { background: #22604cde; }
 .map-geography-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .map-geographic-label { position: absolute; transform: translate(-50%, -50%); color: #e0e5e8a3; font: 600 12px/1.6 Spectral, Georgia, serif; letter-spacing: .28em; text-transform: uppercase; text-align: center; white-space: nowrap; text-shadow: 0 1px 3px #061b317d; }
 .map-geographic-label[hidden] { display: none; }
@@ -373,6 +400,7 @@ html body[data-rework="true"] #mandats .map-game .map-agenda__copy > strong {
   --map-marker-size: 76px;
   --map-tone: #e9223f;
 }
+.map-marker--urgent .map-marker__anchor { top: var(--map-marker-size); }
 .map-marker__subject {
   position: absolute;
   z-index: 3;
@@ -576,9 +604,9 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
 .map-choice[disabled] .map-choice__action { background: #717784; }
 .map-agenda__heading {
   position: relative;
-  padding-bottom: 16px;
+  padding-bottom: 14px;
   margin-bottom: 24px !important;
-  font-size: 50px !important;
+  font-size: 51px !important;
   line-height: 1.2 !important;
 }
 .map-agenda__heading::after {
@@ -590,13 +618,13 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
   bottom: 0;
   background: linear-gradient(to right, #14579a 0 33%, #fffaf2 33% 66%, #b71829 66% 100%);
 }
-.map-agenda { display: grid; gap: 12px; }
+.map-agenda { display: grid; gap: 18px; }
 @media (min-width: 821px) { .map-agenda { margin-inline: -4px; } }
 .map-agenda__item {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 64px minmax(0, 1fr) 12px;
   align-items: center;
-  gap: 10px 16px;
+  gap: 10px 14px;
   padding: 12px 16px;
   min-height: 112px;
   text-align: left;
@@ -623,13 +651,14 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
 }
 .map-topic-icon .map-icon { width: 37px; height: 37px; }
 .map-agenda__copy { display: grid; min-width: 0; gap: 5px; }
-.map-agenda__copy > strong { font-size: 23px; line-height: 1.16; letter-spacing: -0.025em; overflow-wrap: anywhere; }
-.map-agenda__item--medium-title .map-agenda__copy > strong { font-size: 21px; }
-.map-agenda__item--long-title .map-agenda__copy > strong { font-size: 18px; }
+.map-agenda__copy > strong { font-size: 21px; line-height: 1.16; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+
+
 .map-agenda__meta { color: var(--map-muted); font-size: 16px; }
 .map-agenda__meta b { color: var(--map-red); font-weight: 600; }
 .map-agenda__item--urgent { border-color: #d29a91; background: #fff0e8; }
-.map-agenda__item--primary { min-height: 174px; }
+.map-agenda__item--primary { min-height: 177px; }
+.map-agenda__chevron { width: 12px; height: 20px; color: #777b7b; }
 .map-agenda__action {
   grid-column: 1 / -1;
   padding: 11px 16px;
@@ -639,7 +668,7 @@ html body[data-rework="true"] #mandats .map-choice.choice[disabled] { opacity: 0
   text-align: center;
   font: 700 23px/1.2 "Mandats Serif", Georgia, serif;
 }
-.map-agenda__legend { display: grid; gap: 12px; margin: 20px 0 0; padding: 18px 12px 0; border-top: 1px solid var(--map-line); list-style: none; }
+.map-agenda__legend { display: grid; gap: 12px; margin: 28px 0 0; padding: 18px 12px 0; border-top: 1px solid var(--map-line); list-style: none; }
 .map-agenda__legend li { display: flex; align-items: center; gap: 19px; margin: 0; font-size: 17px; line-height: 1.2; }
 .map-agenda__legend .map-topic-icon { width: 39px; height: 39px; border-width: 1px; }
 .map-agenda__legend .map-icon { width: 25px; height: 25px; }
@@ -831,8 +860,7 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
 }
 @media (max-width: 820px) {
   .map-game__footer { display: none; }
-  /* Keep the same canvas between the agenda and a decision. Resizing the
-     miniature twice per turn needlessly redraws its geometry and shadows. */
+  /* Keep the illustrated map stable between the agenda and a decision. */
   .map-game { grid-template-columns: 1fr; grid-template-rows: 60px minmax(300px, 38svh) auto; overflow: visible; }
   .map-game.map-game--focused:has(.mandate-map[data-inspection]:not([data-inspection=""])) { grid-template-rows: 60px minmax(290px, 45svh) auto; }
   .map-game__header { grid-column: 1; padding: 0 12px; gap: 8px; }
@@ -863,11 +891,12 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
   .map-subject__details { margin-top: 10px; }
   .map-agenda__heading { font-size: 38px !important; margin-bottom: 20px !important; padding-bottom: 12px; }
   .map-agenda { gap: 12px; }
-  .map-agenda__item { grid-template-columns: 42px minmax(0, 1fr); gap: 13px; min-height: 94px; padding: 14px; }
+  .map-agenda__item { grid-template-columns: 42px minmax(0, 1fr) 12px; gap: 13px; min-height: 94px; padding: 14px; }
   .map-agenda__item--primary { min-height: 146px; }
   .map-agenda__copy { gap: 6px; }
   .map-agenda__copy > strong,
-  .map-agenda__item--medium-title .map-agenda__copy > strong { font-size: 19px; }
+  .map-agenda__item--medium-title .map-agenda__copy > strong,
+  .map-agenda__item--long-title .map-agenda__copy > strong { font-size: 19px; }
   .map-topic-icon { width: 42px; height: 42px; }
   .map-topic-icon .map-icon { width: 25px; height: 25px; }
   .map-agenda__meta { font-size: 13px; }
@@ -926,3 +955,5 @@ body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30p
   .map-game *,
   .map-decision-receipt { transition: none !important; animation: none !important; }
 }
+
+.map-game__header, .map-game__footer { background: linear-gradient(115deg, #091a2f, #081c33); }

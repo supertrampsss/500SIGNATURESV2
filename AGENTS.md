@@ -104,40 +104,35 @@ rupture scenes. Render votes from their saved results, with skip and reduced mot
 Do not replace concrete sacrifices with generic “maintain course” options.
 
 
-### Mandats: 3D rework (8 October 2026)
+### Mandats: approved illustrated map (15 October 2026)
 
-The owner's rework supersedes the older visual reference below for v12.
-Follow [the 3D rework contract](docs/mandats-rework.md) and
-[social consequences](docs/mandats-social-contract.md): a real Babylon.js France
-map is the main playfield. The owner explicitly confirmed the desktop mockup in
-`docs/mandats-diorama/reference-ordinateur.png` on 8 October: a richly detailed
-France miniature, navy header, ivory subject panel, red urgency and editorial
-serif headings. This image supersedes the later charcoal/mint proposal as the
-visual target for v12.
-Show one concrete problem, distinct responses and essential tradeoffs; accounts
-and history open on demand. No em/en dashes, arrows or chevrons in the new UI.
-Crowds and construction follow actual saved state. Moving or inspecting the map
-never spends a turn. Preserve the canvas and camera between choices, and keep
-keyboard, reduced motion, offline play and WebGL fallback usable. Finishing five
-years is the survival objective; unrest alone does not remove the president.
-The short v12 verdict remains nonmodal and allows the next subject immediately.
+The owner explicitly abandoned the 3D reconstruction and requested the approved
+mockup itself as an illustrated map. This supersedes the 8 October requirement
+for a Babylon.js scene. Use `docs/mandats-diorama/reference-ordinateur.png` as the
+visual source, with the interactive HTML interface and real saved state.
+Follow [the illustrated-map contract](docs/mandats-illustrated.md) and
+[social consequences](docs/mandats-social-contract.md).
 
-The owner's confirmed mockup and rejection of the delivered map are recorded in
-[the diorama reference and browser evidence](docs/mandats-diorama.md). Before
-calling any visual iteration finished, systematically compare actual browser
-captures with that confirmed desktop image, including the whole composition and
-close views of architecture, terrain, water and materials. Record remaining
-visible differences. Mobile layouts adapt its art direction while keeping the
-existing concise reading requirements; the older mobile study is secondary.
-The current delivered scene still falls short of this target. Compilation or a
-WebGL test cannot establish artistic completion.
+The source illustration retains the approved geography, buildings, mountains,
+water and lighting. Static game pins and controls are restored locally so live
+subjects, projects and mobilisations can be drawn from actual game state.
+Do not reintroduce a 3D renderer or rebuild the map from geometric primitives.
+The approved navy header, ivory panel, serif headings and red alerts remain the
+visual target. The small card chevrons may follow this approved reference.
 
-`map-state.ts` derives scene inputs, `map-scene.ts` owns rendering,
-`map-view.ts` and `map-game.css` own the v12 interface. `social-engine.ts`
-owns persistent mobilisation rules; `rework-content.ts` owns new authored events.
-Run the rework and social Playwright configurations after the full build, retain
-their artifacts, and inspect desktop, 390 px, 320 px and WebKit screens. The
-previous illustration-based composition remains applicable to explicit older links.
+Opening, zooming, panning or inspecting never spends a turn. Preserve the image
+and its view between choices. Keep keyboard, reduced motion, image-load failure,
+save/reload and opt-in offline play usable. Finishing five years remains the
+survival objective; unrest alone does not remove the president. The short v12
+verdict stays nonmodal. Earlier explicit game versions retain their own rules.
+
+`map-state.ts` derives state, `map-runtime.ts` owns the illustrated view and
+interactions, `map-illustrated-layout.ts` owns image anchors, `map-view.ts` and
+`map-game.css` own its interface. The old 3D sources and comparisons are historical.
+Run a full build and the rework/social browser suites, now checking the real
+illustration lifecycle and game consequences. Keep the input records, reports
+and desktop/390 px/320 px/WebKit captures. Compare the whole live page directly
+with the approved image before claiming visual completion.
 
 ### Mandats: approved ten-screen visual reference (24 September 2026)
 

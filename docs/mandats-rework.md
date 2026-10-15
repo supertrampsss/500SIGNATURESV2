@@ -1,4 +1,6 @@
-# MANDATS : refonte 3D
+# MANDATS : refonte de la carte
+
+**Décision du 15 octobre 2026 :** la demande du propriétaire remplace la reconstruction 3D par la carte illustrée de la maquette validée. Le [contrat illustré](mandats-illustrated.md) fait désormais foi. Les passages et captures 3D ci-dessous décrivent les étapes historiques.
 
 La carte nationale est le terrain principal. Le joueur ouvre un sujet localisé, choisit une réponse et retrouve le pays transformé. L'objectif est de terminer les cinq années ; le bilan reste distinct de cet objectif.
 
