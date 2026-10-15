@@ -7,13 +7,45 @@
     "claim": "Couverture des familles écrites, transitions et interactions critiques ; aucune promesse d'exhaustivité des séquences.",
     "calendar": "30 décisions maximum, six périodes par année, cinq ans ; temps arrêté pendant lecture ou fermeture.",
     "units": "Les indices de besoins et capacités sont des hypothèses de simulation ; ils ne sont pas des comptages observés.",
-    "runtimeEvidence": [],
+    "runtimeEvidence": [
+      {
+        "type": "engine-matrix",
+        "artifact": "site/pressure-artifacts/model-final/summary.json"
+      },
+      {
+        "type": "engine-authored-branches",
+        "artifact": "site/pressure-artifacts/authored-final/summary.json"
+      },
+      {
+        "type": "targeted-legal-engine-path",
+        "artifact": "/workspace/mandats-feedback/v13-review/social-school-repair-review.json",
+        "provenanceOnly": true,
+        "portableInputsPath": "integrationReview.targetedChecks[0].input"
+      },
+      {
+        "type": "engine-authored-complement",
+        "artifact": "site/pressure-artifacts/authored-complement/summary.json"
+      },
+      {
+        "type": "pressure-browser-suite-initial-batch",
+        "artifact": "site/pressure-artifacts/report.json"
+      },
+      {
+        "type": "pressure-browser-long-journey-targeted-rerun",
+        "artifact": "site/pressure-artifacts/replay-final/report.json"
+      },
+      {
+        "type": "combined-bounded-engine-proof",
+        "artifact": "site/pressure-artifacts/combined-model-proof.json"
+      }
+    ],
     "requiresBeforeClaimingDelivery": [
       "parcours rejouables version-seed-choix",
       "résultats d'assertions",
       "captures bureau et 390/320 px",
       "égalité export/import/rejeu/hors connexion"
-    ]
+    ],
+    "artifactPolicy": "Les chemins site/pressure-artifacts sont générés et ignorés par Git ; commandes dans docs/mandats-pressure-validation.md#reproduire et artefacts CI du workflow mandats-rework.yml. Les chemins /workspace ne sont que provenance locale, entrées ciblées et empreintes étant incluses dans cette matrice."
   },
   "sources": [
     "docs/mandats-next-contract.md",
@@ -305,7 +337,13 @@
         "Même calendrier de chocs hors conséquences causées",
         "Coût et bénéfice attribués"
       ],
-      "status": "to-verify"
+      "status": "sampled-engine-comparison-supported",
+      "evidence": {
+        "report": "model-final",
+        "comparisons": 9,
+        "distinctSeeds": 3,
+        "observation": "Pression moyenne finale négligence83.85–90.3415, anticipation0, réponses tardives intermédiaires."
+      }
     },
     {
       "id": "P02-unrelated-front",
@@ -347,7 +385,11 @@
         "La capacité rare empêche de tout résoudre instantanément",
         "Au moins une stratégie conserve une voie de rétablissement"
       ],
-      "status": "to-verify"
+      "status": "sampled-engine-outcome-supported-counterplay-not-exhaustive",
+      "evidence": {
+        "report": "model-final",
+        "trajectoriesWithSimultaneousCrises": 27
+      }
     },
     {
       "id": "P05-rejected-capacity",
@@ -361,7 +403,11 @@
         "Les besoins continuent d'évoluer",
         "Le reçu distingue rejet et événements de période"
       ],
-      "status": "to-verify"
+      "status": "engine-transition-invariant-passed-on-sampled-rejections",
+      "evidence": {
+        "report": "model-final",
+        "rejectionsChecked": 255
+      }
     },
     {
       "id": "P06-money-not-staff",
@@ -390,7 +436,12 @@
         "Les moyens temporaires sont libérés à la fin",
         "Abandon ne restitue pas des investissements déjà payés"
       ],
-      "status": "to-verify"
+      "status": "sampled-engine-contention-supported-cancellation-extension-open",
+      "evidence": {
+        "report": "model-final",
+        "contentionPeriods": 267,
+        "limit": "Pas de commande générale annuler/reprioriser les nouveaux programmes."
+      }
     },
     {
       "id": "P08-temporary-relief",
@@ -434,7 +485,8 @@
         "Origine conservée pour replay",
         "Réparation ne garantit pas une livraison si autres conditions manquent"
       ],
-      "status": "to-verify"
+      "status": "targeted-blocked-project-observed-repair-and-withdrawal-unverified",
+      "evidence": "targetedProjectAndEndingEvidence : blocage réel à la décision17 ; la crise institutionnelle interrompt ensuite ce parcours avant une réparation."
     },
     {
       "id": "P11-recovery-breathing-room",
@@ -449,7 +501,11 @@
         "Pas de réapparition immédiate identique sans cause nouvelle",
         "Pression baisse selon les stocks restants"
       ],
-      "status": "to-verify"
+      "status": "sampled-engine-recovery-supported",
+      "evidence": {
+        "report": "model-final",
+        "recoveryTrajectories": 45
+      }
     },
     {
       "id": "P12-repeated-dialogue",
@@ -507,7 +563,12 @@
         "Comptes annuels sans cumul permanent des perturbations temporaires",
         "Ordre déterministe documenté"
       ],
-      "status": "to-verify"
+      "status": "engine-accounting-invariant-passed-on-sampled-periods",
+      "evidence": {
+        "report": "model-final",
+        "closedYears": 360,
+        "temporaryCrossYearPeriods": 264
+      }
     },
     {
       "id": "P16-opening-is-paused",
@@ -523,7 +584,7 @@
         "Aucun changement du tour, des comptes ni des besoins",
         "Pas de calcul au temps réel caché"
       ],
-      "status": "to-verify"
+      "status": "browser-tested-opening-and-reading-no-time-spent-on-four-devices"
     },
     {
       "id": "P17-water-health",
@@ -642,7 +703,11 @@
         "Mouvement seulement si cause déclenchée réellement",
         "Conséquence nommée plutôt que disparition silencieuse"
       ],
-      "status": "to-verify"
+      "status": "sampled-engine-persistence-supported",
+      "evidence": {
+        "report": "model-final",
+        "trajectories": 72
+      }
     },
     {
       "id": "P25-cycle-order",
@@ -656,7 +721,11 @@
         "Pas de boucle instantanée appliquée plusieurs fois dans une période",
         "Intensités bornées"
       ],
-      "status": "to-verify"
+      "status": "source-reviewed-no-order-inversion-runtime-test",
+      "evidence": {
+        "source": "site/src/mandats/pressure-engine.ts",
+        "observation": "Liens calculés depuis previous.sectors ; aucune inversion de tableau testée."
+      }
     },
     {
       "id": "P26-last-period",
@@ -685,7 +754,8 @@
         "Pas de président destitué uniquement par indice de pression",
         "Aucune évolution après fin"
       ],
-      "status": "to-verify"
+      "status": "targeted-legal-engine-ending-passed-rupture-only",
+      "evidence": "Rupture négociée à la décision21 ; replay identique et décision supplémentaire refusée. Autres fins et interface de ce parcours non revendiquées."
     },
     {
       "id": "P28-save-reload",
@@ -701,7 +771,11 @@
         "Même prochain vote et mêmes échéances",
         "Soldes importés non autoritaires"
       ],
-      "status": "to-verify"
+      "status": "engine-equality-and-browser-reload-export-import-passed",
+      "evidence": {
+        "report": "model-final",
+        "trajectories": 72
+      }
     },
     {
       "id": "P29-replay-cause",
@@ -715,7 +789,12 @@
         "Original conservé",
         "Même seed, chocs indépendants inchangés"
       ],
-      "status": "to-verify"
+      "status": "engine-equality-and-complete-desktop-ui-causal-replay-passed",
+      "evidence": {
+        "report": "model-final",
+        "trajectories": 72,
+        "limit": "Égalité de reconstruction distincte de la validation UX du tournant causal."
+      }
     },
     {
       "id": "P30-offline",
@@ -732,7 +811,7 @@
         "Aucune pause punitive",
         "Résultat égal au replay connecté"
       ],
-      "status": "to-verify"
+      "status": "android-browser-preparation-offline-decision-and-pressure-persistence-passed"
     },
     {
       "id": "P31-double-click",
@@ -778,7 +857,7 @@
         "Aucun contrôle essentiel masqué",
         "Historique ne repousse pas les choix de plusieurs écrans"
       ],
-      "status": "to-verify"
+      "status": "pressure-suite-and-extreme-states-reviewed-compact-fix-built-browser-passed-full-suites-ci-pending"
     },
     {
       "id": "P34-budget-attribution",
@@ -812,7 +891,15 @@
         "Cas sans sortie conservés comme défauts à étudier",
         "Aucune conclusion d'exhaustivité"
       ],
-      "status": "to-verify"
+      "status": "bounded-engine-sweep-complete-universal-balance-not-proven",
+      "evidence": {
+        "report": "model-final",
+        "trajectories": 72,
+        "strategies": 8,
+        "seeds": 3,
+        "priorities": 3,
+        "limit": "Renforts temporaires financièrement rentables à calibrer."
+      }
     },
     {
       "id": "P36-social-repair-sector",
@@ -828,7 +915,7 @@
         "Résolution du mouvement et retard scolaire restent des résultats distincts",
         "Une concession de revenus à un autre acteur ne crée pas de capacité technique"
       ],
-      "status": "targeted-legal-engine-check-passed-browser-and-final-matrix-pending"
+      "status": "targeted-legal-engine-and-desktop-browser-school-restoration-passed"
     }
   ],
   "failureModes": [
@@ -953,20 +1040,34 @@
     }
   ],
   "crossReview": {
-    "status": "source-review-complete-final-runtime-matrix-pending",
-    "verifiedScenarioIds": [],
+    "status": "source-engine-and-pressure-browser-reviewed-compact-fix-built-proof-full-suites-ci-pending",
+    "verifiedScenarioIds": [
+      "P01-early-versus-late",
+      "P05-rejected-capacity",
+      "P11-recovery-breathing-room",
+      "P15-annual-boundary",
+      "P16-opening-is-paused",
+      "P24-education-window",
+      "P28-save-reload",
+      "P29-replay-cause",
+      "P30-offline",
+      "P36-social-repair-sector"
+    ],
     "remainingGaps": [
-      "Résultats finaux de la matrice multi-seeds et parcours navigateur à associer avant annonce de couverture complète des scénarios bloquants.",
-      "Les interactions candidates P17–23 sont couvertes seulement par les six secteurs et dix liens explicitement écrits, pas par un moteur métier exhaustif."
+      "Collision compacte corrigée et parcours sur site reconstruit passé ; suites complètes carte/pression et CI finale en cours, sans annonce de succès CI complet.",
+      "Projets blocked/withdrawn et fins démission/destitution/rupture absents de ces échantillons moteur : preuves séparées requises.",
+      "P17–P23 restent sept interactions candidates partiellement représentées par le modèle, pas sept sous-systèmes complets.",
+      "Rentabilité relative des renforts temporaires et investissements à recalibrer par des parties humaines."
     ],
     "limits": [
       "Interactions candidates sans implémentation ni preuve explicitement désignées.",
       "Aucun résultat d'équilibrage universel n'est déduit d'une poignée de parties.",
       "Pas de session de jeu réelle Plague Inc revendiquée ; étude documentaire préalable."
-    ]
+    ],
+    "verificationQualifier": "Ces IDs ont une preuve moteur décrite dans chaque scénario ; les assertions navigateur et les propriétés non observées restent pending. Les scénarios partiellement couverts ne sont pas déclarés entièrement vérifiés."
   },
   "integrationReview": {
-    "status": "source-reviewed-runtime-matrix-pending",
+    "status": "source-engine-and-pressure-browser-reviewed-compact-fix-built-proof-full-suites-ci-pending",
     "runtimeModules": [
       "site/src/mandats/pressure-engine.ts",
       "site/src/mandats/pressure-types.ts",
@@ -1094,7 +1195,80 @@
       "authoredMappings": 52,
       "nationalPolicyMappings": 47,
       "dynamicSocialMappings": 3,
-      "verification": "Lecture des tables et exports ; couverture de toutes les branches de ces tables à établir par audit."
+      "verification": "39 couples dans authored-final, treize complémentaires dans authored-complement : union52/52 et intersection vide vérifiées. Les lacunes de chaque lot restent conservées dans son rapport ; aucune branche non jouée dans leur union.",
+      "authoredMappingsPlayedInTargetedBatch": 39,
+      "authoredMappingsNotPlayedInTargetedBatch": [
+        "soins-lits-aval/equipe-domicile",
+        "soins-lits-aval/places-temporaire",
+        "soins-lits-aval/lits-court-sejour",
+        "soins-desert-medical/antenne-soins",
+        "soins-desert-medical/equipe-mobile-soins",
+        "soins-desert-medical/teleconsultation-soins",
+        "energie-bus-usine/bus-soir",
+        "energie-bus-usine/horaires-pilote",
+        "integration-diplomes/parcours-reconnaissance",
+        "integration-diplomes/cours-langue-metier",
+        "integration-diplomes/recrutement-local-seul",
+        "logement-expulsions/mediation-impayes",
+        "logement-expulsions/hebergement-temporaire"
+      ],
+      "authoredMappingsPlayedInComplement": 13,
+      "authoredMappingsPlayedUnion": 52,
+      "authoredMappingsNotPlayedUnion": [],
+      "unionMappingIds": [
+        "chaleur-ecoles/horaires",
+        "chaleur-ecoles/ombrage",
+        "chaleur-ecoles/renforts",
+        "cyber-hopital/isoler",
+        "cyber-hopital/restaurer",
+        "cyber-hopital/transferer",
+        "eau-equipes/fuite",
+        "eau-equipes/potable",
+        "eau-equipes/prevention",
+        "education-lycees/accompagner",
+        "education-lycees/preserver",
+        "education-lycees/regrouper",
+        "energie-bus-usine/bus-soir",
+        "energie-bus-usine/horaires-pilote",
+        "energie-menages-captifs/aide-ciblee-renovation",
+        "energie-menages-captifs/guichet-renovation",
+        "energie-reseau-partage/raccordement-partage",
+        "energie-reseau-partage/renoncer-raccordement",
+        "energie-reseau-partage/reseau-public-seul",
+        "ia-services/assister",
+        "ia-services/guichets",
+        "ia-services/simples",
+        "integration-diplomes/cours-langue-metier",
+        "integration-diplomes/parcours-reconnaissance",
+        "integration-diplomes/recrutement-local-seul",
+        "integration-logement-travail/aide-mobilite-recrues",
+        "integration-logement-travail/residence-mobilite",
+        "logement-construction/logements-gare",
+        "logement-construction/renover-avant-construire",
+        "logement-expulsions/hebergement-temporaire",
+        "logement-expulsions/mediation-impayes",
+        "logement-vacants/garantie-bailleurs",
+        "logement-vacants/mediations-bailleurs",
+        "logement-vacants/remise-en-location",
+        "logements-vacants/conversion",
+        "logements-vacants/location",
+        "logements-vacants/trajets",
+        "port-bloque/accord",
+        "port-bloque/flux",
+        "port-bloque/reserves",
+        "recrutement-postes-vacants/prime-installation",
+        "recrutement-postes-vacants/reduire-horaires-vacants",
+        "recrutement-postes-vacants/simplifier-concours",
+        "soins-desert-medical/antenne-soins",
+        "soins-desert-medical/equipe-mobile-soins",
+        "soins-desert-medical/teleconsultation-soins",
+        "soins-garde-nuit/financer-renforts",
+        "soins-garde-nuit/organiser-garde",
+        "soins-garde-nuit/renover-service",
+        "soins-lits-aval/equipe-domicile",
+        "soins-lits-aval/lits-court-sejour",
+        "soins-lits-aval/places-temporaire"
+      ]
     },
     "chapterNeeds": {
       "health": [
@@ -1407,7 +1581,9 @@
           }
         }
       ],
-      "interpretation": "Sur ce seed, anticipation stabilise les secteurs avec dette plus élevée ; réponse tardive améliore les soins sans effacer tous les retards. Trois diagnostics ne prouvent pas un équilibrage universel."
+      "interpretation": "Sur ce seed, anticipation stabilise les secteurs avec dette plus élevée ; réponse tardive améliore les soins sans effacer tous les retards. Trois diagnostics ne prouvent pas un équilibrage universel.",
+      "inputArtifactProvenanceOnly": true,
+      "portableReproduction": "Chaque runs[].input contient version, mode, seed, ambition et choix. Utiliser replay(input.mode,input.seed,input.choices,input.version,input.ambition) depuis site/src/mandats/engine.ts ; les résumés sont intégrés sans dépendre du chemin local."
     },
     "targetedChecks": [
       {
@@ -1464,8 +1640,636 @@
           }
         ],
         "replayPressureEqual": true,
-        "artifact": "/workspace/mandats-feedback/v13-review/social-school-repair-review.json"
+        "artifact": "/workspace/mandats-feedback/v13-review/social-school-repair-review.json",
+        "artifactProvenanceOnly": true,
+        "portableReproduction": "L’objet input versionné fournit toutes les entrées ; rejouer chaque préfixe de choices via replay public pour comparer les observations conservées."
       }
-    ]
+    ],
+    "modelEvidence": {
+      "status": "completed-zero-reported-violations",
+      "strictMatrix": {
+        "artifact": "site/pressure-artifacts/model-final/summary.json",
+        "version": 13,
+        "seedCount": 3,
+        "ambitions": [
+          "equilibre",
+          "services",
+          "resilience"
+        ],
+        "strategies": [
+          "neglect",
+          "anticipate",
+          "temporary",
+          "late-rescue",
+          "overcommit",
+          "austerity",
+          "solidarity",
+          "delegation"
+        ],
+        "trajectories": 72,
+        "authoredBranches": 0,
+        "startedAt": "2026-10-15T16:08:56.593Z",
+        "finishedAt": "2026-10-15T16:17:55.256Z",
+        "invariantChecks": 178121,
+        "invariantViolations": 0,
+        "sourceChangedDuringRun": false,
+        "sourceHashes": {
+          "types.ts": "ba59ab8c00508647c30e0dfdde8fcad2f5f11a1d3ba8f0ee6570fc62713a0efd",
+          "pressure-types.ts": "c6f9fdf0c1f2a59a53118168856d540771b39a0ca54d0ad377877f3977a7c38b",
+          "pressure-engine.ts": "9194c68126d68ed00998e637c5e0945691f8d461fa9c3507f1bc3fdd89e4558a",
+          "pressure-content.ts": "02cd8181a29e400f3e385a113d5175aabd9eaab04b105bdaf0b8a1b31a463a65",
+          "pressure-agenda.ts": "49c1b3c6c45df32ab02d499412b7d4f4a754b2f8959e1989ffcbc3d261f25a57",
+          "engine.ts": "13949e7e844a5b1a0b020321b690c213aa80b070a823d03be89d9d05fa585281",
+          "campaign.ts": "b3533cdb62ac9be533ee472d28f0d651b91de951c868e72d99af97ab392e1228",
+          "narrative-engine.ts": "48d2c244cd40f990d4bc652ce91a3517954eba17ddeb59280611d67d541dfd04",
+          "narrative-consequences.ts": "9f8181dc8c420c9ced8fd8bc48f539c3cb422b941afa3fc83f468fb2686edb46",
+          "narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+          "rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+          "politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+          "political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+          "social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+          "social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+          "national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+          "storage.ts": "a5f8bc9d2b3f83ab3fa33cc0cc935849d7a234f58c34c8d2a7a6f61e26c70898"
+        },
+        "coverage": {
+          "contexts": [
+            "coalition",
+            "hospital",
+            "redress"
+          ],
+          "stages": [
+            "crisis",
+            "disrupted",
+            "stable",
+            "strained",
+            "watch"
+          ],
+          "programmeStatuses": [
+            "active",
+            "completed",
+            "preparing"
+          ],
+          "projectStatuses": [
+            "delivered",
+            "funded"
+          ],
+          "rejections": 255,
+          "adoption": 1833,
+          "earlyEndings": [],
+          "closedYears": 360,
+          "recoveryTrajectories": 45,
+          "authoredInterventions": [
+            "chaleur-ecoles/ombrage",
+            "cyber-hopital/restaurer",
+            "eau-equipes/potable",
+            "energie-reseau-partage/raccordement-partage",
+            "ia-services/assister",
+            "logement-construction/logements-gare",
+            "logement-construction/renover-avant-construire",
+            "logements-vacants/location",
+            "logements-vacants/trajets",
+            "soins-desert-medical/antenne-soins"
+          ],
+          "simultaneousCrisisTrajectories": 27,
+          "temporaryPeriodsBilled": 1143,
+          "expiredReliefWithAccruedCost": 1185,
+          "temporaryCrossYearPeriods": 264,
+          "executionContention": 267
+        },
+        "gaps": {
+          "authoredMappingsNotPlayed": [
+            "soins-garde-nuit/financer-renforts",
+            "soins-garde-nuit/renover-service",
+            "soins-garde-nuit/organiser-garde",
+            "soins-lits-aval/equipe-domicile",
+            "soins-lits-aval/places-temporaire",
+            "soins-lits-aval/lits-court-sejour",
+            "soins-desert-medical/equipe-mobile-soins",
+            "soins-desert-medical/teleconsultation-soins",
+            "energie-bus-usine/bus-soir",
+            "energie-bus-usine/horaires-pilote",
+            "energie-menages-captifs/aide-ciblee-renovation",
+            "energie-menages-captifs/guichet-renovation",
+            "energie-reseau-partage/reseau-public-seul",
+            "energie-reseau-partage/renoncer-raccordement",
+            "recrutement-postes-vacants/prime-installation",
+            "recrutement-postes-vacants/simplifier-concours",
+            "recrutement-postes-vacants/reduire-horaires-vacants",
+            "integration-diplomes/parcours-reconnaissance",
+            "integration-diplomes/cours-langue-metier",
+            "integration-diplomes/recrutement-local-seul",
+            "integration-logement-travail/residence-mobilite",
+            "integration-logement-travail/aide-mobilite-recrues",
+            "logement-expulsions/mediation-impayes",
+            "logement-expulsions/hebergement-temporaire",
+            "logement-vacants/remise-en-location",
+            "logement-vacants/garantie-bailleurs",
+            "logement-vacants/mediations-bailleurs",
+            "education-lycees/preserver",
+            "education-lycees/regrouper",
+            "education-lycees/accompagner",
+            "eau-equipes/fuite",
+            "eau-equipes/prevention",
+            "cyber-hopital/isoler",
+            "cyber-hopital/transferer",
+            "port-bloque/accord",
+            "port-bloque/flux",
+            "port-bloque/reserves",
+            "chaleur-ecoles/horaires",
+            "chaleur-ecoles/renforts",
+            "logements-vacants/conversion",
+            "ia-services/simples",
+            "ia-services/guichets"
+          ],
+          "institutionalEndingsNotEncountered": [
+            "resignation",
+            "destitution",
+            "rupture"
+          ]
+        },
+        "issues": []
+      },
+      "authoredBranches": {
+        "artifact": "site/pressure-artifacts/authored-final/summary.json",
+        "version": 13,
+        "seedCount": 6,
+        "ambitions": [
+          "equilibre",
+          "services",
+          "resilience"
+        ],
+        "strategies": [
+          "neglect",
+          "anticipate",
+          "temporary",
+          "late-rescue",
+          "overcommit",
+          "austerity",
+          "solidarity",
+          "delegation"
+        ],
+        "trajectories": 0,
+        "authoredBranches": 39,
+        "startedAt": "2026-10-15T16:05:55.155Z",
+        "finishedAt": "2026-10-15T16:10:18.310Z",
+        "invariantChecks": 65081,
+        "invariantViolations": 0,
+        "sourceChangedDuringRun": false,
+        "sourceHashes": {
+          "types.ts": "ba59ab8c00508647c30e0dfdde8fcad2f5f11a1d3ba8f0ee6570fc62713a0efd",
+          "pressure-types.ts": "c6f9fdf0c1f2a59a53118168856d540771b39a0ca54d0ad377877f3977a7c38b",
+          "pressure-engine.ts": "9194c68126d68ed00998e637c5e0945691f8d461fa9c3507f1bc3fdd89e4558a",
+          "pressure-content.ts": "02cd8181a29e400f3e385a113d5175aabd9eaab04b105bdaf0b8a1b31a463a65",
+          "pressure-agenda.ts": "49c1b3c6c45df32ab02d499412b7d4f4a754b2f8959e1989ffcbc3d261f25a57",
+          "engine.ts": "13949e7e844a5b1a0b020321b690c213aa80b070a823d03be89d9d05fa585281",
+          "campaign.ts": "b3533cdb62ac9be533ee472d28f0d651b91de951c868e72d99af97ab392e1228",
+          "narrative-engine.ts": "48d2c244cd40f990d4bc652ce91a3517954eba17ddeb59280611d67d541dfd04",
+          "narrative-consequences.ts": "9f8181dc8c420c9ced8fd8bc48f539c3cb422b941afa3fc83f468fb2686edb46",
+          "narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+          "rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+          "politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+          "political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+          "social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+          "social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+          "national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+          "storage.ts": "a5f8bc9d2b3f83ab3fa33cc0cc935849d7a234f58c34c8d2a7a6f61e26c70898"
+        },
+        "coverage": {
+          "contexts": [
+            "coalition",
+            "hospital",
+            "redress"
+          ],
+          "stages": [
+            "crisis",
+            "disrupted",
+            "stable",
+            "strained",
+            "watch"
+          ],
+          "programmeStatuses": [
+            "active",
+            "completed",
+            "preparing"
+          ],
+          "projectStatuses": [
+            "delivered",
+            "funded"
+          ],
+          "rejections": 59,
+          "adoption": 678,
+          "earlyEndings": [],
+          "closedYears": 144,
+          "recoveryTrajectories": 23,
+          "authoredInterventions": [
+            "chaleur-ecoles/horaires",
+            "chaleur-ecoles/ombrage",
+            "chaleur-ecoles/renforts",
+            "cyber-hopital/isoler",
+            "cyber-hopital/restaurer",
+            "cyber-hopital/transferer",
+            "eau-equipes/fuite",
+            "eau-equipes/potable",
+            "eau-equipes/prevention",
+            "education-lycees/accompagner",
+            "education-lycees/preserver",
+            "education-lycees/regrouper",
+            "energie-menages-captifs/aide-ciblee-renovation",
+            "energie-menages-captifs/guichet-renovation",
+            "energie-reseau-partage/raccordement-partage",
+            "energie-reseau-partage/renoncer-raccordement",
+            "energie-reseau-partage/reseau-public-seul",
+            "ia-services/assister",
+            "ia-services/guichets",
+            "ia-services/simples",
+            "integration-logement-travail/aide-mobilite-recrues",
+            "integration-logement-travail/residence-mobilite",
+            "logement-construction/logements-gare",
+            "logement-construction/renover-avant-construire",
+            "logement-vacants/garantie-bailleurs",
+            "logement-vacants/mediations-bailleurs",
+            "logement-vacants/remise-en-location",
+            "logements-vacants/conversion",
+            "logements-vacants/location",
+            "logements-vacants/trajets",
+            "port-bloque/accord",
+            "port-bloque/flux",
+            "port-bloque/reserves",
+            "recrutement-postes-vacants/prime-installation",
+            "recrutement-postes-vacants/reduire-horaires-vacants",
+            "recrutement-postes-vacants/simplifier-concours",
+            "soins-garde-nuit/financer-renforts",
+            "soins-garde-nuit/organiser-garde",
+            "soins-garde-nuit/renover-service"
+          ],
+          "simultaneousCrisisTrajectories": 24,
+          "temporaryPeriodsBilled": 559,
+          "expiredReliefWithAccruedCost": 575,
+          "temporaryCrossYearPeriods": 80,
+          "executionContention": 162
+        },
+        "gaps": {
+          "authoredMappingsNotPlayed": [
+            "soins-lits-aval/equipe-domicile",
+            "soins-lits-aval/places-temporaire",
+            "soins-lits-aval/lits-court-sejour",
+            "soins-desert-medical/antenne-soins",
+            "soins-desert-medical/equipe-mobile-soins",
+            "soins-desert-medical/teleconsultation-soins",
+            "energie-bus-usine/bus-soir",
+            "energie-bus-usine/horaires-pilote",
+            "integration-diplomes/parcours-reconnaissance",
+            "integration-diplomes/cours-langue-metier",
+            "integration-diplomes/recrutement-local-seul",
+            "logement-expulsions/mediation-impayes",
+            "logement-expulsions/hebergement-temporaire"
+          ],
+          "institutionalEndingsNotEncountered": [
+            "resignation",
+            "destitution",
+            "rupture"
+          ]
+        },
+        "issues": []
+      },
+      "sourceIntegrity": "17 modules identiques début/fin et entre les trois lots, puis fichiers courants relus.",
+      "samplingLimit": "Trois seeds/contextes, huit stratégies et trois priorités : 72 exécutions, pas 72 mondes indépendants. Plusieurs priorités donnent la même trajectoire brute.",
+      "authoredComplement": {
+        "version": 13,
+        "seedCount": 6,
+        "authoredBranches": 13,
+        "startedAt": "2026-10-15T16:19:03.901Z",
+        "finishedAt": "2026-10-15T16:23:37.633Z",
+        "invariantChecks": 24996,
+        "invariantViolations": 0,
+        "sourceChangedDuringRun": false,
+        "sourceAtEnd": {
+          "types.ts": "ba59ab8c00508647c30e0dfdde8fcad2f5f11a1d3ba8f0ee6570fc62713a0efd",
+          "pressure-types.ts": "c6f9fdf0c1f2a59a53118168856d540771b39a0ca54d0ad377877f3977a7c38b",
+          "pressure-engine.ts": "9194c68126d68ed00998e637c5e0945691f8d461fa9c3507f1bc3fdd89e4558a",
+          "pressure-content.ts": "02cd8181a29e400f3e385a113d5175aabd9eaab04b105bdaf0b8a1b31a463a65",
+          "pressure-agenda.ts": "49c1b3c6c45df32ab02d499412b7d4f4a754b2f8959e1989ffcbc3d261f25a57",
+          "engine.ts": "13949e7e844a5b1a0b020321b690c213aa80b070a823d03be89d9d05fa585281",
+          "campaign.ts": "b3533cdb62ac9be533ee472d28f0d651b91de951c868e72d99af97ab392e1228",
+          "narrative-engine.ts": "48d2c244cd40f990d4bc652ce91a3517954eba17ddeb59280611d67d541dfd04",
+          "narrative-consequences.ts": "9f8181dc8c420c9ced8fd8bc48f539c3cb422b941afa3fc83f468fb2686edb46",
+          "narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+          "rework-content.ts": "a7df19a100801ec6389905720790592a903d0d651ea8dc98e6156ca809ff2d35",
+          "politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+          "political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+          "social-engine.ts": "5ee397fefb3cfa27bfcf1f5039aec6f3e7e4920c13acaecd4aa4679b18b56caa",
+          "social-content.ts": "1570e713603336d9713db9511141174cae1e9df37196296d2df912bb62e2c50b",
+          "national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+          "storage.ts": "a5f8bc9d2b3f83ab3fa33cc0cc935849d7a234f58c34c8d2a7a6f61e26c70898"
+        },
+        "issues": [],
+        "artifact": "site/pressure-artifacts/authored-complement/summary.json",
+        "playedMappings": [
+          "energie-bus-usine/bus-soir",
+          "energie-bus-usine/horaires-pilote",
+          "integration-diplomes/cours-langue-metier",
+          "integration-diplomes/parcours-reconnaissance",
+          "integration-diplomes/recrutement-local-seul",
+          "logement-expulsions/hebergement-temporaire",
+          "logement-expulsions/mediation-impayes",
+          "soins-desert-medical/antenne-soins",
+          "soins-desert-medical/equipe-mobile-soins",
+          "soins-desert-medical/teleconsultation-soins",
+          "soins-lits-aval/equipe-domicile",
+          "soins-lits-aval/lits-court-sejour",
+          "soins-lits-aval/places-temporaire"
+        ]
+      },
+      "totalInvariantChecks": 268198,
+      "totalInvariantViolations": 0,
+      "combinedReportArtifact": "site/pressure-artifacts/combined-model-proof.json"
+    },
+    "balanceLimit": {
+      "observation": "Les renforts temporaires sont financièrement avantageux dans certaines stratégies.",
+      "tradeoff": "26 à30 décisions peuvent être mobilisées ; pas de gain de capacité durable ; les renforts expirent.",
+      "claimLimit": "L’absence de violation technique ne prouve pas qu’aucune stratégie temporaire ne domine un investissement durable."
+    },
+    "browserEvidence": {
+      "status": "eleven-active-pressure-cases-passed-across-initial-batch-and-targeted-rerun",
+      "activePassedCases": 11,
+      "intentionallySkippedVariants": 9,
+      "reports": [
+        {
+          "artifact": "site/pressure-artifacts/report.json",
+          "stats": {
+            "startTime": "2026-10-15T16:14:09.611Z",
+            "duration": 429199.658,
+            "expected": 10,
+            "skipped": 9,
+            "unexpected": 1,
+            "flaky": 0
+          },
+          "errors": [],
+          "cases": [
+            {
+              "title": "six persistent fronts, full costs and mobile navigation stay readable without spending a period",
+              "project": "desktop-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "neglect accumulates, a voted programme waits for delivery, and reload/export/import preserve its actual history",
+              "project": "desktop-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "prepared offline game retains the same pressures and can advance one actual period",
+              "project": "desktop-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a complete five-year UI campaign closes five budgets and can replay a causal decision",
+              "project": "desktop-chromium",
+              "status": "unexpected",
+              "results": [
+                "timedOut"
+              ]
+            },
+            {
+              "title": "a delivered student agreement restores the capacity removed by its own school reform",
+              "project": "desktop-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "six persistent fronts, full costs and mobile navigation stay readable without spending a period",
+              "project": "android-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "neglect accumulates, a voted programme waits for delivery, and reload/export/import preserve its actual history",
+              "project": "android-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "prepared offline game retains the same pressures and can advance one actual period",
+              "project": "android-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "a complete five-year UI campaign closes five budgets and can replay a causal decision",
+              "project": "android-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a delivered student agreement restores the capacity removed by its own school reform",
+              "project": "android-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "six persistent fronts, full costs and mobile navigation stay readable without spending a period",
+              "project": "compact-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "neglect accumulates, a voted programme waits for delivery, and reload/export/import preserve its actual history",
+              "project": "compact-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "prepared offline game retains the same pressures and can advance one actual period",
+              "project": "compact-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a complete five-year UI campaign closes five budgets and can replay a causal decision",
+              "project": "compact-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a delivered student agreement restores the capacity removed by its own school reform",
+              "project": "compact-chromium",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "six persistent fronts, full costs and mobile navigation stay readable without spending a period",
+              "project": "iphone-webkit",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "neglect accumulates, a voted programme waits for delivery, and reload/export/import preserve its actual history",
+              "project": "iphone-webkit",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            },
+            {
+              "title": "prepared offline game retains the same pressures and can advance one actual period",
+              "project": "iphone-webkit",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a complete five-year UI campaign closes five budgets and can replay a causal decision",
+              "project": "iphone-webkit",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            },
+            {
+              "title": "a delivered student agreement restores the capacity removed by its own school reform",
+              "project": "iphone-webkit",
+              "status": "skipped",
+              "results": [
+                "skipped"
+              ]
+            }
+          ]
+        },
+        {
+          "artifact": "site/pressure-artifacts/replay-final/report.json",
+          "stats": {
+            "startTime": "2026-10-15T16:21:47.328Z",
+            "duration": 114006.163,
+            "expected": 1,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "errors": [],
+          "cases": [
+            {
+              "title": "a complete five-year UI campaign closes five budgets and can replay a causal decision",
+              "project": "desktop-chromium",
+              "status": "expected",
+              "results": [
+                "passed"
+              ]
+            }
+          ]
+        }
+      ],
+      "initialFailure": "Le parcours complet a dépassé180s ; il a passé au rejeu ciblé en114s avec plafond360s. Le rapport initial conserve cet échec, sans le masquer.",
+      "scopeLimit": "Bureau,390px,320px etWebKit pour lecture/persistance ; Android pour horsconnexion ; parcours complet etaccordscolaire sur bureau. Pas chaque combinaison."
+    },
+    "validationBlockers": [
+      {
+        "id": "compact-map-marker-collision",
+        "scope": "Suite générale carte/rework, distincte des onze cas de pression",
+        "status": "fixed-with-built-browser-proof-ci-pending",
+        "consequence": "Le défaut spécifique est corrigé et son parcours reconstruit passe ; les suites complètes carte/pression et la CI finale restent à confirmer.",
+        "correction": "Placement recalculé après chargement des polices ; contrôle de carte traité comme obstacle ; carte compacte repliée haute de164px.",
+        "builtBrowserProof": {
+          "test": "compact markers avoid one another and the map control while fonts load late",
+          "source": "site/tests/mandats-rework.test.mjs",
+          "project": "compact",
+          "result": "passed",
+          "durationSeconds": 12.8,
+          "assertions": [
+            "0collision marqueurs/contrôles avant libération des polices",
+            "0collision après document.fonts.ready",
+            "0collision après dépliage puis repliage",
+            "tour reste0"
+          ],
+          "commandFromSite": "npx playwright test --config playwright.rework.config.ts --project compact --grep \"compact markers avoid one another\"",
+          "requires": "Build préalable du site",
+          "localLogProvenanceOnly": "/workspace/mandats-v13-font-built.log",
+          "localArtifactsProvenanceOnly": "/workspace/mandats-v13-font-built-results"
+        }
+      }
+    ],
+    "targetedProjectAndEndingEvidence": {
+      "artifact": "site/pressure-artifacts/targeted-project-failure.json",
+      "sourceHashesMatchModel": true,
+      "input": {
+        "version": 13,
+        "mode": "national",
+        "seed": 2,
+        "choices": [
+          "pol-wealth-hospital-package",
+          "pol-coalition-compromise",
+          "r01a",
+          "r02a",
+          "r03b",
+          "r04a",
+          "u01a",
+          "r05a",
+          "r06a",
+          "r07b",
+          "r08a",
+          "u05a",
+          "pol-censure-withdraw",
+          "n11-13-chaleur-ecoles-ombrage",
+          "r09b",
+          "r10a",
+          "pol-censure-withdraw",
+          "pol-censure-vote",
+          "pol-censure-vote",
+          "pol-censure-vote",
+          "pol-rupture-negotiate"
+        ],
+        "ambition": "equilibre"
+      },
+      "observations": {
+        "project": "ecoles-fraiches",
+        "blockedAtCompletedDecision": 17,
+        "deliveryCapacity": 37,
+        "requiredCapacity": 40,
+        "ending": "rupture",
+        "endingAtCompletedDecision": 21,
+        "replayIdentical": true,
+        "refusesExtraDecision": true
+      },
+      "remainingUnverified": [
+        "Reprise du projet bloqué",
+        "Abandon du projet dans cette version",
+        "Démission",
+        "Destitution"
+      ],
+      "scope": "Parcours légal ciblé supplémentaire ; distinct des trois lots et de leurs 268198 contrôles. Aucune généralisation à toutes les fins."
+    }
   }
 }

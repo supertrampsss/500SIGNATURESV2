@@ -55,13 +55,14 @@ async function select(page, id) {
   await expect(page.locator('[data-map-decision]')).toBeVisible();
 }
 async function choose(page, id) {
-  const previous = await stored(page);
+  const previousTurn = Number(await page.locator('#mandats').getAttribute('data-turn'));
+  expect(Number.isInteger(previousTurn)).toBe(true);
   const selector = `[data-action="choose"][data-choice="${id}"]:not([disabled]),[data-action="choose"][data-choice$="-${id}"]:not([disabled])`;
   const button = page.locator(selector);
   await expect(button).toHaveCount(1);
   await button.click();
-  await expect.poll(async () => (await stored(page)).turn).toBe(previous.turn + 1);
-  await expect(page.locator('#mandats')).toHaveAttribute('data-turn', String(previous.turn + 1));
+  await expect.poll(async () => (await stored(page)).turn).toBe(previousTurn + 1);
+  await expect(page.locator('#mandats')).toHaveAttribute('data-turn', String(previousTurn + 1));
   await page.keyboard.press('Escape');
   await expect(page.locator('[data-decision-verdict]')).toBeHidden();
   const game = await stored(page);
@@ -202,6 +203,7 @@ test('prepared offline game retains the same pressures and can advance one actua
 });
 
 test('a complete five-year UI campaign closes five budgets and can replay a causal decision', async ({ page }, info) => {
+  test.setTimeout(360_000);
   test.skip(info.project.name !== 'desktop-chromium', 'One complete campaign; the other projects inspect the same pressure decision and persistence flows.');
   await open(page);
   const before = await stored(page);

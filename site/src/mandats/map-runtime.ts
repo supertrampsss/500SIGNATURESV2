@@ -260,6 +260,11 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
   }, { signal });
   const resize = new ResizeObserver(scheduleDraw);
   resize.observe(host);
+  // Font substitution changes label widths without resizing the map itself.
+  // Reproject after late fonts (or their fallback) settle; never spend a turn.
+  document.fonts.addEventListener("loadingdone", scheduleDraw, { signal });
+  document.fonts.addEventListener("loadingerror", scheduleDraw, { signal });
+  void document.fonts.ready.then(scheduleDraw);
   update(initial, light);
   if (!image || !artboard) settle(false);
   else if (image.complete) settle(image.naturalWidth > 0);

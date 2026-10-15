@@ -251,6 +251,53 @@ test("a high density display keeps the reference illustration readable through r
   }
 });
 
+test("compact markers avoid one another and the map control while fonts load late", async ({ page }, info) => {
+  test.skip(info.project.name !== "compact", "The reproduced race concerns the narrow command map.");
+  // Reproduced before the fix: hold both WOFF2 files, open/close/reopen Lyon,
+  // then release them. Assembly and Lyon still overlapped after fonts loaded;
+  // resizing by one pixel repaired them. The map toggle also covered Lyon.
+  let holding = true;
+  const pendingFonts = [];
+  await page.route(/\.woff2(?:\?|$)/, async route => {
+    if (holding) await new Promise(resolve => pendingFonts.push(resolve));
+    await route.continue();
+  });
+  const overlaps = () => page.locator("[data-mandate-map]").evaluate(map => {
+    const boxes = [...map.querySelectorAll("[data-map-marker], .map-camera, [data-map-toggle]")]
+      .map(element => ({ id: element.dataset.mapMarker ?? element.className,
+        box: element.getBoundingClientRect() }))
+      .filter(item => item.box.width > 0 && item.box.height > 0);
+    return boxes.flatMap((item, index) => boxes.slice(index + 1).filter(other =>
+      Math.min(item.box.right, other.box.right) - Math.max(item.box.left, other.box.left) > 1 &&
+      Math.min(item.box.bottom, other.box.bottom) - Math.max(item.box.top, other.box.top) > 1)
+      .map(other => [item.id, other.id]));
+  });
+  try {
+    await page.goto("/mandats/?mode=national&v=12&seed=0&ambition=equilibre", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-mandate-map]")).toHaveAttribute("data-renderer", "illustrated");
+    await select(page, "education-lycees");
+    await page.locator('[data-action="map-close"]').click();
+    await select(page, "education-lycees");
+    expect((await game(page)).turn).toBe(0);
+    await expect.poll(overlaps).toEqual([]);
+    await info.attach("geometrie-avant-polices", {
+      body: JSON.stringify({ overlaps: await overlaps(), fonts: await page.evaluate(() => document.fonts.status) }),
+      contentType: "application/json",
+    });
+  } finally {
+    holding = false;
+    pendingFonts.forEach(release => release());
+  }
+  await page.evaluate(() => document.fonts.ready);
+  await expect.poll(overlaps).toEqual([]);
+  await page.getByRole("button", { name: "Déplier la carte", exact: true }).click();
+  await expect(page.locator("[data-map-toggle]")).toHaveAttribute("aria-expanded", "true");
+  expect((await game(page)).turn).toBe(0);
+  await page.getByRole("button", { name: "Replier la carte", exact: true }).click();
+  await expect.poll(overlaps).toEqual([]);
+  await capture(page, info, "polices-retardees-carte-compacte");
+});
+
 test("the reference illustration opens subjects without advancing the game and preserves its artboard", async ({
   page,
 }, info) => {

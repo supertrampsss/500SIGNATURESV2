@@ -104,8 +104,9 @@ test('fresh national play starts on the current v13 ruleset', async ({ page }) =
   const save = await stored(page);
   expect(save).toMatchObject({ version: 13, mode: 'national', choices: [] });
   await expect(page.locator('[data-map-agenda]')).toBeVisible();
-  const selectedId = await page.locator('[data-map-agenda] [data-action="story-select"]').first().getAttribute('data-story-id');
-  await page.locator('[data-map-agenda] [data-action="story-select"]').first().click();
+  const front = page.locator('[data-map-agenda] [data-action="story-select"]').filter({ visible: true }).first();
+  const selectedId = await front.getAttribute('data-story-id');
+  await front.click();
   const focusedRaw = await rawSave(page);
   expect(decodeExport(focusedRaw).narrative.focus).toBe(selectedId);
   await page.reload();
