@@ -1,0 +1,12 @@
+ℹ tests 1082
+ℹ suites 0
+ℹ pass 1082
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17804.748504
+Pré-rendu : l'accueil dans dist/index.html, 13 analyse(s), 6 réponse(s), dist/analyses/index.html, dist/sources/index.html, dist/bilan/index.html, 19 carte(s) de partage, 30 adresse(s) au plan du site, sous https://500signatures.fr.
+Guide IA : 35 pages canoniques publiées dans llms.txt.
+Mandats hors connexion : 35 ressources, version 7f22c6cf9e352e1c
+Audience facultative : 28 documents préparés, aucune balise Google chargée sans acceptation.

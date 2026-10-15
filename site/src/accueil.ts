@@ -595,9 +595,12 @@ export function renduFranceAccueil(): string {
   </section>`;
 }
 export function renduQuestionsAccueil(): string {
-  return `<section class="accueil__questions" aria-labelledby="accueil-questions-titre">
-    <div><p class="accueil__sur-titre">POUR LIRE SANS PRÉREQUIS</p><h2 id="accueil-questions-titre">Des chiffres, et du contexte.</h2></div>
-    <div><details><summary>D'où viennent les données ?</summary><p>Chaque dossier relie ses indicateurs à une publication et précise l'exercice observé. <a href="${CHEMIN_SOURCES}">Voir les sources et la méthode.</a></p></details><details><summary>Que contient Mandats ?</summary><p>45 décisions sur cinq ans pour explorer des arbitrages et leurs conséquences, selon les règles du jeu.</p></details><details><summary>Une lecture est-elle gratuite ?</summary><p>Oui. La lecture, les données publiées et le jeu restent accessibles sans abonnement.</p></details></div>
+  return `<section class="usage-faq" aria-labelledby="accueil-questions-titre">
+    <h2 id="accueil-questions-titre">Utiliser 500 Signatures</h2>
+    <details><summary>Où trouver le budget d’une commune ?</summary><p>Dans <a href="/territoire/">Ville</a>, recherchez une commune par son nom. Sa fiche réunit les chiffres disponibles et leurs périodes. Pour comparer deux exercices, vérifiez le périmètre, l’unité et la source de la série.</p></details>
+    <details><summary>Comment vérifier ou citer un chiffre ?</summary><p>Chaque dossier indique les publications utilisées et les limites de sa lecture. Conservez le montant, l’unité, la période et le lien vers la source. La page <a href="${CHEMIN_SOURCES}">Sources et méthode</a> décrit les jeux de données et les contrôles. Une erreur peut être <a href="/a-propos/#corrections">signalée au projet</a>.</p></details>
+    <details><summary>Mandats présente-t-il de vrais résultats économiques ?</summary><p>Mandats est un <a href="/mandats/comprendre/">jeu de simulation politique</a> : jusqu’à 30 décisions au cours de cinq années. Ses montants et ses conséquences sont fictifs. Les comptes observés se consultent dans <a href="/bilan/">France</a> ; ils sont distincts des résultats de votre partie.</p></details>
+    <details><summary>Faut-il payer ou créer un compte ?</summary><p>Les données, les dossiers et le jeu sont accessibles gratuitement, sans compte. La sauvegarde de Mandats reste dans votre navigateur ; son menu permet de l’exporter pour la conserver ou la transférer.</p></details>
   </section>`;
 }
 
@@ -614,7 +617,7 @@ function renduPortesAccueil(): string {
         <div class="story-door__copy"><span>FRANCE</span><strong>Voir les comptes de la France</strong><small>Les grands équilibres en un coup d’œil.</small></div>
         <img src="/france/assemblee.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
-      <a class="story-door" href="/territoire">
+      <a class="story-door" href="/territoire/">
         <div class="story-door__copy"><span>VILLE</span><strong>Comprendre<br>votre ville</strong><small>Budget, population, services publics et réalités locales.</small></div>
         <img src="/france/logement.jpg" alt="" width="360" height="240" loading="lazy">
       </a>
@@ -645,7 +648,7 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="story-hero__copy">
         <p class="story-kicker">500 SIGNATURES · DONNÉES PUBLIQUES</p>
         <h1 id="story-titre">Comprendre aujourd’hui<br>pour mieux agir demain.</h1>
-        <p>Les chiffres publics, les villes et les grands enjeux, dans une lecture claire et sourcée.</p>
+        <p>500 Signatures permet de lire les comptes publics de la France et des communes, de comprendre les chiffres du quotidien et de jouer un mandat politique simulé. L’accès est gratuit.</p>
       </div>
       <figure class="story-hero__media">
         <img src="/france/justice.jpg" alt="Palais de justice de Paris" width="1280" height="850" fetchpriority="high">
@@ -661,7 +664,7 @@ export function rendu(donnees: DonneesAccueil): string {
         <a class="story-button" href="/mandats/?mode=national">Commencer mon mandat</a>
       </div>
       <div class="story-mandats__dashboard" aria-label="Aperçu du mandat">
-        <header><strong>Mon mandat</strong><span>Année 1 sur 5</span></header>
+        <header><strong>Exemple fictif de mandat</strong><span>Année 1 sur 5</span></header>
         <ol class="story-mandats__timeline" aria-label="Progression sur cinq ans">
           <li aria-current="step"><span>1</span><small>Année 1</small></li>
           <li><span>2</span><small>Année 2</small></li>
@@ -678,9 +681,10 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="story-mandats__years" aria-hidden="true"><strong>5<br>ans</strong><span>pour arbitrer,<br>décider,<br>mesurer.</span></div>
     </section>
     ${renduConfianceStory()}
+    ${renduQuestionsAccueil()}
     <footer class="story-footer">
       <a href="/">500 Signatures</a><span>Des données pour une démocratie plus proche.</span>
-      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a></nav>
+      <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a></nav>
       <a class="site-x-link" href="https://x.com/500signaturesfr" target="_blank" rel="noreferrer noopener" aria-label="500 Signatures sur X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg></a>
       <a class="story-footer__credits" href="/france/credits.html">Crédits photographiques</a>
     </footer>

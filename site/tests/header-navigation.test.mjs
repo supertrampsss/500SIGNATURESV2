@@ -18,7 +18,7 @@ async function waitForPage(page, route) {
   await page.goto(route.path, { waitUntil: 'domcontentloaded' });
   await expect(header(page)).toBeVisible();
   await expect(nav(page).locator('a[href="/bilan/"]')).toHaveText('France');
-  await expect(nav(page).locator('a[href="/territoire"]')).toHaveText('Ville');
+  await expect(nav(page).locator('a[href="/territoire/"]')).toHaveText('Ville');
   await expect(nav(page).locator('a[href="/analyses/"]')).toHaveText('Dossiers');
   if (route.page === 'home') await expect(page.locator('.vue--accueil')).toBeVisible();
   if (route.page === 'france') await expect(page.locator('#vue-bilan .fr-page')).toBeVisible();
@@ -98,7 +98,7 @@ test('shared header works across public pages, viewports, and repeated SPA navig
     await expect(nav(page)).toBeVisible();
     await expect(menuButton(page)).toHaveCount(0);
     await expect(nav(page).locator('a[href="/bilan/"]')).toHaveText('France');
-    await expect(nav(page).locator('a[href="/territoire"]')).toHaveText('Ville');
+    await expect(nav(page).locator('a[href="/territoire/"]')).toHaveText('Ville');
     await expect(nav(page).locator('a[href="/analyses/"]')).toHaveText('Dossiers');
     await noHorizontalOverflow(page);
     fallbackScreenshots.push(await capture(page, info, `header-fallback-${path.replaceAll('/', '-') || 'root'}`));
@@ -160,7 +160,7 @@ test('shared header works across public pages, viewports, and repeated SPA navig
       await menuButton(page).click();
       await expect(nav(page)).toBeVisible();
       await nav(page).getByRole('link', { name: destination, exact: true }).click();
-      const expectedPath = destination === 'France' ? '/bilan/' : '/territoire';
+      const expectedPath = destination === 'France' ? '/bilan/' : '/territoire/';
       await expect.poll(() => new URL(page.url()).pathname).toBe(expectedPath);
       await expect(menuButton(page)).toHaveAttribute('aria-expanded', 'false');
       await expect(nav(page)).toBeHidden();

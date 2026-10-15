@@ -36,7 +36,7 @@ test('Accueil : les données, villes et dossiers précèdent le jeu',async({page
  const content=page.locator('.accueil-story');
  const geometry=await content.evaluate(root=>({doors:root.querySelector('.story-door').getBoundingClientRect().top,game:root.querySelector('.story-mandats').getBoundingClientRect().top}));
  expect(geometry.doors).toBeLessThan(geometry.game);
- for(const link of ['/bilan/','/territoire','/analyses/']) await expect(content.locator('.story-door[href="'+link+'"]')).toBeVisible();
+ for(const link of ['/bilan/','/territoire/','/analyses/']) await expect(content.locator('.story-door[href="'+link+'"]')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });

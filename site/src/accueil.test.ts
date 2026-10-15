@@ -557,7 +557,7 @@ function page(overrides: Partial<Parameters<typeof rendu>[0]> = {}): string {
 
 test("25. l'accueil ouvre les trois portes utiles sans atelier secondaire", () => {
   const html = page();
-  for (const href of ["/bilan/", "/territoire", "/analyses/"]) {
+  for (const href of ["/bilan/", "/territoire/", "/analyses/"]) {
     assert.ok(html.includes(`href="${href}"`), href);
   }
   assert.ok(!html.includes("Explorer salaires et prélèvements"));

@@ -1,0 +1,43 @@
+[WebServer] (node:32285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 15 tests using 2 workers
+
+(node:32304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32303) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   2 [android-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓   1 [android-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.3s)
+(node:32635) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   4 [iphone-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓   3 [android-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.5s)
+(node:32742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   5 [iphone-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.6s)
+(node:32857) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   7 [compact-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓   6 [iphone-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (4.1s)
+(node:33025) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   8 [compact-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (1.7s)
+(node:33120) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -  10 [landscape-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓   9 [compact-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.1s)
+(node:33278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 [landscape-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.8s)
+(node:33346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  12 [landscape-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.1s)
+  ✓  13 [desktop-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées (1.3s)
+(node:33485) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 [desktop-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.8s)
+  ✓  15 [desktop-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.0s)
+
+  4 skipped
+  11 passed (21.0s)

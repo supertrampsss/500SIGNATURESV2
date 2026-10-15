@@ -1051,7 +1051,7 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
   const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
     ["Voir les comptes de la France", "/bilan/"],
-    ["Comprendre<br>votre ville", "/territoire"],
+    ["Comprendre<br>votre ville", "/territoire/"],
     ["Approfondir<br>un sujet", "/analyses/"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {

@@ -73,6 +73,7 @@ import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
+import { renduNavigation } from "../src/navigation.ts";
 import { SEO_VUES } from "../src/seo-site.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
@@ -915,7 +916,10 @@ export function injecterAccueil(shell: string, corps: string, version: string): 
         "n'en exécute pas.",
     );
   }
-  return shell.replace(
+  // Le style et les liens doivent être utilisables avant le montage du client.
+  return shell.replace(/<body([^>]*)>/, '<body$1 data-vue="accueil">')
+    .replace(/(<nav\b[^>]*\bid="navigation-principale"[^>]*>)[\s\S]*?<\/nav>/, (_match, ouverture: string) => ouverture + renduNavigation('/', true) + '</nav>')
+    .replace(
     CADRE_ACCUEIL,
     () =>
       `<div class="vue vue--accueil" id="vue-accueil" data-publication="${echapper(version)}">\n` +
@@ -1797,6 +1801,8 @@ async function main(): Promise<void> {
   // Ville dispose d'un document propre : le robot ne reçoit plus l'accueil
   // sous une seconde adresse, et la recherche reste visible sans JavaScript.
   const shellVille = shell
+    .replace(/<body([^>]*)>/, '<body$1 data-vue="territoire">')
+    .replace(/(<nav\b[^>]*\bid="navigation-principale"[^>]*>)[\s\S]*?<\/nav>/, (_match, ouverture: string) => ouverture + renduNavigation('/territoire/', true) + '</nav>')
     .replace(/<div\b([^>]*\bid="vue-accueil"[^>]*)>/, '<div$1 hidden>')
     .replace(/<div\b([^>]*\bid="vue-territoire"[^>]*)>/, (_match, attributs: string) => `<div${attributs.replace(/\s+hidden\b/, "")}>`);
   const htmlVille = injecterAnnonce(shellVille, SEO_VUES.territoire, SITE);
