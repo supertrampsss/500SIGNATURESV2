@@ -74,9 +74,19 @@ test('opt-in offline preparation survives network loss with the cinematic game a
 });
 
 test('source-backed guides are readable and lead to the matching mode',async({page},info)=>{
- await page.goto('/mandats/comprendre/');await expect(page.locator('.guide-list article')).toHaveCount(4);await noOverflow(page);
- await page.locator('.guide-list article').filter({hasText:'FINANCES NATIONALES'}).first().locator('a').click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','index,follow');await noOverflow(page);
- await activate(page.getByRole('link',{name:'Tester ce type d’arbitrage',exact:true}),info);await expect(page.locator('.dossier')).toBeVisible();
+ for(let index=0;index<4;index++){
+  await page.goto('/mandats/comprendre/');await expect(page.locator('.guide-list article')).toHaveCount(4);await noOverflow(page);
+  const card=page.locator('.guide-list article').nth(index);
+  const municipal=(await card.textContent()).includes('FINANCES LOCALES');
+  await card.locator('a').click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','index,follow');await noOverflow(page);
+  if(municipal)await expect(page.locator('.method-content')).toContainText('Le mandat communal est actuellement indisponible.');
+  const play=page.getByRole('link',{name:'Jouer un mandat national',exact:true});
+  await expect(play).toHaveAttribute('href','/mandats/?mode=national');
+  await activate(play,info);
+  await expect(page.locator('[data-mandate-map][data-renderer="illustrated"]')).toBeVisible();
+  await expect(page.locator('.map-game__header')).toContainText('Année 1');
+  await expect(page.getByRole('button',{name:'État du pays',exact:true})).toBeVisible();
+ }
 });
 
 test('municipal entry announces its unavailability without creating a save',async({page},info)=>{

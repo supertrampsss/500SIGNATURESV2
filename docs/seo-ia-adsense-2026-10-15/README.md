@@ -12,6 +12,8 @@ compte privé n’est conservée ici.
 - [Pages du build et contenu du guide IA](built-pages-and-llms.json).
 - [Parcours ciblés : 61 réussis, quatre répétitions ignorées](browser-final.log).
 - [En-tête : trois formats réussis](header-final.log).
+- [Contrat des destinations : deux formats réussis](visual-navigation.log).
+- [Graphe des 35 pages accessibles depuis l’accueil](internal-links.json).
 - [Pages complètes sans script : entrées et observations](static-readerviews.json).
 
 Les captures avant/après sont de vraies pages entières. L’accès à Google

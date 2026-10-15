@@ -107,8 +107,8 @@ l’activer pour l’outil est indiqué, avec accès aux sources et comptes nati
 décisions possibles sur cinq ans. Les H2 distinguent conséquences d’un choix,
 repères de finances publiques et questions sur le jeu. Les H3 répondent à la
 durée, au compte, au transfert de sauvegarde, au hors connexion et au caractère
-fictif. Les liens nationaux ouvrent la campagne actuelle ; les anciens scénarios
-municipaux sont nommés comme tels. Le vocabulaire reste celui du produit : vote,
+fictif. Les liens ouvrent la campagne nationale actuelle ; les anciens scénarios
+municipaux sont nommés comme tels et leur indisponibilité est explicite. Le vocabulaire reste celui du produit : vote,
 projet, promesse, mobilisation, effet immédiat ou différé.
 
 ## Critique concrète et corrections
@@ -119,7 +119,9 @@ projet, promesse, mobilisation, effet immédiat ou différé.
   « Exemple fictif de mandat ».
 - Le guide d’entrée présentait quatre notions budgétaires sans expliquer la
   campagne actuelle. Il donne maintenant le déroulement, les conséquences et
-  les réponses pratiques avant de conduire au jeu.
+  les réponses pratiques avant de conduire au jeu. Les quatre guides renvoient
+  à la campagne nationale disponible et expliquent l’indisponibilité du mandat
+  communal, au lieu d’inviter à un parcours bloqué.
 - Les pages d’entrée Ville et accueil ne répondaient pas aux principales
   difficultés de vérification. Les aides ajoutées traitent ces cas, sans
   remplissage destiné à atteindre un nombre arbitraire de mots.
@@ -168,6 +170,8 @@ existante n’est pas une CMP AdSense. Le jeu et ses résultats restent sans pub
   sont contrôlées une fois, plutôt que cinq fois pour le même corpus statique.
 - En-tête partagé : trois parcours réussis, 320 px, 390 px et 1 440 px, avec
   navigation répétée et accès au site depuis le menu du jeu.
+- Dernier contrôle SEO et parcours des quatre guides : 16 réussis, quatre
+  répétitions HTTP ignorées. Contrat des destinations publiques : deux réussis.
 - Inspection des pages complètes accueil, Ville et guide, avec et sans
   JavaScript, sur ordinateur, 390 px et 320 px. Les captures et les mesures
   publiques sont conservées dans [les preuves locales](seo-ia-adsense-2026-10-15/README.md).

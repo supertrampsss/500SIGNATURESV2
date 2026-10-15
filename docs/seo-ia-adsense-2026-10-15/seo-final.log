@@ -1,43 +1,48 @@
-[WebServer] (node:32285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:38386) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-Running 15 tests using 2 workers
+Running 20 tests using 2 workers
 
-(node:32304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:38404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:32303) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:38405) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
   -   2 [android-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
-  ✓   1 [android-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.3s)
-(node:32635) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  ✓   3 [android-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.4s)
+  ✓   1 [android-chromium] › tests/mandats-mobile.test.mjs:76:1 › source-backed guides are readable and lead to the matching mode (6.5s)
+  ✓   4 [android-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.1s)
+(node:38743) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  -   4 [iphone-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
-  ✓   3 [android-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.5s)
-(node:32742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:38750) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓   5 [iphone-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.6s)
-(node:32857) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  -   6 [iphone-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓   7 [iphone-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.6s)
+  ✓   5 [iphone-webkit] › tests/mandats-mobile.test.mjs:76:1 › source-backed guides are readable and lead to the matching mode (5.2s)
+(node:38986) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  -   7 [compact-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
-  ✓   6 [iphone-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (4.1s)
-(node:33025) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  ✓   8 [iphone-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.1s)
+(node:39119) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓   8 [compact-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (1.7s)
-(node:33120) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  -  10 [compact-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  11 [compact-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.0s)
+  ✓   9 [compact-chromium] › tests/mandats-mobile.test.mjs:76:1 › source-backed guides are readable and lead to the matching mode (5.0s)
+(node:39321) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  -  10 [landscape-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
-  ✓   9 [compact-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.1s)
-(node:33278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  ✓  12 [compact-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.0s)
+(node:39384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓  11 [landscape-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.8s)
-(node:33346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  -  14 [landscape-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  15 [landscape-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.6s)
+  ✓  13 [landscape-webkit] › tests/mandats-mobile.test.mjs:76:1 › source-backed guides are readable and lead to the matching mode (5.4s)
+(node:39581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓  12 [landscape-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.1s)
-  ✓  13 [desktop-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées (1.3s)
-(node:33485) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+  ✓  16 [landscape-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.9s)
+(node:39722) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓  14 [desktop-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.8s)
-  ✓  15 [desktop-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.0s)
+  ✓  18 [desktop-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées (2.0s)
+  ✓  17 [desktop-chromium] › tests/mandats-mobile.test.mjs:76:1 › source-backed guides are readable and lead to the matching mode (5.7s)
+  ✓  20 [desktop-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.5s)
+  ✓  19 [desktop-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.5s)
 
   4 skipped
-  11 passed (21.0s)
+  16 passed (35.3s)

@@ -14,7 +14,7 @@ const PAGES = [
 const NAVIGATION = [
   ['Accueil', '/'],
   ['France', '/bilan/'],
-  ['Ville', '/territoire'],
+  ['Ville', '/territoire/'],
   ['Dossiers', '/analyses/'],
   ['Mandats', '/mandats/'],
 ];
