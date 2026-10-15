@@ -2,6 +2,7 @@ import { storyAgenda } from "./narrative-engine.ts";
 import type { Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
 import type { PressureSectorId } from "./pressure-types.ts";
+import { isPressureIncidentId } from "./pressure-content.ts";
 export {
   COUNTRY_REFERENCE_POSE, mapPosition, mapCoordinates,
   mapSourcePosition, mapSourceCoordinates, mapAuthoredPosition,
@@ -67,6 +68,9 @@ export function mapState(game: Game | null) {
   const subjects = agenda.map((item) => {
     const sector = item.id.startsWith("pressure-") ? item.id.slice(9) as PressureSectorId : undefined;
     const front = sector ? game?.pressure?.sectors[sector] : undefined;
+    const incident = game?.pressure?.incidents?.find(incident => incident.id === item.id);
+    const incidentStatus = game && game.version >= 14 && isPressureIncidentId(item.id)
+      ? incident?.status ?? "active" : undefined;
     return {
       ...item,
       place: placeForTopic(item),
@@ -75,8 +79,9 @@ export function mapState(game: Game | null) {
       pressureTrend: front?.trend,
       pressureLevel: front?.pressure,
       pressureStockChange: front?.lastChange,
+      incidentStatus,
       urgent: front ? front.stage === "disrupted" || front.stage === "crisis" :
-        item.id.startsWith("mvt-") || item.dueTurn !== undefined ||
+        incidentStatus === "active" || item.id.startsWith("mvt-") || item.dueTurn !== undefined ||
         (!!game?.politics?.pendingCrisis && item.id.startsWith("institutional:")),
     };
   });

@@ -105,7 +105,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12|13=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12|13|14=3):Game {
   if(version>=10&&mode!=='national')throw new Error('Cette version concerne uniquement le mandat national.');
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
@@ -199,7 +199,7 @@ function transition(game:Game,choice:Choice):Game {
     // Project delivery is resolved first. Pressure then accrues this period's
     // expenses once, including finite interventions and all still-open fronts.
     const adopted=!(politicalResolution?.vote?.kind==='law'&&!politicalResolution.vote.passed);
-    const pressure=advancePressure(game,g,choice,adopted);
+    const pressure=advancePressure(game,g,choice,adopted,game.version>=14?storyAgenda(game).map(item=>item.id):[]);
     g.pressure=pressure.state;apply(g,pressure.effect);
     if(g.politics){
       g.politics.unrest=clamp(g.politics.unrest+pressure.unrest);

@@ -1,4 +1,15 @@
-# Mandats v13 : pression, arbitrages et rétablissement
+# Mandats v13 et v14 : pression, arbitrages et rétablissement
+
+La passe globale suivante crée la v14 pour les nouvelles parties. Deux crises
+écrites, cyberattaque hospitalière et port bloqué, conservent désormais leur
+perturbation propre tant qu'une réponse n'est pas opérationnelle. Une même
+concession sociale peut reprendre ses crédits déjà votés après un échec de mise
+en place. Les règles publiées v13 restent inchangées : 25 trajectoires complètes
+conservent leur état exact, vérifié contre le moteur du commit publié.
+Les reproductions, contrôles avant/après et limites de cette passe figurent dans
+[la revue globale](mandats-global-qa.md),
+[les incidents](mandats-incidents-validation.md) et
+[la reprise des accords](mandats-social-retry-validation.md).
 
 Demande propriétaire du 15 octobre 2026 : travailler en boucle avec plusieurs agents pour retrouver une pression systémique comparable à celle étudiée dans *Plague Inc.*. La référence porte sur le rythme, l'accumulation et les arbitrages ; les règles sanitaires de ce jeu ne décrivent pas un pays.
 

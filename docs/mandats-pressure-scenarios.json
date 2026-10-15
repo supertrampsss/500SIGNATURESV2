@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "date": "2026-10-15",
-  "targetVersion": 13,
+  "targetVersion": 14,
   "status": "design-and-audit-matrix",
   "scope": {
     "claim": "Couverture des familles écrites, transitions et interactions critiques ; aucune promesse d'exhaustivité des séquences.",
@@ -2271,5 +2271,47 @@
       ],
       "scope": "Parcours légal ciblé supplémentaire ; distinct des trois lots et de leurs 268198 contrôles. Aucune généralisation à toutes les fins."
     }
+  },
+  "previousPublishedVersion": 13,
+  "globalReview": {
+    "date": "2026-10-15",
+    "newRules": "v14 uniquement ; la v13 publiée conserve son état exact pour les entrées historiques.",
+    "persistentAuthoredIncidents": [
+      "cyber-hopital",
+      "port-bloque"
+    ],
+    "verifiedJourneys": [
+      "Incident ignoré au-delà de son ancien créneau",
+      "Réserves temporaires puis retour de la perturbation",
+      "Accord adopté puis résolution à la livraison",
+      "Restauration bloquée, reprise rejetée, abandon adopté sans guérison de la crise",
+      "Accord social échoué repris sans double financement, crédits indexés",
+      "Autre accord, supplément réel et rejet sans effet",
+      "Comparaison jouable et restauration du mandat d’origine",
+      "Navigation après import et marqueurs denses sur 320 px"
+    ],
+    "legacyReference": {
+      "commit": "b36015efd51d569642421fc3b5a941d1df1a0674",
+      "fixture": "site/tests/fixtures/mandats-v13-compatibility.json",
+      "completeStateHashes": 25
+    },
+    "modelArtifact": "site/pressure-artifacts/global-model/summary.json",
+    "browserArtifacts": [
+      "site/pressure-artifacts/report.json",
+      "site/incidents-artifacts/report.json",
+      "site/social-artifacts/report.json",
+      "site/rework-artifacts/report.json"
+    ],
+    "reviewDocuments": [
+      "docs/mandats-global-qa.md",
+      "docs/mandats-incidents-validation.md",
+      "docs/mandats-social-retry-validation.md"
+    ],
+    "limits": [
+      "Exploration bornée, aucune exhaustivité des séquences",
+      "Deux incidents explicites ; pas de stock industriel ou logistique autonome",
+      "Négociation politique répétitive à retravailler",
+      "Longues légendes de carte et définition de l’illustration source encore perfectibles"
+    ]
   }
 }

@@ -4,8 +4,18 @@ import type { NarrativeEventRecord } from './narrative-types.ts';
 /** All quantities are explicit scenario hypotheses, not measured French backlogs. */
 export type PressureSectorId = 'health' | 'housing' | 'transport' | 'energy' | 'education' | 'administration';
 export type PressureStage = 'stable' | 'watch' | 'strained' | 'disrupted' | 'crisis';
+export type PressureIncidentId = 'cyber-hopital' | 'port-bloque';
+export type PressureIncident = {
+  id: PressureIncidentId;
+  sector: PressureSectorId;
+  status: 'active' | 'contained' | 'resolved';
+  /** The incident starts only when an actual decision spends this period. */
+  startedTurn: number;
+  responseProgrammeId?: string;
+  resolvedTurn?: number;
+};
 export type PressureCause = {
-  kind: 'inherited' | 'decision' | 'shock' | 'link' | 'delivery' | 'overload';
+  kind: 'inherited' | 'decision' | 'shock' | 'link' | 'delivery' | 'overload' | 'incident';
   turn: number;
   label: string;
   choice?: string;
@@ -30,6 +40,9 @@ export type PressureChoice = {
   projectId?: string;
   /** A funded concession only applies after the actual social commitment is kept. */
   socialMovementId?: string;
+  /** v14: only actual delivery can contain or resolve an active incident. */
+  incidentId?: PressureIncidentId;
+  incidentResponse?: 'contain' | 'resolve';
 };
 export type PressureFront = {
   id: PressureSectorId;
@@ -76,6 +89,8 @@ export type PressureEvent = NarrativeEventRecord & { sector?: PressureSectorId }
 export type PressureState = {
   sectors: Record<PressureSectorId, PressureFront>;
   programmes: PressureProgramme[];
+  /** Absent from published v13 trajectories. Rebuilt from v14 inputs. */
+  incidents?: PressureIncident[];
   execution: { capacity: number; used: number; waiting: number };
   budget: PressureBudget;
   lastDecision: string[];

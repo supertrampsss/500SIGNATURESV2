@@ -7,6 +7,7 @@ import type {
 import type { SocialActor, SocialMovement } from "./social-types.ts";
 import {
   activeSocialMovements,
+  fundedSocialOperating,
   movementPhase,
   SOCIAL_ACTORS,
 } from "./social-engine.ts";
@@ -329,10 +330,23 @@ export function socialMovementFront(
           ? "Les lycéens se mobilisent"
           : `${actor.label} : ${movement.demand.toLocaleLowerCase("fr")}`,
       body: `${movement.actor === "lyceens" ? "Les lycéens demandent de conserver les enseignements de proximité après le regroupement des classes." : `Les ${actor.label.toLocaleLowerCase("fr")} contestent la décision « ${movement.sourceTitle} ».`} ${movement.grievance} ${movementPhase(movement)} : ${movement.lastDetail}${due} Le collectif et cette mobilisation sont fictifs.`,
-      choices:
-        movement.actor === "lyceens"
-          ? schoolChoices
-          : responses[movement.actor],
+      choices: (movement.actor === "lyceens" ? schoolChoices : responses[movement.actor]).map(choice => {
+        if (game.version < 14 || !choice.social?.response || !(choice.effect.operating && choice.effect.operating > 0)) return choice;
+        const retained = fundedSocialOperating(game, movement, choice.id);
+        const additional = Math.round(Math.max(0, choice.effect.operating - retained) * 1_000_000) / 1_000_000;
+        const money = (amount: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 }).format(amount);
+        return {
+          ...choice,
+          ...(retained > 0 ? {
+            description: `${choice.description} Les crédits déjà votés sont conservés pour relancer la mise en œuvre.`,
+            cost: additional > 0
+              ? `${money(additional)} Md€/an de crédit supplémentaire ; ${money(retained)} Md€/an déjà engagés`
+              : `0 € de crédit nouveau ; ${money(retained)} Md€/an déjà engagés`,
+          } : {}),
+          effect: { ...choice.effect, operating: additional },
+          social: { ...choice.social, response: { ...choice.social.response, fundingId: choice.id } },
+        };
+      }),
     },
   };
 }

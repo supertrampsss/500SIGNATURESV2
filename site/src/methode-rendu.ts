@@ -391,7 +391,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
  */
 export function renduMethode(): string {
   return `
-    <h2>${TITRES.methode}</h2>
+    <h2 id="methode">${TITRES.methode}</h2>
     <details class="methode__pli">
     <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">

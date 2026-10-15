@@ -4,6 +4,7 @@ import type {
   PressureCause, PressureChoice, PressureEvent, PressureFront, PressureProgramme,
   PressureSectorId, PressureStage, PressureState, PressureTransition,
 } from './pressure-types.ts';
+import { isPressureIncidentId, PRESSURE_INCIDENTS } from './pressure-content.ts';
 
 /**
  * Versioned simulation hypotheses, not observations of France.
@@ -161,7 +162,7 @@ export function pressureProjectCanDeliver(before: Game, afterChoice: Game, proje
 }
 
 /** Exactly one transition per committed decision, including a rejected ballot. */
-export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choice, adopted: boolean): PressureTransition {
+export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choice, adopted: boolean, presentedIncidents: readonly string[] = []): PressureTransition {
   const previous = (before as PressureGame).pressure ?? initialPressureState(before.seed, before.narrative?.context);
   const state = structuredClone(previous);
   const result: PressureTransition = { state, effect: {}, events: [], messages: [], unrest: 0, legitimacy: 0, support: 0 };
@@ -178,6 +179,19 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     (kind === 'decision' ? state.lastDecision : state.lastWorld).push(detail);
   }
 
+  // Merely rendering an agenda never activates anything. The campaign supplies
+  // the incident dossiers present when this real decision spends its period.
+  if (before.version >= 14) {
+    state.incidents ??= [];
+    for (const id of presentedIncidents.filter(isPressureIncidentId)) {
+      if (state.incidents.some(item => item.id === id)) continue;
+      const spec = PRESSURE_INCIDENTS[id];
+      state.incidents.push({ id, sector: spec.sector, status: 'active', startedTurn: before.turn });
+      record(spec.sector, 'Une perturbation active continue de peser sur le service',
+        `${spec.label}. Tant qu’aucune réponse n’est opérationnelle, la capacité effective est réduite de ${spec.capacityLoss.toLocaleString('fr-FR')} unité par période (hypothèse de simulation).`, 'world');
+    }
+  }
+
   // Temporary flow changes expire before the next period is spent. Accrued costs remain.
   for (const programme of state.programmes) {
     if (programme.status !== 'active' || programme.endsTurn === undefined || turn < programme.endsTurn) continue;
@@ -186,6 +200,19 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     front.need = round(Math.max(0, front.need - (programme.appliedNeed ?? 0)));
     programme.status = 'completed';
     record(programme.sector, 'Le renfort temporaire arrive à son terme', `${programme.label} prend fin. Les dépenses déjà engagées restent dans les comptes de l’année.`, 'world', programme.sourceTurn);
+    if (before.version >= 14 && programme.incidentId) {
+      const incident = state.incidents?.find(item => item.id === programme.incidentId);
+      if (incident?.status === 'contained' && incident.responseProgrammeId === programme.id) {
+        const fallback = state.programmes.find(item => item.incidentId === incident.id && item.incidentResponse === 'contain'
+          && item.deliveredTurn !== undefined && (item.status === 'active' && (item.endsTurn ?? Infinity) > turn || item.status === 'completed' && item.duration === undefined));
+        incident.status = fallback ? 'contained' : 'active';
+        if (fallback) incident.responseProgrammeId = fallback.id;
+        else delete incident.responseProgrammeId;
+        const spec = PRESSURE_INCIDENTS[incident.id];
+        record(incident.sector, 'La réponse provisoire prend fin, la perturbation reste ouverte',
+          `${programme.label} arrive à son terme. ${spec.label}${fallback ? ' ; les autres moyens de secours opérationnels restent en place' : ' ; une réponse durable reste à mettre en œuvre'}.`, 'world', incident.startedTurn, -1);
+      }
+    }
   }
 
   const action = choice.pressure;
@@ -272,6 +299,19 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     } else programme.status = 'completed';
     addCause(front, { kind: 'delivery', turn: programme.sourceTurn, choice: programme.sourceChoice, label: programme.label, direction: directionOf(programme) });
     record(programme.sector, 'Les moyens entrent en service', `${programme.label} est opérationnel${programme.duration ? ` pour ${programme.duration} périodes` : ''}. Les capacités changent maintenant ; le retard se résorbera selon les besoins qui continuent d’arriver.`, programme.sourceTurn === before.turn ? 'decision' : 'world', programme.sourceTurn, 2);
+    if (before.version >= 14 && programme.incidentId && programme.incidentResponse) {
+      const incident = state.incidents?.find(item => item.id === programme.incidentId);
+      if (incident && incident.status !== 'resolved') {
+        incident.status = programme.incidentResponse === 'resolve' ? 'resolved' : 'contained';
+        incident.responseProgrammeId = programme.id;
+        if (incident.status === 'resolved') incident.resolvedTurn = turn;
+        record(incident.sector, incident.status === 'resolved' ? 'La perturbation est levée' : 'Une réponse de secours contient la perturbation',
+          incident.status === 'resolved'
+            ? `${programme.label} est réellement opérationnel. La perte de capacité liée à cet incident prend fin ; les retards accumulés restent à rattraper.`
+            : `${programme.label} limite la perturbation${programme.duration ? ` pendant ${programme.duration} périodes` : ''}. Le fonctionnement de secours conserve une perte de capacité résiduelle ; les retards acquis ne disparaissent pas.`,
+          programme.sourceTurn === before.turn ? 'decision' : 'world', programme.sourceTurn, 2);
+      }
+    }
   }
 
   const scenarioShocks = shocks(before.seed);
@@ -299,7 +339,12 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     const need = Math.max(0, front.need + chapterNeed + seasonalNeed + external.reduce((sum, item) => sum + (item.need ?? 0), 0));
     front.incomingNeed = round(need);
     const linkLoss = Math.min(2.2, links.reduce((sum, link) => sum + link.loss, 0));
-    const effectiveCapacity = Math.max(.5, front.capacity * (1 - front.fatigue / 300) - linkLoss + external.reduce((sum, item) => sum + (item.capacity ?? 0), 0));
+    const incidents = before.version >= 14 ? (state.incidents ?? []).filter(item => item.sector === id && item.status !== 'resolved') : [];
+    const incidentLoss = incidents.reduce((sum, item) => {
+      const spec = PRESSURE_INCIDENTS[item.id];
+      return sum + (item.status === 'contained' ? spec.containedLoss : spec.capacityLoss);
+    }, 0);
+    const effectiveCapacity = Math.max(.5, front.capacity * (1 - front.fatigue / 300) - linkLoss - incidentLoss + external.reduce((sum, item) => sum + (item.capacity ?? 0), 0));
     const added = need - effectiveCapacity;
     front.effectiveCapacity = round(effectiveCapacity);
     front.backlog = round(Math.max(0, front.backlog + added));
@@ -313,6 +358,14 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     const nextThreshold = [25, 45, 65, 85].find(threshold => threshold > front.pressure);
     if (nextThreshold !== undefined && front.pressureChange > .35) front.nextRiskIn = Math.max(1, Math.ceil((nextThreshold - front.pressure) / front.pressureChange));
     front.causes = front.causes.filter(cause => cause.kind !== 'link');
+    if (before.version >= 14) {
+      front.causes = front.causes.filter(cause => cause.kind !== 'incident');
+      for (const incident of incidents) {
+        const spec = PRESSURE_INCIDENTS[incident.id];
+        addCause(front, { kind: 'incident', turn: incident.startedTurn, direction: 'increase',
+          label: `${spec.label}${incident.status === 'contained' ? ' en fonctionnement de secours' : ''} : −${(incident.status === 'contained' ? spec.containedLoss : spec.capacityLoss).toLocaleString('fr-FR')} unité de capacité effective par période (hypothèse de simulation).` });
+      }
+    }
     for (const link of links) {
       const origin = causalOrigin(previous.sectors[link.from], 'increase');
       addCause(front, { kind: 'link', turn: origin.turn, choice: origin.choice, direction: 'increase', label: link.label });

@@ -22,7 +22,7 @@ type Issue = { scenario: string; turn: number; message: string };
 
 const strategies: Strategy[] = ['neglect', 'anticipate', 'temporary', 'late-rescue', 'overcommit', 'austerity', 'solidarity', 'delegation'];
 const ambitions: Ambition[] = ['equilibre', 'services', 'resilience'];
-const version = Number(process.env.MANDATS_PRESSURE_VERSION ?? 13) as Game['version'];
+const version = Number(process.env.MANDATS_PRESSURE_VERSION ?? 14) as Game['version'];
 const configuredSeedCount = boundedNumber(process.env.MANDATS_PRESSURE_SEEDS, 12, 1, 120);
 const seeds = process.env.MANDATS_PRESSURE_SEED_LIST
   ? [...new Set(process.env.MANDATS_PRESSURE_SEED_LIST.split(',').map(seed => boundedNumber(seed.trim(), 0, 0, 9999)))]
@@ -36,7 +36,7 @@ if (!['neglect', 'authored-first'].includes(authoredGuide)) throw new Error('Gui
 const output = resolve(process.env.MANDATS_PRESSURE_OUTPUT ?? 'pressure-artifacts/model');
 const sourceModules = ['types.ts', 'pressure-types.ts', 'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts',
   'engine.ts', 'campaign.ts', 'narrative-engine.ts', 'narrative-consequences.ts', 'narrative-content.ts', 'rework-content.ts',
-  'politics.ts', 'political-dilemmas.ts', 'social-engine.ts', 'social-content.ts', 'national-agenda.ts', 'storage.ts'];
+  'politics.ts', 'political-dilemmas.ts', 'social-engine.ts', 'social-content.ts', 'social-types.ts', 'national-agenda.ts', 'storage.ts'];
 async function sourceManifest() {
   return Object.fromEntries(await Promise.all(sourceModules.map(async path => [path,
     createHash('sha256').update(await readFile(new URL(`../src/mandats/${path}`, import.meta.url))).digest('hex')])));

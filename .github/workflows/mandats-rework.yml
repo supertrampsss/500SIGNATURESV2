@@ -36,8 +36,12 @@ jobs:
         run: |
           node --experimental-strip-types scripts/mandats-pressure-audit.ts
           node --experimental-strip-types scripts/mandats-pressure-review.ts pressure-artifacts/model
+      - name: Preserve published v13 trajectories
+        run: node --experimental-strip-types scripts/mandats-legacy-pressure-audit.ts
       - name: Verify pressure, recovery, mobile controls and causal replay
         run: npx playwright test --config playwright.pressure.config.ts
+      - name: Verify persistent incidents, delivery and legacy rules
+        run: npx playwright test --config playwright.incidents.config.ts
       - name: Retain screenshots, replay inputs and browser reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -47,4 +51,5 @@ jobs:
             site/rework-artifacts/
             site/social-artifacts/
             site/pressure-artifacts/
+            site/incidents-artifacts/
           retention-days: 14

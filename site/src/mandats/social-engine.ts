@@ -59,6 +59,23 @@ export function initialSocialState(): SocialState {
   };
 }
 
+/** Previously voted credits remain in structural operating after a failed
+ * agreement. Their price evolution is already included by campaign.prepare.
+ * A later attempt can reuse them but cannot refund them or spend another
+ * agreement's envelope. The next decision's annual indexation is included.
+ */
+export function fundedSocialOperating(
+  game: Game,
+  movement: SocialMovement,
+  responseId: string,
+): number {
+  if (game.version < 14) return 0;
+  const funding = movement.funding?.[responseId];
+  if (!funding) return 0;
+  const years = Math.max(0, Math.floor(game.turn / 6) - Math.floor(funding.fundedTurn / 6));
+  return funding.annualOperating * (1 + game.finance.deflator) ** years;
+}
+
 export function activeSocialMovements(game: Game): SocialMovement[] {
   return (game.social?.movements ?? [])
     .filter((item) => item.status === "active")
@@ -169,6 +186,14 @@ export function advanceSocialMovements(
         : undefined;
     const previousStage = movement.stage;
     const actor = SOCIAL_ACTORS[movement.actor];
+    if (before.version >= 14 && response?.fundingId) {
+      const retained = fundedSocialOperating(before, movement, response.fundingId);
+      movement.funding ??= {};
+      movement.funding[response.fundingId] = {
+        annualOperating: retained + Math.max(0, choice.effect.operating ?? 0),
+        fundedTurn: before.turn,
+      };
+    }
     if (
       response &&
       ["fund", "suspend", "redeploy", "pilot"].includes(response.action) &&
@@ -178,7 +203,9 @@ export function advanceSocialMovements(
         fundedTurn: before.turn,
         dueTurn: turn + (response.action === "pilot" ? 3 : 2),
         status: "pending",
-        operating: choice.effect.operating ?? 0,
+        operating: before.version >= 14 && response.fundingId
+          ? movement.funding?.[response.fundingId]?.annualOperating ?? 0
+          : choice.effect.operating ?? 0,
         deliveryEffect: response.deliveryEffect,
       };
       movement.pressure = clamp(movement.pressure - 18);

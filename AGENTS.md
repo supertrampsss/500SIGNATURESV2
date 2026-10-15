@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v13; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v14; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -55,10 +55,12 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 ### Mandats: persistent pressure (15 October 2026)
 
 The owner requests iterative multi-agent scenario modelling and a pressure loop
-inspired by Plague Inc. New national games use v13 and preserve the illustrated
+inspired by Plague Inc. New national games use v14 and preserve the illustrated
 map. Follow [the pressure contract](docs/mandats-pressure-contract.md) and retain
 the [scenario matrix](docs/mandats-pressure-scenarios.json), including identified
 extensions not yet modelled. Never claim exhaustive exploration of every sequence.
+
+V14 additionally retains active cyber/hospital and port incidents and their explicit sector disruptions, and reuses already funded social concessions. V13 and explicit older links keep their published rules.
 
 Six sector stocks persist across authored dossiers. Reading and inspection never
 advance time; each real decision advances all fronts by one two-month period.

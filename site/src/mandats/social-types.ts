@@ -19,6 +19,11 @@ export type SocialMovement = {
   dialogueDueTurn?: number;
   dialogueTurn?: number;
   dialogueExpired?: boolean;
+  /** V14 keeps each financed agreement even when its implementation fails.
+   * Rates use the financing year's prices; budget indexation is applied when
+   * comparing them with a later proposal, never charged for a second time.
+   */
+  funding?: Record<string, { annualOperating: number; fundedTurn: number }>;
   commitment?: {
     fundedTurn: number;
     dueTurn: number;
@@ -48,6 +53,8 @@ export type SocialChoice = {
   };
   response?: {
     movementId: string;
+    /** Stable authored response ID, independent of the decision's turn prefix. */
+    fundingId?: string;
     action:
       | "fund"
       | "dialogue"

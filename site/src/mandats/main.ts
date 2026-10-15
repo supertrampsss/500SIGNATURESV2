@@ -469,7 +469,14 @@ async function action(target: HTMLElement) {
   if (a === "offline-update") { await updateOffline(); return; }
   if (a === "offline-remove") { await removeOffline(); announce("Copie hors connexion supprimée. Vos sauvegardes sont conservées."); return; }
   if (a === "plan-reset" && g) { planIds = [...g.choices]; render(); return; }
-  if (a === "open-plan" && g) { dialog.close(); screen = "play"; view = "plan"; render(); return; }
+  if (a === "open-plan" && g) {
+    dialog.close();
+    if (g.mode === "national" && g.version >= 11) {
+      screen = g.turn > 0 ? "replay" : "play";
+      view = "decision";
+    } else { screen = "play"; view = "plan"; }
+    render(); return;
+  }
   if (a === "share-decision" && g) { cardKind = "decision"; sharingSheet(); return; }
   if (a === "card-kind" && g) { cardKind = target.dataset.kind as CardKind; sharingSheet(); dialog.querySelector<HTMLElement>(`[data-kind="${cardKind}"]`)?.focus(); return; }
   if (a === "copy-description" && g) { await copy(cardModel(g, cardKind).alt, true); return; }
@@ -485,7 +492,7 @@ async function action(target: HTMLElement) {
   if (a === "mode") {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
-    g = start("national", freshSeed(), "equilibre", 13);
+    g = start("national", freshSeed(), "equilibre", 14);
     clearBranchReference();
     shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null;
     clearEntryLink(history); track("mode_selected"); persist();
@@ -493,7 +500,7 @@ async function action(target: HTMLElement) {
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
-    g = start("national", g.seed, ambition, g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
+    g = start("national", g.seed, ambition, g.version >= 14 ? 14 : g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
     clearBranchReference();
     shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
     persist(); track("onboarding_completed");
@@ -571,18 +578,18 @@ async function action(target: HTMLElement) {
     const context = target.dataset.context;
     const option = storyContextOptions().find(item => item.context === context);
     if (!option) { announce("Ce contexte n’est plus disponible."); return; }
-    clearBranchReference(); g = start("national", option.seed, "equilibre", 13); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
+    clearBranchReference(); g = start("national", option.seed, "equilibre", 14); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
   }
   else if (a === "next-year" && g) { screen = g.version >= 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
-  else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
+  else if (a === "show-result" && g) { screen = isFinished(g) ? "result" : "play"; view = "decision"; }
   else if (a === "view") {
     view = target.dataset.view as View;
     if (g && g.version >= 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
     if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
   }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 13); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 14); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
   else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
   else if (a === "restore-origin" && g) {
@@ -613,7 +620,7 @@ async function action(target: HTMLElement) {
   }
   else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. Le parcours peut compter jusqu’à 30 décisions sur cinq années, et une issue politique peut l’interrompre plus tôt.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
   else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Une partie comporte jusqu’à 30 décisions sur cinq années. Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>${(g && g.version >= 11)?"Le contexte choisi au départ donne une situation initiale au mandat; les décisions et leurs effets restent calculés par le moteur de simulation.":"La mission choisie au départ change la lecture du bilan."} Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
-  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button><button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`); return; }
+  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `${g.version < 11 || g.turn > 0 ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button>` : ""}<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }
   else if (a === "copy-result" && g) { await copy(cardURL(g, cardKind, location.origin)); return; }
