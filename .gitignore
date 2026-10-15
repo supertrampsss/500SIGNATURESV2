@@ -25,6 +25,7 @@ site/story-artifacts/
 site/header-artifacts/
 site/social-artifacts/
 site/rework-artifacts/
+site/pressure-artifacts/
 
 # Réponses HTTP du runtime Cloudflare local.
 site/edge-artifacts/

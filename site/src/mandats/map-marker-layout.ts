@@ -3,18 +3,16 @@ import type { MandateMapState } from "./map-state.ts";
 
 type MarkerBox = { x: number; y: number; width: number; height: number };
 export function mapObstacles(host: HTMLElement): MarkerBox[] {
-  const controls = host.querySelector<HTMLElement>(".map-camera");
-  if (!controls) return [];
-  const bounds = host.getBoundingClientRect(),
-    rectangle = controls.getBoundingClientRect();
-  return [
-    {
+  const bounds = host.getBoundingClientRect();
+  return [...host.querySelectorAll<HTMLElement>(".map-camera, [data-map-toggle]")]
+    .map(control => control.getBoundingClientRect())
+    .filter(rectangle => rectangle.width > 0 && rectangle.height > 0)
+    .map(rectangle => ({
       x: rectangle.x - bounds.x + rectangle.width / 2,
       y: rectangle.y - bounds.y + rectangle.height / 2,
       width: rectangle.width,
       height: rectangle.height,
-    },
-  ];
+    }));
 }
 export function placeMarker(
   host: HTMLElement,

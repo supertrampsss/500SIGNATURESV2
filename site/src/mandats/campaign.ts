@@ -18,6 +18,8 @@ import { choicesForNarrative, focusedAgendaKind, focusedNarrativeEvent, initialN
 import { NARRATIVE_FAMILIES } from './narrative-content.ts';
 import { storyAgenda } from './narrative-engine.ts';
 import { advanceSocialMovements, initialSocialState } from './social-engine.ts';
+import { advancePressure, initialPressureState } from './pressure-engine.ts';
+import { policyPressureEffects } from './pressure-content.ts';
 
 const BASE = { municipal, national };
 const compiled = { municipal: longDossiers("municipal"), national: longDossiers("national") };
@@ -103,12 +105,13 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12|13=3):Game {
   if(version>=10&&mode!=='national')throw new Error('Cette version concerne uniquement le mandat national.');
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');
   const g:Game={version,mode,seed,ambition,turn:0,...BASE[mode].initial(),pending:[],history:[],choices:[],...(city?{city:structuredClone(city)}:{}),...(version>=10?{politics:initialPolitics(seed)}:{}),...(version>=11?{narrative:initialNarrative(seed)}:{}),...(version>=12?{social:initialSocialState()}:{})};
   Object.assign(g,campaignDomain(g).initial());
+  if(version>=13)g.pressure=initialPressureState(seed,g.narrative?.context);
   return g;
 }
 function apply(g:Game,e:Effect) {
@@ -134,6 +137,7 @@ function recovery(game:Game):Choice {
   return {id:'redressement-v3',title:'Réorganiser les services pour rétablir le budget',description:'Réduire durablement les charges du plan annuel. Le service et la confiance en subissent le coût.',cost:`−${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:3}).format(reduction)} M€/an de charges`,benefit:'Un budget à nouveau finançable',sacrifice:'Services −5 · confiance −4',effect:{operating:-Math.min(g.finance.operating,reduction),services:-5,trust:-4,cohesion:-2}};
 }
 function transition(game:Game,choice:Choice):Game {
+  if(game.version>=13&&!choice.pressure){const pressure=policyPressureEffects(choice);if(pressure)choice={...choice,pressure};}
   let activeChoice=choice,politicalResolution;
   if(game.version>=10){politicalResolution=resolvePoliticalChoice(game.politics!,choice,game.seed,game.turn,game.society?.workers??50);activeChoice=politicalResolution.choice;}
   const {g,cal,messages}=prepared(game),d=campaignDomain(game);
@@ -163,7 +167,7 @@ function transition(game:Game,choice:Choice):Game {
   const social=g.version >= 7 ? socialYearEnd(g) : {operating:0,revenue:0};
   const disruption=g.social?.budget??{operating:0,revenue:0};
   const ledger=d.settle({...g.finance,operating:g.finance.operating+social.operating+disruption.operating,revenue:g.finance.revenue+social.revenue+disruption.revenue});
-  if(cal.isYearEnd){
+  if(cal.isYearEnd&&g.version<13){
     g.finance.debt=ledger.debt;g.finance.cash+=ledger.cashChange;g.finance.gdp=ledger.gdp;
     if(g.finance.cash < -1e-8)throw new Error('Financement incomplet.');
     messages.push(`Exercice ${cal.year} clôturé. Intérêts, dette et trésorerie comptabilisés une seule fois.`);
@@ -191,12 +195,37 @@ function transition(game:Game,choice:Choice):Game {
     if(mobilisation){g.narrative.events.push(...mobilisation.events);g.narrative.lastConsequences.push(...mobilisation.messages);}
     g.history.at(-1)!.metrics=structuredClone(g.metrics);g.history.at(-1)!.areas=structuredClone(g.areas);
   }
+  if(game.version>=13){
+    // Project delivery is resolved first. Pressure then accrues this period's
+    // expenses once, including finite interventions and all still-open fronts.
+    const adopted=!(politicalResolution?.vote?.kind==='law'&&!politicalResolution.vote.passed);
+    const pressure=advancePressure(game,g,choice,adopted);
+    g.pressure=pressure.state;apply(g,pressure.effect);
+    if(g.politics){
+      g.politics.unrest=clamp(g.politics.unrest+pressure.unrest);
+      g.politics.legitimacy=clamp(g.politics.legitimacy+pressure.legitimacy);
+      g.politics.blocs=g.politics.blocs.map(bloc=>({...bloc,loyalty:clamp(bloc.loyalty+(bloc.inGovernment?pressure.support:0))}));
+    }
+    const finalSocial=socialYearEnd(g),finalDisruption=g.social?.budget??{operating:0,revenue:0};
+    const finalLedger=d.settle({...g.finance,
+      operating:g.finance.operating+finalSocial.operating+finalDisruption.operating+pressure.state.budget.operating,
+      revenue:g.finance.revenue+finalSocial.revenue+finalDisruption.revenue+pressure.state.budget.revenue});
+    const last=g.history.at(-1)!;last.ledger=finalLedger;last.messages.push(...pressure.messages);
+    last.metrics=structuredClone(g.metrics);last.areas=structuredClone(g.areas);
+    if(g.narrative){g.narrative.events.push(...pressure.events);g.narrative.lastConsequences.push(...pressure.messages);}
+    if(cal.isYearEnd){
+      g.finance.debt=finalLedger.debt;g.finance.cash+=finalLedger.cashChange;g.finance.gdp=finalLedger.gdp;
+      if(g.finance.cash < -1e-8)throw new Error('Financement incomplet.');
+      last.messages.push(`Exercice ${cal.year} clôturé. Coûts temporaires, intérêts et dette comptabilisés une seule fois.`);
+    }
+  }
   return g;
 }
 export function campaignChoices(g:Game):Choice[] {
   if(g.version>=10&&(g.politics?.ending||g.turn>=30))return [];
   if(g.version >= 11&&!g.narrative?.focus)return [];
   let choices=campaignDomain(g).dossiers[g.turn]?.choices??[];
+  if(g.version>=13)choices=choices.map(choice=>choice.pressure?choice:{...choice,pressure:policyPressureEffects(choice)});
   if(g.version>=10&&g.politics?.lastDissolutionTurn!==undefined&&g.turn-g.politics.lastDissolutionTurn<6)choices=choices.filter(c=>c.political?.action!=='dissolve');
   if(!choices.length)return [];
   const legal=choices.some(c=>{try{transition(g,c);return true;}catch{return false;}});

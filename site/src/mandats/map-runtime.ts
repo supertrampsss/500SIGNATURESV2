@@ -116,11 +116,24 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
   }
   function inspect(place: MapPlace) {
     if (failed) return;
+    setExpanded(true);
     zoom = Math.max(zoom, 2.2);
     centre = { ...ILLUSTRATED_MAP_PLACES[place] };
     host.dataset.inspection = place;
     draw();
   }
+
+  function setExpanded(expanded: boolean) {
+    host.dataset.expanded = String(expanded);
+    if (!expanded) host.dataset.inspection = "";
+    const button = host.querySelector<HTMLButtonElement>("[data-map-toggle]");
+    button?.setAttribute("aria-expanded", String(expanded));
+    if (button) button.textContent = expanded ? "Replier la carte" : "Déplier la carte";
+    scheduleDraw();
+  }
+  host.querySelector("[data-map-toggle]")?.addEventListener("click", () => {
+    setExpanded(host.dataset.expanded !== "true");
+  }, { signal });
 
   function rebuildEffects() {
     if (!effects) return;
@@ -247,6 +260,11 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
   }, { signal });
   const resize = new ResizeObserver(scheduleDraw);
   resize.observe(host);
+  // Font substitution changes label widths without resizing the map itself.
+  // Reproject after late fonts (or their fallback) settle; never spend a turn.
+  document.fonts.addEventListener("loadingdone", scheduleDraw, { signal });
+  document.fonts.addEventListener("loadingerror", scheduleDraw, { signal });
+  void document.fonts.ready.then(scheduleDraw);
   update(initial, light);
   if (!image || !artboard) settle(false);
   else if (image.complete) settle(image.naturalWidth > 0);

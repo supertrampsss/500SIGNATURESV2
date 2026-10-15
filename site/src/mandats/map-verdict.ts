@@ -14,7 +14,7 @@ export function showMapDecisionVerdict(game: Game, onDismiss: () => void) {
   const detail =
     vote?.kind === "law" && !vote.passed
       ? "Le financement et les effets du texte ne sont pas appliqués."
-      : (game.narrative?.lastConsequences.find(
+      : (game.pressure?.lastDecision[0] ?? game.narrative?.lastConsequences.find(
           (text) => !text.startsWith("Compromis"),
         ) ??
         last.messages[0] ??

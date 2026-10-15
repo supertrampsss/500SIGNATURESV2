@@ -206,7 +206,7 @@ function render(focus = true, restoreScroll?: number) {
   lightControl?.setAttribute("aria-pressed", String(light));
   if (lightControl) lightControl.textContent = light ? "Vue illustrée" : "Vue légère";
   document.body.dataset.mode = g?.mode ?? "selection";
-  let markup = screen === "select" ? (!saved || saved.version >= 12 ? mapEntry(saved) : selection(saved, light, progression)) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? ((g && g.version >= 11) ? gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices) : yearRecap(g!)) : screen === "replay" ? (g?.version===12 ? mapReplay(g,renderReplaySelection(g)) : renderReplaySelection(g!)) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
+  let markup = screen === "select" ? (!saved || saved.version >= 12 ? mapEntry(saved) : selection(saved, light, progression)) : screen === "mandate" ? mandateSetup(g!, {light}) : screen === "briefing" ? yearBriefing(g!) : screen === "year" ? ((g && g.version >= 11) ? gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices) : yearRecap(g!)) : screen === "replay" ? (g && g.version>=12 ? mapReplay(g,renderReplaySelection(g)) : renderReplaySelection(g!)) : gameShell(g!, screen, view, shared, { light, inherited }, planIds ?? g!.choices);
   if (ephemeralChallenge && (g && g.version >= 11) && markup.includes('class="story-flow')) {
     const challengeMarkup = document.createElement("template");
     challengeMarkup.innerHTML = markup;
@@ -235,7 +235,7 @@ function render(focus = true, restoreScroll?: number) {
     withComparison.innerHTML = markup;
     const comparison = renderTrajectoryComparison(g, branchReference);
     withComparison.content.querySelector<HTMLElement>(".cinema-review > .game-tabs")?.insertAdjacentHTML("afterend", comparison);
-    if (g.version === 12 && comparison) withComparison.content.querySelector<HTMLElement>('[data-map-review]')?.insertAdjacentHTML('beforeend', `<details class="map-subject__details" open><summary>Comparer les deux trajectoires</summary>${comparison}</details>`);
+    if (g.version >= 12 && comparison) withComparison.content.querySelector<HTMLElement>('[data-map-review]')?.insertAdjacentHTML('beforeend', `<details class="map-subject__details" open><summary>Comparer les deux trajectoires</summary>${comparison}</details>`);
     markup = withComparison.innerHTML;
   }
   if (branchReference && g && screen === "result") {
@@ -243,7 +243,7 @@ function render(focus = true, restoreScroll?: number) {
     if (comparison) {
       const resultTemplate = document.createElement("template");
       resultTemplate.innerHTML = markup;
-      resultTemplate.content.querySelector<HTMLElement>(".result, [data-map-result]")?.insertAdjacentHTML("beforeend", g.version === 12 ? `<details class="map-subject__details"><summary>Comparer les deux trajectoires</summary>${comparison}</details>` : comparison);
+      resultTemplate.content.querySelector<HTMLElement>(".result, [data-map-result]")?.insertAdjacentHTML("beforeend", g.version >= 12 ? `<details class="map-subject__details"><summary>Comparer les deux trajectoires</summary>${comparison}</details>` : comparison);
       markup = resultTemplate.innerHTML;
     }
   }
@@ -375,7 +375,7 @@ function persist() {
 }
 function sheet(title: string, content: string) {
   const replacing = dialog.open;
-  dialog.innerHTML = `<div class="sheet-heading"><h2 id="sheet-title">${escape(title)}</h2><button data-action="close" aria-label="Fermer">${g?.version===12?'Fermer':icon("close")}</button></div><p class="sheet-status status" role="status" aria-live="polite"></p>${content}`;
+  dialog.innerHTML = `<div class="sheet-heading"><h2 id="sheet-title">${escape(title)}</h2><button data-action="close" aria-label="Fermer">${(g?.version ?? 0)>=12?'Fermer':icon("close")}</button></div><p class="sheet-status status" role="status" aria-live="polite"></p>${content}`;
   dialog.setAttribute("aria-labelledby", "sheet-title");
   dialog.removeAttribute("aria-label");
   if (!replacing) dialog.showModal();
@@ -429,8 +429,8 @@ async function action(target: HTMLElement) {
     }
     return;
   }
-  if (a === 'map-government' && g?.version === 12) { sheet('Gouvernement', mapGovernmentPanel(g)); return; }
-  if (a === 'map-projects' && g?.version === 12) { sheet('Projets', mapProjectsPanel(g)); return; }
+  if (a === 'map-government' && g && g.version >= 12) { sheet('Gouvernement', mapGovernmentPanel(g)); return; }
+  if (a === 'map-projects' && g && g.version >= 12) { sheet('Projets', mapProjectsPanel(g)); return; }
   if (a === 'map-track' && g) {
     const project=g.narrative?.projects.find(item=>item.id===target.dataset.trackId);
     const movement=g.social?.movements.find(item=>item.id===target.dataset.trackId);
@@ -444,7 +444,7 @@ async function action(target: HTMLElement) {
       root.querySelector<HTMLElement>('[data-map-agenda] button, [data-map-agenda] h1'))?.focus({ preventScroll: true });return;
   }
   if (a === "dismiss-verdict") { decisionVerdict?.dismiss(); return; }
-  if (g?.version !== 12 && decisionVerdict && (a === "choose" || a === "story-select")) return;
+  if ((g?.version ?? 0) < 12 && decisionVerdict && (a === "choose" || a === "story-select")) return;
   if (decisionVerdict) clearDecisionVerdict();
   if (decisionTransition.locked) {
     if (a !== "new" && a !== "replay") return;
@@ -485,7 +485,7 @@ async function action(target: HTMLElement) {
   if (a === "mode") {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
-    g = start("national", freshSeed(), "equilibre", 12);
+    g = start("national", freshSeed(), "equilibre", 13);
     clearBranchReference();
     shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null;
     clearEntryLink(history); track("mode_selected"); persist();
@@ -493,7 +493,7 @@ async function action(target: HTMLElement) {
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
-    g = start("national", g.seed, ambition, g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
+    g = start("national", g.seed, ambition, g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
     clearBranchReference();
     shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
     persist(); track("onboarding_completed");
@@ -571,18 +571,18 @@ async function action(target: HTMLElement) {
     const context = target.dataset.context;
     const option = storyContextOptions().find(item => item.context === context);
     if (!option) { announce("Ce contexte n’est plus disponible."); return; }
-    clearBranchReference(); g = start("national", option.seed, "equilibre", 12); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
+    clearBranchReference(); g = start("national", option.seed, "equilibre", 13); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
   }
   else if (a === "next-year" && g) { screen = g.version >= 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = "result"; view = "decision"; }
   else if (a === "view") {
     view = target.dataset.view as View;
-    if (g?.version === 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
+    if (g && g.version >= 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
     if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
   }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 12); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 13); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
   else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
   else if (a === "restore-origin" && g) {

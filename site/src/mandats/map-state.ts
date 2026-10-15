@@ -1,6 +1,7 @@
 import { storyAgenda } from "./narrative-engine.ts";
 import type { Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
+import type { PressureSectorId } from "./pressure-types.ts";
 export {
   COUNTRY_REFERENCE_POSE, mapPosition, mapCoordinates,
   mapSourcePosition, mapSourceCoordinates, mapAuthoredPosition,
@@ -22,9 +23,15 @@ export const MAP_PLACES = {
   ajaccio: { name: "Ajaccio", lon: 8.74, lat: 41.92 },
 } as const;
 export type MapPlace = keyof typeof MAP_PLACES;
+const pressurePlaces: Record<string, MapPlace> = {
+  health: "rennes", housing: "bordeaux", transport: "nantes",
+  energy: "strasbourg", education: "lyon", administration: "paris",
+};
 export function placeForTopic(
   item: Pick<StoryAgendaItem, "id" | "category" | "title">,
 ): MapPlace {
+  if (item.id.startsWith("pressure-") && pressurePlaces[item.id.slice(9)])
+    return pressurePlaces[item.id.slice(9)];
   if (item.id.startsWith("institutional:") || item.id.startsWith("policy:"))
     return "paris";
   if (item.id === "science-stockage") return "toulouse";
@@ -57,6 +64,32 @@ export function markerLabel(item: StoryAgendaItem): string {
 }
 export function mapState(game: Game | null) {
   const agenda = game && !game.politics?.ending ? storyAgenda(game) : [];
+  const subjects = agenda.map((item) => {
+    const sector = item.id.startsWith("pressure-") ? item.id.slice(9) as PressureSectorId : undefined;
+    const front = sector ? game?.pressure?.sectors[sector] : undefined;
+    return {
+      ...item,
+      place: placeForTopic(item),
+      label: markerLabel(item),
+      pressureStage: front?.stage,
+      pressureTrend: front?.trend,
+      pressureLevel: front?.pressure,
+      pressureStockChange: front?.lastChange,
+      urgent: front ? front.stage === "disrupted" || front.stage === "crisis" :
+        item.id.startsWith("mvt-") || item.dueTurn !== undefined ||
+        (!!game?.politics?.pendingCrisis && item.id.startsWith("institutional:")),
+    };
+  });
+  const priority = (item: typeof subjects[number]) =>
+    item.id.startsWith("institutional:") && game?.politics?.pendingCrisis ? 10000 :
+    item.pressureStage === "crisis" ? 5000 + (item.pressureLevel ?? 0) :
+    item.id.startsWith("mvt-") ? 4000 : item.dueTurn !== undefined ? 3300 :
+    item.pressureStage === "disrupted" ? 3200 + (item.pressureLevel ?? 0) :
+    !item.pressureStage ? 1000 : (item.pressureLevel ?? 0);
+  if (game?.pressure) subjects.sort((a, b) => priority(b) - priority(a));
+  const visibleSubjects = game?.pressure ? subjects.slice(0, 3) : subjects;
+  const selected = subjects.find(item => item.id === game?.narrative?.focus);
+  if (selected && !visibleSubjects.includes(selected)) visibleSubjects.splice(2, 1, selected);
   const movements = (game?.social?.movements ?? [])
     .filter((item) => item.status === "active")
     .map((movement) => ({
@@ -75,7 +108,7 @@ export function mapState(game: Game | null) {
       title: project.label,
     }),
   }));
-  const occupied = new Set(agenda.map(placeForTopic));
+  const occupied = new Set(visibleSubjects.map(item => item.place));
   const tracking = [
     ...movements
       .filter((item) => item.commitment?.status === "pending")
@@ -104,16 +137,8 @@ export function mapState(game: Game | null) {
     seed: game?.seed ?? 42,
     turn: game?.turn ?? 0,
     selected: game?.narrative?.focus,
-    markers: agenda.map((item) => ({
-      ...item,
-      place: placeForTopic(item),
-      label: markerLabel(item),
-      urgent:
-        item.id.startsWith("mvt-") ||
-        item.dueTurn !== undefined ||
-        (!!game?.politics?.pendingCrisis &&
-          item.id.startsWith("institutional:")),
-    })),
+    agenda: subjects,
+    markers: visibleSubjects,
     projects,
     movements,
     tracking,

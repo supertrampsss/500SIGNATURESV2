@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v12; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v13; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -51,6 +51,29 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: persistent pressure (15 October 2026)
+
+The owner requests iterative multi-agent scenario modelling and a pressure loop
+inspired by Plague Inc. New national games use v13 and preserve the illustrated
+map. Follow [the pressure contract](docs/mandats-pressure-contract.md) and retain
+the [scenario matrix](docs/mandats-pressure-scenarios.json), including identified
+extensions not yet modelled. Never claim exhaustive exploration of every sequence.
+
+Six sector stocks persist across authored dossiers. Reading and inspection never
+advance time; each real decision advances all fronts by one two-month period.
+Votes, implementation capacity, temporary relief, narrative/social delivery and
+annual accounts must agree. Rejected laws cannot engage their proposed effects.
+Temporary operating rates accrue only during their active periods, including
+expenses already acquired before expiration. Cross-sector links read a common
+previous-period state. Recovery must create real breathing room.
+
+`pressure-engine.ts` owns transitions and shared delivery allocation;
+`pressure-content.ts` owns explicit mappings and hypothesis costs;
+`pressure-agenda.ts` owns state-derived responses. Keep rules outside the views.
+Run the bounded model audit and pressure browser configuration alongside the
+existing rework/social suites. Retain seeds, strategies, inputs, invariant reports
+and inspected desktop/390 px/320 px/WebKit screenshots before delivery.
 
 ### Shared mobile header
 
