@@ -9,7 +9,7 @@ import { resolveNarrativeConsequences } from './narrative-consequences.ts';
 import { EDUCATION_EVENT, EDUCATION_FAMILY, socialMovementFront } from './social-content.ts';
 import { REWORK_EVENTS, REWORK_FAMILIES, REWORK_BASE_EVENTS } from './rework-content.ts';
 import { pressureAgenda, isPressureFront } from './pressure-agenda.ts';
-import { authoredPressureChoice, authoredPressureEffects, isPressureOpportunity } from './pressure-content.ts';
+import { authoredPressureChoice, authoredPressureEffects, isPressureOpportunity, isPressureIncidentId, PRESSURE_INCIDENTS } from './pressure-content.ts';
 
 const contexts: NarrativeContext[] = ['coalition', 'hospital', 'redress'];
 export function narrativeContextForSeed(seed: number): NarrativeContext { return contexts[seed % contexts.length]; }
@@ -27,7 +27,11 @@ function eligibleEvents(g:Game):Array<{family:NarrativeFamily;event:NarrativeEve
   const families=g.version>=12?[...NARRATIVE_FAMILIES,...REWORK_FAMILIES]:NARRATIVE_FAMILIES;
   const events=g.version>=12?[...REWORK_BASE_EVENTS,...REWORK_EVENTS]:NARRATIVE_EVENTS;
   const family=(id:string)=>families.find(f=>f.id===id);
-  const matches=(e:NarrativeEvent)=>!e.requiresProject&&!eventWasPlayed(g,e.id)&&!g.narrative?.retiredEvents?.includes(e.id)&&(!e.contexts||e.contexts.includes(g.narrative?.context??narrativeContextForSeed(g.seed)))&&(!e.turns||e.turns.includes(g.turn));
+  const matches=(e:NarrativeEvent)=>{
+    const incident=g.version>=14&&isPressureIncidentId(e.id)?g.pressure?.incidents?.find(item=>item.id===e.id):undefined;
+    if(incident)return incident.status!=='resolved';
+    return !e.requiresProject&&!eventWasPlayed(g,e.id)&&!g.narrative?.retiredEvents?.includes(e.id)&&(!e.contexts||e.contexts.includes(g.narrative?.context??narrativeContextForSeed(g.seed)))&&(!e.turns||e.turns.includes(g.turn));
+  };
   const all=events.filter(matches).flatMap(event=>{const f=family(event.familyId);return f?[{family:f,event}]:[];});
   return all;
 }
@@ -35,6 +39,22 @@ function stableHash(seed:number,turn:number,id:string):number { let h=(seed^Math
 function eventBody(g:Game,event:NarrativeEvent):string {
   const project=event.requiresProject&&g.narrative?.projects.find(item=>item.id===event.requiresProject);
   return project && !event.body.includes(project.note)?`${event.body}\n\n${project.note}`:event.body;
+}
+function incidentEvent(g:Game,event:NarrativeEvent):NarrativeEvent {
+  if(g.version<14||!isPressureIncidentId(event.id))return event;
+  const spec=PRESSURE_INCIDENTS[event.id],incident=g.pressure?.incidents?.find(item=>item.id===event.id);
+  const programmes=(g.pressure?.programmes??[]).filter(item=>item.incidentId===event.id);
+  const choices=event.choices.filter(choice=>!programmes.some(item=>item.sourceChoice.endsWith(`-${choice.id}`)
+    &&(item.status==='preparing'||item.status==='active'||item.status==='completed'&&!item.duration)));
+  const waiting=programmes.some(item=>item.status==='preparing');
+  choices.push({id:'attendre-incident',title:waiting?'Laisser avancer la réponse financée':'Reporter sans nouveau crédit',
+    description:waiting?'Conserver les crédits engagés et passer à la période suivante. La perturbation reste présente tant que la réponse n’est pas réellement opérationnelle.':'Ne pas engager de nouveau crédit et passer à la période suivante. La perturbation continue de réduire la capacité du service.',
+    cost:'0 € de crédit nouveau ; les engagements existants restent dus',benefit:'Les réponses déjà financées conservent leur place dans le calendrier.',
+    sacrifice:'Les besoins continuent d’arriver et les retards restent à rattraper.',effect:{},political:{action:'administrative'},
+    pressure:{sector:spec.sector,kind:'defer',label:'Attente sans réponse nouvelle à la perturbation'}});
+  const status=incident?.status==='contained'?'Une réponse de secours est opérationnelle ; le fonctionnement reste dégradé.':waiting?'Une réponse est financée mais la perturbation reste active jusqu’à sa livraison.':'La perturbation reste active tant qu’aucune réponse n’est opérationnelle.';
+  const loss=incident?.status==='contained'?spec.containedLoss:spec.capacityLoss;
+  return {...event,body:`${event.body}\n\n${status} Perte de capacité effective : ${loss.toLocaleString('fr-FR')} unité par période (hypothèse de simulation). Le dossier reste accessible ; les retards déjà accumulés ne disparaissent pas à sa clôture.`,choices};
 }
 const repairFamilyByKind:Record<string,string>={hospital:'soins-hospitaliers',industry:'industrie-conditionnalite',energy:'transition-energetique-mobilite',housing:'logement',integrity:'integrite-ministerielle'};
 function shortProjectKey(id:string):string {
@@ -94,7 +114,7 @@ function agendaEntries(g:Game) {
   const crisis=!!g.politics?.pendingCrisis;
   const addInstitutional=()=>{if(institutional&&!items.some(x=>x.kind==='institutional'))items.push({kind:'institutional',item:{id:`institutional:${g.turn}`,title:institutional.title,category:'Institutions',summary:institutional.story,art:'institution',urgency:crisis?'À traiter avant le prochain vote':'Scrutin politique'}});};
   const addPolicy=()=>{if(g.turn<30&&!crisis&&!items.some(x=>x.kind==='policy')){const d=nationalAgendaDossiersV9(g)[g.turn];if(d)items.push({kind:'policy',item:{id:`policy:${g.turn}`,title:d.title,category:d.category,summary:d.story,art:'finance',urgency:'Arbitrage budgétaire de l’année'}});}};
-  const addStory=(event:NarrativeEvent,family:NarrativeFamily,urgency=family.urgency,dueTurn?:number)=>{if(!items.some(x=>x.item.id===event.id))items.push({kind:'story',event,item:{id:event.id,title:event.title,category:family.category,summary:eventBody(g,event),art:family.art,urgency,...(dueTurn!==undefined?{dueTurn}:{})}});};
+  const addStory=(rawEvent:NarrativeEvent,family:NarrativeFamily,urgency=family.urgency,dueTurn?:number)=>{const event=incidentEvent(g,rawEvent);if(!items.some(x=>x.item.id===event.id))items.push({kind:'story',event,item:{id:event.id,title:event.title,category:family.category,summary:eventBody(g,event),art:family.art,urgency,...(dueTurn!==undefined?{dueTurn}:{})}});};
   if(crisis){addInstitutional();return items;}
   else if(g.turn===0&&g.narrative?.context==='coalition')addInstitutional();
   if(g.turn===0&&g.narrative?.context==='hospital'){
@@ -126,7 +146,14 @@ function agendaEntries(g:Game) {
   const available=g.version>=12&&diverse.length?diverse:unique;
   const offset=available.length?stableHash(g.seed,g.turn,'agenda')%available.length:0;
   const remaining=Math.max(0,3-items.length),rotated=[...available.slice(offset),...available.slice(0,offset)].slice(0,remaining);
-  items.push(...rotated.map(({family,event})=>({kind:'story' as const,event,item:{id:event.id,title:event.title,category:family.category,summary:eventBody(g,event),art:family.art,urgency:family.urgency}})));
+  for(const {family,event} of rotated)addStory(event,family);
+  // An active incident survives the rotating featured slots and its old window.
+  // It remains selectable alongside the six sector fronts until truly resolved.
+  if(g.version>=14)for(const incident of g.pressure?.incidents??[]){
+    if(incident.status==='resolved')continue;
+    const event=REWORK_EVENTS.find(item=>item.id===incident.id),family=event&&REWORK_FAMILIES.find(item=>item.id===event.familyId);
+    if(event&&family)addStory(event,family,incident.status==='contained'?'Continuité de secours ; perturbation à résoudre':'Crise active ; réponse à mettre en œuvre');
+  }
   // These fronts are persistent state, not expiring authored opportunities.
   // Presentation may feature three; all remain selectable and replayable.
   if(g.version>=13)for(const {event,family} of pressureAgenda(g))addStory(event,family);
@@ -206,7 +233,7 @@ export function applyNarrativeChoice(before:Game,after:Game,choice:Choice,event?
   const resolved=resolveNarrativeConsequences(before,after,choice,event),state=resolved.state,consequences=resolved.consequences;
   const selected=before.narrative!.focus;
   state.deferred=(state.deferred??[]).filter(d=>d.eventId!==selected);
-  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.event?.familyId!=='mobilisations-sociales'&&x.event?.familyId!==EDUCATION_FAMILY.id&&x.item.id!==selected&&!(before.version>=13&&x.event&&isPressureFront(x.event))))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
+  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.event?.familyId!=='mobilisations-sociales'&&x.event?.familyId!==EDUCATION_FAMILY.id&&x.item.id!==selected&&!(before.version>=13&&x.event&&isPressureFront(x.event))&&!(before.version>=14&&isPressureIncidentId(x.item.id))))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
   if(before.politics?.pendingCrisis){for(const item of state.deferred)item.expiresTurn++;}
   else {
     const expired=state.deferred.filter(d=>d.expiresTurn<after.turn);

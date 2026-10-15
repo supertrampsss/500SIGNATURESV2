@@ -22,6 +22,7 @@ import type { MapIcon } from "./map-icons.ts";
 import type { Choice, Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
 import type { PressureFront, PressureSectorId, PressureStage } from "./pressure-types.ts";
+import { isPressureIncidentId, PRESSURE_INCIDENTS } from "./pressure-content.ts";
 
 const referenceMapUrl = new URL("./textures/reference-map.svg", import.meta.url).href;
 
@@ -52,8 +53,9 @@ const capacityNames: Record<PressureSectorId, string> = {
 function topicIcon(item: StoryAgendaItem): MapIcon {
   return item.id.startsWith("pressure-") ? pressureIcons[item.id.slice(9) as PressureSectorId] ?? iconForTopic(item) : iconForTopic(item);
 }
-function topicTone(item: StoryAgendaItem & { urgent?: boolean; pressureStage?: PressureStage }): "red" | "gold" | "blue" {
+function topicTone(item: StoryAgendaItem & { urgent?: boolean; pressureStage?: PressureStage; incidentStatus?: string }): "red" | "gold" | "blue" {
   if (item.pressureStage) return item.pressureStage === "disrupted" || item.pressureStage === "crisis" ? "red" : item.pressureStage === "stable" ? "blue" : "gold";
+  if (item.incidentStatus === "contained") return "gold";
   return toneForTopic(item);
 }
 const simulatedNumber = (value: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(value);
@@ -172,7 +174,7 @@ function agendaCard(item: ReturnType<typeof mapState>["agenda"][number], index: 
   const title = agendaTitle(item, game);
   const state = item.pressureStage
     ? `${pressureStages[item.pressureStage]} · ${pressureTrendLabel(item.pressureLevel ?? 0, item.pressureStockChange ?? 0, item.pressureTrend ?? "steady")}`
-    : item.urgent ? "Urgent" : "";
+    : item.incidentStatus === "contained" ? "Secours opérationnel · perturbation contenue" : item.urgent ? "Urgent" : "";
   return `<button class="map-agenda__item map-tone--${topicTone(item)} ${agendaTitleClass(title)} ${item.urgent ? "map-agenda__item--urgent" : ""} ${index === 0 ? "map-agenda__item--primary" : ""}" data-action="story-select" data-story-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)}${state ? ` · ${state}` : ""}"><span class="map-topic-icon">${mapIcon(topicIcon(item))}</span><span class="map-agenda__copy"><strong>${e(title)}</strong><span class="map-agenda__meta">${e(item.label)}${state ? ` · <b>${state}</b>` : ""}</span></span><svg class="map-agenda__chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="m3 3 6 7-6 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>${index === 0 ? '<span class="map-agenda__action" aria-hidden="true">Ouvrir le sujet</span>' : ""}</button>`;
 }
 function fallbackMap() {
@@ -248,6 +250,11 @@ export function mapGame(game: Game, shared = false): string {
   const choices = focus ? choicesFor(game) : [];
   const place = focus ? MAP_PLACES[placeForTopic(focus)] : undefined;
   const summary = focus ? firstSentence(focus.summary) : "";
+  const incident = focus && game.version >= 14 && isPressureIncidentId(focus.id)
+    ? { spec: PRESSURE_INCIDENTS[focus.id], contained: focus.incidentStatus === "contained" } : undefined;
+  const incidentReading = incident
+    ? `<p class="map-subject__deadline" data-map-incident>${incident.contained ? "Secours opérationnel ; la perturbation reste à résoudre." : "Crise active ; aucune réponse n’est encore opérationnelle."} Capacité effective réduite de ${simulatedNumber(incident.contained ? incident.spec.containedLoss : incident.spec.capacityLoss)} unité par période (hypothèse de simulation). Les retards acquis restent à rattraper.</p>`
+    : "";
   const details = focus
     ? `<details class="map-subject__details"><summary>Voir les détails</summary><p>${e(focus.summary)}</p>${choices.map((choice) => `<section><h3>${e(choice.title)}</h3><p>${e(choice.description)}</p><p>${e(choice.cost)}</p><p>${e(choice.benefit)}</p>${choice.delayed ? `<p>Après ${choice.delayed.after} année${choice.delayed.after > 1 ? "s" : ""} : ${e(choice.delayed.label)}</p>` : ""}</section>`).join("")}<p class="map-fiction-note">Événement fictif du scénario. ${focus.id.startsWith("policy:") || focus.id.startsWith("institutional:") ? "Décision de portée nationale." : `${e(place!.name)} sert de repère géographique ; les personnes et organismes sont simulés.`}</p></details>`
     : "";
@@ -261,7 +268,7 @@ export function mapGame(game: Game, shared = false): string {
     <section class="map-subject ${focus ? "" : "map-subject--agenda"}" ${focus ? "data-map-decision" : "data-map-agenda"}>${mapPressureBoard(game, !!focus)}${focus ? "" : lastPressureReceipt(game)}
       ${
         focus
-          ? `<p class="map-subject__eyebrow map-tone--${topicTone(focus)}"><span class="map-topic-icon">${mapIcon(topicIcon(focus))}</span>${e(focus.label)}</p><header><h1 tabindex="-1">${e(event?.title ?? focus.title)}</h1><button data-action="map-close" aria-label="Fermer le sujet">Fermer</button></header><p class="map-subject__intro">${e(summary)}</p>${urgent}<div class="map-choices">${choices
+          ? `<p class="map-subject__eyebrow map-tone--${topicTone(focus)}"><span class="map-topic-icon">${mapIcon(topicIcon(focus))}</span>${e(focus.label)}</p><header><h1 tabindex="-1">${e(event?.title ?? focus.title)}</h1><button data-action="map-close" aria-label="Fermer le sujet">Fermer</button></header><p class="map-subject__intro">${e(summary)}</p>${urgent}${incidentReading}<div class="map-choices">${choices
               .map((choice) => {
                 const error = preview(game, choice.id).error;
                 return `<button class="choice map-choice" data-action="choose" data-choice="${e(choice.id)}" ${error ? "disabled" : ""}><strong>${e(choice.title)}</strong><span>${e(choice.sacrifice)}</span>${pressureChoice(choice)}<span class="map-choice__footer"><small>${e(choice.cost)}</small><span class="map-choice__action" aria-hidden="true">Choisir</span></span>${error ? `<span class="choice-error">${e(error)}</span>` : ""}</button>`;

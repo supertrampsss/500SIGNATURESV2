@@ -1,5 +1,5 @@
 import type { NarrativeChoice, NarrativeEvent, NarrativeFamily } from './narrative-types.ts';
-import type { PressureChoice, PressureSectorId } from './pressure-types.ts';
+import type { PressureChoice, PressureIncidentId, PressureSectorId } from './pressure-types.ts';
 import type { Choice, Game } from './types.ts';
 import { campaignCost } from './campaign-content.ts';
 
@@ -8,6 +8,19 @@ import { campaignCost } from './campaign-content.ts';
  * One period is one of the six decisions of a year. Reading spends no period.
  */
 export const PRESSURE_ASSUMPTION_NOTE = 'Enveloppes nationales et unités de besoin : hypothèses de simulation. Une période représente deux mois.';
+
+/** v14 authored disruptions. Their workload losses are simulation hypotheses,
+ * independent of whether the player opens or reads their dossier. */
+export const PRESSURE_INCIDENTS: Readonly<Record<PressureIncidentId, {
+  sector: PressureSectorId; label: string; capacityLoss: number; containedLoss: number;
+}>> = {
+  'cyber-hopital': { sector: 'health', label: 'Cyberattaque : les systèmes de soins restent perturbés', capacityLoss: 1.8, containedLoss: .6 },
+  'port-bloque': { sector: 'transport', label: 'Blocage du port : les approvisionnements restent perturbés', capacityLoss: 1.6, containedLoss: .4 },
+};
+
+export function isPressureIncidentId(id: string): id is PressureIncidentId {
+  return Object.hasOwn(PRESSURE_INCIDENTS, id);
+}
 
 export type PressureDossierContent = {
   family: NarrativeFamily;
@@ -167,7 +180,10 @@ export function authoredPressureEffects(g: Game, event: NarrativeEvent, choice: 
   }
   const mapped = AUTHORED_PRESSURE_EFFECTS[`${event.id}/${choice.id}`];
   if (!mapped) return undefined;
-  return { ...mapped, ...(choice.project ? { projectId: choice.project.id } : {}) };
+  const incident = g.version >= 14 && isPressureIncidentId(event.id)
+    ? { incidentId: event.id, incidentResponse: (choice.id === 'restaurer' || choice.id === 'accord' ? 'resolve' : 'contain') as 'resolve' | 'contain' }
+    : {};
+  return { ...mapped, ...(choice.project ? { projectId: choice.project.id } : {}), ...incident };
 }
 
 /** The older scripts expressed a six-month grant as recurring operating and

@@ -31,9 +31,9 @@ async function stored(page) {
   return decode(raw);
 }
 async function open(page, seed = SEED) {
-  entries.set(page, { adopted: false, input: JSON.stringify({ version: 13, mode: 'national', seed, ambition: 'equilibre', choices: [] }) });
+  entries.set(page, { adopted: false, input: JSON.stringify({ version: 14, mode: 'national', seed, ambition: 'equilibre', choices: [] }) });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(`/mandats/?mode=national&v=13&seed=${seed}&ambition=equilibre`);
+  await page.goto(`/mandats/?mode=national&v=14&seed=${seed}&ambition=equilibre`);
   await expect(page.locator('[data-pressure-board]')).toBeVisible();
 }
 async function nextChapter(page) {
@@ -166,7 +166,7 @@ test('neglect accumulates, a voted programme waits for delivery, and reload/expo
   await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
   await page.getByRole('button', { name: 'Exporter la sauvegarde', exact: true }).click();
   const exported = await download;
-  const path = info.outputPath('mandat-reel-v13.json'); await exported.saveAs(path);
+  const path = info.outputPath('mandat-reel-v14.json'); await exported.saveAs(path);
   expect(decode(await readFile(path, 'utf8')).pressure).toEqual(beforeReload.pressure);
   // Import the exact UI export. It contains inputs, never injected balances.
   await page.locator('input[type="file"]').setInputFiles(path);
@@ -236,7 +236,7 @@ test('a complete five-year UI campaign closes five budgets and can replay a caus
   const branch = await stored(page);
   expect(branch.turn).toBe(replayTurn);
   expect(branch.choices).toEqual(game.choices.slice(0, replayTurn));
-  expect(branch.pressure).toEqual(decode(JSON.stringify({ version: 13, mode: 'national', ambition: 'equilibre', seed: before.seed, choices: game.choices.slice(0, replayTurn) })).pressure);
+  expect(branch.pressure).toEqual(decode(JSON.stringify({ version: 14, mode: 'national', ambition: 'equilibre', seed: before.seed, choices: game.choices.slice(0, replayTurn) })).pressure);
   await evidence(page, info, 'retour-au-tournant-causal');
 });
 
@@ -265,4 +265,216 @@ test('a delivered student agreement restores the capacity removed by its own sch
   expect(game.pressure.sectors.education.capacity).toBe(baseline.pressure.sectors.education.capacity);
   expect(game.pressure.programmes.find(item => item.socialMovementId === movement.id).status).toBe('completed');
   await evidence(page, info, 'suspension-livree-capacite-retablie');
+});
+
+test('Ma partie opens playable alternative decisions and preserves the original mandate', async ({ page }, info) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true })).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Fermer', exact: true }).click();
+  await select(page, 'pressure-health');
+  const original = await choose(page, 'maintain');
+  const originalRaw = await page.evaluate(key => localStorage.getItem(key), KEY);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+  await expect(page.locator('.map-replay')).toBeVisible();
+  await expect(page.locator('[data-action="branch-replay"]').filter({ visible: true })).toHaveCount(1);
+  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(originalRaw);
+  await evidence(page, info, 'comparaison-decisions-reelles');
+  const returnToMandate = page.getByRole('button', { name: 'Revenir à mon mandat', exact: true });
+  await expect(returnToMandate).toBeVisible();
+  await returnToMandate.click();
+  await expect(page.locator('[data-map-result]')).toHaveCount(0);
+  expect((await stored(page)).choices).toEqual(original.choices);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+  await page.locator('[data-action="branch-replay"]').first().click();
+  expect((await stored(page)).turn).toBe(0);
+  const alternative = page.locator('[data-action="choose"][data-choice$="-relief"]');
+  await expect(alternative).toBeVisible();
+  const branch = await choose(page, await alternative.getAttribute('data-choice'));
+  expect(branch.choices).not.toEqual(original.choices);
+  await page.getByRole('button', { name: 'État du pays', exact: true }).click();
+  const comparison = page.locator('details').filter({ has: page.locator('[data-action="restore-origin"]') });
+  if (!(await comparison.evaluate(element => element.open))) await comparison.locator(':scope > summary').click();
+  await page.getByRole('button', { name: 'Retrouver mon mandat d’origine', exact: true }).click();
+  expect((await stored(page)).choices).toEqual(original.choices);
+  expect((await stored(page)).pressure).toEqual(original.pressure);
+  await evidence(page, info, 'comparaison-origine-retrouvee');
+});
+
+test('an active incident is visibly urgent when selected on the map', async ({ page }, info) => {
+  await open(page, 1);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.locator('input[type="file"]').setInputFiles({ name: 'port-actif-v14.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ version: 14, mode: 'national', seed: 1, ambition: 'equilibre',
+      choices: Array.from({ length: 10 }, (_, turn) => `n11-${turn}-pressure-administration-maintain`) })) });
+  const before = await stored(page);
+  expect(before.pressure.incidents.find(incident => incident.id === 'port-bloque').status).toBe('active');
+  await select(page, 'port-bloque');
+  await expect(page.locator('[data-map-marker="port-bloque"]')).toHaveClass(/map-tone--red/);
+  await expect(page.locator('[data-map-incident]')).toBeVisible();
+  await expect(page.locator('[data-map-incident]')).toContainText('1,6');
+  await expect(page.locator('[data-map-incident]')).toContainText('hypothèse');
+  expect((await stored(page)).turn).toBe(before.turn);
+  await evidence(page, info, 'incident-actif-visible');
+});
+
+for (const blockedKey of ['500signatures.mandats.branch-reference.v1', '500signatures.mandats.branch-active.v1']) {
+  test(`an unavailable ${blockedKey} cannot replace the saved mandate with a replay prefix`, async ({ page }, info) => {
+    await open(page);
+    await select(page, 'pressure-health');
+    const original = await choose(page, 'maintain');
+    const raw = await page.evaluate(key => localStorage.getItem(key), KEY);
+    await page.evaluate(blocked => {
+      const setItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === blocked) throw new DOMException('Quota de stockage atteint.', 'QuotaExceededError');
+        return setItem.call(this, key, value);
+      };
+    }, blockedKey);
+    await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+    await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+    await page.locator('[data-action="branch-replay"]').first().click();
+    await expect(page.locator('#notice')).toContainText('conserver le mandat d’origine');
+    expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(raw);
+    expect((await stored(page)).choices).toEqual(original.choices);
+    await page.getByRole('button', { name: 'Revenir à mon mandat', exact: true }).click();
+    await page.reload();
+    await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+    expect((await stored(page)).choices).toEqual(original.choices);
+    expect((await stored(page)).pressure).toEqual(original.pressure);
+    const waiting = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+    await page.getByRole('button', { name: 'Exporter la sauvegarde', exact: true }).click();
+    const download = await waiting;
+    const path = info.outputPath('mandat-conserve-malgre-quota.json');
+    await download.saveAs(path);
+    expect(decode(await readFile(path, 'utf8')).choices).toEqual(original.choices);
+    await page.getByRole('dialog').getByRole('button', { name: 'Fermer', exact: true }).click();
+    await evidence(page, info, 'origine-conservee-malgre-quota');
+  });
+}
+
+test('a refused origin restoration keeps the branch and its recoverable archive after reload', async ({ page }, info) => {
+  await open(page);
+  await maintain(page, 'health');
+  const original = await maintain(page, 'housing');
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+  await page.locator('[data-action="branch-replay"]').first().click();
+  await select(page, 'pressure-health');
+  const branch = await choose(page, 'relief');
+  expect(branch.choices).not.toEqual(original.choices);
+  const raw = await page.evaluate(key => localStorage.getItem(key), KEY);
+  const markerKey = '500signatures.mandats.branch-active.v1';
+  const marker = await page.evaluate(key => localStorage.getItem(key), markerKey);
+  await page.evaluate(blocked => {
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === blocked) throw new DOMException('Quota de stockage atteint.', 'QuotaExceededError');
+      return setItem.call(this, key, value);
+    };
+  }, KEY);
+  async function restore() {
+    await page.getByRole('button', { name: 'État du pays', exact: true }).click();
+    const comparison = page.locator('details').filter({ has: page.locator('[data-action="restore-origin"]') });
+    if (!(await comparison.evaluate(element => element.open))) await comparison.locator(':scope > summary').click();
+    await page.getByRole('button', { name: 'Retrouver mon mandat d’origine', exact: true }).click();
+  }
+  await restore();
+  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(raw);
+  expect(await page.evaluate(key => localStorage.getItem(key), markerKey)).toBe(marker);
+  await expect(page.locator('#mandats')).toHaveAttribute('data-turn', String(branch.turn));
+  await expect(page.locator('#notice')).toContainText('restaurer');
+  await evidence(page, info, 'restauration-refusee-branche-conservee');
+  await page.reload();
+  await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+  expect((await stored(page)).choices).toEqual(branch.choices);
+  await restore();
+  expect((await stored(page)).choices).toEqual(original.choices);
+  expect((await stored(page)).pressure).toEqual(original.pressure);
+  await evidence(page, info, 'origine-retrouvee-apres-quota');
+});
+
+for (const blockedKey of ['500signatures.mandats.branch-active.v1', KEY]) {
+  test(`a refused branch from a shared result preserves the saved branch original when ${blockedKey} fails`, async ({ page }, info) => {
+    await open(page);
+    await maintain(page, 'health');
+    const original = await maintain(page, 'housing');
+    async function branch() {
+      await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+      await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+      await page.locator('[data-action="branch-replay"]').first().click();
+    }
+    await branch();
+    await select(page, 'pressure-health');
+    const alternative = await choose(page, 'relief');
+    const keys = [KEY, '500signatures.mandats.branch-reference.v1', '500signatures.mandats.branch-active.v1'];
+    async function snapshot() {
+      return page.evaluate(keys => keys.map(key => localStorage.getItem(key)), keys);
+    }
+    const before = await snapshot();
+    const legacy = JSON.parse(await readFile(new URL('./fixtures/mandats-v13-compatibility.json', import.meta.url), 'utf8'));
+    const shared = legacy.cases.find(item => item.name === 'rupture21').input;
+    await page.goto(`/mandats/#result=${encodeURIComponent(JSON.stringify(shared))}`);
+    await expect(page.locator('#mandats')).toHaveAttribute('data-turn', String(shared.choices.length));
+    expect(await snapshot()).toEqual(before);
+    await page.evaluate(blocked => {
+      const setItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === blocked) throw new DOMException('Quota de stockage atteint.', 'QuotaExceededError');
+        return setItem.call(this, key, value);
+      };
+    }, blockedKey);
+    await branch();
+    expect(await snapshot()).toEqual(before);
+    await expect(page.locator('#notice')).toContainText('conserver le mandat d’origine');
+    await page.goto('/mandats/');
+    await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+    expect((await stored(page)).choices).toEqual(alternative.choices);
+    await page.getByRole('button', { name: 'État du pays', exact: true }).click();
+    const comparison = page.locator('details').filter({ has: page.locator('[data-action="restore-origin"]') });
+    if (!(await comparison.evaluate(element => element.open))) await comparison.locator(':scope > summary').click();
+    await page.getByRole('button', { name: 'Retrouver mon mandat d’origine', exact: true }).click();
+    expect((await stored(page)).choices).toEqual(original.choices);
+    expect((await stored(page)).pressure).toEqual(original.pressure);
+    await evidence(page, info, 'origine-locale-protegee-du-resultat-partage');
+  });
+}
+
+test('a shared dilemma offers comparison only after an actual choice and preserves the local original meanwhile', async ({ page }, info) => {
+  await open(page);
+  await maintain(page, 'health');
+  const original = await maintain(page, 'housing');
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true }).click();
+  await page.locator('[data-action="branch-replay"]').first().click();
+  await select(page, 'pressure-health');
+  const alternative = await choose(page, 'relief');
+  const keys = [KEY, '500signatures.mandats.branch-reference.v1', '500signatures.mandats.branch-active.v1'];
+  const before = await page.evaluate(keys => keys.map(key => localStorage.getItem(key)), keys);
+  const shared = { version: 14, mode: 'national', seed: 1, ambition: 'equilibre', choices: ['n11-0-pressure-health-maintain'] };
+  const url = `/mandats/#dilemma=${encodeURIComponent(JSON.stringify(shared))}`;
+  await page.goto(url);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true })).toHaveCount(0);
+  expect(await page.evaluate(keys => keys.map(key => localStorage.getItem(key)), keys)).toEqual(before);
+  await page.goto('/mandats/');
+  await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+  expect((await stored(page)).choices).toEqual(alternative.choices);
+  await page.getByRole('button', { name: 'État du pays', exact: true }).click();
+  const comparison = page.locator('details').filter({ has: page.locator('[data-action="restore-origin"]') });
+  if (!(await comparison.evaluate(element => element.open))) await comparison.locator(':scope > summary').click();
+  await page.getByRole('button', { name: 'Retrouver mon mandat d’origine', exact: true }).click();
+  expect((await stored(page)).choices).toEqual(original.choices);
+  await page.goto(url);
+  await select(page, 'pressure-housing');
+  const adopted = await choose(page, 'maintain');
+  expect(adopted.seed).toBe(shared.seed);
+  expect(adopted.turn).toBe(2);
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Comparer une autre stratégie', exact: true })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Fermer', exact: true }).click();
+  await evidence(page, info, 'comparaison-apres-adoption-reelle');
 });

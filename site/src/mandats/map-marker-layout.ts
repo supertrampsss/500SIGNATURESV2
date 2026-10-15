@@ -69,16 +69,31 @@ export function placeMarker(
       (b.x - origin.x) ** 2 -
       (b.y - origin.y) ** 2,
   );
-  const point =
-    candidates.find((candidate) =>
-      placed.every(
-        (previous) =>
-          Math.abs(previous.x - candidate.x) >=
-            (previous.width + width) / 2 + 6 ||
-          Math.abs(previous.y - candidate.y) >=
-            (previous.height + height) / 2 + 6,
-      ),
-    ) ?? candidates[0];
+  const fits = (candidate: MarkerBox) => placed.every(previous =>
+    Math.abs(previous.x - candidate.x) >= (previous.width + width) / 2 + 6 ||
+    Math.abs(previous.y - candidate.y) >= (previous.height + height) / 2 + 6);
+  let point = candidates.find(fits);
+  if (!point) {
+    // The regular offsets can miss a narrow free pocket between controls and
+    // earlier pins. Try their exact edges before accepting an overlapping pin.
+    const xs = [marginX, host.clientWidth - marginX, origin.x,
+      ...placed.flatMap(box => [
+        box.x - (box.width + width) / 2 - 6,
+        box.x + (box.width + width) / 2 + 6,
+      ])].map(x => Math.max(marginX, Math.min(host.clientWidth - marginX, x)));
+    const ys = [marginY, host.clientHeight - marginY, origin.y,
+      ...placed.flatMap(box => [
+        box.y - (box.height + height) / 2 - 6,
+        box.y + (box.height + height) / 2 + 6,
+      ])].map(y => Math.max(marginY, Math.min(host.clientHeight - marginY, y)));
+    const edges = [...new Set(xs)].flatMap(x =>
+      [...new Set(ys)].map(y => ({ x, y, width, height })));
+    edges.sort((a, b) =>
+      (a.x - origin.x) ** 2 + (a.y - origin.y) ** 2 -
+      (b.x - origin.x) ** 2 - (b.y - origin.y) ** 2);
+    point = edges.find(fits);
+  }
+  point ??= candidates[0];
   placed.push(point);
   element.style.left = `${Math.round(point.x)}px`;
   element.style.top = `${Math.round(point.y)}px`;
@@ -95,22 +110,65 @@ export function placeMarker(
     leader = element.querySelector<SVGPathElement>("[data-map-leader] path");
   if (icon && leader) leader.setAttribute("d",
     `M ${icon.offsetLeft + icon.offsetWidth / 2} ${icon.offsetTop + icon.offsetHeight / 2} L ${groundX} ${groundY}`);
-  const subject = element.querySelector<HTMLElement>(".map-marker__subject");
-  if (subject) {
-    subject.style.left = `${Math.max(8 - left,
-      Math.min(host.clientWidth - 8 - left - subject.offsetWidth, icon?.offsetLeft ?? 2))}px`;
-    // The compact map has little space between Lille and Lyon. Place the
-    // urgent caption below its ground ring there, keeping both pins readable.
-    const captionTop = host.clientWidth <= 820 ? (icon?.offsetHeight ?? 48) + 31 : -subject.offsetHeight - 7;
-    subject.style.top = `${Math.max(8 - top,
-      Math.min(host.clientHeight - 8 - top - subject.offsetHeight, captionTop))}px`;
-    placed.push({ x: left + subject.offsetLeft + subject.offsetWidth / 2,
-      y: top + subject.offsetTop + subject.offsetHeight / 2,
-      width: subject.offsetWidth, height: subject.offsetHeight });
-  }
   element.dataset.mapGroundX = String(ground.x);
   element.dataset.mapGroundY = String(ground.y);
   return point;
+}
+/** Place duplicate urgent captions only after every interactive pin has a place. */
+export function placeMarkerSubjects(host: HTMLElement, placed: MarkerBox[]): void {
+  const hostBounds = host.getBoundingClientRect();
+  for (const element of host.querySelectorAll<HTMLElement>("[data-map-marker]:not([hidden])")) {
+    const bounds = element.getBoundingClientRect(),
+      left = bounds.left - hostBounds.left, top = bounds.top - hostBounds.top,
+      icon = element.querySelector<HTMLElement>(".map-marker__point");
+    const subject = element.querySelector<HTMLElement>(".map-marker__subject");
+    if (subject) {
+      subject.hidden = false;
+      const width = subject.offsetWidth, height = subject.offsetHeight;
+      if (width && height) {
+        // Urgent captions are outside the button box. Their previous fixed
+        // position could cover a subject already placed, intercepting its click.
+        // Find a free caption position as well as a free button position.
+        const clampX = (x: number) => Math.max(width / 2 + 8,
+          Math.min(host.clientWidth - width / 2 - 8, x));
+        const clampY = (y: number) => Math.max(height / 2 + 8,
+          Math.min(host.clientHeight - height / 2 - 8, y));
+        const captionTop = host.clientWidth <= 820
+          ? (icon?.offsetHeight ?? 48) + 31 : -height - 7;
+        const preferred = {
+          x: clampX(left + (icon?.offsetLeft ?? 2) + width / 2),
+          y: clampY(top + captionTop + height / 2),
+        };
+        const xs = [preferred.x, clampX(0), clampX(host.clientWidth),
+          ...placed.flatMap(box => [
+            clampX(box.x - (box.width + width) / 2 - 6),
+            clampX(box.x + (box.width + width) / 2 + 6),
+          ])];
+        const ys = [preferred.y, clampY(0), clampY(host.clientHeight),
+          ...placed.flatMap(box => [
+            clampY(box.y - (box.height + height) / 2 - 6),
+            clampY(box.y + (box.height + height) / 2 + 6),
+          ])];
+        const candidates = [...new Set(xs)].flatMap(x =>
+          [...new Set(ys)].map(y => ({ x, y, width, height })));
+        candidates.sort((a, b) =>
+          (a.x - preferred.x) ** 2 + (a.y - preferred.y) ** 2 -
+          (b.x - preferred.x) ** 2 - (b.y - preferred.y) ** 2);
+        const caption = candidates.find(candidate => placed.every(box =>
+          Math.abs(box.x - candidate.x) >= (box.width + width) / 2 + 6 ||
+          Math.abs(box.y - candidate.y) >= (box.height + height) / 2 + 6));
+        if (caption) {
+          subject.style.left = `${caption.x - width / 2 - left}px`;
+          subject.style.top = `${caption.y - height / 2 - top}px`;
+          placed.push(caption);
+        } else {
+          // The agenda keeps the full title when the small map has no spare room.
+          // Prioritise reachable pins and camera controls over duplicate captions.
+          subject.hidden = true;
+        }
+      }
+    }
+  }
 }
 export function placeFallbackMarkers(host: HTMLElement, state: MandateMapState): void {
   for (const label of host.querySelectorAll<HTMLElement>("[data-map-label]")) label.hidden = true;
@@ -132,6 +190,7 @@ export function placeFallbackMarkers(host: HTMLElement, state: MandateMapState):
       y = (height - 920 * scale) / 2 + (450 - position.z * 72) * scale;
     placeMarker(host, element, { x, y }, placed);
   }
+  placeMarkerSubjects(host, placed);
 }
 export function watchPreviewImage(host: HTMLElement): (() => void) | undefined {
   const image = host.querySelector<HTMLImageElement>(".mandate-map__preview");

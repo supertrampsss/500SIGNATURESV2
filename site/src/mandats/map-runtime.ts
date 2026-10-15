@@ -1,7 +1,7 @@
 import { MAP_PLACES, mapState } from "./map-state.ts";
 import type { MapPlace, MandateMapState } from "./map-state.ts";
 import type { Game } from "./types.ts";
-import { mapObstacles, placeFallbackMarkers, placeMarker } from "./map-marker-layout.ts";
+import { mapObstacles, placeFallbackMarkers, placeMarker, placeMarkerSubjects } from "./map-marker-layout.ts";
 import { ILLUSTRATED_MAP_PLACES, ILLUSTRATED_MAP_SIZE, ILLUSTRATED_NATIONAL_ANCHOR } from "./map-illustrated-layout.ts";
 
 type Point = { x: number; y: number };
@@ -61,6 +61,7 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
       element.hidden = x < 0 || y < 0 || x > host.clientWidth || y > host.clientHeight;
       if (!element.hidden) placeMarker(host, element, { x, y }, placed);
     }
+    placeMarkerSubjects(host, placed);
   }
 
   function draw() {

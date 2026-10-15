@@ -298,6 +298,150 @@ test("compact markers avoid one another and the map control while fonts load lat
   await capture(page, info, "polices-retardees-carte-compacte");
 });
 
+test("an import status leaves the country navigation readable and reachable", async ({ page }, info) => {
+  await page.goto("/mandats/?mode=national&v=13&seed=0&ambition=equilibre");
+  await page.getByRole("button", { name: "Ma partie", exact: true }).click();
+  await page.locator("#save-file").setInputFiles({
+    name: "mandat-importe.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({
+      version: 13, mode: "national", seed: 0, ambition: "equilibre",
+      choices: ["pol-wealth-hospital-package"],
+    })),
+  });
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.locator("#notice")).toHaveText("Partie importée et recalculée.");
+  try {
+    await page.getByRole("button", { name: "Gouvernement", exact: true })
+      .click({ timeout: 5000 });
+    await expect(page.locator("[data-map-government]")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Projets", exact: true }).click();
+    await expect(page.locator("[data-map-projects]")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Bilan", exact: true }).click();
+    await expect(page.locator("[data-map-review]")).toBeVisible();
+    await page.getByRole("button", { name: "Pays", exact: true }).click();
+    await expect(page.locator("#mandats")).toHaveAttribute("data-turn", "1");
+    const separated = await page.evaluate(() => {
+      const notice = document.querySelector("#notice").getBoundingClientRect();
+      const navigation = document.querySelector(".map-game__footer").getBoundingClientRect();
+      return notice.bottom <= navigation.top;
+    });
+    expect(separated).toBe(true);
+  } finally {
+    await capture(page, info, "statut-import-navigation");
+  }
+});
+
+test("five saved map pins keep their labels and project controls separate", async ({ page }, info) => {
+  const inputs = {
+    version: 13, mode: "national", seed: 0, ambition: "services",
+    choices: [
+      "pol-wealth-hospital-package", "pol-coalition-refuse", "pol-censure-vote",
+      "pol-cabinet-dissolve", "pol-cabinet-cohabitation", "pol-cabinet-cohabitation",
+      "pol-cabinet-cohabitation", "r01c", "r02c",
+      "n11-9-science-stockage-pilote", "n11-10-cyber-hopital-restaurer",
+      "n11-11-industrie-commandes-locales-avance-fournisseurs",
+      "pol-scandal-publish", "pol-censure-vote",
+      "n11-14-logement-vacants-remise-en-location", "n11-15-chaleur-ecoles-ombrage",
+      "n11-16-ia-services-assister", "n11-17-logements-vacants-conversion",
+    ],
+  };
+  await page.goto("/mandats/?mode=national&v=13&seed=0&ambition=services");
+  await page.getByRole("button", { name: "Ma partie", exact: true }).click();
+  await page.locator("#save-file").setInputFiles({
+    name: "cinq-reperes.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(inputs)),
+  });
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator("[data-map-marker]:visible")).toHaveCount(5);
+  await page.locator('[data-map-marker="pressure-education"]').click();
+  if (info.project.name !== "desktop") {
+    await page.getByRole("button", { name: "Déplier la carte", exact: true }).click();
+  }
+  try {
+    // At 320 px both pending project labels occupied the same position.
+    // The school project must stay reachable through its own actual pin.
+    await page.locator('[data-map-marker="ecoles-fraiches"]').click({ timeout: 5000 });
+    await expect(page.getByRole("dialog")).toContainText("Consulter cet engagement");
+    await page.keyboard.press("Escape");
+    const overlaps = await page.locator("[data-mandate-map]").evaluate(map => {
+      const boxes = [...map.querySelectorAll("[data-map-marker], .map-camera, [data-map-toggle]")]
+        .map(element => ({ id: element.dataset.mapMarker ?? element.className,
+          rectangle: element.getBoundingClientRect() }))
+        .filter(({ rectangle }) => rectangle.width > 0 && rectangle.height > 0);
+      return boxes.flatMap((item, index) => boxes.slice(index + 1).filter(other =>
+        Math.min(item.rectangle.right, other.rectangle.right) -
+          Math.max(item.rectangle.left, other.rectangle.left) > 1 &&
+        Math.min(item.rectangle.bottom, other.rectangle.bottom) -
+          Math.max(item.rectangle.top, other.rectangle.top) > 1)
+        .map(other => [item.id, other.id]));
+    });
+    expect(overlaps).toEqual([]);
+    await expect(page.locator("#mandats")).toHaveAttribute("data-turn", "18");
+  } finally {
+    await capture(page, info, "cinq-reperes-carte");
+  }
+});
+
+test("urgent captions never cover another subject or camera control in a crowded mandate", async ({ page }, info) => {
+  // Reproduced on the released v13: at 320 px the Rennes urgent caption
+  // intercepted the centre of the Lyon button after 29 genuine decisions.
+  const inputs = {
+    version: 13, mode: "national", seed: 0, ambition: "equilibre",
+    choices: [
+      "pol-wealth-hospital-package", "pol-coalition-compromise",
+      ...Array.from({ length: 10 }, (_, index) => `n11-${index + 2}-pressure-health-maintain`),
+      "pol-scandal-publish", "pol-censure-vote",
+      ...Array.from({ length: 5 }, (_, index) => `n11-${index + 14}-pressure-health-maintain`),
+      ...Array.from({ length: 10 }, (_, index) => `n11-${index + 19}-pressure-education-maintain`),
+    ],
+  };
+  await page.goto("/mandats/?mode=national&v=13&seed=0&ambition=equilibre");
+  await page.getByRole("button", { name: "Ma partie", exact: true }).click();
+  await page.locator("#save-file").setInputFiles({
+    name: "trois-fronts-en-crise.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(inputs)),
+  });
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator("#mandats")).toHaveAttribute("data-turn", "29");
+  const covered = () => page.locator("[data-mandate-map]").evaluate(map => {
+    const boxes = selector => [...map.querySelectorAll(selector)]
+      .map(element => ({ id: element.dataset.mapMarker ?? element.className,
+        rectangle: element.getBoundingClientRect() }))
+      .filter(({ rectangle }) => rectangle.width > 0 && rectangle.height > 0);
+    const captions = boxes(".map-marker__subject");
+    const controls = boxes("[data-map-marker], .map-camera, [data-map-toggle]");
+    return captions.flatMap(caption => controls.filter(control =>
+      Math.min(caption.rectangle.right, control.rectangle.right) -
+        Math.max(caption.rectangle.left, control.rectangle.left) > 1 &&
+      Math.min(caption.rectangle.bottom, control.rectangle.bottom) -
+        Math.max(caption.rectangle.top, control.rectangle.top) > 1)
+      .map(control => control.id));
+  });
+  try {
+    await page.locator('[data-map-marker="pressure-education"]').click({ timeout: 5000 });
+    await expect(page.locator('[data-map-marker="pressure-education"]'))
+      .toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#mandats")).toHaveAttribute("data-turn", "29");
+    await expect.poll(covered).toEqual([]);
+    await page.locator('[data-action="map-close"]').click();
+    await expect.poll(covered).toEqual([]);
+    await page.locator('[data-map-marker="pressure-housing"]').click();
+    await expect(page.locator('[data-map-marker="pressure-housing"]'))
+      .toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#mandats")).toHaveAttribute("data-turn", "29");
+    if (info.project.name !== "desktop") {
+      await page.getByRole("button", { name: "Déplier la carte", exact: true }).click();
+      await expect.poll(covered).toEqual([]);
+    }
+  } finally {
+    await capture(page, info, "trois-fronts-carte-accessible");
+  }
+});
+
 test("the reference illustration opens subjects without advancing the game and preserves its artboard", async ({
   page,
 }, info) => {

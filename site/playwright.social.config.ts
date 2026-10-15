@@ -3,7 +3,7 @@ import story from "./playwright.story.config.ts";
 
 export default defineConfig({
   ...story,
-  testMatch: ["mandats-social.test.mjs"],
+  testMatch: ["mandats-social.test.mjs", "mandats-social-retry.test.mjs"],
   timeout: 180_000,
   outputDir: "./social-artifacts/results",
   reporter: [

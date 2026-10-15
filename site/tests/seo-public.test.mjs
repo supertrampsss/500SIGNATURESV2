@@ -1,6 +1,31 @@
 import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
+test('SEO : le lien de confiance de l’accueil ouvre directement la méthode', async ({ page }, info) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Données vérifiées Une méthode transparente.', exact: true }).click();
+  await expect(page).toHaveURL(/\/sources\/#methode$/);
+  const method = page.getByRole('heading', { level: 2, name: 'La méthode', exact: true });
+  // Native anchor scrolling rounds fractional font coordinates to whole pixels.
+  // A one-pixel edge tolerance stays stable across browser font rasterization.
+  await expect.poll(() => method.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    return bounds.width > 0 && bounds.height > 0 && bounds.top >= -1 && bounds.left >= -1 &&
+      bounds.bottom <= innerHeight + 1 && bounds.right <= innerWidth + 1;
+  })).toBe(true);
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
+  const evidence = await method.evaluate(element => ({
+    url: location.href, viewport: { width: innerWidth, height: innerHeight },
+    scrollY, heading: element.getBoundingClientRect().toJSON(),
+  }));
+  const record = info.outputPath('accueil-methode.json');
+  await writeFile(record, JSON.stringify(evidence, null, 2));
+  await info.attach('accueil-methode', { path: record, contentType: 'application/json' });
+  const image = info.outputPath('accueil-methode.png');
+  await page.screenshot({ path: image, animations: 'disabled' });
+  await info.attach('méthode atteinte depuis l’accueil', { path: image, contentType: 'image/png' });
+});
+
 test('SEO : le guide IA décrit exactement les pages canoniques réellement publiées', async ({ page, request }, info) => {
   test.skip(info.project.name !== 'desktop-chromium', 'One HTTP audit of the shared built corpus.');
   const sitemap = await request.get('/sitemap.xml');
