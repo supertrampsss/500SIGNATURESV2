@@ -19,7 +19,7 @@ import { CARD_SIZES, challengeURL, escape } from "./sharing.ts";
 import { readProgression, recordCompletedMandate } from "./progression.ts";
 import { createDecisionTransition } from "./decision-transition.ts";
 import { nationalSceneState } from "./national-scene-state.ts";
-import { comparisonMarkup, createBranch, readBranchReference, renderReplaySelection, renderTrajectoryComparison, saveBranchReference } from "./branch-replay.ts";
+import { BRANCH_REFERENCE_KEY, comparisonMarkup, createBranch, readBranchReference, renderReplaySelection, renderTrajectoryComparison, saveBranchReference } from "./branch-replay.ts";
 import "./living-board.css";
 import "./country-feedback.css";
 import "./branch-replay.css";
@@ -470,6 +470,7 @@ async function action(target: HTMLElement) {
   if (a === "offline-remove") { await removeOffline(); announce("Copie hors connexion supprimée. Vos sauvegardes sont conservées."); return; }
   if (a === "plan-reset" && g) { planIds = [...g.choices]; render(); return; }
   if (a === "open-plan" && g) {
+    if (ephemeralChallenge) { announce('Jouez un premier choix pour comparer les décisions de ce mandat.'); return; }
     dialog.close();
     if (g.mode === "national" && g.version >= 11) {
       screen = g.turn > 0 ? "replay" : "play";
@@ -595,32 +596,58 @@ async function action(target: HTMLElement) {
   else if (a === "restore-origin" && g) {
     if (branchReference) {
       const original = branchReference;
-      branchReference = null; clearBranchReference();
+      try {
+        if (!save(original, localStorage)) throw new Error('Sauvegarde indisponible.');
+      } catch {
+        announce('Votre navigateur ne peut pas restaurer le mandat d’origine. Votre branche reste inchangée ; vous pourrez réessayer ou l’exporter.');
+        return;
+      }
+      clearBranchReference();
       adopt(original);
-      persist();
-    } else screen = "result";
+      saved = original;
+    } else screen = isFinished(g) ? "result" : "play";
   }
   else if (a === "continue-branch" && g) { screen = "play"; view = "decision"; planIds = null; persist(); }
   else if ((a === "branch-replay" || a === "replay-branch") && g) {
+    if (ephemeralChallenge) { announce('Jouez un premier choix pour comparer les décisions de ce mandat.'); return; }
     try {
       const source = g;
       const reference = branchReference && sameBranchScenario(branchReference, source) ? branchReference : source;
-      g = createBranch(source, Number(target.dataset.turn));
-      let archived = false;
-      try { archived = saveBranchReference(localStorage, reference); } catch {}
-      branchReference = reference;
+      const branch = createBranch(source, Number(target.dataset.turn));
+      const previousArchive = localStorage.getItem(BRANCH_REFERENCE_KEY);
+      const previousMarker = localStorage.getItem(BRANCH_ACTIVE_KEY);
+      let archived = false, marked = false;
       try {
-        if (archived) localStorage.setItem(BRANCH_ACTIVE_KEY, JSON.stringify({ schema: 1, seed: g.seed, version: g.version, mode: g.mode, ambition: g.ambition, prefix: g.choices }));
-        else localStorage.removeItem(BRANCH_ACTIVE_KEY);
-      } catch {}
+        if (!saveBranchReference(localStorage, reference)) throw new Error('Archive indisponible.');
+        archived = true;
+        localStorage.setItem(BRANCH_ACTIVE_KEY, JSON.stringify({ schema: 1, seed: branch.seed, version: branch.version, mode: branch.mode, ambition: branch.ambition, prefix: branch.choices }));
+        marked = true;
+        if (!save(branch, localStorage)) throw new Error('Sauvegarde indisponible.');
+      } catch {
+        let restored = true;
+        try {
+          // Free the partial writes before reinstating the previous records,
+          // which may belong to a local branch behind a shared preview.
+          if (marked) localStorage.removeItem(BRANCH_ACTIVE_KEY);
+          if (archived) localStorage.removeItem(BRANCH_REFERENCE_KEY);
+          if (archived && previousArchive !== null) localStorage.setItem(BRANCH_REFERENCE_KEY, previousArchive);
+          if (marked && previousMarker !== null) localStorage.setItem(BRANCH_ACTIVE_KEY, previousMarker);
+        } catch { restored = false; }
+        announce(restored
+          ? 'Votre navigateur ne peut pas conserver le mandat d’origine. Votre partie reste inchangée ; exportez-la avant de la rejouer.'
+          : 'Le rejeu n’a pas pu être enregistré. Le stockage est indisponible ; exportez votre partie avant de fermer cette page.');
+        return;
+      }
+      g = branch;
+      saved = branch;
+      branchReference = reference;
       shared = false; inherited = false; screen = "play"; view = "decision"; planIds = null;
       clearEntryLink(history);
-      persist();
     } catch (error) { announce(error instanceof Error ? error.message : "Ce parcours ne peut pas être rejoué."); return; }
   }
   else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. Le parcours peut compter jusqu’à 30 décisions sur cinq années, et une issue politique peut l’interrompre plus tôt.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
   else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Une partie comporte jusqu’à 30 décisions sur cinq années. Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>${(g && g.version >= 11)?"Le contexte choisi au départ donne une situation initiale au mandat; les décisions et leurs effets restent calculés par le moteur de simulation.":"La mission choisie au départ change la lecture du bilan."} Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
-  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `${g.version < 11 || g.turn > 0 ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button>` : ""}<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`); return; }
+  else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `${!ephemeralChallenge && (g.version < 11 || g.turn > 0) ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button>` : ""}<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }
   else if (a === "copy-result" && g) { await copy(cardURL(g, cardKind, location.origin)); return; }

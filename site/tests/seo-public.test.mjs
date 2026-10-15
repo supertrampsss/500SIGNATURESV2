@@ -7,7 +7,12 @@ test('SEO : le lien de confiance de l’accueil ouvre directement la méthode', 
   await expect(page).toHaveURL(/\/sources\/#methode$/);
   const method = page.getByRole('heading', { level: 2, name: 'La méthode', exact: true });
   // Native anchor scrolling rounds fractional font coordinates to whole pixels.
-  await expect(method).toBeInViewport({ ratio: 0.99 });
+  // A one-pixel edge tolerance stays stable across browser font rasterization.
+  await expect.poll(() => method.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    return bounds.width > 0 && bounds.height > 0 && bounds.top >= -1 && bounds.left >= -1 &&
+      bounds.bottom <= innerHeight + 1 && bounds.right <= innerWidth + 1;
+  })).toBe(true);
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
   const evidence = await method.evaluate(element => ({
     url: location.href, viewport: { width: innerWidth, height: innerHeight },

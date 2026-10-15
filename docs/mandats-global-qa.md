@@ -27,6 +27,65 @@ une partie en cours doit revenir au mandat. Réutiliser sans condition le retour
 à l'héritage du parcours terminé produirait une fausse « fin de mandat » au tour 1.
 Le retour et le libellé dépendent donc de la fin réelle enregistrée par le moteur.
 
+### Origine perdue si le navigateur refuse son archive
+
+La dernière contre-revue reproduit une perte de sauvegarde sur Chromium et WebKit.
+Après trois vrais choix v14 seed 0, le navigateur est configuré pour refuser
+uniquement l'écriture de `500signatures.mandats.branch-reference.v1` avec une
+erreur de quota. La reprise avant la première décision remplace tout de même la
+sauvegarde active par un préfixe vide. L'origine existe encore en mémoire, puis
+disparaît après rechargement, sans avertissement. Les exports avant/après, les
+entrées et les traces sont dans `/workspace/mandats-global-ui/branch-quota/`.
+
+Échecs à prévenir avant correction : le refus d'enregistrer l'archive, ou son
+marqueur de reprise, doit laisser la partie active et sa sauvegarde inchangées.
+Le joueur doit pouvoir revenir au mandat, le recharger et l'exporter. Seule
+l'API de stockage défaillante est simulée ; aucune valeur du jeu n'est injectée.
+
+Le retour à l'origine présente le défaut symétrique, également reproduit sur
+Chromium et WebKit : une branche est jouée avec un autre choix, puis seule
+l'écriture de la sauvegarde active est refusée au clic « Retrouver mon mandat
+d'origine ». Le marqueur est supprimé avant cette écriture. L'interface affiche
+l'origine, mais le rechargement retrouve la branche sans accès à son archive.
+Preuves : `/workspace/mandats-global-ui/restore-quota/`.
+
+Échec à prévenir avant correction : une restauration refusée doit garder la
+branche affichée, sa sauvegarde et son marqueur. Après rechargement, le retour
+à l'origine doit rester proposé et réussir lorsque le stockage redevient
+disponible. L'origine ne doit être adoptée qu'après son enregistrement réussi.
+
+La contre-revue croise aussi deux parties : une branche A et son origine sont
+conservées, puis un dilemme partagé B est ouvert sans adoption. Si le marqueur
+de branche B est refusé après l'écriture de son archive, l'archive A est écrasée
+alors que sa sauvegarde et son marqueur sont toujours actifs. Après rechargement,
+l'origine A n'est plus proposée. Le parcours réel et les trois clés avant/après
+sont dans `pressure-artifacts/qa-balance/cross-scenario-archive-review.json`.
+Échec à prévenir : cette tentative refusée doit aussi restituer l'ancienne
+archive, et le retour à l'origine A doit encore fonctionner après rechargement.
+La même protection est nécessaire si l'archive B et son marqueur sont écrits,
+mais que seule l'écriture de la sauvegarde active est refusée : aucune des trois
+clés de A ne doit alors changer. Le retour arrière concerne donc toute la
+création de branche, jusqu'à l'enregistrement de sa sauvegarde active.
+
+Le parcours avec un dilemme non adopté expose aussi la séparation entre
+consultation et adoption : sans aucune panne, l'ancien code change ses deux
+clés d'archive alors que `persist()` conserve la sauvegarde locale. Le contrat
+impose de conserver celle-ci jusqu'à un vrai choix. Le comparateur de la partie
+consultée devient donc disponible après ce premier choix. Le parcours E2E dédié
+vérifie d'abord la conservation de l'origine locale, puis l'adoption réelle du
+dilemme et la disponibilité du comparateur. Les deux régressions de transaction
+entre parties utilisent un résultat partagé terminé, qui garde sa reprise
+jouable, avec la fixture légale v13 `rupture21`.
+
+Le correctif enregistre l'archive, le marqueur puis la sauvegarde de branche
+avant toute adoption en mémoire. Un refus rétablit les enregistrements précédents
+en libérant d'abord la place des écritures partielles. Le retour à l'origine
+enregistre celle-ci avant de retirer le marqueur. Les six régressions de stockage
+et de consultation partagée sont conservées dans la suite pressure, avec le
+parcours normal de comparaison sur les quatre formats. Les échecs E2E observés
+avant correction restent dans les journaux `*-quota-red*.log` et
+`mandats-global-qa-dilemma-red.log` sous `/workspace/`.
+
 ### Crises actives qui disparaissent
 
 Les parcours légaux conservés dans `ignored-crises.json` montrent qu'un port
@@ -159,7 +218,22 @@ coefficient n'a été modifié pour masquer ces limites.
 
 Les preuves distinguent les 24 parcours d'équilibrage **v13** conservés en
 diagnostic de départ, et l'audit **v14** sous `global-model/`. Le second contrôle
-seul permet de décrire la nouvelle règle. Les parcours navigateur vérifient les
+seul permet de décrire la nouvelle règle. L'audit v14 et son complément ont
+terminé 240 profils et branches, avec 494 646 vérifications et aucune violation
+des invariants contrôlés. Les 96 profils de base représentent 32 trajectoires
+physiques distinctes ; les trois priorités changent leur lecture. Le complément
+porte la couverture des réponses narratives reliées à la pression à 52 sur 52.
+Cela ne couvre pas toutes les suites possibles ni toutes les règles politiques.
+Les empreintes des 18 modules du moteur sont identiques entre ces deux audits.
+
+Une rupture négociée v14 a aussi été jouée jusqu'à sa vraie décision finale,
+rechargée et exportée sur les quatre formats. La recherche ciblée des procédures
+de destitution a obtenu 36 procédures, toutes rejetées par l'Assemblée : une
+destitution prononcée reste donc une limite de couverture v14. Le type technique
+« démission » n'a actuellement aucune action publique qui le déclenche ; il ne
+constitue pas une fonctionnalité validée par ces parcours.
+
+Les parcours navigateur vérifient les
 interactions réelles, y compris le mandat de trente décisions et le rejeu.
 Les suites complètes et les résultats de publication appartiennent aux rapports
 de CI et de déploiement du commit livré.
