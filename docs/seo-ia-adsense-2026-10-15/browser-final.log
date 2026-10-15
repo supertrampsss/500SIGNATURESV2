@@ -1,0 +1,93 @@
+[WebServer] (node:27614) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 65 tests using 2 workers
+
+(node:27660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [android-chromium] › tests/analytics-consent.test.mjs:3:1 › Audience : refus sans Google et consentement réversible, sans paramètres personnels (9.9s)
+  ✓   2 [android-chromium] › tests/editorial-tabs.test.mjs:10:1 › SEO : dossiers et réponses restent documentés et reliés sans JavaScript (10.9s)
+  ✓   4 [android-chromium] › tests/editorial-tabs.test.mjs:105:1 › Lancement : la page Ville est lisible sans JavaScript (1.6s)
+  ✓   5 [android-chromium] › tests/editorial-tabs.test.mjs:239:1 › Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses (2.1s)
+  ✓   3 [android-chromium] › tests/editorial-tabs.test.mjs:87:1 › Lancement : métadonnées propres à chaque vue et aucune publicité automatique (5.3s)
+  ✓   6 [android-chromium] › tests/editorial-tabs.test.mjs:301:1 › Confiance : Salaires garde la navigation accessible avec mouvement réduit (5.1s)
+  ✓   7 [android-chromium] › tests/editorial-tabs.test.mjs:351:1 › Dossiers : qualité, lecture du coût du travail et actualité du Groenland (4.4s)
+  ✓   9 [android-chromium] › tests/editorial-tabs.test.mjs:400:1 › Confiance : méthode, éditeur et démonstration des dépenses sont accessibles (4.6s)
+  ✓  10 [android-chromium] › tests/editorial-tabs.test.mjs:425:1 › Confiance : Salaires et présentation du projet restent lisibles sans JavaScript (2.2s)
+  ✓   8 [android-chromium] › tests/editorial-tabs.test.mjs:378:1 › Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript (7.0s)
+  -  11 [android-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  12 [android-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (3.3s)
+(node:28664) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [android-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.9s)
+(node:28728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 [iphone-webkit] › tests/editorial-tabs.test.mjs:10:1 › SEO : dossiers et réponses restent documentés et reliés sans JavaScript (11.1s)
+  ✓  14 [iphone-webkit] › tests/analytics-consent.test.mjs:3:1 › Audience : refus sans Google et consentement réversible, sans paramètres personnels (17.0s)
+  ✓  17 [iphone-webkit] › tests/editorial-tabs.test.mjs:105:1 › Lancement : la page Ville est lisible sans JavaScript (1.2s)
+  ✓  18 [iphone-webkit] › tests/editorial-tabs.test.mjs:239:1 › Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses (2.2s)
+  ✓  16 [iphone-webkit] › tests/editorial-tabs.test.mjs:87:1 › Lancement : métadonnées propres à chaque vue et aucune publicité automatique (9.6s)
+  ✓  20 [iphone-webkit] › tests/editorial-tabs.test.mjs:351:1 › Dossiers : qualité, lecture du coût du travail et actualité du Groenland (3.9s)
+  ✓  19 [iphone-webkit] › tests/editorial-tabs.test.mjs:301:1 › Confiance : Salaires garde la navigation accessible avec mouvement réduit (9.2s)
+  ✓  21 [iphone-webkit] › tests/editorial-tabs.test.mjs:378:1 › Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript (6.8s)
+  ✓  23 [iphone-webkit] › tests/editorial-tabs.test.mjs:425:1 › Confiance : Salaires et présentation du projet restent lisibles sans JavaScript (1.8s)
+  -  24 [iphone-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  25 [iphone-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.4s)
+  ✓  26 [iphone-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (3.7s)
+(node:29699) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  27 [compact-chromium] › tests/analytics-consent.test.mjs:3:1 › Audience : refus sans Google et consentement réversible, sans paramètres personnels (6.4s)
+  ✓  22 [iphone-webkit] › tests/editorial-tabs.test.mjs:400:1 › Confiance : méthode, éditeur et démonstration des dépenses sont accessibles (18.7s)
+(node:29868) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  29 [compact-chromium] › tests/editorial-tabs.test.mjs:87:1 › Lancement : métadonnées propres à chaque vue et aucune publicité automatique (4.2s)
+  ✓  30 [compact-chromium] › tests/editorial-tabs.test.mjs:105:1 › Lancement : la page Ville est lisible sans JavaScript (659ms)
+  ✓  28 [compact-chromium] › tests/editorial-tabs.test.mjs:10:1 › SEO : dossiers et réponses restent documentés et reliés sans JavaScript (6.2s)
+  ✓  31 [compact-chromium] › tests/editorial-tabs.test.mjs:239:1 › Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses (1.2s)
+  ✓  32 [compact-chromium] › tests/editorial-tabs.test.mjs:301:1 › Confiance : Salaires garde la navigation accessible avec mouvement réduit (2.7s)
+  ✓  33 [compact-chromium] › tests/editorial-tabs.test.mjs:351:1 › Dossiers : qualité, lecture du coût du travail et actualité du Groenland (2.7s)
+  ✓  35 [compact-chromium] › tests/editorial-tabs.test.mjs:400:1 › Confiance : méthode, éditeur et démonstration des dépenses sont accessibles (2.4s)
+  ✓  34 [compact-chromium] › tests/editorial-tabs.test.mjs:378:1 › Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript (3.4s)
+  -  37 [compact-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  36 [compact-chromium] › tests/editorial-tabs.test.mjs:425:1 › Confiance : Salaires et présentation du projet restent lisibles sans JavaScript (1.3s)
+  ✓  38 [compact-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (1.9s)
+(node:30364) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  39 [compact-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (1.8s)
+(node:30426) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  41 [landscape-webkit] › tests/editorial-tabs.test.mjs:10:1 › SEO : dossiers et réponses restent documentés et reliés sans JavaScript (11.2s)
+  ✓  40 [landscape-webkit] › tests/analytics-consent.test.mjs:3:1 › Audience : refus sans Google et consentement réversible, sans paramètres personnels (14.6s)
+  ✓  43 [landscape-webkit] › tests/editorial-tabs.test.mjs:105:1 › Lancement : la page Ville est lisible sans JavaScript (958ms)
+  ✓  44 [landscape-webkit] › tests/editorial-tabs.test.mjs:239:1 › Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses (2.1s)
+  ✓  42 [landscape-webkit] › tests/editorial-tabs.test.mjs:87:1 › Lancement : métadonnées propres à chaque vue et aucune publicité automatique (7.9s)
+  ✓  46 [landscape-webkit] › tests/editorial-tabs.test.mjs:351:1 › Dossiers : qualité, lecture du coût du travail et actualité du Groenland (3.9s)
+  ✓  45 [landscape-webkit] › tests/editorial-tabs.test.mjs:301:1 › Confiance : Salaires garde la navigation accessible avec mouvement réduit (8.8s)
+  ✓  47 [landscape-webkit] › tests/editorial-tabs.test.mjs:378:1 › Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript (6.0s)
+  ✓  49 [landscape-webkit] › tests/editorial-tabs.test.mjs:425:1 › Confiance : Salaires et présentation du projet restent lisibles sans JavaScript (1.5s)
+  -  50 [landscape-webkit] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées
+  ✓  51 [landscape-webkit] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.5s)
+  ✓  52 [landscape-webkit] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.8s)
+(node:31261) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  48 [landscape-webkit] › tests/editorial-tabs.test.mjs:400:1 › Confiance : méthode, éditeur et démonstration des dépenses sont accessibles (18.2s)
+(node:31406) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  53 [desktop-chromium] › tests/analytics-consent.test.mjs:3:1 › Audience : refus sans Google et consentement réversible, sans paramètres personnels (8.0s)
+  ✓  55 [desktop-chromium] › tests/editorial-tabs.test.mjs:87:1 › Lancement : métadonnées propres à chaque vue et aucune publicité automatique (4.5s)
+  ✓  56 [desktop-chromium] › tests/editorial-tabs.test.mjs:105:1 › Lancement : la page Ville est lisible sans JavaScript (1.2s)
+  ✓  57 [desktop-chromium] › tests/editorial-tabs.test.mjs:239:1 › Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses (1.8s)
+  ✓  58 [desktop-chromium] › tests/editorial-tabs.test.mjs:301:1 › Confiance : Salaires garde la navigation accessible avec mouvement réduit (3.4s)
+  ✓  54 [desktop-chromium] › tests/editorial-tabs.test.mjs:10:1 › SEO : dossiers et réponses restent documentés et reliés sans JavaScript (11.3s)
+  ✓  59 [desktop-chromium] › tests/editorial-tabs.test.mjs:351:1 › Dossiers : qualité, lecture du coût du travail et actualité du Groenland (3.9s)
+  ✓  60 [desktop-chromium] › tests/editorial-tabs.test.mjs:378:1 › Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript (6.2s)
+  ✓  61 [desktop-chromium] › tests/editorial-tabs.test.mjs:400:1 › Confiance : méthode, éditeur et démonstration des dépenses sont accessibles (3.3s)
+  ✓  62 [desktop-chromium] › tests/editorial-tabs.test.mjs:425:1 › Confiance : Salaires et présentation du projet restent lisibles sans JavaScript (1.5s)
+  ✓  63 [desktop-chromium] › tests/seo-public.test.mjs:4:1 › SEO : le guide IA décrit exactement les pages canoniques réellement publiées (1.6s)
+  ✓  64 [desktop-chromium] › tests/seo-public.test.mjs:47:1 › SEO : les aides d’usage restent accessibles sans JavaScript sur accueil et Ville (2.9s)
+  ✓  65 [desktop-chromium] › tests/seo-public.test.mjs:79:1 › SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu (2.5s)
+
+  4 skipped
+  61 passed (2.7m)

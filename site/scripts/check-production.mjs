@@ -16,6 +16,11 @@ try {
   const sitemap = await sitemapResponse.text();
   const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
   if(!urls.length || new Set(urls).size!==urls.length) throw new Error('Sitemap vide ou dupliqué');
+  const guideResponse = await get(origin+'/llms.txt');
+  const guide = await guideResponse.text();
+  const guideUrls = [...guide.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map(match=>match[1]);
+  if(guideResponse.status!==200 || !/^text\/plain(?:;|$)/i.test(guideResponse.headers.get('content-type')??'')) failures.push('llms.txt : guide texte indisponible');
+  if(new Set(guideUrls).size!==guideUrls.length || guideUrls.length!==urls.length || guideUrls.some(url=>!urls.includes(url))) failures.push('llms.txt : corpus différent des adresses canoniques du sitemap');
   if(publisherId) {
     if(!/^ca-pub-\d{16}$/.test(publisherId)) throw new Error('Identifiant AdSense attendu invalide');
     const adsResponse=await get(origin+'/ads.txt');

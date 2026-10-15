@@ -1,0 +1,244 @@
+{
+  "inputs": {
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 900
+      },
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 320,
+        "height": 640
+      }
+    ],
+    "routes": [
+      [
+        "home",
+        "/"
+      ],
+      [
+        "ville",
+        "/territoire/"
+      ],
+      [
+        "guide",
+        "/mandats/comprendre/"
+      ]
+    ]
+  },
+  "records": [
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "screenshot": "screens/static-home-1440.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comptes publics, villes et décisions | 500 Signatures",
+      "canonical": "https://500signatures.fr/",
+      "h1": [
+        "Comprendre aujourd’huipour mieux agir demain."
+      ],
+      "width": 1440,
+      "scrollWidth": 1440,
+      "help": [
+        "\n    Utiliser 500 Signatures\n    Où trouver le budget d’une commune ?Dans Ville, recherchez une commune par son nom. Sa fiche réunit les chiffres disponibles et leurs périodes. Pour comparer deux exercices, vérifiez le périmètre, l’unité et la source de la série.\n    Comment vérifier ou citer un chiffre ?Chaque dossier indique les publications utilisées et les limites de sa lecture. Conservez le montant, l’unité, la période et le lien vers la source. La page Sources et méthode décrit les jeux de données et les contrôles. Une erreur peut être signalée au projet.\n    Mandats présente-t-il de vrais résultats économiques ?Mandats est un jeu de simulation politique : jusqu’à 30 décisions au cours de cinq années. Ses montants et ses conséquences sont fictifs. Les comptes observés se consultent dans France ; ils sont distincts des résultats de votre partie.\n    Faut-il payer ou créer un compte ?Les données, les dossiers et le jeu sont accessibles gratuitement, sans compte. La sauvegarde de Mandats reste dans votre navigateur ; son menu permet de l’exporter pour la conserver ou la transférer.\n  "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "ville",
+      "path": "/territoire/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "screenshot": "screens/static-ville-1440.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Les comptes de votre ville | 500 Signatures",
+      "canonical": "https://500signatures.fr/territoire/",
+      "h1": [
+        "Les comptes de votre ville, en clair."
+      ],
+      "width": 1440,
+      "scrollWidth": 1440,
+      "help": [
+        "\n        Lire les comptes d’une ville\n        Comment retrouver ma commune ?Saisissez son nom dans le champ de recherche, puis choisissez la commune dans les résultats. Aucune ville n’est sélectionnée à votre place.\n        Peut-on comparer directement deux communes ?Comparez des données portant sur le même exercice et le même périmètre. Un montant total et un montant par habitant répondent à des questions différentes. Vérifiez aussi les compétences prises en charge par la commune et son intercommunalité avant d’interpréter un écart.\n        Que signifie une donnée absente ?Une valeur manquante n’est pas un zéro. La fiche présente les données disponibles dans la publication utilisée ; les périodes et la couverture peuvent varier entre séries. La page Sources et méthode permet de remonter aux jeux publiés et à leur producteur.\n      "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "guide",
+      "path": "/mandats/comprendre/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "screenshot": "screens/static-guide-1440.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comment jouer à Mandats, le jeu de simulation politique ? · Mandats",
+      "canonical": "https://500signatures.fr/mandats/comprendre/",
+      "h1": [
+        "Comment jouer à Mandats ?"
+      ],
+      "width": 1440,
+      "scrollWidth": 1440,
+      "help": []
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "screenshot": "screens/static-home-390.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comptes publics, villes et décisions | 500 Signatures",
+      "canonical": "https://500signatures.fr/",
+      "h1": [
+        "Comprendre aujourd’huipour mieux agir demain."
+      ],
+      "width": 390,
+      "scrollWidth": 390,
+      "help": [
+        "\n    Utiliser 500 Signatures\n    Où trouver le budget d’une commune ?Dans Ville, recherchez une commune par son nom. Sa fiche réunit les chiffres disponibles et leurs périodes. Pour comparer deux exercices, vérifiez le périmètre, l’unité et la source de la série.\n    Comment vérifier ou citer un chiffre ?Chaque dossier indique les publications utilisées et les limites de sa lecture. Conservez le montant, l’unité, la période et le lien vers la source. La page Sources et méthode décrit les jeux de données et les contrôles. Une erreur peut être signalée au projet.\n    Mandats présente-t-il de vrais résultats économiques ?Mandats est un jeu de simulation politique : jusqu’à 30 décisions au cours de cinq années. Ses montants et ses conséquences sont fictifs. Les comptes observés se consultent dans France ; ils sont distincts des résultats de votre partie.\n    Faut-il payer ou créer un compte ?Les données, les dossiers et le jeu sont accessibles gratuitement, sans compte. La sauvegarde de Mandats reste dans votre navigateur ; son menu permet de l’exporter pour la conserver ou la transférer.\n  "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "ville",
+      "path": "/territoire/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "screenshot": "screens/static-ville-390.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Les comptes de votre ville | 500 Signatures",
+      "canonical": "https://500signatures.fr/territoire/",
+      "h1": [
+        "Les comptes de votre ville, en clair."
+      ],
+      "width": 390,
+      "scrollWidth": 390,
+      "help": [
+        "\n        Lire les comptes d’une ville\n        Comment retrouver ma commune ?Saisissez son nom dans le champ de recherche, puis choisissez la commune dans les résultats. Aucune ville n’est sélectionnée à votre place.\n        Peut-on comparer directement deux communes ?Comparez des données portant sur le même exercice et le même périmètre. Un montant total et un montant par habitant répondent à des questions différentes. Vérifiez aussi les compétences prises en charge par la commune et son intercommunalité avant d’interpréter un écart.\n        Que signifie une donnée absente ?Une valeur manquante n’est pas un zéro. La fiche présente les données disponibles dans la publication utilisée ; les périodes et la couverture peuvent varier entre séries. La page Sources et méthode permet de remonter aux jeux publiés et à leur producteur.\n      "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "guide",
+      "path": "/mandats/comprendre/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "screenshot": "screens/static-guide-390.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comment jouer à Mandats, le jeu de simulation politique ? · Mandats",
+      "canonical": "https://500signatures.fr/mandats/comprendre/",
+      "h1": [
+        "Comment jouer à Mandats ?"
+      ],
+      "width": 390,
+      "scrollWidth": 390,
+      "help": []
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "status": 200,
+      "screenshot": "screens/static-home-320.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comptes publics, villes et décisions | 500 Signatures",
+      "canonical": "https://500signatures.fr/",
+      "h1": [
+        "Comprendre aujourd’huipour mieux agir demain."
+      ],
+      "width": 320,
+      "scrollWidth": 320,
+      "help": [
+        "\n    Utiliser 500 Signatures\n    Où trouver le budget d’une commune ?Dans Ville, recherchez une commune par son nom. Sa fiche réunit les chiffres disponibles et leurs périodes. Pour comparer deux exercices, vérifiez le périmètre, l’unité et la source de la série.\n    Comment vérifier ou citer un chiffre ?Chaque dossier indique les publications utilisées et les limites de sa lecture. Conservez le montant, l’unité, la période et le lien vers la source. La page Sources et méthode décrit les jeux de données et les contrôles. Une erreur peut être signalée au projet.\n    Mandats présente-t-il de vrais résultats économiques ?Mandats est un jeu de simulation politique : jusqu’à 30 décisions au cours de cinq années. Ses montants et ses conséquences sont fictifs. Les comptes observés se consultent dans France ; ils sont distincts des résultats de votre partie.\n    Faut-il payer ou créer un compte ?Les données, les dossiers et le jeu sont accessibles gratuitement, sans compte. La sauvegarde de Mandats reste dans votre navigateur ; son menu permet de l’exporter pour la conserver ou la transférer.\n  "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "ville",
+      "path": "/territoire/",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "status": 200,
+      "screenshot": "screens/static-ville-320.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Les comptes de votre ville | 500 Signatures",
+      "canonical": "https://500signatures.fr/territoire/",
+      "h1": [
+        "Les comptes de votre ville, en clair."
+      ],
+      "width": 320,
+      "scrollWidth": 320,
+      "help": [
+        "\n        Lire les comptes d’une ville\n        Comment retrouver ma commune ?Saisissez son nom dans le champ de recherche, puis choisissez la commune dans les résultats. Aucune ville n’est sélectionnée à votre place.\n        Peut-on comparer directement deux communes ?Comparez des données portant sur le même exercice et le même périmètre. Un montant total et un montant par habitant répondent à des questions différentes. Vérifiez aussi les compétences prises en charge par la commune et son intercommunalité avant d’interpréter un écart.\n        Que signifie une donnée absente ?Une valeur manquante n’est pas un zéro. La fiche présente les données disponibles dans la publication utilisée ; les périodes et la couverture peuvent varier entre séries. La page Sources et méthode permet de remonter aux jeux publiés et à leur producteur.\n      "
+      ]
+    },
+    {
+      "name": "static",
+      "origin": "http://127.0.0.1:4194",
+      "route": "guide",
+      "path": "/mandats/comprendre/",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "status": 200,
+      "screenshot": "screens/static-guide-320.png",
+      "errors": [],
+      "adRequests": [],
+      "title": "Comment jouer à Mandats, le jeu de simulation politique ? · Mandats",
+      "canonical": "https://500signatures.fr/mandats/comprendre/",
+      "h1": [
+        "Comment jouer à Mandats ?"
+      ],
+      "width": 320,
+      "scrollWidth": 320,
+      "help": []
+    }
+  ]
+}
