@@ -1,0 +1,88 @@
+{
+  "method": "Read-only reconciliation of ten actual native captures with the current frozen production response bytes. No model/camera/state/network overrides; all recorded page/console/HTTP failures and horizontal overflow checked. Readiness observations are not the original timing gates or a hardware FPS claim.",
+  "captures": [
+    {
+      "capture": "production-retained-e/07-paris-cathedrale.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/08-mediterranee-port.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/05-lyon-alpes.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/01-national.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/09-national-final.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/04-lyon-detail.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-retained-e/06-national-retour.json",
+      "geometryReadyMs": "9549",
+      "shadersReadyMs": "10441",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 0
+    },
+    {
+      "capture": "production-movement-retained-e/01-mobilisation.json",
+      "geometryReadyMs": "9846",
+      "shadersReadyMs": "10654",
+      "renderer": "babylon",
+      "servedBundles": 26,
+      "realChoices": 1
+    },
+    {
+      "capture": "production-320-retained-e/01-mobilisation.json",
+      "geometryReadyMs": "9209",
+      "shadersReadyMs": "10103",
+      "renderer": "babylon",
+      "servedBundles": 20,
+      "realChoices": 1
+    },
+    {
+      "capture": "production-390-retained-e/01-mobilisation.json",
+      "geometryReadyMs": "9081",
+      "shadersReadyMs": "9828",
+      "renderer": "babylon",
+      "servedBundles": 20,
+      "realChoices": 1
+    }
+  ],
+  "successCount": 10,
+  "allRecordedErrorsZero": true,
+  "servedBundleHashesMatchFrozenDist": true
+}

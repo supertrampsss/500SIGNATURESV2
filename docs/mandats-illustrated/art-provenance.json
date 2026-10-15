@@ -1,0 +1,81 @@
+{
+  "original": "docs/mandats-diorama/reference-ordinateur.png",
+  "originalSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "generatedRestoration": "Embedded second PNG in site/src/mandats/textures/reference-map.svg",
+  "crop": [
+    0,
+    66,
+    1268,
+    801
+  ],
+  "overlayRegions": [
+    [
+      741,
+      94,
+      68,
+      80
+    ],
+    [
+      793,
+      122,
+      51,
+      32
+    ],
+    [
+      272,
+      290,
+      67,
+      88
+    ],
+    [
+      326,
+      332,
+      67,
+      32
+    ],
+    [
+      809,
+      365,
+      114,
+      114
+    ],
+    [
+      889,
+      423,
+      57,
+      34
+    ],
+    [
+      825,
+      332,
+      161,
+      39
+    ],
+    [
+      892,
+      597,
+      72,
+      91
+    ],
+    [
+      944,
+      642,
+      82,
+      33
+    ],
+    [
+      14,
+      705,
+      53,
+      92
+    ],
+    [
+      14,
+      800,
+      171,
+      51
+    ]
+  ],
+  "method": "Le SVG affiche les pixels de la maquette originale hors des rectangles de restauration. Seuls les anciens repères et contrôles utilisent la retouche. Les zones hors carte ne sont pas affichées : les contrôles, scores et sujets sont du HTML alimenté par la partie.",
+  "assetSHA256": "33f4d29ac1887a8c20fe277629129c1fadf42f1dd264fd7731b49313539b495a"
+}

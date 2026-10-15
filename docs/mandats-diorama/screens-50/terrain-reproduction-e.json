@@ -1,0 +1,19 @@
+{
+  "method": "Two fresh canonical exports. Both logs retained; current compressed terrain and full source metadata compare byteexact to frozen pre-export candidateE. Session52590 was lost on environment replacement; both export logs and final cmp on13October independently confirm reproduction; no invented process exit code.",
+  "sha256": "ddf4b83558c4142229b7d53e20b6c88b25f10981cbef53ecaa7aa0049f237cd9",
+  "compressedBytes": 12023938,
+  "decodedBytes": 25998824,
+  "meshes": 17,
+  "triangles": 292829,
+  "heightSurvey": {
+    "minimumX": -450,
+    "minimumZ": -265,
+    "width": 861,
+    "height": 826,
+    "samples": 290625
+  },
+  "firstLog": "terrain-reproduction-e-first.log",
+  "secondLog": "terrain-reproduction-e-second.log",
+  "binaryByteIdentical": true,
+  "sourceMetadataByteIdentical": true
+}

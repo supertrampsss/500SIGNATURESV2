@@ -1,0 +1,336 @@
+{
+  "config": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/500SIGNATURESV2/site/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.header.config.ts"
+    ],
+    "configFile": "/workspace/500SIGNATURESV2/site/playwright.header.config.ts",
+    "rootDir": "/workspace/500SIGNATURESV2/site/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/header-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "header-mobile-320",
+        "name": "header-mobile-320",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "header-navigation.test.mjs"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/header-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "header-mobile-390",
+        "name": "header-mobile-390",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "header-navigation.test.mjs"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/header-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "header-desktop-1440",
+        "name": "header-desktop-1440",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "header-navigation.test.mjs"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./header-artifacts/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./header-artifacts/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run preview -- --host 127.0.0.1 --port 4183 --strictPort",
+      "url": "http://127.0.0.1:4183/accueil/",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "header-navigation.test.mjs",
+      "file": "header-navigation.test.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "header-mobile-320",
+              "projectName": "header-mobile-320",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14899,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-11T07:11:01.880Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "header-fallback--mandats-?mode=national&v=11&seed=0&ambition=equilibre",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/header-fallback--mandats--mode-national-v-11-seed-0-ambition-equilibre-f7ed6331d7e72b2295340ec7817a69833a7746ad.png"
+                    },
+                    {
+                      "name": "header-fallback--confidentialite-",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/header-fallback--confidentialite--d7240ee3a49645f84ad3cf962fc5f6c1d8725e5a.png"
+                    },
+                    {
+                      "name": "mandats-map-header",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/mandats-map-header-4db81549afab1052c4502bc338b1720bbd9f9972.png"
+                    },
+                    {
+                      "name": "mandats-site-navigation",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/mandats-site-navigation-4c971cbb2bc162003e64fd86c2f7c8c08a5f1c4b.png"
+                    },
+                    {
+                      "name": "header-menu-closed",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/header-menu-closed-90ff3756cd4209b1de5b50c21ca85e3db236ce03.png"
+                    },
+                    {
+                      "name": "header-menu-open",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/header-menu-open-7e9d5a31cd8e674bf17ceadcec795b042fb1d695.png"
+                    },
+                    {
+                      "name": "header-navigation-repro-inputs",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-320/attachments/header-navigation-repro-inputs-6805eb9395b0f2bdc5d918e7a1872686fdc6ca6f.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5dee76e32427a686c9d4-22fadaa4eb97c782ad61",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "column": 1
+        },
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "header-mobile-390",
+              "projectName": "header-mobile-390",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15325,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-11T07:11:17.406Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "header-fallback--mandats-?mode=national&v=11&seed=0&ambition=equilibre",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/header-fallback--mandats--mode-national-v-11-seed-0-ambition-equilibre-92bdfef2687c4ff30ec29c1ce680de4ea1f3c094.png"
+                    },
+                    {
+                      "name": "header-fallback--confidentialite-",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/header-fallback--confidentialite--9b10d29ad50e9f32537e1ea7698df75d62c1fb53.png"
+                    },
+                    {
+                      "name": "mandats-map-header",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/mandats-map-header-81c396651c98fa1ff74d204415e8da522c75b8bd.png"
+                    },
+                    {
+                      "name": "mandats-site-navigation",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/mandats-site-navigation-85530186809ec05e61b73c10405650ec8601e05f.png"
+                    },
+                    {
+                      "name": "header-menu-closed",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/header-menu-closed-de6e9cacbac326e443279d66044255973ee55b2d.png"
+                    },
+                    {
+                      "name": "header-menu-open",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/header-menu-open-5c1aac649f78b70ec71dce026e668046cd1121e4.png"
+                    },
+                    {
+                      "name": "header-navigation-repro-inputs",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-mobile-390/attachments/header-navigation-repro-inputs-c3330d3c5bb9822752a9c4ebfbcdff08f9d7c27a.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5dee76e32427a686c9d4-bc80a9d01498de0e75ff",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "column": 1
+        },
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "header-desktop-1440",
+              "projectName": "header-desktop-1440",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9608,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-11T07:11:33.291Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "header-fallback--mandats-?mode=national&v=11&seed=0&ambition=equilibre",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/header-fallback--mandats--mode-national-v-11-seed-0-ambition-equilibre-66cf066c9d169c569dd9f5bed5c5e21967caa063.png"
+                    },
+                    {
+                      "name": "header-fallback--confidentialite-",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/header-fallback--confidentialite--4b01a9659874497a2a08d14eb93cf2092126b912.png"
+                    },
+                    {
+                      "name": "mandats-map-header",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/mandats-map-header-860d5045c2f686293d98f25584814d434391ba5e.png"
+                    },
+                    {
+                      "name": "mandats-site-navigation",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/mandats-site-navigation-a33180774b71aef5633c88a15a15c6b7eef17bfd.png"
+                    },
+                    {
+                      "name": "header-desktop-navigation-visible",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/header-desktop-navigation-visible-3b8b5930ee160cf71ad4d627b63a4a8988ec4fad.png"
+                    },
+                    {
+                      "name": "header-navigation-repro-inputs",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/header-artifacts/results/header-navigation-shared-h-29e62-and-repeated-SPA-navigation-header-desktop-1440/attachments/header-navigation-repro-inputs-0e0d36ff2823b5cbdcb3dbe65ff0072d12d8aaf1.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5dee76e32427a686c9d4-7fdee8418c1ac2347f5f",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-11T07:11:01.120Z",
+    "duration": 42100.187,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

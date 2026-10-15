@@ -1,0 +1,24 @@
+{
+  "status": "experimental-model-override-not-production",
+  "baseSha256": "bf89b1435204c6ab9883b21a6893f01a0473859c3a188c73318bbd9e70cc7717",
+  "candidateHouseSha256": "f6f1144e6b59a61d37baeba1f56ef77de9542b071f79eb704d292cb3c4b082ce",
+  "composedSha256": "78036721d2cc75d7396daa0cf886ab535d2e34d4d4276fb9fc76fa69676ef1a7",
+  "bytes": 11420460,
+  "preservedExistingJSONSections": [
+    "bufferViews",
+    "accessors",
+    "samplers",
+    "images",
+    "textures",
+    "materials",
+    "meshes",
+    "nodes"
+  ],
+  "preservedExistingBinaryPrefix": 11045256,
+  "change": "Only maison_alsace_01 and its distant template are substituted; all other prefabs and binary data preserved.",
+  "limits": [
+    "Old unused house data remains in this experimental container.",
+    "No production source or asset modified.",
+    "No other house family, city layout, terrain or saved state changed."
+  ]
+}

@@ -1,0 +1,52 @@
+[WebServer] (node:11549) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11562) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 32 tests using 1 worker
+
+(node:11580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (1.1m)
+  ✓   2 [desktop] › tests/mandats-rework.test.mjs:241:1 › the real 3D map opens subjects without advancing the game and preserves its canvas (26.4s)
+  ✓   3 [desktop] › tests/mandats-rework.test.mjs:350:1 › school choices cause a movement which remains pending until its funded delivery (45.4s)
+  ✓   4 [desktop] › tests/mandats-rework.test.mjs:389:1 › a complete mandate survives save reload and offers replay from its actual decisions (1.6m)
+  ✓   5 [desktop] › tests/mandats-rework.test.mjs:465:1 › the fallback map and keyboard controls remain usable without WebGL (2.2s)
+  ✓   6 [desktop] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate (46.6s)
+  -   7 [desktop] › tests/mandats-rework.test.mjs:550:1 › prepared 3D play reloads its shaders and continues a real movement offline
+  ✓   8 [desktop] › tests/mandats-rework.test.mjs:599:1 › a lost graphics context keeps the map subjects and decisions usable (41.1s)
+(node:12646) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 [mobile] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (48.5s)
+  ✓  10 [mobile] › tests/mandats-rework.test.mjs:241:1 › the real 3D map opens subjects without advancing the game and preserves its canvas (33.0s)
+  ✓  11 [mobile] › tests/mandats-rework.test.mjs:350:1 › school choices cause a movement which remains pending until its funded delivery (47.3s)
+  ✓  12 [mobile] › tests/mandats-rework.test.mjs:389:1 › a complete mandate survives save reload and offers replay from its actual decisions (1.5m)
+  ✓  13 [mobile] › tests/mandats-rework.test.mjs:465:1 › the fallback map and keyboard controls remain usable without WebGL (1.7s)
+  -  14 [mobile] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate
+  ✓  15 [mobile] › tests/mandats-rework.test.mjs:550:1 › prepared 3D play reloads its shaders and continues a real movement offline (43.4s)
+  -  16 [mobile] › tests/mandats-rework.test.mjs:599:1 › a lost graphics context keeps the map subjects and decisions usable
+(node:13546) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [compact] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (49.1s)
+  ✓  18 [compact] › tests/mandats-rework.test.mjs:241:1 › the real 3D map opens subjects without advancing the game and preserves its canvas (32.1s)
+  ✓  19 [compact] › tests/mandats-rework.test.mjs:350:1 › school choices cause a movement which remains pending until its funded delivery (45.7s)
+  ✓  20 [compact] › tests/mandats-rework.test.mjs:389:1 › a complete mandate survives save reload and offers replay from its actual decisions (1.6m)
+  ✓  21 [compact] › tests/mandats-rework.test.mjs:465:1 › the fallback map and keyboard controls remain usable without WebGL (1.6s)
+  -  22 [compact] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate
+  -  23 [compact] › tests/mandats-rework.test.mjs:550:1 › prepared 3D play reloads its shaders and continues a real movement offline
+  -  24 [compact] › tests/mandats-rework.test.mjs:599:1 › a lost graphics context keeps the map subjects and decisions usable
+(node:14412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 [webkit] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (42.4s)
+  ✓  26 [webkit] › tests/mandats-rework.test.mjs:241:1 › the real 3D map opens subjects without advancing the game and preserves its canvas (26.5s)
+  ✓  27 [webkit] › tests/mandats-rework.test.mjs:350:1 › school choices cause a movement which remains pending until its funded delivery (41.1s)
+  ✓  28 [webkit] › tests/mandats-rework.test.mjs:389:1 › a complete mandate survives save reload and offers replay from its actual decisions (1.3m)
+  ✓  29 [webkit] › tests/mandats-rework.test.mjs:465:1 › the fallback map and keyboard controls remain usable without WebGL (1.7s)
+  -  30 [webkit] › tests/mandats-rework.test.mjs:496:1 › authored models load after a real decision and a failed kit preserves the saved mandate
+  -  31 [webkit] › tests/mandats-rework.test.mjs:550:1 › prepared 3D play reloads its shaders and continues a real movement offline
+  -  32 [webkit] › tests/mandats-rework.test.mjs:599:1 › a lost graphics context keeps the map subjects and decisions usable
+
+  Slow test file: [desktop] › tests/mandats-rework.test.mjs (5.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  9 skipped
+  23 passed (16.7m)

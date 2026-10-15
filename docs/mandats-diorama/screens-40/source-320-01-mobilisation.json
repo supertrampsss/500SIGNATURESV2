@@ -1,0 +1,1694 @@
+{
+  "experimentalModelOverride": [],
+  "productionBuild": "local source iteration40",
+  "browserVersion": "154.0.8037.57",
+  "servedBundleResponses": [],
+  "responseBodyErrors": [],
+  "failedResponses": [],
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "location": {
+        "url": "http://127.0.0.1:4193/@vite/client",
+        "line": 732,
+        "column": 8,
+        "lineNumber": 732,
+        "columnNumber": 8
+      },
+      "at": "2026-10-11T16:51:58.953Z"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "location": {
+        "url": "http://127.0.0.1:4193/@vite/client",
+        "line": 826,
+        "column": 11,
+        "lineNumber": 826,
+        "columnNumber": 11
+      },
+      "at": "2026-10-11T16:51:59.019Z"
+    },
+    {
+      "type": "log",
+      "text": "BJS - [16:52:00]: Babylon.js v9.30.0 - WebGL2",
+      "location": {
+        "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-J4DZ2XK7.js?v=8a6284ab",
+        "line": 44,
+        "column": 25,
+        "lineNumber": 44,
+        "columnNumber": 25
+      },
+      "at": "2026-10-11T16:52:00.125Z"
+    },
+    {
+      "type": "error",
+      "text": "Error: <path> attribute d: Expected number, \"M 18 18 L NaN NaN\".",
+      "location": {
+        "url": "http://127.0.0.1:4193/src/mandats/map-scene.ts?t=1791737517393",
+        "line": 1162,
+        "column": 0,
+        "lineNumber": 1162,
+        "columnNumber": 0
+      },
+      "at": "2026-10-11T16:52:19.534Z"
+    },
+    {
+      "type": "error",
+      "text": "Error: <path> attribute d: Expected number, \"M 18 18 L NaN NaN\".",
+      "location": {
+        "url": "http://127.0.0.1:4193/src/mandats/map-scene.ts?t=1791737517393",
+        "line": 1162,
+        "column": 0,
+        "lineNumber": 1162,
+        "columnNumber": 0
+      },
+      "at": "2026-10-11T16:52:19.534Z"
+    },
+    {
+      "type": "error",
+      "text": "Error: <path> attribute d: Expected number, \"M 18 18 L NaN NaN\".",
+      "location": {
+        "url": "http://127.0.0.1:4193/src/mandats/map-scene.ts?t=1791737517393",
+        "line": 1162,
+        "column": 0,
+        "lineNumber": 1162,
+        "columnNumber": 0
+      },
+      "at": "2026-10-11T16:52:19.534Z"
+    }
+  ],
+  "capturedAt": "2026-10-11T16:52:32.458Z",
+  "origin": "http://127.0.0.1:4193",
+  "description": "Actual v12 seed0 after the player adopts school regrouping; real saved Lyon movement",
+  "actions": [
+    "Open the real school subject",
+    "Choose Regrouper les classes"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": [
+      "n11-0-education-lycees-regrouper"
+    ]
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "1",
+    "resolution": "320x280",
+    "contactShadows": "false",
+    "edgeAntialiasing": "canvas",
+    "turn": "1",
+    "projects": "0",
+    "motion": "reduced",
+    "mountainRocks": "88",
+    "landscape": "diorama",
+    "terrainSource": "generated",
+    "staticBatches": "52",
+    "staticInstances": "8548",
+    "authoredHouses": "783",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "renderPending": "false",
+    "activeTriangles": "4431757",
+    "activeMeshes": "6838",
+    "cameraRadius": "13.45",
+    "renderMs": "53",
+    "inspection": ""
+  },
+  "layout": {
+    "scrollWidth": 320,
+    "viewportWidth": 320,
+    "viewportHeight": 640,
+    "devicePixelRatio": 1,
+    "scrollY": 0,
+    "canvas": {
+      "x": 0,
+      "y": 54,
+      "width": 320,
+      "height": 280,
+      "top": 54,
+      "right": 320,
+      "bottom": 334,
+      "left": 0
+    }
+  },
+  "raster": {
+    "width": 320,
+    "height": 280
+  },
+  "markerGeometry": [
+    {
+      "id": "policy:1",
+      "expected": [
+        167.72656664044553,
+        130.9231601187272
+      ],
+      "actual": [
+        167.71875,
+        130.921875
+      ],
+      "subject": null
+    },
+    {
+      "id": "mvt-lyceens-0",
+      "expected": [
+        217.42971811403223,
+        136.19603547272993
+      ],
+      "actual": [
+        217.4296875,
+        136.1875
+      ],
+      "subject": {
+        "left": 189.9921875,
+        "right": 311.9453125,
+        "top": 153
+      }
+    },
+    {
+      "id": "energie-bus-usine",
+      "expected": [
+        195.21659576940004,
+        60.66801008718878
+      ],
+      "actual": [
+        195.2265625,
+        60.65625
+      ],
+      "subject": null
+    }
+  ],
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4193/@vite/client",
+      "initiator": "script",
+      "transfer": 179320,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/main.ts?t=1791737517393",
+      "initiator": "script",
+      "transfer": 151349,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-scene.ts",
+      "initiator": "script",
+      "transfer": 21864,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/icons.ts",
+      "initiator": "script",
+      "transfer": 3702,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/game.css",
+      "initiator": "script",
+      "transfer": 89228,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/styles/shared-design.css",
+      "initiator": "script",
+      "transfer": 34477,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/approved-decision-room.css",
+      "initiator": "script",
+      "transfer": 6512,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/styles/site-shell-v2.css",
+      "initiator": "script",
+      "transfer": 52243,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/mandats-2026-rework.css",
+      "initiator": "script",
+      "transfer": 37502,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/telemetry.ts",
+      "initiator": "script",
+      "transfer": 5546,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/offline.ts",
+      "initiator": "script",
+      "transfer": 8325,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/engine.ts",
+      "initiator": "script",
+      "transfer": 24159,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/cards.ts",
+      "initiator": "script",
+      "transfer": 29387,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/session.ts",
+      "initiator": "script",
+      "transfer": 3809,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/storage.ts",
+      "initiator": "script",
+      "transfer": 8044,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/render.ts?t=1791736769100",
+      "initiator": "script",
+      "transfer": 157420,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/sharing.ts",
+      "initiator": "script",
+      "transfer": 20191,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/decision-transition.ts",
+      "initiator": "script",
+      "transfer": 3706,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/progression.ts",
+      "initiator": "script",
+      "transfer": 13779,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-scene-state.ts",
+      "initiator": "script",
+      "transfer": 11453,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/branch-replay.ts",
+      "initiator": "script",
+      "transfer": 37126,
+      "duration": 34
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/living-board.css",
+      "initiator": "script",
+      "transfer": 17646,
+      "duration": 34
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/country-feedback.css",
+      "initiator": "script",
+      "transfer": 2307,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/branch-replay.css",
+      "initiator": "script",
+      "transfer": 8116,
+      "duration": 34
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/living-recaps.css",
+      "initiator": "script",
+      "transfer": 19972,
+      "duration": 35
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/decision-motion.css",
+      "initiator": "script",
+      "transfer": 2494,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/cinema-board.css",
+      "initiator": "script",
+      "transfer": 14995,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/cinema-shell.css",
+      "initiator": "script",
+      "transfer": 13993,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/politics-view.ts",
+      "initiator": "script",
+      "transfer": 47342,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/political-motion.ts",
+      "initiator": "script",
+      "transfer": 22748,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/politics.css",
+      "initiator": "script",
+      "transfer": 16388,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative.css",
+      "initiator": "script",
+      "transfer": 22085,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/social.css",
+      "initiator": "script",
+      "transfer": 1710,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/decision-verdict.css",
+      "initiator": "script",
+      "transfer": 7464,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/decision-verdict.ts",
+      "initiator": "script",
+      "transfer": 9427,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-view.ts?t=1791736769100",
+      "initiator": "script",
+      "transfer": 69746,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-game.css?t=1791737406402",
+      "initiator": "script",
+      "transfer": 40911,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-panels.ts?t=1791736769100",
+      "initiator": "script",
+      "transfer": 7939,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-verdict.ts?t=1791736769100",
+      "initiator": "script",
+      "transfer": 6090,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-scene.ts?t=1791737517393",
+      "initiator": "script",
+      "transfer": 194978,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/vite/dist/client/env.mjs",
+      "initiator": "script",
+      "transfer": 3778,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/cinema-art.ts",
+      "initiator": "script",
+      "transfer": 9971,
+      "duration": 34
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/country-feedback.ts",
+      "initiator": "script",
+      "transfer": 10665,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/operations.ts",
+      "initiator": "script",
+      "transfer": 7340,
+      "duration": 22
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/ambitions.ts",
+      "initiator": "script",
+      "transfer": 3240,
+      "duration": 27
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative-outcomes.ts",
+      "initiator": "script",
+      "transfer": 34999,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/novice.ts",
+      "initiator": "script",
+      "transfer": 28111,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/legacy/engine.ts",
+      "initiator": "script",
+      "transfer": 16627,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national.ts",
+      "initiator": "script",
+      "transfer": 31410,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/municipal.ts",
+      "initiator": "script",
+      "transfer": 35914,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/types.ts",
+      "initiator": "script",
+      "transfer": 5534,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/calendar.ts",
+      "initiator": "script",
+      "transfer": 3347,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/cities.ts",
+      "initiator": "script",
+      "transfer": 36096,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative-engine.ts",
+      "initiator": "script",
+      "transfer": 69734,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/campaign.ts",
+      "initiator": "script",
+      "transfer": 51923,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/living-recaps.ts",
+      "initiator": "script",
+      "transfer": 70034,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-society.ts",
+      "initiator": "script",
+      "transfer": 5702,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-deficit.ts",
+      "initiator": "script",
+      "transfer": 2629,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/world.ts",
+      "initiator": "script",
+      "transfer": 25134,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/planner.ts",
+      "initiator": "script",
+      "transfer": 17791,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-command.ts",
+      "initiator": "script",
+      "transfer": 16556,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative-view.ts",
+      "initiator": "script",
+      "transfer": 35864,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-state.ts",
+      "initiator": "script",
+      "transfer": 14372,
+      "duration": 32
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-geography.ts",
+      "initiator": "script",
+      "transfer": 54998,
+      "duration": 32
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-icons.ts",
+      "initiator": "script",
+      "transfer": 11102,
+      "duration": 32
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/advertising-policy.ts",
+      "initiator": "script",
+      "transfer": 3331,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Engines_engine.js?v=248e16e6",
+      "initiator": "script",
+      "transfer": 130683,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_scene.js?v=2408f9bc",
+      "initiator": "script",
+      "transfer": 3032,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Cameras_arcRotateCamera.js?v=2905131a",
+      "initiator": "script",
+      "transfer": 160075,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Cameras_camera.js?v=d37accb1",
+      "initiator": "script",
+      "transfer": 2069,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Maths_math__vector.js?v=8354b8a1",
+      "initiator": "script",
+      "transfer": 1092,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Maths_math__color.js?v=3fd66765",
+      "initiator": "script",
+      "transfer": 2910,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Lights_hemisphericLight.js?v=9a202bab",
+      "initiator": "script",
+      "transfer": 8091,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Lights_directionalLight.js?v=966cc19d",
+      "initiator": "script",
+      "transfer": 18831,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Lights_Shadows_shadowGenerator.js?v=4045cd0a",
+      "initiator": "script",
+      "transfer": 86691,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_PostProcesses_fxaaPostProcess.js?v=27ade755",
+      "initiator": "script",
+      "transfer": 4466,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_PostProcesses_thinFXAAPostProcess.js?v=7da7c7f3",
+      "initiator": "script",
+      "transfer": 7732,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_Textures_renderTargetTexture.js?v=bb8c771a",
+      "initiator": "script",
+      "transfer": 2984,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_standardMaterial.js?v=c1250cf8",
+      "initiator": "script",
+      "transfer": 140523,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_PostProcesses_RenderPipeline_Pipelines_ssao2RenderingPipeline.js?v=de95bcdf",
+      "initiator": "script",
+      "transfer": 131518,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_Textures_cubeTexture.js?v=bcbe64bd",
+      "initiator": "script",
+      "transfer": 30092,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_imageProcessingConfiguration.js?v=b50e1d7a",
+      "initiator": "script",
+      "transfer": 1671,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_mesh.js?v=9c0000ab",
+      "initiator": "script",
+      "transfer": 3773,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_transformNode.js?v=2632d3d7",
+      "initiator": "script",
+      "transfer": 1426,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_mesh__vertexData.js?v=f080fdd2",
+      "initiator": "script",
+      "transfer": 8458,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_Builders_boxBuilder.js?v=80d68742",
+      "initiator": "script",
+      "transfer": 14405,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_Builders_sphereBuilder.js?v=9c26892c",
+      "initiator": "script",
+      "transfer": 8098,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_default__vertex.js?v=6196a794",
+      "initiator": "script",
+      "transfer": 10648,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_instancedMesh.js?v=8b9887a6",
+      "initiator": "script",
+      "transfer": 16598,
+      "duration": 25
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_default__fragment.js?v=44c74be1",
+      "initiator": "script",
+      "transfer": 28374,
+      "duration": 26
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_pbr__vertex.js?v=a26b94b2",
+      "initiator": "script",
+      "transfer": 19414,
+      "duration": 27
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_pbr__fragment.js?v=0ab1113d",
+      "initiator": "script",
+      "transfer": 105341,
+      "duration": 29
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_fxaa__vertex.js?v=f3498863",
+      "initiator": "script",
+      "transfer": 1604,
+      "duration": 27
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Shaders_fxaa__fragment.js?v=91175fa7",
+      "initiator": "script",
+      "transfer": 6161,
+      "duration": 28
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-camera-projection.ts",
+      "initiator": "script",
+      "transfer": 54981,
+      "duration": 28
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-cities.ts?t=1791737188436",
+      "initiator": "script",
+      "transfer": 301523,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-context.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 107383,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-mountain-rocks.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 66201,
+      "duration": 38
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-landscape.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 592745,
+      "duration": 33
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-water.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 44599,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-regions.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 7982,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-model-revisions.ts?t=1791735235054",
+      "initiator": "script",
+      "transfer": 1624,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/legacy/municipal.ts",
+      "initiator": "script",
+      "transfer": 35689,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/legacy/national.ts",
+      "initiator": "script",
+      "transfer": 29786,
+      "duration": 40
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative-content.ts",
+      "initiator": "script",
+      "transfer": 190589,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/novice-municipal.ts",
+      "initiator": "script",
+      "transfer": 63335,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/novice-national.ts",
+      "initiator": "script",
+      "transfer": 75021,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/local-campaign.ts",
+      "initiator": "script",
+      "transfer": 47510,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/city-context.ts",
+      "initiator": "script",
+      "transfer": 8973,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/political-dilemmas.ts",
+      "initiator": "script",
+      "transfer": 51605,
+      "duration": 41
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-agenda.ts",
+      "initiator": "script",
+      "transfer": 96146,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/narrative-consequences.ts",
+      "initiator": "script",
+      "transfer": 33716,
+      "duration": 44
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/social-content.ts",
+      "initiator": "script",
+      "transfer": 37736,
+      "duration": 44
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/rework-content.ts",
+      "initiator": "script",
+      "transfer": 60006,
+      "duration": 45
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/politics.ts",
+      "initiator": "script",
+      "transfer": 66652,
+      "duration": 46
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-branches.ts",
+      "initiator": "script",
+      "transfer": 38360,
+      "duration": 49
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/social-engine.ts",
+      "initiator": "script",
+      "transfer": 41032,
+      "duration": 48
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-policy.ts",
+      "initiator": "script",
+      "transfer": 58816,
+      "duration": 51
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/campaign-content.ts",
+      "initiator": "script",
+      "transfer": 244279,
+      "duration": 68
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/social-view.ts",
+      "initiator": "script",
+      "transfer": 6083,
+      "duration": 63
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-LQAXQQM7.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 13029,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-JSNMUL7N.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 572,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-O6WZ567L.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 3301,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4QUNGS4A.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1730,
+      "duration": 42
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-WM45UZWP.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 999,
+      "duration": 47
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-TZQUFE3O.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1014,
+      "duration": 47
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-FZYOFFEX.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 44574,
+      "duration": 48
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-KCG2UG3W.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1972,
+      "duration": 48
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-YC7U4GEU.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 4528,
+      "duration": 48
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-UNFJ6E3P.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 4846,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-B6CCUOUV.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 491,
+      "duration": 68
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-DRUVCYWL.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2311,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4OM2OFWO.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 5128,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-TJXE2T5R.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 153072,
+      "duration": 70
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-FX6MN5HL.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1672,
+      "duration": 71
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-IWZHB2YV.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 7409,
+      "duration": 72
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-IHBKGCGC.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 145691,
+      "duration": 72
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-DYKMGO2G.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 30396,
+      "duration": 72
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-5KVNGKEU.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1757,
+      "duration": 72
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-PCCHKHY4.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 16580,
+      "duration": 72
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-I4NFOKIT.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1352,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-NLPGUZ7O.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2627,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-32LZKNNC.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 13743,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-S7JSVL6E.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1823,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-J4DZ2XK7.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 3977,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4J4PZE5O.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 31106,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-OQQIC37D.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 9531,
+      "duration": 75
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-RBGIO2CH.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 16856,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4KD7RPY7.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1832,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ADM5LPES.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1581,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-X6EJH6JT.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 283011,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-JN3E2BZZ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 11827,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-M7UQXHOT.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 56597,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-TXLW2A44.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2120,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-MIVJKRRS.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 601,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-VYTMDOAJ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1951,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-Q4AC2O6Z.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2067,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-O2YKGT5I.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 510,
+      "duration": 67
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-MUGY4GQW.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 36081,
+      "duration": 68
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-L5MEQS6K.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 33212,
+      "duration": 68
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-XKDX4BVN.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 37695,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-VPSGIZZP.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 55002,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-YLPTP2MA.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1587,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-QLELEAFH.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 12428,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-GMAX2OCZ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 42435,
+      "duration": 61
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-E5EM3GWM.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 16498,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-DIPXNPZ5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 3740,
+      "duration": 61
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-OJ4H6CGQ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 66884,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-7W7LJ5ZY.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 47806,
+      "duration": 62
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-HH35OB2V.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 486,
+      "duration": 63
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-SZB5QSYK.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 4271,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-I3XOSENB.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2990,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-A2JURNE6.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 60861,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ZZBRSSK6.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 33564,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-2L6N2YIB.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 5704,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-Q443ZNJZ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 6066,
+      "duration": 64
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-UF2VSLN5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 18652,
+      "duration": 66
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-LHOXOJLH.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2578,
+      "duration": 65
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-OFRO7T3N.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 289209,
+      "duration": 70
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-BZFXC2RG.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 4875,
+      "duration": 67
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4X2P5A7M.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 6361,
+      "duration": 68
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-QRNFOQVX.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 74422,
+      "duration": 69
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-XRETP5LY.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 49312,
+      "duration": 70
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-UMAUQAMC.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 39724,
+      "duration": 70
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-EMCGDVED.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 85611,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-SKM4FZU5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 365414,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-PC6XVSEH.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 62776,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-KO6E7PUM.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 15450,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-BDG77QC3.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 52659,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-CPLABIWJ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2038,
+      "duration": 73
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-DUBFBQR4.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 83367,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-7C3X6YAZ.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 50526,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-JVQTI45J.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 12414,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ZDYWW7FD.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 19627,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-QSL4WOHK.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 26942,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-TBCTMY74.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 4418,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-OO7EP3C5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 491,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-3ZUFK6DF.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 911,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-CFJ44I6H.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 11027,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-IC4QXRPG.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1059,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-SQQ2S3XP.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1500,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-SQ25PRK5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 15832,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-7T77ZDUH.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1749,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-OGYJJT6S.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1226,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ZZ4ZID2A.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 906,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-XO3BWO62.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 928,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ORSLCE4V.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 7367,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-4Y4BNUNG.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 9092,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-6433PLE5.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 12126,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-WDQSMCP7.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 101920,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ADQQALMD.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 522,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-YNNPEGQG.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 26713,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-Z2UOS6YG.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 21523,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-ELU2BGO7.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 51775,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-EEDKXUJ6.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 7795,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-EGV4VEYN.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 6076,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-UTQ5OPQ6.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 6463,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-33ISUMOI.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1960,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-WQIPTFTE.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 2276,
+      "duration": 76
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-5XV4UU4X.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 1687,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-2CG2XAIR.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 12486,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-VVNQJ2AY.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 40717,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/chunk-AA7727K4.js?v=8a6284ab",
+      "initiator": "script",
+      "transfer": 3314,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Meshes_Builders_cylinderBuilder.js?v=a6caa8e4",
+      "initiator": "script",
+      "transfer": 14160,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-public-ground.ts",
+      "initiator": "script",
+      "transfer": 11385,
+      "duration": 77
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-materials.ts?t=1791733849393",
+      "initiator": "script",
+      "transfer": 31264,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-public-sites.ts",
+      "initiator": "script",
+      "transfer": 6470,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-industrial-sites.ts",
+      "initiator": "script",
+      "transfer": 2263,
+      "duration": 78
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-geometry.ts?t=1791737188436",
+      "initiator": "script",
+      "transfer": 12286,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-infrastructure.ts?t=1791737188436",
+      "initiator": "script",
+      "transfer": 143964,
+      "duration": 80
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-port-plans.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 40290,
+      "duration": 80
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-harbour-sites.ts",
+      "initiator": "script",
+      "transfer": 1587,
+      "duration": 79
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-rail.ts?t=1791737188436",
+      "initiator": "script",
+      "transfer": 68824,
+      "duration": 90
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-asset-kit.ts?t=1791736968196",
+      "initiator": "script",
+      "transfer": 44462,
+      "duration": 94
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-city-paris.ts?t=1791726323003",
+      "initiator": "script",
+      "transfer": 132258,
+      "duration": 96
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-urban-plans.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 60027,
+      "duration": 81
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_Textures_texture.js?v=c1d4e7f4",
+      "initiator": "script",
+      "transfer": 1812,
+      "duration": 88
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_Textures_rawTexture.js?v=2728fa0f",
+      "initiator": "script",
+      "transfer": 7082,
+      "duration": 89
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/delaunator.js?v=5af741e2",
+      "initiator": "script",
+      "transfer": 22259,
+      "duration": 97
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-context-geography.ts",
+      "initiator": "script",
+      "transfer": 135901,
+      "duration": 98
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/@babylonjs_core_Materials_shaderMaterial.js?v=9fbc02be",
+      "initiator": "script",
+      "transfer": 56365,
+      "duration": 97
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-region-geography.ts",
+      "initiator": "script",
+      "transfer": 97057,
+      "duration": 97
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-land-crags.ts?t=1791736935329",
+      "initiator": "script",
+      "transfer": 138560,
+      "duration": 98
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-mineral-fractures.ts?t=1791737060381",
+      "initiator": "script",
+      "transfer": 47790,
+      "duration": 107
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/national-reforms.ts",
+      "initiator": "script",
+      "transfer": 42675,
+      "duration": 108
+    },
+    {
+      "url": "http://127.0.0.1:4193/node_modules/.vite/deps/earcut.js?v=84af488c",
+      "initiator": "script",
+      "transfer": 21592,
+      "duration": 99
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-land-composition.ts?t=1791722736380",
+      "initiator": "script",
+      "transfer": 151471,
+      "duration": 101
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-land-materials.ts?t=1791733303584",
+      "initiator": "script",
+      "transfer": 8547,
+      "duration": 100
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-landscape-cache.ts",
+      "initiator": "script",
+      "transfer": 15220,
+      "duration": 118
+    },
+    {
+      "url": "http://127.0.0.1:4193/src/mandats/map-paris-terrain.ts?t=1791726323003",
+      "initiator": "script",
+      "transfer": 17121,
+      "duration": 118
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Native game capture without any network or game-state override. One real school decision made using the visible UI before camera-only captures. This is not production or an original timing gate. Fresh Chromium context at320x640 with fonts loaded/reduced motion. Each capture waits for data-render-pending=false after two animation frames, using the existing45000ms native timeout. Browser version comes from browser.version(); HTTP failures and every console level come from page events; served JS/CSS hashes come from the actual response bodies. Native DOM controls, pointer panning and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

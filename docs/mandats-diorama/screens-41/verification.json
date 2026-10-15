@@ -1,0 +1,271 @@
+{
+  "visualStatus": "nonconform, work continues",
+  "referenceSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "captures": [
+    {
+      "file": "movement-01-mobilisation.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "overrides": [],
+      "viewport": [
+        1672,
+        941
+      ],
+      "DPR": 1,
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8916",
+      "shadersReadyMs": "9647"
+    },
+    {
+      "file": "production-01-national.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "overrides": [],
+      "viewport": [
+        1672,
+        941
+      ],
+      "DPR": 1,
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8870",
+      "shadersReadyMs": "9587"
+    },
+    {
+      "file": "production-04-lyon-detail.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "overrides": [],
+      "viewport": [
+        1672,
+        941
+      ],
+      "DPR": 1,
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8870",
+      "shadersReadyMs": "9587"
+    },
+    {
+      "file": "production-05-lyon-alpes.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "overrides": [],
+      "viewport": [
+        1672,
+        941
+      ],
+      "DPR": 1,
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8870",
+      "shadersReadyMs": "9587"
+    },
+    {
+      "file": "production-06-national-retour.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      },
+      "overrides": [],
+      "viewport": [
+        1672,
+        941
+      ],
+      "DPR": 1,
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8870",
+      "shadersReadyMs": "9587"
+    },
+    {
+      "file": "production-320-01-mobilisation.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "overrides": [],
+      "viewport": [
+        320,
+        740
+      ],
+      "DPR": 2,
+      "raster": {
+        "width": 640,
+        "height": 562
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8456",
+      "shadersReadyMs": "9226"
+    },
+    {
+      "file": "production-390-01-mobilisation.json",
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": [
+          "n11-0-education-lycees-regrouper"
+        ]
+      },
+      "overrides": [],
+      "viewport": [
+        390,
+        844
+      ],
+      "DPR": 2,
+      "raster": {
+        "width": 780,
+        "height": 642
+      },
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "failedRequests": 0,
+      "HTTPFailures": 0,
+      "receivedProductionEntries": [
+        {
+          "url": "http://127.0.0.1:4194/assets/mandats-CEoD_WHs.js",
+          "path": "assets/mandats-CEoD_WHs.js",
+          "status": 200,
+          "bytes": 3213386,
+          "sha256": "3f27652376e70848223c9b4c155f66e36f6354caf0791ff1dd2964b775d8ff26"
+        }
+      ],
+      "houses": "781",
+      "terrainSource": "precomputed",
+      "geometryReadyMs": "8477",
+      "shadersReadyMs": "9226"
+    }
+  ]
+}

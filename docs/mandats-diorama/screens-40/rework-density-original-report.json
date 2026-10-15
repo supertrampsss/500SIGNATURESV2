@@ -1,0 +1,293 @@
+{
+  "config": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/500SIGNATURESV2/site/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.rework.config.ts",
+      "--project",
+      "desktop",
+      "--project",
+      "webkit",
+      "--grep",
+      "a high density display keeps"
+    ],
+    "configFile": "/workspace/500SIGNATURESV2/site/playwright.rework.config.ts",
+    "rootDir": "/workspace/500SIGNATURESV2/site/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "compact",
+        "name": "compact",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./rework-artifacts/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./rework-artifacts/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite preview --host 127.0.0.1 --port 4180 --strictPort",
+      "url": "http://127.0.0.1:4180/mandats/",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "mandats-rework.test.mjs",
+      "file": "mandats-rework.test.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 59673,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-11T16:59:07.011Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-ca994d9f2e91deefb7d9df0bdc0c79c49b611784.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-resolution-a9ab09a5d4776183832642a905984e6f8c0c8f03.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-f62ddecf1b403fcaf2ebd7cbc15ed131abb5ca4a.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-resolution-8c56c870e425f92a43f8ad528f38bf10831ac805.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-01b1732bc02e3d488563faf7a31aa6f8c92f0360.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-replay-b9d750a40489c960820393972d0e8f7e824be495.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-resolution-cc93b97ce4da8f94116d7512eb317f9a1ac24ae3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-19f929c6bab1cd2bcea1",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 36769,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-11T17:00:07.353Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-6a2189a8e32d6d6ad2e4665e521a4dc060acc538.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-50054e3780a045d503420e7e0ebc4114dd911b08.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-ae7a1833002d1bdb78d382c74a038059f431d9b8.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-6c7bcac996084a650b1a4fb79998f7391034d7a3.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-33460a6f1da99c21a4209491812f7b5d7959b17a.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-replay-be23117eabb984454dfc0245dba7b66504eb0cac.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-reprise-dpr-2-resolution-551bfa66a5fb9570442c0d0fae0c4eed1184d3fa.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-992f476eb0f4ca2d9df7",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-11T16:59:05.732Z",
+    "duration": 98782.235,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,3793 @@
+{
+  "kind": "Readonly sampled actual compact37 CDP CPU/network decoding; original full-suite failures unchanged",
+  "createdAt": "2026-10-09T12:51:04.256440+00:00",
+  "build": "37",
+  "receiptSha256": "4af2d918f9987657b97e3daf468ea6f7b197388c3aaa7a9d606f6f93386dadcd",
+  "profileSha256": "151e919dbdeed5a57f520b4312037df209d66c1fb8b929275e2f3f777cec8dab",
+  "networkSha256": "a540a232649d573fdaebdfdd8a81f6486289e72856666c575a6755a41796fd1d",
+  "summarySha256": "23e2f8834b8666273235589dcc1079e0a13b8e560858950fa2d77c916e0c9ca2",
+  "actualCollectorExitCode": 0,
+  "diagnosticInitialGate": {
+    "status": "passed",
+    "originalTimeoutMs": 15000,
+    "elapsedMs": 7170.537
+  },
+  "diagnosticFinalGate": {
+    "status": "passed",
+    "originalTimeoutMs": 15000,
+    "elapsedMs": 10462.008000000002
+  },
+  "originalSuiteResult": "Original full rework37 has3 failures. This separate diagnostic does not replace them.",
+  "sourceLockSha256": "aa08e0158541d539233cfba55b785e2989beb6b66aa043fbf651d4cdb3df5925",
+  "servedMainPath": "assets/mandats-lHN_ghvN.js",
+  "servedMainSha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c",
+  "sourceMapsPresent": [],
+  "mappingMethod": "Actual zero-based CDP bundle line/UTF16-column body excerpts matched to archived37 source function signatures and verified SHA. No source map inferred.",
+  "clockBridge": {
+    "firstNetworkTimestampSeconds": 110548.01372,
+    "firstNetworkWallTimeSeconds": 1791549647.414036,
+    "summaryStartedAt": "2026-10-09T12:40:46.254Z",
+    "cpuMonotonicToCollectorMs": -110546853.68383789,
+    "profileStartAtMs": 33629.0101621151,
+    "profileEndAtMs": 56556.458162114024
+  },
+  "sampleCount": 20081,
+  "sampleDurationMs": 22926.491,
+  "phaseWallMs": {
+    "original-open-start": 1145.979,
+    "original-initial-15s-renderer-gate-start": 12660.66,
+    "original-initial-15s-renderer-gate-returned": 19831.22,
+    "original-resize-320-to-390-start": 26008.874,
+    "original-regrouper-start": 32117.395,
+    "original-regrouper-returned": 32921.62,
+    "profile-start-before-original-saved-reload": 33568.82,
+    "original-saved-reload-start": 33568.825,
+    "original-saved-reload-returned": 38145.394,
+    "original-native-resume-click-start": 38145.405,
+    "original-native-resume-click-returned": 45997.68,
+    "original-final-15s-renderer-gate-start": 45997.684,
+    "original-final-15s-renderer-gate-returned": 56459.703,
+    "gate-dataset-read-requested": 56459.725,
+    "gate-dataset-read-returned": 56516.772,
+    "actual-terminal-observed": 56554.094,
+    "profile-stop": 56677.392
+  },
+  "phaseSampleTotalsMs": {
+    "reloadBeforeResume": 4516.395,
+    "resumeBeforeGate": 7852.282,
+    "finalGate": 10462.022,
+    "afterGate": 95.798
+  },
+  "gateComparison": {
+    "diagnosticResumeClickMs": 7852.2750000000015,
+    "diagnosticFinalGateMs": 10462.008000000002,
+    "originalTraceResumeClickMs": 148.563,
+    "originalTraceFailedFinalGateMs": 15001.453,
+    "limit": "Diagnostic native resume call includes7.852s before its renderer timer; original failure native resume returned after0.149s. Phase placement differs. No variance or original-suite pass inferred."
+  },
+  "mappedSourceFrames": [
+    {
+      "functionName": "Yw",
+      "lineNumber": 7359,
+      "columnNumber": 282119,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 129.676,
+      "inclusiveMs": 8206.271,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 103.4,
+        "finalGate": 26.276,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6190.662,
+        "finalGate": 2015.61,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38614.585,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "))}async function Yw(s){const e=[],t=[],i=pO(s);Fw(s,e,i,t);const n=Gw(s,e,i);jw(s,e);const r=await $w(s,n);return s.isDisposed||(yw(r,e),Aw(s,e,t,Sw(r,e))),t.length=0,{meshes:[...e,...r]}}function ME(s){const e=s.height||2;let t=s.diameterTop===0?0:s.diameterTop||s.diameter||1,i=s.diameterBottom===0?0:s.diameterBottom||s.diameter||1;t=t||1e-5,i=i||1e-5;const n=(s.tessellation||24)|0,r=(s.subdivis",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildLandscape",
+      "sourceLine": 3516
+    },
+    {
+      "functionName": "WF",
+      "lineNumber": 7462,
+      "columnNumber": 27568,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 22.042,
+      "inclusiveMs": 7119.147,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 22.044,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 7119.15,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38348.429,
+      "lastSampleObservedAtMs": 45762.698,
+      "archivedBundleExcerpt": "i)/n(t))}function WF(s,e,t){const i=s.querySelector(\"[data-map-canvas]\"),n=new pt(i,!0,{preserveDrawingBuffer:!1,stencil:!0,powerPreference:\"low-power\",failIfMajorPerformanceCaveat:!1},!1);let r=1,a=\"\",o=()=>!0;function l(){const f=s.clientWidth,m=s.clientHeight,p=window.devicePixelRatio||1;if(!f||!m)return!1;const g=`${f}:${m}:${p}:${r}`;if(g===a||!o())return!1;const b=f*m,_=Math.max(1,Math.min(p",
+      "source": "site/src/mandats/map-scene.ts",
+      "sourceSha256": "329bbf96265ebea765cd090d303eb86633508a9f7fe21d6856114eb3a254738e",
+      "sourceFunction": "mount",
+      "sourceLine": 70
+    },
+    {
+      "functionName": "Fw",
+      "lineNumber": 7359,
+      "columnNumber": 243115,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 187.741,
+      "inclusiveMs": 5149.094,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 187.741,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 5149.095,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38615.706,
+      "lastSampleObservedAtMs": 44056.425,
+      "archivedBundleExcerpt": "depth:v}}function Fw(s,e,t,i){const n=wa(s,\"landscape-ground\",\"#FFFFFF\");n.diffuseTexture=t.earth,n.bumpTexture=t.earthNormal;const r=wa(s,\"landscape-mineral-ground\",\"#FFFFFF\");r.diffuseTexture=t.rock,r.bumpTexture=t.rockNormal,r.specularColor=new ye(.035,.04,.046);const a=wa(s,\"landscape-cliffs\",\"#FFFFFF\");a.backFaceCulling=!1,a.diffuseTexture=t.rock,a.bumpTexture=t.coastNormal,a.emissiveColor=ne",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildGround",
+      "sourceLine": 1636
+    },
+    {
+      "functionName": "Gc",
+      "lineNumber": 7359,
+      "columnNumber": 238451,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 207.002,
+      "inclusiveMs": 3735.497,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 135.005,
+        "finalGate": 71.997,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2859.016,
+        "finalGate": 876.482,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 49141.3,
+      "archivedBundleExcerpt": "53),i,t)}function Gc(s,e,t,i){const n=Ss(s,e),r=n.x,a=n.z,o=ft(s,e),l=Gs(r*3.9+8,a*4.1+44),c=cg(s,e),d=ya(s,e);if(d&&![\"garden\",\"field\",\"wood\"].includes(d.kind)){const ie={urban:\"#BCAF8B\",court:\"#D0BE99\",square:\"#D5C6A8\",garden:\"#91A05A\",field:\"#C9B66F\",wood:\"#4A613E\"};return ye.FromHexString(ie[d.kind]).scale(.95+l*.07)}if(oh(s,e))return ye.FromHexString(\"#CABB96\").scale(.96+l*.06);const u=Za(r,a",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "terrainColor",
+      "sourceLine": 1435
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7462,
+      "columnNumber": 47335,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 22.052,
+      "inclusiveMs": 2541.409,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 22.052,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 2541.409,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53032.786,
+      "lastSampleObservedAtMs": 55728.276,
+      "archivedBundleExcerpt": "Kn)),R(e,t),qe.then(([gt,$t,dt,,rt])=>{if(ke||s.dataset.renderer===\"fallback\")return;O=$t.roots,K=$t.vehicles;for(const Yt of $t.meshes){if(Yt.metadata?.assetTemplate||Yt.isDisposed())continue;Yt.computeWorldMatrix(!0);const pi=Yt instanceof Je&&/^(national-road-|railway-)/.test(Yt.name)?Yt.getVerticesData(\"position\"):null;if(pi?.length){const Ai=Yt.getWorldMatrix();for(let J=0;J<pi.length;J+=3)ve",
+      "source": "site/src/mandats/map-scene.ts",
+      "sourceSha256": "329bbf96265ebea765cd090d303eb86633508a9f7fe21d6856114eb3a254738e",
+      "sourceFunction": "scenery.then callback",
+      "sourceLine": 1011
+    },
+    {
+      "functionName": "dF",
+      "lineNumber": 7359,
+      "columnNumber": 319718,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 287.524,
+      "inclusiveMs": 2185.244,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 287.524,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.236,
+        "finalGate": 2183.008,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38612.349,
+      "lastSampleObservedAtMs": 53032.786,
+      "archivedBundleExcerpt": "6)}async function dF(s){const[e,t,i,n]=await Promise.all([Tl(s,Fo.architecture),Tl(s,Fo.vegetation),Tl(s,Fo.paris),Tl(s,Fo.cathedrale)]);if(s.isDisposed)return{roots:new Map,meshes:[],vehicles:[]};const r=[],a=new Map,o=[],l=[],c=[],d=uF(729381),u=rF(s),h=aF(s,u),{stone:f,pale:m,brick:p,slate:g,glass:b,timber:_,steel:v,cream:E,pavement:x,quay:T,paint:y,red:R}=u;let M=0;const P=(J,ce,ge)=>(J.materi",
+      "source": "site/src/mandats/map-cities.ts",
+      "sourceSha256": "d77a4c3967f79baa6482123ea4275e27bf92c5b409a37855f076102beaedf86f",
+      "sourceFunction": "buildCities",
+      "sourceLine": 45
+    },
+    {
+      "functionName": "uw",
+      "lineNumber": 7359,
+      "columnNumber": 223326,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 705.059,
+      "inclusiveMs": 1909.798,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 653.127,
+        "finalGate": 51.932,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.094,
+        "resumeBeforeGate": 1794.082,
+        "finalGate": 114.622,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37920.021,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "(t,i))))}function uw(s,e,t,i,n){if(n>.4||Cr(t,i)<.09)return 0;const r=zc(s,e);if(r<.065||ms(s,e,.055))return 0;const a=Kt(Ot((r-.065)/.14)),o=Kt(Ot((Cr(t,i)-.09)/.18)),l=1-Kt(Ot((n-.08)/.32));let c=0;for(const R of JD)for(let M=1;M<R.points.length;M++){const[P,B]=R.points[M-1],[L,V]=R.points[M],D=L-P,$=V-B,ie=Ot(((t-P)*D+(i-B)*$)/(D*D+$*$)),W=Math.hypot(t-P-D*ie,i-B-$*ie)/R.width;if(W>=1)continue;",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "cultivatedRelief",
+      "sourceLine": 749
+    },
+    {
+      "functionName": "MF",
+      "lineNumber": 7359,
+      "columnNumber": 368098,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 143.386,
+      "inclusiveMs": 1904.752,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 143.386,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1904.752,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53112.59,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "+2]})))}}function MF(s){if(s.isDisposed)return[];const e=new Map,t=new Map,i=[],n=s.meshes.filter(_=>/^landscape-terrain-(mineral|snow)-/.test(_.name)),r=s.meshes.filter(_=>_.name===\"landscape-agriculture\"||_.name===\"landscape-rivers\"||/carriageway|ballast|road-.*shoulders/.test(_.name));for(const _ of[...n,...r]){const v=_.getVerticesData(\"position\"),E=_.getIndices();if(!v||!E)continue;const x=_.",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "buildMountainRocks",
+      "sourceLine": 183
+    },
+    {
+      "functionName": "Aw",
+      "lineNumber": 7359,
+      "columnNumber": 234874,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 77.604,
+      "inclusiveMs": 1574.13,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 77.604,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1574.13,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 47497.447,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "(h,l))}}}function Aw(s,e,t,i){let n;for(const{mesh:r,surveys:a}of t){const o=r.getVerticesData(\"position\"),l=r.getIndices(),c=r.getVerticesData(\"color\");if(!o||!l||!c)continue;const d=new Set;for(let x=0;x<l.length;x+=3){const T=[l[x],l[x+1],l[x+2]],y=T.map(P=>({x:o[P*3],z:o[P*3+2]})),R=y.reduce((P,B)=>P+B.x,0)/3,M=y.reduce((P,B)=>P+B.z,0)/3;if(Xl(ao(R,M)?.band??0)&&i.overlaps(y))for(const P of T)",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "recolorAlpineGround",
+      "sourceLine": 1280
+    },
+    {
+      "functionName": "DF",
+      "lineNumber": 7359,
+      "columnNumber": 400939,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 307.25,
+      "inclusiveMs": 952.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 286.543,
+        "finalGate": 20.707,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 606.784,
+        "finalGate": 345.292,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45077.774,
+      "lastSampleObservedAtMs": 46956.041,
+      "archivedBundleExcerpt": "8)}async function DF(s){const e=[],t=[],i=[],n=[],r=[],a=[],o=[],l={forest:ye.FromHexString(\"#3B4840\"),clearing:ye.FromHexString(\"#6D716A\"),ridge:ye.FromHexString(\"#7D827B\"),stone:ye.FromHexString(\"#9DA194\")};for(const Y of Qh){const H=[...Y.points],I=.12;for(let z=Math.ceil(Y.minX/I);z*I<Y.maxX;z++)for(let ne=Math.ceil(Y.minZ/I);ne*I<Y.maxZ;ne++){const se=(z+(Us(z+19,ne)-.5)*.35)*I,ue=(ne+(Us(z,n",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "buildMapContext",
+      "sourceLine": 335
+    },
+    {
+      "functionName": "EF",
+      "lineNumber": 7359,
+      "columnNumber": 357214,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 478.143,
+      "inclusiveMs": 782.149,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 478.143,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 782.149,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 54242.893,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "return!0}function EF(s,e,t,i,n){const r={version:37,status:\"skipped\",reason:\"\",sourceTriangles:e.length,barrierTests:0,protectedTriangles:0,frozenCoordinates:0,movedCoordinates:0,layeredCoordinates:0,maximumDepth:0,originalVertices:0,outputVertices:0,addedTriangles:0,addedVertices:0,queriedHeights:0,scannedGLBs:0},a=_=>{r.reason=_,s.metadata={...s.metadata,mineralFractures:r}};if(s.isDisposed||!e.",
+      "source": "site/src/mandats/map-mineral-fractures.ts",
+      "sourceSha256": "e0bb0489217b06cca310d76684b10cd4fc6c2461636621963c127f0cf9d6f517",
+      "sourceFunction": "fractureMineralTerrain",
+      "sourceLine": 56
+    },
+    {
+      "functionName": "SF",
+      "lineNumber": 7359,
+      "columnNumber": 364636,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 551.177,
+      "inclusiveMs": 551.177,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53441.504,
+      "lastSampleObservedAtMs": 54241.75,
+      "archivedBundleExcerpt": ".t,...i]}function SF(s,e){const[t,i,n]=s.polygon,r=(i.z-n.z)*(t.x-n.x)+(n.x-i.x)*(t.z-n.z);if(Math.abs(r)<1e-12)return;const a=((i.z-n.z)*(e.x-n.x)+(n.x-i.x)*(e.z-n.z))/r,o=((n.z-t.z)*(e.x-n.x)+(t.x-n.x)*(e.z-n.z))/r,l=1-a-o;if(!(Math.min(a,o,l)<-1e-7))return a*s.heights[0]+o*s.heights[1]+l*s.heights[2]}function AF(s){const e={positions:[],indices:[],colors:[],uvs:[]},t={positions:[],indices:[],co",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "triangleHeight",
+      "sourceLine": 57
+    },
+    {
+      "functionName": "v",
+      "lineNumber": 7359,
+      "columnNumber": 403978,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 14.013,
+      "inclusiveMs": 44.261,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 14.013,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 44.261,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45359.461,
+      "lastSampleObservedAtMs": 45424.356,
+      "archivedBundleExcerpt": "Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/0,ue=0,de=0,F=0,O=0,K=0,oe=0;for(let tt=-1;tt<=1;tt++)for(let re=-1;re<=1;re++){const ee=pe+re,_e=z+tt,Be=b(ee,_e),He=I-ee-g[Be],Ye=Z-_e-g[Be+1],ut=He*He+Ye*Ye;ut<ne?(se=ne,de=ue,K=F,oe=O,ne=ut,ue=Be,F=He,O=Ye):ut<se&&(se=ut,de=Be,K=He,oe=Ye)}const Se=Math.sqrt(se)-Math.sqrt(ne),Oe=Kv(Y*47+4.6,H*47+17.7,47",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "mineralSample (context texture)",
+      "sourceLine": 512
+    },
+    {
+      "functionName": "b",
+      "lineNumber": 7359,
+      "columnNumber": 403671,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 6.442,
+      "inclusiveMs": 6.442,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6.442,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6.442,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45359.461,
+      "lastSampleObservedAtMs": 45424.356,
+      "archivedBundleExcerpt": "oat32Array(p*p*5),b=(Y,H)=>((H%p+p)%p*p+(Y%p+p)%p)*5;for(let Y=0;Y<p;Y++)for(let H=0;H<p;H++){const I=b(H,Y);g[I]=.18+Us(H*7+83,Y*11+17)*.64,g[I+1]=.18+Us(H*13+31,Y*5+71)*.64,g[I+2]=Us(H*19+53,Y*17+29),g[I+3]=Us(H*23+11,Y*13+47)-.5,g[I+4]=Us(H*11+97,Y*19+3)-.5}const _=(Y,H,I)=>(g[Y+2]-.5)*.1+(H*g[Y+3]+I*g[Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "plateIndex (context texture)",
+      "sourceLine": 500
+    },
+    {
+      "functionName": "_",
+      "lineNumber": 7359,
+      "columnNumber": 403920,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 2.171,
+      "inclusiveMs": 2.171,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.171,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.171,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45392.912,
+      "lastSampleObservedAtMs": 45420.022,
+      "archivedBundleExcerpt": ",Y*19+3)-.5}const _=(Y,H,I)=>(g[Y+2]-.5)*.1+(H*g[Y+3]+I*g[Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/0,ue=0,de=0,F=0,O=0,K=0,oe=0;for(let tt=-1;tt<=1;tt++)for(let re=-1;re<=1;re++){const ee=pe+re,_e=z+tt,Be=b(ee,_e),He=I-ee-g[Be],Ye=Z-_e-g[Be+1],ut=He*He+Ye*Ye;ut<ne?(se=ne,de=ue,K=F,oe=O,ne=ut,ue=Be,F=He,O=Ye):ut<se&&(se=ut,de=Be,K=He,oe=Ye)}const ",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "platePlane (context texture)",
+      "sourceLine": 510
+    },
+    {
+      "functionName": "E",
+      "lineNumber": 7359,
+      "columnNumber": 404810,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 1.979,
+      "inclusiveMs": 1.979,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 1.979,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 1.979,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45424.573,
+      "lastSampleObservedAtMs": 45443.956,
+      "archivedBundleExcerpt": "3),255],pe)}const E=(Y,H)=>f[(H+u)%u*u+(Y+u)%u];for(let Y=0;Y<u;Y++)for(let H=0;H<u;H++){const I=(E(H-1,Y)-E(H+1,Y))*8,Z=(E(H,Y-1)-E(H,Y+1))*8,pe=Math.max(1,Math.hypot(I,Z)/1.1),z=I/pe,ne=Z/pe,se=Math.hypot(z,ne,1),ue=(Y*u+H)*4;m.set([128+z/se*127,128+ne/se*127,128+127/se,255],ue)}const x=(Y,H)=>{const I=Bn.CreateRGBATexture(H,u,u,s,!0,!1,Ut.TRILINEAR_SAMPLINGMODE);return I.name=Y,I.anisotropicFil",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "heightAt (context normal texture)",
+      "sourceLine": 549
+    }
+  ],
+  "nativeTexImage2DStacks": [
+    {
+      "id": 2337,
+      "selfMs": 568.72,
+      "actualStack": [
+        {
+          "callFrame": {
+            "functionName": "texImage2D",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        },
+        {
+          "callFrame": {
+            "functionName": "",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 44353
+          },
+          "archivedExcerpt": "ebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescaling)return this._prepareWorkingCanvas(),!th"
+        },
+        {
+          "callFrame": {
+            "functionName": "_prepareWebGLTexture",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 50342
+          },
+          "archivedExcerpt": "_prepareWebGLTexture(e,t,i,n,r,a,o,l,c,d){const u=this.getCaps().maxTextureSize,h=Math.min(u,this.needPOTTextures?qo(n.width,u):n.width),f=Math.min(u,this.needPOTTextures?qo(n.height,u):n.height),m=this._gl;if(m){if(!e._hardwareTexture){i&&i.removePendingData(e);return}this._bindTextureDirectly(m.TEXTURE_2D,e,!0),this._unpackFlipY(r===void 0?!0:!!r),e.baseWidth=n.width,e.baseHeight=n.height,e.widt"
+        },
+        {
+          "callFrame": {
+            "functionName": "_createTextureBase.T",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 44311
+          },
+          "archivedExcerpt": "eBase(e,t,i,n,r,a,o,(...g)=>this._prepareWebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescali"
+        },
+        {
+          "callFrame": {
+            "functionName": "L",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 356,
+            "columnNumber": 8128
+          },
+          "archivedExcerpt": "null)}}else{const L=V=>{_&&!this._doNotHandleContextLost&&(E._buffer=V),l(E,y,n,V,E.invertY,t,!1,c,r)};!b||v?d&&(typeof d.decoding==\"string\"||d.close)?L(d):nt._FileToolsLoadImage(e||\"\",L,B,n?n.offlineProvider:null,m,E.invertY&&this._features.needsInvertingBitmap?{imageOrientation:\"flipY\"}:void 0,this):typeof d==\"string\"||d instanceof ArrayBuffer||ArrayBuffer.isView(d)||d instanceof Blob?nt._FileTo"
+        },
+        {
+          "callFrame": {
+            "functionName": "m",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 366,
+            "columnNumber": 88115
+          },
+          "archivedExcerpt": "dler);u.length=0},m=()=>{f(),e(d),l&&d.src&&URL.revokeObjectURL(d.src)},p=x=>{f(),c(x),l&&d.src&&URL.revokeObjectURL(d.src)},g=x=>{if(x.blockedURI!==d.src||x.disposition===\"report\")return;f();const T=new Error(`CSP violation of policy ${x.effectiveDirective} ${x.blockedURI}. Current policy is ${x.originalPolicy}`);ii.UseFallbackTexture=!1,c(T),l&&d.src&&URL.revokeObjectURL(d.src),d.src=\"\"};u.push("
+        },
+        {
+          "callFrame": {
+            "functionName": "(root)",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        }
+      ]
+    },
+    {
+      "id": 3248,
+      "selfMs": 11.913,
+      "actualStack": [
+        {
+          "callFrame": {
+            "functionName": "texImage2D",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        },
+        {
+          "callFrame": {
+            "functionName": "",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 44353
+          },
+          "archivedExcerpt": "ebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescaling)return this._prepareWorkingCanvas(),!th"
+        },
+        {
+          "callFrame": {
+            "functionName": "_prepareWebGLTexture",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 50342
+          },
+          "archivedExcerpt": "_prepareWebGLTexture(e,t,i,n,r,a,o,l,c,d){const u=this.getCaps().maxTextureSize,h=Math.min(u,this.needPOTTextures?qo(n.width,u):n.width),f=Math.min(u,this.needPOTTextures?qo(n.height,u):n.height),m=this._gl;if(m){if(!e._hardwareTexture){i&&i.removePendingData(e);return}this._bindTextureDirectly(m.TEXTURE_2D,e,!0),this._unpackFlipY(r===void 0?!0:!!r),e.baseWidth=n.width,e.baseHeight=n.height,e.widt"
+        },
+        {
+          "callFrame": {
+            "functionName": "_createTextureBase.T",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 44311
+          },
+          "archivedExcerpt": "eBase(e,t,i,n,r,a,o,(...g)=>this._prepareWebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescali"
+        },
+        {
+          "callFrame": {
+            "functionName": "L",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 356,
+            "columnNumber": 8128
+          },
+          "archivedExcerpt": "null)}}else{const L=V=>{_&&!this._doNotHandleContextLost&&(E._buffer=V),l(E,y,n,V,E.invertY,t,!1,c,r)};!b||v?d&&(typeof d.decoding==\"string\"||d.close)?L(d):nt._FileToolsLoadImage(e||\"\",L,B,n?n.offlineProvider:null,m,E.invertY&&this._features.needsInvertingBitmap?{imageOrientation:\"flipY\"}:void 0,this):typeof d==\"string\"||d instanceof ArrayBuffer||ArrayBuffer.isView(d)||d instanceof Blob?nt._FileTo"
+        },
+        {
+          "callFrame": {
+            "functionName": "_createTextureBase",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 356,
+            "columnNumber": 6323
+          },
+          "archivedExcerpt": "e}_createTextureBase(e,t,i,n,r=3,a=null,o=null,l,c,d=null,u=null,h=null,f=null,m,p,g){e=e||\"\";const b=e.substring(0,5)===\"data:\",_=e.substring(0,5)===\"blob:\",v=b&&e.indexOf(\";base64,\")!==-1,E=u||new Qs(this,1);E!==u&&(E.label=e.substring(0,60));const x=e;this._transformTextureUrl&&!v&&!u&&!d&&(e=this._transformTextureUrl(e)),x!==e&&(E._originalUrl=x);const T=e.lastIndexOf(\".\");let y=f||(T>-1?e.sub"
+        },
+        {
+          "callFrame": {
+            "functionName": "createTexture",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 363,
+            "columnNumber": 44202
+          },
+          "archivedExcerpt": ">1||t)}createTexture(e,t,i,n,r=3,a=null,o=null,l=null,c=null,d=null,u=null,h,f,m,p){return this._createTextureBase(e,t,i,n,r,a,o,(...g)=>this._prepareWebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R"
+        },
+        {
+          "callFrame": {
+            "functionName": "",
+            "scriptId": "11",
+            "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+            "lineNumber": 1,
+            "columnNumber": 2097
+          },
+          "archivedExcerpt": " aux services\",services:42,resilience:31,x:77,y:54}]}),dossiers:[{category:\"Écoles & patrimoine\",title:\"Rénover maintenant, ou tenir encore ?\",story:\"Aux Hauts, les salles de classe surchauffent. Une rénovation prend deux ans. Une réparation permet de passer l'hiver, mais laisse la facture énergétique intacte.\",advisor:\"Direction des bâtiments · La rénovation porte sur les locaux, pas sur les ense"
+        },
+        {
+          "callFrame": {
+            "functionName": "S",
+            "scriptId": "11",
+            "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+            "lineNumber": 1,
+            "columnNumber": 2048
+          },
+          "archivedExcerpt": "id:\"hauts\",name:\"Les Hauts\",need:\"Écoles et accès aux services\",services:42,resilience:31,x:77,y:54}]}),dossiers:[{category:\"Écoles & patrimoine\",title:\"Rénover maintenant, ou tenir encore ?\",story:\"Aux Hauts, les salles de classe surchauffent. Une rénovation prend deux ans. Une réparation permet de passer l'hiver, mais laisse la facture énergétique intacte.\",advisor:\"Direction des bâtiments · La "
+        },
+        {
+          "callFrame": {
+            "functionName": "f.onload",
+            "scriptId": "11",
+            "url": "http://127.0.0.1:4191/assets/envTextureLoader-sHfoo1I9.js",
+            "lineNumber": 1,
+            "columnNumber": 4951
+          },
+          "archivedExcerpt": "e d'urgence protège cette année ; l'adaptation met du temps à porter ses fruits.\",advisor:\"Services de proximité · La gravité du choc dépend de votre résilience et de la graine du scénario.\",choices:[{id:\"ombre\",title:\"Créer des îlots de fraîcheur\",description:\"Désimperméabiliser et planter. Livraison l'an prochain.\",cost:\"8 M€ d'investissement\",benefit:\"Résilience +18 à la livraison\",sacrifice:\"P"
+        },
+        {
+          "callFrame": {
+            "functionName": "(root)",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        }
+      ]
+    },
+    {
+      "id": 3424,
+      "selfMs": 1.101,
+      "actualStack": [
+        {
+          "callFrame": {
+            "functionName": "texImage2D",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        },
+        {
+          "callFrame": {
+            "functionName": "Nt.updateDynamicTexture",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 7359,
+            "columnNumber": 287810
+          },
+          "archivedExcerpt": "amicTexture=function(s,e,t,i=!1,n,r=!1,a=!1){if(!s)return;const o=this._gl,l=o.TEXTURE_2D,c=this._bindTextureDirectly(l,s,!0,r);this._unpackFlipY(t===void 0?s.invertY:t),i&&o.pixelStorei(o.UNPACK_PREMULTIPLY_ALPHA_WEBGL,1);const d=this._getWebGLTextureType(s.type),u=this._getInternalFormat(n||s.format),h=this._getRGBABufferInternalSizedFormat(s.type,u);o.texImage2D(l,0,h,u,d,e),s.generateMipMaps&&"
+        },
+        {
+          "callFrame": {
+            "functionName": "update",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 7359,
+            "columnNumber": 289769
+          },
+          "archivedExcerpt": "dth,t.height)}update(e,t=!1,i=!1){this._texture&&this._getEngine().updateDynamicTexture(this._texture,this._canvas,e===void 0?!0:e,t,this._format||void 0,void 0,i)}drawText(e,t,i,n,r,a,o,l=!0){const c=this.getSize();if(a&&(this._context.fillStyle=a,this._context.fillRect(0,0,c.width,c.height)),this._context.font=n,t==null){const d=this._context.measureText(e);t=(c.width-d.width)/2}if(i==null){cons"
+        },
+        {
+          "callFrame": {
+            "functionName": "_d",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 7359,
+            "columnNumber": 292425
+          },
+          "archivedExcerpt": "pha=!1,t}function _d(s,e,t){const i=Xv(s,`city-${e}-color`),n=Xv(s,`city-${e}-normal`),r=i.getContext(),a=n.getContext(),o=r.getImageData(0,0,fs,fs),l=a.getImageData(0,0,fs,fs),c=new Float32Array(fs*fs);for(let u=0;u<fs;u++)for(let h=0;h<fs;h++){const f=t(h,u),m=(u*fs+h)*4,p=Math.round($l(f.shade,.82,1)*255);o.data[m]=p,o.data[m+1]=p,o.data[m+2]=p,o.data[m+3]=255,c[u*fs+h]=f.height}const d=(u,h)=>"
+        },
+        {
+          "callFrame": {
+            "functionName": "rF",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 7359,
+            "columnNumber": 293237
+          },
+          "archivedExcerpt": "ormal:n}}function rF(s){const e=(l,c)=>{const d=new Os(`city-${l}`,s);return d.diffuseColor=ye.FromHexString(c),d.specularColor=new ye(.04,.036,.03),d.specularPower=28,d},t={stone:e(\"limestone\",\"#C8B895\"),pale:e(\"pale-stucco\",\"#D9CDB4\"),sand:e(\"ochre-stucco\",\"#DFC59C\"),brick:e(\"brick\",\"#BB7B61\"),pink:e(\"pink-brick\",\"#D49B80\"),slate:e(\"slate-roofs\",\"#53616C\"),tile:e(\"clay-roofs\",\"#B77452\"),ochreTil"
+        },
+        {
+          "callFrame": {
+            "functionName": "dF",
+            "scriptId": "10",
+            "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+            "lineNumber": 7359,
+            "columnNumber": 319718
+          },
+          "archivedExcerpt": "6)}async function dF(s){const[e,t,i,n]=await Promise.all([Tl(s,Fo.architecture),Tl(s,Fo.vegetation),Tl(s,Fo.paris),Tl(s,Fo.cathedrale)]);if(s.isDisposed)return{roots:new Map,meshes:[],vehicles:[]};const r=[],a=new Map,o=[],l=[],c=[],d=uF(729381),u=rF(s),h=aF(s,u),{stone:f,pale:m,brick:p,slate:g,glass:b,timber:_,steel:v,cream:E,pavement:x,quay:T,paint:y,red:R}=u;let M=0;const P=(J,ce,ge)=>(J.materi"
+        },
+        {
+          "callFrame": {
+            "functionName": "(root)",
+            "scriptId": "0",
+            "url": "",
+            "lineNumber": -1,
+            "columnNumber": -1
+          },
+          "archivedExcerpt": ""
+        }
+      ]
+    }
+  ],
+  "contextTextureHelpers": [
+    {
+      "functionName": "v",
+      "lineNumber": 7359,
+      "columnNumber": 403978,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 14.013,
+      "inclusiveMs": 44.261,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 14.013,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 44.261,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45359.461,
+      "lastSampleObservedAtMs": 45424.356,
+      "archivedBundleExcerpt": "Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/0,ue=0,de=0,F=0,O=0,K=0,oe=0;for(let tt=-1;tt<=1;tt++)for(let re=-1;re<=1;re++){const ee=pe+re,_e=z+tt,Be=b(ee,_e),He=I-ee-g[Be],Ye=Z-_e-g[Be+1],ut=He*He+Ye*Ye;ut<ne?(se=ne,de=ue,K=F,oe=O,ne=ut,ue=Be,F=He,O=Ye):ut<se&&(se=ut,de=Be,K=He,oe=Ye)}const Se=Math.sqrt(se)-Math.sqrt(ne),Oe=Kv(Y*47+4.6,H*47+17.7,47",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "mineralSample (context texture)",
+      "sourceLine": 512
+    },
+    {
+      "functionName": "b",
+      "lineNumber": 7359,
+      "columnNumber": 403671,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 6.442,
+      "inclusiveMs": 6.442,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6.442,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6.442,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45359.461,
+      "lastSampleObservedAtMs": 45424.356,
+      "archivedBundleExcerpt": "oat32Array(p*p*5),b=(Y,H)=>((H%p+p)%p*p+(Y%p+p)%p)*5;for(let Y=0;Y<p;Y++)for(let H=0;H<p;H++){const I=b(H,Y);g[I]=.18+Us(H*7+83,Y*11+17)*.64,g[I+1]=.18+Us(H*13+31,Y*5+71)*.64,g[I+2]=Us(H*19+53,Y*17+29),g[I+3]=Us(H*23+11,Y*13+47)-.5,g[I+4]=Us(H*11+97,Y*19+3)-.5}const _=(Y,H,I)=>(g[Y+2]-.5)*.1+(H*g[Y+3]+I*g[Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "plateIndex (context texture)",
+      "sourceLine": 500
+    },
+    {
+      "functionName": "_",
+      "lineNumber": 7359,
+      "columnNumber": 403920,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 2.171,
+      "inclusiveMs": 2.171,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.171,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.171,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45392.912,
+      "lastSampleObservedAtMs": 45420.022,
+      "archivedBundleExcerpt": ",Y*19+3)-.5}const _=(Y,H,I)=>(g[Y+2]-.5)*.1+(H*g[Y+3]+I*g[Y+4])*.75;function v(Y,H){const I=Y*p,Z=H*p,pe=Math.floor(I),z=Math.floor(Z);let ne=1/0,se=1/0,ue=0,de=0,F=0,O=0,K=0,oe=0;for(let tt=-1;tt<=1;tt++)for(let re=-1;re<=1;re++){const ee=pe+re,_e=z+tt,Be=b(ee,_e),He=I-ee-g[Be],Ye=Z-_e-g[Be+1],ut=He*He+Ye*Ye;ut<ne?(se=ne,de=ue,K=F,oe=O,ne=ut,ue=Be,F=He,O=Ye):ut<se&&(se=ut,de=Be,K=He,oe=Ye)}const ",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "platePlane (context texture)",
+      "sourceLine": 510
+    },
+    {
+      "functionName": "E",
+      "lineNumber": 7359,
+      "columnNumber": 404810,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 1.979,
+      "inclusiveMs": 1.979,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 1.979,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 1.979,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45424.573,
+      "lastSampleObservedAtMs": 45443.956,
+      "archivedBundleExcerpt": "3),255],pe)}const E=(Y,H)=>f[(H+u)%u*u+(Y+u)%u];for(let Y=0;Y<u;Y++)for(let H=0;H<u;H++){const I=(E(H-1,Y)-E(H+1,Y))*8,Z=(E(H,Y-1)-E(H,Y+1))*8,pe=Math.max(1,Math.hypot(I,Z)/1.1),z=I/pe,ne=Z/pe,se=Math.hypot(z,ne,1),ue=(Y*u+H)*4;m.set([128+z/se*127,128+ne/se*127,128+127/se,255],ue)}const x=(Y,H)=>{const I=Bn.CreateRGBATexture(H,u,u,s,!0,!1,Ut.TRILINEAR_SAMPLINGMODE);return I.name=Y,I.anisotropicFil",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "heightAt (context normal texture)",
+      "sourceLine": 549
+    }
+  ],
+  "topSelfFrames": [
+    {
+      "functionName": "(program)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 4290.438,
+      "inclusiveMs": 4290.438,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 3397.894,
+        "resumeBeforeGate": 180.871,
+        "finalGate": 689.228,
+        "afterGate": 22.446
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 3397.894,
+        "resumeBeforeGate": 180.871,
+        "finalGate": 689.228,
+        "afterGate": 22.446
+      },
+      "firstSampleObservedAtMs": 33629.01,
+      "lastSampleObservedAtMs": 56555.501,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "(garbage collector)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 1151.427,
+      "inclusiveMs": 1151.427,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 96.014,
+        "resumeBeforeGate": 338.35,
+        "finalGate": 717.063,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 96.014,
+        "resumeBeforeGate": 338.35,
+        "finalGate": 717.063,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34512.547,
+      "lastSampleObservedAtMs": 56174.879,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "uw",
+      "lineNumber": 7359,
+      "columnNumber": 223326,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 705.059,
+      "inclusiveMs": 1909.798,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 653.127,
+        "finalGate": 51.932,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.094,
+        "resumeBeforeGate": 1794.082,
+        "finalGate": 114.622,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37920.021,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "(t,i))))}function uw(s,e,t,i,n){if(n>.4||Cr(t,i)<.09)return 0;const r=zc(s,e);if(r<.065||ms(s,e,.055))return 0;const a=Kt(Ot((r-.065)/.14)),o=Kt(Ot((Cr(t,i)-.09)/.18)),l=1-Kt(Ot((n-.08)/.32));let c=0;for(const R of JD)for(let M=1;M<R.points.length;M++){const[P,B]=R.points[M-1],[L,V]=R.points[M],D=L-P,$=V-B,ie=Ot(((t-P)*D+(i-B)*$)/(D*D+$*$)),W=Math.hypot(t-P-D*ie,i-B-$*ie)/R.width;if(W>=1)continue;",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "cultivatedRelief",
+      "sourceLine": 749
+    },
+    {
+      "functionName": "Nu",
+      "lineNumber": 7350,
+      "columnNumber": 27184,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 613.099,
+      "inclusiveMs": 613.099,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 336.738,
+        "finalGate": 276.361,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 336.738,
+        "finalGate": 276.361,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38690.391,
+      "lastSampleObservedAtMs": 53307.699,
+      "archivedBundleExcerpt": "[T]}))}}}function Nu(s,e,t=$x){for(const i of t.get(`${Math.floor(s/.24)}:${Math.floor(e/.24)}`)??[]){const n=((i.z[1]-i.z[2])*(s-i.x[2])+(i.x[2]-i.x[1])*(e-i.z[2]))*i.inverse,r=((i.z[2]-i.z[0])*(s-i.x[2])+(i.x[0]-i.x[2])*(e-i.z[2]))*i.inverse,a=1-n-r;if(n>=-1e-7&&r>=-1e-7&&a>=-1e-7)return{height:n*i.h[0]+r*i.h[1]+a*i.h[2],band:i.band,slope:i.slope,normalX:i.normalX,normalZ:i.normalZ}}}const TO=eg"
+    },
+    {
+      "functionName": "texImage2D",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 581.734,
+      "inclusiveMs": 581.734,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 503.96,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 503.96,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50710.366,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "SF",
+      "lineNumber": 7359,
+      "columnNumber": 364636,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 551.177,
+      "inclusiveMs": 551.177,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53441.504,
+      "lastSampleObservedAtMs": 54241.75,
+      "archivedBundleExcerpt": ".t,...i]}function SF(s,e){const[t,i,n]=s.polygon,r=(i.z-n.z)*(t.x-n.x)+(n.x-i.x)*(t.z-n.z);if(Math.abs(r)<1e-12)return;const a=((i.z-n.z)*(e.x-n.x)+(n.x-i.x)*(e.z-n.z))/r,o=((n.z-t.z)*(e.x-n.x)+(t.x-n.x)*(e.z-n.z))/r,l=1-a-o;if(!(Math.min(a,o,l)<-1e-7))return a*s.heights[0]+o*s.heights[1]+l*s.heights[2]}function AF(s){const e={positions:[],indices:[],colors:[],uvs:[]},t={positions:[],indices:[],co",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "triangleHeight",
+      "sourceLine": 57
+    },
+    {
+      "functionName": "la",
+      "lineNumber": 7359,
+      "columnNumber": 211621,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 535.718,
+      "inclusiveMs": 572.283,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.648,
+        "resumeBeforeGate": 425.322,
+        "finalGate": 108.748,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.648,
+        "resumeBeforeGate": 455.127,
+        "finalGate": 115.508,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37842.988,
+      "lastSampleObservedAtMs": 53006.801,
+      "archivedBundleExcerpt": "1),n),r)}function la(s,e,t,i){const n=i.x-t.x,r=i.z-t.z,a=Ot(((s-t.x)*n+(e-t.z)*r)/(n*n+r*r));return Math.hypot(s-t.x-n*a,e-t.z-r*a)}function Ao(s,e,t,i,n,r){return Math.exp(-(((s-t)/n)**2+((e-i)/r)**2))}const Gm=new Map;for(const s of Ca)for(let e=0;e<s.length;e++){const t=s[e],i=s[(e+1)%s.length],n=.34;for(let r=Math.floor((Math.min(t.x,i.x)-n)/.4);r<=Math.floor((Math.max(t.x,i.x)+n)/.4);r++)for"
+    },
+    {
+      "functionName": "bE",
+      "lineNumber": 7359,
+      "columnNumber": 219836,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 524.287,
+      "inclusiveMs": 544.254,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 517.788,
+        "finalGate": 6.499,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 537.755,
+        "finalGate": 6.499,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38769.184,
+      "lastSampleObservedAtMs": 53017.629,
+      "archivedBundleExcerpt": "t(u,h)}}}function bE(s,e){const t=new Map;for(const a of Hm.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)??[]){const o=a.b.x-a.a.x,l=a.b.z-a.a.z,c=Ot(((s-a.a.x)*o+(e-a.a.z)*l)/(a.length*a.length)),d=Math.hypot(s-a.a.x-o*c,e-a.a.z-l*c);d>=(t.get(a.profile.river)?.distance??1/0)||t.set(a.profile.river,{segment:a,t:c,distance:d,signed:((s-a.a.x)*l-(e-a.a.z)*o)/a.length})}const i=Math.max(Mr.minX-s,s"
+    },
+    {
+      "functionName": "EF",
+      "lineNumber": 7359,
+      "columnNumber": 357214,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 478.143,
+      "inclusiveMs": 782.149,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 478.143,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 782.149,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 54242.893,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "return!0}function EF(s,e,t,i,n){const r={version:37,status:\"skipped\",reason:\"\",sourceTriangles:e.length,barrierTests:0,protectedTriangles:0,frozenCoordinates:0,movedCoordinates:0,layeredCoordinates:0,maximumDepth:0,originalVertices:0,outputVertices:0,addedTriangles:0,addedVertices:0,queriedHeights:0,scannedGLBs:0},a=_=>{r.reason=_,s.metadata={...s.metadata,mineralFractures:r}};if(s.isDisposed||!e.",
+      "source": "site/src/mandats/map-mineral-fractures.ts",
+      "sourceSha256": "e0bb0489217b06cca310d76684b10cd4fc6c2461636621963c127f0cf9d6f517",
+      "sourceFunction": "fractureMineralTerrain",
+      "sourceLine": 56
+    },
+    {
+      "functionName": "(idle)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 352.417,
+      "inclusiveMs": 352.417,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 138.478,
+        "resumeBeforeGate": 89.544,
+        "finalGate": 72.114,
+        "afterGate": 52.281
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 138.478,
+        "resumeBeforeGate": 89.544,
+        "finalGate": 72.114,
+        "afterGate": 52.281
+      },
+      "firstSampleObservedAtMs": 37488.565,
+      "lastSampleObservedAtMs": 56552.938,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "DF",
+      "lineNumber": 7359,
+      "columnNumber": 400939,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 307.25,
+      "inclusiveMs": 952.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 286.543,
+        "finalGate": 20.707,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 606.784,
+        "finalGate": 345.292,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45077.774,
+      "lastSampleObservedAtMs": 46956.041,
+      "archivedBundleExcerpt": "8)}async function DF(s){const e=[],t=[],i=[],n=[],r=[],a=[],o=[],l={forest:ye.FromHexString(\"#3B4840\"),clearing:ye.FromHexString(\"#6D716A\"),ridge:ye.FromHexString(\"#7D827B\"),stone:ye.FromHexString(\"#9DA194\")};for(const Y of Qh){const H=[...Y.points],I=.12;for(let z=Math.ceil(Y.minX/I);z*I<Y.maxX;z++)for(let ne=Math.ceil(Y.minZ/I);ne*I<Y.maxZ;ne++){const se=(z+(Us(z+19,ne)-.5)*.35)*I,ue=(ne+(Us(z,n",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "buildMapContext",
+      "sourceLine": 335
+    },
+    {
+      "functionName": "gd",
+      "lineNumber": 7359,
+      "columnNumber": 230906,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 290.386,
+      "inclusiveMs": 3286.567,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 180.745,
+        "finalGate": 109.641,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2962.574,
+        "finalGate": 323.993,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": ",dh=.018;function gd(s,e){let t=kv.get(s);t||(t=new Map,kv.set(s,t));let i=t.get(e);return i===void 0&&(i=Tw(s*dh,e*dh),t.set(e,i)),i}function ft(s,e){const t=s/dh,i=e/dh,n=Math.floor(t),r=Math.floor(i),a=t-n,o=i-r;return ai(ai(gd(n,r),gd(n+1,r),a),ai(gd(n,r+1),gd(n+1,r+1),a),o)}function Cn(s,e){return qO(s,e)}function Vn(){return{positions:[],indices:[],colors:[],uvs:[]}}function zn(s,e,t,i,n){co"
+    },
+    {
+      "functionName": "dF",
+      "lineNumber": 7359,
+      "columnNumber": 319718,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 287.524,
+      "inclusiveMs": 2185.244,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 287.524,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.236,
+        "finalGate": 2183.008,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38612.349,
+      "lastSampleObservedAtMs": 53032.786,
+      "archivedBundleExcerpt": "6)}async function dF(s){const[e,t,i,n]=await Promise.all([Tl(s,Fo.architecture),Tl(s,Fo.vegetation),Tl(s,Fo.paris),Tl(s,Fo.cathedrale)]);if(s.isDisposed)return{roots:new Map,meshes:[],vehicles:[]};const r=[],a=new Map,o=[],l=[],c=[],d=uF(729381),u=rF(s),h=aF(s,u),{stone:f,pale:m,brick:p,slate:g,glass:b,timber:_,steel:v,cream:E,pavement:x,quay:T,paint:y,red:R}=u;let M=0;const P=(J,ce,ge)=>(J.materi",
+      "source": "site/src/mandats/map-cities.ts",
+      "sourceSha256": "d77a4c3967f79baa6482123ea4275e27bf92c5b409a37855f076102beaedf86f",
+      "sourceFunction": "buildCities",
+      "sourceLine": 45
+    },
+    {
+      "functionName": "ZR",
+      "lineNumber": 180,
+      "columnNumber": 4651,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 278.388,
+      "inclusiveMs": 825.194,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 175.684,
+        "finalGate": 102.704,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 533.314,
+        "finalGate": 290.797,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37913.61,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "t.x,t.z)}function ZR(s,e){za(s,e);const t=T1(YR,s,e),i=tu(x1,t.z).value,r=(t.x<=J6+i?t.x-i:t.x>=Jc?t.x:(t.x-i*Jc/eu)/(1-i/eu))/.76+2.4,a=al.map(l=>E1(r,l));if(t.z<=a[0])return{lon:r,lat:al[0]+(t.z-a[0])/(1.08+1.2*Mu(r).value)};const o=a.length-1;if(t.z>=a[o])return{lon:r,lat:al[o]+(t.z-a[o])/2.08};for(let l=1;l<a.length;l++)if(t.z<=a[l])return{lon:r,lat:al[l-1]+(t.z-a[l-1])*(al[l]-al[l-1])/(a[l]-a"
+    },
+    {
+      "functionName": "fromHexString",
+      "lineNumber": 366,
+      "columnNumber": 24129,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 268.831,
+      "inclusiveMs": 268.831,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 166.093,
+        "finalGate": 102.738,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 166.093,
+        "finalGate": 102.738,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38996.993,
+      "lastSampleObservedAtMs": 51560.338,
+      "archivedBundleExcerpt": "+Jr(i)}fromHexString(e){return e.substring(0,1)!==\"#\"||e.length!==7?this:(this.r=parseInt(e.substring(1,3),16)/255,this.g=parseInt(e.substring(3,5),16)/255,this.b=parseInt(e.substring(5,7),16)/255,this)}toHSV(){return this.toHSVToRef(new ye)}toHSVToRef(e){const t=this.r,i=this.g,n=this.b,r=Math.max(t,i,n),a=Math.min(t,i,n);let o=0,l=0;const c=r,d=r-a;return r!==0&&(l=d/r),r!=a&&(r==t?(o=(i-n)/d,i<"
+    },
+    {
+      "functionName": "de",
+      "lineNumber": 7359,
+      "columnNumber": 331954,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 266.188,
+      "inclusiveMs": 268.348,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 266.188,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 268.348,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 51006.405,
+      "lastSampleObservedAtMs": 53023.07,
+      "archivedBundleExcerpt": "[fe],end:ge}))}),de=(J,ce,ge=!1)=>{for(const fe of ce){let{start:Me,end:Ue}=fe;const Ne=fe.halfWidth??.021;let Ce=J.x-J.halfX-Ne,Pe=J.x+J.halfX+Ne,he=J.z-J.halfZ-Ne,Re=J.z+J.halfZ+Ne;if(Math.max(Me.x,Ue.x)<Ce||Math.min(Me.x,Ue.x)>Pe||Math.max(Me.z,Ue.z)<he||Math.min(Me.z,Ue.z)>Re)continue;if(ge){const et=Math.cos(J.angle??0),Ge=Math.sin(J.angle??0),At=fi=>({x:(fi.x-J.x)*et+(fi.z-J.z)*Ge,z:-(fi.x-J"
+    },
+    {
+      "functionName": "Cr",
+      "lineNumber": 7359,
+      "columnNumber": 212168,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 242.597,
+      "inclusiveMs": 581.703,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.093,
+        "resumeBeforeGate": 192.24,
+        "finalGate": 49.264,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.093,
+        "resumeBeforeGate": 425.515,
+        "finalGate": 155.095,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37914.693,
+      "lastSampleObservedAtMs": 52802.677,
+      "archivedBundleExcerpt": "et(o,l)}}function Cr(s,e){let t=.34;for(const{a:i,b:n}of Gm.get(`${Math.floor(s/.4)}:${Math.floor(e/.4)}`)??[])t=Math.min(t,la(s,e,i,n));return t}const JD=[{width:.67,height:.13,points:[[-4.77,1.66],[-4.13,1.77],[-3.42,1.71],[-2.82,1.88]]},{width:.81,height:.17,points:[[-2.46,2.78],[-1.82,2.89],[-1.09,2.81],[-.55,3.07]]},{width:.72,height:.14,points:[[-.65,3.77],[-.04,3.85],[.62,4.16],[1.04,4.02]]"
+    },
+    {
+      "functionName": "createObjectURL",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 238.557,
+      "inclusiveMs": 238.557,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 238.557,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 238.557,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 49209.11,
+      "lastSampleObservedAtMs": 50347.866,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "removeMesh",
+      "lineNumber": 366,
+      "columnNumber": 256649,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 236.522,
+      "inclusiveMs": 238.69,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 226.616,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 9.906,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 228.784,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 9.906,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34299.511,
+      "lastSampleObservedAtMs": 55439.859,
+      "archivedBundleExcerpt": "dMesh(n)}}removeMesh(e,t=!1){const i=this.meshes.indexOf(e);if(i!==-1&&(this.meshes.splice(i,1),e.parent||e._removeFromSceneRootNodes()),this._inputManager._invalidateMesh(e),this.onMeshRemovedObservable.notifyObservers(e),t){const n=e.getChildMeshes();for(const r of n)this.removeMesh(r)}return i}addTransformNode(e){this._blockEntityCollection||e.getScene()===this&&e._indexInSceneTransformNodesArr"
+    },
+    {
+      "functionName": "zc",
+      "lineNumber": 7359,
+      "columnNumber": 220787,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 235.113,
+      "inclusiveMs": 235.113,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.094,
+        "resumeBeforeGate": 220.958,
+        "finalGate": 13.061,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.094,
+        "resumeBeforeGate": 220.958,
+        "finalGate": 13.061,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37920.021,
+      "lastSampleObservedAtMs": 51360.782,
+      "archivedBundleExcerpt": "uence:r}}function zc(s,e){let t=1/0;for(const i of lh.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)??[]){const n=s-i.x,r=e-i.z,a=Math.abs(n*i.cosine+r*i.sine)-i.halfW,o=Math.abs(-n*i.sine+r*i.cosine)-i.halfD;t=Math.min(t,Math.hypot(Math.max(0,a),Math.max(0,o))+Math.min(0,Math.max(a,o)))}return t}function aw(){const s=[];for(const e of vE)for(let t=0;t<2;t++)for(const[i]of e.sides[t].slice(1,-1)){"
+    },
+    {
+      "functionName": "xF",
+      "lineNumber": 7359,
+      "columnNumber": 356884,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 235.096,
+      "inclusiveMs": 235.096,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 235.096,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 235.096,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 54277.399,
+      "lastSampleObservedAtMs": 54989.745,
+      "archivedBundleExcerpt": "=>e.z))}}function xF(s,e){for(const t of[s,e])for(let i=0;i<t.length;i++){const n=t[i],r=t[(i+1)%t.length],a=n.z-r.z,o=r.x-n.x;let l=1/0,c=-1/0,d=1/0,u=-1/0;for(const h of s){const f=h.x*a+h.z*o;l=Math.min(l,f),c=Math.max(c,f)}for(const h of e){const f=h.x*a+h.z*o;d=Math.min(d,f),u=Math.max(u,f)}if(c<d-1e-10||u<l-1e-10)return!1}return!0}function EF(s,e,t,i,n){const r={version:37,status:\"skipped\",r"
+    },
+    {
+      "functionName": "yE",
+      "lineNumber": 7359,
+      "columnNumber": 229504,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 222.71,
+      "inclusiveMs": 2922.999,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 201.882,
+        "finalGate": 20.828,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2710.788,
+        "finalGate": 212.211,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "et(n,r)}}function yE(s,e){let t=Vc(s,e),i=0,n=!1,r=t;for(const c of qm.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)??[]){const d=s-c.x,u=e-c.z,h=Math.abs(d*c.cosine+u*c.sine)-c.halfW,f=Math.abs(-d*c.sine+u*c.cosine)-c.halfD,m=Math.hypot(Math.max(0,h),Math.max(0,f))+Math.min(0,Math.max(h,f)),p=1-Kt(Ot((m+.012)/.18));p>i&&(i=p,n=c.schoolPlatform,r=xw.get(c)??bw.get(c.settlement)??t)}t=ai(t,n?r:Ot("
+    },
+    {
+      "functionName": "Eu",
+      "lineNumber": 7359,
+      "columnNumber": 199381,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 215.434,
+      "inclusiveMs": 215.434,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 8.735,
+        "finalGate": 206.699,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 8.735,
+        "finalGate": 206.699,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38625.19,
+      "lastSampleObservedAtMs": 53031.711,
+      "archivedBundleExcerpt": "t.x-s.x);function Eu(s,e){let t=!1;for(let i=0,n=s.length-1;i<s.length;n=i++){const r=s[i],a=s[n];r.z>e.z!=a.z>e.z&&e.x<(a.x-r.x)*(e.z-r.z)/(a.z-r.z)+r.x&&(t=!t)}return t}function ea(s,e){if(s.some(t=>Eu(e,t))||e.some(t=>Eu(s,t)))return!0;for(let t=0;t<s.length;t++)for(let i=0;i<e.length;i++){const n=s[t],r=s[(t+1)%s.length],a=e[i],o=e[(i+1)%e.length];if(Ic(n,r,a)*Ic(n,r,o)<0&&Ic(a,o,n)*Ic(a,o,r)<"
+    },
+    {
+      "functionName": "is",
+      "lineNumber": 7359,
+      "columnNumber": 210782,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 211.28,
+      "inclusiveMs": 211.28,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 3.05,
+        "resumeBeforeGate": 104.615,
+        "finalGate": 103.615,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 3.05,
+        "resumeBeforeGate": 104.615,
+        "finalGate": 103.615,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37861.272,
+      "lastSampleObservedAtMs": 54206.109,
+      "archivedBundleExcerpt": "index]))}function is(s,e,t){const i=YD.get(s);if(i&&Number.isFinite(e)&&Number.isFinite(t)){if(t<i.minZ-1e-8||t>i.maxZ+1e-8)return!1;let r=!1;for(const a of i.cells.get(Math.floor(t/Bm))??[]){const o=s[a],l=s[a===0?s.length-1:a-1];o.z>t!=l.z>t&&e<(l.x-o.x)*(t-o.z)/(l.z-o.z)+o.x&&(r=!r)}return r}let n=!1;for(let r=0,a=s.length-1;r<s.length;a=r++){const o=s[r],l=s[a];o.z>t!=l.z>t&&e<(l.x-o.x)*(t-o.z"
+    },
+    {
+      "functionName": "n",
+      "lineNumber": 7350,
+      "columnNumber": 362830,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 210.746,
+      "inclusiveMs": 210.746,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 140.001,
+        "finalGate": 70.745,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 140.001,
+        "finalGate": 70.745,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38622.995,
+      "lastSampleObservedAtMs": 51231.947,
+      "archivedBundleExcerpt": "){let i=1/0;const n=a=>{const o=s-a.x,l=e-a.z,c=Math.abs(o*a.cosine+l*a.sine)-a.halfW,d=Math.abs(-o*a.sine+l*a.cosine)-a.halfD;return Math.hypot(Math.max(0,c),Math.max(0,d))+Math.min(0,Math.max(c,d))};for(const a of Lm.get(`${Math.floor(s/xl)}:${Math.floor(e/xl)}`)??[])i=Math.min(i,n(a));if(i<Mc)return i;if(t&&s>=cd.minX&&s<=cd.maxX&&e>=cd.minZ&&e<=cd.maxZ){const a=l=>Math.hypot(Math.max(l.minX-s,"
+    },
+    {
+      "functionName": "tu",
+      "lineNumber": 180,
+      "columnNumber": 3520,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 208.325,
+      "inclusiveMs": 208.325,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 2.439,
+        "resumeBeforeGate": 134.066,
+        "finalGate": 71.82,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 2.439,
+        "resumeBeforeGate": 134.066,
+        "finalGate": 71.82,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37757.508,
+      "lastSampleObservedAtMs": 53283.877,
+      "archivedBundleExcerpt": "inite.\")}function tu(s,e){if(e<=s[0][0]||e>=s[s.length-1][0])return{value:0,slope:0};for(let t=1;t<s.length;t++)if(e<=s[t][0]){const i=s[t-1],n=s[t],r=(n[1]-i[1])/(n[0]-i[0]);return{value:i[1]+r*(e-i[0]),slope:r}}return{value:0,slope:0}}function Mu(s){const e=Math.max(0,Math.min(1,(s-7.2)/1.1));return{value:1-e*e*(3-2*e),slope:-6*e*(1-e)/1.1}}function eb(s,e){return(e-46.5)*1.08+Math.max(0,e-50.63"
+    },
+    {
+      "functionName": "Gc",
+      "lineNumber": 7359,
+      "columnNumber": 238451,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 207.002,
+      "inclusiveMs": 3735.497,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 135.005,
+        "finalGate": 71.997,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2859.016,
+        "finalGate": 876.482,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 49141.3,
+      "archivedBundleExcerpt": "53),i,t)}function Gc(s,e,t,i){const n=Ss(s,e),r=n.x,a=n.z,o=ft(s,e),l=Gs(r*3.9+8,a*4.1+44),c=cg(s,e),d=ya(s,e);if(d&&![\"garden\",\"field\",\"wood\"].includes(d.kind)){const ie={urban:\"#BCAF8B\",court:\"#D0BE99\",square:\"#D5C6A8\",garden:\"#91A05A\",field:\"#C9B66F\",wood:\"#4A613E\"};return ye.FromHexString(ie[d.kind]).scale(.95+l*.07)}if(oh(s,e))return ye.FromHexString(\"#CABB96\").scale(.96+l*.06);const u=Za(r,a",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "terrainColor",
+      "sourceLine": 1435
+    },
+    {
+      "functionName": "qO",
+      "lineNumber": 7350,
+      "columnNumber": 362550,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 202.133,
+      "inclusiveMs": 569.572,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 116.909,
+        "finalGate": 85.224,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.07,
+        "resumeBeforeGate": 351.326,
+        "finalGate": 217.176,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37907.627,
+      "lastSampleObservedAtMs": 51231.947,
+      "archivedBundleExcerpt": "und:0}));function qO(s,e){if(!Number.isFinite(s)||!Number.isFinite(e)||Object.is(s,-0)||Object.is(e,-0))return gv(s,e,!1);const t=pv.get(s),i=t?.get(e);if(i!==void 0)return i;const n=gv(s,e,!0);if(mv<XO){const r=t??new Map;t||pv.set(s,r),r.set(e,n),mv++}return n}function gv(s,e,t){let i=1/0;const n=a=>{const o=s-a.x,l=e-a.z,c=Math.abs(o*a.cosine+l*a.sine)-a.halfW,d=Math.abs(-o*a.sine+l*a.cosine)-a"
+    },
+    {
+      "functionName": "Ww",
+      "lineNumber": 7359,
+      "columnNumber": 271981,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 193.701,
+      "inclusiveMs": 193.701,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 60.79,
+        "finalGate": 132.911,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 60.79,
+        "finalGate": 132.911,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38642.25,
+      "lastSampleObservedAtMs": 54187.706,
+      "archivedBundleExcerpt": "lear(),l}function Ww(s,e,t){const i=`${s}:${e}:${t}`,n=Bv.get(i);if(n)return n;const r=[],a=new Set;for(let o=-t;o<=t;o++)for(let l=-t;l<=t;l++)for(const c of Tu.get(`${s+o}:${e+l}`)??[])a.has(c)||(a.add(c),r.push(c));return Bv.set(i,r),r}function Hw(s){let e=Uv.get(s);return e||(e={minX:Math.min(...s.water.map(t=>t.x)),maxX:Math.max(...s.water.map(t=>t.x)),minZ:Math.min(...s.water.map(t=>t.z)),ma"
+    },
+    {
+      "functionName": "Fw",
+      "lineNumber": 7359,
+      "columnNumber": 243115,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 187.741,
+      "inclusiveMs": 5149.094,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 187.741,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 5149.095,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38615.706,
+      "lastSampleObservedAtMs": 44056.425,
+      "archivedBundleExcerpt": "depth:v}}function Fw(s,e,t,i){const n=wa(s,\"landscape-ground\",\"#FFFFFF\");n.diffuseTexture=t.earth,n.bumpTexture=t.earthNormal;const r=wa(s,\"landscape-mineral-ground\",\"#FFFFFF\");r.diffuseTexture=t.rock,r.bumpTexture=t.rockNormal,r.specularColor=new ye(.035,.04,.046);const a=wa(s,\"landscape-cliffs\",\"#FFFFFF\");a.backFaceCulling=!1,a.diffuseTexture=t.rock,a.bumpTexture=t.coastNormal,a.emissiveColor=ne",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildGround",
+      "sourceLine": 1636
+    },
+    {
+      "functionName": "getContext",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 187.321,
+      "inclusiveMs": 187.321,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 187.321,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 187.321,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38349.514,
+      "lastSampleObservedAtMs": 38536.835,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "_markAllSubMeshesAsDirty",
+      "lineNumber": 366,
+      "columnNumber": 524562,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 186.693,
+      "inclusiveMs": 189.445,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 186.693,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 189.445,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 46499.507,
+      "lastSampleObservedAtMs": 55723.508,
+      "archivedBundleExcerpt": "kAllSubMeshesAsDirty(U){const be=this.getScene();if(be.blockMaterialDirtyMechanism||this._blockDirtyMechanism)return;const St=be.meshes;for(const st of St)if(st.subMeshes)for(const q of st.subMeshes)for(let We=0;We<q._drawWrappers.length;We++){const oi=q._drawWrappers[We];oi&&(q.getMaterial(!0,We)!==this||!oi.defines||!oi.defines.markAllAsDirty||this._materialContext===oi.materialContext&&U(oi.def"
+    },
+    {
+      "functionName": "Mu",
+      "lineNumber": 180,
+      "columnNumber": 3748,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 169.201,
+      "inclusiveMs": 169.201,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 114.702,
+        "finalGate": 54.499,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 114.702,
+        "finalGate": 54.499,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38329.688,
+      "lastSampleObservedAtMs": 53238.368,
+      "archivedBundleExcerpt": "slope:0}}function Mu(s){const e=Math.max(0,Math.min(1,(s-7.2)/1.1));return{value:1-e*e*(3-2*e),slope:-6*e*(1-e)/1.1}}function eb(s,e){return(e-46.5)*1.08+Math.max(0,e-50.63)-1.2*Math.max(0,43.2-e)*Mu(s).value}function E1(s,e){return eb(s,e)+tu(Q6,e).value*Mu(s).value}function tb(s,e){const t=(s-2.4)*.76,i=E1(s,e),n=Math.max(0,Math.min(1,(Jc-t)/eu));return{x:t+tu(x1,i).value*n,z:i}}function T1(s,e,"
+    },
+    {
+      "functionName": "ms",
+      "lineNumber": 7359,
+      "columnNumber": 272424,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 160.07,
+      "inclusiveMs": 410.315,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.091,
+        "resumeBeforeGate": 39.669,
+        "finalGate": 119.31,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.668,
+        "resumeBeforeGate": 126.207,
+        "finalGate": 282.44,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37906.495,
+      "lastSampleObservedAtMs": 54187.706,
+      "archivedBundleExcerpt": "(s,e)),e}function ms(s,e,t=0){const i=Math.floor(s/.25),n=Math.floor(e/.25),r=Math.ceil(Math.max(0,t)/.25),a=Math.max(0,t)+1e-8;for(const o of Ww(i,n,r)){if(!o.rendered)continue;const l=Hw(o);if(!(s<l.minX-a||s>l.maxX+a||e<l.minZ-a||e>l.maxZ+a)&&(is(o.water,s,e)||t>0&&o.water.some((c,d)=>la(s,e,c,o.water[(d+1)%o.water.length])<t)))return!0}return!1}function To(s,e){return ms(s,e,.024)}function Xw("
+    },
+    {
+      "functionName": "yw",
+      "lineNumber": 7359,
+      "columnNumber": 231566,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 158.839,
+      "inclusiveMs": 243.652,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 158.839,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 243.652,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 46956.041,
+      "lastSampleObservedAtMs": 47314.473,
+      "archivedBundleExcerpt": "e,Ot(t))}function yw(s,e){const t=new Map,i=.12;for(const a of e){if(!a.name.startsWith(\"landscape-terrain-\"))continue;const o=a.getVerticesData(\"position\"),l=a.getIndices();if(!(!o||!l))for(let c=0;c<l.length;c+=3){const d=[l[c],l[c+1],l[c+2]].flatMap(u=>[o[u*3],o[u*3+1],o[u*3+2]]);for(let u=Math.floor(Math.min(d[0],d[3],d[6])/i);u<=Math.floor(Math.max(d[0],d[3],d[6])/i);u++)for(let h=Math.floor("
+    },
+    {
+      "functionName": "MF",
+      "lineNumber": 7359,
+      "columnNumber": 368098,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 143.386,
+      "inclusiveMs": 1904.752,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 143.386,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1904.752,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53112.59,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "+2]})))}}function MF(s){if(s.isDisposed)return[];const e=new Map,t=new Map,i=[],n=s.meshes.filter(_=>/^landscape-terrain-(mineral|snow)-/.test(_.name)),r=s.meshes.filter(_=>_.name===\"landscape-agriculture\"||_.name===\"landscape-rivers\"||/carriageway|ballast|road-.*shoulders/.test(_.name));for(const _ of[...n,...r]){const v=_.getVerticesData(\"position\"),E=_.getIndices();if(!v||!E)continue;const x=_.",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "buildMountainRocks",
+      "sourceLine": 183
+    },
+    {
+      "functionName": "computeWorldMatrix",
+      "lineNumber": 366,
+      "columnNumber": 423280,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 134.06,
+      "inclusiveMs": 256.58,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 5.852,
+        "resumeBeforeGate": 2.166,
+        "finalGate": 126.042,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 10.271,
+        "resumeBeforeGate": 4.36,
+        "finalGate": 241.949,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34303.332,
+      "lastSampleObservedAtMs": 56383.609,
+      "archivedBundleExcerpt": "E}computeWorldMatrix(D=!1,$=null){if(this._isWorldMatrixFrozen&&!this._isDirty)return this._worldMatrix;const ie=this.getScene().getRenderId();if(!this._isDirty&&!D&&(this._currentRenderId===ie||this.isSynchronized()))return this._currentRenderId=ie,this._worldMatrix;$=$||this.getScene().activeCamera,this._updateCache();const W=this._cache;W.pivotMatrixUpdated=!1,W.billboardMode=this.billboardMode"
+    },
+    {
+      "functionName": "Yw",
+      "lineNumber": 7359,
+      "columnNumber": 282119,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 129.676,
+      "inclusiveMs": 8206.271,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 103.4,
+        "finalGate": 26.276,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6190.662,
+        "finalGate": 2015.61,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38614.585,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "))}async function Yw(s){const e=[],t=[],i=pO(s);Fw(s,e,i,t);const n=Gw(s,e,i);jw(s,e);const r=await $w(s,n);return s.isDisposed||(yw(r,e),Aw(s,e,t,Sw(r,e))),t.length=0,{meshes:[...e,...r]}}function ME(s){const e=s.height||2;let t=s.diameterTop===0?0:s.diameterTop||s.diameter||1,i=s.diameterBottom===0?0:s.diameterBottom||s.diameter||1;t=t||1e-5,i=i||1e-5;const n=(s.tessellation||24)|0,r=(s.subdivis",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildLandscape",
+      "sourceLine": 3516
+    },
+    {
+      "functionName": "a0",
+      "lineNumber": 180,
+      "columnNumber": 6133,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 125.398,
+      "inclusiveMs": 125.398,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 6.381,
+        "resumeBeforeGate": 76.089,
+        "finalGate": 42.928,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 6.381,
+        "resumeBeforeGate": 76.089,
+        "finalGate": 42.928,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37747.598,
+      "lastSampleObservedAtMs": 53274.092,
+      "archivedBundleExcerpt": "8,3.15]];function a0(s,e){if(e<=s[0][0])return{v:s[0][1],d:0};if(e>=s[s.length-1][0])return{v:s[s.length-1][1],d:0};for(let t=1;t<s.length;t++)if(e<=s[t][0]){const i=s[t-1],n=s[t],r=(n[1]-i[1])/(n[0]-i[0]);return{v:i[1]+r*(e-i[0]),d:r}}throw new RangeError(\"Invalid eastern projection coordinate.\")}function y1(s){const e=a0(QR,s),t=a0(JR,s),i=a0(eS,s);return{D:e,a:t,b:i,L:i.v-t.v}}const io=Ih;funct"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7359,
+      "columnNumber": 248094,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 120.906,
+      "inclusiveMs": 726.913,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 120.906,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 726.913,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 42225.283,
+      "lastSampleObservedAtMs": 44003.703,
+      "archivedBundleExcerpt": ",G)}const me=ht.map(Ze=>{const ve=`${Ze}:${Jt}`,U=D.get(ve);if(U!==void 0)return U;const be=Ze*3,St=Ze*4,st=zn(P,M.positions[be],M.positions[be+1],M.positions[be+2],Xe?Gc(M.positions[be],M.positions[be+2],uv(it,mt)??Xe):new ye(M.colors[St],M.colors[St+1],M.colors[St+2])),q=Ss(M.positions[be],M.positions[be+2]);return P.uvs[st*2]=(G===\"x\"?q.z:q.x)*2.9,P.uvs[st*2+1]=(G===\"y\"?q.z:M.positions[be+1])*2"
+    },
+    {
+      "functionName": "Wc",
+      "lineNumber": 7359,
+      "columnNumber": 396535,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 116.931,
+      "inclusiveMs": 116.931,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 2.341,
+        "resumeBeforeGate": 92.444,
+        "finalGate": 22.146,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 2.341,
+        "resumeBeforeGate": 92.444,
+        "finalGate": 22.146,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37929.039,
+      "lastSampleObservedAtMs": 46949.072,
+      "archivedBundleExcerpt": "=>s.z))};function Wc(s,e){let t=!1;for(let i=0,n=e.length-1;i<e.length;n=i++){const r=e[i],a=e[n],o=a.x-r.x,l=a.z-r.z,c=o*(s.z-r.z)-l*(s.x-r.x);if(Math.abs(c)<1e-8&&s.x>=Math.min(r.x,a.x)-1e-8&&s.x<=Math.max(r.x,a.x)+1e-8&&s.z>=Math.min(r.z,a.z)-1e-8&&s.z<=Math.max(r.z,a.z)+1e-8)return!0;r.z>s.z!=a.z>s.z&&s.x<(a.x-r.x)*(s.z-r.z)/(a.z-r.z)+r.x&&(t=!t)}return t}function Cd(s){return Qh.some(e=>s.x>="
+    },
+    {
+      "functionName": "markDirty",
+      "lineNumber": 366,
+      "columnNumber": 518919,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 112.688,
+      "inclusiveMs": 114.613,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 112.688,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 114.613,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 55493.242,
+      "lastSampleObservedAtMs": 55608.248,
+      "archivedBundleExcerpt": "eturn null}markDirty(U=!1){const be=this.getScene().meshes;for(const St of be)if(St.subMeshes)for(const st of St.subMeshes)for(let q=0;q<st._drawWrappers.length;q++){const We=st._drawWrappers[q];We&&st.getMaterial(!0,q)===this&&this._materialContext===We.materialContext&&(We._wasPreviouslyReady=!1,We._wasPreviouslyUsingInstances=null,We._forceRebindOnNextCall=U)}U&&this.markAsDirty(s.AllDirtyFlag)"
+    },
+    {
+      "functionName": "ai",
+      "lineNumber": 7359,
+      "columnNumber": 211391,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 110.633,
+      "inclusiveMs": 110.633,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 76.87,
+        "finalGate": 33.763,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 76.87,
+        "finalGate": 33.763,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 39064.766,
+      "lastSampleObservedAtMs": 53000.434,
+      "archivedBundleExcerpt": "4294967295}const ai=(s,e,t)=>s+(e-s)*t,Kt=s=>s*s*(3-2*s),Ot=(s,e=0,t=1)=>Math.max(e,Math.min(t,s));function Gs(s,e){const t=Math.floor(s),i=Math.floor(e),n=Kt(s-t),r=Kt(e-i);return ai(ai(wt(t,i),wt(t+1,i),n),ai(wt(t,i+1),wt(t+1,i+1),n),r)}function la(s,e,t,i){const n=i.x-t.x,r=i.z-t.z,a=Ot(((s-t.x)*n+(e-t.z)*r)/(n*n+r*r));return Math.hypot(s-t.x-n*a,e-t.z-r*a)}function Ao(s,e,t,i,n,r){return Math."
+    },
+    {
+      "functionName": "Ot",
+      "lineNumber": 7359,
+      "columnNumber": 211431,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 102.252,
+      "inclusiveMs": 102.252,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 86.822,
+        "finalGate": 15.43,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 86.822,
+        "finalGate": 15.43,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38619.65,
+      "lastSampleObservedAtMs": 52758.265,
+      "archivedBundleExcerpt": "t=s=>s*s*(3-2*s),Ot=(s,e=0,t=1)=>Math.max(e,Math.min(t,s));function Gs(s,e){const t=Math.floor(s),i=Math.floor(e),n=Kt(s-t),r=Kt(e-i);return ai(ai(wt(t,i),wt(t+1,i),n),ai(wt(t,i+1),wt(t+1,i+1),n),r)}function la(s,e,t,i){const n=i.x-t.x,r=i.z-t.z,a=Ot(((s-t.x)*n+(e-t.z)*r)/(n*n+r*r));return Math.hypot(s-t.x-n*a,e-t.z-r*a)}function Ao(s,e,t,i,n,r){return Math.exp(-(((s-t)/n)**2+((e-i)/r)**2))}const "
+    },
+    {
+      "functionName": "Ic",
+      "lineNumber": 7359,
+      "columnNumber": 199321,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 96.787,
+      "inclusiveMs": 96.787,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 96.787,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 96.787,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 46074.454,
+      "lastSampleObservedAtMs": 53032.786,
+      "archivedBundleExcerpt": "e,t])=>xi(e,t))),Ic=(s,e,t)=>(e.x-s.x)*(t.z-s.z)-(e.z-s.z)*(t.x-s.x);function Eu(s,e){let t=!1;for(let i=0,n=s.length-1;i<s.length;n=i++){const r=s[i],a=s[n];r.z>e.z!=a.z>e.z&&e.x<(a.x-r.x)*(e.z-r.z)/(a.z-r.z)+r.x&&(t=!t)}return t}function ea(s,e){if(s.some(t=>Eu(e,t))||e.some(t=>Eu(s,t)))return!0;for(let t=0;t<s.length;t++)for(let i=0;i<e.length;i++){const n=s[t],r=s[(t+1)%s.length],a=e[i],o=e[(i"
+    },
+    {
+      "functionName": "Vc",
+      "lineNumber": 7359,
+      "columnNumber": 228694,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 89.645,
+      "inclusiveMs": 2672.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.956,
+        "resumeBeforeGate": 82.125,
+        "finalGate": 5.564,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 12.996,
+        "resumeBeforeGate": 2467.697,
+        "finalGate": 191.383,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37906.495,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": ")/.085))}function Vc(s,e){const t=Ss(s,e),i=t.x,n=t.z,r=Za(i,n),a=Gs(i*1.18+27,n*1.34+6)*.024+Gs(i*4.7+11,n*4.1+19)*.006,o=Ao(i,n,-3.1,1.55,1.4,.65)*.026,l=Kt(Ot(Cr(i,n)/.3));return .115+a+o+(r-vw(s,e,i,n))*l+uw(s,e,i,n,r)+kc(s,e,i,n).height}const bw=new Map([...Object.entries(Fi).map(([s,{lon:e,lat:t}])=>{const i=xi(e,t);return[s,Vc(i.x,i.z)]}),...sg.map(({name:s,lon:e,lat:t})=>{const i=xi(e,t);r"
+    },
+    {
+      "functionName": "LE",
+      "lineNumber": 7359,
+      "columnNumber": 397451,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 89.248,
+      "inclusiveMs": 92.517,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 55.344,
+        "finalGate": 33.904,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 57.499,
+        "finalGate": 35.018,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45087.482,
+      "lastSampleObservedAtMs": 46952.354,
+      "archivedBundleExcerpt": ")),r),a)}function LE(s,e,t,i){const n=i.x-t.x,r=i.z-t.z,a=n*n+r*r,o=a>0?Nn(((s-t.x)*n+(e-t.z)*r)/a):0;return Math.hypot(s-t.x-n*o,e-t.z-r*o)}function hg(s,e){const t=new Map;for(const i of s)for(let n=Math.floor((Math.min(i.a.x,i.b.x)-e)/.4);n<=Math.floor((Math.max(i.a.x,i.b.x)+e)/.4);n++)for(let r=Math.floor((Math.min(i.a.z,i.b.z)-e)/.4);r<=Math.floor((Math.max(i.a.z,i.b.z)+e)/.4);r++){const a=`$"
+    },
+    {
+      "functionName": "E1",
+      "lineNumber": 180,
+      "columnNumber": 3948,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 84.595,
+      "inclusiveMs": 446.551,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 51.715,
+        "finalGate": 32.88,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.72,
+        "resumeBeforeGate": 292.049,
+        "finalGate": 152.782,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37757.508,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "s).value}function E1(s,e){return eb(s,e)+tu(Q6,e).value*Mu(s).value}function tb(s,e){const t=(s-2.4)*.76,i=E1(s,e),n=Math.max(0,Math.min(1,(Jc-t)/eu));return{x:t+tu(x1,i).value*n,z:i}}function T1(s,e,t){const i=s[2][0]*e+s[2][1]*t+s[2][2];if(i<=1e-8)throw new RangeError(\"Point is outside the miniature projection.\");const n={x:(s[0][0]*e+s[0][1]*t+s[0][2])/i,z:(s[1][0]*e+s[1][1]*t+s[1][2])/i};retur"
+    },
+    {
+      "functionName": "AE",
+      "lineNumber": 7359,
+      "columnNumber": 263241,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 84.429,
+      "inclusiveMs": 585.628,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 84.429,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 585.628,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 44099.399,
+      "lastSampleObservedAtMs": 44952.963,
+      "archivedBundleExcerpt": "=new Map;function AE(s,e,t){let i=jm.get(s);i||(i=new Map,jm.set(s,i));let n=i.get(e);if(!n){const r=Cn(s,e);let a=r>.008&&gi(s,e)&&!ya(s,e)&&!Kh(s,e)&&!oh(s,e);a&&(a=ft(s,e)<.46&&Math.hypot(ft(s+.018,e)-ft(s-.018,e),ft(s,e+.018)-ft(s,e-.018))/.036<.64),n={ground:a,clearance:r},i.set(e,n)}return n.ground&&n.clearance>t+.008&&!ms(s,e,t)}function Gw(s,e,t){const i=Vn(),n=Vn(),r=Vn(),a=Vn(),o=Vn(),l="
+    },
+    {
+      "functionName": "Kh",
+      "lineNumber": 7359,
+      "columnNumber": 208882,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 82.844,
+      "inclusiveMs": 155.98,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 75.354,
+        "finalGate": 7.49,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 133.438,
+        "finalGate": 22.542,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 39186.008,
+      "lastSampleObservedAtMs": 49112.158,
+      "archivedBundleExcerpt": "set(i,n)}function Kh(s,e){return zm.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)?.find(t=>s>=t.minX&&s<=t.maxX&&e>=t.minZ&&e<=t.maxZ&&is(t.polygon,s,e)&&(t.minHeight===void 0||ft(s,e)>=t.minHeight)&&(t.maxHeight===void 0||ft(s,e)<=t.maxHeight))}const KD=cr.flatMap(s=>{const e=xi(s.lon,s.lat);return s.blocks.map(t=>{const i=t.outline.map(([n,r])=>({x:e.x+n,z:e.z+r}));return{polygon:i,minX:Math.mi"
+    },
+    {
+      "functionName": "_MergeElement",
+      "lineNumber": 366,
+      "columnNumber": 378103,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 81.846,
+      "inclusiveMs": 108.26,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 81.846,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 108.26,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 55251.173,
+      "lastSampleObservedAtMs": 55490.0,
+      "archivedBundleExcerpt": "static _MergeElement(o,l,c,d){const u=d.filter(m=>m[0]!==null&&m[0]!==void 0);if(!l&&u.length==0)return l;if(!l)return this._MergeElement(o,u[0][0],u[0][1],u.slice(1));const h=u.reduce((m,p)=>m+p[0].length,l.length),f=o===N.PositionKind?s._TransformVector3Coordinates:o===N.NormalKind?s._TransformVector3Normals:o===N.TangentKind?s._TransformVector4Normals:()=>{};if(l instanceof Float32Array){const "
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7359,
+      "columnNumber": 352661,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 79.188,
+      "inclusiveMs": 568.071,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 79.188,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 568.071,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 51669.386,
+      "lastSampleObservedAtMs": 52496.962,
+      "archivedBundleExcerpt": "e);const Ue=Me.find(({start:Ne,end:Ce})=>{const Pe=[{start:Ne,end:Ce,halfWidth:.016}];if(Array.from({length:15},(Ge,At)=>({x:Ne.x+(Ce.x-Ne.x)*At/14,z:Ne.z+(Ce.z-Ne.z)*At/14})).some(Ge=>!gi(Ge.x,Ge.z)||ms(Ge.x,Ge.z,.011))||oe.some(Ge=>de(Ge,Pe,!0))||Lt.some(Ge=>de(Ge,Pe,!0))||Vi.some(Ge=>de({...Ge,halfX:.025,halfZ:.025},Pe,!0))||Ji.some(Ge=>de(Ge,Pe,!0))||mt.some(Ge=>de(Ge,Pe,!0)))return!1;const Re"
+    },
+    {
+      "functionName": "Aw",
+      "lineNumber": 7359,
+      "columnNumber": 234874,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 77.604,
+      "inclusiveMs": 1574.13,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 77.604,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1574.13,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 47497.447,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "(h,l))}}}function Aw(s,e,t,i){let n;for(const{mesh:r,surveys:a}of t){const o=r.getVerticesData(\"position\"),l=r.getIndices(),c=r.getVerticesData(\"color\");if(!o||!l||!c)continue;const d=new Set;for(let x=0;x<l.length;x+=3){const T=[l[x],l[x+1],l[x+2]],y=T.map(P=>({x:o[P*3],z:o[P*3+2]})),R=y.reduce((P,B)=>P+B.x,0)/3,M=y.reduce((P,B)=>P+B.z,0)/3;if(Xl(ao(R,M)?.band??0)&&i.overlaps(y))for(const P of T)",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "recolorAlpineGround",
+      "sourceLine": 1280
+    },
+    {
+      "functionName": "getProgramParameter",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 77.449,
+      "inclusiveMs": 77.449,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 77.449,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 77.449,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 49731.164,
+      "lastSampleObservedAtMs": 56328.455,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "Za",
+      "lineNumber": 7350,
+      "columnNumber": 32736,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 76.494,
+      "inclusiveMs": 307.88,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 2.198,
+        "resumeBeforeGate": 68.992,
+        "finalGate": 5.304,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 2.198,
+        "resumeBeforeGate": 216.042,
+        "finalGate": 89.64,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37908.697,
+      "lastSampleObservedAtMs": 52907.116,
+      "archivedBundleExcerpt": "t*.28,n)}function Za(s,e){const t=Nu(s,e);if(t)return t.height;const i=th.get(`${Math.floor(s/.4)}:${Math.floor(e/.4)}`)??[];let n=0,r=0;for(const l of i){const c=Yx(l,s,e),d=c.t,u=l.ah+(l.bh-l.ah)*d,h=c.section.height*u;n=Math.max(n,h),r=Math.max(r,Math.max(0,1-c.distance/2.35)*u*.2)}const a=n*.94+r;let o=0;for(const l of ih.get(`${Math.floor(s/.4)}:${Math.floor(e/.4)}`)??[]){const c=l.bx-l.ax,d="
+    },
+    {
+      "functionName": "zd",
+      "lineNumber": 346,
+      "columnNumber": 945,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 74.663,
+      "inclusiveMs": 310.113,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 74.663,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 310.113,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 49730.079,
+      "lastSampleObservedAtMs": 56329.56,
+      "archivedBundleExcerpt": "de(i)),i}function zd(s,e,t){Qu.length=0;let i;for(;(i=uA.exec(s))!==null;)Qu.push(i);let n=[s],r=!1;for(const o of Qu){let l=o[1];if(l.indexOf(\"__decl__\")!==-1&&(l=l.replace(dA,\"\"),e.supportsUniformBuffers&&(l=l.replace(\"Vertex\",\"Ubo\").replace(\"Fragment\",\"Ubo\")),l=l+\"Declaration\"),e.includesShadersStore[l]){let c=e.includesShadersStore[l];if(o[2]){const u=o[3].split(\",\");for(let h=0;h<u.length;h+="
+    },
+    {
+      "functionName": "nt.releaseRenderPassId",
+      "lineNumber": 363,
+      "columnNumber": 76759,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 71.043,
+      "inclusiveMs": 78.958,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 71.043,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 78.958,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34164.776,
+      "lastSampleObservedAtMs": 34243.734,
+      "archivedBundleExcerpt": "enderPassId=function(s){this._renderPassNames[s]=void 0;for(let e=0;e<this.scenes.length;++e){const t=this.scenes[e];for(let i=0;i<t.meshes.length;++i){const n=t.meshes[i];if(n._releaseRenderPassId(s),n.subMeshes)for(let r=0;r<n.subMeshes.length;++r)n.subMeshes[r]._removeDrawWrapper(s)}}this._onReleaseRenderPassObservable?.notifyObservers(s)})}class pt extends Nt{static get NpmPackage(){return nt."
+    },
+    {
+      "functionName": "_createVertexBuffer",
+      "lineNumber": 363,
+      "columnNumber": 26228,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 69.881,
+      "inclusiveMs": 116.828,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 20.973,
+        "finalGate": 48.908,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 34.609,
+        "finalGate": 82.219,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38605.715,
+      "lastSampleObservedAtMs": 56372.555,
+      "archivedBundleExcerpt": "}_createVertexBuffer(e,t){const i=this._gl.createBuffer();if(!i)throw new Error(\"Unable to create vertex buffer\");const n=new nu(i);return this.bindArrayBuffer(n),typeof e!=\"number\"?e instanceof Array?(this._gl.bufferData(this._gl.ARRAY_BUFFER,new Float32Array(e),t),n.capacity=e.length*4):(this._gl.bufferData(this._gl.ARRAY_BUFFER,e,t),n.capacity=e.byteLength):(this._gl.bufferData(this._gl.ARRAY_B"
+    },
+    {
+      "functionName": "Tw",
+      "lineNumber": 7359,
+      "columnNumber": 230568,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 68.823,
+      "inclusiveMs": 2996.181,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 66.682,
+        "finalGate": 2.141,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2781.829,
+        "finalGate": 214.352,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "o)}}))});function Tw(s,e){const t=yE(s,e);let i=0,n=t;for(const r of Ew){const a=s-r.x,o=e-r.z,l=Math.abs(a*r.cosine-o*r.sine)-r.halfW,c=Math.abs(a*r.sine+o*r.cosine)-r.halfD,d=Math.hypot(Math.max(0,l),Math.max(0,c))+Math.min(0,Math.max(l,c)),u=1-Kt(Ot((d-.012)/.024));u>i&&!ms(s,e,.009)&&(i=u,n=r.level)}return ai(t,n,i)}const kv=new Map,dh=.018;function gd(s,e){let t=kv.get(s);t||(t=new Map,kv.set"
+    },
+    {
+      "functionName": "gv",
+      "lineNumber": 7350,
+      "columnNumber": 362804,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 68.065,
+      "inclusiveMs": 363.019,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.07,
+        "resumeBeforeGate": 47.408,
+        "finalGate": 19.587,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.07,
+        "resumeBeforeGate": 229.997,
+        "finalGate": 131.952,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37907.627,
+      "lastSampleObservedAtMs": 51231.947,
+      "archivedBundleExcerpt": "return n}function gv(s,e,t){let i=1/0;const n=a=>{const o=s-a.x,l=e-a.z,c=Math.abs(o*a.cosine+l*a.sine)-a.halfW,d=Math.abs(-o*a.sine+l*a.cosine)-a.halfD;return Math.hypot(Math.max(0,c),Math.max(0,d))+Math.min(0,Math.max(c,d))};for(const a of Lm.get(`${Math.floor(s/xl)}:${Math.floor(e/xl)}`)??[])i=Math.min(i,n(a));if(i<Mc)return i;if(t&&s>=cd.minX&&s<=cd.maxX&&e>=cd.minZ&&e<=cd.maxZ){const a=l=>Mat"
+    }
+  ],
+  "topInclusiveFrames": [
+    {
+      "functionName": "(root)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 0.0,
+      "inclusiveMs": 22926.491,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 4516.395,
+        "resumeBeforeGate": 7852.282,
+        "finalGate": 10462.022,
+        "afterGate": 95.798
+      },
+      "firstSampleObservedAtMs": 33629.01,
+      "lastSampleObservedAtMs": 56555.501,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "Yw",
+      "lineNumber": 7359,
+      "columnNumber": 282119,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 129.676,
+      "inclusiveMs": 8206.271,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 103.4,
+        "finalGate": 26.276,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 6190.662,
+        "finalGate": 2015.61,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38614.585,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "))}async function Yw(s){const e=[],t=[],i=pO(s);Fw(s,e,i,t);const n=Gw(s,e,i);jw(s,e);const r=await $w(s,n);return s.isDisposed||(yw(r,e),Aw(s,e,t,Sw(r,e))),t.length=0,{meshes:[...e,...r]}}function ME(s){const e=s.height||2;let t=s.diameterTop===0?0:s.diameterTop||s.diameter||1,i=s.diameterBottom===0?0:s.diameterBottom||s.diameter||1;t=t||1e-5,i=i||1e-5;const n=(s.tessellation||24)|0,r=(s.subdivis",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildLandscape",
+      "sourceLine": 3516
+    },
+    {
+      "functionName": "WF",
+      "lineNumber": 7462,
+      "columnNumber": 27568,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 22.042,
+      "inclusiveMs": 7119.147,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 22.044,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 7119.15,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38348.429,
+      "lastSampleObservedAtMs": 45762.698,
+      "archivedBundleExcerpt": "i)/n(t))}function WF(s,e,t){const i=s.querySelector(\"[data-map-canvas]\"),n=new pt(i,!0,{preserveDrawingBuffer:!1,stencil:!0,powerPreference:\"low-power\",failIfMajorPerformanceCaveat:!1},!1);let r=1,a=\"\",o=()=>!0;function l(){const f=s.clientWidth,m=s.clientHeight,p=window.devicePixelRatio||1;if(!f||!m)return!1;const g=`${f}:${m}:${p}:${r}`;if(g===a||!o())return!1;const b=f*m,_=Math.max(1,Math.min(p",
+      "source": "site/src/mandats/map-scene.ts",
+      "sourceSha256": "329bbf96265ebea765cd090d303eb86633508a9f7fe21d6856114eb3a254738e",
+      "sourceFunction": "mount",
+      "sourceLine": 70
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7462,
+      "columnNumber": 52201,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 7119.147,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 7119.15,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38348.429,
+      "lastSampleObservedAtMs": 45762.698,
+      "archivedBundleExcerpt": "tate),Xc=setTimeout(()=>{if(Xc=void 0,wr===n&&(wr=void 0,!($a!==i||!i.isConnected)))try{un=WF(i,n.state,n.light);for(const r of n.cameraActions)un.camera(r);n.inspection&&un.inspect(n.inspection)}catch(r){i.dataset.renderError=r instanceof Error?r.message:String(r),i.dataset.renderer=\"fallback\",i.setAttribute(\"aria-busy\",\"false\"),i.querySelector(\"[data-map-status]\").textContent=\"Vue légère. Les su"
+    },
+    {
+      "functionName": "Fw",
+      "lineNumber": 7359,
+      "columnNumber": 243115,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 187.741,
+      "inclusiveMs": 5149.094,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 187.741,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 5149.095,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38615.706,
+      "lastSampleObservedAtMs": 44056.425,
+      "archivedBundleExcerpt": "depth:v}}function Fw(s,e,t,i){const n=wa(s,\"landscape-ground\",\"#FFFFFF\");n.diffuseTexture=t.earth,n.bumpTexture=t.earthNormal;const r=wa(s,\"landscape-mineral-ground\",\"#FFFFFF\");r.diffuseTexture=t.rock,r.bumpTexture=t.rockNormal,r.specularColor=new ye(.035,.04,.046);const a=wa(s,\"landscape-cliffs\",\"#FFFFFF\");a.backFaceCulling=!1,a.diffuseTexture=t.rock,a.bumpTexture=t.coastNormal,a.emissiveColor=ne",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "buildGround",
+      "sourceLine": 1636
+    },
+    {
+      "functionName": "(program)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 4290.438,
+      "inclusiveMs": 4290.438,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 3397.894,
+        "resumeBeforeGate": 180.871,
+        "finalGate": 689.228,
+        "afterGate": 22.446
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 3397.894,
+        "resumeBeforeGate": 180.871,
+        "finalGate": 689.228,
+        "afterGate": 22.446
+      },
+      "firstSampleObservedAtMs": 33629.01,
+      "lastSampleObservedAtMs": 56555.501,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "Gc",
+      "lineNumber": 7359,
+      "columnNumber": 238451,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 207.002,
+      "inclusiveMs": 3735.497,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 135.005,
+        "finalGate": 71.997,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2859.016,
+        "finalGate": 876.482,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 49141.3,
+      "archivedBundleExcerpt": "53),i,t)}function Gc(s,e,t,i){const n=Ss(s,e),r=n.x,a=n.z,o=ft(s,e),l=Gs(r*3.9+8,a*4.1+44),c=cg(s,e),d=ya(s,e);if(d&&![\"garden\",\"field\",\"wood\"].includes(d.kind)){const ie={urban:\"#BCAF8B\",court:\"#D0BE99\",square:\"#D5C6A8\",garden:\"#91A05A\",field:\"#C9B66F\",wood:\"#4A613E\"};return ye.FromHexString(ie[d.kind]).scale(.95+l*.07)}if(oh(s,e))return ye.FromHexString(\"#CABB96\").scale(.96+l*.06);const u=Za(r,a",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "terrainColor",
+      "sourceLine": 1435
+    },
+    {
+      "functionName": "ft",
+      "lineNumber": 7359,
+      "columnNumber": 231031,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 36.736,
+      "inclusiveMs": 3415.011,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 31.436,
+        "finalGate": 5.3,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 3058.394,
+        "finalGate": 356.617,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "(e,i)),i}function ft(s,e){const t=s/dh,i=e/dh,n=Math.floor(t),r=Math.floor(i),a=t-n,o=i-r;return ai(ai(gd(n,r),gd(n+1,r),a),ai(gd(n,r+1),gd(n+1,r+1),a),o)}function Cn(s,e){return qO(s,e)}function Vn(){return{positions:[],indices:[],colors:[],uvs:[]}}function zn(s,e,t,i,n){const r=s.positions.length/3;s.positions.push(e,t,i),s.colors.push(n.r,n.g,n.b,1);const a=Ss(e,i);return s.uvs.push((a.x-Un.min"
+    },
+    {
+      "functionName": "gd",
+      "lineNumber": 7359,
+      "columnNumber": 230906,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 290.386,
+      "inclusiveMs": 3286.567,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 180.745,
+        "finalGate": 109.641,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2962.574,
+        "finalGate": 323.993,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": ",dh=.018;function gd(s,e){let t=kv.get(s);t||(t=new Map,kv.set(s,t));let i=t.get(e);return i===void 0&&(i=Tw(s*dh,e*dh),t.set(e,i)),i}function ft(s,e){const t=s/dh,i=e/dh,n=Math.floor(t),r=Math.floor(i),a=t-n,o=i-r;return ai(ai(gd(n,r),gd(n+1,r),a),ai(gd(n,r+1),gd(n+1,r+1),a),o)}function Cn(s,e){return qO(s,e)}function Vn(){return{positions:[],indices:[],colors:[],uvs:[]}}function zn(s,e,t,i,n){co"
+    },
+    {
+      "functionName": "Tw",
+      "lineNumber": 7359,
+      "columnNumber": 230568,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 68.823,
+      "inclusiveMs": 2996.181,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 66.682,
+        "finalGate": 2.141,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2781.829,
+        "finalGate": 214.352,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "o)}}))});function Tw(s,e){const t=yE(s,e);let i=0,n=t;for(const r of Ew){const a=s-r.x,o=e-r.z,l=Math.abs(a*r.cosine-o*r.sine)-r.halfW,c=Math.abs(a*r.sine+o*r.cosine)-r.halfD,d=Math.hypot(Math.max(0,l),Math.max(0,c))+Math.min(0,Math.max(l,c)),u=1-Kt(Ot((d-.012)/.024));u>i&&!ms(s,e,.009)&&(i=u,n=r.level)}return ai(t,n,i)}const kv=new Map,dh=.018;function gd(s,e){let t=kv.get(s);t||(t=new Map,kv.set"
+    },
+    {
+      "functionName": "yE",
+      "lineNumber": 7359,
+      "columnNumber": 229504,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 222.71,
+      "inclusiveMs": 2922.999,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 201.882,
+        "finalGate": 20.828,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2710.788,
+        "finalGate": 212.211,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38874.684,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "et(n,r)}}function yE(s,e){let t=Vc(s,e),i=0,n=!1,r=t;for(const c of qm.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)??[]){const d=s-c.x,u=e-c.z,h=Math.abs(d*c.cosine+u*c.sine)-c.halfW,f=Math.abs(-d*c.sine+u*c.cosine)-c.halfD,m=Math.hypot(Math.max(0,h),Math.max(0,f))+Math.min(0,Math.max(h,f)),p=1-Kt(Ot((m+.012)/.18));p>i&&(i=p,n=c.schoolPlatform,r=xw.get(c)??bw.get(c.settlement)??t)}t=ai(t,n?r:Ot("
+    },
+    {
+      "functionName": "Vc",
+      "lineNumber": 7359,
+      "columnNumber": 228694,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 89.645,
+      "inclusiveMs": 2672.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.956,
+        "resumeBeforeGate": 82.125,
+        "finalGate": 5.564,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 12.996,
+        "resumeBeforeGate": 2467.697,
+        "finalGate": 191.383,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37906.495,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": ")/.085))}function Vc(s,e){const t=Ss(s,e),i=t.x,n=t.z,r=Za(i,n),a=Gs(i*1.18+27,n*1.34+6)*.024+Gs(i*4.7+11,n*4.1+19)*.006,o=Ao(i,n,-3.1,1.55,1.4,.65)*.026,l=Kt(Ot(Cr(i,n)/.3));return .115+a+o+(r-vw(s,e,i,n))*l+uw(s,e,i,n,r)+kc(s,e,i,n).height}const bw=new Map([...Object.entries(Fi).map(([s,{lon:e,lat:t}])=>{const i=xi(e,t);return[s,Vc(i.x,i.z)]}),...sg.map(({name:s,lon:e,lat:t})=>{const i=xi(e,t);r"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7462,
+      "columnNumber": 47335,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 22.052,
+      "inclusiveMs": 2541.409,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 22.052,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 2541.409,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53032.786,
+      "lastSampleObservedAtMs": 55728.276,
+      "archivedBundleExcerpt": "Kn)),R(e,t),qe.then(([gt,$t,dt,,rt])=>{if(ke||s.dataset.renderer===\"fallback\")return;O=$t.roots,K=$t.vehicles;for(const Yt of $t.meshes){if(Yt.metadata?.assetTemplate||Yt.isDisposed())continue;Yt.computeWorldMatrix(!0);const pi=Yt instanceof Je&&/^(national-road-|railway-)/.test(Yt.name)?Yt.getVerticesData(\"position\"):null;if(pi?.length){const Ai=Yt.getWorldMatrix();for(let J=0;J<pi.length;J+=3)ve",
+      "source": "site/src/mandats/map-scene.ts",
+      "sourceSha256": "329bbf96265ebea765cd090d303eb86633508a9f7fe21d6856114eb3a254738e",
+      "sourceFunction": "scenery.then callback",
+      "sourceLine": 1011
+    },
+    {
+      "functionName": "dF",
+      "lineNumber": 7359,
+      "columnNumber": 319718,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 287.524,
+      "inclusiveMs": 2185.244,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 287.524,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.236,
+        "finalGate": 2183.008,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38612.349,
+      "lastSampleObservedAtMs": 53032.786,
+      "archivedBundleExcerpt": "6)}async function dF(s){const[e,t,i,n]=await Promise.all([Tl(s,Fo.architecture),Tl(s,Fo.vegetation),Tl(s,Fo.paris),Tl(s,Fo.cathedrale)]);if(s.isDisposed)return{roots:new Map,meshes:[],vehicles:[]};const r=[],a=new Map,o=[],l=[],c=[],d=uF(729381),u=rF(s),h=aF(s,u),{stone:f,pale:m,brick:p,slate:g,glass:b,timber:_,steel:v,cream:E,pavement:x,quay:T,paint:y,red:R}=u;let M=0;const P=(J,ce,ge)=>(J.materi",
+      "source": "site/src/mandats/map-cities.ts",
+      "sourceSha256": "d77a4c3967f79baa6482123ea4275e27bf92c5b409a37855f076102beaedf86f",
+      "sourceFunction": "buildCities",
+      "sourceLine": 45
+    },
+    {
+      "functionName": "uw",
+      "lineNumber": 7359,
+      "columnNumber": 223326,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 705.059,
+      "inclusiveMs": 1909.798,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 653.127,
+        "finalGate": 51.932,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.094,
+        "resumeBeforeGate": 1794.082,
+        "finalGate": 114.622,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37920.021,
+      "lastSampleObservedAtMs": 53018.711,
+      "archivedBundleExcerpt": "(t,i))))}function uw(s,e,t,i,n){if(n>.4||Cr(t,i)<.09)return 0;const r=zc(s,e);if(r<.065||ms(s,e,.055))return 0;const a=Kt(Ot((r-.065)/.14)),o=Kt(Ot((Cr(t,i)-.09)/.18)),l=1-Kt(Ot((n-.08)/.32));let c=0;for(const R of JD)for(let M=1;M<R.points.length;M++){const[P,B]=R.points[M-1],[L,V]=R.points[M],D=L-P,$=V-B,ie=Ot(((t-P)*D+(i-B)*$)/(D*D+$*$)),W=Math.hypot(t-P-D*ie,i-B-$*ie)/R.width;if(W>=1)continue;",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "cultivatedRelief",
+      "sourceLine": 749
+    },
+    {
+      "functionName": "MF",
+      "lineNumber": 7359,
+      "columnNumber": 368098,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 143.386,
+      "inclusiveMs": 1904.752,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 143.386,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1904.752,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53112.59,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "+2]})))}}function MF(s){if(s.isDisposed)return[];const e=new Map,t=new Map,i=[],n=s.meshes.filter(_=>/^landscape-terrain-(mineral|snow)-/.test(_.name)),r=s.meshes.filter(_=>_.name===\"landscape-agriculture\"||_.name===\"landscape-rivers\"||/carriageway|ballast|road-.*shoulders/.test(_.name));for(const _ of[...n,...r]){const v=_.getVerticesData(\"position\"),E=_.getIndices();if(!v||!E)continue;const x=_.",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "buildMountainRocks",
+      "sourceLine": 183
+    },
+    {
+      "functionName": "Aw",
+      "lineNumber": 7359,
+      "columnNumber": 234874,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 77.604,
+      "inclusiveMs": 1574.13,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 77.604,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 1574.13,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 47497.447,
+      "lastSampleObservedAtMs": 49142.388,
+      "archivedBundleExcerpt": "(h,l))}}}function Aw(s,e,t,i){let n;for(const{mesh:r,surveys:a}of t){const o=r.getVerticesData(\"position\"),l=r.getIndices(),c=r.getVerticesData(\"color\");if(!o||!l||!c)continue;const d=new Set;for(let x=0;x<l.length;x+=3){const T=[l[x],l[x+1],l[x+2]],y=T.map(P=>({x:o[P*3],z:o[P*3+2]})),R=y.reduce((P,B)=>P+B.x,0)/3,M=y.reduce((P,B)=>P+B.z,0)/3;if(Xl(ao(R,M)?.band??0)&&i.overlaps(y))for(const P of T)",
+      "source": "site/src/mandats/map-landscape.ts",
+      "sourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+      "sourceFunction": "recolorAlpineGround",
+      "sourceLine": 1280
+    },
+    {
+      "functionName": "Ss",
+      "lineNumber": 180,
+      "columnNumber": 5174,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 9.474,
+      "inclusiveMs": 1156.831,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 5.137,
+        "finalGate": 4.337,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 738.206,
+        "finalGate": 417.542,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37913.61,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "n,t.lat)}function Ss(s,e){const t=Ph(s,e);return Js(t.lon,t.lat)}function KR(s,e){const{lon:t,lat:i}=Ch(s,e),n=Mu(t),r=tu(Q6,i),a=-1.2*Math.max(0,43.2-i)*n.slope,o=1.08+(i>50.63?1:0)+(i<43.2?1.2*n.value:0),l=a+r.value*n.slope,c=o+r.slope*n.value,d=(l-c*a/o)/.76,u=c/o,h=(t-2.4)*.76,f=E1(t,i),m=tu(x1,f),p=Math.max(0,Math.min(1,(Jc-h)/eu)),g=h>J6&&h<Jc?-1/eu:0,b=1+m.value*g+m.slope*p*d,_=m.slope*p*u,"
+    },
+    {
+      "functionName": "(garbage collector)",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 1151.427,
+      "inclusiveMs": 1151.427,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 96.014,
+        "resumeBeforeGate": 338.35,
+        "finalGate": 717.063,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 96.014,
+        "resumeBeforeGate": 338.35,
+        "finalGate": 717.063,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34512.547,
+      "lastSampleObservedAtMs": 56174.879,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "Ph",
+      "lineNumber": 180,
+      "columnNumber": 9329,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 19.011,
+      "inclusiveMs": 1122.439,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 9.335,
+        "finalGate": 9.676,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 717.75,
+        "finalGate": 403.606,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37913.61,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "t.x,t.z)}function Ph(s,e){const t=zl(s,e);return ZR(t.x,t.z)}function oS(s,e){const t=KR(s,e),i=Ch(s,e),n=Ih(i.lon,i.lat),r=iS(n.x,n.z),a=R1(n.x,n.z),o=nS(a.x,a.z),l={xx:o.xx*r.xx,xz:o.xx*r.xz+o.xz},c={xx:l.xx*t.xx+l.xz*t.zx,xz:l.xx*t.xz+l.xz*t.zz,zx:t.zx,zz:t.zz},d=Fd(a.x,a.z),u=aS(d.x,d.z),h={xx:u.xx*c.xx+u.xz*c.zx,xz:u.xx*c.xz+u.xz*c.zz,zx:u.zx*c.xx+u.zz*c.zx,zz:u.zx*c.xz+u.zz*c.zz};return{...h"
+    },
+    {
+      "functionName": "DF",
+      "lineNumber": 7359,
+      "columnNumber": 400939,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 307.25,
+      "inclusiveMs": 952.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 286.543,
+        "finalGate": 20.707,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 606.784,
+        "finalGate": 345.292,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45077.774,
+      "lastSampleObservedAtMs": 46956.041,
+      "archivedBundleExcerpt": "8)}async function DF(s){const e=[],t=[],i=[],n=[],r=[],a=[],o=[],l={forest:ye.FromHexString(\"#3B4840\"),clearing:ye.FromHexString(\"#6D716A\"),ridge:ye.FromHexString(\"#7D827B\"),stone:ye.FromHexString(\"#9DA194\")};for(const Y of Qh){const H=[...Y.points],I=.12;for(let z=Math.ceil(Y.minX/I);z*I<Y.maxX;z++)for(let ne=Math.ceil(Y.minZ/I);ne*I<Y.maxZ;ne++){const se=(z+(Us(z+19,ne)-.5)*.35)*I,ue=(ne+(Us(z,n",
+      "source": "site/src/mandats/map-context.ts",
+      "sourceSha256": "99cb1995a91bebf3dd24d1580278f73d45d5aa3a7318f730ed9e6e9f2f9b5190",
+      "sourceFunction": "buildMapContext",
+      "sourceLine": 335
+    },
+    {
+      "functionName": "Gw",
+      "lineNumber": 7359,
+      "columnNumber": 263570,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 33.672,
+      "inclusiveMs": 835.172,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 33.672,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 835.172,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 44056.425,
+      "lastSampleObservedAtMs": 44972.55,
+      "archivedBundleExcerpt": "s(s,e,t)}function Gw(s,e,t){const i=Vn(),n=Vn(),r=Vn(),a=Vn(),o=Vn(),l=[],c=[[1.02,.98,.89],[.92,.94,.9],[1.04,1.03,.96],[.98,1.01,.87]],d=[],u=new Map;let h=5e3,f=0,m=0;const p=.29,g=.19,b=new Map,_=Math.floor(Mr.minX/p)-1,v=Math.ceil(Mr.maxX/p)+1,E=Math.floor(Mr.minZ/g)-1,x=Math.ceil(Mr.maxZ/g)+1;for(let ie=_;ie<=v;ie++)for(let W=E;W<=x;W++){if(wt(ie*3+8,W*7+19)<.14)continue;const w=(Gs(ie*.31+8"
+    },
+    {
+      "functionName": "ZR",
+      "lineNumber": 180,
+      "columnNumber": 4651,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 278.388,
+      "inclusiveMs": 825.194,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 175.684,
+        "finalGate": 102.704,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 533.314,
+        "finalGate": 290.797,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37913.61,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "t.x,t.z)}function ZR(s,e){za(s,e);const t=T1(YR,s,e),i=tu(x1,t.z).value,r=(t.x<=J6+i?t.x-i:t.x>=Jc?t.x:(t.x-i*Jc/eu)/(1-i/eu))/.76+2.4,a=al.map(l=>E1(r,l));if(t.z<=a[0])return{lon:r,lat:al[0]+(t.z-a[0])/(1.08+1.2*Mu(r).value)};const o=a.length-1;if(t.z>=a[o])return{lon:r,lat:al[o]+(t.z-a[o])/2.08};for(let l=1;l<a.length;l++)if(t.z<=a[l])return{lon:r,lat:al[l-1]+(t.z-a[l-1])*(al[l]-al[l-1])/(a[l]-a"
+    },
+    {
+      "functionName": "EF",
+      "lineNumber": 7359,
+      "columnNumber": 357214,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 478.143,
+      "inclusiveMs": 782.149,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 478.143,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 782.149,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 54242.893,
+      "lastSampleObservedAtMs": 55152.627,
+      "archivedBundleExcerpt": "return!0}function EF(s,e,t,i,n){const r={version:37,status:\"skipped\",reason:\"\",sourceTriangles:e.length,barrierTests:0,protectedTriangles:0,frozenCoordinates:0,movedCoordinates:0,layeredCoordinates:0,maximumDepth:0,originalVertices:0,outputVertices:0,addedTriangles:0,addedVertices:0,queriedHeights:0,scannedGLBs:0},a=_=>{r.reason=_,s.metadata={...s.metadata,mineralFractures:r}};if(s.isDisposed||!e.",
+      "source": "site/src/mandats/map-mineral-fractures.ts",
+      "sourceSha256": "e0bb0489217b06cca310d76684b10cd4fc6c2461636621963c127f0cf9d6f517",
+      "sourceFunction": "fractureMineralTerrain",
+      "sourceLine": 56
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7359,
+      "columnNumber": 248094,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 120.906,
+      "inclusiveMs": 726.913,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 120.906,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 726.913,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 42225.283,
+      "lastSampleObservedAtMs": 44003.703,
+      "archivedBundleExcerpt": ",G)}const me=ht.map(Ze=>{const ve=`${Ze}:${Jt}`,U=D.get(ve);if(U!==void 0)return U;const be=Ze*3,St=Ze*4,st=zn(P,M.positions[be],M.positions[be+1],M.positions[be+2],Xe?Gc(M.positions[be],M.positions[be+2],uv(it,mt)??Xe):new ye(M.colors[St],M.colors[St+1],M.colors[St+2])),q=Ss(M.positions[be],M.positions[be+2]);return P.uvs[st*2]=(G===\"x\"?q.z:q.x)*2.9,P.uvs[st*2+1]=(G===\"y\"?q.z:M.positions[be+1])*2"
+    },
+    {
+      "functionName": "RE",
+      "lineNumber": 7359,
+      "columnNumber": 237041,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 35.88,
+      "inclusiveMs": 692.403,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 16.673,
+        "finalGate": 19.208,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 255.374,
+        "finalGate": 437.03,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 39263.976,
+      "lastSampleObservedAtMs": 49087.567,
+      "archivedBundleExcerpt": "Z<=-.12);function RE(s,e,t,i,n){if(t<=(n?.18:.225))return 0;const r=i??ao(s,e),a=r?.band??0;if(!Xl(a)||(n?n.contains(s,e):Kh(s,e))||ms(s,e,.075)||aa(s,e,.035))return 0;const o=Kt(Ot((Cn(s,e)-.08)/.12));if(o===0)return 0;const l=Ss(s,e);if(!n&&Mw.some(h=>l.x>=h.minX&&l.x<=h.maxX&&l.z>=h.minZ&&l.z<=h.maxZ&&is(h.polygon,l.x,l.z))&&AE(s,e,.009))return 0;const c=Kt(Ot((Za(l.x,l.z)-(n?.01:.025))/(n?.035"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7462,
+      "columnNumber": 52894,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 1.519,
+      "inclusiveMs": 651.595,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.519,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 651.595,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34154.272,
+      "lastSampleObservedAtMs": 34817.559,
+      "archivedBundleExcerpt": "Listener(\"pagehide\",()=>{Id(),un?.dispose(),Kr?.disconnect(),Kr=void 0,un=void 0,$a=void 0});function jF(s,e){const t=s.history.at(-1);if(!t)return;const i=t.vote,n=i?.kind===\"law\"?`Texte ${i.passed?\"adopté\":\"rejeté\"}`:\"Décision enregistrée\",r=i?.kind===\"law\"&&!i.passed?\"Le financement et les effets du texte ne sont pas appliqués.\":s.narrative?.lastConsequences.find(h=>!h.startsWith(\"Compromis\"))?"
+    },
+    {
+      "functionName": "dispose",
+      "lineNumber": 7462,
+      "columnNumber": 49310,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 650.076,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 650.076,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34155.791,
+      "lastSampleObservedAtMs": 34817.559,
+      "archivedBundleExcerpt": ")},inspect:B,dispose(){ke||(ke=!0,u(),c.dispose(),n.dispose())}}}catch(h){throw u(),c.dispose(),n.dispose(),h}}function NE(s){const e=s.querySelector(\".map-camera\");if(!e)return[];const t=s.getBoundingClientRect(),i=e.getBoundingClientRect();return[{x:i.x-t.x+i.width/2,y:i.y-t.y+i.height/2,width:i.width,height:i.height}]}function BE(s,e,t,i){const n=e.offsetWidth,r=e.offsetHeight,a=e.querySelector"
+    },
+    {
+      "functionName": "dispose",
+      "lineNumber": 366,
+      "columnNumber": 292253,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 649.745,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 649.745,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34155.791,
+      "lastSampleObservedAtMs": 34817.228,
+      "archivedBundleExcerpt": "].unfreeze()}dispose(){if(this.isDisposed)return;if(this._isDisposing=!0,this.beforeRender=null,this.afterRender=null,this.metadata=null,this.skeletons.length=0,this.morphTargetManagers.length=0,this._transientComponents.length=0,this._isReadyForMeshStage.clear(),this._beforeEvaluateActiveMeshStage.clear(),this._evaluateSubMeshStage.clear(),this._preActiveMeshStage.clear(),this._cameraDrawRenderTa"
+    },
+    {
+      "functionName": "_disposeList",
+      "lineNumber": 366,
+      "columnNumber": 297932,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 4.439,
+      "inclusiveMs": 647.812,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 4.439,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 647.812,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34156.904,
+      "lastSampleObservedAtMs": 34816.408,
+      "archivedBundleExcerpt": "osed=!0}_disposeList(e,t){const i=e.slice(0);t=t??(n=>n.dispose());for(const n of i)t(n);e.length=0}get isDisposed(){return this._isDisposed}clearCachedVertexData(){for(let e=0;e<this.meshes.length;e++){const i=this.meshes[e].geometry;i&&i.clearCachedData()}}cleanCachedTextureBuffer(){for(const e of this.textures)e._buffer&&(e._buffer=null)}getWorldExtends(e){const t=new C(Number.MAX_VALUE,Number."
+    },
+    {
+      "functionName": "de",
+      "lineNumber": 7359,
+      "columnNumber": 266272,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 10.078,
+      "inclusiveMs": 614.944,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 10.078,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 614.944,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 44099.399,
+      "lastSampleObservedAtMs": 44952.963,
+      "archivedBundleExcerpt": "rs(qe,Ve));const de=(qe,Ve,Ae)=>AE(qe,Ve,Ae)&&(!W.infill||!ZD(qe,Ve)),F=W.kind===\"pasture\"?[\"#5C8836\",\"#7A9D45\",\"#98B35B\",\"#688E39\"]:W.kind===\"wheat\"?[\"#E6B54B\",\"#F1C45C\",\"#E6C165\",\"#D3A13E\"]:[\"#A5A450\",\"#BAAA5B\",\"#9DAA48\",\"#B6AD60\"],O=ye.FromHexString(F[(W.paletteSlot??ie)%F.length]),K=ye.FromHexString(W.color),oe=W.composedPalette?W.kind===\"wheat\"?Zs(K,O,.4):W.kind===\"pasture\"?Zs(K,O,.42):K:Zs(O"
+    },
+    {
+      "functionName": "Nu",
+      "lineNumber": 7350,
+      "columnNumber": 27184,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 613.099,
+      "inclusiveMs": 613.099,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 336.738,
+        "finalGate": 276.361,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 336.738,
+        "finalGate": 276.361,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38690.391,
+      "lastSampleObservedAtMs": 53307.699,
+      "archivedBundleExcerpt": "[T]}))}}}function Nu(s,e,t=$x){for(const i of t.get(`${Math.floor(s/.24)}:${Math.floor(e/.24)}`)??[]){const n=((i.z[1]-i.z[2])*(s-i.x[2])+(i.x[2]-i.x[1])*(e-i.z[2]))*i.inverse,r=((i.z[2]-i.z[0])*(s-i.x[2])+(i.x[0]-i.x[2])*(e-i.z[2]))*i.inverse,a=1-n-r;if(n>=-1e-7&&r>=-1e-7&&a>=-1e-7)return{height:n*i.h[0]+r*i.h[1]+a*i.h[2],band:i.band,slope:i.slope,normalX:i.normalX,normalZ:i.normalZ}}}const TO=eg"
+    },
+    {
+      "functionName": "o",
+      "lineNumber": 7359,
+      "columnNumber": 369773,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 64.336,
+      "inclusiveMs": 593.873,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 64.336,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 593.873,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53440.425,
+      "lastSampleObservedAtMs": 54241.75,
+      "archivedBundleExcerpt": ";xd(t,T,T)}}const o=_=>{let v=-1/0;for(const E of e.get(`${Math.floor(_.x/kr)}:${Math.floor(_.z/kr)}`)??[]){const x=SF(E,_);x!==void 0&&(v=Math.max(v,x))}return v},l=new Os(\"mountain-rock-stone\",s),c=new Os(\"mountain-rock-snow\",s);l.diffuseColor=c.diffuseColor=ye.White(),l.specularColor=new ye(.024,.025,.026),l.ambientColor=new ye(.13,.14,.15),c.specularColor=new ye(.065,.075,.085),c.specularPower"
+    },
+    {
+      "functionName": "AE",
+      "lineNumber": 7359,
+      "columnNumber": 263241,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 84.429,
+      "inclusiveMs": 585.628,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 84.429,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 585.628,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 44099.399,
+      "lastSampleObservedAtMs": 44952.963,
+      "archivedBundleExcerpt": "=new Map;function AE(s,e,t){let i=jm.get(s);i||(i=new Map,jm.set(s,i));let n=i.get(e);if(!n){const r=Cn(s,e);let a=r>.008&&gi(s,e)&&!ya(s,e)&&!Kh(s,e)&&!oh(s,e);a&&(a=ft(s,e)<.46&&Math.hypot(ft(s+.018,e)-ft(s-.018,e),ft(s,e+.018)-ft(s,e-.018))/.036<.64),n={ground:a,clearance:r},i.set(e,n)}return n.ground&&n.clearance>t+.008&&!ms(s,e,t)}function Gw(s,e,t){const i=Vn(),n=Vn(),r=Vn(),a=Vn(),o=Vn(),l="
+    },
+    {
+      "functionName": "_createTextureBase.T",
+      "lineNumber": 363,
+      "columnNumber": 44311,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 582.536,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 504.762,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50640.901,
+      "archivedBundleExcerpt": "eBase(e,t,i,n,r,a,o,(...g)=>this._prepareWebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescali"
+    },
+    {
+      "functionName": "_prepareWebGLTexture",
+      "lineNumber": 363,
+      "columnNumber": 50342,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 582.536,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 504.762,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50640.901,
+      "archivedBundleExcerpt": "_prepareWebGLTexture(e,t,i,n,r,a,o,l,c,d){const u=this.getCaps().maxTextureSize,h=Math.min(u,this.needPOTTextures?qo(n.width,u):n.width),f=Math.min(u,this.needPOTTextures?qo(n.height,u):n.height),m=this._gl;if(m){if(!e._hardwareTexture){i&&i.removePendingData(e);return}this._bindTextureDirectly(m.TEXTURE_2D,e,!0),this._unpackFlipY(r===void 0?!0:!!r),e.baseWidth=n.width,e.baseHeight=n.height,e.widt"
+    },
+    {
+      "functionName": "L",
+      "lineNumber": 356,
+      "columnNumber": 8128,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 582.536,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 504.762,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50640.901,
+      "archivedBundleExcerpt": "null)}}else{const L=V=>{_&&!this._doNotHandleContextLost&&(E._buffer=V),l(E,y,n,V,E.invertY,t,!1,c,r)};!b||v?d&&(typeof d.decoding==\"string\"||d.close)?L(d):nt._FileToolsLoadImage(e||\"\",L,B,n?n.offlineProvider:null,m,E.invertY&&this._features.needsInvertingBitmap?{imageOrientation:\"flipY\"}:void 0,this):typeof d==\"string\"||d instanceof ArrayBuffer||ArrayBuffer.isView(d)||d instanceof Blob?nt._FileTo"
+    },
+    {
+      "functionName": "texImage2D",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "url": "",
+      "selfMs": 581.734,
+      "inclusiveMs": 581.734,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 503.96,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 503.96,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50710.366,
+      "archivedBundleExcerpt": ""
+    },
+    {
+      "functionName": "Cr",
+      "lineNumber": 7359,
+      "columnNumber": 212168,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 242.597,
+      "inclusiveMs": 581.703,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.093,
+        "resumeBeforeGate": 192.24,
+        "finalGate": 49.264,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.093,
+        "resumeBeforeGate": 425.515,
+        "finalGate": 155.095,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37914.693,
+      "lastSampleObservedAtMs": 52802.677,
+      "archivedBundleExcerpt": "et(o,l)}}function Cr(s,e){let t=.34;for(const{a:i,b:n}of Gm.get(`${Math.floor(s/.4)}:${Math.floor(e/.4)}`)??[])t=Math.min(t,la(s,e,i,n));return t}const JD=[{width:.67,height:.13,points:[[-4.77,1.66],[-4.13,1.77],[-3.42,1.71],[-2.82,1.88]]},{width:.81,height:.17,points:[[-2.46,2.78],[-1.82,2.89],[-1.09,2.81],[-.55,3.07]]},{width:.72,height:.14,points:[[-.65,3.77],[-.04,3.85],[.62,4.16],[1.04,4.02]]"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 363,
+      "columnNumber": 44353,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 580.633,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 77.774,
+        "finalGate": 502.859,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45884.203,
+      "lastSampleObservedAtMs": 50640.901,
+      "archivedBundleExcerpt": "ebGLTexture(...g,d),(g,b,_,v,E,x)=>{const T=this._gl,y=_.width===g&&_.height===b;E._creationFlags=m??0;const R=this._getTexImageParametersForCreateTexture(E.format,E._useSRGBBuffer);if(y)return T.texImage2D(T.TEXTURE_2D,0,R.internalFormat,R.format,R.type,_),!1;const M=this._caps.maxTextureSize;if(_.width>M||_.height>M||!this._supportsHardwareTextureRescaling)return this._prepareWorkingCanvas(),!th"
+    },
+    {
+      "functionName": "la",
+      "lineNumber": 7359,
+      "columnNumber": 211621,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 535.718,
+      "inclusiveMs": 572.283,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.648,
+        "resumeBeforeGate": 425.322,
+        "finalGate": 108.748,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.648,
+        "resumeBeforeGate": 455.127,
+        "finalGate": 115.508,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37842.988,
+      "lastSampleObservedAtMs": 53006.801,
+      "archivedBundleExcerpt": "1),n),r)}function la(s,e,t,i){const n=i.x-t.x,r=i.z-t.z,a=Ot(((s-t.x)*n+(e-t.z)*r)/(n*n+r*r));return Math.hypot(s-t.x-n*a,e-t.z-r*a)}function Ao(s,e,t,i,n,r){return Math.exp(-(((s-t)/n)**2+((e-i)/r)**2))}const Gm=new Map;for(const s of Ca)for(let e=0;e<s.length;e++){const t=s[e],i=s[(e+1)%s.length],n=.34;for(let r=Math.floor((Math.min(t.x,i.x)-n)/.4);r<=Math.floor((Math.max(t.x,i.x)+n)/.4);r++)for"
+    },
+    {
+      "functionName": "m",
+      "lineNumber": 366,
+      "columnNumber": 88115,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 570.633,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 78.858,
+        "finalGate": 491.775,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 45883.119,
+      "lastSampleObservedAtMs": 50640.901,
+      "archivedBundleExcerpt": "dler);u.length=0},m=()=>{f(),e(d),l&&d.src&&URL.revokeObjectURL(d.src)},p=x=>{f(),c(x),l&&d.src&&URL.revokeObjectURL(d.src)},g=x=>{if(x.blockedURI!==d.src||x.disposition===\"report\")return;f();const T=new Error(`CSP violation of policy ${x.effectiveDirective} ${x.blockedURI}. Current policy is ${x.originalPolicy}`);ii.UseFallbackTexture=!1,c(T),l&&d.src&&URL.revokeObjectURL(d.src),d.src=\"\"};u.push("
+    },
+    {
+      "functionName": "qO",
+      "lineNumber": 7350,
+      "columnNumber": 362550,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 202.133,
+      "inclusiveMs": 569.572,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 116.909,
+        "finalGate": 85.224,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.07,
+        "resumeBeforeGate": 351.326,
+        "finalGate": 217.176,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37907.627,
+      "lastSampleObservedAtMs": 51231.947,
+      "archivedBundleExcerpt": "und:0}));function qO(s,e){if(!Number.isFinite(s)||!Number.isFinite(e)||Object.is(s,-0)||Object.is(e,-0))return gv(s,e,!1);const t=pv.get(s),i=t?.get(e);if(i!==void 0)return i;const n=gv(s,e,!0);if(mv<XO){const r=t??new Map;t||pv.set(s,r),r.set(e,n),mv++}return n}function gv(s,e,t){let i=1/0;const n=a=>{const o=s-a.x,l=e-a.z,c=Math.abs(o*a.cosine+l*a.sine)-a.halfW,d=Math.abs(-o*a.sine+l*a.cosine)-a"
+    },
+    {
+      "functionName": "Cn",
+      "lineNumber": 7359,
+      "columnNumber": 231177,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 569.572,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.07,
+        "resumeBeforeGate": 351.326,
+        "finalGate": 217.176,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37907.627,
+      "lastSampleObservedAtMs": 51231.947,
+      "archivedBundleExcerpt": "1),a),o)}function Cn(s,e){return qO(s,e)}function Vn(){return{positions:[],indices:[],colors:[],uvs:[]}}function zn(s,e,t,i,n){const r=s.positions.length/3;s.positions.push(e,t,i),s.colors.push(n.r,n.g,n.b,1);const a=Ss(e,i);return s.uvs.push((a.x-Un.minX)/(Un.maxX-Un.minX),(a.z-Un.minZ)/(Un.maxZ-Un.minZ)),r}function ks(s,e,t,i){s.indices.push(e,t,i)}function Zs(s,e,t){return ye.Lerp(s,e,Ot(t))}fu"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 7359,
+      "columnNumber": 352661,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 79.188,
+      "inclusiveMs": 568.071,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 79.188,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 568.071,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 51669.386,
+      "lastSampleObservedAtMs": 52496.962,
+      "archivedBundleExcerpt": "e);const Ue=Me.find(({start:Ne,end:Ce})=>{const Pe=[{start:Ne,end:Ce,halfWidth:.016}];if(Array.from({length:15},(Ge,At)=>({x:Ne.x+(Ce.x-Ne.x)*At/14,z:Ne.z+(Ce.z-Ne.z)*At/14})).some(Ge=>!gi(Ge.x,Ge.z)||ms(Ge.x,Ge.z,.011))||oe.some(Ge=>de(Ge,Pe,!0))||Lt.some(Ge=>de(Ge,Pe,!0))||Vi.some(Ge=>de({...Ge,halfX:.025,halfZ:.025},Pe,!0))||Ji.some(Ge=>de(Ge,Pe,!0))||mt.some(Ge=>de(Ge,Pe,!0)))return!1;const Re"
+    },
+    {
+      "functionName": "SF",
+      "lineNumber": 7359,
+      "columnNumber": 364636,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 551.177,
+      "inclusiveMs": 551.177,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 551.177,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 53441.504,
+      "lastSampleObservedAtMs": 54241.75,
+      "archivedBundleExcerpt": ".t,...i]}function SF(s,e){const[t,i,n]=s.polygon,r=(i.z-n.z)*(t.x-n.x)+(n.x-i.x)*(t.z-n.z);if(Math.abs(r)<1e-12)return;const a=((i.z-n.z)*(e.x-n.x)+(n.x-i.x)*(e.z-n.z))/r,o=((n.z-t.z)*(e.x-n.x)+(t.x-n.x)*(e.z-n.z))/r,l=1-a-o;if(!(Math.min(a,o,l)<-1e-7))return a*s.heights[0]+o*s.heights[1]+l*s.heights[2]}function AF(s){const e={positions:[],indices:[],colors:[],uvs:[]},t={positions:[],indices:[],co",
+      "source": "site/src/mandats/map-mountain-rocks.ts",
+      "sourceSha256": "5660241f176a4f34b7ebca9f136436cb1ba427f8faa16e0bc97e06038fd132fa",
+      "sourceFunction": "triangleHeight",
+      "sourceLine": 57
+    },
+    {
+      "functionName": "bE",
+      "lineNumber": 7359,
+      "columnNumber": 219836,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 524.287,
+      "inclusiveMs": 544.254,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 517.788,
+        "finalGate": 6.499,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 537.755,
+        "finalGate": 6.499,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 38769.184,
+      "lastSampleObservedAtMs": 53017.629,
+      "archivedBundleExcerpt": "t(u,h)}}}function bE(s,e){const t=new Map;for(const a of Hm.get(`${Math.floor(s/.5)}:${Math.floor(e/.5)}`)??[]){const o=a.b.x-a.a.x,l=a.b.z-a.a.z,c=Ot(((s-a.a.x)*o+(e-a.a.z)*l)/(a.length*a.length)),d=Math.hypot(s-a.a.x-o*c,e-a.a.z-l*c);d>=(t.get(a.profile.river)?.distance??1/0)||t.set(a.profile.river,{segment:a,t:c,distance:d,signed:((s-a.a.x)*l-(e-a.a.z)*o)/a.length})}const i=Math.max(Mr.minX-s,s"
+    },
+    {
+      "functionName": "",
+      "lineNumber": 180,
+      "columnNumber": 4775,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 51.472,
+      "inclusiveMs": 482.164,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 26.744,
+        "finalGate": 23.645,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 1.083,
+        "resumeBeforeGate": 308.977,
+        "finalGate": 172.104,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 37913.61,
+      "lastSampleObservedAtMs": 53305.537,
+      "archivedBundleExcerpt": "))/.76+2.4,a=al.map(l=>E1(r,l));if(t.z<=a[0])return{lon:r,lat:al[0]+(t.z-a[0])/(1.08+1.2*Mu(r).value)};const o=a.length-1;if(t.z>=a[o])return{lon:r,lat:al[o]+(t.z-a[o])/2.08};for(let l=1;l<a.length;l++)if(t.z<=a[l])return{lon:r,lat:al[l-1]+(t.z-a[l-1])*(al[l]-al[l-1])/(a[l]-a[l-1])};throw new RangeError(\"Miniature latitude has no inverse interval.\")}function rs(s,e){const t=Ch(s,e);return xi(t.lon"
+    },
+    {
+      "functionName": "ao",
+      "lineNumber": 7350,
+      "columnNumber": 27648,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 11.828,
+      "inclusiveMs": 459.294,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 2.185,
+        "finalGate": 9.643,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 124.407,
+        "finalGate": 334.887,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 39359.727,
+      "lastSampleObservedAtMs": 53307.699,
+      "archivedBundleExcerpt": "eturn TO}function ao(s,e){const t=Ss(s,e);return Nu(t.x,t.z)}function uv(s,e){const t=Ss(s,e),i=Nu(t.x,t.z,qx);if(!i)return;const n=1/Math.hypot(i.slope,1),r=Math.abs(i.normalX),a=Math.abs(i.normalZ),o=r>Math.max(n,a)?\"x\":a>n?\"z\":\"y\";return{...i,uvAxis:o}}const RO=[{width:.4,points:[[6.82,45.87,1.02],[6.54,45.63,.61],[6.67,45.42,.96],[6.53,45.19,.59],[6.3,44.98,1.08],[6.48,44.75,.58],[6.73,44.48,."
+    },
+    {
+      "functionName": "",
+      "lineNumber": 366,
+      "columnNumber": 294678,
+      "url": "http://127.0.0.1:4191/assets/mandats-lHN_ghvN.js",
+      "selfMs": 0.0,
+      "inclusiveMs": 456.426,
+      "phaseSelfMs": {
+        "reloadBeforeResume": 0.0,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "phaseInclusiveMs": {
+        "reloadBeforeResume": 456.426,
+        "resumeBeforeGate": 0.0,
+        "finalGate": 0.0,
+        "afterGate": 0.0
+      },
+      "firstSampleObservedAtMs": 34297.61,
+      "lastSampleObservedAtMs": 34768.95,
+      "archivedBundleExcerpt": "oseList(this.meshes,r=>r.dispose(!0)),this._disposeList(this.transformNodes,r=>r.dispose(!0));const i=this.cameras;this._disposeList(i),this._disposeList(this.particleSystems),this._disposeList(this.postProcesses),this._disposeList(this.textures),this._disposeList(this.morphTargetManagers),this._disposeList(this.frameGraphs),this._sceneUbo.dispose(),this._multiviewSceneUbo&&this._multiviewSceneUbo"
+    }
+  ],
+  "selectedNetworkRequests": [
+    {
+      "requestId": "314452.145",
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=bf89b1435204c6ab",
+      "startAtMs": 38613.55116210878,
+      "requestReceivedByCollectorAtMs": 45774.448,
+      "decodedDataBytes": 11109712,
+      "encodedDataBytes": 11109712,
+      "dataEvents": 11,
+      "firstDataAtMs": 45776.84016209841,
+      "lastDataAtMs": 49347.01716209948,
+      "status": 200,
+      "responseEventAtMs": 45773.874162107706,
+      "responseReceivedByCollectorAtMs": 45787.215,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "underlyingTiming": {
+        "requestTime": 110585.467775,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.151,
+        "sendEnd": 0.213,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.042,
+        "receiveHeadersEnd": 2.084
+      },
+      "headersEndAtMs": 38616.17516210044,
+      "loadingFinishedAtMs": 49273.3701620996,
+      "loadingFinishedReceivedByCollectorAtMs": 49388.999,
+      "encodedLengthAtFinish": 11109993,
+      "startAtMsRelativeToResume": 468.146,
+      "startAtMsRelativeToGate": -7384.133,
+      "headersEndAtMsRelativeToResume": 470.77,
+      "headersEndAtMsRelativeToGate": -7381.509,
+      "responseEventAtMsRelativeToResume": 7628.469,
+      "responseEventAtMsRelativeToGate": -223.81,
+      "firstDataAtMsRelativeToResume": 7631.435,
+      "firstDataAtMsRelativeToGate": -220.844,
+      "lastDataAtMsRelativeToResume": 11201.612,
+      "lastDataAtMsRelativeToGate": 3349.333,
+      "loadingFinishedAtMsRelativeToResume": 11127.965,
+      "loadingFinishedAtMsRelativeToGate": 3275.686,
+      "dataEventAfterLoadingFinished": true
+    },
+    {
+      "requestId": "314452.146",
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=a15abb5d653bd996",
+      "startAtMs": 38613.99216210842,
+      "requestReceivedByCollectorAtMs": 45774.45,
+      "decodedDataBytes": 721552,
+      "encodedDataBytes": 0,
+      "dataEvents": 1,
+      "firstDataAtMs": 45780.44716210663,
+      "lastDataAtMs": 45780.44716210663,
+      "status": 200,
+      "responseEventAtMs": 45778.62516210973,
+      "responseReceivedByCollectorAtMs": 45790.348,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "underlyingTiming": {
+        "requestTime": 110585.468596,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.688,
+        "sendEnd": 0.884,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.04,
+        "receiveHeadersEnd": 2.407
+      },
+      "headersEndAtMs": 38617.31916211021,
+      "loadingFinishedAtMs": 38627.06516210735,
+      "loadingFinishedReceivedByCollectorAtMs": 45790.371,
+      "encodedLengthAtFinish": 127,
+      "startAtMsRelativeToResume": 468.587,
+      "startAtMsRelativeToGate": -7383.692,
+      "headersEndAtMsRelativeToResume": 471.914,
+      "headersEndAtMsRelativeToGate": -7380.365,
+      "responseEventAtMsRelativeToResume": 7633.22,
+      "responseEventAtMsRelativeToGate": -219.059,
+      "firstDataAtMsRelativeToResume": 7635.042,
+      "firstDataAtMsRelativeToGate": -217.237,
+      "lastDataAtMsRelativeToResume": 7635.042,
+      "lastDataAtMsRelativeToGate": -217.237,
+      "loadingFinishedAtMsRelativeToResume": 481.66,
+      "loadingFinishedAtMsRelativeToGate": -7370.619,
+      "dataEventAfterLoadingFinished": true
+    },
+    {
+      "requestId": "314452.147",
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "startAtMs": 38614.488162100315,
+      "requestReceivedByCollectorAtMs": 45774.453,
+      "decodedDataBytes": 9231336,
+      "encodedDataBytes": 9231336,
+      "dataEvents": 9,
+      "firstDataAtMs": 45791.75416211784,
+      "lastDataAtMs": 49278.16816212237,
+      "status": 200,
+      "responseEventAtMs": 45787.505162104964,
+      "responseReceivedByCollectorAtMs": 45793.582,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "underlyingTiming": {
+        "requestTime": 110585.469031,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.741,
+        "sendEnd": 1.803,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 4.105,
+        "receiveHeadersEnd": 4.142
+      },
+      "headersEndAtMs": 38619.48916211259,
+      "loadingFinishedAtMs": 49196.322162121534,
+      "loadingFinishedReceivedByCollectorAtMs": 49322.261,
+      "encodedLengthAtFinish": 9231615,
+      "startAtMsRelativeToResume": 469.083,
+      "startAtMsRelativeToGate": -7383.196,
+      "headersEndAtMsRelativeToResume": 474.084,
+      "headersEndAtMsRelativeToGate": -7378.195,
+      "responseEventAtMsRelativeToResume": 7642.1,
+      "responseEventAtMsRelativeToGate": -210.179,
+      "firstDataAtMsRelativeToResume": 7646.349,
+      "firstDataAtMsRelativeToGate": -205.93,
+      "lastDataAtMsRelativeToResume": 11132.763,
+      "lastDataAtMsRelativeToGate": 3280.484,
+      "loadingFinishedAtMsRelativeToResume": 11050.917,
+      "loadingFinishedAtMsRelativeToGate": 3198.638,
+      "dataEventAfterLoadingFinished": true
+    },
+    {
+      "requestId": "314452.148",
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=1bed2d87570df264",
+      "startAtMs": 38614.9611621052,
+      "requestReceivedByCollectorAtMs": 45775.835,
+      "decodedDataBytes": 11236112,
+      "encodedDataBytes": 11236112,
+      "dataEvents": 11,
+      "firstDataAtMs": 45799.89616210759,
+      "lastDataAtMs": 49680.05116210878,
+      "status": 200,
+      "responseEventAtMs": 45797.49316211045,
+      "responseReceivedByCollectorAtMs": 45803.419,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "underlyingTiming": {
+        "requestTime": 110585.469681,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.196,
+        "sendEnd": 1.223,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 4.452,
+        "receiveHeadersEnd": 4.496
+      },
+      "headersEndAtMs": 38620.49316211855,
+      "loadingFinishedAtMs": 49325.39516210556,
+      "loadingFinishedReceivedByCollectorAtMs": 49767.483,
+      "encodedLengthAtFinish": 11236393,
+      "startAtMsRelativeToResume": 469.556,
+      "startAtMsRelativeToGate": -7382.723,
+      "headersEndAtMsRelativeToResume": 475.088,
+      "headersEndAtMsRelativeToGate": -7377.191,
+      "responseEventAtMsRelativeToResume": 7652.088,
+      "responseEventAtMsRelativeToGate": -200.191,
+      "firstDataAtMsRelativeToResume": 7654.491,
+      "firstDataAtMsRelativeToGate": -197.788,
+      "lastDataAtMsRelativeToResume": 11534.646,
+      "lastDataAtMsRelativeToGate": 3682.367,
+      "loadingFinishedAtMsRelativeToResume": 11179.99,
+      "loadingFinishedAtMsRelativeToGate": 3327.711,
+      "dataEventAfterLoadingFinished": true
+    },
+    {
+      "requestId": "314452.161",
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "startAtMs": 45979.788162112236,
+      "requestReceivedByCollectorAtMs": 45997.531,
+      "decodedDataBytes": 1102156,
+      "encodedDataBytes": 0,
+      "dataEvents": 2,
+      "firstDataAtMs": 45999.42916211486,
+      "lastDataAtMs": 49153.158162117004,
+      "status": 200,
+      "responseEventAtMs": 45998.97116211057,
+      "responseReceivedByCollectorAtMs": 46000.218,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "underlyingTiming": {
+        "requestTime": 110592.834105,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.204,
+        "sendEnd": 0.284,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 5.227,
+        "receiveHeadersEnd": 5.352
+      },
+      "headersEndAtMs": 45985.773162113546,
+      "loadingFinishedAtMs": 46007.40616211295,
+      "loadingFinishedReceivedByCollectorAtMs": 49162.158,
+      "encodedLengthAtFinish": 127,
+      "startAtMsRelativeToResume": 7834.383,
+      "startAtMsRelativeToGate": -17.896,
+      "headersEndAtMsRelativeToResume": 7840.368,
+      "headersEndAtMsRelativeToGate": -11.911,
+      "responseEventAtMsRelativeToResume": 7853.566,
+      "responseEventAtMsRelativeToGate": 1.287,
+      "firstDataAtMsRelativeToResume": 7854.024,
+      "firstDataAtMsRelativeToGate": 1.745,
+      "lastDataAtMsRelativeToResume": 11007.753,
+      "lastDataAtMsRelativeToGate": 3155.474,
+      "loadingFinishedAtMsRelativeToResume": 7862.001,
+      "loadingFinishedAtMsRelativeToGate": 9.722,
+      "dataEventAfterLoadingFinished": true
+    }
+  ],
+  "contextPrebakeAssessment": {
+    "observedComponent": "Dedicated mineralSample44.261ms inclusive; plateIndex6.442ms, platePlane2.171ms and heightAt1.979ms self. Integrated color/normal loops remain inside buildMapContext307.25ms self.",
+    "wholeContextInclusiveMs": 952.076,
+    "attributionLimit": "Whole context includes geometry/frontier/tree survey/instantiation and must not be presented as texture-generation savings. GC1151.427ms has no causal allocation attribution.",
+    "possibleScope": "Exact offline generation of the two512x512 RGBA arrays only; unchanged material/UV/RawTexture sampling/gamma/mips/invertY/bump level required. No implementation proposed until isolated generation cost and exact bytes are verified.",
+    "textureUploads": "Native texImage2D581.734ms is largely582ms async Babylon image texture loading, not context RawTexture generation; texture prebake would still upload textures.",
+    "status": "Evidence supports a bounded deterministic preprocessing candidate, not a quantified startup gain or a repair of original-suite failure."
+  },
+  "limits": [
+    "Inclusive source times overlap their ancestors and must not be added.",
+    "Program4290.438ms and GC1151.427ms are observed sampled buckets, not blamed on a specific authored function.",
+    "Clock split uses CDP monotonic/wall bridge and collector phase labels, not new instrumentation inside the scene.",
+    "CDP dataReceived/response event timestamps can follow an earlier loadingFinished timestamp; underlying response.timing headers and event observation delays are retained separately. These events are not a pure wire-download trace.",
+    "Diagnostic passed, but original compact renderer15s failure and other full-suite failures remain unchanged.",
+    "CPU samples do not measure FPS, GPU fence time, drawing completion or artistic conformity.",
+    "No browser, Scene, test, build, source patch or hypothesis-driven cache/prefetch executed by this reader."
+  ]
+}

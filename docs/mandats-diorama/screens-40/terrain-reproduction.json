@@ -1,0 +1,7 @@
+{
+  "matchesRetainedArchiveByteForByte": true,
+  "sha256": "52a7f00c388aaa1e73db24d2c4c5c7b9216f0fc5a8cabc0a73f2f921b16db07b",
+  "bytes": 10187628,
+  "command": "node tools/mandats-assets/bake-terrain.mjs",
+  "method": "Canonical NullEngine terrain authoring, no camera, game state or rendered image."
+}

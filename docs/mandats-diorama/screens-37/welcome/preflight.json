@@ -1,0 +1,19 @@
+{
+  "build": "37",
+  "startedAt": "2026-10-09T12:44:54.586Z",
+  "manifestPath": "/workspace/mandats-verification/authored-3d/build-37.json",
+  "manifestSha256": "9cd1f84d3a20beb76870a0c97ef95d4b9b61022f894ac047d94d82185b479698",
+  "collectorSha256": "cf50c0d76cde86bed55fa252624fefbf5639f3c421e384387bfd95f275dff0c4",
+  "poster": {
+    "path": "assets/welcome-diorama-D6QPWYbq.png",
+    "bytes": 1733114,
+    "sha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703"
+  },
+  "beforeSourceProof": {
+    "repositoryInputCount": 236,
+    "snapshotInputCount": 236,
+    "archiveFileCount": 249,
+    "sourceLockSha256": "aa08e0158541d539233cfba55b785e2989beb6b66aa043fbf651d4cdb3df5925",
+    "archivePath": "/workspace/mandats-verification/authored-3d/builds/37"
+  }
+}

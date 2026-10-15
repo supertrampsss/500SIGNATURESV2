@@ -1,0 +1,5393 @@
+{
+  "sourceStage": "Final iteration38 after AO correction",
+  "architectureSHA256": "ee1602e90a669a33b57b9f5c71b8518bbe46e3cc7c813875b53a59a850bdc1e1",
+  "commands": [
+    {
+      "stage": "rework",
+      "startedAt": "2026-10-11T06:42:56Z",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "playwright.rework.config.ts"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-11T06:59:38Z"
+    },
+    {
+      "stage": "social",
+      "startedAt": "2026-10-11T06:59:38Z",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "playwright.social.config.ts"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-11T07:11:00Z"
+    },
+    {
+      "stage": "header",
+      "startedAt": "2026-10-11T07:11:00Z",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "playwright.header.config.ts"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-11T07:11:43Z"
+    },
+    {
+      "stage": "mandats",
+      "startedAt": "2026-10-11T07:11:43Z",
+      "command": [
+        "npm",
+        "run",
+        "test:mandats",
+        "--",
+        "--reporter=list,html,json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-11T07:30:36Z"
+    }
+  ],
+  "suites": {
+    "rework": {
+      "stats": {
+        "startTime": "2026-10-11T06:42:56.731Z",
+        "duration": 1001505.235,
+        "expected": 23,
+        "skipped": 9,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "exitCode": 0,
+      "reportFile": "rework-report.json",
+      "reportSHA256": "dd0559096561e1d23e1d04ed5745596a0fe008c4155cf2db2803e94ac8c6498f",
+      "tests": 32,
+      "failures": [],
+      "results": [
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 63023,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 26358,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 45435,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 94128,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2232,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 46587,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "project": "desktop",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 217,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "project": "desktop",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 41107,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 48458,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 33035,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 47276,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 91146,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1707,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "project": "mobile",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 213,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "project": "mobile",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43360,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "project": "mobile",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 201,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "project": "compact",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 49135,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "project": "compact",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 32096,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "project": "compact",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 45662,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "project": "compact",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 97277,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "project": "compact",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1600,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "project": "compact",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 165,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "project": "compact",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 163,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "project": "compact",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 146,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "project": "webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 42424,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "project": "webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 26549,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "project": "webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 41140,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "project": "webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 75107,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "project": "webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1677,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "project": "webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 186,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "project": "webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 186,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "project": "webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 188,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    "social": {
+      "stats": {
+        "startTime": "2026-10-11T06:59:39.276Z",
+        "duration": 681054.805,
+        "expected": 13,
+        "skipped": 3,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "exitCode": 0,
+      "reportFile": "social-report.json",
+      "reportSHA256": "9e1750f9f64e6b644d5b2d7646862bc150af85b106cd5ecc7d82c85bb9842df1",
+      "tests": 16,
+      "failures": [],
+      "results": [
+        {
+          "title": "workers, pensioners, staff and households get distinct funded responses from real contested decisions",
+          "file": "mandats-social.test.mjs",
+          "line": 8,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 97722,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted school regrouping creates a visible student movement and survives reload and forged imports",
+          "file": "mandats-social.test.mjs",
+          "line": 173,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 42660,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery",
+          "file": "mandats-social.test.mjs",
+          "line": 226,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 50792,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a pilot keeps its deadline while inspected and a rejected bill applies no regrouping",
+          "file": "mandats-social.test.mjs",
+          "line": 303,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43774,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "workers, pensioners, staff and households get distinct funded responses from real contested decisions",
+          "file": "mandats-social.test.mjs",
+          "line": 8,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 472,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted school regrouping creates a visible student movement and survives reload and forged imports",
+          "file": "mandats-social.test.mjs",
+          "line": 173,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 55161,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery",
+          "file": "mandats-social.test.mjs",
+          "line": 226,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 59631,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a pilot keeps its deadline while inspected and a rejected bill applies no regrouping",
+          "file": "mandats-social.test.mjs",
+          "line": 303,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 47055,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "workers, pensioners, staff and households get distinct funded responses from real contested decisions",
+          "file": "mandats-social.test.mjs",
+          "line": 8,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 393,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted school regrouping creates a visible student movement and survives reload and forged imports",
+          "file": "mandats-social.test.mjs",
+          "line": 173,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 47897,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery",
+          "file": "mandats-social.test.mjs",
+          "line": 226,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 55312,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a pilot keeps its deadline while inspected and a rejected bill applies no regrouping",
+          "file": "mandats-social.test.mjs",
+          "line": 303,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43618,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "workers, pensioners, staff and households get distinct funded responses from real contested decisions",
+          "file": "mandats-social.test.mjs",
+          "line": 8,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 319,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted school regrouping creates a visible student movement and survives reload and forged imports",
+          "file": "mandats-social.test.mjs",
+          "line": 173,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43046,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "student mobilisation escalates when other fronts are decided and a funded concession resolves only after delivery",
+          "file": "mandats-social.test.mjs",
+          "line": 226,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 46590,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a pilot keeps its deadline while inspected and a rejected bill applies no regrouping",
+          "file": "mandats-social.test.mjs",
+          "line": 303,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 42583,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    "header": {
+      "stats": {
+        "startTime": "2026-10-11T07:11:01.120Z",
+        "duration": 42100.187,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "exitCode": 0,
+      "reportFile": "header-report.json",
+      "reportSHA256": "2402cebeffd7de109be0ca65805fe5c927bf07c82532d8704bcdeff3627f89ee",
+      "tests": 3,
+      "failures": [],
+      "results": [
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "project": "header-mobile-320",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 14899,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "project": "header-mobile-390",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15325,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "shared header works across public pages, viewports, and repeated SPA navigation",
+          "file": "header-navigation.test.mjs",
+          "line": 76,
+          "project": "header-desktop-1440",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9608,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    "mandats": {
+      "stats": {
+        "startTime": "2026-10-11T07:11:43.797Z",
+        "duration": 1132648.32,
+        "expected": 235,
+        "skipped": 65,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "exitCode": 0,
+      "reportFile": "mandats-report.json",
+      "reportSHA256": "2201130597ec688137a32b23f57326f876489d364a3bb7223aeca88b56dd431f",
+      "tests": 300,
+      "failures": [],
+      "results": [
+        {
+          "title": "Audience : refus sans Google et consentement réversible, sans paramètres personnels",
+          "file": "analytics-consent.test.mjs",
+          "line": 3,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6858,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Audience : refus sans Google et consentement réversible, sans paramètres personnels",
+          "file": "analytics-consent.test.mjs",
+          "line": 3,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 12737,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Audience : refus sans Google et consentement réversible, sans paramètres personnels",
+          "file": "analytics-consent.test.mjs",
+          "line": 3,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6030,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Audience : refus sans Google et consentement réversible, sans paramètres personnels",
+          "file": "analytics-consent.test.mjs",
+          "line": 3,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 12966,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Audience : refus sans Google et consentement réversible, sans paramètres personnels",
+          "file": "analytics-consent.test.mjs",
+          "line": 3,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9303,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "SEO : dossiers et réponses restent documentés et reliés sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 10,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7602,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : métadonnées propres à chaque vue et aucune publicité automatique",
+          "file": "editorial-tabs.test.mjs",
+          "line": 87,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4318,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : la page Ville est lisible sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 105,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 983,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal",
+          "file": "editorial-tabs.test.mjs",
+          "line": 116,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4078,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Fournitures : récit, prix en euros et graphiques lisibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 137,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1974,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : recherche, filtres, lecture et sources en fin de dossier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 157,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2580,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : tous les dossiers et leurs sources sans débordement",
+          "file": "editorial-tabs.test.mjs",
+          "line": 186,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4563,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : les dossiers et leurs sources sont lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 200,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1153,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses",
+          "file": "editorial-tabs.test.mjs",
+          "line": 239,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1465,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France: published accounts survive a network failure and chapters stay on the page",
+          "file": "editorial-tabs.test.mjs",
+          "line": 263,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4427,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Ville: search and financial detail work without a map",
+          "file": "editorial-tabs.test.mjs",
+          "line": 278,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2879,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires garde la navigation accessible avec mouvement réduit",
+          "file": "editorial-tabs.test.mjs",
+          "line": 301,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2709,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 313,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8052,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, lecture du coût du travail et actualité du Groenland",
+          "file": "editorial-tabs.test.mjs",
+          "line": 351,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2029,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 378,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3046,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : méthode, éditeur et démonstration des dépenses sont accessibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 400,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2573,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires et présentation du projet restent lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 425,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1376,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "SEO : dossiers et réponses restent documentés et reliés sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 10,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8059,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : métadonnées propres à chaque vue et aucune publicité automatique",
+          "file": "editorial-tabs.test.mjs",
+          "line": 87,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6950,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : la page Ville est lisible sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 105,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 675,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal",
+          "file": "editorial-tabs.test.mjs",
+          "line": 116,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5747,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Fournitures : récit, prix en euros et graphiques lisibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 137,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1739,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : recherche, filtres, lecture et sources en fin de dossier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 157,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2653,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : tous les dossiers et leurs sources sans débordement",
+          "file": "editorial-tabs.test.mjs",
+          "line": 186,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6902,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : les dossiers et leurs sources sont lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 200,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1459,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses",
+          "file": "editorial-tabs.test.mjs",
+          "line": 239,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1898,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France: published accounts survive a network failure and chapters stay on the page",
+          "file": "editorial-tabs.test.mjs",
+          "line": 263,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16625,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Ville: search and financial detail work without a map",
+          "file": "editorial-tabs.test.mjs",
+          "line": 278,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2407,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires garde la navigation accessible avec mouvement réduit",
+          "file": "editorial-tabs.test.mjs",
+          "line": 301,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5780,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 313,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16544,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, lecture du coût du travail et actualité du Groenland",
+          "file": "editorial-tabs.test.mjs",
+          "line": 351,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2691,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 378,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4002,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : méthode, éditeur et démonstration des dépenses sont accessibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 400,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15575,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires et présentation du projet restent lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 425,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1162,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "SEO : dossiers et réponses restent documentés et reliés sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 10,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6261,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : métadonnées propres à chaque vue et aucune publicité automatique",
+          "file": "editorial-tabs.test.mjs",
+          "line": 87,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3328,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : la page Ville est lisible sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 105,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 590,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal",
+          "file": "editorial-tabs.test.mjs",
+          "line": 116,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3216,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Fournitures : récit, prix en euros et graphiques lisibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 137,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1088,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : recherche, filtres, lecture et sources en fin de dossier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 157,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1736,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : tous les dossiers et leurs sources sans débordement",
+          "file": "editorial-tabs.test.mjs",
+          "line": 186,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3760,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : les dossiers et leurs sources sont lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 200,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1104,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses",
+          "file": "editorial-tabs.test.mjs",
+          "line": 239,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1034,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France: published accounts survive a network failure and chapters stay on the page",
+          "file": "editorial-tabs.test.mjs",
+          "line": 263,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3989,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Ville: search and financial detail work without a map",
+          "file": "editorial-tabs.test.mjs",
+          "line": 278,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1672,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires garde la navigation accessible avec mouvement réduit",
+          "file": "editorial-tabs.test.mjs",
+          "line": 301,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2437,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 313,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7090,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, lecture du coût du travail et actualité du Groenland",
+          "file": "editorial-tabs.test.mjs",
+          "line": 351,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1548,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 378,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2520,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : méthode, éditeur et démonstration des dépenses sont accessibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 400,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1882,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires et présentation du projet restent lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 425,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1003,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "SEO : dossiers et réponses restent documentés et reliés sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 10,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9554,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : métadonnées propres à chaque vue et aucune publicité automatique",
+          "file": "editorial-tabs.test.mjs",
+          "line": 87,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6966,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : la page Ville est lisible sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 105,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 776,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal",
+          "file": "editorial-tabs.test.mjs",
+          "line": 116,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7174,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Fournitures : récit, prix en euros et graphiques lisibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 137,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2566,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : recherche, filtres, lecture et sources en fin de dossier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 157,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3554,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : tous les dossiers et leurs sources sans débordement",
+          "file": "editorial-tabs.test.mjs",
+          "line": 186,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7001,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : les dossiers et leurs sources sont lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 200,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1916,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses",
+          "file": "editorial-tabs.test.mjs",
+          "line": 239,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2335,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France: published accounts survive a network failure and chapters stay on the page",
+          "file": "editorial-tabs.test.mjs",
+          "line": 263,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16510,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Ville: search and financial detail work without a map",
+          "file": "editorial-tabs.test.mjs",
+          "line": 278,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2870,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires garde la navigation accessible avec mouvement réduit",
+          "file": "editorial-tabs.test.mjs",
+          "line": 301,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6624,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 313,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15704,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, lecture du coût du travail et actualité du Groenland",
+          "file": "editorial-tabs.test.mjs",
+          "line": 351,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3269,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 378,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4961,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : méthode, éditeur et démonstration des dépenses sont accessibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 400,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15162,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires et présentation du projet restent lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 425,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1503,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "SEO : dossiers et réponses restent documentés et reliés sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 10,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9009,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : métadonnées propres à chaque vue et aucune publicité automatique",
+          "file": "editorial-tabs.test.mjs",
+          "line": 87,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4613,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Lancement : la page Ville est lisible sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 105,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 974,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : les tableaux restent entièrement lisibles sans défilement horizontal",
+          "file": "editorial-tabs.test.mjs",
+          "line": 116,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4778,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Fournitures : récit, prix en euros et graphiques lisibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 137,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1563,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : recherche, filtres, lecture et sources en fin de dossier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 157,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3123,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : tous les dossiers et leurs sources sans débordement",
+          "file": "editorial-tabs.test.mjs",
+          "line": 186,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5984,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Analyses : les dossiers et leurs sources sont lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 200,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1442,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires affiche un profil sourcé et conserve la lecture des dépenses",
+          "file": "editorial-tabs.test.mjs",
+          "line": 239,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1990,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France: published accounts survive a network failure and chapters stay on the page",
+          "file": "editorial-tabs.test.mjs",
+          "line": 263,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6191,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Ville: search and financial detail work without a map",
+          "file": "editorial-tabs.test.mjs",
+          "line": 278,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2955,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires garde la navigation accessible avec mouvement réduit",
+          "file": "editorial-tabs.test.mjs",
+          "line": 301,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4043,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France et Villes : graphiques sourcés, comparaison européenne et lecture au clavier",
+          "file": "editorial-tabs.test.mjs",
+          "line": 313,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9087,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, lecture du coût du travail et actualité du Groenland",
+          "file": "editorial-tabs.test.mjs",
+          "line": 351,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2933,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Dossiers : qualité, tous les articles et précautions accessibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 378,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4594,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : méthode, éditeur et démonstration des dépenses sont accessibles",
+          "file": "editorial-tabs.test.mjs",
+          "line": 400,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3148,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Confiance : Salaires et présentation du projet restent lisibles sans JavaScript",
+          "file": "editorial-tabs.test.mjs",
+          "line": 425,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1601,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the living France is the national mandate, with its budget and saved decisions",
+          "file": "france-living.test.mjs",
+          "line": 13,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4927,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "choosing a measure keeps the question in place instead of jumping to the top",
+          "file": "france-living.test.mjs",
+          "line": 49,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2635,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France : la vue légère conserve la partie et le mouvement réduit reste utilisable",
+          "file": "france-living.test.mjs",
+          "line": 63,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2626,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the national mandate and living art resume offline after explicit preparation",
+          "file": "france-living.test.mjs",
+          "line": 78,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4892,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the former winter link opens the complete France game",
+          "file": "france-living.test.mjs",
+          "line": 91,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2103,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an alternative pension choice changes the available continuation without changing the saved mandate",
+          "file": "france-living.test.mjs",
+          "line": 103,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2032,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the living France is the national mandate, with its budget and saved decisions",
+          "file": "france-living.test.mjs",
+          "line": 13,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4310,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "choosing a measure keeps the question in place instead of jumping to the top",
+          "file": "france-living.test.mjs",
+          "line": 49,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 284,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France : la vue légère conserve la partie et le mouvement réduit reste utilisable",
+          "file": "france-living.test.mjs",
+          "line": 63,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 312,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the national mandate and living art resume offline after explicit preparation",
+          "file": "france-living.test.mjs",
+          "line": 78,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 325,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the former winter link opens the complete France game",
+          "file": "france-living.test.mjs",
+          "line": 91,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 272,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an alternative pension choice changes the available continuation without changing the saved mandate",
+          "file": "france-living.test.mjs",
+          "line": 103,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2204,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the living France is the national mandate, with its budget and saved decisions",
+          "file": "france-living.test.mjs",
+          "line": 13,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3556,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "choosing a measure keeps the question in place instead of jumping to the top",
+          "file": "france-living.test.mjs",
+          "line": 49,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 196,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France : la vue légère conserve la partie et le mouvement réduit reste utilisable",
+          "file": "france-living.test.mjs",
+          "line": 63,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 231,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the national mandate and living art resume offline after explicit preparation",
+          "file": "france-living.test.mjs",
+          "line": 78,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 182,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the former winter link opens the complete France game",
+          "file": "france-living.test.mjs",
+          "line": 91,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 168,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an alternative pension choice changes the available continuation without changing the saved mandate",
+          "file": "france-living.test.mjs",
+          "line": 103,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2062,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the living France is the national mandate, with its budget and saved decisions",
+          "file": "france-living.test.mjs",
+          "line": 13,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5021,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "choosing a measure keeps the question in place instead of jumping to the top",
+          "file": "france-living.test.mjs",
+          "line": 49,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 296,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France : la vue légère conserve la partie et le mouvement réduit reste utilisable",
+          "file": "france-living.test.mjs",
+          "line": 63,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 297,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the national mandate and living art resume offline after explicit preparation",
+          "file": "france-living.test.mjs",
+          "line": 78,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 288,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the former winter link opens the complete France game",
+          "file": "france-living.test.mjs",
+          "line": 91,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 299,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an alternative pension choice changes the available continuation without changing the saved mandate",
+          "file": "france-living.test.mjs",
+          "line": 103,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2899,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the living France is the national mandate, with its budget and saved decisions",
+          "file": "france-living.test.mjs",
+          "line": 13,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8325,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "choosing a measure keeps the question in place instead of jumping to the top",
+          "file": "france-living.test.mjs",
+          "line": 49,
+          "project": "desktop-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 186,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France : la vue légère conserve la partie et le mouvement réduit reste utilisable",
+          "file": "france-living.test.mjs",
+          "line": 63,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3971,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the national mandate and living art resume offline after explicit preparation",
+          "file": "france-living.test.mjs",
+          "line": 78,
+          "project": "desktop-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 373,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the former winter link opens the complete France game",
+          "file": "france-living.test.mjs",
+          "line": 91,
+          "project": "desktop-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 299,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an alternative pension choice changes the available continuation without changing the saved mandate",
+          "file": "france-living.test.mjs",
+          "line": 103,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4829,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national: complete touch campaign, sharing and replay",
+          "file": "mandats-mobile.test.mjs",
+          "line": 31,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 36058,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh-device national import, invalid files, export and resume",
+          "file": "mandats-mobile.test.mjs",
+          "line": 46,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8187,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "territory, sandbox and reduced motion keep the saved mandate intact",
+          "file": "mandats-mobile.test.mjs",
+          "line": 54,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4157,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal mandate stays unavailable and keeps an existing save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 61,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2652,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "opt-in offline preparation survives network loss with the cinematic game art",
+          "file": "mandats-mobile.test.mjs",
+          "line": 70,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7140,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "source-backed guides are readable and lead to the matching mode",
+          "file": "mandats-mobile.test.mjs",
+          "line": 76,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2279,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal entry announces its unavailability without creating a save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 82,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1809,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "cinematic art keeps one scene image across decisions and offers an accessible territory",
+          "file": "mandats-mobile.test.mjs",
+          "line": 88,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15026,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national living scene and all 30 v9 decisions work without WebGL",
+          "file": "mandats-mobile.test.mjs",
+          "line": 113,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 35393,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national: complete touch campaign, sharing and replay",
+          "file": "mandats-mobile.test.mjs",
+          "line": 31,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 36122,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh-device national import, invalid files, export and resume",
+          "file": "mandats-mobile.test.mjs",
+          "line": 46,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7328,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "territory, sandbox and reduced motion keep the saved mandate intact",
+          "file": "mandats-mobile.test.mjs",
+          "line": 54,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4087,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal mandate stays unavailable and keeps an existing save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 61,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2037,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "opt-in offline preparation survives network loss with the cinematic game art",
+          "file": "mandats-mobile.test.mjs",
+          "line": 70,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 347,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "source-backed guides are readable and lead to the matching mode",
+          "file": "mandats-mobile.test.mjs",
+          "line": 76,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1881,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal entry announces its unavailability without creating a save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 82,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1533,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "cinematic art keeps one scene image across decisions and offers an accessible territory",
+          "file": "mandats-mobile.test.mjs",
+          "line": 88,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 433,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national living scene and all 30 v9 decisions work without WebGL",
+          "file": "mandats-mobile.test.mjs",
+          "line": 113,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 325,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national: complete touch campaign, sharing and replay",
+          "file": "mandats-mobile.test.mjs",
+          "line": 31,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 35049,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh-device national import, invalid files, export and resume",
+          "file": "mandats-mobile.test.mjs",
+          "line": 46,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6552,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "territory, sandbox and reduced motion keep the saved mandate intact",
+          "file": "mandats-mobile.test.mjs",
+          "line": 54,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2644,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal mandate stays unavailable and keeps an existing save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 61,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1767,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "opt-in offline preparation survives network loss with the cinematic game art",
+          "file": "mandats-mobile.test.mjs",
+          "line": 70,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 234,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "source-backed guides are readable and lead to the matching mode",
+          "file": "mandats-mobile.test.mjs",
+          "line": 76,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1688,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal entry announces its unavailability without creating a save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 82,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1109,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "cinematic art keeps one scene image across decisions and offers an accessible territory",
+          "file": "mandats-mobile.test.mjs",
+          "line": 88,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 218,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national living scene and all 30 v9 decisions work without WebGL",
+          "file": "mandats-mobile.test.mjs",
+          "line": 113,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 215,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national: complete touch campaign, sharing and replay",
+          "file": "mandats-mobile.test.mjs",
+          "line": 31,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43884,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh-device national import, invalid files, export and resume",
+          "file": "mandats-mobile.test.mjs",
+          "line": 46,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9442,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "territory, sandbox and reduced motion keep the saved mandate intact",
+          "file": "mandats-mobile.test.mjs",
+          "line": 54,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6365,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal mandate stays unavailable and keeps an existing save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 61,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1972,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "opt-in offline preparation survives network loss with the cinematic game art",
+          "file": "mandats-mobile.test.mjs",
+          "line": 70,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 382,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "source-backed guides are readable and lead to the matching mode",
+          "file": "mandats-mobile.test.mjs",
+          "line": 76,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2313,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal entry announces its unavailability without creating a save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 82,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1484,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "cinematic art keeps one scene image across decisions and offers an accessible territory",
+          "file": "mandats-mobile.test.mjs",
+          "line": 88,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 351,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national living scene and all 30 v9 decisions work without WebGL",
+          "file": "mandats-mobile.test.mjs",
+          "line": 113,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 386,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national: complete touch campaign, sharing and replay",
+          "file": "mandats-mobile.test.mjs",
+          "line": 31,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 39596,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh-device national import, invalid files, export and resume",
+          "file": "mandats-mobile.test.mjs",
+          "line": 46,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 10421,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "territory, sandbox and reduced motion keep the saved mandate intact",
+          "file": "mandats-mobile.test.mjs",
+          "line": 54,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3972,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal mandate stays unavailable and keeps an existing save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 61,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2174,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "opt-in offline preparation survives network loss with the cinematic game art",
+          "file": "mandats-mobile.test.mjs",
+          "line": 70,
+          "project": "desktop-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 320,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "source-backed guides are readable and lead to the matching mode",
+          "file": "mandats-mobile.test.mjs",
+          "line": 76,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3250,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "municipal entry announces its unavailability without creating a save",
+          "file": "mandats-mobile.test.mjs",
+          "line": 82,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1843,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "cinematic art keeps one scene image across decisions and offers an accessible territory",
+          "file": "mandats-mobile.test.mjs",
+          "line": 88,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16199,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "national living scene and all 30 v9 decisions work without WebGL",
+          "file": "mandats-mobile.test.mjs",
+          "line": 113,
+          "project": "desktop-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 316,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a fresh national game defaults to v12",
+          "file": "mandats-politics.test.mjs",
+          "line": 34,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 19297,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v10 saves the actual 577-seat tally before animation and reload never counts it twice",
+          "file": "mandats-politics.test.mjs",
+          "line": 43,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7073,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion presents the same saved vote outcome and changes no game state",
+          "file": "mandats-politics.test.mjs",
+          "line": 60,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9394,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an explicit v9 challenge remains on the frozen legacy journey",
+          "file": "mandats-politics.test.mjs",
+          "line": 75,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2379,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an early destitution save opens the full result and restores the same ended mandate",
+          "file": "mandats-politics.test.mjs",
+          "line": 82,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4856,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a fresh national game defaults to v12",
+          "file": "mandats-politics.test.mjs",
+          "line": 34,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 21494,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v10 saves the actual 577-seat tally before animation and reload never counts it twice",
+          "file": "mandats-politics.test.mjs",
+          "line": 43,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6742,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion presents the same saved vote outcome and changes no game state",
+          "file": "mandats-politics.test.mjs",
+          "line": 60,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8669,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an explicit v9 challenge remains on the frozen legacy journey",
+          "file": "mandats-politics.test.mjs",
+          "line": 75,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1492,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an early destitution save opens the full result and restores the same ended mandate",
+          "file": "mandats-politics.test.mjs",
+          "line": 82,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5496,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a fresh national game defaults to v12",
+          "file": "mandats-politics.test.mjs",
+          "line": 34,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 17869,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v10 saves the actual 577-seat tally before animation and reload never counts it twice",
+          "file": "mandats-politics.test.mjs",
+          "line": 43,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5853,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion presents the same saved vote outcome and changes no game state",
+          "file": "mandats-politics.test.mjs",
+          "line": 60,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7196,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an explicit v9 challenge remains on the frozen legacy journey",
+          "file": "mandats-politics.test.mjs",
+          "line": 75,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1679,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an early destitution save opens the full result and restores the same ended mandate",
+          "file": "mandats-politics.test.mjs",
+          "line": 82,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4672,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a fresh national game defaults to v12",
+          "file": "mandats-politics.test.mjs",
+          "line": 34,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 25561,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v10 saves the actual 577-seat tally before animation and reload never counts it twice",
+          "file": "mandats-politics.test.mjs",
+          "line": 43,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8270,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion presents the same saved vote outcome and changes no game state",
+          "file": "mandats-politics.test.mjs",
+          "line": 60,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9387,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an explicit v9 challenge remains on the frozen legacy journey",
+          "file": "mandats-politics.test.mjs",
+          "line": 75,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2236,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an early destitution save opens the full result and restores the same ended mandate",
+          "file": "mandats-politics.test.mjs",
+          "line": 82,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7146,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a fresh national game defaults to v12",
+          "file": "mandats-politics.test.mjs",
+          "line": 34,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 27832,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v10 saves the actual 577-seat tally before animation and reload never counts it twice",
+          "file": "mandats-politics.test.mjs",
+          "line": 43,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7046,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion presents the same saved vote outcome and changes no game state",
+          "file": "mandats-politics.test.mjs",
+          "line": 60,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7525,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an explicit v9 challenge remains on the frozen legacy journey",
+          "file": "mandats-politics.test.mjs",
+          "line": 75,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2428,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an early destitution save opens the full result and restores the same ended mandate",
+          "file": "mandats-politics.test.mjs",
+          "line": 82,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4555,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh national play starts on the current v12 ruleset",
+          "file": "mandats-story.test.mjs",
+          "line": 101,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 55240,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v11 contexts are deterministic and agenda selection changes focus without spending a turn",
+          "file": "mandats-story.test.mjs",
+          "line": 225,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 2,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a reproducible 30-decision v11 policy route can reach and report a real annual surplus",
+          "file": "mandats-story.test.mjs",
+          "line": 259,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 357,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect",
+          "file": "mandats-story.test.mjs",
+          "line": 290,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 306,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a funded hospital project is delivered once and fulfils its linked promise",
+          "file": "mandats-story.test.mjs",
+          "line": 320,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 280,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances",
+          "file": "mandats-story.test.mjs",
+          "line": 350,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 265,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "repeated institutional breaches force a regime crisis before the player can keep cycling the scandal",
+          "file": "mandats-story.test.mjs",
+          "line": 452,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 298,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue",
+          "file": "mandats-story.test.mjs",
+          "line": 481,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 116326,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a shared decision restores exact focus and protects the local save until adoption",
+          "file": "mandats-story.test.mjs",
+          "line": 661,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 13529,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion and a rapid double click commit one decision",
+          "file": "mandats-story.test.mjs",
+          "line": 714,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4073,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport",
+          "file": "mandats-story.test.mjs",
+          "line": 747,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4505,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the decision verdict auto-closes, advances immediately and never leaves stale feedback",
+          "file": "mandats-story.test.mjs",
+          "line": 790,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 390,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh national play starts on the current v12 ruleset",
+          "file": "mandats-story.test.mjs",
+          "line": 101,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 43495,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v11 contexts are deterministic and agenda selection changes focus without spending a turn",
+          "file": "mandats-story.test.mjs",
+          "line": 225,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 0,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a reproducible 30-decision v11 policy route can reach and report a real annual surplus",
+          "file": "mandats-story.test.mjs",
+          "line": 259,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 355,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect",
+          "file": "mandats-story.test.mjs",
+          "line": 290,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 440,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a funded hospital project is delivered once and fulfils its linked promise",
+          "file": "mandats-story.test.mjs",
+          "line": 320,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 306,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances",
+          "file": "mandats-story.test.mjs",
+          "line": 350,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 329,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "repeated institutional breaches force a regime crisis before the player can keep cycling the scandal",
+          "file": "mandats-story.test.mjs",
+          "line": 452,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 330,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue",
+          "file": "mandats-story.test.mjs",
+          "line": 481,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 279,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a shared decision restores exact focus and protects the local save until adoption",
+          "file": "mandats-story.test.mjs",
+          "line": 661,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 31222,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion and a rapid double click commit one decision",
+          "file": "mandats-story.test.mjs",
+          "line": 714,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4586,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport",
+          "file": "mandats-story.test.mjs",
+          "line": 747,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4853,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the decision verdict auto-closes, advances immediately and never leaves stale feedback",
+          "file": "mandats-story.test.mjs",
+          "line": 790,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 600,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh national play starts on the current v12 ruleset",
+          "file": "mandats-story.test.mjs",
+          "line": 101,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 51848,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v11 contexts are deterministic and agenda selection changes focus without spending a turn",
+          "file": "mandats-story.test.mjs",
+          "line": 225,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 0,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a reproducible 30-decision v11 policy route can reach and report a real annual surplus",
+          "file": "mandats-story.test.mjs",
+          "line": 259,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 157,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect",
+          "file": "mandats-story.test.mjs",
+          "line": 290,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 155,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a funded hospital project is delivered once and fulfils its linked promise",
+          "file": "mandats-story.test.mjs",
+          "line": 320,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 159,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances",
+          "file": "mandats-story.test.mjs",
+          "line": 350,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 178,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "repeated institutional breaches force a regime crisis before the player can keep cycling the scandal",
+          "file": "mandats-story.test.mjs",
+          "line": 452,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 216,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue",
+          "file": "mandats-story.test.mjs",
+          "line": 481,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 188,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a shared decision restores exact focus and protects the local save until adoption",
+          "file": "mandats-story.test.mjs",
+          "line": 661,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9902,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion and a rapid double click commit one decision",
+          "file": "mandats-story.test.mjs",
+          "line": 714,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3045,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport",
+          "file": "mandats-story.test.mjs",
+          "line": 747,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3103,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the decision verdict auto-closes, advances immediately and never leaves stale feedback",
+          "file": "mandats-story.test.mjs",
+          "line": 790,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 228,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh national play starts on the current v12 ruleset",
+          "file": "mandats-story.test.mjs",
+          "line": 101,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 42297,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v11 contexts are deterministic and agenda selection changes focus without spending a turn",
+          "file": "mandats-story.test.mjs",
+          "line": 225,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 1,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a reproducible 30-decision v11 policy route can reach and report a real annual surplus",
+          "file": "mandats-story.test.mjs",
+          "line": 259,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 350,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect",
+          "file": "mandats-story.test.mjs",
+          "line": 290,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 350,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a funded hospital project is delivered once and fulfils its linked promise",
+          "file": "mandats-story.test.mjs",
+          "line": 320,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 463,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances",
+          "file": "mandats-story.test.mjs",
+          "line": 350,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 342,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "repeated institutional breaches force a regime crisis before the player can keep cycling the scandal",
+          "file": "mandats-story.test.mjs",
+          "line": 452,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 307,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue",
+          "file": "mandats-story.test.mjs",
+          "line": 481,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 328,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a shared decision restores exact focus and protects the local save until adoption",
+          "file": "mandats-story.test.mjs",
+          "line": 661,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 32104,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion and a rapid double click commit one decision",
+          "file": "mandats-story.test.mjs",
+          "line": 714,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 308,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport",
+          "file": "mandats-story.test.mjs",
+          "line": 747,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 310,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the decision verdict auto-closes, advances immediately and never leaves stale feedback",
+          "file": "mandats-story.test.mjs",
+          "line": 790,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 288,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "fresh national play starts on the current v12 ruleset",
+          "file": "mandats-story.test.mjs",
+          "line": 101,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 59167,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "v11 contexts are deterministic and agenda selection changes focus without spending a turn",
+          "file": "mandats-story.test.mjs",
+          "line": 225,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16125,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a reproducible 30-decision v11 policy route can reach and report a real annual surplus",
+          "file": "mandats-story.test.mjs",
+          "line": 259,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 71471,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "an adopted amendment changes the ledger once, while a rejected amendment has no budget or narrative effect",
+          "file": "mandats-story.test.mjs",
+          "line": 290,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 15167,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a funded hospital project is delivered once and fulfils its linked promise",
+          "file": "mandats-story.test.mjs",
+          "line": 320,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 11720,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a blocked project can be repaired through its real follow-up, while a rejected abandonment changes no project finances",
+          "file": "mandats-story.test.mjs",
+          "line": 350,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 31585,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "repeated institutional breaches force a regime crisis before the player can keep cycling the scandal",
+          "file": "mandats-story.test.mjs",
+          "line": 452,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2662,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "one complete v11 mandate retains causal outcomes, exports, replays and reaches its fictional epilogue",
+          "file": "mandats-story.test.mjs",
+          "line": 481,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 133906,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "a shared decision restores exact focus and protects the local save until adoption",
+          "file": "mandats-story.test.mjs",
+          "line": 661,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 14672,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced motion and a rapid double click commit one decision",
+          "file": "mandats-story.test.mjs",
+          "line": 714,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4698,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "reduced-motion 320, 390 and desktop layouts keep all decision controls inside the viewport",
+          "file": "mandats-story.test.mjs",
+          "line": 747,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4253,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the decision verdict auto-closes, advances immediately and never leaves stale feedback",
+          "file": "mandats-story.test.mjs",
+          "line": 790,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7016,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "ten v9 national decisions cross the first annual chapter and preserve the mobile navigation",
+          "file": "national-agenda.test.mjs",
+          "line": 13,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 13258,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "ten v9 national decisions cross the first annual chapter and preserve the mobile navigation",
+          "file": "national-agenda.test.mjs",
+          "line": 13,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 13668,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "ten v9 national decisions cross the first annual chapter and preserve the mobile navigation",
+          "file": "national-agenda.test.mjs",
+          "line": 13,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 10141,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "ten v9 national decisions cross the first annual chapter and preserve the mobile navigation",
+          "file": "national-agenda.test.mjs",
+          "line": 13,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 22299,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "ten v9 national decisions cross the first annual chapter and preserve the mobile navigation",
+          "file": "national-agenda.test.mjs",
+          "line": 13,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 18404,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats : carte 3D, lancement v12 et navigation accessibles",
+          "file": "shared-theme.test.mjs",
+          "line": 3,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 17280,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats expose un accès au site et le lien revient à la page d’accueil",
+          "file": "shared-theme.test.mjs",
+          "line": 13,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5189,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil : les données, villes et dossiers précèdent le jeu",
+          "file": "shared-theme.test.mjs",
+          "line": 29,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2907,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles",
+          "file": "shared-theme.test.mjs",
+          "line": 44,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 919,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the shared header is identical across primary destinations",
+          "file": "shared-theme.test.mjs",
+          "line": 65,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6498,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "retired simulator URLs lead to Mandats while old browser data is preserved",
+          "file": "shared-theme.test.mjs",
+          "line": 78,
+          "project": "android-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 283,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "editorial histories expand, redistribution stays visible and Europe is grouped",
+          "file": "shared-theme.test.mjs",
+          "line": 87,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3626,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France keeps the approved background and shared header",
+          "file": "shared-theme.test.mjs",
+          "line": 108,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3163,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "X est accessible depuis le header partagé et les footers principaux",
+          "file": "shared-theme.test.mjs",
+          "line": 130,
+          "project": "android-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3067,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats : carte 3D, lancement v12 et navigation accessibles",
+          "file": "shared-theme.test.mjs",
+          "line": 3,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 20211,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats expose un accès au site et le lien revient à la page d’accueil",
+          "file": "shared-theme.test.mjs",
+          "line": 13,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 9340,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil : les données, villes et dossiers précèdent le jeu",
+          "file": "shared-theme.test.mjs",
+          "line": 29,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3798,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles",
+          "file": "shared-theme.test.mjs",
+          "line": 44,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1147,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the shared header is identical across primary destinations",
+          "file": "shared-theme.test.mjs",
+          "line": 65,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 20636,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "retired simulator URLs lead to Mandats while old browser data is preserved",
+          "file": "shared-theme.test.mjs",
+          "line": 78,
+          "project": "iphone-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 342,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "editorial histories expand, redistribution stays visible and Europe is grouped",
+          "file": "shared-theme.test.mjs",
+          "line": 87,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 10873,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France keeps the approved background and shared header",
+          "file": "shared-theme.test.mjs",
+          "line": 108,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 7630,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "X est accessible depuis le header partagé et les footers principaux",
+          "file": "shared-theme.test.mjs",
+          "line": 130,
+          "project": "iphone-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5794,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats : carte 3D, lancement v12 et navigation accessibles",
+          "file": "shared-theme.test.mjs",
+          "line": 3,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 19862,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats expose un accès au site et le lien revient à la page d’accueil",
+          "file": "shared-theme.test.mjs",
+          "line": 13,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8155,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil : les données, villes et dossiers précèdent le jeu",
+          "file": "shared-theme.test.mjs",
+          "line": 29,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2577,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles",
+          "file": "shared-theme.test.mjs",
+          "line": 44,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 925,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the shared header is identical across primary destinations",
+          "file": "shared-theme.test.mjs",
+          "line": 65,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6301,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "retired simulator URLs lead to Mandats while old browser data is preserved",
+          "file": "shared-theme.test.mjs",
+          "line": 78,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 210,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "editorial histories expand, redistribution stays visible and Europe is grouped",
+          "file": "shared-theme.test.mjs",
+          "line": 87,
+          "project": "compact-chromium",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 172,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France keeps the approved background and shared header",
+          "file": "shared-theme.test.mjs",
+          "line": 108,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2240,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "X est accessible depuis le header partagé et les footers principaux",
+          "file": "shared-theme.test.mjs",
+          "line": 130,
+          "project": "compact-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2630,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats : carte 3D, lancement v12 et navigation accessibles",
+          "file": "shared-theme.test.mjs",
+          "line": 3,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 24246,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats expose un accès au site et le lien revient à la page d’accueil",
+          "file": "shared-theme.test.mjs",
+          "line": 13,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8569,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil : les données, villes et dossiers précèdent le jeu",
+          "file": "shared-theme.test.mjs",
+          "line": 29,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4526,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles",
+          "file": "shared-theme.test.mjs",
+          "line": 44,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2260,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the shared header is identical across primary destinations",
+          "file": "shared-theme.test.mjs",
+          "line": 65,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 16956,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "retired simulator URLs lead to Mandats while old browser data is preserved",
+          "file": "shared-theme.test.mjs",
+          "line": 78,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 305,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "editorial histories expand, redistribution stays visible and Europe is grouped",
+          "file": "shared-theme.test.mjs",
+          "line": 87,
+          "project": "landscape-webkit",
+          "status": "skipped",
+          "expectedStatus": "skipped",
+          "attempts": [
+            {
+              "status": "skipped",
+              "duration": 322,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France keeps the approved background and shared header",
+          "file": "shared-theme.test.mjs",
+          "line": 108,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 8017,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "X est accessible depuis le header partagé et les footers principaux",
+          "file": "shared-theme.test.mjs",
+          "line": 130,
+          "project": "landscape-webkit",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5590,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats : carte 3D, lancement v12 et navigation accessibles",
+          "file": "shared-theme.test.mjs",
+          "line": 3,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 19509,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Mandats expose un accès au site et le lien revient à la page d’accueil",
+          "file": "shared-theme.test.mjs",
+          "line": 13,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 6473,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil : les données, villes et dossiers précèdent le jeu",
+          "file": "shared-theme.test.mjs",
+          "line": 29,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2168,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles",
+          "file": "shared-theme.test.mjs",
+          "line": 44,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1514,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "the shared header is identical across primary destinations",
+          "file": "shared-theme.test.mjs",
+          "line": 65,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 5781,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "retired simulator URLs lead to Mandats while old browser data is preserved",
+          "file": "shared-theme.test.mjs",
+          "line": 78,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 1495,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "editorial histories expand, redistribution stays visible and Europe is grouped",
+          "file": "shared-theme.test.mjs",
+          "line": 87,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 4209,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "France keeps the approved background and shared header",
+          "file": "shared-theme.test.mjs",
+          "line": 108,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 2730,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "title": "X est accessible depuis le header partagé et les footers principaux",
+          "file": "shared-theme.test.mjs",
+          "line": 130,
+          "project": "desktop-chromium",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration": 3165,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

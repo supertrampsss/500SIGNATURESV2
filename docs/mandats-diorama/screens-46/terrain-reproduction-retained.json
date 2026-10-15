@@ -1,0 +1,17 @@
+{
+  "method": "Two complete consecutive bakes of the unchanged retained authoring sources, after all model URL revisions were generated. Actual complete binary and source manifest compared byte for byte.",
+  "checks": [
+    {
+      "file": "terrain-survey.bin.gz",
+      "bytes": 10029351,
+      "sha256": "2f190fc67015e83fa331a2ff45ec9bfe23a68de0131cd39dd0e7941489c9e5ea",
+      "byteExact": true
+    },
+    {
+      "file": "terrain-survey.json",
+      "bytes": 11303,
+      "sha256": "453f04ce0fbaed58bf2cc7e762928c5395254b4efaae2a9cec20de5ce0e5d2e4",
+      "byteExact": true
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "kind": "Actual builder metadata, separate diagnostic without a pass verdict",
+  "build": "37",
+  "observedAt": "2026-10-09T12:09:18.751Z",
+  "lockSha256": "aa08e0158541d539233cfba55b785e2989beb6b66aa043fbf651d4cdb3df5925",
+  "landscapeSourceSha256": "435b3414712854ed28d7cd8c68dc1e4a88346c1d48c2e624b23232d55aaeb975",
+  "driverSha256": "0c956895290b122dd55f50cc6e8b6ffc9ef7059ded6b15bdda29114aa385e947",
+  "writerSha256": "33180c89bc9669ed044cef10a467aef3019909fa36d1f826b019a02c46747f39",
+  "agriculture": {
+    "name": "landscape-agriculture",
+    "triangles": 9490,
+    "maturityDetails": {
+      "fields": [
+        {
+          "id": "loire-grandes-cultures-est",
+          "oldIndexRange": [
+            7593,
+            7665
+          ],
+          "newIndexRange": [
+            7593,
+            7665
+          ],
+          "pieces": 3,
+          "addedTriangles": 0,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "centre-cereales-ouest",
+          "oldIndexRange": [
+            8748,
+            9237
+          ],
+          "newIndexRange": [
+            8748,
+            9261
+          ],
+          "pieces": 4,
+          "addedTriangles": 8,
+          "limitTriangles": 3,
+          "status": "partitioned"
+        },
+        {
+          "id": "centre-cereales-est",
+          "oldIndexRange": [
+            9237,
+            9369
+          ],
+          "newIndexRange": [
+            9261,
+            9417
+          ],
+          "pieces": 3,
+          "addedTriangles": 8,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "sud-ouest-cereales-centrales",
+          "oldIndexRange": [
+            10350,
+            10386
+          ],
+          "newIndexRange": [
+            10398,
+            10440
+          ],
+          "pieces": 3,
+          "addedTriangles": 2,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "garonne-cereales-nord",
+          "oldIndexRange": [
+            10707,
+            10710
+          ],
+          "newIndexRange": [
+            10761,
+            10764
+          ],
+          "pieces": 1,
+          "addedTriangles": 0,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "berry-ble-central",
+          "oldIndexRange": [
+            11886,
+            12480
+          ],
+          "newIndexRange": [
+            11940,
+            12648
+          ],
+          "pieces": 3,
+          "addedTriangles": 38,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "touraine-ble-versant",
+          "oldIndexRange": [
+            15318,
+            15861
+          ],
+          "newIndexRange": [
+            15486,
+            16101
+          ],
+          "pieces": 3,
+          "addedTriangles": 24,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        },
+        {
+          "id": "berry-ble-haut-coteau",
+          "oldIndexRange": [
+            15981,
+            16134
+          ],
+          "newIndexRange": [
+            16221,
+            16392
+          ],
+          "pieces": 4,
+          "addedTriangles": 6,
+          "limitTriangles": 0,
+          "status": "partitioned"
+        }
+      ],
+      "addedTriangles": 86,
+      "limitTriangles": 3,
+      "guardPointChecks": 24,
+      "triangleBudgetRemaining": 4911
+    }
+  },
+  "fieldLimits": [
+    {
+      "name": "landscape-field-limits",
+      "triangles": 3
+    }
+  ],
+  "cliffs": [
+    {
+      "name": "landscape-cliffs-0",
+      "triangles": 20900,
+      "coastalFractures": 388
+    },
+    {
+      "name": "landscape-cliffs-1",
+      "triangles": 1920,
+      "coastalFractures": 0
+    },
+    {
+      "name": "landscape-cliffs-2",
+      "triangles": 240,
+      "coastalFractures": 0
+    }
+  ],
+  "limits": [
+    "Reported metadata is copied, not independently verified.",
+    "Does not change existing thresholds, guards, or geometry.",
+    "No visual conformity or browser performance is inferred."
+  ]
+}

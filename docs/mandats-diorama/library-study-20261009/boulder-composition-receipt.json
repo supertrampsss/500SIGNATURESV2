@@ -1,0 +1,24 @@
+{
+  "status": "experimental-model-override-not-production",
+  "baseSha256": "a15abb5d653bd9964e278a2c06d08ab6cc2584847b691cac48bcc92ebfc1871a",
+  "candidateRockSha256": "065067f88004b49e1397642441220a050b1cdea411d50eda87fd12fb226f59a3",
+  "composedSha256": "8f0d5a62efa3f29090997822aa7a9b8b73edde17674677bf13252fc68b999224",
+  "bytes": 916888,
+  "preservedExistingJSONSections": [
+    "bufferViews",
+    "accessors",
+    "samplers",
+    "images",
+    "textures",
+    "materials",
+    "meshes",
+    "nodes"
+  ],
+  "preservedExistingBinaryPrefix": 684772,
+  "change": "Only the scene root for decorative rock is substituted; all other prefabs and binary data preserved.",
+  "limits": [
+    "Old unused rock data remains in this experimental container.",
+    "No production source or asset modified.",
+    "No mountain rock changed."
+  ]
+}

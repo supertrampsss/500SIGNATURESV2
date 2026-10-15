@@ -1,0 +1,109 @@
+{
+  "parent": "c4c5db079b83cd6463fb508e7cf6ee6a8103f3fe",
+  "visualVerdict": "Still below confirmed reference. Whole scene work continues; PR194 draft.",
+  "retainedD": [
+    "Nine fixed folded leaf sprays and smaller opaque cores, same exact13modelbounds and ground pivots.",
+    "Finer lower guided crop rows; existing river/building exclusions.",
+    "More vertical internal dry coastal beds, protected top/water coordinates retained.",
+    "Shared mineral/coastal GPU program with actual per-material UBO 0/1 and preserved normal UV transforms. No change to colour formulas."
+  ],
+  "inspectedProductionViews": [
+    "production-d/01-national.png",
+    "production-d/05-lyon-alpes-canvas.png",
+    "production-d/07-paris-cathedrale-canvas.png"
+  ],
+  "prototypePhysics": "Actual candidateD shader program shared, GPU UBO mountain0/coast1; all supported feet/rocks and Paris contact checked. Final native production observations recorded separately.",
+  "remaining": [
+    "Repeated simple domestic silhouettes and textures.",
+    "Opaque massive cathedral spires.",
+    "Broad smooth/faceted snow shoulders and narrow geometric peaks.",
+    "Regular coastal faces and deep Rhône estuary.",
+    "Foliage and materials remain less photographic."
+  ],
+  "claimScope": "Original local rework/social and14strict full-production native captures passed. Artistically below reference. Parent51 remote rework22pass9skip1WebKitDPRfail, social not run; five other workflows green. No new52CI claim.",
+  "productionCaptures": [
+    "production-01-national.json",
+    "production-04-lyon-detail.json",
+    "production-05-lyon-alpes.json",
+    "production-06-national-retour.json",
+    "production-07-paris-cathedrale.json",
+    "production-08-mediterranee-port.json",
+    "production-09-national-final.json",
+    "production-10-port-ensemble.json",
+    "movement-01-mobilisation.json",
+    "production-320-01-mobilisation.json",
+    "production-390-01-mobilisation.json",
+    "production-webkit-390-01-mobilisation.json",
+    "hospital-01-chantier.json",
+    "hospital-02-livraison.json"
+  ],
+  "finalPhysics": {
+    "mineralFractures": {
+      "version": 51,
+      "status": "applied",
+      "reason": "Exposed existing geological faces only",
+      "sourceTriangles": 82234,
+      "exposedTriangles": 33105,
+      "unchangedLowTriangles": 49129,
+      "barrierTests": 189603,
+      "protectedTriangles": 67665,
+      "frozenCoordinates": 17259,
+      "movedCoordinates": 346,
+      "layeredCoordinates": 0,
+      "maximumDepth": 0.02853923103519667,
+      "originalVertices": 117560,
+      "outputVertices": 117560,
+      "addedTriangles": 0,
+      "addedVertices": 0,
+      "queriedHeights": 0,
+      "scannedGLBs": 0
+    },
+    "treeFeet": 2540,
+    "treeAbove4mm": 0,
+    "rockCount": 90,
+    "maximumRockClearance": -0.002622122380927294,
+    "monuments": 21,
+    "canopyOverlaps": 0,
+    "coastalShader": {
+      "method": "Read source of the fragment shader actually attached to the live WebGL program. No shader/material mutation.",
+      "actualCompiledProgram": true,
+      "verticalCoastalFracture": true,
+      "mountainCrease": true
+    },
+    "mineralShaders": [
+      {
+        "name": "landscape-mineral-ground",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": true,
+        "mountainCrease": true,
+        "snowScarp": false,
+        "coastalGPU": 0,
+        "coastalCPU": 0,
+        "useUbo": true,
+        "programSharedWithMountain": true
+      },
+      {
+        "name": "landscape-cliffs",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": true,
+        "mountainCrease": true,
+        "snowScarp": false,
+        "coastalGPU": 1,
+        "coastalCPU": 1,
+        "useUbo": true,
+        "programSharedWithMountain": true
+      },
+      {
+        "name": "landscape-snow",
+        "actualCompiledProgram": true,
+        "verticalCoastalFracture": false,
+        "mountainCrease": false,
+        "snowScarp": true,
+        "coastalGPU": 0,
+        "coastalCPU": 0,
+        "useUbo": true,
+        "programSharedWithMountain": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "build": "28",
+  "command": "python3 integration28/prepare-snapshot.py then node integration28/verify.mjs",
+  "exitCode": 0,
+  "confirmedBy": "functions.write_stdin session51465 returned exit_code0",
+  "confirmedAt": "2026-10-09T06:40:00.284144+00:00",
+  "session": 51465
+}

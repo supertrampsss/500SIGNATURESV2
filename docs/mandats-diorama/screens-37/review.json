@@ -1,0 +1,44 @@
+{
+  "build": "37",
+  "reviewedBy": [
+    "root"
+  ],
+  "reviewedAt": "2026-10-09T12:13:18.688354+00:00",
+  "reviewBasis": "ROOT effectivement ouvert la référence canonique et les cinq PNG nationales, Paris détail, Seine, Lyon/Alpes et retour national37 après le rendu réel",
+  "captureVerificationSha256": "54faa49479e605eddccc5517acd20981cf53a53894c40b18968db15393e25a4c",
+  "referenceSha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "status": "Non conforme à la maquette",
+  "summary": "Le rendu37 applique les petites fractures minérales et côtières, les subdivisions agricoles et la pierre sélective de la cathédrale. Les vues réelles restent sensiblement différentes de la maquette : grandes masses et facettes de relief, contexte répétitif, campagne moins fine et moins dense, cathédrale trop massive. Les gardes physiques et captures techniques passent ; les deux contrôles E2E ciblés originaux passent. La suite rework complète échoue sur trois parcours compact/WebKit (reprise15s et durée180s), avec20 réussites et9 skips. Les trois autres suites complètes ne sont pas exécutées.",
+  "observedDifferences": [
+    "L’en-tête bleu nuit, le panneau ivoire et les titres serif gardent la composition générale de la référence ; les nombres et sujets affichés restent ceux du vrai moteur.",
+    "Les champs ont plusieurs tons et de petites toitures, mais les zones rurales restent plus espacées et moins diverses que les villages, vergers et parcelles fines de la référence.",
+    "Les grands fronts alpins et pyrénéens restent anguleux et continus. Les nouvelles incisions géométriques ne suffisent pas à changer leur lecture à l’échelle nationale.",
+    "Le contexte de pays voisins présente un motif de grandes plaques répétées et des houppiers arrondis volumineux, visibles dans les vues Paris et nationales.",
+    "Le corps de la cathédrale et son toit restent disproportionnés et moins fins que le monument de la maquette. La pierre sélective ne résout pas cette différence de forme.",
+    "La mer, les côtes et les ports restent moins riches en écume et en bateaux que la référence.",
+    "Le retour national réel retrouve la carte sans dépenser de décision ; les captures n’établissent pas la fidélité artistique ni une cadence GPU."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale37 : composition navy et ivoire conservée ; reliefs, densité rurale et finesse des matières encore différents de la référence.",
+    "paris": "Paris37 : pierre sélective appliquée, corps et toit du monument encore trop massifs ; arrière-plan de grandes plaques et houppiers arrondis.",
+    "seine": "Seine37 : champs à plusieurs tons, petites fermes et rues lisibles ; densité, finesse et contexte encore éloignés de la référence.",
+    "alpes": "Lyon et Alpes37 : roches et neige présentes, grands fronts et facettes restant trop continus et anguleux.",
+    "retour": "Retour national37 réel par les contrôles natifs, zéro décision ; conformité visuelle encore refusée."
+  },
+  "limitations": {
+    "visualConformity": false,
+    "fullcheck": "1082 passed, actual ROOT exit0 receipt",
+    "cpu": "Actual targeted physical checks passed, 781 houses, separate diagnostic metadata",
+    "native": "7 captures, zero browser errors, actual nine PNG response and decoded-byte proof",
+    "focusedOriginal15s": "passed original held-GLB release and saved reload waits",
+    "fullSuites": [
+      "rework failed:20 passed,3 failed,9 skipped",
+      "social unrun",
+      "header unrun",
+      "test:mandats unrun"
+    ],
+    "http503": "passed preserved saved mandate fallback test",
+    "savedReload": "passed original focused desktop test",
+    "webkitDpr2": "passed original resize and saved resume test"
+  }
+}

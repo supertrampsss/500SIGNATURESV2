@@ -1,0 +1,698 @@
+{
+  "capturedAt": "2026-10-09T00:01:17.005Z",
+  "browserVersion": "151.0.7922.173",
+  "origin": "http://127.0.0.1:4191",
+  "description": "Native Paris inspection from the Assembly subject, no decision",
+  "actions": [
+    "Click the actual Assembly marker",
+    "Click Voir le lieu for Paris"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": []
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1268x801",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "landscape": "diorama",
+    "staticBatches": "36",
+    "staticInstances": "5923",
+    "authoredHouses": "333",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "cameraRadius": "3.8",
+    "renderMs": "128",
+    "inspection": "paris"
+  },
+  "layout": {
+    "scrollWidth": 1672,
+    "viewportWidth": 1672,
+    "viewportHeight": 941,
+    "devicePixelRatio": 1,
+    "scrollY": 0,
+    "canvas": {
+      "x": 0,
+      "y": 66,
+      "width": 1268,
+      "height": 801,
+      "top": 66,
+      "right": 1268,
+      "bottom": 867,
+      "left": 0
+    },
+    "labels": [
+      {
+        "text": "Manche",
+        "hidden": true,
+        "lon": "-2.8",
+        "lat": "50.55",
+        "left": "261px",
+        "top": "81px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "OcéanAtlantique",
+        "hidden": true,
+        "lon": "-4.1",
+        "lat": "45.5",
+        "left": "118px",
+        "top": "451px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "MerMéditerranée",
+        "hidden": true,
+        "lon": "6.1",
+        "lat": "42.7",
+        "left": "954px",
+        "top": "728px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Belgique",
+        "hidden": true,
+        "lon": "4.8",
+        "lat": "50.9",
+        "left": "904px",
+        "top": "38px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Allemagne",
+        "hidden": true,
+        "lon": "8.1",
+        "lat": "50.2",
+        "left": "1175px",
+        "top": "117px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Suisse",
+        "hidden": true,
+        "lon": "7.9",
+        "lat": "46.8",
+        "left": "1136px",
+        "top": "368px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Italie",
+        "hidden": true,
+        "lon": "9.1",
+        "lat": "45.3",
+        "left": "1227px",
+        "top": "483px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Espagne",
+        "hidden": true,
+        "lon": "-1.9",
+        "lat": "43",
+        "left": "285px",
+        "top": "637px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      {
+        "text": "Corse",
+        "hidden": true,
+        "lon": "9.25",
+        "lat": "41.7",
+        "left": "1216px",
+        "top": "751px",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    ],
+    "footer": [
+      {
+        "text": "Pays",
+        "bbox": {
+          "x": 111.984375,
+          "y": 868,
+          "width": 352,
+          "height": 73,
+          "top": 868,
+          "right": 463.984375,
+          "bottom": 941,
+          "left": 111.984375
+        },
+        "font": "700 22px / 26.4px Spectral, Georgia, serif",
+        "icon": {
+          "x": 111.984375,
+          "y": 879.5,
+          "width": 44,
+          "height": 44,
+          "top": 879.5,
+          "right": 155.984375,
+          "bottom": 923.5,
+          "left": 111.984375
+        },
+        "label": {
+          "x": 177.984375,
+          "y": 888.296875,
+          "width": 42.59375,
+          "height": 26.390625,
+          "top": 888.296875,
+          "right": 220.578125,
+          "bottom": 914.6875,
+          "left": 177.984375
+        }
+      },
+      {
+        "text": "Gouvernement",
+        "bbox": {
+          "x": 463.984375,
+          "y": 868,
+          "width": 400,
+          "height": 73,
+          "top": 868,
+          "right": 863.984375,
+          "bottom": 941,
+          "left": 463.984375
+        },
+        "font": "500 20px / 24px Spectral, Georgia, serif",
+        "icon": {
+          "x": 463.984375,
+          "y": 882.5,
+          "width": 38,
+          "height": 38,
+          "top": 882.5,
+          "right": 501.984375,
+          "bottom": 920.5,
+          "left": 463.984375
+        },
+        "label": {
+          "x": 527.984375,
+          "y": 889.5,
+          "width": 132.703125,
+          "height": 24,
+          "top": 889.5,
+          "right": 660.6875,
+          "bottom": 913.5,
+          "left": 527.984375
+        }
+      },
+      {
+        "text": "Projets",
+        "bbox": {
+          "x": 863.984375,
+          "y": 868,
+          "width": 333,
+          "height": 73,
+          "top": 868,
+          "right": 1196.984375,
+          "bottom": 941,
+          "left": 863.984375
+        },
+        "font": "500 20px / 24px Spectral, Georgia, serif",
+        "icon": {
+          "x": 863.984375,
+          "y": 884.5,
+          "width": 34,
+          "height": 34,
+          "top": 884.5,
+          "right": 897.984375,
+          "bottom": 918.5,
+          "left": 863.984375
+        },
+        "label": {
+          "x": 918.984375,
+          "y": 889.5,
+          "width": 63.734375,
+          "height": 24,
+          "top": 889.5,
+          "right": 982.71875,
+          "bottom": 913.5,
+          "left": 918.984375
+        }
+      },
+      {
+        "text": "Bilan",
+        "bbox": {
+          "x": 1196.984375,
+          "y": 868,
+          "width": 239.015625,
+          "height": 73,
+          "top": 868,
+          "right": 1436,
+          "bottom": 941,
+          "left": 1196.984375
+        },
+        "font": "500 19px / 22.8px Spectral, Georgia, serif",
+        "icon": {
+          "x": 1196.984375,
+          "y": 885.5,
+          "width": 32,
+          "height": 32,
+          "top": 885.5,
+          "right": 1228.984375,
+          "bottom": 917.5,
+          "left": 1196.984375
+        },
+        "label": {
+          "x": 1256.984375,
+          "y": 890.09375,
+          "width": 45.09375,
+          "height": 22.796875,
+          "top": 890.09375,
+          "right": 1302.078125,
+          "bottom": 912.890625,
+          "left": 1256.984375
+        }
+      }
+    ]
+  },
+  "raster": {
+    "width": 1268,
+    "height": 801
+  },
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-BhwTZw4y.js",
+      "initiator": "script",
+      "transfer": 631963,
+      "duration": 534
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-D-oDhBDK.css",
+      "initiator": "link",
+      "transfer": 33016,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "initiator": "other",
+      "transfer": 1011,
+      "duration": 43
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "initiator": "link",
+      "transfer": 16984,
+      "duration": 36
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "initiator": "link",
+      "transfer": 7098,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "initiator": "link",
+      "transfer": 6697,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "initiator": "css",
+      "transfer": 170488,
+      "duration": 418
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 23336,
+      "duration": 422
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "initiator": "css",
+      "transfer": 64740,
+      "duration": 422
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/mandats-serif-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 52568,
+      "duration": 9347
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+      "initiator": "css",
+      "transfer": 23236,
+      "duration": 9345
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "initiator": "css",
+      "transfer": 23136,
+      "duration": 9352
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/envTextureLoader-djfA75mm.js",
+      "initiator": "script",
+      "transfer": 3524,
+      "duration": 128
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/cubemapToSphericalPolynomial-kbz3YRXW.js",
+      "initiator": "script",
+      "transfer": 1934,
+      "duration": 129
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-CvaeVLyJ.js",
+      "initiator": "script",
+      "transfer": 1506,
+      "duration": 122
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-C_IOAOqI.js",
+      "initiator": "script",
+      "transfer": 830,
+      "duration": 137
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneFragment-B-OEWg2l.js",
+      "initiator": "script",
+      "transfer": 661,
+      "duration": 144
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-B0MFFsTY.js",
+      "initiator": "script",
+      "transfer": 1918,
+      "duration": 144
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneVertex-C5KURQFP.js",
+      "initiator": "script",
+      "transfer": 2857,
+      "duration": 138
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/helperFunctions-DSzr2Or8.js",
+      "initiator": "script",
+      "transfer": 2598,
+      "duration": 134
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-DaqU1W1x.js",
+      "initiator": "script",
+      "transfer": 631,
+      "duration": 128
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneUboDeclaration-Dpi_40iA.js",
+      "initiator": "script",
+      "transfer": 665,
+      "duration": 129
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/meshUboDeclaration-DvhsQg8U.js",
+      "initiator": "script",
+      "transfer": 646,
+      "duration": 107
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-CnNUaQjZ.js",
+      "initiator": "script",
+      "transfer": 934,
+      "duration": 107
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-Cw3s9k8b.js",
+      "initiator": "script",
+      "transfer": 770,
+      "duration": 106
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=22d88978198973b2",
+      "initiator": "xmlhttprequest",
+      "transfer": 945048,
+      "duration": 13
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=42babe184e779c6a",
+      "initiator": "xmlhttprequest",
+      "transfer": 6802284,
+      "duration": 2807
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/paris.glb?v=8eb1d54a49bdd46b",
+      "initiator": "xmlhttprequest",
+      "transfer": 9816164,
+      "duration": 2893
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/cathedrale.glb?v=9fb528573a603aee",
+      "initiator": "xmlhttprequest",
+      "transfer": 11722948,
+      "duration": 3022
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-C1eSVFY0.js",
+      "initiator": "script",
+      "transfer": 26282,
+      "duration": 144
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-DPx2izbK.js",
+      "initiator": "script",
+      "transfer": 45100,
+      "duration": 171
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-B-anI9OA.js",
+      "initiator": "script",
+      "transfer": 2724,
+      "duration": 81
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/daylight.env?v=a27b2155c892bc0b",
+      "initiator": "xmlhttprequest",
+      "transfer": 1098868,
+      "duration": 388
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "initiator": "other",
+      "transfer": 713,
+      "duration": 110
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-BRBskp7V.js",
+      "initiator": "script",
+      "transfer": 929,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-CBZLMCkJ.js",
+      "initiator": "script",
+      "transfer": 860,
+      "duration": 54
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.vertex-BRrBqmJT.js",
+      "initiator": "script",
+      "transfer": 2595,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthVertex-Dj4O_zhf.js",
+      "initiator": "script",
+      "transfer": 2271,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/defaultUboDeclaration-Ccf2bi46.js",
+      "initiator": "script",
+      "transfer": 852,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/instancesDeclaration-DUO1a97a.js",
+      "initiator": "script",
+      "transfer": 1234,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthDeclaration-cKNkA5kW.js",
+      "initiator": "script",
+      "transfer": 749,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertexDeclaration-51JDMR5z.js",
+      "initiator": "script",
+      "transfer": 642,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertex-CrNKnM37.js",
+      "initiator": "script",
+      "transfer": 823,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.fragment-Bf-tK3ry.js",
+      "initiator": "script",
+      "transfer": 6295,
+      "duration": 19
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/oitFragment-DD3LLZbE.js",
+      "initiator": "script",
+      "transfer": 11562,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/reflectionFunction-CmWipRAB.js",
+      "initiator": "script",
+      "transfer": 1602,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/lightFragment-m--dKady.js",
+      "initiator": "script",
+      "transfer": 3657,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpFragment-Bz6Ba4dK.js",
+      "initiator": "script",
+      "transfer": 2698,
+      "duration": 22
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.vertex-CYbdtX1w.js",
+      "initiator": "script",
+      "transfer": 3913,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrUboDeclaration-CvpGc857.js",
+      "initiator": "script",
+      "transfer": 977,
+      "duration": 44
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrBRDFFunctions-CfaaN77J.js",
+      "initiator": "script",
+      "transfer": 4420,
+      "duration": 99
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/harmonicsFunctions-LD0lG4dF.js",
+      "initiator": "script",
+      "transfer": 800,
+      "duration": 44
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.fragment-CXb3Me2k.js",
+      "initiator": "script",
+      "transfer": 18441,
+      "duration": 91
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrDebug-eo5mMXdA.js",
+      "initiator": "script",
+      "transfer": 8798,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrIBLFunctions-KhdK-GnN.js",
+      "initiator": "script",
+      "transfer": 1185,
+      "duration": 88
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "consoleMessages": [],
+  "failedResponses": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Fresh Chromium context at1672x941 with fonts loaded/reduced motion. Native DOM controls and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

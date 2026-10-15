@@ -1,0 +1,10 @@
+{
+  "method": "Observed completed process exits; original configurations, readiness expectations, timeouts, retries, workers and configured skips unchanged. Native production observations are separate from original test gates.",
+  "fullCheck": 0,
+  "fullRework": 0,
+  "fullSocial": 0,
+  "targetedWebkitDPR": 0,
+  "freshWebkitPortrait": 0,
+  "freshWebkitLandscape": 0,
+  "sequentialNativeProduction": 0
+}

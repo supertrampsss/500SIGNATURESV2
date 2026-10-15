@@ -1,0 +1,36 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MANDATS : comparaison 28</title><style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; padding: 28px; background: #071b32; color: #fbf5eb; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 1800px; margin: auto; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.2; }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 40px); }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 14px; font-size: 22px; }
+    p { max-width: 90ch; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #edbc6b; outline-offset: 5px; }
+    .status { display: inline-block; margin: 0 0 12px; padding: 6px 11px; border: 1px solid #bb945b; border-radius: 4px; color: #f0cf98; }
+    .comparison, .inspections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .comparison { margin-top: 30px; }
+    figure { min-width: 0; margin: 0; }
+    .image-link { display: grid; place-items: center; width: 100%; aspect-ratio: 1672 / 941; border: 1px solid #687e96; background: #102940; overflow: hidden; text-decoration: none; }
+    .image-link img { display: block; width: 100%; height: auto; }
+    figcaption { padding-top: 12px; color: #d1dbe6; }
+    figcaption p { margin: 0 0 7px; }
+    .capture-status { font-size: 14px; color: #bdcada; }
+    .section { margin-top: 36px; padding-top: 26px; border-top: 1px solid #516a85; }
+    .review { max-width: 100ch; }
+    .review li { margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 12px; border: 1px solid #516a85; text-align: left; vertical-align: top; }
+    caption { margin-bottom: 10px; text-align: left; color: #d1dbe6; }
+    footer { margin-top: 34px; padding-top: 20px; border-top: 1px solid #516a85; color: #bdcada; }
+    @media (max-width: 850px) {
+      body { padding: 20px 16px; }
+      .comparison, .inspections { grid-template-columns: 1fr; gap: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style></head>
+<body><main><header><p class="status">Passe 28 : Non conforme à la maquette</p><h1>La référence confirmée et le jeu réel</h1><p>Les ardoises sombres et les normales rocheuses sont corrigées. Les cinq vues natives restent sensiblement éloignées de la référence : montagne en galets, campagne trop plane et quartiers répétitifs. La passe reste intermédiaire.</p><p>7 vues réelles, Chromium 151.0.7922.173, 1672 × 941, DPR 1, zéro décision. Erreurs JavaScript : 0 ; requêtes échouées : 0 ; erreurs HTTP : 0 ; avertissements console : 0 ; erreurs console : 0.</p></header>
+<section class="comparison"><figure><h2>Référence confirmée</h2><a class="image-link" href="reference-ordinateur.png"><img src="reference-ordinateur.png" width="1672" height="941" alt="Maquette confirmée : France miniature détaillée"></a><figcaption>Image originale conservée sans modification.</figcaption></figure><figure><h2>Vue nationale réelle</h2><a class="image-link" href="screens-28/ordinateur.png"><img src="screens-28/ordinateur.png" width="1672" height="941" alt="Vue nationale réelle"></a><figcaption><p>Vue nationale native 28 : ardoises corrigées, composition du paysage encore non conforme.</p><a href="screens-28/ordinateur.json">Conditions et actions</a> · <a href="screens-28/ordinateur-inputs.json">Entrées de partie</a></figcaption></figure></section><section class="section"><div class="inspections"><figure><h2>Paris</h2><a class="image-link" href="screens-28/paris.png"><img src="screens-28/paris.png" width="1672" height="941" alt="Paris"></a><figcaption><p>Paris natif 28 : toit bleu sombre et pierre lisible ; quartier encore composé de files répétitives.</p><a href="screens-28/paris.json">Conditions et actions</a> · <a href="screens-28/paris-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Seine et berges</h2><a class="image-link" href="screens-28/seine.png"><img src="screens-28/seine.png" width="1672" height="941" alt="Seine et berges"></a><figcaption><p>Seine native 28 : fleuve réel, inspection obtenue par les contrôles du jeu.</p><a href="screens-28/seine.json">Conditions et actions</a> · <a href="screens-28/seine-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Lyon et Alpes</h2><a class="image-link" href="screens-28/alpes.png"><img src="screens-28/alpes.png" width="1672" height="941" alt="Lyon et Alpes"></a><figcaption><p>Alpes natives 28 : normales correctes mais silhouettes de galets et neige trop continue.</p><a href="screens-28/alpes.json">Conditions et actions</a> · <a href="screens-28/alpes-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Retour national</h2><a class="image-link" href="screens-28/retour.png"><img src="screens-28/retour.png" width="1672" height="941" alt="Retour national"></a><figcaption><p>Retour national natif 28 : zéro décision, zéro erreur et zéro avertissement console.</p><a href="screens-28/retour.json">Conditions et actions</a> · <a href="screens-28/retour-inputs.json">Entrées de partie</a></figcaption></figure></div></section><section class="section review"><h2>Écarts observés</h2><ul><li>Ardoises bleu sombre distinctes de la pierre, sans les contours noirs défectueux de la passe 26.</li><li>Massifs encore faits de blocs aux larges calottes et de nappes de neige, au lieu de crêtes irrégulières et de faces rocheuses obliques.</li><li>Campagne dominée par un fond olive et de petites parcelles rectilignes ; les cinq sillons incurvés ne recomposent pas encore les coteaux à l’échelle nationale.</li><li>Paris conserve des files de façades répétées et trop d’espace nu autour du monument.</li><li>Côtes plus épaisses localement mais encore trop régulières et minces face à la maquette.</li><li>Interface proche de la référence ; année, jauges, sujets et marqueurs proviennent de la partie réelle.</li></ul><p><a href="screens-28/verification.json">Preuves de capture</a> · <a href="screens-28/build.json">Build réellement servi</a> · <a href="screens-28/review.json">Revue enregistrée</a></p></section></main></body></html>

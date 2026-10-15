@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-11",
+  "sameGLBBytes": true,
+  "sha256": "e41d5ca2596b152a98a95e63b06f89b04786df1c0a14526808280b51e4ecc600",
+  "exportedBytes": 487872,
+  "initialSourceCommit": "5cf6fcf4b0783188e21e27e38f9666ba0ff9946f",
+  "compositionSHA256": "ee1602e90a669a33b57b9f5c71b8518bbe46e3cc7c813875b53a59a850bdc1e1",
+  "compositionReproducedByteForByte": true,
+  "tests": {
+    "fullCheck": "1082 pass; types, full build and 147-resource offline generation pass after final AO correction.",
+    "browserSuites": {
+      "rework": {
+        "expected": 23,
+        "unexpected": 0,
+        "skipped": 9,
+        "flaky": 0
+      },
+      "social": {
+        "expected": 13,
+        "unexpected": 0,
+        "skipped": 3,
+        "flaky": 0
+      },
+      "header": {
+        "expected": 3,
+        "unexpected": 0,
+        "skipped": 0,
+        "flaky": 0
+      },
+      "mandats": {
+        "expected": 235,
+        "unexpected": 0,
+        "skipped": 65,
+        "flaky": 0
+      }
+    }
+  },
+  "artisticStatus": "NONCONFORM",
+  "limits": [
+    "Only two maison_alsace_01 placements changed, both at Besançon.",
+    "Isolated physical probe uses the real source builders and kit, but is not the game UI.",
+    "Four native game captures use the actual built JavaScript, CSS and models without overrides.",
+    "Normal, footing, LoD and a model board do not establish fidelity of the complete country or physical-phone performance."
+  ],
+  "generationThreads": 2,
+  "offlineVersion": "c71c7b88a530f451"
+}

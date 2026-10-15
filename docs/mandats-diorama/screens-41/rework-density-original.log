@@ -1,0 +1,15 @@
+[WebServer] (node:72194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:72207) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:72225) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (1.2m)
+(node:72525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [webkit] › tests/mandats-rework.test.mjs:92:1 › a high density display keeps the 3D map sharp through resize and saved resume (36.7s)
+
+  2 passed (1.8m)

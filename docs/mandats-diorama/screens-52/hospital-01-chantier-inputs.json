@@ -1,0 +1,9 @@
+{
+  "version": 12,
+  "mode": "national",
+  "seed": 1,
+  "ambition": "equilibre",
+  "choices": [
+    "n11-0-soins-garde-nuit-renover-service"
+  ]
+}

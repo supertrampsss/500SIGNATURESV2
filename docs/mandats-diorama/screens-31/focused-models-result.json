@@ -1,0 +1,20 @@
+{
+  "build": "31",
+  "scope": "Only the existing desktop delayed/failed models lifecycle, not full rework",
+  "confirmedBy": "functions.write_stdin session68982 returned exit_code0",
+  "actualSessionExitCode": 0,
+  "resultSha256": "ffbe295b97a2efc9cac9a3ff7a9b107c271aa4090579f10f5eac4d5a034418da",
+  "suite": "focused-models",
+  "actualExitCode": 0,
+  "status": "passed",
+  "counts": {
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "total": 1
+  },
+  "unexpectedTests": [],
+  "reportSha256": "6318659900b70a288df01b20fb10ba7547068fa087971bb4cdedc7c524ef810e",
+  "buildAndInputsStableAfterSuite": true
+}

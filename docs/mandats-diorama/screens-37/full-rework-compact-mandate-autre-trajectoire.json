@@ -1,0 +1,1882 @@
+{
+  "viewport": {
+    "width": 320,
+    "height": 740
+  },
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "choices": [
+      "pol-wealth-hospital-package",
+      "pol-coalition-compromise",
+      "r01a",
+      "n11-3-recrutement-postes-vacants-prime-installation",
+      "r02a",
+      "n11-5-integrite-interets-maintenir-procedure-marche"
+    ],
+    "ambition": "equilibre"
+  },
+  "state": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "turn": 6,
+    "finance": {
+      "revenue": 1490,
+      "operating": 1545.89,
+      "investment": 40,
+      "debt": 3353.49,
+      "cash": 0,
+      "rate": 0.018,
+      "marketRate": 0.035,
+      "repayment": 0,
+      "grants": 0,
+      "gdp": 2913.1088,
+      "growth": 0.022,
+      "deflator": 0.018,
+      "stockFlow": 0
+    },
+    "metrics": {
+      "services": 58,
+      "cohesion": 54,
+      "resilience": 39,
+      "trust": 50,
+      "assets": 57
+    },
+    "areas": [
+      {
+        "id": "metropoles",
+        "name": "Métropoles",
+        "need": "Logement et services",
+        "services": 70,
+        "resilience": 48,
+        "x": 49,
+        "y": 28
+      },
+      {
+        "id": "industrie",
+        "name": "Bassins industriels",
+        "need": "Énergie et reconversion",
+        "services": 50,
+        "resilience": 25,
+        "x": 68,
+        "y": 44
+      },
+      {
+        "id": "rural",
+        "name": "Espaces ruraux",
+        "need": "Accès aux services",
+        "services": 40,
+        "resilience": 43,
+        "x": 34,
+        "y": 55
+      },
+      {
+        "id": "littoraux",
+        "name": "Territoires littoraux",
+        "need": "Adaptation climatique",
+        "services": 56,
+        "resilience": 32,
+        "x": 53,
+        "y": 75
+      }
+    ],
+    "pending": [],
+    "history": [
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "pol-wealth-hospital-package",
+        "title": "Voter le prélèvement et financer les hôpitaux",
+        "messages": [
+          "Les hôpitaux reçoivent 4 Md€/an supplémentaires et le budget perçoit 6 Md€/an.",
+          "Compromis : Les très hauts patrimoines contribuent davantage ; le groupe pivot pourra demander le retrait de la mesure..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Les hôpitaux reçoivent 4 Md€/an supplémentaires et le budget perçoit 6 Md€/an."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1496,
+          "operating": 1549.4,
+          "interest": 57.599999999999994,
+          "savings": -111.00000000000009,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 151,
+          "cashChange": 0,
+          "deficit": 151,
+          "debt": 3351,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 59,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 52,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 71,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 51,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 41,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 57,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Finances publiques",
+          "title": "Le prélèvement sur les patrimoines finance l’hôpital.",
+          "story": "Le gouvernement présente un même texte qui crée une contribution de 6 Md€/an sur les très hauts patrimoines et affecte 4 Md€/an supplémentaires aux hôpitaux. Son adoption crée un engagement parlementaire qui pourra être contesté par le groupe pivot.",
+          "advisor": "Le vote précède l’application des recettes et des crédits : un texte rejeté ne modifie ni les unes ni les autres.",
+          "choices": [
+            {
+              "id": "pol-wealth-hospital-package",
+              "title": "Voter le prélèvement et financer les hôpitaux",
+              "description": "Adopter ensemble la nouvelle recette et l’ouverture de crédits hospitaliers.",
+              "benefit": "Les hôpitaux reçoivent 4 Md€/an supplémentaires et le budget perçoit 6 Md€/an.",
+              "sacrifice": "Les très hauts patrimoines contribuent davantage ; le groupe pivot pourra demander le retrait de la mesure.",
+              "cost": "+6 Md€/an recettes · +4 Md€/an dépenses de fonctionnement",
+              "effect": {
+                "revenue": 6,
+                "operating": 4,
+                "services": 3,
+                "society": {
+                  "affluent": -3,
+                  "vulnerable": 2,
+                  "publicStaff": 2
+                }
+              },
+              "political": {
+                "action": "enact",
+                "commitment": {
+                  "id": "wealth-hospital",
+                  "label": "Prélèvement patrimonial et financement hospitalier votés",
+                  "dueTurn": 1
+                },
+                "legitimacy": 2
+              }
+            },
+            {
+              "id": "pol-wealth-hospital-reject",
+              "title": "Ne pas déposer le prélèvement ni le financement hospitalier",
+              "description": "Retirer le paquet avant son dépôt à l’Assemblée.",
+              "benefit": "Le budget ne crée ni cette recette ni ces crédits hospitaliers.",
+              "sacrifice": "Les hôpitaux ne reçoivent pas les 4 Md€/an proposés et le budget ne perçoit pas les 6 Md€/an attendus.",
+              "cost": "Sans effet budgétaire direct",
+              "effect": {},
+              "political": {
+                "action": "confidence",
+                "supportDelta": {
+                  "reformist": 3,
+                  "social": -5
+                },
+                "legitimacy": -2
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-0-pol-wealth-hospital-package",
+          "kind": "law",
+          "title": "Voter le prélèvement et financer les hôpitaux",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 355,
+          "against": 181,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 124,
+              "against": 20,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 76,
+              "against": 29,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 57,
+              "against": 40,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 42,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 56,
+              "against": 37,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "pol-coalition-compromise",
+        "title": "Réduire le prélèvement et les crédits hospitaliers",
+        "messages": [
+          "Le groupe pivot maintient son soutien au gouvernement.",
+          "Compromis : L’hôpital perd 4 Md€/an et le budget perd 6 Md€/an de recettes ; l’engagement est rompu..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Le compromis maintient l’appui du groupe pivot.",
+          "L’engagement correspondant est rompu ; ses recettes, crédits et soutiens sont retirés.",
+          "Le groupe pivot maintient son soutien au gouvernement."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.4,
+          "interest": 57.599999999999994,
+          "savings": -113.00000000000009,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 153,
+          "cashChange": 0,
+          "deficit": 153,
+          "debt": 3353,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 56,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 50,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 68,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 48,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 38,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 54,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Assemblée nationale",
+          "title": "Le budget ou votre promesse ?",
+          "story": "Le groupe pivot conditionne son vote du budget au retrait partiel du prélèvement et des crédits hospitaliers déjà votés.",
+          "advisor": "Les chiffres correspondent aux mesures déjà votées dans cette partie. Le scrutin sur le compromis est compté avant son application.",
+          "choices": [
+            {
+              "id": "pol-coalition-compromise",
+              "title": "Réduire le prélèvement et les crédits hospitaliers",
+              "description": "Déposer le compromis au vote ; les deux lignes déjà financées diminuent si le texte est adopté.",
+              "benefit": "Le groupe pivot maintient son soutien au gouvernement.",
+              "sacrifice": "L’hôpital perd 4 Md€/an et le budget perd 6 Md€/an de recettes ; l’engagement est rompu.",
+              "cost": "−6 Md€/an recettes · −4 Md€/an dépenses de fonctionnement",
+              "effect": {
+                "revenue": -6,
+                "operating": -4,
+                "services": -3,
+                "trust": -2
+              },
+              "political": {
+                "action": "coalition_bargain",
+                "breakCommitment": "wealth-hospital",
+                "targetBloc": "reformist"
+              }
+            },
+            {
+              "id": "pol-coalition-refuse",
+              "title": "Maintenir le prélèvement et les crédits hospitaliers",
+              "description": "Refuser la concession et défendre les deux mesures déjà votées devant l’Assemblée.",
+              "benefit": "Les 6 Md€/an de recettes et les 4 Md€/an de crédits hospitaliers restent inscrits.",
+              "sacrifice": "Le groupe pivot retire son appui ; la motion de censure devient un risque immédiat.",
+              "cost": "Sans effet budgétaire direct",
+              "effect": {
+                "trust": 1
+              },
+              "political": {
+                "action": "reject_bargain",
+                "supportDelta": {
+                  "reformist": -12
+                },
+                "legitimacy": 2,
+                "targetBloc": "reformist"
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-1-pol-coalition-compromise",
+          "kind": "law",
+          "title": "Réduire le prélèvement et les crédits hospitaliers",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 304,
+          "against": 237,
+          "abstain": 36,
+          "threshold": 271,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 85,
+              "against": 55,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 105,
+              "against": 7,
+              "abstain": 2
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 36,
+              "against": 59,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 35,
+              "against": 66,
+              "abstain": 6
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 43,
+              "against": 50,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés.",
+            "Le compromis maintient l’appui du groupe pivot.",
+            "L’engagement correspondant est rompu ; ses recettes, crédits et soutiens sont retirés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Le compromis maintient l’appui du groupe pivot.",
+          "L’engagement correspondant est rompu ; ses recettes, crédits et soutiens sont retirés."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "r01a",
+        "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+        "messages": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée.",
+          "Le texte est rejeté. Aucun crédit ni projet de ce texte n’est engagé."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.4,
+          "interest": 57.599999999999994,
+          "savings": -113.00000000000009,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 153,
+          "cashChange": 0,
+          "deficit": 153,
+          "debt": 3353,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 56,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 50,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 68,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 48,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 38,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 54,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Retraites",
+          "title": "Faut-il réduire les pensions pour diminuer le déficit ?",
+          "story": "Les pensions sont des revenus versés après la retraite. Le scénario radical propose ici une baisse nominale de 20 % sur l’ensemble des pensions ; l’autre option augmente l’impôt des retraités concernés.",
+          "advisor": "Enveloppes distinctes et rendements hypothétiques du jeu. Les conséquences sociales continuent de modifier le budget, même sans carte de crise.",
+          "choices": [
+            {
+              "id": "r01a",
+              "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+              "effect": {
+                "operating": -35,
+                "services": -2,
+                "cohesion": -2,
+                "trust": -1,
+                "society": {
+                  "pensioners": -15
+                }
+              },
+              "sacrifice": "Toutes les pensions baissent fortement ; la consommation et les revenus des retraités reculent.",
+              "description": "Toutes les pensions baissent fortement ; la consommation et les revenus des retraités reculent.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "−35 Md€/an de charges"
+            },
+            {
+              "id": "r01b",
+              "title": "Supprimer l’abattement fiscal des pensions",
+              "effect": {
+                "revenue": 4.5,
+                "trust": -2,
+                "society": {
+                  "pensioners": -3
+                }
+              },
+              "sacrifice": "Les retraités imposables paient davantage.",
+              "description": "Les retraités imposables paient davantage.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+4,5 Md€/an de recettes"
+            },
+            {
+              "id": "r01c",
+              "title": "Préserver les pensions et financer l’aide à domicile",
+              "effect": {
+                "operating": 2,
+                "services": 2,
+                "cohesion": 1,
+                "society": {
+                  "pensioners": 4
+                }
+              },
+              "sacrifice": "Les pensions restent intactes et les personnes dépendantes reçoivent davantage d’aide. Le budget doit financer 2 Md€ de plus chaque année.",
+              "description": "Les pensions restent intactes et les personnes dépendantes reçoivent davantage d’aide. Le budget doit financer 2 Md€ de plus chaque année.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+2 Md€/an de charges"
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-2-r01a",
+          "kind": "law",
+          "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 200,
+          "against": 343,
+          "abstain": 34,
+          "threshold": 272,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 86,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 62,
+              "against": 44,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 12,
+              "against": 87,
+              "abstain": 6
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 6,
+              "against": 98,
+              "abstain": 3
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 34,
+              "against": 59,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "n11-3-recrutement-postes-vacants-prime-installation",
+        "title": "Financer une prime d’installation",
+        "messages": [
+          "Les postes prioritaires deviennent plus attractifs.",
+          "Compromis : Les équipes déjà en place demandent le même traitement..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Engagement pris : Les postes prioritaires seront publiés avec une aide d’installation.",
+          "Compromis adopté : Inclure les équipes déjà en poste dans la prime."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.88,
+          "interest": 57.599999999999994,
+          "savings": -113.4800000000001,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 153.48000000000002,
+          "cashChange": 0,
+          "deficit": 153.48000000000002,
+          "debt": 3353.48,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 58,
+          "cohesion": 54,
+          "resilience": 39,
+          "trust": 50,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 70,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 50,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 40,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 56,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Travail",
+          "title": "Des postes vacants, des horaires réduits",
+          "story": "L’hôpital et les guichets publics manquent d’agents, et les postes restent vacants. Faut-il améliorer les conditions de travail ou simplifier les recrutements tout en gardant les qualifications requises ?\n\nDernier créneau : décision 7. Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.",
+          "advisor": "Équipe de mandat",
+          "choices": [
+            {
+              "id": "n11-3-recrutement-postes-vacants-prime-installation",
+              "title": "Financer une prime d’installation",
+              "description": "Verser une prime annuelle aux personnels qui prennent les postes vacants.",
+              "cost": "0,3 Md€ par an",
+              "benefit": "Les postes prioritaires deviennent plus attractifs.",
+              "sacrifice": "Les équipes déjà en place demandent le même traitement.",
+              "effect": {
+                "operating": 0.48,
+                "services": 2,
+                "cohesion": 2
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 3,
+                  "social": 2
+                }
+              },
+              "amendment": {
+                "id": "amend-equipe-en-place",
+                "label": "Inclure les équipes déjà en poste dans la prime",
+                "effect": {
+                  "operating": 0.18,
+                  "cohesion": 2
+                },
+                "support": 2
+              },
+              "narrative": {
+                "eventId": "recrutement-postes-vacants",
+                "promise": {
+                  "id": "pourvoir-postes",
+                  "label": "Les postes prioritaires seront publiés avec une aide d’installation.",
+                  "dueAfter": 2,
+                  "keepWhen": "services_improved"
+                },
+                "relationships": {
+                  "social": 2,
+                  "reformist": 1
+                }
+              }
+            },
+            {
+              "id": "n11-3-recrutement-postes-vacants-simplifier-concours",
+              "title": "Simplifier les procédures de recrutement",
+              "description": "Mutualiser les concours et accélérer les vérifications administratives.",
+              "cost": "0,1 Md€ d’organisation",
+              "benefit": "Les délais de prise de poste diminuent dans le scénario.",
+              "sacrifice": "Les équipes RH absorbent une charge de transition.",
+              "effect": {
+                "operating": 0.1,
+                "services": 1
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 2
+                }
+              },
+              "narrative": {
+                "eventId": "recrutement-postes-vacants",
+                "promise": {
+                  "id": "delais-recrutement",
+                  "label": "Les délais d’embauche des postes prioritaires seront raccourcis.",
+                  "dueAfter": 2,
+                  "keepWhen": "services_improved"
+                },
+                "relationships": {
+                  "reformist": 2
+                }
+              }
+            },
+            {
+              "id": "n11-3-recrutement-postes-vacants-reduire-horaires-vacants",
+              "title": "Réduire les horaires aux capacités disponibles",
+              "description": "Adapter les ouvertures aux équipes réellement présentes.",
+              "cost": "Aucune dépense nouvelle",
+              "benefit": "Les équipes cessent d’enchaîner les remplacements d’urgence.",
+              "sacrifice": "Les usagers trouvent moins de créneaux.",
+              "effect": {
+                "services": -2,
+                "cohesion": -1
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "conservative": 1,
+                  "social": -2
+                }
+              },
+              "narrative": {
+                "eventId": "recrutement-postes-vacants",
+                "relationships": {
+                  "conservative": 1,
+                  "social": -2
+                }
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-3-n11-3-recrutement-postes-vacants-prime-installation",
+          "kind": "law",
+          "title": "Financer une prime d’installation",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 350,
+          "against": 187,
+          "abstain": 40,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 129,
+              "against": 16,
+              "abstain": 6
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 82,
+              "against": 24,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 50,
+              "against": 45,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 41,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 48,
+              "against": 44,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "r02a",
+        "title": "Supprimer un poste public sur cinq en deux ans",
+        "messages": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée.",
+          "Le texte est rejeté. Aucun crédit ni projet de ce texte n’est engagé."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.88,
+          "interest": 57.599999999999994,
+          "savings": -113.4800000000001,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 153.48000000000002,
+          "cashChange": 0,
+          "deficit": 153.48000000000002,
+          "debt": 3353.48,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 58,
+          "cohesion": 54,
+          "resilience": 39,
+          "trust": 50,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 70,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 50,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 40,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 56,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Fonction publique",
+          "title": "Faut-il réduire les effectifs administratifs ?",
+          "story": "Les agents accueillent le public et instruisent les dossiers. Le scénario radical supprime un poste sur cinq en deux ans ; préserver ou recréer les postes limite la fermeture des services et l’allongement des délais.",
+          "advisor": "Enveloppes distinctes et rendements hypothétiques du jeu. Les conséquences sociales continuent de modifier le budget, même sans carte de crise.",
+          "choices": [
+            {
+              "id": "r02a",
+              "title": "Supprimer un poste public sur cinq en deux ans",
+              "effect": {
+                "operating": -32,
+                "services": -2,
+                "cohesion": -2,
+                "trust": -1,
+                "society": {
+                  "publicStaff": -6
+                }
+              },
+              "sacrifice": "Les effectifs chutent rapidement ; des services ferment ou fonctionnent avec des délais très dégradés.",
+              "description": "Les effectifs chutent rapidement ; des services ferment ou fonctionnent avec des délais très dégradés.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "−32 Md€/an de charges"
+            },
+            {
+              "id": "r02b",
+              "title": "Financer les postes par une contribution sur les hauts revenus",
+              "effect": {
+                "revenue": 8,
+                "trust": -2,
+                "society": {
+                  "affluent": -3
+                }
+              },
+              "sacrifice": "Les contribuables ciblés financent le maintien des emplois.",
+              "description": "Les contribuables ciblés financent le maintien des emplois.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+8 Md€/an de recettes"
+            },
+            {
+              "id": "r02c",
+              "title": "Remplacer les départs et ouvrir davantage de guichets",
+              "effect": {
+                "operating": 2,
+                "services": 2,
+                "cohesion": 1,
+                "society": {
+                  "publicStaff": 4
+                }
+              },
+              "sacrifice": "Les postes sont préservés et l’accueil est renforcé. Les contribuables financent 2 Md€ de dépenses annuelles supplémentaires.",
+              "description": "Les postes sont préservés et l’accueil est renforcé. Les contribuables financent 2 Md€ de dépenses annuelles supplémentaires.",
+              "benefit": "La décision modifie la trajectoire et les dossiers suivants.",
+              "cost": "+2 Md€/an de charges"
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-4-r02a",
+          "kind": "law",
+          "title": "Supprimer un poste public sur cinq en deux ans",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 259,
+          "against": 277,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 127,
+              "against": 17,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 62,
+              "against": 43,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 23,
+              "against": 75,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 24,
+              "against": 74,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 23,
+              "against": 68,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+        ]
+      },
+      {
+        "year": 1,
+        "closed": true,
+        "choice": "n11-5-integrite-interets-maintenir-procedure-marche",
+        "title": "Maintenir l’attribution avec une note juridique",
+        "messages": [
+          "Exercice 1 clôturé. Intérêts, dette et trésorerie comptabilisés une seule fois.",
+          "Les travaux démarrent au calendrier annoncé.",
+          "Compromis : Le public ne voit pas encore les pièces ni l’examen complet..",
+          "Texte adopté : ses effets sont appliqués et financés.",
+          "Engagement tenu : Les postes prioritaires seront publiés avec une aide d’installation."
+        ],
+        "event": "Les engagements antérieurs se poursuivent",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1545.89,
+          "interest": 57.599999999999994,
+          "savings": -113.4900000000001,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 153.49,
+          "cashChange": 0,
+          "deficit": 153.49,
+          "debt": 3353.49,
+          "gdp": 2913.1088
+        },
+        "metrics": {
+          "services": 58,
+          "cohesion": 54,
+          "resilience": 39,
+          "trust": 50,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 70,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 50,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 40,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 56,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Institutions",
+          "title": "Un marché attribué à un proche",
+          "story": "Un membre du cabinet a rencontré une entreprise candidate à un marché, et sa déclaration d’intérêts est incomplète. Aucun favoritisme n’est établi : faut-il publier les échanges et confier le contrôle à une instance indépendante ?\n\nDernier créneau : décision 9. Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.",
+          "advisor": "Équipe de mandat",
+          "choices": [
+            {
+              "id": "n11-5-integrite-interets-audit-independant",
+              "title": "Confier le dossier à un audit indépendant",
+              "description": "Publier les pièces autorisées et suspendre l’attribution jusqu’au rapport.",
+              "cost": "0,08 Md€ de contrôle",
+              "benefit": "La décision repose sur un examen vérifiable.",
+              "sacrifice": "Le marché et les fournisseurs attendent le rapport.",
+              "effect": {
+                "operating": 0.08,
+                "trust": 3
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 2,
+                  "presidential": -1
+                }
+              },
+              "narrative": {
+                "eventId": "integrite-interets",
+                "press": "L’Écho des Tilleuls : « L’attribution est suspendue le temps d’un audit indépendant. »",
+                "promise": {
+                  "id": "audit-marche",
+                  "label": "Le contrôle indépendant du marché sera publié.",
+                  "dueAfter": 1,
+                  "targetProject": "audit-marche",
+                  "keepWhen": "project_delivered"
+                },
+                "project": {
+                  "id": "audit-marche",
+                  "kind": "integrity",
+                  "label": "Audit indépendant du marché public",
+                  "place": "gare-des-tilleuls",
+                  "dueAfter": 1,
+                  "action": "fund",
+                  "pressByStatus": {
+                    "funded": "L’Écho des Tilleuls : « L’audit indépendant est financé; l’attribution attend ses conclusions. »",
+                    "blocked": "L’Écho des Tilleuls : « L’audit est bloqué faute d’accès aux pièces. »",
+                    "delivered": "L’Écho des Tilleuls : « L’audit publié ne conclut à aucun favoritisme établi; les règles sont corrigées. »",
+                    "withdrawn": "L’Écho des Tilleuls : « L’audit est retiré, le doute demeure. »"
+                  },
+                  "deliveryEffect": {
+                    "trust": 2
+                  }
+                },
+                "relationships": {
+                  "reformist": 2,
+                  "presidential": -1
+                }
+              }
+            },
+            {
+              "id": "n11-5-integrite-interets-deport-public",
+              "title": "Publier le déport et reprendre la procédure",
+              "description": "Écarter le membre du cabinet et relancer la comparaison des offres.",
+              "cost": "0,03 Md€ de procédure",
+              "benefit": "Les candidats sont évalués sans sa participation.",
+              "sacrifice": "Une relance réduit le temps pour lancer les travaux.",
+              "effect": {
+                "operating": 0.04,
+                "trust": 4
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 3,
+                  "presidential": -1
+                }
+              },
+              "amendment": {
+                "id": "amend-declaration-interets",
+                "label": "Publier les déclarations d’intérêts actualisées",
+                "effect": {
+                  "operating": 0.01,
+                  "trust": 2
+                },
+                "support": 2
+              },
+              "narrative": {
+                "eventId": "integrite-interets",
+                "relationships": {
+                  "reformist": 1,
+                  "presidential": -1
+                }
+              }
+            },
+            {
+              "id": "n11-5-integrite-interets-maintenir-procedure-marche",
+              "title": "Maintenir l’attribution avec une note juridique",
+              "description": "Faire examiner le dossier par le service juridique sans suspendre le marché.",
+              "cost": "0,01 Md€ de conseil",
+              "benefit": "Les travaux démarrent au calendrier annoncé.",
+              "sacrifice": "Le public ne voit pas encore les pièces ni l’examen complet.",
+              "effect": {
+                "operating": 0.01,
+                "trust": -2,
+                "growth": 0.01
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "presidential": 2,
+                  "reformist": -2
+                }
+              },
+              "narrative": {
+                "eventId": "integrite-interets",
+                "relationships": {
+                  "presidential": 2,
+                  "reformist": -2
+                }
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-5-n11-5-integrite-interets-maintenir-procedure-marche",
+          "kind": "law",
+          "title": "Maintenir l’attribution avec une note juridique",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 321,
+          "against": 211,
+          "abstain": 45,
+          "threshold": 267,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 102,
+              "against": 40,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 87,
+              "against": 20,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 32,
+              "against": 63,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 51,
+              "against": 46,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 49,
+              "against": 42,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    ],
+    "choices": [
+      "pol-wealth-hospital-package",
+      "pol-coalition-compromise",
+      "r01a",
+      "n11-3-recrutement-postes-vacants-prime-installation",
+      "r02a",
+      "n11-5-integrite-interets-maintenir-procedure-marche"
+    ],
+    "politics": {
+      "blocs": [
+        {
+          "id": "presidential",
+          "label": "Majorité présidentielle",
+          "seats": 151,
+          "loyalty": 80,
+          "inGovernment": true
+        },
+        {
+          "id": "reformist",
+          "label": "Réformistes",
+          "seats": 114,
+          "loyalty": 73,
+          "inGovernment": true
+        },
+        {
+          "id": "social",
+          "label": "Gauche sociale",
+          "seats": 105,
+          "loyalty": 48,
+          "inGovernment": false
+        },
+        {
+          "id": "conservative",
+          "label": "Conservateurs",
+          "seats": 107,
+          "loyalty": 38,
+          "inGovernment": false
+        },
+        {
+          "id": "regional",
+          "label": "Territoires",
+          "seats": 100,
+          "loyalty": 45,
+          "inGovernment": false
+        }
+      ],
+      "legitimacy": 49,
+      "unrest": 29.96666666666667,
+      "cabinet": "stable",
+      "commitments": [
+        {
+          "id": "wealth-hospital",
+          "label": "Prélèvement patrimonial et financement hospitalier votés",
+          "dueTurn": 1,
+          "status": "broken"
+        }
+      ],
+      "votes": [
+        {
+          "id": "law-0-pol-wealth-hospital-package",
+          "kind": "law",
+          "title": "Voter le prélèvement et financer les hôpitaux",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 355,
+          "against": 181,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 124,
+              "against": 20,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 76,
+              "against": 29,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 57,
+              "against": 40,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 42,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 56,
+              "against": 37,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "id": "law-1-pol-coalition-compromise",
+          "kind": "law",
+          "title": "Réduire le prélèvement et les crédits hospitaliers",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 304,
+          "against": 237,
+          "abstain": 36,
+          "threshold": 271,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 85,
+              "against": 55,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 105,
+              "against": 7,
+              "abstain": 2
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 36,
+              "against": 59,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 35,
+              "against": 66,
+              "abstain": 6
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 43,
+              "against": 50,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés.",
+            "Le compromis maintient l’appui du groupe pivot.",
+            "L’engagement correspondant est rompu ; ses recettes, crédits et soutiens sont retirés."
+          ]
+        },
+        {
+          "id": "law-2-r01a",
+          "kind": "law",
+          "title": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 200,
+          "against": 343,
+          "abstain": 34,
+          "threshold": 272,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 86,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 62,
+              "against": 44,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 12,
+              "against": 87,
+              "abstain": 6
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 6,
+              "against": 98,
+              "abstain": 3
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 34,
+              "against": 59,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "id": "law-3-n11-3-recrutement-postes-vacants-prime-installation",
+          "kind": "law",
+          "title": "Financer une prime d’installation",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 350,
+          "against": 187,
+          "abstain": 40,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 129,
+              "against": 16,
+              "abstain": 6
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 82,
+              "against": 24,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 50,
+              "against": 45,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 41,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 48,
+              "against": 44,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "id": "law-4-r02a",
+          "kind": "law",
+          "title": "Supprimer un poste public sur cinq en deux ans",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 259,
+          "against": 277,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 127,
+              "against": 17,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 62,
+              "against": 43,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 23,
+              "against": 75,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 24,
+              "against": 74,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 23,
+              "against": 68,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "id": "law-5-n11-5-integrite-interets-maintenir-procedure-marche",
+          "kind": "law",
+          "title": "Maintenir l’attribution avec une note juridique",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 321,
+          "against": 211,
+          "abstain": 45,
+          "threshold": 267,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 102,
+              "against": 40,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 87,
+              "against": 20,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 32,
+              "against": 63,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 51,
+              "against": 46,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 49,
+              "against": 42,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "scandalExposure": 0,
+      "misconduct": 0,
+      "failedBills": 0,
+      "emergencyUses": 0,
+      "ruleOfLaw": 72,
+      "institutionalBreaches": 0,
+      "lastVote": {
+        "id": "law-5-n11-5-integrite-interets-maintenir-procedure-marche",
+        "kind": "law",
+        "title": "Maintenir l’attribution avec une note juridique",
+        "chamber": "Assemblée nationale",
+        "total": 577,
+        "for": 321,
+        "against": 211,
+        "abstain": 45,
+        "threshold": 267,
+        "passed": true,
+        "groups": [
+          {
+            "id": "presidential",
+            "label": "Majorité présidentielle",
+            "for": 102,
+            "against": 40,
+            "abstain": 9
+          },
+          {
+            "id": "reformist",
+            "label": "Réformistes",
+            "for": 87,
+            "against": 20,
+            "abstain": 7
+          },
+          {
+            "id": "social",
+            "label": "Gauche sociale",
+            "for": 32,
+            "against": 63,
+            "abstain": 10
+          },
+          {
+            "id": "conservative",
+            "label": "Conservateurs",
+            "for": 51,
+            "against": 46,
+            "abstain": 10
+          },
+          {
+            "id": "regional",
+            "label": "Territoires",
+            "for": 49,
+            "against": 42,
+            "abstain": 9
+          }
+        ],
+        "consequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    },
+    "narrative": {
+      "context": "coalition",
+      "deferred": [],
+      "promises": [
+        {
+          "id": "pourvoir-postes",
+          "label": "Les postes prioritaires seront publiés avec une aide d’installation.",
+          "status": "kept",
+          "causeTurn": 3,
+          "dueTurn": 5,
+          "keepWhen": "services_improved",
+          "funded": true,
+          "baseline": 56,
+          "resolvedTurn": 5
+        }
+      ],
+      "promiseCandidates": [
+        {
+          "id": "renforts-nuit",
+          "label": "Aucune unité de soins ne fermera faute de renfort."
+        },
+        {
+          "id": "desservir-usine",
+          "label": "Le premier bus pour l’usine circulera avant l’hiver."
+        }
+      ],
+      "projects": [],
+      "relationships": [
+        {
+          "id": "samira",
+          "name": "Samira Benali",
+          "role": "urgentiste et représentante des équipes hospitalières",
+          "loyalty": 52,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 3
+        },
+        {
+          "id": "luc",
+          "name": "Luc Morel",
+          "role": "maire de Val-des-Forges et négociateur territorial",
+          "loyalty": 50,
+          "stance": "défend les services et les emplois du bassin"
+        },
+        {
+          "id": "ines",
+          "name": "Inès Vidal",
+          "role": "directrice d’usine et porte-parole des sous-traitants",
+          "loyalty": 49,
+          "stance": "conteste votre dernier arbitrage",
+          "lastTurn": 5
+        },
+        {
+          "id": "claire",
+          "name": "Claire Dumas",
+          "role": "rapporteure parlementaire chargée de l’éthique publique",
+          "loyalty": 52,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 5
+        }
+      ],
+      "events": [
+        {
+          "id": "opening-coalition",
+          "turn": -1,
+          "kind": "opening",
+          "title": "La majorité réclame deux signatures",
+          "detail": "La majorité doit choisir comment financer deux promesses à Val-des-Forges : des renforts à l’hôpital et un bus pour les salariés. Les deux projets passent au même vote budgétaire.",
+          "causeTurn": -1,
+          "weight": 1
+        },
+        {
+          "kind": "decision",
+          "title": "Le prélèvement sur les patrimoines finance l’hôpital.",
+          "detail": "Les hôpitaux reçoivent 4 Md€/an supplémentaires et le budget perçoit 6 Md€/an.",
+          "causeTurn": 0,
+          "weight": 4.5,
+          "id": "decision-0-1",
+          "turn": 0
+        },
+        {
+          "kind": "decision",
+          "title": "Le budget ou votre promesse ?",
+          "detail": "Le groupe pivot maintient son soutien au gouvernement.",
+          "causeTurn": 1,
+          "weight": 4.5,
+          "id": "decision-1-2",
+          "turn": 1
+        },
+        {
+          "kind": "rejected",
+          "title": "Le texte ne passe pas",
+          "detail": "Réduire de 20 % les pensions, y compris les petites retraites",
+          "causeTurn": 2,
+          "weight": -3,
+          "id": "rejected-2-3",
+          "turn": 2
+        },
+        {
+          "kind": "decision",
+          "title": "Des postes vacants, des horaires réduits",
+          "detail": "Les postes prioritaires deviennent plus attractifs.",
+          "causeTurn": 3,
+          "weight": 2.096,
+          "id": "decision-3-4",
+          "turn": 3
+        },
+        {
+          "kind": "rejected",
+          "title": "Le texte ne passe pas",
+          "detail": "Supprimer un poste public sur cinq en deux ans",
+          "causeTurn": 4,
+          "weight": -3,
+          "id": "rejected-4-5",
+          "turn": 4
+        },
+        {
+          "kind": "decision",
+          "title": "Un marché attribué à un proche",
+          "detail": "Les travaux démarrent au calendrier annoncé.",
+          "causeTurn": 5,
+          "weight": 1.002,
+          "id": "decision-5-6",
+          "turn": 5
+        },
+        {
+          "kind": "promise",
+          "title": "Une promesse tenue",
+          "detail": "Les postes prioritaires seront publiés avec une aide d’installation.",
+          "causeTurn": 3,
+          "weight": 4,
+          "id": "promise-5-7",
+          "turn": 5
+        }
+      ],
+      "lastConsequences": [
+        "Engagement tenu : Les postes prioritaires seront publiés avec une aide d’installation."
+      ]
+    },
+    "social": {
+      "movements": [],
+      "budget": {
+        "year": 1,
+        "accruedOperating": 0,
+        "accruedRevenue": 0,
+        "operating": 0,
+        "revenue": 0
+      }
+    },
+    "society": {
+      "workers": 65,
+      "pensioners": 65,
+      "vulnerable": 62,
+      "businesses": 65,
+      "newcomers": 60,
+      "publicStaff": 67,
+      "affluent": 62
+    }
+  }
+}

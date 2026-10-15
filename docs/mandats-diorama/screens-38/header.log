@@ -1,0 +1,16 @@
+[WebServer] (node:17305) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 3 tests using 1 worker
+
+(node:17323) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [header-mobile-320] › tests/header-navigation.test.mjs:76:1 › shared header works across public pages, viewports, and repeated SPA navigation (14.9s)
+(node:17467) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [header-mobile-390] › tests/header-navigation.test.mjs:76:1 › shared header works across public pages, viewports, and repeated SPA navigation (15.3s)
+(node:17600) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [header-desktop-1440] › tests/header-navigation.test.mjs:76:1 › shared header works across public pages, viewports, and repeated SPA navigation (9.6s)
+
+  3 passed (42.1s)

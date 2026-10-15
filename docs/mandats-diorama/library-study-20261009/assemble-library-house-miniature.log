@@ -1,0 +1,165 @@
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.221
+15:21:39 | INFO: glTF import finished in 0.03s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Plane.030
+15:21:39 | INFO: glTF import finished in 0.02s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.027
+15:21:39 | INFO: glTF import finished in 0.01s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.023
+15:21:39 | INFO: glTF import finished in 0.00s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.110
+15:21:39 | INFO: glTF import finished in 0.03s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.182
+15:21:39 | INFO: glTF import finished in 0.01s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.054
+15:21:39 | INFO: glTF import finished in 0.01s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.153
+15:21:39 | INFO: glTF import finished in 0.01s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Cube.017_Retopology.006
+15:21:39 | INFO: glTF import finished in 0.01s
+15:21:39 | INFO: Data are loaded, start creating Blender stuff
+15:21:39 | INFO: Blender create Mesh node Plane.004
+15:21:39 | INFO: glTF import finished in 0.00s
+{"name": "maison_alsace_01", "sourceTriangles": 5368, "triangles": 1498, "budget": 1500}
+{"name": "maison_alsace_01_distant", "sourceTriangles": 5368, "triangles": 349, "budget": 350}
+ERROR Draco mesh compression is not available because library could not be found at /usr/bin/4.3/python/lib/python3.13/site-packages/libextern_draco.so
+15:21:41 | INFO: Starting glTF 2.0 export
+15:21:41 | WARNING: Mesh Cube.019 is not valid, and may be exported wrongly
+15:21:41 | INFO: Extracting primitive: Cube.019
+15:21:41 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:21:41 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:21:42 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:21:42 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:21:42 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:21:42 | INFO: Primitives created: 6
+15:21:42 | WARNING: Mesh Cube.020 is not valid, and may be exported wrongly
+15:21:42 | INFO: Extracting primitive: Cube.020
+15:21:42 | INFO: Primitives created: 6
+15:21:42 | INFO: Finished glTF 2.0 export in 1.2915351390838623 s
+
+{"status": "candidate-not-integrated", "source": "Quaternius Medieval Village MegaKit standard 2025 CC0", "variants": [{"name": "maison_alsace_01", "sourceTriangles": 5368, "triangles": 1498, "materials": 6, "BlenderBounds": [[-0.4650000035762787, -0.5339999794960022, 0], [0.4650000035762787, 0.4449999928474426, 1.0169999599456787]]}, {"name": "maison_alsace_01_distant", "sourceTriangles": 5368, "triangles": 349, "materials": 6, "BlenderBounds": [[-0.4650000035762787, -0.5339999794960022, 0], [0.4650000035762787, 0.4449999928474426, 1.0169999599456787]]}], "texturePixels": 256, "materialEquivalence": "Six groups verified from actual v2 glTF material graphs, including image and sampler references.", "limits": ["Actual game appearance and physical footing not yet validated.", "Original browser timing gates not exercised by this asset study."]}
+Blender 4.3.2
+Fra:1 Mem:60.24M (Peak 60.24M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | maison_alsace_01
+Fra:1 Mem:60.25M (Peak 60.25M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Plane
+Fra:1 Mem:62.57M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:62.56M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Images | Loading T_WoodTrim_BaseColor
+Fra:1 Mem:62.56M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Images | Loading T_RoundTiles_Normal
+Fra:1 Mem:62.56M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Images | Loading T_Plaster_BaseColor
+Fra:1 Mem:64.32M (Peak 64.32M) | Time:00:00.00 | Mem:0.25M, Peak:0.25M | Scene, ViewLayer | Updating Images | Loading T_RoundTiles_Roughness
+Fra:1 Mem:64.07M (Peak 64.32M) | Time:00:00.00 | Mem:0.50M, Peak:0.50M | Scene, ViewLayer | Updating Images | Loading T_RoundTiles_BaseColor
+Fra:1 Mem:64.82M (Peak 64.82M) | Time:00:00.00 | Mem:0.75M, Peak:0.75M | Scene, ViewLayer | Updating Images | Loading T_Plaster_ORM
+Fra:1 Mem:64.82M (Peak 64.82M) | Time:00:00.00 | Mem:1.00M, Peak:1.00M | Scene, ViewLayer | Updating Images | Loading T_Brick_Normal
+Fra:1 Mem:65.57M (Peak 65.57M) | Time:00:00.00 | Mem:1.25M, Peak:1.25M | Scene, ViewLayer | Updating Images | Loading T_Brick_Roughness
+Fra:1 Mem:65.57M (Peak 65.57M) | Time:00:00.00 | Mem:1.50M, Peak:1.50M | Scene, ViewLayer | Updating Images | Loading T_Plaster_Normal
+Fra:1 Mem:65.32M (Peak 65.57M) | Time:00:00.00 | Mem:2.00M, Peak:2.00M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_BaseColor
+Fra:1 Mem:66.07M (Peak 66.07M) | Time:00:00.00 | Mem:2.25M, Peak:2.25M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_Normal
+Fra:1 Mem:66.32M (Peak 66.32M) | Time:00:00.00 | Mem:2.50M, Peak:2.50M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_ORM
+Fra:1 Mem:65.74M (Peak 66.32M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:65.74M (Peak 66.32M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:65.74M (Peak 66.32M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:65.74M (Peak 66.32M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:65.83M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:65.85M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.00 | Mem:3.90M, Peak:3.90M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.00 | Mem:3.90M, Peak:3.90M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.00 | Mem:3.94M, Peak:3.94M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:66.00M (Peak 66.32M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:66.13M (Peak 66.32M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:66.14M (Peak 66.32M) | Time:00:00.01 | Mem:4.14M, Peak:4.22M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:66.14M (Peak 66.32M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:66.14M (Peak 66.32M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:66.14M (Peak 66.32M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:95.35M (Peak 95.35M) | Time:00:00.48 | Remaining:00:10.97 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:108.32M (Peak 134.26M) | Time:00:11.67 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:108.32M (Peak 134.26M) | Time:00:11.67 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Finished
+Saved: '/workspace/mandats-verification/authored-3d/library-adaptation38/library-house-miniature-front.png'
+Time: 00:11.93 (Saving: 00:00.24)
+
+Fra:1 Mem:62.26M (Peak 62.26M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | maison_alsace_01
+Fra:1 Mem:62.27M (Peak 62.27M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Plane
+Fra:1 Mem:62.57M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:62.56M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Images | Loading T_WoodTrim_Roughness
+Fra:1 Mem:62.56M (Peak 62.57M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Images | Loading T_WoodTrim_BaseColor
+Fra:1 Mem:63.07M (Peak 63.07M) | Time:00:00.00 | Mem:0.50M, Peak:0.50M | Scene, ViewLayer | Updating Images | Loading T_RoundTiles_Roughness
+Fra:1 Mem:63.07M (Peak 63.07M) | Time:00:00.00 | Mem:0.50M, Peak:0.50M | Scene, ViewLayer | Updating Images | Loading T_Plaster_BaseColor
+Fra:1 Mem:64.32M (Peak 64.32M) | Time:00:00.00 | Mem:0.75M, Peak:0.75M | Scene, ViewLayer | Updating Images | Loading T_RoundTiles_BaseColor
+Fra:1 Mem:65.07M (Peak 65.07M) | Time:00:00.00 | Mem:1.00M, Peak:1.00M | Scene, ViewLayer | Updating Images | Loading T_Brick_Normal
+Fra:1 Mem:65.32M (Peak 65.32M) | Time:00:00.00 | Mem:1.25M, Peak:1.25M | Scene, ViewLayer | Updating Images | Loading T_Brick_Roughness
+Fra:1 Mem:65.57M (Peak 65.57M) | Time:00:00.00 | Mem:1.50M, Peak:1.50M | Scene, ViewLayer | Updating Images | Loading T_Plaster_ORM
+Fra:1 Mem:65.32M (Peak 65.57M) | Time:00:00.00 | Mem:1.75M, Peak:1.75M | Scene, ViewLayer | Updating Images | Loading T_Brick_BaseColor
+Fra:1 Mem:66.07M (Peak 66.07M) | Time:00:00.00 | Mem:2.00M, Peak:2.00M | Scene, ViewLayer | Updating Images | Loading T_Plaster_Normal
+Fra:1 Mem:66.32M (Peak 66.32M) | Time:00:00.00 | Mem:2.25M, Peak:2.25M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_Normal
+Fra:1 Mem:66.32M (Peak 66.32M) | Time:00:00.00 | Mem:2.75M, Peak:2.75M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_BaseColor
+Fra:1 Mem:66.57M (Peak 66.57M) | Time:00:00.00 | Mem:3.00M, Peak:3.00M | Scene, ViewLayer | Updating Images | Loading T_RockTrim_ORM
+Fra:1 Mem:65.74M (Peak 66.57M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:65.74M (Peak 66.57M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:65.74M (Peak 66.57M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:65.74M (Peak 66.57M) | Time:00:00.00 | Mem:3.75M, Peak:3.75M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:65.83M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:65.85M (Peak 66.57M) | Time:00:00.00 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:3.76M, Peak:3.76M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:3.90M, Peak:3.90M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:3.90M, Peak:3.90M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:3.94M, Peak:3.94M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:65.99M (Peak 66.57M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.01M, Peak:4.05M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.14M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:66.13M (Peak 66.57M) | Time:00:00.01 | Mem:4.22M, Peak:4.22M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:66.14M (Peak 66.57M) | Time:00:00.01 | Mem:4.14M, Peak:4.22M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:66.14M (Peak 66.57M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:66.14M (Peak 66.57M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:66.14M (Peak 66.57M) | Time:00:00.01 | Mem:4.23M, Peak:4.23M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:95.34M (Peak 95.34M) | Time:00:00.45 | Remaining:00:10.25 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:108.32M (Peak 134.26M) | Time:00:11.13 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:108.32M (Peak 134.26M) | Time:00:11.13 | Mem:33.42M, Peak:33.42M | Scene, ViewLayer | Finished
+Saved: '/workspace/mandats-verification/authored-3d/library-adaptation38/library-house-miniature-back.png'
+Time: 00:11.24 (Saving: 00:00.10)
+
+
+Blender quit

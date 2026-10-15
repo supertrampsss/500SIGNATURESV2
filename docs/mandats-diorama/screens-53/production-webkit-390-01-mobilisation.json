@@ -1,0 +1,601 @@
+{
+  "experimentalModelOverride": [],
+  "productionBuild": "iteration53 complete production build, full-check-f.log; branch codex/mandats-reference-3d-20261008 parent98bc726. Original browser suites are recorded separately. These native captures are not timing gates or artistic-conformity proof.",
+  "browserVersion": "26.5",
+  "servedBundleResponses": [
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-BR6wKexh.js",
+      "path": "assets/shared-design-BR6wKexh.js",
+      "status": 200,
+      "bytes": 711,
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-D17Vxp_n.css",
+      "path": "assets/shared-design-D17Vxp_n.css",
+      "status": 200,
+      "bytes": 30543,
+      "sha256": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/game-B_-L39w0.css",
+      "path": "assets/game-B_-L39w0.css",
+      "status": 200,
+      "bytes": 81756,
+      "sha256": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/site-shell-v2-DKHbEmDf.css",
+      "path": "assets/site-shell-v2-DKHbEmDf.css",
+      "status": 200,
+      "bytes": 45671,
+      "sha256": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-De3egIe0.css",
+      "path": "assets/mandats-De3egIe0.css",
+      "status": 200,
+      "bytes": 176255,
+      "sha256": "51b542390978f19c3957a205390c77dd7fdd05d0c2ff7f92e2daa87370d715cc"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-RN4UUo1F.js",
+      "path": "assets/mandats-RN4UUo1F.js",
+      "status": 200,
+      "bytes": 644177,
+      "sha256": "3d83fab3787b03df9b042ef232cdd60051c0c4a33c73f0342c1d0e81f2e23187"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/map-scene-B4od1VxK.js",
+      "path": "assets/map-scene-B4od1VxK.js",
+      "status": 200,
+      "bytes": 2589936,
+      "sha256": "58788b8acd3c0ac5e4ce828e0bfb67109b878391a82fc0ac090792829f88b57d"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/envTextureLoader-Cza_qNSN.js",
+      "path": "assets/envTextureLoader-Cza_qNSN.js",
+      "status": 200,
+      "bytes": 8101,
+      "sha256": "4bbf9e4b863316cc388cceec8fab25c6169e19ce67ade9402627116a16bbaf86"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/cubemapToSphericalPolynomial-ByvO5zWq.js",
+      "path": "assets/cubemapToSphericalPolynomial-ByvO5zWq.js",
+      "status": 200,
+      "bytes": 3671,
+      "sha256": "72b3831217516cd145b5bbd5af357d4efa7e2c666797dfac9b24e999abf7a74a"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/sceneVertexDeclaration-Brt9NTEE.js",
+      "path": "assets/sceneVertexDeclaration-Brt9NTEE.js",
+      "status": 200,
+      "bytes": 333,
+      "sha256": "11c49c8dd2f769210550e008edbc5dc31423433f3e021bbd9ec428bd1612bcfb"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.fragment-ZYAFFAKX.js",
+      "path": "assets/shadowMap.fragment-ZYAFFAKX.js",
+      "status": 200,
+      "bytes": 3403,
+      "sha256": "0b93f515f1b5f1fa491146f9d7da6b8996d55cabe30ef126285cdd0bf820706b"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/packingFunctions-CfJ13ZTc.js",
+      "path": "assets/packingFunctions-CfJ13ZTc.js",
+      "status": 200,
+      "bytes": 532,
+      "sha256": "8ed824c9ac4e58fbd7786cae37f1fb339037cc1131315da7cfb2971b775a52ee"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.vertex-Cs5CkeKs.js",
+      "path": "assets/shadowMap.vertex-Cs5CkeKs.js",
+      "status": 200,
+      "bytes": 4648,
+      "sha256": "a342876d1bfd1d2c4b9107d0551c90c65b78bb35bb481ae4c60ca6ee56274fe5"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/depthBoxBlur.fragment-BW93E4qF.js",
+      "path": "assets/depthBoxBlur.fragment-BW93E4qF.js",
+      "status": 200,
+      "bytes": 666,
+      "sha256": "f6063c1d443b51ccf1e07119aae98be7333726ae3038ebcfdf48f6261c2ce44b"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMapFragmentSoftTransparentShadow-9kBiKk0v.js",
+      "path": "assets/shadowMapFragmentSoftTransparentShadow-9kBiKk0v.js",
+      "status": 200,
+      "bytes": 502,
+      "sha256": "45e802d7912e33d8419c810a91911ca211427b6c4021295c27c48d24a37d7ea2"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterial.pure-DVVoQ99R.js",
+      "path": "assets/pbrMaterial.pure-DVVoQ99R.js",
+      "status": 200,
+      "bytes": 135185,
+      "sha256": "22929411ebae78a34ac97499767030f093ed5f9e3af1778fca2374f78fe3b2d8"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterialLoadingAdapter-5zqcP7_s.js",
+      "path": "assets/pbrMaterialLoadingAdapter-5zqcP7_s.js",
+      "status": 200,
+      "bytes": 12560,
+      "sha256": "1e50de4af1393104ee36f90079fc19d18f093acb74b5a74ff491b31672f483b0"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/brdfTextureTools-B85O6v3z.js",
+      "path": "assets/brdfTextureTools-B85O6v3z.js",
+      "status": 200,
+      "bytes": 61481,
+      "sha256": "b1c50d4cd1da40ede039f8844965588162944c15771d902baf33cdae29ae39a8"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/rgbdDecode.fragment-DLrFPOCu.js",
+      "path": "assets/rgbdDecode.fragment-DLrFPOCu.js",
+      "status": 200,
+      "bytes": 618,
+      "sha256": "e5395ffe817b0bf138e64a5fdf8a9150a51a449ee13734b250f99adb7c4fc754"
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/postprocess.vertex--UtQE6y2.js",
+      "path": "assets/postprocess.vertex--UtQE6y2.js",
+      "status": 200,
+      "bytes": 592,
+      "sha256": "cb95729e1ffee5e6f925a755e0706afd1bd0074f250b75a6da28ffcfb3ab42b6"
+    }
+  ],
+  "responseBodyErrors": [],
+  "failedResponses": [],
+  "consoleMessages": [
+    {
+      "type": "log",
+      "text": "BJS - [11:47:01]: Babylon.js v9.30.0 - WebGL2 - Parallel shader compilation",
+      "location": {
+        "url": "http://127.0.0.1:4194/assets/map-scene-B4od1VxK.js",
+        "line": 1,
+        "column": 12470,
+        "lineNumber": 1,
+        "columnNumber": 12470
+      },
+      "at": "2026-10-13T11:47:01.258Z"
+    },
+    {
+      "type": "warning",
+      "text": "The resource http://127.0.0.1:4194/assets/mandats-RN4UUo1F.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.",
+      "location": {
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "at": "2026-10-13T11:47:03.460Z"
+    },
+    {
+      "type": "warning",
+      "text": "The resource http://127.0.0.1:4194/assets/map-scene-B4od1VxK.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.",
+      "location": {
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "at": "2026-10-13T11:47:03.460Z"
+    }
+  ],
+  "capturedAt": "2026-10-13T11:47:20.953Z",
+  "origin": "http://127.0.0.1:4194",
+  "description": "Actual v12 seed0 after the player adopts school regrouping; real saved Lyon movement",
+  "actions": [
+    "Open the real school subject",
+    "Choose Regrouper les classes"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": [
+      "n11-0-education-lycees-regrouper"
+    ]
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "1",
+    "resolution": "780x642",
+    "contactShadows": "false",
+    "edgeAntialiasing": "canvas",
+    "turn": "1",
+    "projects": "0",
+    "motion": "reduced",
+    "lightingReadyMs": "1773",
+    "contextReadyMs": "2503",
+    "terrainReadyMs": "4535",
+    "citiesReadyMs": "8055",
+    "mountainRocks": "90",
+    "landscape": "diorama",
+    "terrainSource": "precomputed",
+    "staticBatches": "51",
+    "staticInstances": "8338",
+    "authoredHouses": "780",
+    "geometryReadyMs": "9410",
+    "renderedProjects": "0",
+    "unplacedProjects": "0",
+    "shadersReadyMs": "10190",
+    "renderPending": "false",
+    "activeTriangles": "3550899",
+    "activeMeshes": "6543",
+    "cameraRadius": "13.45",
+    "renderMs": "532",
+    "inspection": ""
+  },
+  "layout": {
+    "scrollWidth": 390,
+    "viewportWidth": 390,
+    "viewportHeight": 844,
+    "devicePixelRatio": 2,
+    "scrollY": 0,
+    "canvas": {
+      "x": 0,
+      "y": 60,
+      "width": 390,
+      "height": 320.71875,
+      "top": 60,
+      "right": 390,
+      "bottom": 380.71875,
+      "left": 0
+    }
+  },
+  "raster": {
+    "width": 780,
+    "height": 642
+  },
+  "markerGeometry": [
+    {
+      "id": "policy:1",
+      "expected": [
+        204.41674796562376,
+        149.43760912268903
+      ],
+      "actual": [
+        204.40625,
+        149.4375
+      ],
+      "subject": null
+    },
+    {
+      "id": "mvt-lyceens-0",
+      "expected": [
+        264.9924629089092,
+        155.86392544976815
+      ],
+      "actual": [
+        264.984375,
+        155.859375
+      ],
+      "subject": {
+        "left": 240.75,
+        "right": 362.703125,
+        "top": 173
+      }
+    },
+    {
+      "id": "energie-bus-usine",
+      "expected": [
+        237.92022539288948,
+        63.81414477416194
+      ],
+      "actual": [
+        237.90625,
+        63.8125
+      ],
+      "subject": null
+    }
+  ],
+  "agendaTitles": [
+    {
+      "title": "Mobilisation lycéenne",
+      "lines": 1,
+      "font": "19px",
+      "width": 269
+    },
+    {
+      "title": "Pensions et déficit",
+      "lines": 1,
+      "font": "19px",
+      "width": 269
+    },
+    {
+      "title": "Bus du soir sans chauffeur",
+      "lines": 1,
+      "font": "19px",
+      "width": 269
+    }
+  ],
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4194/mandats/manifest.webmanifest",
+      "initiator": "other",
+      "transfer": 793,
+      "duration": 3
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-BR6wKexh.js",
+      "initiator": "link",
+      "transfer": 1011,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/game-B_-L39w0.css",
+      "initiator": "link",
+      "transfer": 17009,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-De3egIe0.css",
+      "initiator": "link",
+      "transfer": 33356,
+      "duration": 9
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-RN4UUo1F.js",
+      "initiator": "script",
+      "transfer": 188307,
+      "duration": 20
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shared-design-D17Vxp_n.css",
+      "initiator": "link",
+      "transfer": 6715,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/site-shell-v2-DKHbEmDf.css",
+      "initiator": "link",
+      "transfer": 7116,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/fonts/source-sans-3-variable.woff2",
+      "initiator": "css",
+      "transfer": 170488,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 23336,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "initiator": "css",
+      "transfer": 64740,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/fonts/mandats-serif-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 52568,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/map-scene-B4od1VxK.js",
+      "initiator": "script",
+      "transfer": 684939,
+      "duration": 89
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/envTextureLoader-Cza_qNSN.js",
+      "initiator": "link",
+      "transfer": 3550,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/mandats-RN4UUo1F.js",
+      "initiator": "link",
+      "transfer": 300,
+      "duration": 3
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/cubemapToSphericalPolynomial-ByvO5zWq.js",
+      "initiator": "link",
+      "transfer": 1952,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.fragment-ZYAFFAKX.js",
+      "initiator": "link",
+      "transfer": 1524,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/packingFunctions-CfJ13ZTc.js",
+      "initiator": "link",
+      "transfer": 832,
+      "duration": 5
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/sceneVertexDeclaration-Brt9NTEE.js",
+      "initiator": "link",
+      "transfer": 633,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMap.vertex-Cs5CkeKs.js",
+      "initiator": "link",
+      "transfer": 1895,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/depthBoxBlur.fragment-BW93E4qF.js",
+      "initiator": "link",
+      "transfer": 966,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/shadowMapFragmentSoftTransparentShadow-9kBiKk0v.js",
+      "initiator": "link",
+      "transfer": 802,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/vegetation.glb?v=a9c329f886f98544",
+      "initiator": "xmlhttprequest",
+      "transfer": 767728,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/architecture.glb?v=0940846cb686aa69",
+      "initiator": "xmlhttprequest",
+      "transfer": 11953712,
+      "duration": 180
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/paris.glb?v=d4754e30a6dae603",
+      "initiator": "xmlhttprequest",
+      "transfer": 9231636,
+      "duration": 160
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/cathedrale.glb?v=6fbfb563eb405ce1",
+      "initiator": "xmlhttprequest",
+      "transfer": 12597284,
+      "duration": 185
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-earth-grain-DRREWpxX.png",
+      "initiator": "img",
+      "transfer": 251967,
+      "duration": 9
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-crop-stalks-DqbEWteS.png",
+      "initiator": "img",
+      "transfer": 338050,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-earth-normal-D8qTdGaP.png",
+      "initiator": "img",
+      "transfer": 377545,
+      "duration": 24
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-leaf-grain-Dq3zfjHI.png",
+      "initiator": "img",
+      "transfer": 54494,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-leaf-normal-KsVL2iP_.png",
+      "initiator": "img",
+      "transfer": 183865,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-stone-normal-CxQ85Rmx.png",
+      "initiator": "img",
+      "transfer": 171701,
+      "duration": 28
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-mineral-rock-BoiS0dS5.png",
+      "initiator": "img",
+      "transfer": 681658,
+      "duration": 36
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-coastal-normal-5Lv01LFJ.png",
+      "initiator": "img",
+      "transfer": 89026,
+      "duration": 44
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/land-mineral-normal-B5XqE9Nd.png",
+      "initiator": "img",
+      "transfer": 1866719,
+      "duration": 97
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/terrain-survey.bin.gz?v=987b0a88417cfabf",
+      "initiator": "fetch",
+      "transfer": 12165231,
+      "duration": 259
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/context-earth-grain-BCVqSHte.png",
+      "initiator": "img",
+      "transfer": 200910,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/context-rock-granules-normal-BkWzCoba.png",
+      "initiator": "img",
+      "transfer": 648724,
+      "duration": 3
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterial.pure-DVVoQ99R.js",
+      "initiator": "link",
+      "transfer": 26115,
+      "duration": 9
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/pbrMaterialLoadingAdapter-5zqcP7_s.js",
+      "initiator": "link",
+      "transfer": 2755,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/brdfTextureTools-B85O6v3z.js",
+      "initiator": "link",
+      "transfer": 45154,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4194/mandats/models/daylight.env?v=893b475a4e2c4bc8",
+      "initiator": "xmlhttprequest",
+      "transfer": 235897,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/map-scene-B4od1VxK.js",
+      "initiator": "link",
+      "transfer": 300,
+      "duration": 1
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/rgbdDecode.fragment-DLrFPOCu.js",
+      "initiator": "link",
+      "transfer": 918,
+      "duration": 2
+    },
+    {
+      "url": "http://127.0.0.1:4194/assets/postprocess.vertex--UtQE6y2.js",
+      "initiator": "link",
+      "transfer": 892,
+      "duration": 1
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-500-latin.woff2",
+      "initiator": "css",
+      "transfer": 23136,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4194/polices/spectral-600-latin.woff2",
+      "initiator": "css",
+      "transfer": 23236,
+      "duration": 3
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Native game capture without any network or game-state override. One real school decision made using the visible UI before camera-only captures. This is a frozen production build capture, not an original timing gate. Fresh actual WPE WebKit context at390x844 DPR2 with fonts loaded/reduced motion. Each capture waits for data-render-pending=false after two animation frames, using the existing45000ms native timeout. Browser version comes from browser.version(); HTTP failures and every console level come from page events; served JS/CSS hashes come from the actual response bodies. Native DOM controls, pointer panning and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

@@ -1,0 +1,13 @@
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+{"preWeld": {"vertices": 73227, "triangles": 70661}, "verticesAfterWeld": 73227}
+{"name": "pine", "trianglesBefore": 70661, "trianglesAfterDecimation": 9986, "target": 2600}
+Traceback (most recent call last):
+  File "/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir-v3.py", line 53, in <module>
+    if count>target+4:raise RuntimeError('Geometry budget exceeded')
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Geometry budget exceeded
+
+Error: script failed, file: '/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-fir-v3.py', exiting.
+Blender 4.3.2
+
+Blender quit

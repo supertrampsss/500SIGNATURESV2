@@ -1,0 +1,72 @@
+{
+  "build": "28",
+  "status": "failed",
+  "startedAt": "2026-10-09T06:47:28.836Z",
+  "finishedAt": "2026-10-09T07:15:56.480Z",
+  "stoppedAfter": "rework",
+  "remainingSuites": [
+    "social",
+    "header",
+    "compat"
+  ],
+  "runSha256": "5e29736a9ad5b12c2526f9296a0a30a93fb7da1579ae5d4e4a832e5b4b2a0b02",
+  "actualSessionExitCode": 1,
+  "confirmedBy": "functions.write_stdin session32691 returned exit_code1",
+  "suiteResults": [
+    {
+      "suite": "rework",
+      "actualExitCode": 1,
+      "status": "failed",
+      "counts": {
+        "expected": 19,
+        "unexpected": 4,
+        "flaky": 0,
+        "skipped": 9,
+        "total": 32
+      },
+      "unexpectedTests": [
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "file": "mandats-rework.test.mjs",
+          "project": "desktop",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "failed"
+          ]
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "file": "mandats-rework.test.mjs",
+          "project": "mobile",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "timedOut"
+          ]
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "failed"
+          ]
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "file": "mandats-rework.test.mjs",
+          "project": "webkit",
+          "outcome": "unexpected",
+          "annotations": [],
+          "attemptStatuses": [
+            "failed"
+          ]
+        }
+      ],
+      "reportSha256": "e8fd588c3a00f1c1cf060937a9a58e1a3cafc2b4b3560bf31ff04fa18b32a71b"
+    }
+  ]
+}

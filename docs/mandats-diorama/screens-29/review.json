@@ -1,0 +1,22 @@
+{
+  "build": "29",
+  "captureVerificationSha256": "82c5472a803a108e0a6e1fa36f35f34f791537e404f8626973e571fbed63fae1",
+  "reviewedBy": "root",
+  "status": "Non conforme à la maquette",
+  "summary": "Les crêtes angulaires et les îlots parisiens progressent. Les cinq vues natives restent éloignées de la référence : neige trop rare, pierre froide, campagnes olive et rivages encore uniformes. La passe reste intermédiaire.",
+  "observedDifferences": [
+    "Les massifs ont des crêtes et des faces obliques, sans les calottes arrondies de28. La couverture neigeuse est cependant devenue trop faible et les faces restent gris beige.",
+    "Paris présente des retours perpendiculaires et des venelles, mais la cathédrale domine trop et les maisons gardent une pierre grise répétitive.",
+    "Le coteau Touraine/Berry compose quelques grandes parcelles courbes ; de larges surfaces nationales restent planes, olive et couvertes de bandes rectilignes.",
+    "Les falaises locales montrent davantage de facettes et de couches, mais un halo cyan continu et des secteurs minces restent visibles.",
+    "L’éclairage et les matières restent moins chauds et contrastés que la référence.",
+    "Les titres, panneau ivoire et cadre bleu nuit restent proches. Les sujets, années et jauges viennent de la partie réelle."
+  ],
+  "captions": {
+    "ordinateur": "Vue nationale native29 : crêtes angulaires, composition et couleurs encore non conformes.",
+    "paris": "Paris natif29 : vrais îlots et venelles ; monument trop dominant et pierre froide.",
+    "seine": "Seine native29 : vraie inspection, quartiers et fleuve issus de la scène.",
+    "alpes": "Alpes natives29 : géométrie angulaire, neige insuffisante face à la référence.",
+    "retour": "Retour national natif29 après inspection, zéro décision, erreur et avertissement console."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:4191",
+      "localStorage": [
+        {
+          "name": "500signatures.mandats.v1",
+          "value": "{\"version\":12,\"mode\":\"national\",\"seed\":6173,\"choices\":[],\"ambition\":\"equilibre\"}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,419 @@
+{
+  "build": "33",
+  "verifiedAt": "2026-10-09T08:52:47.771Z",
+  "buildIdentitySha256": "3cb819c8f23a272f5b4998773519a7d2cc5ca35bf415b6b9a0a0fea3e6c7bd44",
+  "profileSha256": "5b1326734081b6016ae890f7a02699a7f1eb7c49c5d4c862992f436c826370c8",
+  "captureDirectory": "/workspace/mandats-verification/authored-3d/prototype-33",
+  "nativeViews": 7,
+  "browserVersion": "151.0.7922.173",
+  "viewport": [
+    1672,
+    941
+  ],
+  "devicePixelRatio": 1,
+  "counts": {
+    "errors": 0,
+    "failedRequests": 0,
+    "failedResponses": 0,
+    "consoleMessages": 1,
+    "responseBodyErrors": 0,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "technicalPassed": true,
+  "eventCountMethod": "Last cumulative event snapshot, not a sum of repeated snapshots",
+  "choicesByView": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "viewRecords": [
+    {
+      "stage": "01-national",
+      "capturedAt": "2026-10-09T08:47:32.327Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "5218311",
+        "activeMeshes": "13481",
+        "cameraRadius": "13.52",
+        "renderMs": "521"
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "02-paris-detail",
+      "capturedAt": "2026-10-09T08:47:42.732Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "9795943",
+        "activeMeshes": "2427",
+        "cameraRadius": "5.21",
+        "renderMs": "111",
+        "inspection": "paris"
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "03-paris-seine",
+      "capturedAt": "2026-10-09T08:47:50.602Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "3698010",
+        "activeMeshes": "3533",
+        "cameraRadius": "7.21",
+        "renderMs": "68",
+        "inspection": "paris"
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "03b-paris-recentree",
+      "capturedAt": "2026-10-09T08:48:04.836Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "3744366",
+        "activeMeshes": "13481",
+        "cameraRadius": "13.52",
+        "renderMs": "79",
+        "inspection": ""
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "04-lyon-detail",
+      "capturedAt": "2026-10-09T08:48:26.791Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "9666696",
+        "activeMeshes": "2833",
+        "cameraRadius": "3.8",
+        "renderMs": "69",
+        "inspection": "lyon"
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "05-lyon-alpes",
+      "capturedAt": "2026-10-09T08:48:34.844Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "5513200",
+        "activeMeshes": "6459",
+        "cameraRadius": "5.8",
+        "renderMs": "42",
+        "inspection": "lyon"
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    },
+    {
+      "stage": "06-national-retour",
+      "capturedAt": "2026-10-09T08:48:49.181Z",
+      "data": {
+        "mandateMap": "",
+        "renderer": "babylon",
+        "movements": "0",
+        "resolution": "1268x801",
+        "contactShadows": "true",
+        "turn": "0",
+        "projects": "0",
+        "motion": "reduced",
+        "mountainRocks": "305",
+        "landscape": "diorama",
+        "staticBatches": "40",
+        "staticInstances": "17741",
+        "authoredHouses": "731",
+        "renderedProjects": "0",
+        "unplacedProjects": "0",
+        "renderPending": "false",
+        "activeTriangles": "3744366",
+        "activeMeshes": "13481",
+        "cameraRadius": "13.52",
+        "renderMs": "65",
+        "inspection": ""
+      },
+      "raster": {
+        "width": 1268,
+        "height": 801
+      },
+      "inputs": {
+        "version": 12,
+        "mode": "national",
+        "seed": 0,
+        "ambition": "equilibre",
+        "choices": []
+      }
+    }
+  ],
+  "captureFiles": {
+    "01-national.json": {
+      "bytes": 29304,
+      "sha256": "ec0e22bfad6493a0f8d2afc0466e0c787849dfa02e0440789d2b666af25443b1"
+    },
+    "01-national-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "01-national.png": {
+      "bytes": 1805796,
+      "sha256": "b75ea84b602980d822ae6e0871b29118d9dac822a65c35ba2a0dcf354c2a2dbd"
+    },
+    "02-paris-detail.json": {
+      "bytes": 29431,
+      "sha256": "38a7920827879a7be4b636bdcaa1b01e42399ec9986b7fd95d503f687964f0b8"
+    },
+    "02-paris-detail-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "02-paris-detail.png": {
+      "bytes": 1491498,
+      "sha256": "00dc1284714507327872762ab40105a7dd6ed94359d5518f6d1cd62bba4a9f0c"
+    },
+    "03-paris-seine.json": {
+      "bytes": 29527,
+      "sha256": "cefd97616679ade9234daefac33558920a5dc935791040259fbd2f7206d14070"
+    },
+    "03-paris-seine-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "03-paris-seine.png": {
+      "bytes": 1506499,
+      "sha256": "ad29a30ea11a103e267d2616567064de773f838d756bf777716a105c065cde9b"
+    },
+    "03b-paris-recentree.json": {
+      "bytes": 29556,
+      "sha256": "7803134bef8dac343f7f3263f10e716bcd467cee974086abea987a6d82f762cd"
+    },
+    "03b-paris-recentree-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "03b-paris-recentree.png": {
+      "bytes": 1833796,
+      "sha256": "d59422e9062572cf89108abde9f85fee343eb851ea7e68e54759d59aa2774ed5"
+    },
+    "04-lyon-detail.json": {
+      "bytes": 29684,
+      "sha256": "1d0c1c10cd065ed41f8a88edbfe114ee46dadfc475277ebb5c743f551c71bee6"
+    },
+    "04-lyon-detail-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "04-lyon-detail.png": {
+      "bytes": 1514604,
+      "sha256": "18caa29c1b73616178bbcf08ae82e600f21b117fdd937beea068f607727b1fa2"
+    },
+    "05-lyon-alpes.json": {
+      "bytes": 29781,
+      "sha256": "49c07fe632c47f09862ee42992955da42ed8900cae6916095e1cf2b27e08d323"
+    },
+    "05-lyon-alpes-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "05-lyon-alpes.png": {
+      "bytes": 1694186,
+      "sha256": "83f4d999a7b17708732629db1f46190dfbf7196aee707b133faf752bffd0b408"
+    },
+    "06-national-retour.json": {
+      "bytes": 29841,
+      "sha256": "a2a585e0783e08d9018f48f6111ba76b1c11e13f1a5b5b130510b207d817f94f"
+    },
+    "06-national-retour-inputs.json": {
+      "bytes": 98,
+      "sha256": "a98d2a2c8e9ea5ed411b46bf4d35e2715463927d390593c7d444fbf3e20672f1"
+    },
+    "06-national-retour.png": {
+      "bytes": 1805796,
+      "sha256": "b75ea84b602980d822ae6e0871b29118d9dac822a65c35ba2a0dcf354c2a2dbd"
+    }
+  },
+  "galleryMapping": {
+    "ordinateur": {
+      "stage": "01-national",
+      "title": "Vue nationale réelle"
+    },
+    "paris": {
+      "stage": "02-paris-detail",
+      "title": "Paris"
+    },
+    "seine": {
+      "stage": "03-paris-seine",
+      "title": "Seine et berges"
+    },
+    "alpes": {
+      "stage": "05-lyon-alpes",
+      "title": "Lyon et Alpes"
+    },
+    "retour": {
+      "stage": "06-national-retour",
+      "title": "Retour national"
+    }
+  },
+  "actualServedBundleHashesMatchArchive": true,
+  "collectionReceipt": {
+    "build": "33",
+    "command": "node capture-native33.mjs http://127.0.0.1:4191 prototype-33 33",
+    "exitCode": 0,
+    "confirmedBy": "functions.write_stdin session15151 returned exit_code0",
+    "confirmedAt": "2026-10-09T08:52:47.310034+00:00",
+    "session": 15151
+  },
+  "collectionReceiptSha256": "60d5426828c9e6d832b30389e2afb2127560ddea2db83f6b33c6fb639f64b4c4"
+}

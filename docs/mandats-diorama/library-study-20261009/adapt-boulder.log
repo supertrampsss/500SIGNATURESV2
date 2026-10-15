@@ -1,0 +1,14 @@
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+14:51:05 | INFO: Data are loaded, start creating Blender stuff
+14:51:05 | INFO: Blender create Mesh node rock_PROXY_5m.002
+14:51:05 | INFO: glTF import finished in 0.11s
+Traceback (most recent call last):
+  File "/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-boulder.py", line 12, in <module>
+    if count>1100:raise RuntimeError('Boulder exceeds1100tri budget')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Boulder exceeds1100tri budget
+
+Error: script failed, file: '/workspace/mandats-verification/authored-3d/library-adaptation38/adapt-boulder.py', exiting.
+Blender 4.3.2
+
+Blender quit

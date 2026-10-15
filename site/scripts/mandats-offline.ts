@@ -11,7 +11,7 @@ const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
 const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture']
   .map(name => `/mandats/art/${name}.webp`);
 const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
-// Follow the game's dependencies, including Babylon's local shader chunks.
+// Follow the game's dependencies, including the approved illustrated map.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {
   const asset=entryAssets[i];
@@ -20,13 +20,18 @@ for (let i=0; i<entryAssets.length; i++) {
   const source = await readFile(dist+asset,'utf8');
   for (const m of source.matchAll(/(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
   for (const m of source.matchAll(/import\(["']\.\/([^"']+\.js)["']\)/g)) { const path='/assets/'+m[1]; core.push(path); if(!visited.has(path))entryAssets.push(path); }
+  // The map SVG embeds its artwork and needs no external image dependencies.
+  for (const m of source.matchAll(/["'](\/assets\/[^"']+\.(?:svg|png|webp|jpe?g))["']/g)) core.push(m[1]);
   for (const m of source.matchAll(/url\(["']?(\/?(?:fonts|polices|mandats\/fonts)\/[^)'" ]+)/g)) core.push('/'+m[1].replace(/^\//,''));
 }
 for (const name of await readdir(dist+'mandats/art')) if (name.endsWith('-768.webp')) core.push('/mandats/art/'+name);
 const precache = [...new Set(core)];
 const digest = createHash('sha256');
 digest.update(await readFile(fileURLToPath(import.meta.url)));
-for (const path of precache) digest.update(await readFile(dist+path.replace(/^\//,'')+(path.endsWith('/')?'index.html':'')));
+for (const path of precache) {
+  const pathname = path.split('?')[0];
+  digest.update(await readFile(dist+pathname.replace(/^\//,'')+(pathname.endsWith('/')?'index.html':'')));
+}
 const version = digest.digest('hex').slice(0,16);
 const worker = `/* Game-only, opt-in offline cache. Generated from built assets. */
 const CACHE='mandats-offline-${version}';

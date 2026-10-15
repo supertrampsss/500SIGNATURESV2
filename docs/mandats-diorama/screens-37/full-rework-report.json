@@ -1,0 +1,2794 @@
+{
+  "config": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/500SIGNATURESV2/site/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.rework.config.ts",
+      "--workers=1"
+    ],
+    "configFile": "/workspace/500SIGNATURESV2/site/playwright.rework.config.ts",
+    "rootDir": "/workspace/500SIGNATURESV2/site/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "compact",
+        "name": "compact",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/workspace/500SIGNATURESV2/site/rework-artifacts/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/workspace/500SIGNATURESV2/site/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "mandats-rework.test.mjs"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "./rework-artifacts/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./rework-artifacts/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite preview --host 127.0.0.1 --port 4180 --strictPort",
+      "url": "http://127.0.0.1:4180/mandats/",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "mandats-rework.test.mjs",
+      "file": "mandats-rework.test.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 76977,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:307535) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307550) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307558) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307566) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307600) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307637) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307698) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307707) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307715) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:14:40.529Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-ca994d9f2e91deefb7d9df0bdc0c79c49b611784.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-dpr-2-resolution-a9ab09a5d4776183832642a905984e6f8c0c8f03.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-f62ddecf1b403fcaf2ebd7cbc15ed131abb5ca4a.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-redimensionnee-dpr-2-resolution-8c56c870e425f92a43f8ad528f38bf10831ac805.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-01b1732bc02e3d488563faf7a31aa6f8c92f0360.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-replay-b9d750a40489c960820393972d0e8f7e824be495.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-desktop/attachments/carte-reprise-dpr-2-resolution-cc93b97ce4da8f94116d7512eb317f9a1ac24ae3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-19f929c6bab1cd2bcea1",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 33017,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:307845) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307862) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307870) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:15:58.285Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-3d-charges",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2FyY2hpdGVjdHVyZS5nbGI/dj1iZjg5YjE0MzUyMDRjNmFiIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL3ZlZ2V0YXRpb24uZ2xiP3Y9YTE1YWJiNWQ2NTNiZDk5NiIsCiAgICAic3RhdHVzIjogMjAwCiAgfSwKICB7CiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9tYW5kYXRzL21vZGVscy9wYXJpcy5nbGI/dj1kNDc1NGUzMGE2ZGFlNjAzIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2NhdGhlZHJhbGUuZ2xiP3Y9MWJlZDJkODc1NzBkZjI2NCIsCiAgICAic3RhdHVzIjogMjAwCiAgfQpd"
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/attachments/carte-et-sujet-b0f85a0f56d03c546246bdbc8de6aa45cfeadd1b.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-desktop/attachments/menu-ma-partie-3c4bfdd79187c89a328e11c4ffd8ba1ace812267.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-6cf494db87e2a9e98230",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 56448,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:307963) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307978) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:307986) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308084) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308127) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308135) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:16:31.321Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-d76229cdf0a295d7bc2beb7be1175ada0a42a1d5.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-active-replay-ef610d7a180575b443217070cc247ac5c2893438.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-7a1b0a58ce2503ce9f802d8e39c0b1bb90b25a74.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-desktop/attachments/mobilisation-et-livraison-replay-4d467fb33261a44a2471cf39380b03345f0c7dd5.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-a89b9ecc535ead418f11",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 123239,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:308210) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308218) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308226) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308235) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308247) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308293) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308301) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308309) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308317) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308326) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308358) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308366) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308374) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308382) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308390) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308398) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308406) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308414) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308430) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308438) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308446) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308462) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308511) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308658) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308666) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308674) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308697) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308725) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308799) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308807) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:17:27.787Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-c2d11ed01be608da28b80afdad65f3efba3fbf72.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/fin-du-mandat-replay-e23e0590b6b5be065c262f0b9dd975a37f99ea2a.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-4f47c98de0b6b2e0512fe9856aee9fc7514ef793.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-desktop/attachments/autre-trajectoire-replay-9fdcedc4c97897ab5c541c483c7de6d7a44fd3f3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-280b16864a70212069bd",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "column": 1
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3767,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:308850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308858) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:19:31.048Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/attachments/carte-sans-webgl-50b5644d7a0967dce54eda82aef9652387cdecb9.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-desktop/attachments/carte-sans-webgl-replay-995fc9b062c9ba7d10762dd54aa8dfe7df8f38df.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-cbf2a05170d681a37a30",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "column": 1
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 57742,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:308902) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308910) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308918) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:308984) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309016) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:19:34.840Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-apres-decision",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-6a881ed3d3fc9dcf0348ac506fddbdd37a85166f.png"
+                    },
+                    {
+                      "name": "modeles-apres-decision-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-apres-decision-replay-ea15a631273279f4f5fea33b30b7c13e0aed2c40.json"
+                    },
+                    {
+                      "name": "modele-indisponible-repli",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-d1d607a4fbed6e5c8ede8ccf18aa701f8e2a8f27.png"
+                    },
+                    {
+                      "name": "modele-indisponible-repli-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modele-indisponible-repli-replay-c6a9a6e7e8d6da58073a47f842f1f11bcbc8e139.json"
+                    },
+                    {
+                      "name": "modeles-et-engagement-repris",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-390ceb3e71b58ed3a23f6c903176b86034ce7e3d.png"
+                    },
+                    {
+                      "name": "modeles-et-engagement-repris-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-authored-mo-be0f4-preserves-the-saved-mandate-desktop/attachments/modeles-et-engagement-repris-replay-eef6a69be0432b4eb4fbe9a630f622f721bc33f8.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-fe90dd7a6de8bb9194c5",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "column": 1
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 554,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 242,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:20:32.618Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 554,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-562594ac1a2e38eed6f5",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "column": 1
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 50562,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:309131) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309142) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309165) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309181) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309265) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309273) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309281) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:20:32.885Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "contexte-perdu-projet-finance",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-projet-finance-fbdde52223a629193517782502ef95e8c5fc263c.png"
+                    },
+                    {
+                      "name": "contexte-perdu-projet-finance-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-projet-finance-replay-f8544cac93a0ad297cefea2e6beb9e0db7c84e89.json"
+                    },
+                    {
+                      "name": "reprise-apres-contexte-perdu",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/reprise-apres-contexte-perdu-29f9fe1ae3a96190af549b5e576fe526aeb8e005.png"
+                    },
+                    {
+                      "name": "reprise-apres-contexte-perdu-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/reprise-apres-contexte-perdu-replay-50dbec908732eb0e9ba7637a81f2b190a7582ba3.json"
+                    },
+                    {
+                      "name": "gouvernement-apres-vote-reel",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/gouvernement-apres-vote-reel-0fd3dccfe28235df6f7797714c4cc43e13889b80.png"
+                    },
+                    {
+                      "name": "gouvernement-apres-vote-reel-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/gouvernement-apres-vote-reel-replay-6e3eb145cf46833a6ca77e92a122f2d6992f13a7.json"
+                    },
+                    {
+                      "name": "projet-reel-dans-navigation",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/projet-reel-dans-navigation-f97b99ebb39e77b2bce8dd77f282a4a6ee4a3e67.png"
+                    },
+                    {
+                      "name": "projet-reel-dans-navigation-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/projet-reel-dans-navigation-replay-c3ef64eea5bb484e142dc0dcee7992669e3bca97.json"
+                    },
+                    {
+                      "name": "contexte-perdu-pageerrors",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-lost-grap-2727f-bjects-and-decisions-usable-desktop/attachments/contexte-perdu-pageerrors-b549087ef7db73ab102d72770ce3c83681b56273.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-2c0db21e469687d5f953",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 65351,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:309459) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309467) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309475) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309483) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309533) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309541) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309567) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309575) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:21:24.089Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-a36e194884660b83df89a2d6e5b763a7df5e1a6f.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-dpr-2-resolution-a15976ac5d7c30feb15f8cade0c01d891b611a18.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-8ad08beff4c7288ff67e66c069aa7d6c980ddea5.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-redimensionnee-dpr-2-resolution-8dd51a78d92f9a3f2e3c0cd014de64b73c2d0330.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-677527867b45c2b8af16c48f1e80bd2169302d80.png"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-replay-281b4c4a5f4fa119af82dd4c348ef98b846cc492.json"
+                    },
+                    {
+                      "name": "carte-reprise-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-mobile/attachments/carte-reprise-dpr-2-resolution-acdb3bec8a6a36659aefb5a9cd553179d54003e6.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-da0191cdd0677f5456d4",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 45688,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:309804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309842) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:22:30.344Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-3d-charges",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2FyY2hpdGVjdHVyZS5nbGI/dj1iZjg5YjE0MzUyMDRjNmFiIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL3ZlZ2V0YXRpb24uZ2xiP3Y9YTE1YWJiNWQ2NTNiZDk5NiIsCiAgICAic3RhdHVzIjogMjAwCiAgfSwKICB7CiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9tYW5kYXRzL21vZGVscy9wYXJpcy5nbGI/dj1kNDc1NGUzMGE2ZGFlNjAzIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2NhdGhlZHJhbGUuZ2xiP3Y9MWJlZDJkODc1NzBkZjI2NCIsCiAgICAic3RhdHVzIjogMjAwCiAgfQpd"
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/attachments/carte-et-sujet-c76f062e8b866e62b331849fad865d9c162485a5.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-mobile/attachments/menu-ma-partie-cc9a407b8faaead0950170c1aa9112eed5653e3d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-f8a5265ec2bde56a5338",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 57775,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:309965) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:309987) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310001) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310051) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310067) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310075) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:23:16.061Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-5e8e31650b5419a067bb7ac8be501b04827a1f4d.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-active-replay-c76323554de78285817f9ef4a88ce3986e66b7b0.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-74259e6cbea018761777541f375b21d66b0368bc.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-mobile/attachments/mobilisation-et-livraison-replay-35b52090a628da3656415dc9df6d9d603ee7d80f.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-261924465116339a7cca",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 119008,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:310141) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310157) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310165) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310181) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310197) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310268) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310292) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310300) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310308) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310316) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310397) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310405) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310413) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310442) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310450) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310458) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:24:13.880Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-6ca195c15270e65b42c9c034dae8d931132fa728.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/fin-du-mandat-replay-53ff46155bb93891c4857970d992c96935efe884.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-3e0df3581a7ea77216d0ab28613c1b75fe38efd5.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-mobile/attachments/autre-trajectoire-replay-948b131243757cb66d147b56ee1ab9ffc06af34b.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-247520488b6eb69790a2",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "column": 1
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2506,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:310580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:26:12.911Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/attachments/carte-sans-webgl-756d95ecf6368fadbe3824a19e76b5ce51f32c53.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-mobile/attachments/carte-sans-webgl-replay-a32eb9e60ae30ef72c9032ebdc1e0635e213d929.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-b82b9b7f3125860bc0ec",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "column": 1
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 497,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 230,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:26:15.431Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 497,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-ebd2d072d99f05b9afd9",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "column": 1
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 55767,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:310832) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310854) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310862) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:310870) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:26:15.683Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-3d-hors-connexion",
+                      "contentType": "application/json",
+                      "body": "WwogIFsKICAgICIvbWFuZGF0cy9tb2RlbHMvYXJjaGl0ZWN0dXJlLmdsYiIsCiAgICAiL21hbmRhdHMvbW9kZWxzL2NhdGhlZHJhbGUuZ2xiIiwKICAgICIvbWFuZGF0cy9tb2RlbHMvcGFyaXMuZ2xiIiwKICAgICIvbWFuZGF0cy9tb2RlbHMvdmVnZXRhdGlvbi5nbGIiCiAgXQpd"
+                    },
+                    {
+                      "name": "hors-connexion-3d",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/attachments/hors-connexion-3d-49882ab2c482d2579f68129b9ea0506308726508.png"
+                    },
+                    {
+                      "name": "hors-connexion-3d-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-prepared-3D-2e0a5-ues-a-real-movement-offline-mobile/attachments/hors-connexion-3d-replay-27bc69913e4c491237267b7c2621b9a3ade48867.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-128860ac6a5242290ee0",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "column": 1
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual context-loss lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 602,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 263,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:27:11.469Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual context-loss lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 602,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-3aed405d70c3ead54b4a",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 58506,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    - locator resolved to <section aria-busy=\"true\" data-movements=\"0\" data-mandate-map=\"\" data-renderer=\"loading\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    4 × unexpected value \"loading\"\u001b[22m\n\u001b[2m      - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"780x558\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    - locator resolved to <section aria-busy=\"true\" data-movements=\"0\" data-mandate-map=\"\" data-renderer=\"loading\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    4 × unexpected value \"loading\"\u001b[22m\n\u001b[2m      - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"780x558\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:224:54",
+                    "location": {
+                      "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                      "column": 54,
+                      "line": 224
+                    },
+                    "snippet": "  222 |     await page.reload();\n  223 |     await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n> 224 |     await expect(page.locator(\"[data-mandate-map]\")).toHaveAttribute(\n      |                                                      ^\n  225 |       \"data-renderer\",\n  226 |       \"babylon\",\n  227 |     );"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "column": 54,
+                        "line": 224
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    - locator resolved to <section aria-busy=\"true\" data-movements=\"0\" data-mandate-map=\"\" data-renderer=\"loading\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    4 × unexpected value \"loading\"\u001b[22m\n\u001b[2m      - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"780x558\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n\n  222 |     await page.reload();\n  223 |     await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n> 224 |     await expect(page.locator(\"[data-mandate-map]\")).toHaveAttribute(\n      |                                                      ^\n  225 |       \"data-renderer\",\n  226 |       \"babylon\",\n  227 |     );\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:224:54"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:311091) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311116) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311140) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311148) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:27:12.447Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-e6b16c4184678c215a0d97c993fe4b543c7d600e.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-dpr-2-resolution-e6eecb4915ce607dccc3a943029e1887cb88e767.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-5daea0953915167ff21602a71e0ad8a53d9b48c9.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/attachments/carte-redimensionnee-dpr-2-resolution-a66cbab9c4d49a0443986d2b24a73dfa4d407ffc.json"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-compact/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "column": 54,
+                    "line": 224
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-df6d6755c5bbee751b4c",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 70200,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:311457) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311486) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311501) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:28:15.453Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-3d-charges",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2FyY2hpdGVjdHVyZS5nbGI/dj1iZjg5YjE0MzUyMDRjNmFiIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL3ZlZ2V0YXRpb24uZ2xiP3Y9YTE1YWJiNWQ2NTNiZDk5NiIsCiAgICAic3RhdHVzIjogMjAwCiAgfSwKICB7CiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9tYW5kYXRzL21vZGVscy9wYXJpcy5nbGI/dj1kNDc1NGUzMGE2ZGFlNjAzIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2NhdGhlZHJhbGUuZ2xiP3Y9MWJlZDJkODc1NzBkZjI2NCIsCiAgICAic3RhdHVzIjogMjAwCiAgfQpd"
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/attachments/carte-et-sujet-0c829cb914174ac62c39bdcdc9100bf68f914b98.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-compact/attachments/menu-ma-partie-123c0f678b53bbd035ea0e46580494a5fe7706cd.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-3a8269b0b970a792fad5",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 81560,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:311603) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311714) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311785) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311793) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311801) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:29:26.406Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-d730f43871046b0384ede2607ce5fc5ec8d4cf57.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-active-replay-b33e78821fc64032de8a8fd258fc3e712a4c2d30.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-db71d2bd2b5fba0c596faf4d5e429526b60e5d10.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-compact/attachments/mobilisation-et-livraison-replay-4c27afb8de9b89df08751c809c2d6072a1b39f75.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-7bb589cf37f3799ee383",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 188025,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 180000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 180000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 180000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:311927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311935) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311943) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311951) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311959) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:311967) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312050) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312201) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312221) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312229) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312237) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312253) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312261) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312277) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312293) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312301) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312309) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312347) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312403) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312411) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312419) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312427) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312543) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312559) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312573) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312642) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312650) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312658) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312666) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:30:48.000Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-7abadb754a09e8cc2f929c4ed002cdc634b6c00b.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/fin-du-mandat-replay-fcf9a22307092593522dbd64ec7e6033c81e66a9.json"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/test-failed-1.png"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-a2cc5101f9774ef34b08c675104e6086153441b6.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/attachments/autre-trajectoire-replay-a48857510a5605ae79e04547e48e0f015bf26985.json"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-compact/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-e83c0e8cb70fb46c6b58",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "column": 1
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3534,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:312811) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:312819) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:34:04.688Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/attachments/carte-sans-webgl-40c02a4e45a5a49f60fd3057c61b56de6c9f3aa8.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-compact/attachments/carte-sans-webgl-replay-a31b2b0b9f09bbfa927525d0dc3d1af9280e0030.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-94ff894928f07026b802",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "column": 1
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 497,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 191,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:34:09.294Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 497,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-a1255a436bbdc5b5fd78",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "column": 1
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 554,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 326,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:34:09.509Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 554,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-7e7c4694723fc9e238b4",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "column": 1
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual context-loss lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 602,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "compact",
+              "projectName": "compact",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 647,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:34:09.862Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual context-loss lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 602,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-858b157cf9149d2c5c28",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "column": 1
+        },
+        {
+          "title": "a high density display keeps the 3D map sharp through resize and saved resume",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 75958,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    4 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"640x474\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-resolution=\"640x474\" data-mountain-rocks=\"305\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"false\" data-static-instances=\"17867\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du ma…>…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    4 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"640x474\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-resolution=\"640x474\" data-mountain-rocks=\"305\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"false\" data-static-instances=\"17867\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du ma…>…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:224:54",
+                    "location": {
+                      "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                      "column": 54,
+                      "line": 224
+                    },
+                    "snippet": "  222 |     await page.reload();\n  223 |     await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n> 224 |     await expect(page.locator(\"[data-mandate-map]\")).toHaveAttribute(\n      |                                                      ^\n  225 |       \"data-renderer\",\n  226 |       \"babylon\",\n  227 |     );"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "column": 54,
+                        "line": 224
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-mandate-map]')\nExpected: \u001b[32m\"babylon\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\nTimeout:  15000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-mandate-map]')\u001b[22m\n\u001b[2m    4 × locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-resolution=\"640x474\" data-contact-shadows=\"false\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du mandat\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"loading\"\u001b[22m\n\u001b[2m    - locator resolved to <section data-turn=\"1\" aria-busy=\"true\" data-projects=\"0\" data-movements=\"1\" data-mandate-map=\"\" data-motion=\"reduced\" data-renderer=\"loading\" data-landscape=\"diorama\" data-static-batches=\"48\" data-resolution=\"640x474\" data-mountain-rocks=\"305\" data-authored-houses=\"781\" data-rendered-projects=\"0\" data-unplaced-projects=\"0\" data-contact-shadows=\"false\" data-static-instances=\"17867\" data-edge-antialiasing=\"canvas\" class=\"mandate-map mandate-map--preview-ready\" aria-label=\"Carte de France et sujets du ma…>…</section>\u001b[22m\n\u001b[2m    - unexpected value \"loading\"\u001b[22m\n\n\n  222 |     await page.reload();\n  223 |     await page.getByRole(\"button\", { name: \"Reprendre\", exact: true }).click();\n> 224 |     await expect(page.locator(\"[data-mandate-map]\")).toHaveAttribute(\n      |                                                      ^\n  225 |       \"data-renderer\",\n  226 |       \"babylon\",\n  227 |     );\n    at /workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs:224:54"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:313012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313028) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313044) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:34:11.158Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-6a2189a8e32d6d6ad2e4665e521a4dc060acc538.png"
+                    },
+                    {
+                      "name": "carte-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-dpr-2-resolution-50054e3780a045d503420e7e0ebc4114dd911b08.json"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-ae7a1833002d1bdb78d382c74a038059f431d9b8.png"
+                    },
+                    {
+                      "name": "carte-redimensionnee-dpr-2-resolution",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/attachments/carte-redimensionnee-dpr-2-resolution-6c7bcac996084a650b1a4fb79998f7391034d7a3.json"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-high-dens-60319-ugh-resize-and-saved-resume-webkit/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "column": 54,
+                    "line": 224
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-992f476eb0f4ca2d9df7",
+          "file": "mandats-rework.test.mjs",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "the real 3D map opens subjects without advancing the game and preserves its canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 39944,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:313189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313197) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313205) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:35:32.145Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "modeles-3d-charges",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2FyY2hpdGVjdHVyZS5nbGI/dj1iZjg5YjE0MzUyMDRjNmFiIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL3ZlZ2V0YXRpb24uZ2xiP3Y9YTE1YWJiNWQ2NTNiZDk5NiIsCiAgICAic3RhdHVzIjogMjAwCiAgfSwKICB7CiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6NDE4MC9tYW5kYXRzL21vZGVscy9wYXJpcy5nbGI/dj1kNDc1NGUzMGE2ZGFlNjAzIiwKICAgICJzdGF0dXMiOiAyMDAKICB9LAogIHsKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTo0MTgwL21hbmRhdHMvbW9kZWxzL2NhdGhlZHJhbGUuZ2xiP3Y9MWJlZDJkODc1NzBkZjI2NCIsCiAgICAic3RhdHVzIjogMjAwCiAgfQpd"
+                    },
+                    {
+                      "name": "carte-et-sujet",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/attachments/carte-et-sujet-046347cf7d8f2c55e3bb222dd1bc8bf749382c7f.png"
+                    },
+                    {
+                      "name": "menu-ma-partie",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-real-3D-6b031-me-and-preserves-its-canvas-webkit/attachments/menu-ma-partie-61b3b17fb7b07cee552d988c0c4fbf6984d2bfbf.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-4817f635ee91c078beff",
+          "file": "mandats-rework.test.mjs",
+          "line": 241,
+          "column": 1
+        },
+        {
+          "title": "school choices cause a movement which remains pending until its funded delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 69011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:313389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313493) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313502) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313551) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:36:12.501Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "mobilisation-active",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-4556d657e5f385016395daa23accd5487af00424.png"
+                    },
+                    {
+                      "name": "mobilisation-active-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-active-replay-8438524c52fe39929e7f6b0bbd4e2d17146a2b5c.json"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-e7ff4bd85da3f50da971543bf3cfe0a82fa0c37d.png"
+                    },
+                    {
+                      "name": "mobilisation-et-livraison-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-school-choi-43a22-g-until-its-funded-delivery-webkit/attachments/mobilisation-et-livraison-replay-6e529a2b3f2e2697991337dbedbeadb6c9cf4fd2.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-be104d6535866adecd2e",
+          "file": "mandats-rework.test.mjs",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a complete mandate survives save reload and offers replay from its actual decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 117059,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:313637) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313645) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313653) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313669) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313677) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313686) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313709) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313717) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313725) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313733) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313762) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313770) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313778) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313786) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313794) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313802) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313810) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313818) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313826) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313835) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313843) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313851) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313859) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313867) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313875) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313883) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313891) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313899) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313929) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313937) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313945) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313959) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313969) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313977) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313985) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:313993) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:37:21.525Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "fin-du-mandat",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-5254ea690deee1b687eb0c94b769966b20342b9c.png"
+                    },
+                    {
+                      "name": "fin-du-mandat-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/fin-du-mandat-replay-2d83b9a0050832e30d7ec05a68377d514086561d.json"
+                    },
+                    {
+                      "name": "autre-trajectoire",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-1c959d8360628f6c3adc0a22af470e1a27ecbb58.png"
+                    },
+                    {
+                      "name": "autre-trajectoire-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-a-complete--0f931-y-from-its-actual-decisions-webkit/attachments/autre-trajectoire-replay-a0ebbd0145c1ae8332e16f561af3d75c5057586e.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-ed4065083619933877ed",
+          "file": "mandats-rework.test.mjs",
+          "line": 389,
+          "column": 1
+        },
+        {
+          "title": "the fallback map and keyboard controls remain usable without WebGL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3253,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "(node:314052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    },
+                    {
+                      "text": "(node:314060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:39:18.604Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "carte-sans-webgl",
+                      "contentType": "image/png",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/attachments/carte-sans-webgl-15a136c4e27d6f286d5bb2fa9bd9cf80a3f73421.png"
+                    },
+                    {
+                      "name": "carte-sans-webgl-replay",
+                      "contentType": "application/json",
+                      "path": "/workspace/500SIGNATURESV2/site/rework-artifacts/results/mandats-rework-the-fallbac-8a0bc-remain-usable-without-WebGL-webkit/attachments/carte-sans-webgl-replay-e6491b67678715fd56774a0e1bbc3edb70a00018.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-5199bf378d768ffc4469",
+          "file": "mandats-rework.test.mjs",
+          "line": 465,
+          "column": 1
+        },
+        {
+          "title": "authored models load after a real decision and a failed kit preserves the saved mandate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual delayed and failed asset lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 497,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 601,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:39:21.872Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual delayed and failed asset lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 497,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-8f8f07cab11ef87285c1",
+          "file": "mandats-rework.test.mjs",
+          "line": 496,
+          "column": 1
+        },
+        {
+          "title": "prepared 3D play reloads its shaders and continues a real movement offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One real service-worker lifecycle; other widths cover the same game.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 554,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 511,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:39:22.489Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One real service-worker lifecycle; other widths cover the same game.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 554,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-370360b6ef56e6ce7b72",
+          "file": "mandats-rework.test.mjs",
+          "line": 550,
+          "column": 1
+        },
+        {
+          "title": "a lost graphics context keeps the map subjects and decisions usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One actual context-loss lifecycle.",
+                  "location": {
+                    "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                    "line": 602,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 534,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-09T12:39:23.013Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One actual context-loss lifecycle.",
+                      "location": {
+                        "file": "/workspace/500SIGNATURESV2/site/tests/mandats-rework.test.mjs",
+                        "line": 602,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "7db2d449ad362a5bcbd6-2fe068a4ba6177a4ad3c",
+          "file": "mandats-rework.test.mjs",
+          "line": 599,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-09T12:14:39.237Z",
+    "duration": 1484437.737,
+    "expected": 20,
+    "skipped": 9,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

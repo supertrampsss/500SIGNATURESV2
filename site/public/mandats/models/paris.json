@@ -1,0 +1,116 @@
+{
+  "version": 2,
+  "axes": "GLTF Y-up; footprint centred at ground",
+  "front": "+Z; hotel second facade +X",
+  "distanceGeometry": "Named _distant models; high-detail geometry retained",
+  "models": {
+    "immeuble_paris_01": {
+      "width": 1.872,
+      "depth": 1.287,
+      "height": 2.485,
+      "min": [
+        -0.9359999895095825,
+        0.0,
+        -0.6434999704360962
+      ],
+      "max": [
+        0.9359999895095825,
+        2.4850001335144043,
+        0.6434999704360962
+      ],
+      "triangles": 18642
+    },
+    "immeuble_paris_01_distant": {
+      "width": 1.872,
+      "depth": 1.287,
+      "height": 2.485,
+      "min": [
+        -0.9359999895095825,
+        0.0,
+        -0.6434999704360962
+      ],
+      "max": [
+        0.9359999895095825,
+        2.4850001335144043,
+        0.6434999704360962
+      ],
+      "triangles": 2371,
+      "lodOf": "immeuble_paris_01",
+      "lodRatio": 0.16,
+      "decimationExtentError": 0.001821,
+      "topologyRepaired": true
+    },
+    "hotel_angle_paris_01": {
+      "width": 1.771,
+      "depth": 1.6105,
+      "height": 2.315,
+      "min": [
+        -0.8855000734329224,
+        0.0,
+        -0.8052500486373901
+      ],
+      "max": [
+        0.8855000734329224,
+        2.315000057220459,
+        0.8052500486373901
+      ],
+      "triangles": 15055
+    },
+    "hotel_angle_paris_01_distant": {
+      "width": 1.771,
+      "depth": 1.6105,
+      "height": 2.315,
+      "min": [
+        -0.8855000734329224,
+        0.0,
+        -0.8052500486373901
+      ],
+      "max": [
+        0.8855000734329224,
+        2.315000057220459,
+        0.8052500486373901
+      ],
+      "triangles": 1108,
+      "lodOf": "hotel_angle_paris_01",
+      "lodRatio": 0.12,
+      "decimationExtentError": 0.014963,
+      "topologyRepaired": true
+    },
+    "front_mitoyen_paris_01": {
+      "width": 3.207,
+      "depth": 1.227,
+      "height": 2.135,
+      "min": [
+        -1.6034998893737793,
+        0.0,
+        -0.6134999990463257
+      ],
+      "max": [
+        1.6034998893737793,
+        2.1349997520446777,
+        0.6134999990463257
+      ],
+      "triangles": 21240
+    },
+    "front_mitoyen_paris_01_distant": {
+      "width": 3.207,
+      "depth": 1.227,
+      "height": 2.135,
+      "min": [
+        -1.6034998893737793,
+        0.0,
+        -0.6134999990463257
+      ],
+      "max": [
+        1.6034998893737793,
+        2.1349997520446777,
+        0.6134999990463257
+      ],
+      "triangles": 1600,
+      "lodOf": "front_mitoyen_paris_01",
+      "lodRatio": 0.12,
+      "decimationExtentError": 0.00191,
+      "topologyRepaired": true
+    }
+  }
+}

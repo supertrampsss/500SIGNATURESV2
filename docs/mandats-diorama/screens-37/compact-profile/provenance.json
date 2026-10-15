@@ -1,0 +1,26 @@
+{
+  "kind": "Actual separate compact37 diagnostic retained externally; original E2E failures unchanged",
+  "build": "37",
+  "receiptSha256": "4af2d918f9987657b97e3daf468ea6f7b197388c3aaa7a9d606f6f93386dadcd",
+  "sourceSummarySha256": "23e2f8834b8666273235589dcc1079e0a13b8e560858950fa2d77c916e0c9ca2",
+  "sourceProfile": {
+    "path": "/workspace/mandats-verification/authored-3d/compact37-profile/compact37.cpuprofile",
+    "bytes": 1389228,
+    "sha256": "151e919dbdeed5a57f520b4312037df209d66c1fb8b929275e2f3f777cec8dab",
+    "repositoryCopy": "docs/mandats-diorama/screens-37/compact-profile/compact37.cpuprofile"
+  },
+  "diagnosticTrace": {
+    "path": "/workspace/mandats-verification/authored-3d/compact37-profile/diagnostic-trace.zip",
+    "bytes": 43309922,
+    "sha256": "7a9b226814ca27dea1a516b22dd6e73aefcbd7d98c088327cb26a010832da82d",
+    "copiedToRepository": false
+  },
+  "originalFailureTrace": "be5689b06cb081c8e961ce620368500d9312641f4844b5130598b340856100a8",
+  "gateTimingScope": "10.462008 seconds after gate begins; native Reprendre click took 7.852275 seconds before that gate; no total startup improvement claim",
+  "originalCompleteSuite": "20 passed,3 failed,9 skipped retained",
+  "limitedClaims": [
+    "Separate instrumented execution, not an E2E suite result.",
+    "Sampling and tracing can affect phase placement and timing.",
+    "No whole composition or FPS claim."
+  ]
+}

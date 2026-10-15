@@ -1,6 +1,11 @@
 import { storyAgenda } from "./narrative-engine.ts";
 import type { Game } from "./types.ts";
 import type { StoryAgendaItem } from "./narrative-types.ts";
+export {
+  COUNTRY_REFERENCE_POSE, mapPosition, mapCoordinates,
+  mapSourcePosition, mapSourceCoordinates, mapAuthoredPosition,
+  mapAuthoredCoordinates, mapAuthoredJacobian,
+} from "./map-camera-projection.ts";
 
 export const MAP_PLACES = {
   paris: { name: "Paris", lon: 2.35, lat: 48.86 },
@@ -17,12 +22,6 @@ export const MAP_PLACES = {
   ajaccio: { name: "Ajaccio", lon: 8.74, lat: 41.92 },
 } as const;
 export type MapPlace = keyof typeof MAP_PLACES;
-export function mapPosition(
-  lon: number,
-  lat: number,
-): { x: number; z: number } {
-  return { x: (lon - 2.4) * 0.76, z: (lat - 46.5) * 1.08 };
-}
 export function placeForTopic(
   item: Pick<StoryAgendaItem, "id" | "category" | "title">,
 ): MapPlace {

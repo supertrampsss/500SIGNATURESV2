@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MANDATS : comparaison réelle de la passe 12b</title>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; padding: 28px; background: #071b32; color: #fbf5eb; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 1800px; margin: auto; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.2; }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 40px); }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 14px; font-size: 22px; }
+    p { max-width: 90ch; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #edbc6b; outline-offset: 5px; }
+    .status { display: inline-block; margin: 0 0 12px; padding: 6px 11px; border: 1px solid #bb945b; border-radius: 4px; color: #f0cf98; }
+    .comparison, .inspections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .comparison { margin-top: 30px; }
+    figure { min-width: 0; margin: 0; }
+    .image-link { display: grid; place-items: center; width: 100%; aspect-ratio: 1672 / 941; border: 1px solid #687e96; background: #102940; overflow: hidden; text-decoration: none; }
+    .image-link img { display: block; width: 100%; height: auto; }
+    figcaption { padding-top: 12px; color: #d1dbe6; }
+    figcaption p { margin: 0 0 7px; }
+    .capture-status { font-size: 14px; color: #bdcada; }
+    .section { margin-top: 36px; padding-top: 26px; border-top: 1px solid #516a85; }
+    .review { max-width: 100ch; }
+    .review li { margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 12px; border: 1px solid #516a85; text-align: left; vertical-align: top; }
+    caption { margin-bottom: 10px; text-align: left; color: #d1dbe6; }
+    footer { margin-top: 34px; padding-top: 20px; border-top: 1px solid #516a85; color: #bdcada; }
+    @media (max-width: 850px) {
+      body { padding: 20px 16px; }
+      .comparison, .inspections { grid-template-columns: 1fr; gap: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="status">Passe 12b : fidélité artistique non conforme</p>
+      <h1>La référence confirmée et le jeu réel</h1>
+      <p>Ces cinq captures proviennent du jeu réel exécuté le 9 octobre 2026 dans Chromium 151.0.7922.173, à 1 672 × 941, avec les polices chargées et les animations réduites. La partie nationale utilise la version 12, la graine 0 et l’ambition équilibre. Aucune décision n’a été prise pendant les inspections.</p>
+      <p>Le résultat reste un état intermédiaire, artistiquement non conforme à la maquette confirmée. L’interface s’en rapproche, mais la composition, les quartiers, le relief et les matières présentent encore des différences majeures.</p>
+      <p>Les deux vues nationales utilisent le même cadre de présentation, au ratio 1 672 × 941. Chaque image s’ouvre à sa résolution originale en cliquant dessus. Les inspections complètent la comparaison ; elles ne constituent pas d’autres maquettes.</p>
+      <p><a href="screens-12/verification.json">Bilan des sept vues enregistrées</a> : aucune erreur de navigateur, requête échouée ou réponse HTTP en échec enregistrée. Ce constat technique ne valide pas la fidélité artistique. Les JSON de chaque vue documentent les actions natives ; aucune caméra ni valeur de partie n’a été injectée.</p>
+    </header>
+
+    <section class="comparison" aria-label="Comparaison nationale">
+      <figure>
+        <h2>Référence confirmée</h2>
+        <a class="image-link" href="reference-ordinateur.png" aria-label="Agrandir la référence confirmée">
+          <img src="reference-ordinateur.png" width="1672" height="941" alt="Maquette confirmée : France miniature détaillée, mer bleue, en-tête bleu nuit et panneau ivoire À traiter">
+        </a>
+        <figcaption>Maquette confirmée par le propriétaire le 8 octobre 2026. C’est la référence artistique de cette comparaison.</figcaption>
+      </figure>
+      <figure>
+        <h2>Vue nationale du jeu</h2>
+        <a class="image-link" href="screens-12/ordinateur.png" aria-label="Agrandir la vue nationale de la passe 12b">
+          <img src="screens-12/ordinateur.png" width="1672" height="941" alt="Vue nationale réelle de la passe 12b : interface ivoire et bleu nuit, plaines ouvertes, rivières cyan et montagnes encore lisses">
+        </a>
+        <figcaption>
+          <p>Vue initiale, sans action. L’année 1, les scores 57 et 52 ainsi que les trois sujets bleus proviennent de la vraie partie ; ils diffèrent légitimement des exemples de la maquette.</p>
+          <p class="capture-status">Capture réelle à 00:00:53 UTC. Fidélité artistique non conforme.</p>
+          <a href="screens-12/ordinateur.json">Conditions et actions de capture</a> · <a href="screens-12/ordinateur-inputs.json">Entrées de partie</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="section" aria-labelledby="inspections-heading">
+      <h2 id="inspections-heading">Inspections du jeu réel</h2>
+      <p>Ces vues ont été obtenues en ouvrant les vrais sujets, en utilisant Voir le lieu et les contrôles de caméra. Les fichiers JSON associés conservent le navigateur, le cadrage et la séquence exacte des actions.</p>
+      <div class="inspections">
+        <figure>
+          <h3>Paris</h3>
+          <a class="image-link" href="screens-12/paris.png" aria-label="Agrandir l’inspection de Paris">
+            <img loading="lazy" src="screens-12/paris.png" width="1672" height="941" alt="Inspection réelle de Paris : monument central et îlots de façades détaillés, encore séparés par de grandes surfaces ouvertes">
+          </a>
+          <figcaption><p>Les façades et les cours sont lisibles. Le monument domine encore fortement les îlots, les toitures sont très sombres et les quartiers restent séparés par de grandes surfaces ouvertes.</p><p class="capture-status">Sujet Assemblée, puis Voir le lieu. Aucune décision.</p><a href="screens-12/paris.json">Conditions de l’inspection de Paris</a> · <a href="screens-12/paris-inputs.json">Entrées de partie</a></figcaption>
+        </figure>
+        <figure>
+          <h3>Seine et berges</h3>
+          <a class="image-link" href="screens-12/seine.png" aria-label="Agrandir l’inspection de la Seine et des berges">
+            <img loading="lazy" src="screens-12/seine.png" width="1672" height="941" alt="Inspection élargie du secteur de Paris : cours d’eau cyan, ponts, voies ferrées et quartiers disjoints">
+          </a>
+          <figcaption><p>Les ponts et voies sont présents. Le cours d’eau conserve une teinte cyan et des segments anguleux ; ses berges ne retrouvent pas encore la continuité bâtie et paysagère de la référence.</p><p class="capture-status">Inspection de Paris élargie avec Réduire la carte. Aucune décision.</p><a href="screens-12/seine.json">Conditions de l’inspection des berges</a> · <a href="screens-12/seine-inputs.json">Entrées de partie</a></figcaption>
+        </figure>
+        <figure>
+          <h3>Lyon et Alpes</h3>
+          <a class="image-link" href="screens-12/alpes.png" aria-label="Agrandir l’inspection de Lyon et des Alpes">
+            <img loading="lazy" src="screens-12/alpes.png" width="1672" height="941" alt="Inspection élargie de Lyon et du relief voisin : sommets blancs aux longs flancs lisses, bâtiments espacés et terrains ouverts">
+          </a>
+          <figcaption><p>La neige et le volume des sommets sont visibles. Les longs flancs lisses et les rochers isolés diffèrent des faces rocheuses fragmentées de la maquette. Le haut de l’étiquette du sujet est coupé dans cette capture après le défilement du panneau.</p><p class="capture-status">Sujet des lycées, Voir le lieu, puis Réduire la carte. Aucune décision.</p><a href="screens-12/alpes.json">Conditions de l’inspection du relief</a> · <a href="screens-12/alpes-inputs.json">Entrées de partie</a></figcaption>
+        </figure>
+        <figure>
+          <h3>Retour à la vue nationale</h3>
+          <a class="image-link" href="screens-12/retour.png" aria-label="Agrandir la vue nationale après les inspections">
+            <img loading="lazy" src="screens-12/retour.png" width="1672" height="941" alt="Retour réel à la vue nationale après les inspections, avec les mêmes sujets et indicateurs qu’au départ">
+          </a>
+          <figcaption><p>Le cadrage national et l’agenda sont retrouvés après les inspections. Les sujets, indicateurs et nombre de décisions conservent leur état initial.</p><p class="capture-status">Recentrer, puis Fermer le sujet. Aucune décision.</p><a href="screens-12/retour.json">Conditions du retour à la vue nationale</a> · <a href="screens-12/retour-inputs.json">Entrées de partie</a></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section review" aria-labelledby="review-heading">
+      <h2 id="review-heading">Différences majeures constatées</h2>
+      <ol>
+        <li><strong>Composition et continuité urbaine.</strong> La vue du jeu reste plus plongeante. Les îlots sont isolés, les routes traversent de grands espaces ouverts et la Corse comporte peu de constructions. La référence présente une miniature dense où villes, places, quais et jardins se prolongent les uns dans les autres.</li>
+        <li><strong>Plaines et arrière-plan.</strong> Les surfaces ouvertes et les parcelles en patchwork dominent encore. Les bois forment des groupes disjoints ; l’arrière-plan reste gris et peu détaillé. La référence alterne cultures, prairies, bocage, villages et reliefs dans toute la composition.</li>
+        <li><strong>Relief et littoral.</strong> Les sommets possèdent encore de longs flancs lisses et les côtes des bandes rocheuses régulières. La référence montre des versants fragmentés, des contreforts variés et des falaises sculptées visibles depuis la vue nationale.</li>
+        <li><strong>Matières, eau et lumière.</strong> Les toitures parisiennes très sombres, la pierre gris vert et les rivières cyan anguleuses restent éloignées de la référence. Celle-ci associe des bâtiments plus chaleureux, des cours d’eau bleus intégrés aux berges et des ombres plus expressives.</li>
+      </ol>
+      <p>Le chargement d’une image, la compilation et l’absence d’erreurs de navigateur ne sont pas des validations de fidélité artistique.</p>
+    </section>
+    <section class="section review" aria-labelledby="ui-heading">
+      <h2 id="ui-heading">Interface et vraies données de partie</h2>
+      <p>Le cadre de la capture correspond à la référence : carte de 1 268 × 801, en-tête de 66 pixels et pied de page de 74 pixels. Le titre À traiter, le logo et les positions du footer sont proches. Les titres des vrais sujets restent entiers, un seul bouton Ouvrir le sujet est affiché et les trois lignes de légende sont visibles.</p>
+      <table>
+        <caption>Mesures de la vue nationale à 1 672 × 941. Les glyphes et icônes sont mesurés sur les pixels visibles.</caption>
+        <thead><tr><th scope="col">Élément</th><th scope="col">Référence</th><th scope="col">Capture 12b</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Icône Pays</th><td>x 115, 37 × 36</td><td>x 115, 37 × 38</td></tr>
+          <tr><th scope="row">Texte Pays</th><td>x 179, 40 × 21</td><td>x 179, 41 × 19</td></tr>
+          <tr><th scope="row">Barre Services</th><td>x 753, largeur 154</td><td>x 730, largeur 180</td></tr>
+          <tr><th scope="row">Barre Confiance</th><td>x 1 040, largeur 153</td><td>x 1 021, largeur 180</td></tr>
+        </tbody>
+      </table>
+      <p>Les deux barres ont été recalées dans le CSS desktop après cette capture. Ces images conservent l’état 12b antérieur à cette correction ; elles ne prouvent pas son rendu final. Le footer est conservé.</p>
+      <p>L’année, les scores et les sujets sont des données de la partie. Les trois sujets bleus ne sont pas urgents dans cet état ; aucune urgence n’a été ajoutée pour reproduire les exemples de la maquette. Le libellé Projet de la légende reste ambigu pour les sujets nationaux bleus. Les flèches et chevrons de la maquette sont absents conformément aux contraintes du propriétaire.</p>
+      <p>Cette page documente le desktop. Les formats mobiles nécessitent leurs propres captures et vérifications.</p>
+    </section>
+    <footer><a href="../mandats-diorama.md">Référence, critères de comparaison et historique des captures</a></footer>
+  </main>
+</body>
+</html>

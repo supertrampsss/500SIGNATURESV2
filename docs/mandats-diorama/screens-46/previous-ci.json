@@ -1,0 +1,25 @@
+{
+  "commit": "233db7d4106447d82aa0f753d1eb633bed885b5e",
+  "scope": "Previous iteration45; these are not results for iteration46.",
+  "rework": {
+    "url": "https://github.com/supertrampsss/500SIGNATURESV2/actions/runs/38187431769/job/114612692180",
+    "passed": 22,
+    "configuredSkipped": 9,
+    "failed": 1,
+    "failure": "Saved high-density WebKit resume remains loading after the original15000ms readiness limit; final recorded state retains turn1/movement1 and640x562 framebuffer. Full social step not reached.",
+    "tracePhasesMs": {
+      "context": 2718,
+      "terrain": 7724,
+      "cities": 12192,
+      "lighting": 12296
+    }
+  },
+  "otherWorkflowResults": {
+    "general-ci": "success",
+    "story": "success",
+    "board": "success",
+    "launch": "success",
+    "canonical-domain": "success"
+  },
+  "limits": "A local result does not turn a failed remote workflow into success. No timeout, test, retry, worker or configured omission was changed. Complete artistic reconstruction remains pending."
+}

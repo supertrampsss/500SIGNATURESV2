@@ -1,0 +1,96 @@
+{
+  "method": "Read distributed baseline and cliff candidate meshes. Reconstruct triangle boundary edges from exact position bytes across normal seams. Every cliff boundary edge is unchanged; every non-cliff indexed triangle corner is unchanged. This proves those geometry contacts, not all interior solids, rendering, performance or whole-reference fidelity.",
+  "checks": [
+    {
+      "mesh": "landscape-terrain-0",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 66918
+    },
+    {
+      "mesh": "landscape-terrain-mineral-0",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 91994
+    },
+    {
+      "mesh": "landscape-terrain-coastal-0",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 761
+    },
+    {
+      "mesh": "landscape-cliffs-0",
+      "boundaryEdges": 3432,
+      "contactBoundaryBitIdentical": true,
+      "oldTriangles": 21476,
+      "newTriangles": 25720
+    },
+    {
+      "mesh": "landscape-terrain-1",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 984
+    },
+    {
+      "mesh": "landscape-terrain-mineral-1",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 731
+    },
+    {
+      "mesh": "landscape-terrain-coastal-1",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 2
+    },
+    {
+      "mesh": "landscape-cliffs-1",
+      "boundaryEdges": 332,
+      "contactBoundaryBitIdentical": true,
+      "oldTriangles": 1920,
+      "newTriangles": 1920
+    },
+    {
+      "mesh": "landscape-terrain-2",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 33
+    },
+    {
+      "mesh": "landscape-cliffs-2",
+      "boundaryEdges": 52,
+      "contactBoundaryBitIdentical": true,
+      "oldTriangles": 240,
+      "newTriangles": 240
+    },
+    {
+      "mesh": "landscape-agriculture",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 10952
+    },
+    {
+      "mesh": "landscape-crop-rows",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 79824
+    },
+    {
+      "mesh": "landscape-field-limits",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 9
+    },
+    {
+      "mesh": "landscape-farm-lanes",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 358
+    },
+    {
+      "mesh": "landscape-hedges",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 1312
+    },
+    {
+      "mesh": "landscape-riverbanks",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 5789
+    },
+    {
+      "mesh": "landscape-rivers",
+      "allTriangleCornerPositionsBitIdentical": true,
+      "triangles": 8514
+    }
+  ]
+}

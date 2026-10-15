@@ -1,0 +1,17 @@
+Extensions: writing cache failed ([Errno 30] Read-only file system: '/home/agent/.config/blender/4.3/extensions').
+15:44:53 | INFO: Data are loaded, start creating Blender stuff
+15:44:53 | INFO: Blender create Mesh node rock_PROXY_5m.002
+15:44:53 | INFO: glTF import finished in 0.11s
+{"verticesBefore": 67042, "verticesAfterWeld": 33063, "trianglesBefore": 66122}
+{"trianglesAfterDecimation": 900}
+ERROR Draco mesh compression is not available because library could not be found at /usr/bin/4.3/python/lib/python3.13/site-packages/libextern_draco.so
+15:44:53 | INFO: Starting glTF 2.0 export
+15:44:53 | INFO: Extracting primitive: rock_PROXY_5m.002
+15:44:54 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+15:44:54 | INFO: Primitives created: 1
+15:44:54 | INFO: Finished glTF 2.0 export in 0.10508346557617188 s
+
+{"source": "Poly Haven boulder_01 CC0", "sourceTriangles": 66122, "verticesBefore": 67042, "verticesAfterWeld": 33063, "triangles": 900, "vertices": 452, "targetGLTFBounds": {"min": [-0.3216630220413208, -0.06521196663379669, -0.26270708441734314], "max": [0.3532716631889343, 0.4578305780887604, 0.2557070851325989]}, "status": "exported-not-integrated", "limits": ["Browser materials, footing and visual appearance not yet validated.", "This model replaces a small decorative forest rock only; no Alpine landscape claim."]}
+Blender 4.3.2
+
+Blender quit

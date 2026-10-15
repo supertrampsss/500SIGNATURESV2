@@ -1,0 +1,26 @@
+{
+  "parent": "98bc72692f519d223e53e7ebfa5a1a532ca7be06",
+  "method": "Model/environment bytes compared with immutable parent52; cathedral changed, vegetation and other kits unchanged. Two fresh cathedral LOD GLB/metadata exports byte-identical after full source/PBR bake; whole bounds identical to parent52.",
+  "files": [
+    {
+      "name": "daylight.env",
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93"
+    },
+    {
+      "name": "vegetation.glb",
+      "sha256": "a9c329f886f98544e7bf7ab06ac0e81d8f622188f9e860268bb404f7378c86a5"
+    },
+    {
+      "name": "architecture.glb",
+      "sha256": "0940846cb686aa691e2c35006281a6968a3e71f1fd4bc4ecff846badd6c4de16"
+    },
+    {
+      "name": "architecture.json",
+      "sha256": "b00d05dd42f638112f7ee91a200138403b201b1f866fa1d3aaff77df8ef688f4"
+    },
+    {
+      "name": "paris.glb",
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    }
+  ]
+}

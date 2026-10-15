@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-10-08T20:57:14.023Z",
+  "version": 12,
+  "baseCommit": "b1865a99432f44d30c419a1327dbf65052a9041e",
+  "branch": "codex/mandats-reference-3d-20261008",
+  "offlineVersion": "edfd0193033f6f74",
+  "offlineResources": 143,
+  "mandatsGzipKB": 584.4,
+  "assets": {
+    "/assets/mandats-C0C5hCjI.js": "2fd035d732fd73418846cde2b2bb5b8a0e10cb6755c777be7860aa7a42add100",
+    "/assets/shared-design-BR6wKexh.js": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
+    "/assets/mandats-x2O5YTzm.css": "2e9eb1c36ae6f4c503c29ef7fa5f6e6448294287635e8db05977639290f644b3",
+    "/assets/game-B_-L39w0.css": "db4a6547d379f0b4d5fc58c102353ad72d23f42a14280a47eafaf96e37f91c1c",
+    "/assets/site-shell-v2-DKHbEmDf.css": "5b07531ff59103cb8fa0d0c3611a960a012b372ee2f7ee365a2c45b3c72ced59",
+    "/assets/shared-design-D17Vxp_n.css": "38c4f156a2a456283a9eda9b25841fcf8b7018d54489b347798035b5054c9781"
+  },
+  "models": {
+    "architecture": {
+      "bytes": 5437280,
+      "sha256": "f8e0fc41499a606328ed0e4b6f62d19c257be0034c3bf19e9d47566fcd97f46f"
+    },
+    "vegetation": {
+      "bytes": 944748,
+      "sha256": "22d88978198973b29688eaecc3681d61b37517712a056a5a10b39cf9a7e91e38"
+    }
+  },
+  "referenceSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "rendering": "Actual immutable built Babylon.js preview, prototype07. Native DOM controls, no camera or game-state injection. Artistic conformity remains insufficient."
+}

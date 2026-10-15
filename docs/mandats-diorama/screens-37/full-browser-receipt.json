@@ -1,0 +1,10 @@
+{
+  "build": "37",
+  "command": "python run-final-browser.py 37",
+  "exitCode": 1,
+  "confirmedBy": "ROOT consumed functions.write_stdin session79255 exit_code1",
+  "confirmedAt": "2026-10-09T12:40:44.290244+00:00",
+  "session": 79255,
+  "evidence": "/workspace/mandats-verification/authored-3d/final-browser/37/20261009T121438Z-307316",
+  "scope": "Original rework suite completed:20 passed,3 failed,9 skipped; runner stopped before other3 full suites"
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "status": "diagnostic-only-no-export",
+    "budgetPassed": false,
+    "targetTriangles": 2600,
+    "name": "pine",
+    "sourceTriangles": 70661,
+    "triangles": 9986,
+    "vertices": 28257,
+    "bounds": [
+      [
+        -0.3141113221645355,
+        -0.28198763728141785,
+        0.0
+      ],
+      [
+        0.32442060112953186,
+        0.3454842269420624,
+        1.1794462203979492
+      ]
+    ]
+  }
+]

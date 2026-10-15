@@ -1,0 +1,25 @@
+{
+  "commit": "98bc72692f519d223e53e7ebfa5a1a532ca7be06",
+  "method": "Actual completed GitHub workflow conclusions and connected job115258483159 log. Immutable parent52; no artist completion or53CI claim.",
+  "workflows": {
+    "general": 38386197199,
+    "story": 38386197636,
+    "board": 38386198161,
+    "canonical": 38386197476,
+    "launch": 38386197235,
+    "rework_social": 38386197211
+  },
+  "allConclusions": "success",
+  "rework": {
+    "passed": 23,
+    "skipped": 9,
+    "duration": "11.6m",
+    "webkitHighDPR": "passed35.6s"
+  },
+  "social": {
+    "passed": 13,
+    "skipped": 3,
+    "duration": "4.1m"
+  },
+  "artStatus": "Still below reference. PR194 remains draft."
+}

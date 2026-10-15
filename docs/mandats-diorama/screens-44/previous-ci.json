@@ -1,0 +1,29 @@
+{
+  "commit": "97d77149f286f5e0246da1929eed058d8344598d",
+  "scope": "Previous iteration43, not a result for iteration44",
+  "site": {
+    "url": "https://github.com/supertrampsss/500SIGNATURESV2/actions/runs/38177063316/job/114581571160",
+    "passed": 231,
+    "configuredSkipped": 65,
+    "flaky": 3,
+    "failed": 1,
+    "failure": "Fresh national v12 Playwright context setup exceeds the original60000ms timeout. Browser.setDownloadBehavior loses its context; the retried case also expires. The mobile campaign/import and shared-theme cases eventually pass on retry."
+  },
+  "rework": {
+    "url": "https://github.com/supertrampsss/500SIGNATURESV2/actions/runs/38177063304/job/114581570830",
+    "passed": 22,
+    "configuredSkipped": 9,
+    "failed": 1,
+    "failure": "WebKit DPR saved resume remains loading at the original15000ms gate. The full social step was not reached."
+  },
+  "otherJobsPassed": [
+    "database",
+    "python",
+    "visual-audit",
+    "story-e2e",
+    "canonical-domain",
+    "mandats-board",
+    "launch-consent"
+  ],
+  "limits": "Local complete rework/social results are separate. No test, timeout, retry, worker or configured omission was changed. Full final checks and visual conformity remain pending."
+}

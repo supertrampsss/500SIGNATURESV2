@@ -1,0 +1,12 @@
+{
+  "command": "node tools/mandats-assets/generate-land-textures.mjs",
+  "method": "Two independent deterministic recipe runs. The complete manifest records equal PNG/pixel hashes for all nine maps. The generator decodes its own PNG bytes to check equality with the authored RGBA buffer. No browser, performance or visual-conformity claim.",
+  "recipeSHA256": "2e2c2f50f77bed8eaf3bcb2c08b4ecd40580b08d5d398682fd3cb279e3329b51",
+  "manifestByteIdentical": true,
+  "mapsByteIdentical": 9,
+  "mapsChangedFrom43": [
+    "land-mineral-rock.png",
+    "land-mineral-normal.png"
+  ],
+  "unchangedMapsFrom43": 7
+}

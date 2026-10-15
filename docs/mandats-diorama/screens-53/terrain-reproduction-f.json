@@ -1,0 +1,17 @@
+{
+  "method": "Two fresh canonical exports in3914 completed before fullcheck; compressed binary and full source JSON compared byte-exact to retainedF. Original runtime source/asset changes frozen during exports.",
+  "sha256": "987b0a88417cfabfc9743d7648a6f7e4b081ea853875163292699dc4ebb42f0a",
+  "compressedBytes": 12164931,
+  "decodedBytes": 25929200,
+  "heightSurvey": {
+    "minimumX": -450,
+    "minimumZ": -265,
+    "width": 861,
+    "height": 826,
+    "samples": 290665
+  },
+  "meshCount": 17,
+  "triangles": 298654,
+  "binaryByteIdentical": true,
+  "sourceMetadataByteIdentical": true
+}

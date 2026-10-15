@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANDATS : comparaison réelle de la passe 20</title><style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; padding: 28px; background: #071b32; color: #fbf5eb; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 1800px; margin: auto; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.2; }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 40px); }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 14px; font-size: 22px; }
+    p { max-width: 90ch; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #edbc6b; outline-offset: 5px; }
+    .status { display: inline-block; margin: 0 0 12px; padding: 6px 11px; border: 1px solid #bb945b; border-radius: 4px; color: #f0cf98; }
+    .comparison, .inspections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .comparison { margin-top: 30px; }
+    figure { min-width: 0; margin: 0; }
+    .image-link { display: grid; place-items: center; width: 100%; aspect-ratio: 1672 / 941; border: 1px solid #687e96; background: #102940; overflow: hidden; text-decoration: none; }
+    .image-link img { display: block; width: 100%; height: auto; }
+    figcaption { padding-top: 12px; color: #d1dbe6; }
+    figcaption p { margin: 0 0 7px; }
+    .capture-status { font-size: 14px; color: #bdcada; }
+    .section { margin-top: 36px; padding-top: 26px; border-top: 1px solid #516a85; }
+    .review { max-width: 100ch; }
+    .review li { margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 12px; border: 1px solid #516a85; text-align: left; vertical-align: top; }
+    caption { margin-bottom: 10px; text-align: left; color: #d1dbe6; }
+    footer { margin-top: 34px; padding-top: 20px; border-top: 1px solid #516a85; color: #bdcada; }
+    @media (max-width: 850px) {
+      body { padding: 20px 16px; }
+      .comparison, .inspections { grid-template-columns: 1fr; gap: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style></head>
+<body><main><header><p class="status">Passe 20 : non_conforme</p>
+<h1>La référence confirmée et le jeu réel</h1><p>La passe 20 reste loin d&#x27;une reproduction à l&#x27;identique de la maquette. Paris a désormais une présence monumentale, les façades et les ombres ont progressé, et la campagne centrale a gagné quelques structures. La silhouette orientale et sud-orientale reste trop resserrée, les grandes plaines se lisent encore comme des surfaces peu épaisses, et les Alpes gardent des pointes et pans géométriques gris sur de larges bases jaunes. Le cadre de l&#x27;interface est proche, sans constituer une validation de la carte.</p>
+<p>Chromium 151.0.7922.173, 1 672 × 941, DPR 1, polices chargées et mouvement réduit. Partie nationale v12, graine 0, ambition équilibre. Sept vues natives, aucune décision dépensée.</p>
+<p><a href="screens-20/verification.json">Relevé des sept vues</a> · <a href="screens-20/build.json">Build capturé</a> · <a href="screens-20/review.json">Verdict visuel</a>. Erreurs JavaScript : 0 ; requêtes échouées : 0 ; réponses HTTP en échec : 0 ; avertissements console : 0 ; erreurs console : 0. Ces comptes portent sur les événements distincts du parcours.</p></header>
+<section class="comparison" aria-label="Comparaison nationale"><figure><h2>Référence confirmée</h2>
+<a class="image-link" href="reference-ordinateur.png" aria-label="Agrandir la référence confirmée"><img src="reference-ordinateur.png" width="1672" height="941" alt="Maquette confirmée : France miniature détaillée, interface bleu nuit et panneau ivoire"></a>
+<figcaption>Image originale confirmée par le propriétaire et conservée sans modification.</figcaption></figure>
+<figure><h2>Vue nationale réelle</h2><a class="image-link" href="screens-20/ordinateur.png" aria-label="Agrandir la vue nationale réelle"><img src="screens-20/ordinateur.png" width="1672" height="941" alt="Vue nationale réelle de la passe 20"></a>
+<figcaption><p>Passe 20, vue nationale réelle. Paris, façades et ombres ont progressé. La carte reste trop plate et l&#x27;est trop resserré face à la maquette. Verdict artistique : non conforme.</p><p class="capture-status">2026-10-09 02:52:15.508 UTC</p><a href="screens-20/ordinateur.json">Conditions et actions</a> · <a href="screens-20/ordinateur-inputs.json">Entrées de partie</a></figcaption></figure></section>
+<section class="section" aria-labelledby="inspections"><h2 id="inspections">Inspections réelles</h2><div class="inspections"><figure><h3>Paris</h3>
+<a class="image-link" href="screens-20/paris.png" aria-label="Agrandir Paris">
+<img loading="lazy" src="screens-20/paris.png" width="1672" height="941" alt="Capture réelle du jeu : Paris"></a>
+<figcaption><p>Inspection réelle de Paris. La cathédrale est détaillée et possède désormais une masse dominante. Le paysage alentour et les groupes bâtis restent plus réguliers et simplifiés que la référence.</p><a href="screens-20/paris.json">Conditions et actions</a> · <a href="screens-20/paris-inputs.json">Entrées de partie</a></figcaption></figure>
+<figure><h3>Seine et berges</h3>
+<a class="image-link" href="screens-20/seine.png" aria-label="Agrandir Seine et berges">
+<img loading="lazy" src="screens-20/seine.png" width="1672" height="941" alt="Capture réelle du jeu : Seine et berges"></a>
+<figcaption><p>Vue réelle de Paris avec recul. Les ombres font mieux lire les volumes et préservent davantage les façades que l&#x27;essai 19a. Les sols, cultures et berges restent très graphiques.</p><a href="screens-20/seine.json">Conditions et actions</a> · <a href="screens-20/seine-inputs.json">Entrées de partie</a></figcaption></figure>
+<figure><h3>Lyon et Alpes</h3>
+<a class="image-link" href="screens-20/alpes.png" aria-label="Agrandir Lyon et Alpes">
+<img loading="lazy" src="screens-20/alpes.png" width="1672" height="941" alt="Capture réelle du jeu : Lyon et Alpes"></a>
+<figcaption><p>Inspection réelle des Alpes. Les entailles et crêtes sont présentes, mais les grands pans gris, les pointes et les bases jaunes restent artificiels. La fragmentation minérale et la neige de la référence ne sont pas reproduites.</p><a href="screens-20/alpes.json">Conditions et actions</a> · <a href="screens-20/alpes-inputs.json">Entrées de partie</a></figcaption></figure>
+<figure><h3>Retour national</h3>
+<a class="image-link" href="screens-20/retour.png" aria-label="Agrandir Retour national">
+<img loading="lazy" src="screens-20/retour.png" width="1672" height="941" alt="Capture réelle du jeu : Retour national"></a>
+<figcaption><p>Retour réel à la vue nationale. Les mêmes écarts de silhouette orientale, de relief général et de massifs restent visibles. Cette capture documente l&#x27;état de la passe 20, sans validation artistique.</p><a href="screens-20/retour.json">Conditions et actions</a> · <a href="screens-20/retour-inputs.json">Entrées de partie</a></figcaption></figure></div></section>
+<section class="section review" aria-labelledby="review"><h2 id="review">Écarts observés</h2><ul><li>Silhouette nationale : le bord est et la côte sud-est occupent moins de largeur que dans la référence. Sur les coupes horizontales y300, y350 et y650, le bord terrestre chaud visible se situe respectivement à x1139, x1094 et x1084 dans 20, contre x1195, x1162 et x1217 dans la référence. Les écarts de 56, 68 et 133 pixels restent présents. Ces coupes prouvent l&#x27;écart de silhouette mais ne sont pas des correspondances géographiques suffisantes pour calculer une déformation.</li><li>Relief et composition de la campagne : les vallons, bosquets et talus ajoutés se voient localement, notamment dans la poche centrale x590-784 / y460-534. À l&#x27;échelle nationale, de grands espaces jaunes ou olive conservent cependant une lecture horizontale et diagrammatique. Les rangs de cultures et les alignements urbains restent plus réguliers que le réseau de champs, pentes, chemins et petits groupes bâtis de la référence. La couleur seule ne corrige pas ce manque d&#x27;épaisseur et de variété structurelle.</li><li>Massifs : dans la vue Alpes, particulièrement x850-985 / y510-680, les crêtes sont plus découpées mais gardent une organisation en dents et grands pans gris plissés. Les nouvelles ruptures existent, mais les bases jaunes sont encore larges, les transitions de versants sont abruptes et la neige forme peu de caps ou bandes clairement distincts. La référence montre des contreforts et roches plus fragmentés, des creux profonds, des débris à plusieurs échelles et une séparation plus nette entre roche chaude, neige claire et ombres froides.</li></ul>
+<p>Groupes statiques : 36 · Instances statiques : 11954 · Maisons placées : 1258. Ces compteurs proviennent du JSON initial et ne mesurent pas la fidélité à la maquette.</p>
+<p>Les sujets et solutions restent ceux de la partie exécutée. La revue artistique provient de /root/reference_review.</p></section>
+<footer><a href="../mandats-diorama.md">Référence, validation et historique</a></footer></main></body></html>

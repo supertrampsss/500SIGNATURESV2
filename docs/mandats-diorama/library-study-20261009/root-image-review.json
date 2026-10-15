@@ -1,0 +1,36 @@
+{
+  "reviewedAt": "2026-10-09T15:48:55.421370+00:00",
+  "reviewer": "root",
+  "status": "NONCONFORM",
+  "scope": "Existing asset adaptation study over unchanged production37; no source38 build.",
+  "actuallyOpenedImages": [
+    {
+      "path": "library-house-study-v2-front.png",
+      "sha256": "cdf2f44cf774b25dc48efd385cdeeeccec1a1ef9cc63fdca5066adc0b8459b1c"
+    },
+    {
+      "path": "library-house-miniature-front.png",
+      "sha256": "bfc511bf990094f089117a9ccf6f3a4b8f4391b3b09db906e46be2817b99450b"
+    },
+    {
+      "path": "browser-house-seated-probe/01-national.png",
+      "sha256": "045b6403693ae19a1766bd548ec2cab5a71c0b212a1e1c1791d179136a3e4feb"
+    },
+    {
+      "path": "browser-house-seated-probe/04-lyon-detail-canvas.png",
+      "sha256": "f672cc628453cac00e93d4b24eb22f697d3c27a22317e7f53750eda46f21fdb4"
+    }
+  ],
+  "referenceSha256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "findings": [
+    "The house studio render demonstrates genuine assembled library components.",
+    "Only two maison_alsace_01 placements are overridden in the real scene; the country image remains mostly unchanged.",
+    "The terrain palette and broad relief remain coarse; mountain fronts and snow are angular and too continuous.",
+    "Cathedral proportions, fine town composition, forest silhouettes and harbour detail remain below the canonical target.",
+    "Six material primitives per house LoD versus one on the original template require cost assessment before adoption."
+  ],
+  "limits": [
+    "Only the listed pictures were opened for this final seated-candidate review.",
+    "Supplemental Chromium checks do not establish original15s/180s timing, mobile readiness, terrain contacts or artistic conformity."
+  ]
+}

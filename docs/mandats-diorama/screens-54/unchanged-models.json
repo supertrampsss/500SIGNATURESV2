@@ -1,0 +1,26 @@
+{
+  "parent": "fa2296fb47c9333ba1df2071223d890eac76e7d8",
+  "method": "Model/environment bytes compared with immutable parent53; architecture changed, vegetation/cathedral/other kits unchanged. Two fresh architecture LOD exports and canonical CC0 compositions reproduce GLB/metadata; all72active bounds identical to parent53. Coarse context proxies were rejected and reverted.",
+  "files": [
+    {
+      "name": "daylight.env",
+      "sha256": "893b475a4e2c4bc857235009eb4b583f26bbbb9195de1d7c0d1bfb505fb82f93"
+    },
+    {
+      "name": "vegetation.glb",
+      "sha256": "a9c329f886f98544e7bf7ab06ac0e81d8f622188f9e860268bb404f7378c86a5"
+    },
+    {
+      "name": "paris.glb",
+      "sha256": "d4754e30a6dae603a7854235e12e502285d02dccc780de2798cc227211764491"
+    },
+    {
+      "name": "cathedrale.glb",
+      "sha256": "6fbfb563eb405ce148957e41031369795f943be554fc70b2395ec3e74fc75121"
+    },
+    {
+      "name": "cathedrale.json",
+      "sha256": "fa5921a6bfa57ad4056bad56e53549fa0c986e2fbf3ab82aa46178be3b0c3b4d"
+    }
+  ]
+}

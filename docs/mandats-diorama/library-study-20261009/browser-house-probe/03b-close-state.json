@@ -1,0 +1,136 @@
+{
+  "bounds": {
+    "x": 1604,
+    "y": 132,
+    "width": 44,
+    "height": 44,
+    "top": 132,
+    "right": 1648,
+    "bottom": 176,
+    "left": 1604
+  },
+  "disabled": false,
+  "style": {
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "pointerEvents": "auto"
+  },
+  "scrollY": 0,
+  "ancestors": [
+    {
+      "tag": "HEADER",
+      "className": "",
+      "bounds": {
+        "x": 1293,
+        "y": 132,
+        "width": 355,
+        "height": 172.75,
+        "top": 132,
+        "right": 1648,
+        "bottom": 304.75,
+        "left": 1293
+      },
+      "scrollTop": 0,
+      "clientHeight": 173,
+      "scrollHeight": 173,
+      "overflow": "visible",
+      "display": "flex"
+    },
+    {
+      "tag": "SECTION",
+      "className": "map-subject ",
+      "bounds": {
+        "x": 1268,
+        "y": 66,
+        "width": 404,
+        "height": 801,
+        "top": 66,
+        "right": 1672,
+        "bottom": 867,
+        "left": 1268
+      },
+      "scrollTop": 0,
+      "clientHeight": 801,
+      "scrollHeight": 836,
+      "overflow": "auto",
+      "display": "block"
+    },
+    {
+      "tag": "SECTION",
+      "className": "map-game map-game--playing map-game--focused",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1672,
+        "height": 941,
+        "top": 0,
+        "right": 1672,
+        "bottom": 941,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 941,
+      "scrollHeight": 941,
+      "overflow": "hidden",
+      "display": "grid"
+    },
+    {
+      "tag": "MAIN",
+      "className": "",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1672,
+        "height": 941,
+        "top": 0,
+        "right": 1672,
+        "bottom": 941,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 941,
+      "scrollHeight": 941,
+      "overflow": "visible",
+      "display": "block"
+    },
+    {
+      "tag": "BODY",
+      "className": "",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1672,
+        "height": 941,
+        "top": 0,
+        "right": 1672,
+        "bottom": 941,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 941,
+      "scrollHeight": 941,
+      "overflow": "visible",
+      "display": "block"
+    },
+    {
+      "tag": "HTML",
+      "className": "",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1672,
+        "height": 941,
+        "top": 0,
+        "right": 1672,
+        "bottom": 941,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 941,
+      "scrollHeight": 941,
+      "overflow": "visible",
+      "display": "block"
+    }
+  ]
+}

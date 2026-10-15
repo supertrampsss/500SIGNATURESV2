@@ -1,0 +1,68 @@
+{
+  "reviewer": "ROOT",
+  "reviewedAt": "2026-10-09T12:58:23.181012+00:00",
+  "build": 37,
+  "kind": "actual-native-welcome-image-review",
+  "technicalScope": "Supplemental welcome cases with bounded native waits; does not replace original 15s renderer gates or full rework suite.",
+  "images": [
+    {
+      "path": "01-desktop-welcome.png",
+      "sha256": "a1eb506c9b247131d8317b8efcf5ece0912ade075ea05e3a2dfb5e82f1d6b026",
+      "openedByRoot": true
+    },
+    {
+      "path": "02-mobile390-welcome.png",
+      "sha256": "cae57c7662ebdbc6f845777c7c045f5e9fabc32fe1fda1cbb2b23715a146aca2",
+      "openedByRoot": true
+    },
+    {
+      "path": "03-compact320-welcome.png",
+      "sha256": "9758e53b4a5a137f85d1bccc21d8a37b6709ee363877cf6856121186d1066512",
+      "openedByRoot": true
+    },
+    {
+      "path": "04-mobile390-png503-svg-after-503.png",
+      "sha256": "550273bbaceedac39ee87c2dc77a8b4a8d85adbf6b01f0e078a7ca45e1f077dc",
+      "openedByRoot": true
+    },
+    {
+      "path": "05-saved-resume-saved-welcome.png",
+      "sha256": "ac523749c45d6682a0d6f854bb9db443ad3e8e6491c282e01f93636a947f6956",
+      "openedByRoot": true
+    },
+    {
+      "path": "05-saved-resume-resumed-canvas.png",
+      "sha256": "41e1e732bf04209bb53748456d6408f00e2ee49efbbd5d86e32d0db381125511",
+      "openedByRoot": true
+    },
+    {
+      "path": "06-direct-initial-save-direct-canvas.png",
+      "sha256": "69990c792a235aa6d1de9d6b412c3b2441e6e130c3b5f815bdc8528933c13663",
+      "openedByRoot": true
+    },
+    {
+      "path": "01-desktop-adopted-canvas.png",
+      "sha256": "397014e9623f25cc1450c3c01d2b526854acdafea9b8da339650032b35003c67",
+      "openedByRoot": true
+    }
+  ],
+  "observations": [
+    "Desktop welcome and saved welcome: decorative PNG fits map space with visible letterbox bands; ivory start controls readable.",
+    "390px and320px welcome: header, full miniature and concise start controls visible without horizontal clipping; text and buttons readable.",
+    "Actual PNG503: simple SVG France visible; start controls remain accessible. This is a fallback appearance, not 3D art completion.",
+    "Adopted, resumed and supported initial direct save: actual Babylon canvas visible with actual year1/services57/confidence52; decorative welcome PNG is removed according to collector assertions.",
+    "Direct save screenshot has a partially visible footer at the capture boundary; no claim of whole composition match."
+  ],
+  "artVerdict": "NONCONFORM",
+  "remainingVisualDifferences": [
+    "Current country surface remains sparse, yellow/grey and visibly faceted compared with the reference.",
+    "Cathedral body and shafts too bulky and tall; existing geometry is still unlike the reference.",
+    "Background rocks resemble large closed pavement slabs; vegetation crowns coarse.",
+    "Harbours, water details and city layering still less rich than reference."
+  ],
+  "limits": [
+    "Images verify these exact captured states only.",
+    "No new source or build; native supplemental success does not repair original compact/WebKit loading deadline failures.",
+    "No existing third-party model integrated."
+  ]
+}

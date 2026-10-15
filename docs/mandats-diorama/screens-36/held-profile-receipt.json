@@ -1,0 +1,29 @@
+{
+  "build": "36",
+  "kind": "diagnostic profiler, distinct from original focused failure",
+  "sessionId": 10511,
+  "actualExitCode": 0,
+  "consumedAt": "2026-10-09T11:29:00.689541+00:00",
+  "originalFocused36": "first release renderer gate FAILED; no replacement",
+  "diagnosticFirstGate": {
+    "status": "passed",
+    "originalTimeoutMs": 15000,
+    "elapsedMs": 9226.774
+  },
+  "sourceStability": {
+    "actualRepositoryInputCount": 233,
+    "actualSnapshotInputCount": 233,
+    "actualArchiveFileCount": 248,
+    "unchanged": true
+  },
+  "artConformity": false,
+  "files": {
+    "served-resources36.json": "db222aa9413792a426447af6db2232f29e079f7888068d2b86893c8dda65be42",
+    "network36.json": "a7fdba413446df47ef3fd62effb009eaaf020c3bca1d56b7ee0d956e1ef57901",
+    "held36-actual-terminal.png": "e1e61dc690d1c04d9267a359b10abb89be4fde9cba2999145c05dee7aebf2eb0",
+    "held36-actual-terminal.json": "0d0cbf2165961b69db9e0fc749d3d27fc75d2773c290b73827c4409ba836df02",
+    "held36.cpuprofile": "96ebf9f412a692b6a7f16614f6ff0cce901a66f3fa95d3ca1f7120a3d10c7222",
+    "held36-summary.json": "655e1cde956cbcd6a8817d8946a9d7ce38ad284d47730cca9ebeb12d3ecffb13",
+    "preflight36.json": "2891914328a5eb8c76821db0136ba67cc33f4ed00c3031b7a45c15b646ad4b3e"
+  }
+}

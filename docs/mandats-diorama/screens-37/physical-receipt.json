@@ -1,0 +1,8 @@
+{
+  "build": "37",
+  "command": "node --experimental-strip-types integration37/verify.mjs",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session81357 exit_code0",
+  "confirmedAt": "2026-10-09T12:09:44.001316+00:00",
+  "session": 81357
+}

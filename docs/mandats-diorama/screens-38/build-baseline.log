@@ -1,0 +1,142 @@
+
+> build
+> node --experimental-strip-types scripts/mandats-model-revisions.ts && tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/mandats-offline.ts && node scripts/analytics-build.mjs
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1014 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/mandats/france/hiver/index.html                                0.51 kB │ gzip:   0.33 kB
+dist/salaires/index.html                                            2.56 kB │ gzip:   1.25 kB
+dist/mandats/index.html                                             5.04 kB │ gzip:   1.87 kB
+dist/confidentialite/index.html                                     6.34 kB │ gzip:   2.60 kB
+dist/index.html                                                    13.69 kB │ gzip:   4.69 kB
+dist/mandats/methode/index.html                                    28.93 kB │ gzip:  10.76 kB
+dist/assets/land-leaf-grain-Dq3zfjHI.png                           54.19 kB
+dist/assets/land-coastal-normal-5Lv01LFJ.png                       88.73 kB
+dist/assets/land-stone-normal-CxQ85Rmx.png                        171.40 kB
+dist/assets/land-leaf-normal-KsVL2iP_.png                         183.57 kB
+dist/assets/land-earth-grain-DRREWpxX.png                         251.67 kB
+dist/assets/land-crop-stalks-DqbEWteS.png                         337.75 kB
+dist/assets/land-earth-normal-D8qTdGaP.png                        377.25 kB
+dist/assets/land-mineral-rock-DqRxmUfD.png                        480.97 kB
+dist/assets/land-mineral-normal-B2VVWRH9.png                    1,292.99 kB
+dist/assets/welcome-diorama-D6QPWYbq.png                        1,733.11 kB
+dist/assets/shared-design-D17Vxp_n.css                             30.54 kB │ gzip:   6.40 kB
+dist/assets/site-shell-v2-DKHbEmDf.css                             45.67 kB │ gzip:   6.80 kB
+dist/assets/game-B_-L39w0.css                                      81.76 kB │ gzip:  16.68 kB
+dist/assets/chart-controls-BmTyk4Po.css                            88.09 kB │ gzip:  15.82 kB
+dist/assets/style-Dn4VjWro.css                                    117.38 kB │ gzip:  19.72 kB
+dist/assets/mandats-B5H7aFd6.css                                  175.23 kB │ gzip:  32.83 kB
+dist/assets/principal-Ck7t8tFd.css                                306.24 kB │ gzip:  39.48 kB
+dist/assets/kernelBlurVaryingDeclaration-BODRh1z8.js                0.21 kB │ gzip:   0.18 kB
+dist/assets/kernelBlurVaryingDeclaration-BP9K7z3u.js                0.22 kB │ gzip:   0.19 kB
+dist/assets/meshUboDeclaration-BT6CxIx0.js                          0.28 kB │ gzip:   0.24 kB
+dist/assets/sceneVertexDeclaration-KFsLf99o.js                      0.33 kB │ gzip:   0.23 kB
+dist/assets/bumpVertexDeclaration-mEQjSRR_.js                       0.40 kB │ gzip:   0.27 kB
+dist/assets/pass.fragment-Cv85RasD.js                               0.42 kB │ gzip:   0.30 kB
+dist/assets/sceneUboDeclaration-C9WeWSfC.js                         0.44 kB │ gzip:   0.28 kB
+dist/assets/logDepthDeclaration-ByBCscwi.js                         0.47 kB │ gzip:   0.29 kB
+dist/assets/shadowMapFragmentSoftTransparentShadow-vGArfHDG.js      0.47 kB │ gzip:   0.31 kB
+dist/assets/shadowMapFragmentSoftTransparentShadow-D72tVu5y.js      0.51 kB │ gzip:   0.33 kB
+dist/assets/packingFunctions-BvVSbVFP.js                            0.53 kB │ gzip:   0.29 kB
+dist/assets/pass.fragment-nl5X6nk6.js                               0.55 kB │ gzip:   0.34 kB
+dist/assets/postprocess.vertex-BIyaM03b.js                          0.56 kB │ gzip:   0.35 kB
+dist/assets/packingFunctions-Cdo8_jZv.js                            0.56 kB │ gzip:   0.31 kB
+dist/assets/procedural.vertex-5MJL69HS.js                           0.57 kB │ gzip:   0.35 kB
+dist/assets/rgbdEncode.fragment-CxkzH10x.js                         0.58 kB │ gzip:   0.37 kB
+dist/assets/rgbdDecode.fragment-DbY-pkGz.js                         0.59 kB │ gzip:   0.38 kB
+dist/assets/depthBoxBlur.fragment-7AMcv5st.js                       0.63 kB │ gzip:   0.40 kB
+dist/assets/ssaoCombine.fragment-BDDFlvbT.js                        0.67 kB │ gzip:   0.38 kB
+dist/assets/postprocess.vertex-DWUb3zUw.js                          0.68 kB │ gzip:   0.40 kB
+dist/assets/bumpVertex-BnL0NYqe.js                                  0.70 kB │ gzip:   0.38 kB
+dist/assets/shared-design-BR6wKexh.js                               0.71 kB │ gzip:   0.40 kB
+dist/assets/procedural.vertex-4Wr3UgAh.js                           0.71 kB │ gzip:   0.39 kB
+dist/assets/rgbdEncode.fragment-CMV1C-Wb.js                         0.76 kB │ gzip:   0.43 kB
+dist/assets/rgbdDecode.fragment-D5i4z8I1.js                         0.77 kB │ gzip:   0.44 kB
+dist/assets/depthBoxBlur.fragment-B4IXtOGj.js                       0.81 kB │ gzip:   0.47 kB
+dist/assets/ssaoCombine.fragment-BkLFnz6P.js                        0.91 kB │ gzip:   0.45 kB
+dist/assets/passCube.fragment-C9ih9YY3.js                           0.92 kB │ gzip:   0.40 kB
+dist/assets/imageProcessing.fragment-DI8J0iyx.js                    0.93 kB │ gzip:   0.50 kB
+dist/assets/mesh.vertexData.functions-ayNlGC5K.js                   0.96 kB │ gzip:   0.49 kB
+dist/assets/kernelBlur.vertex-yrRIfzmf.js                           1.00 kB │ gzip:   0.51 kB
+dist/assets/instancesDeclaration-BwcUZqeu.js                        1.04 kB │ gzip:   0.36 kB
+dist/assets/kernelBlur.vertex-Bf8nv7lK.js                           1.17 kB │ gzip:   0.55 kB
+dist/assets/imageProcessing.fragment-CZ7v-Pyl.js                    1.20 kB │ gzip:   0.58 kB
+dist/assets/passCube.fragment-D5iA452A.js                           1.23 kB │ gzip:   0.45 kB
+dist/assets/clipPlaneFragment-D-EnT2yQ.js                           1.28 kB │ gzip:   0.37 kB
+dist/assets/ddsTextureLoader-DFt8gdTX.js                            1.42 kB │ gzip:   0.69 kB
+dist/assets/harmonicsFunctions-CXPcE_AP.js                          1.42 kB │ gzip:   0.53 kB
+dist/assets/fxaa.vertex-Bxr8TaqY.js                                 1.54 kB │ gzip:   0.49 kB
+dist/assets/salaires-Dflq8tUO.js                                    1.54 kB │ gzip:   0.81 kB
+dist/assets/defaultUboDeclaration-C4m922fP.js                       1.63 kB │ gzip:   0.54 kB
+dist/assets/glTFLoaderAnimation.pure-D0NTCLV_.js                    1.86 kB │ gzip:   0.84 kB
+dist/assets/hdrTextureLoader-BGQvgh0h.js                            2.39 kB │ gzip:   1.14 kB
+dist/assets/pbrUboDeclaration--ERFRM4y.js                           2.40 kB │ gzip:   0.67 kB
+dist/assets/kernelBlur.fragment-CQi9D5u4.js                         2.41 kB │ gzip:   0.82 kB
+dist/assets/iesTextureLoader-E__d4DKV.js                            2.59 kB │ gzip:   1.14 kB
+dist/assets/pbrIBLFunctions-DfXFRhKX.js                             2.72 kB │ gzip:   0.88 kB
+dist/assets/kernelBlur.fragment-Ceq3ei_n.js                         2.95 kB │ gzip:   0.89 kB
+dist/assets/shadowMap.fragment-DU-ilQIB.js                          3.37 kB │ gzip:   1.19 kB
+dist/assets/textureProcessor.fragment-DR3iwNRN.js                   3.59 kB │ gzip:   1.05 kB
+dist/assets/tgaTextureLoader-BRu-nr9R.js                            3.63 kB │ gzip:   1.43 kB
+dist/assets/cubemapToSphericalPolynomial-CChat9Os.js                3.67 kB │ gzip:   1.63 kB
+dist/assets/dumpTools.pure-CIf8qJJq.js                              3.76 kB │ gzip:   1.81 kB
+dist/assets/openpbrUboDeclaration-zsnl4KfM.js                       3.79 kB │ gzip:   0.99 kB
+dist/assets/shadowMap.fragment-DLcLVE1J.js                          3.98 kB │ gzip:   1.30 kB
+dist/assets/textureProcessor.fragment-KSHSWL3T.js                   4.48 kB │ gzip:   1.23 kB
+dist/assets/shadowMap.vertex-fmBcca9o.js                            4.62 kB │ gzip:   1.57 kB
+dist/assets/shadowMap.vertex-C4tG_EnJ.js                            4.82 kB │ gzip:   1.57 kB
+dist/assets/imageProcessingFunctions-CvR1G32P.js                    4.93 kB │ gzip:   1.77 kB
+dist/assets/openpbrUboDeclaration-CvSMQtja.js                       5.22 kB │ gzip:   1.05 kB
+dist/assets/ssao2.fragment-DiJqLOcd.js                              5.47 kB │ gzip:   1.74 kB
+dist/assets/reflectionFunction-C6AUySLM.js                          5.64 kB │ gzip:   1.37 kB
+dist/assets/helperFunctions-DEj4gifu.js                             6.49 kB │ gzip:   2.17 kB
+dist/assets/fxaa.fragment-BKU5ONII.js                               6.53 kB │ gzip:   1.74 kB
+dist/assets/ssao2.fragment-BQJfj5cX.js                              6.96 kB │ gzip:   1.90 kB
+dist/assets/dds.pure-CZAMW6RD.js                                    7.15 kB │ gzip:   2.52 kB
+dist/assets/geometry.vertex-CAlUmEWP.js                             7.69 kB │ gzip:   1.92 kB
+dist/assets/envTextureLoader-sHfoo1I9.js                            8.03 kB │ gzip:   3.21 kB
+dist/assets/basisTextureLoader-BaRWF_CD.js                          8.05 kB │ gzip:   3.22 kB
+dist/assets/bumpFragment-BqxkL1Lo.js                                8.08 kB │ gzip:   2.51 kB
+dist/assets/geometry.vertex-Bc0WDDWE.js                             9.11 kB │ gzip:   2.06 kB
+dist/assets/default.vertex-DKIpz1wh.js                              9.46 kB │ gzip:   2.45 kB
+dist/assets/geometry.fragment-C_1BsuWs.js                          11.07 kB │ gzip:   3.07 kB
+dist/assets/geometry.fragment-CrnZDSx1.js                          11.88 kB │ gzip:   3.05 kB
+dist/assets/pbrMaterialLoadingAdapter-sLZmxmO9.js                  12.53 kB │ gzip:   2.42 kB
+dist/assets/pbrBRDFFunctions-C0xboRuV.js                           12.76 kB │ gzip:   4.30 kB
+dist/assets/exrTextureLoader-DLGyGs_N.js                           14.29 kB │ gzip:   5.26 kB
+dist/assets/pbr.vertex-BqiJUoSj.js                                 14.47 kB │ gzip:   3.12 kB
+dist/assets/clipPlaneVertex-T4b3THbr.js                            16.17 kB │ gzip:   2.71 kB
+dist/assets/ktxTextureLoader-CCEn9172.js                           16.51 kB │ gzip:   4.82 kB
+dist/assets/openpbr.vertex-DifkuvJE.js                             17.34 kB │ gzip:   3.38 kB
+dist/assets/openpbrTransmissionLayerData-BAB6L9cZ.js               17.37 kB │ gzip:   4.01 kB
+dist/assets/openpbrTransmissionLayerData-CD1s1cfX.js               18.47 kB │ gzip:   4.15 kB
+dist/assets/openpbr.vertex-CO1zQolH.js                             20.10 kB │ gzip:   3.88 kB
+dist/assets/chart-controls-BO495Dcv.js                             21.83 kB │ gzip:   8.43 kB
+dist/assets/lightFragment-B7akhXcF.js                              22.59 kB │ gzip:   3.36 kB
+dist/assets/logDepthVertex-BPZ8WmNL.js                             22.91 kB │ gzip:   3.74 kB
+dist/assets/default.fragment-CoWqztaq.js                           26.48 kB │ gzip:   5.93 kB
+dist/assets/openpbrMaterialLoadingAdapter-aKFTFAvm.js              33.71 kB │ gzip:   8.11 kB
+dist/assets/animationGroup.pure-Df35ihSU.js                        42.69 kB │ gzip:  10.56 kB
+dist/assets/pbrDebug-DwnrJkvl.js                                   45.37 kB │ gzip:  10.05 kB
+dist/assets/oitFragment-CXiokiK_.js                                49.76 kB │ gzip:   9.82 kB
+dist/assets/brdfTextureTools-DbTuwmTk.js                           61.40 kB │ gzip:  44.79 kB
+dist/assets/openpbr.fragment-B75BaDHT.js                           88.35 kB │ gzip:  17.48 kB
+dist/assets/openpbrMaterial.pure-hGihkubG.js                       90.49 kB │ gzip:  19.53 kB
+dist/assets/openpbr.fragment-BkzKXwe-.js                           90.59 kB │ gzip:  17.62 kB
+dist/assets/pbr.fragment-BaTWSo2-.js                               93.74 kB │ gzip:  16.75 kB
+dist/assets/pbrMaterial.pure-DqHS-_55.js                          135.10 kB │ gzip:  25.76 kB
+dist/assets/principal-BJheiWVh.js                               1,515.74 kB │ gzip: 427.01 kB
+dist/assets/mandats-lHN_ghvN.js                                 3,180.71 kB │ gzip: 852.96 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 38.15s
+Pré-rendu : l'accueil dans dist/index.html, 13 analyse(s), 6 réponse(s), dist/analyses/index.html, dist/sources/index.html, dist/bilan/index.html, 19 carte(s) de partage, 30 adresse(s) au plan du site, sous https://500signatures.fr.
+Mandats : guides sourcés publiés et ajoutés au sitemap.
+Mandats hors connexion : 147 ressources, version 1204fcecf4b3f974
+Audience facultative : 28 documents préparés, aucune balise Google chargée sans acceptation.

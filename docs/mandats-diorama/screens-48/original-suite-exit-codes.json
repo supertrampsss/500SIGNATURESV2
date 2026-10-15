@@ -1,0 +1,9 @@
+{
+  "method": "Observed completed process exits. Original configs, deadlines, workers, retries and configured skips unchanged. Complete original DPR case is covered by full rework, without a redundant targeted rerun.",
+  "fullCheck": 0,
+  "fullRework": 0,
+  "fullSocial": 0,
+  "freshWebkitPortrait": 0,
+  "freshWebkitLandscape": 0,
+  "sequentialNativeProduction": 0
+}

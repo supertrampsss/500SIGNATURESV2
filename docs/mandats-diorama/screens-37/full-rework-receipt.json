@@ -1,0 +1,21 @@
+{
+  "build": "37",
+  "suite": "rework",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "playwright",
+    "test",
+    "--config",
+    "playwright.rework.config.ts",
+    "--workers=1"
+  ],
+  "cwd": "/workspace/500SIGNATURESV2/site",
+  "exitCode": 1,
+  "shellExitCode": 1,
+  "startedNs": 1791548078528217411,
+  "confirmedAt": "2026-10-09T12:39:24.658Z",
+  "confirmedBy": "Actual subprocess.Popen.wait() return value",
+  "logSha256": "4e5f79dd910ce02bf921a93f3faff663b796fbb21f517957d21f2023e9a61fd0"
+}

@@ -1,0 +1,12 @@
+{
+  "kind": "Actual read-only compact37 CPU/network decoder receipt",
+  "createdAt": "2026-10-09T12:52:44.251066+00:00",
+  "command": "python /workspace/mandats-verification/authored-3d/compact37-analysis/decode-compact37.py",
+  "actualExitCode": 0,
+  "confirmedBy": "urban_perf consumed functions.exec direct exec_command exit_code0",
+  "decoderSha256": "a9fd0203cc82b4660c34be00995e1e38b5af4b85025ca5892d4d7587a3b19e10",
+  "reportSha256": "4f37628b17729aff80dca802767d273179910b18a6d8dcb4afd77ea3981b967c",
+  "rootProfilerReceiptSha256": "4af2d918f9987657b97e3daf468ea6f7b197388c3aaa7a9d606f6f93386dadcd",
+  "browserOrSceneExecutedByReader": false,
+  "productionEdits": false
+}

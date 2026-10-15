@@ -1,0 +1,7 @@
+{
+  "kind": "Actual CPU process launched, not a success receipt",
+  "build": "37",
+  "pid": 305829,
+  "launchedAt": "2026-10-09T12:09:01.037Z",
+  "lockSha256": "aa08e0158541d539233cfba55b785e2989beb6b66aa043fbf651d4cdb3df5925"
+}

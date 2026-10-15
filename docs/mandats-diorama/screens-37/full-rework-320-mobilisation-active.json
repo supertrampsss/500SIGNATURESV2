@@ -1,0 +1,600 @@
+{
+  "viewport": {
+    "width": 320,
+    "height": 740
+  },
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "choices": [
+      "n11-0-education-lycees-regrouper"
+    ],
+    "ambition": "equilibre"
+  },
+  "state": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "turn": 1,
+    "finance": {
+      "revenue": 1490,
+      "operating": 1543.4,
+      "investment": 40,
+      "debt": 3200,
+      "cash": 0,
+      "rate": 0.018,
+      "marketRate": 0.035,
+      "repayment": 0,
+      "grants": 0,
+      "gdp": 2800,
+      "growth": 0.012,
+      "deflator": 0.018,
+      "stockFlow": 0
+    },
+    "metrics": {
+      "services": 53,
+      "cohesion": 52,
+      "resilience": 39,
+      "trust": 52,
+      "assets": 57
+    },
+    "areas": [
+      {
+        "id": "metropoles",
+        "name": "Métropoles",
+        "need": "Logement et services",
+        "services": 65,
+        "resilience": 48,
+        "x": 49,
+        "y": 28
+      },
+      {
+        "id": "industrie",
+        "name": "Bassins industriels",
+        "need": "Énergie et reconversion",
+        "services": 45,
+        "resilience": 25,
+        "x": 68,
+        "y": 44
+      },
+      {
+        "id": "rural",
+        "name": "Espaces ruraux",
+        "need": "Accès aux services",
+        "services": 35,
+        "resilience": 43,
+        "x": 34,
+        "y": 55
+      },
+      {
+        "id": "littoraux",
+        "name": "Territoires littoraux",
+        "need": "Adaptation climatique",
+        "services": 51,
+        "resilience": 32,
+        "x": 53,
+        "y": 75
+      }
+    ],
+    "pending": [],
+    "history": [
+      {
+        "year": 1,
+        "closed": false,
+        "choice": "n11-0-education-lycees-regrouper",
+        "title": "Regrouper les classes et réduire les postes",
+        "messages": [
+          "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "Le déficit annuel diminue si le texte est adopté.",
+          "Compromis : Les classes se chargent davantage et des enseignements de proximité disparaissent..",
+          "Texte adopté : ses effets sont appliqués et financés."
+        ],
+        "event": "Le plan annuel évolue. Les comptes ne sont pas encore clôturés.",
+        "ledger": {
+          "revenue": 1490,
+          "operating": 1543.4,
+          "interest": 57.599999999999994,
+          "savings": -111.00000000000009,
+          "repayment": 0,
+          "investment": 40,
+          "grants": 0,
+          "borrowing": 151,
+          "cashChange": 0,
+          "deficit": 151,
+          "debt": 3351,
+          "gdp": 2884.6048
+        },
+        "metrics": {
+          "services": 53,
+          "cohesion": 52,
+          "resilience": 39,
+          "trust": 52,
+          "assets": 57
+        },
+        "areas": [
+          {
+            "id": "metropoles",
+            "name": "Métropoles",
+            "need": "Logement et services",
+            "services": 65,
+            "resilience": 48,
+            "x": 49,
+            "y": 28
+          },
+          {
+            "id": "industrie",
+            "name": "Bassins industriels",
+            "need": "Énergie et reconversion",
+            "services": 45,
+            "resilience": 25,
+            "x": 68,
+            "y": 44
+          },
+          {
+            "id": "rural",
+            "name": "Espaces ruraux",
+            "need": "Accès aux services",
+            "services": 35,
+            "resilience": 43,
+            "x": 34,
+            "y": 55
+          },
+          {
+            "id": "littoraux",
+            "name": "Territoires littoraux",
+            "need": "Adaptation climatique",
+            "services": 51,
+            "resilience": 32,
+            "x": 53,
+            "y": 75
+          }
+        ],
+        "dossier": {
+          "category": "Enseignement",
+          "title": "Des classes à regrouper à la rentrée",
+          "story": "Dans les lycées du bassin des Tilleuls, des postes d’enseignement partent à la retraite. Le ministère propose de regrouper des classes pour ne pas tous les remplacer. Les équipes craignent des classes plus chargées ; les lycéens demandent de garder les enseignements de proximité.",
+          "advisor": "Équipe de mandat",
+          "choices": [
+            {
+              "id": "n11-0-education-lycees-preserver",
+              "title": "Remplacer les postes et maintenir les classes",
+              "description": "Financer les recrutements et conserver les enseignements du bassin.",
+              "cost": "2 Md€ par an",
+              "benefit": "Les équipes et les classes gardent leurs moyens.",
+              "sacrifice": "Cette dépense durable réduit la marge pour les autres priorités.",
+              "effect": {
+                "operating": 2,
+                "services": 2,
+                "society": {
+                  "publicStaff": 2
+                }
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "social": 5,
+                  "regional": 4
+                }
+              },
+              "narrative": {
+                "eventId": "education-lycees",
+                "relationships": {
+                  "social": 5,
+                  "regional": 4
+                }
+              }
+            },
+            {
+              "id": "n11-0-education-lycees-regrouper",
+              "title": "Regrouper les classes et réduire les postes",
+              "description": "Ne pas remplacer une partie des départs et répartir les élèves entre les classes restantes.",
+              "cost": "2 Md€ de charges en moins par an",
+              "benefit": "Le déficit annuel diminue si le texte est adopté.",
+              "sacrifice": "Les classes se chargent davantage et des enseignements de proximité disparaissent.",
+              "effect": {
+                "operating": -2,
+                "services": -3,
+                "society": {
+                  "publicStaff": -4
+                }
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "presidential": 3,
+                  "conservative": 8,
+                  "social": -8,
+                  "regional": -5
+                }
+              },
+              "social": {
+                "trigger": {
+                  "actor": "lyceens",
+                  "demand": "Classes moins chargées et maintien des enseignements",
+                  "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+                  "pressure": 34
+                }
+              },
+              "narrative": {
+                "eventId": "education-lycees",
+                "relationships": {
+                  "presidential": 3,
+                  "conservative": 8,
+                  "social": -8,
+                  "regional": -5
+                }
+              }
+            },
+            {
+              "id": "n11-0-education-lycees-accompagner",
+              "title": "Réorganiser avec une garantie de proximité",
+              "description": "Mutualiser certaines spécialités et financer les trajets et l’accompagnement des élèves.",
+              "cost": "0,5 Md€ de charges en moins par an",
+              "benefit": "Les enseignements restent accessibles dans le bassin.",
+              "sacrifice": "Certains élèves se déplacent davantage et l’économie est plus faible.",
+              "effect": {
+                "operating": -0.5,
+                "services": -1,
+                "society": {
+                  "publicStaff": -1
+                }
+              },
+              "political": {
+                "action": "enact",
+                "supportDelta": {
+                  "reformist": 4,
+                  "regional": 2
+                }
+              },
+              "narrative": {
+                "eventId": "education-lycees",
+                "relationships": {
+                  "reformist": 4,
+                  "regional": 2
+                }
+              }
+            }
+          ]
+        },
+        "vote": {
+          "id": "law-0-n11-0-education-lycees-regrouper",
+          "kind": "law",
+          "title": "Regrouper les classes et réduire les postes",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 268,
+          "against": 265,
+          "abstain": 44,
+          "threshold": 267,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 134,
+              "against": 12,
+              "abstain": 5
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 66,
+              "against": 40,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 22,
+              "against": 72,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 28,
+              "against": 69,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 18,
+              "against": 72,
+              "abstain": 10
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        "politicalConsequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    ],
+    "choices": [
+      "n11-0-education-lycees-regrouper"
+    ],
+    "politics": {
+      "blocs": [
+        {
+          "id": "presidential",
+          "label": "Majorité présidentielle",
+          "seats": 151,
+          "loyalty": 81,
+          "inGovernment": true
+        },
+        {
+          "id": "reformist",
+          "label": "Réformistes",
+          "seats": 114,
+          "loyalty": 60,
+          "inGovernment": true
+        },
+        {
+          "id": "social",
+          "label": "Gauche sociale",
+          "seats": 105,
+          "loyalty": 38,
+          "inGovernment": false
+        },
+        {
+          "id": "conservative",
+          "label": "Conservateurs",
+          "seats": 107,
+          "loyalty": 46,
+          "inGovernment": false
+        },
+        {
+          "id": "regional",
+          "label": "Territoires",
+          "seats": 100,
+          "loyalty": 40,
+          "inGovernment": false
+        }
+      ],
+      "legitimacy": 58,
+      "unrest": 20.683333333333334,
+      "cabinet": "stable",
+      "commitments": [],
+      "votes": [
+        {
+          "id": "law-0-n11-0-education-lycees-regrouper",
+          "kind": "law",
+          "title": "Regrouper les classes et réduire les postes",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 268,
+          "against": 265,
+          "abstain": 44,
+          "threshold": 267,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 134,
+              "against": 12,
+              "abstain": 5
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 66,
+              "against": 40,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 22,
+              "against": 72,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 28,
+              "against": 69,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 18,
+              "against": 72,
+              "abstain": 10
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "scandalExposure": 0,
+      "misconduct": 0,
+      "failedBills": 0,
+      "emergencyUses": 0,
+      "ruleOfLaw": 72,
+      "institutionalBreaches": 0,
+      "lastVote": {
+        "id": "law-0-n11-0-education-lycees-regrouper",
+        "kind": "law",
+        "title": "Regrouper les classes et réduire les postes",
+        "chamber": "Assemblée nationale",
+        "total": 577,
+        "for": 268,
+        "against": 265,
+        "abstain": 44,
+        "threshold": 267,
+        "passed": true,
+        "groups": [
+          {
+            "id": "presidential",
+            "label": "Majorité présidentielle",
+            "for": 134,
+            "against": 12,
+            "abstain": 5
+          },
+          {
+            "id": "reformist",
+            "label": "Réformistes",
+            "for": 66,
+            "against": 40,
+            "abstain": 8
+          },
+          {
+            "id": "social",
+            "label": "Gauche sociale",
+            "for": 22,
+            "against": 72,
+            "abstain": 11
+          },
+          {
+            "id": "conservative",
+            "label": "Conservateurs",
+            "for": 28,
+            "against": 69,
+            "abstain": 10
+          },
+          {
+            "id": "regional",
+            "label": "Territoires",
+            "for": 18,
+            "against": 72,
+            "abstain": 10
+          }
+        ],
+        "consequences": [
+          "Texte adopté : ses effets sont appliqués et financés."
+        ]
+      }
+    },
+    "narrative": {
+      "context": "coalition",
+      "deferred": [],
+      "promises": [],
+      "promiseCandidates": [
+        {
+          "id": "renforts-nuit",
+          "label": "Aucune unité de soins ne fermera faute de renfort."
+        },
+        {
+          "id": "desservir-usine",
+          "label": "Le premier bus pour l’usine circulera avant l’hiver."
+        }
+      ],
+      "projects": [],
+      "relationships": [
+        {
+          "id": "samira",
+          "name": "Samira Benali",
+          "role": "urgentiste et représentante des équipes hospitalières",
+          "loyalty": 42,
+          "stance": "conteste votre dernier arbitrage",
+          "lastTurn": 0
+        },
+        {
+          "id": "luc",
+          "name": "Luc Morel",
+          "role": "maire de Val-des-Forges et négociateur territorial",
+          "loyalty": 45,
+          "stance": "conteste votre dernier arbitrage",
+          "lastTurn": 0
+        },
+        {
+          "id": "ines",
+          "name": "Inès Vidal",
+          "role": "directrice d’usine et porte-parole des sous-traitants",
+          "loyalty": 58,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 0
+        },
+        {
+          "id": "claire",
+          "name": "Claire Dumas",
+          "role": "rapporteure parlementaire chargée de l’éthique publique",
+          "loyalty": 53,
+          "stance": "soutient votre dernier arbitrage",
+          "lastTurn": 0
+        }
+      ],
+      "events": [
+        {
+          "id": "opening-coalition",
+          "turn": -1,
+          "kind": "opening",
+          "title": "La majorité réclame deux signatures",
+          "detail": "La majorité doit choisir comment financer deux promesses à Val-des-Forges : des renforts à l’hôpital et un bus pour les salariés. Les deux projets passent au même vote budgétaire.",
+          "causeTurn": -1,
+          "weight": 1
+        },
+        {
+          "kind": "decision",
+          "title": "Des classes à regrouper à la rentrée",
+          "detail": "Le déficit annuel diminue si le texte est adopté.",
+          "causeTurn": 0,
+          "weight": 2.9,
+          "id": "decision-0-1",
+          "turn": 0
+        },
+        {
+          "id": "mvt-lyceens-0-1-0",
+          "turn": 1,
+          "kind": "mobilization",
+          "title": "Lycéens : la mobilisation commence",
+          "detail": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "causeTurn": 0,
+          "weight": -3
+        }
+      ],
+      "lastConsequences": [
+        "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements."
+      ]
+    },
+    "social": {
+      "movements": [
+        {
+          "id": "mvt-lyceens-0",
+          "actor": "lyceens",
+          "demand": "Classes moins chargées et maintien des enseignements",
+          "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+          "status": "active",
+          "stage": "petition",
+          "pressure": 34,
+          "causeTurn": 0,
+          "sourceChoice": "n11-0-education-lycees-regrouper",
+          "sourceTitle": "Regrouper les classes et réduire les postes",
+          "startedTurn": 1,
+          "causes": [
+            {
+              "turn": 0,
+              "choice": "n11-0-education-lycees-regrouper",
+              "title": "Regrouper les classes et réduire les postes"
+            }
+          ],
+          "lastDetail": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements."
+        }
+      ],
+      "budget": {
+        "year": 1,
+        "accruedOperating": 0,
+        "accruedRevenue": 0,
+        "operating": 0,
+        "revenue": 0
+      }
+    },
+    "society": {
+      "workers": 65,
+      "pensioners": 65,
+      "vulnerable": 60,
+      "businesses": 65,
+      "newcomers": 60,
+      "publicStaff": 61,
+      "affluent": 65
+    }
+  }
+}

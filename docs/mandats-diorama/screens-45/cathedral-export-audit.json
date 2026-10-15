@@ -1,0 +1,1343 @@
+{
+  "method": "Read-only asset authoring audit: decode the actual exported GLB, finite attributes, indexed triangles, unit normals, UV limits, actual bounds, material and embedded images. Repeat the source-opening rays against actual exported high and distant triangles and record the first-hit albedo texel. Pixel colour is evidence for investigation; it does not certify filtered native rendering, timing gates, FPS or whole-map conformity.",
+  "baseline": {
+    "bytes": 11171848,
+    "sha256": "60235a5e34d8c49f40c2d07d43a7914eae1aae2ac515c439991b19f969c288f4",
+    "models": {
+      "cathedrale_paris": {
+        "triangles": 79444,
+        "vertices": 148538,
+        "minimum": [
+          -0.9535000324249268,
+          0.0,
+          -1.473249912261963
+        ],
+        "maximum": [
+          0.9535000324249268,
+          3.8400001525878906,
+          1.473249912261963
+        ],
+        "maximumNormalLengthError": 9.621024976702586e-08,
+        "degenerateTriangles": 15,
+        "faceNormalDisagreements": 20,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "cathedrale_paris_distant": {
+        "triangles": 4180,
+        "vertices": 10392,
+        "minimum": [
+          -0.9535000324249268,
+          0.0,
+          -1.473249912261963
+        ],
+        "maximum": [
+          0.9535000324249268,
+          3.8400001525878906,
+          1.473249912261963
+        ],
+        "maximumNormalLengthError": 1.2254561831959165e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      }
+    },
+    "materialCount": 1,
+    "images": [
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "59d7da43194e19a2d0986ebb4f293ef358f0d8966e10f143efebcfefc9b87c4e"
+      },
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "f31ab9fc63029304accfd5025cc37af7611dee96b83f7b3d08bc265c28db7421"
+      },
+      {
+        "size": [
+          2048,
+          2048
+        ],
+        "rgbaPixelSHA256": "015b9b8c74e3111df00428a52054811464dc3f5e093734d9df150f5be6c40700"
+      }
+    ]
+  },
+  "candidate": {
+    "bytes": 11764076,
+    "sha256": "fd8d587d9a82beeb889365969d1c2b1c57f202db84a42b947a31f86099a17a1e",
+    "models": {
+      "cathedrale_paris": {
+        "triangles": 81012,
+        "vertices": 156599,
+        "minimum": [
+          -0.9535000324249268,
+          0.0,
+          -1.4589999914169312
+        ],
+        "maximum": [
+          0.9535000324249268,
+          3.8400001525878906,
+          1.4589999914169312
+        ],
+        "maximumNormalLengthError": 1.0349847912038967e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      },
+      "cathedrale_paris_distant": {
+        "triangles": 4141,
+        "vertices": 10540,
+        "minimum": [
+          -0.9535000324249268,
+          0.0,
+          -1.4589999914169312
+        ],
+        "maximum": [
+          0.9535000324249268,
+          3.8400001525878906,
+          1.4589999914169312
+        ],
+        "maximumNormalLengthError": 1.1255845033808498e-07,
+        "degenerateTriangles": 0,
+        "faceNormalDisagreements": 0,
+        "primitives": 1,
+        "materialIndex": 0
+      }
+    },
+    "materialCount": 1,
+    "images": [
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "0338bf2df7af497fb6a78fa0add9b7bdba84294e70b4083c09a0e950ba7e754a"
+      },
+      {
+        "size": [
+          1024,
+          1024
+        ],
+        "rgbaPixelSHA256": "842c60b49c7b09ab25e787b00ac777ce77acaaa660ef2d722ed447ce8b5b7dc4"
+      },
+      {
+        "size": [
+          2048,
+          2048
+        ],
+        "rgbaPixelSHA256": "9c3c69eee1d8c590d0907f6af19f6c7235b13ea9f7688f8f75c1b8892e3f24b7"
+      }
+    ]
+  },
+  "exportedOpenings": {
+    "cathedrale_paris": {
+      "probes": [
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.3024725113240848,
+            0.2009958707118572
+          ],
+          "pixel": [
+            85,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.3037250645145812,
+            0.20426360617705577
+          ],
+          "pixel": [
+            86,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.3064413230196861,
+            0.206465609766188
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.3098934611105958,
+            0.20701186087090134
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.31315648091317516,
+            0.20575599190760052
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.315356087748056,
+            0.20303452278534312
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.31590286238248055,
+            0.19957665723107398
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19500005245208737,
+          "uv": [
+            0.31465029623903784,
+            0.1963089200746824
+          ],
+          "pixel": [
+            85,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19500005245208737,
+          "uv": [
+            0.3119340088547302,
+            0.1941069013320561
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.30848186620671925,
+            0.19356064697975947
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.3052188524829387,
+            0.1948165148480213
+          ],
+          "pixel": [
+            87,
+            121,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1950000524520874,
+          "uv": [
+            0.30301927542886103,
+            0.1975379976537149
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "gable",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17913997173309326,
+          "uv": [
+            0.495978852455473,
+            0.19521220326423006
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "gable",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17314004898071286,
+          "uv": [
+            0.8866400241851882,
+            0.8825930694087122
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.263984775677607,
+            0.4656476080417633
+          ],
+          "pixel": [
+            118,
+            144,
+            146,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.26616249097912065,
+            0.46564751863479614
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.27269613588784547,
+            0.46564820408821106
+          ],
+          "pixel": [
+            118,
+            143,
+            145,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.2879463567394055,
+            0.46564817428588867
+          ],
+          "pixel": [
+            117,
+            143,
+            145,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922205686569214,
+          "uv": [
+            0.29012482195140543,
+            0.4656486511230469
+          ],
+          "pixel": [
+            118,
+            143,
+            146,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.29666082887889594,
+            0.46564874053001404
+          ],
+          "pixel": [
+            116,
+            141,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.2835892675996834,
+            0.4656480848789215
+          ],
+          "pixel": [
+            116,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922205686569214,
+          "uv": [
+            0.27923192070704,
+            0.4656481921678557
+          ],
+          "pixel": [
+            116,
+            141,
+            143,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.7230600198111108,
+            0.611777918966937
+          ],
+          "pixel": [
+            116,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.7230598449714013,
+            0.6096001761451821
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922205686569214,
+          "uv": [
+            0.7230595052242279,
+            0.6030664895469697
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.7230595052242279,
+            0.6008879427173816
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922205686569214,
+          "uv": [
+            0.723059207201004,
+            0.5812804244860472
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.723059207201004,
+            0.5791017634574439
+          ],
+          "pixel": [
+            117,
+            143,
+            145,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.7230593045548748,
+            0.5921733358183592
+          ],
+          "pixel": [
+            117,
+            143,
+            145,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16922199726104736,
+          "uv": [
+            0.7230594277376161,
+            0.5878163892703419
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16174001147384132,
+          "uv": [
+            0.8597425830857335,
+            0.8047376362429172
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16174005567661798,
+          "uv": [
+            0.8597431136976936,
+            0.7961698481490187
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16173994541168213,
+          "uv": [
+            0.859741718956265,
+            0.8003852089026037
+          ],
+          "pixel": [
+            116,
+            141,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1617401515288609,
+          "uv": [
+            0.8597434733685185,
+            0.7982526498611539
+          ],
+          "pixel": [
+            116,
+            141,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16174001128300877,
+          "uv": [
+            0.8504674540080108,
+            0.14423391098308247
+          ],
+          "pixel": [
+            117,
+            142,
+            144,
+            255
+          ],
+          "blueGlassPixel": true
+        }
+      ],
+      "hitCount": 35,
+      "blueGlassPixels": 35
+    },
+    "cathedrale_paris_distant": {
+      "probes": [
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.3024666697809063,
+            0.20099494636688353
+          ],
+          "pixel": [
+            85,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.3037207882097778,
+            0.20426292951344577
+          ],
+          "pixel": [
+            86,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.30643975778345045,
+            0.20646536209011004
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.30989502634683136,
+            0.20701210854697927
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.31316075721797854,
+            0.20575666857121058
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.31536192933011187,
+            0.20303544713580685
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.3159087039645364,
+            0.1995775815815377
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1952531337738037,
+          "uv": [
+            0.3146545725946877,
+            0.19630959676497262
+          ],
+          "pixel": [
+            85,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1952531337738037,
+          "uv": [
+            0.3119355741095769,
+            0.19410714901789966
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.30848030097124024,
+            0.1935603993024757
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.30521457616989595,
+            0.19481583817948595
+          ],
+          "pixel": [
+            87,
+            121,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "rose",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.19525313377380368,
+          "uv": [
+            0.30301343387840257,
+            0.19753707330758927
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "gable",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1793818473815918,
+          "uv": [
+            0.49598014958436654,
+            0.1952122034155706
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "gable",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1793818473815918,
+          "uv": [
+            0.4931167005724175,
+            0.1952118776791085
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17546296119689941,
+          "uv": [
+            0.3025139244848532,
+            0.5912895027287737
+          ],
+          "pixel": [
+            87,
+            121,
+            132,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17546296119689941,
+          "uv": [
+            0.30795798893570175,
+            0.5912894940498185
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17487980425357724,
+          "uv": [
+            0.3297779465987788,
+            0.5912905615052745
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1748797595500946,
+          "uv": [
+            0.31341169728302565,
+            0.591290495738376
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17479505264774692,
+          "uv": [
+            0.33519592491868977,
+            0.5912912065979693
+          ],
+          "pixel": [
+            87,
+            121,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1747950315475464,
+          "uv": [
+            0.3406464454823777,
+            0.5912912048188377
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17580390844060115,
+          "uv": [
+            0.3188256554849937,
+            0.5912905083643951
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1758039593696594,
+          "uv": [
+            0.3242883151074223,
+            0.5912905024400372
+          ],
+          "pixel": [
+            85,
+            119,
+            129,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17546296119689941,
+          "uv": [
+            0.5634598236071763,
+            0.6143729016550521
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17546296119689944,
+          "uv": [
+            0.5634598434598473,
+            0.6198170665230586
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17580395936965942,
+          "uv": [
+            0.5634591516940826,
+            0.5925853130598273
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17580389176307182,
+          "uv": [
+            0.563459152985855,
+            0.5980486905159069
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.174795053460371,
+          "uv": [
+            0.5634585826981404,
+            0.5871405252409563
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1747950315475464,
+          "uv": [
+            0.5634585068631941,
+            0.5816756270166106
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.1748797787890501,
+          "uv": [
+            0.5634591321929068,
+            0.608919520114106
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "tower",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.17487981915473938,
+          "uv": [
+            0.5634591976345829,
+            0.6034682457904095
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16767772728025607,
+          "uv": [
+            0.28178358207323684,
+            0.2243750460110382
+          ],
+          "pixel": [
+            86,
+            120,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16634090846571387,
+          "uv": [
+            0.29175378399144963,
+            0.2243788663533454
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16571382605114182,
+          "uv": [
+            0.2707662450683549,
+            0.22437612505473659
+          ],
+          "pixel": [
+            86,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16635597112524336,
+          "uv": [
+            0.2868041260291507,
+            0.2243725753084088
+          ],
+          "pixel": [
+            86,
+            119,
+            130,
+            255
+          ],
+          "blueGlassPixel": true
+        },
+        {
+          "opening": "chapel",
+          "hit": true,
+          "sourceFirstHitIsGlazing": true,
+          "distance": 0.16768699583502758,
+          "uv": [
+            0.2761863325837963,
+            0.22437733546270114
+          ],
+          "pixel": [
+            87,
+            120,
+            131,
+            255
+          ],
+          "blueGlassPixel": true
+        }
+      ],
+      "hitCount": 35,
+      "blueGlassPixels": 35
+    }
+  }
+}

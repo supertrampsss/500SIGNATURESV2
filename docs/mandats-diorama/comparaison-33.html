@@ -1,0 +1,36 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MANDATS : comparaison 33</title><style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; padding: 28px; background: #071b32; color: #fbf5eb; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 1800px; margin: auto; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.2; }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 40px); }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 14px; font-size: 22px; }
+    p { max-width: 90ch; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #edbc6b; outline-offset: 5px; }
+    .status { display: inline-block; margin: 0 0 12px; padding: 6px 11px; border: 1px solid #bb945b; border-radius: 4px; color: #f0cf98; }
+    .comparison, .inspections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .comparison { margin-top: 30px; }
+    figure { min-width: 0; margin: 0; }
+    .image-link { display: grid; place-items: center; width: 100%; aspect-ratio: 1672 / 941; border: 1px solid #687e96; background: #102940; overflow: hidden; text-decoration: none; }
+    .image-link img { display: block; width: 100%; height: auto; }
+    figcaption { padding-top: 12px; color: #d1dbe6; }
+    figcaption p { margin: 0 0 7px; }
+    .capture-status { font-size: 14px; color: #bdcada; }
+    .section { margin-top: 36px; padding-top: 26px; border-top: 1px solid #516a85; }
+    .review { max-width: 100ch; }
+    .review li { margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 12px; border: 1px solid #516a85; text-align: left; vertical-align: top; }
+    caption { margin-bottom: 10px; text-align: left; color: #d1dbe6; }
+    footer { margin-top: 34px; padding-top: 20px; border-top: 1px solid #516a85; color: #bdcada; }
+    @media (max-width: 850px) {
+      body { padding: 20px 16px; }
+      .comparison, .inspections { grid-template-columns: 1fr; gap: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style></head>
+<body><main><header><p class="status">Passe 33 : Non conforme à la maquette</p><h1>La référence confirmée et le jeu réel</h1><p>La silhouette du sud-ouest et l’inclinaison de la Corse se rapprochent de la référence. La cathédrale raccourcie, les champs dorés et les hauts versants plus blancs améliorent la composition, qui conserve une architecture trop étroite et des reliefs grossiers. Six maisons restent rejetées par les gardes physiques.</p><p>7 vues réelles, Chromium 151.0.7922.173, 1672 × 941, DPR 1, zéro décision. Erreurs JavaScript : 0 ; requêtes échouées : 0 ; erreurs HTTP : 0 ; avertissements console : 0 ; erreurs console : 0.</p></header>
+<section class="comparison"><figure><h2>Référence confirmée</h2><a class="image-link" href="reference-ordinateur.png"><img src="reference-ordinateur.png" width="1672" height="941" alt="Maquette confirmée : France miniature détaillée"></a><figcaption>Image originale conservée sans modification.</figcaption></figure><figure><h2>Vue nationale réelle</h2><a class="image-link" href="screens-33/ordinateur.png"><img src="screens-33/ordinateur.png" width="1672" height="941" alt="Vue nationale réelle"></a><figcaption><p>Vue nationale native33 : Corse orientée, champs dorés, fidélité encore insuffisante.</p><a href="screens-33/ordinateur.json">Conditions et actions</a> · <a href="screens-33/ordinateur-inputs.json">Entrées de partie</a></figcaption></figure></section><section class="section"><div class="inspections"><figure><h2>Paris</h2><a class="image-link" href="screens-33/paris.png"><img src="screens-33/paris.png" width="1672" height="941" alt="Paris"></a><figcaption><p>Paris natif33 : vraie cathédrale raccourcie, largeur encore insuffisante.</p><a href="screens-33/paris.json">Conditions et actions</a> · <a href="screens-33/paris-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Seine et berges</h2><a class="image-link" href="screens-33/seine.png"><img src="screens-33/seine.png" width="1672" height="941" alt="Seine et berges"></a><figcaption><p>Seine native33 : quartier et surfaces réelles, inspection sans décision.</p><a href="screens-33/seine.json">Conditions et actions</a> · <a href="screens-33/seine-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Lyon et Alpes</h2><a class="image-link" href="screens-33/alpes.png"><img src="screens-33/alpes.png" width="1672" height="941" alt="Lyon et Alpes"></a><figcaption><p>Alpes natives33 : neige plus présente sur les hauts fronts, relief encore polygonal.</p><a href="screens-33/alpes.json">Conditions et actions</a> · <a href="screens-33/alpes-inputs.json">Entrées de partie</a></figcaption></figure><figure><h2>Retour national</h2><a class="image-link" href="screens-33/retour.png"><img src="screens-33/retour.png" width="1672" height="941" alt="Retour national"></a><figcaption><p>Retour national natif33 après les manipulations de carte, zéro décision.</p><a href="screens-33/retour.json">Conditions et actions</a> · <a href="screens-33/retour-inputs.json">Entrées de partie</a></figcaption></figure></div></section><section class="section review"><h2>Écarts observés</h2><ul><li>La Corse retrouve une inclinaison vers la droite ; le sud-ouest reste élargi sans changer le cadrage national.</li><li>La cathédrale est moins haute et conserve sa nef et sa base ; elle demeure trop étroite et son quartier manque de la richesse de la référence.</li><li>Les champs sont plus dorés et les feuillages gagnent en contraste ; de larges secteurs restent trop vides et les parcelles trop régulières.</li><li>La neige couvre davantage les fronts alpins ; les massifs restent plus polygonaux que ceux de la maquette.</li><li>Les côtes gagnent des panneaux plus courts, mais leurs pans sont encore trop lisses et certains rivages trop fins.</li><li>Le cadre bleu nuit et ivoire reste proche ; les trois sujets et les scores viennent de la partie réelle.</li></ul><p><a href="screens-33/verification.json">Preuves de capture</a> · <a href="screens-33/build.json">Build réellement servi</a> · <a href="screens-33/review.json">Revue enregistrée</a></p></section></main></body></html>

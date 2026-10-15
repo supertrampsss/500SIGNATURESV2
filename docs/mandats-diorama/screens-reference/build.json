@@ -1,0 +1,14 @@
+{
+  "version": 12,
+  "baseCommit": "b1865a99432f44d30c419a1327dbf65052a9041e",
+  "branch": "codex/mandats-reference-3d-20261008",
+  "offlineVersion": "5ae5fdf151ec5020",
+  "assets": {
+    "mandats-Cq-4bWQ9.js": "20ba20e0c300ee05e7f6b33d39801313cb8d3a1df0c06303bc2152c1fd5317de",
+    "mandats-CfL5XSiN.css": "73be625ce291ae3f36b744567acacd47642c0ec892aba695a63a9b697eed50d3"
+  },
+  "mandatsGzipKB": 528.51,
+  "offlineResources": 78,
+  "referenceSHA256": "8e297753df2aa0b4eb3997546ec4bd8d8c3bcf2a76b359acd05fd2df1a3e3f37",
+  "rendering": "Real Babylon.js scene. Local deterministic models, textures and water shader. Captured from built preview; no game-state injection."
+}

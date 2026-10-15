@@ -1,0 +1,36 @@
+{
+  "kind": "Actual archived emitted welcome asset and generated offline dependency coverage",
+  "build": "37",
+  "manifestPath": "/workspace/mandats-verification/authored-3d/build-37.json",
+  "manifestSha256": "86b9263f309f11dcd72bea7d1d45ca37c38efcd7f7186008a145bc38afbdffc5",
+  "sourcePath": "site/src/mandats/textures/welcome-diorama.png",
+  "sourceSha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703",
+  "actualAsset": {
+    "path": "assets/welcome-diorama-D6QPWYbq.png",
+    "bytes": 1733114,
+    "sha256": "e150aa92cfef1ce393f3bceba6c0018825ff38b97a372baccfd7cbed908ec703"
+  },
+  "actualBundledUrl": "/assets/welcome-diorama-D6QPWYbq.png",
+  "actualMain": {
+    "path": "assets/mandats-lHN_ghvN.js",
+    "bytes": 3180712,
+    "sha256": "55333593a821e48d442c16eb00853d98ac98d95f7cfc92e488641d796d60fc9c"
+  },
+  "actualServiceWorker": {
+    "path": "mandats/sw.js",
+    "bytes": 7867,
+    "sha256": "b74053345d39372221a27c2c4aa5a6ebb20acdc0e7a156979d11ba3878c4c1b2"
+  },
+  "generatedCoreContainsAsset": true,
+  "actualCoreEntryCount": 147,
+  "width": 1268,
+  "height": 801,
+  "status": "static-asset-and-precache-url-proved",
+  "runtimeBrowser": "unrun by this verifier",
+  "runtimeOfflineInstallAndResume": "unrun by this verifier",
+  "limits": [
+    "No fetch, service worker installation, browser PNG decode or offline saved replay was executed.",
+    "Root-reviewed actual36 illustration keeps its recorded artistic non-conformity.",
+    "Generated CORE membership alone does not establish a working offline journey."
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "seed": 0,
+  "version": 12,
+  "choices": [
+    "n11-0-education-lycees-regrouper"
+  ],
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": "android-chromium",
+  "state": {
+    "movements": [
+      {
+        "id": "mvt-lyceens-0",
+        "actor": "lyceens",
+        "demand": "Classes moins chargées et maintien des enseignements",
+        "grievance": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements.",
+        "status": "active",
+        "stage": "petition",
+        "pressure": 34,
+        "causeTurn": 0,
+        "sourceChoice": "n11-0-education-lycees-regrouper",
+        "sourceTitle": "Regrouper les classes et réduire les postes",
+        "startedTurn": 1,
+        "causes": [
+          {
+            "turn": 0,
+            "choice": "n11-0-education-lycees-regrouper",
+            "title": "Regrouper les classes et réduire les postes"
+          }
+        ],
+        "lastDetail": "Le regroupement de classes est adopté. Un collectif lycéen fictif demande le maintien des enseignements et prépare des rassemblements."
+      }
+    ],
+    "budget": {
+      "year": 1,
+      "accruedOperating": 0,
+      "accruedRevenue": 0,
+      "operating": 0,
+      "revenue": 0
+    }
+  },
+  "finance": {
+    "revenue": 1490,
+    "operating": 1543.4,
+    "investment": 40,
+    "debt": 3200,
+    "cash": 0,
+    "rate": 0.018,
+    "marketRate": 0.035,
+    "repayment": 0,
+    "grants": 0,
+    "gdp": 2800,
+    "growth": 0.012,
+    "deflator": 0.018,
+    "stockFlow": 0
+  },
+  "ledgers": [
+    {
+      "revenue": 1490,
+      "operating": 1543.4,
+      "interest": 57.599999999999994,
+      "savings": -111.00000000000009,
+      "repayment": 0,
+      "investment": 40,
+      "grants": 0,
+      "borrowing": 151,
+      "cashChange": 0,
+      "deficit": 151,
+      "debt": 3351,
+      "gdp": 2884.6048
+    }
+  ],
+  "votes": [
+    {
+      "id": "law-0-n11-0-education-lycees-regrouper",
+      "kind": "law",
+      "title": "Regrouper les classes et réduire les postes",
+      "chamber": "Assemblée nationale",
+      "total": 577,
+      "for": 268,
+      "against": 265,
+      "abstain": 44,
+      "threshold": 267,
+      "passed": true,
+      "groups": [
+        {
+          "id": "presidential",
+          "label": "Majorité présidentielle",
+          "for": 134,
+          "against": 12,
+          "abstain": 5
+        },
+        {
+          "id": "reformist",
+          "label": "Réformistes",
+          "for": 66,
+          "against": 40,
+          "abstain": 8
+        },
+        {
+          "id": "social",
+          "label": "Gauche sociale",
+          "for": 22,
+          "against": 72,
+          "abstain": 11
+        },
+        {
+          "id": "conservative",
+          "label": "Conservateurs",
+          "for": 28,
+          "against": 69,
+          "abstain": 10
+        },
+        {
+          "id": "regional",
+          "label": "Territoires",
+          "for": 18,
+          "against": 72,
+          "abstain": 10
+        }
+      ],
+      "consequences": [
+        "Texte adopté : ses effets sont appliqués et financés."
+      ]
+    }
+  ]
+}

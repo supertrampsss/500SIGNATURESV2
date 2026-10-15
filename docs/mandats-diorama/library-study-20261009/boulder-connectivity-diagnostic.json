@@ -1,0 +1,16 @@
+[
+  {
+    "mergeVertices": false,
+    "verticesBefore": 67042,
+    "trianglesBefore": 66122,
+    "verticesAfter": 33468,
+    "trianglesAfter": 26614
+  },
+  {
+    "mergeVertices": true,
+    "verticesBefore": 61991,
+    "trianglesBefore": 66122,
+    "verticesAfter": 31068,
+    "trianglesAfter": 28649
+  }
+]

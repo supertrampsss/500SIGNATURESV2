@@ -1,0 +1,17 @@
+{
+  "method": "Two complete fresh terrain bakes, exact binary and source manifest. Separate from original browser timing and artistic fidelity.",
+  "files": [
+    {
+      "file": "terrain-survey.bin.gz",
+      "bytes": 10028981,
+      "sha256": "7b531a18a9b6f5515b276a7ea532feb24610eeda8e4836738c6709309616036f",
+      "byteIdentical": true
+    },
+    {
+      "file": "terrain-survey.json",
+      "bytes": 11607,
+      "sha256": "4cd10a1c26b40583b721e1ef4fc4e50c2b297315b4f4b561a6b0cca78fc51b1b",
+      "byteIdentical": true
+    }
+  ]
+}

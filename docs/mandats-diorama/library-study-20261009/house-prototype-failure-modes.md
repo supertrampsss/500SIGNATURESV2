@@ -1,0 +1,3 @@
+# Prototype d’une maison issue du kit Quaternius 2025
+
+Avant assemblage : contrôler l’origine et la licence du kit exact ; conserver les empreintes des composants ; raccorder les ouvertures, portes et fenêtres ; vérifier les façades depuis deux orientations ; éviter les trous sous toiture ; garder l’appui au sol et des coordonnées finies ; mesurer le nombre de triangles et les images embarquées. Un rendu Blender ou un import Babylon ne prouve pas la conformité de la carte. Aucun remplacement généralisé avant captures dans la scène réelle, niveaux de détail, contrôles de placement et essais mobiles.

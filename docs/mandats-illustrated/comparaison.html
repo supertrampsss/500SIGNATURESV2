@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MANDATS — comparaison de la carte illustrée</title>
+  <style>
+    :root { color-scheme: light; --navy: #091a2f; --paper: #fef6ec; --line: #ddd1bf; --muted: #536171; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--navy); font: 16px/1.55 system-ui, sans-serif; }
+    header { padding: 36px max(24px, calc((100vw - 1800px) / 2)); background: var(--navy); color: #fff8ee; }
+    header p { max-width: 900px; margin: 12px 0 0; color: #d8e0e8; }
+    h1, h2 { font-family: Georgia, serif; line-height: 1.15; }
+    h1 { margin: 0; font-size: clamp(28px, 3vw, 42px); }
+    h2 { margin: 0 0 12px; font-size: 28px; }
+    h3 { margin: 0 0 14px; font-size: 18px; }
+    main { max-width: 1848px; margin: auto; padding: 28px 24px 48px; }
+    nav { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-bottom: 28px; }
+    a { color: #12578f; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #bf1c30; outline-offset: 4px; }
+    section { margin-top: 38px; scroll-margin-top: 20px; }
+    section > p { max-width: 1000px; margin: 0 0 20px; color: var(--muted); }
+    .note { max-width: 1080px; margin: 0; padding: 16px 20px; background: #fffaf3; border-left: 4px solid #bf1c30; }
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: #fffaf3; }
+    figure > a { display: block; background: var(--navy); }
+    img { display: block; width: 100%; height: auto; }
+    figcaption { padding: 12px 14px; }
+    figcaption strong { display: block; }
+    figcaption span { display: block; margin-top: 3px; font-size: 14px; color: var(--muted); }
+    .phones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+    .phone-column { padding: 18px; background: #f5ede1; border: 1px solid var(--line); border-radius: 8px; }
+    .phone-column figure { max-width: 390px; margin: 0 auto 18px; }
+    .phone-column.compact figure { max-width: 320px; }
+    .phone-column figure:last-child { margin-bottom: 0; }
+    .subject { max-width: 1280px; }
+    footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+    @media (max-width: 1000px) { .pair { grid-template-columns: 1fr; } .phones { grid-template-columns: 1fr; } }
+    @media (max-width: 540px) { header { padding: 28px 16px; } main { padding: 22px 12px 32px; } .phone-column { padding: 12px; } h2 { font-size: 25px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MANDATS — la carte illustrée face à la référence</h1>
+    <p>La maquette approuvée et les captures réelles de l’application, au démarrage puis après une décision.</p>
+  </header>
+  <main>
+    <nav aria-label="Dans cette comparaison">
+      <a href="#bureau">Vue nationale</a>
+      <a href="#mobilisation">Mobilisation</a>
+      <a href="#sujet">Sujet ouvert</a>
+      <a href="#petits-ecrans">Mobile, compact et WebKit</a>
+    </nav>
+    <p class="note">La carte reprend l’illustration de référence. Les zones des anciens repères, étiquettes et commandes ont été retouchées pour accueillir les éléments interactifs ; les pixels de l’illustration hors de ces zones sont conservés. Les scores, l’année et les sujets affichés proviennent de la partie jouée : ils peuvent différer de l’état présenté dans la maquette.</p>
+
+    <section id="bureau">
+      <h2>Vue nationale sur ordinateur</h2>
+      <p>Comparer le cadrage de la France, les villes, les reliefs et les ports, puis l’en-tête, le panneau « À traiter » et la navigation. Cliquer sur une image pour l’ouvrir à sa taille d’origine.</p>
+      <div class="pair">
+        <figure>
+          <a href="../mandats-diorama/reference-ordinateur.png"><img src="../mandats-diorama/reference-ordinateur.png" width="1672" height="941" alt="Maquette de référence : carte de France illustrée et panneau À traiter."></a>
+          <figcaption><strong>Maquette de référence</strong><span>État illustratif : année 2, services 58, confiance 46.</span></figcaption>
+        </figure>
+        <figure>
+          <a href="screens/desktop-national.png"><img src="screens/desktop-national.png" width="1672" height="941" alt="Capture réelle de la vue nationale sur ordinateur au début de la partie."></a>
+          <figcaption><strong>Application — début de partie</strong><span>Repères et sujets issus de l’état réel de la partie.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="mobilisation">
+      <h2>Après la décision sur les classes</h2>
+      <p>Le repère urgent de Lyon et la mobilisation apparaissent dans la partie. Les autres sujets et les indicateurs suivent les conséquences de la décision.</p>
+      <div class="pair">
+        <figure>
+          <a href="../mandats-diorama/reference-ordinateur.png"><img src="../mandats-diorama/reference-ordinateur.png" width="1672" height="941" loading="lazy" alt="Maquette de référence avec le repère urgent de mobilisation lycéenne à Lyon."></a>
+          <figcaption><strong>Maquette de référence</strong><span>Le repère urgent et le premier sujet donnent les points de comparaison.</span></figcaption>
+        </figure>
+        <figure>
+          <a href="screens/desktop-movement.png"><img src="screens/desktop-movement.png" width="1672" height="941" loading="lazy" alt="Capture réelle sur ordinateur après une décision, avec la mobilisation lycéenne à Lyon."></a>
+          <figcaption><strong>Application — mobilisation</strong><span>Conséquence produite par la décision dans le jeu.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="sujet">
+      <h2>Un sujet ouvert</h2>
+      <p>Le panneau présente les choix disponibles pendant que la carte et ses repères restent visibles.</p>
+      <figure class="subject">
+        <a href="screens/desktop-subject.png"><img src="screens/desktop-subject.png" width="1672" height="941" loading="lazy" alt="Capture réelle avec un sujet ouvert et les décisions disponibles à côté de la carte."></a>
+        <figcaption><strong>Application — consultation d’un sujet</strong><span>État interactif complémentaire à la vue nationale de la maquette.</span></figcaption>
+      </figure>
+    </section>
+
+    <section id="petits-ecrans">
+      <h2>Mobile, écran compact et WebKit</h2>
+      <p>Sur les petits écrans, le panneau des sujets se place sous la carte. Les deux captures de chaque colonne montrent le début de partie, puis la mobilisation.</p>
+      <div class="phones">
+        <div class="phone-column">
+          <h3>Mobile — 390 px</h3>
+          <figure>
+            <a href="screens/mobile-national.png"><img src="screens/mobile-national.png" width="390" height="844" loading="lazy" alt="Vue nationale de l’application sur un écran de 390 pixels de large."></a>
+            <figcaption><strong>Début de partie</strong><span><a href="screens/mobile-full.png">Voir la page entière</a></span></figcaption>
+          </figure>
+          <figure>
+            <a href="screens/mobile-movement.png"><img src="screens/mobile-movement.png" width="390" height="844" loading="lazy" alt="Mobilisation lycéenne affichée sur un écran de 390 pixels de large."></a>
+            <figcaption><strong>Mobilisation</strong><span><a href="screens/mobile-subject.png">Voir un sujet ouvert</a></span></figcaption>
+          </figure>
+        </div>
+        <div class="phone-column compact">
+          <h3>Compact — 320 px</h3>
+          <figure>
+            <a href="screens/compact-national.png"><img src="screens/compact-national.png" width="320" height="740" loading="lazy" alt="Vue nationale de l’application sur un écran compact de 320 pixels de large."></a>
+            <figcaption><strong>Début de partie</strong><span><a href="screens/compact-full.png">Voir la page entière</a></span></figcaption>
+          </figure>
+          <figure>
+            <a href="screens/compact-movement.png"><img src="screens/compact-movement.png" width="320" height="740" loading="lazy" alt="Mobilisation lycéenne affichée sur un écran compact de 320 pixels de large."></a>
+            <figcaption><strong>Mobilisation</strong><span><a href="screens/compact-subject.png">Voir un sujet ouvert</a></span></figcaption>
+          </figure>
+        </div>
+        <div class="phone-column">
+          <h3>WebKit</h3>
+          <figure>
+            <a href="screens/webkit-national.png"><img src="screens/webkit-national.png" loading="lazy" alt="Vue nationale de l’application rendue par WebKit sur mobile."></a>
+            <figcaption><strong>Début de partie</strong><span>Capture dans le moteur WebKit.</span></figcaption>
+          </figure>
+          <figure>
+            <a href="screens/webkit-movement.png"><img src="screens/webkit-movement.png" loading="lazy" alt="Mobilisation lycéenne affichée par WebKit sur mobile."></a>
+            <figcaption><strong>Mobilisation</strong><span>Repères et sujets de la partie jouée.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+    <footer>Cette page rassemble les images de référence et les captures de l’application pour permettre leur comparaison visuelle. Elle ne constitue pas, à elle seule, une validation des interactions ou de l’ensemble des parcours du jeu.</footer>
+  </main>
+</body>
+</html>

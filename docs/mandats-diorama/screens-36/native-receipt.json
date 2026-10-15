@@ -1,0 +1,8 @@
+{
+  "build": "36",
+  "command": "node capture-native36.mjs http://127.0.0.1:4191 prototype-36",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session92748 exit_code0",
+  "confirmedAt": "2026-10-09T11:15:57.385578+00:00",
+  "session": 92748
+}

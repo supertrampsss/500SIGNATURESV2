@@ -1,0 +1,74 @@
+{
+  "status": "candidate-requires-browser-and-placement-review",
+  "sourceSHA256": "faf6d7be24644ae2a9869d958a0791f0f659d3988a8cfa0c251249e43d6645d0",
+  "exportSHA256": "e41d5ca2596b152a98a95e63b06f89b04786df1c0a14526808280b51e4ecc600",
+  "bytes": 487872,
+  "atlasPixels": 512,
+  "roofUVFrequency": 2.5,
+  "normalCorrections": [
+    {
+      "model": "maison_alsace_01",
+      "correctedPolygons": [
+        1355,
+        1461
+      ]
+    },
+    {
+      "model": "maison_alsace_01_distant",
+      "correctedPolygons": [
+        647,
+        650,
+        652,
+        654,
+        656,
+        657,
+        658
+      ]
+    }
+  ],
+  "models": [
+    {
+      "model": "maison_alsace_01",
+      "trianglesBeforeExport": 1481,
+      "materials": 1,
+      "atlasPixels": 512,
+      "bounds": [
+        [
+          -0.4650000035762787,
+          -0.5339999794960022,
+          0.0
+        ],
+        [
+          0.4650000035762787,
+          0.4449999928474426,
+          1.0169999599456787
+        ]
+      ]
+    },
+    {
+      "model": "maison_alsace_01_distant",
+      "trianglesBeforeExport": 740,
+      "materials": 1,
+      "atlasPixels": 128,
+      "bounds": [
+        [
+          -0.4650000035762787,
+          -0.5339999794960022,
+          0.0
+        ],
+        [
+          0.46503064036369324,
+          0.4449999928474426,
+          1.0169999599456787
+        ]
+      ]
+    }
+  ],
+  "albedo": "Diffuse colour only, direct and indirect lighting excluded.",
+  "ORM": "New mesh contact AO, source roughness and metallic in separate R/G/B channels.",
+  "limits": [
+    "Roof geometry remains the original miniature silhouette.",
+    "One separate material per LoD still needs Babylon LoD pairing.",
+    "A Blender bake alone establishes no runtime or visual conformity."
+  ]
+}

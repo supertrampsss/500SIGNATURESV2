@@ -1,0 +1,364 @@
+{
+  "capturedAt": "2026-10-08T20:54:49.120Z",
+  "origin": "http://127.0.0.1:4191",
+  "description": "Native Lyon inspection zoomed out once, including nearby Alpine relief",
+  "actions": [
+    "Click the actual Assembly marker",
+    "Click Voir le lieu for Paris",
+    "Click Réduire la carte to include the Paris and river basin surroundings",
+    "Click Recentrer after Paris inspection",
+    "Click Fermer le sujet after Paris inspection",
+    "Click Recentrer",
+    "Click the real education-lycees marker",
+    "Click Voir le lieu for Lyon",
+    "Click Réduire la carte to include Alpine surroundings"
+  ],
+  "inputs": {
+    "version": 12,
+    "mode": "national",
+    "seed": 0,
+    "ambition": "equilibre",
+    "choices": []
+  },
+  "data": {
+    "mandateMap": "",
+    "renderer": "babylon",
+    "movements": "0",
+    "resolution": "1272x805",
+    "turn": "0",
+    "projects": "0",
+    "motion": "reduced",
+    "landscape": "diorama",
+    "staticBatches": "25",
+    "staticInstances": "5904",
+    "authoredHouses": "525",
+    "cameraRadius": "5.8",
+    "renderMs": "18",
+    "inspection": "lyon"
+  },
+  "layout": {
+    "scrollWidth": 1672,
+    "viewportWidth": 1672,
+    "viewportHeight": 941,
+    "devicePixelRatio": 1,
+    "scrollY": 0,
+    "canvas": {
+      "x": 0,
+      "y": 72,
+      "width": 1272,
+      "height": 805,
+      "top": 72,
+      "right": 1272,
+      "bottom": 877,
+      "left": 0
+    }
+  },
+  "raster": {
+    "width": 1272,
+    "height": 805
+  },
+  "servedResources": [
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-C0C5hCjI.js",
+      "initiator": "script",
+      "transfer": 584704,
+      "duration": 152
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-BR6wKexh.js",
+      "initiator": "other",
+      "transfer": 1011,
+      "duration": 30
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/mandats-x2O5YTzm.css",
+      "initiator": "link",
+      "transfer": 31756,
+      "duration": 39
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/game-B_-L39w0.css",
+      "initiator": "link",
+      "transfer": 16984,
+      "duration": 47
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/site-shell-v2-DKHbEmDf.css",
+      "initiator": "link",
+      "transfer": 7098,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shared-design-D17Vxp_n.css",
+      "initiator": "link",
+      "transfer": 6697,
+      "duration": 37
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/source-sans-3-variable.woff2",
+      "initiator": "css",
+      "transfer": 170488,
+      "duration": 75
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-700-latin.woff2",
+      "initiator": "css",
+      "transfer": 23336,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/fonts/barlow-semi-condensed-600.woff2",
+      "initiator": "css",
+      "transfer": 64740,
+      "duration": 74
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-500-latin.woff2",
+      "initiator": "css",
+      "transfer": 23136,
+      "duration": 2701
+    },
+    {
+      "url": "http://127.0.0.1:4191/polices/spectral-600-latin.woff2",
+      "initiator": "css",
+      "transfer": 23236,
+      "duration": 2701
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.fragment-D8ohZkp-.js",
+      "initiator": "script",
+      "transfer": 1507,
+      "duration": 23
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/packingFunctions-BOU8YzQE.js",
+      "initiator": "script",
+      "transfer": 830,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneFragment-CaKy6TFZ.js",
+      "initiator": "script",
+      "transfer": 659,
+      "duration": 16
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMap.vertex-DlsSoo0k.js",
+      "initiator": "script",
+      "transfer": 1919,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/clipPlaneVertex-zNzo3-S4.js",
+      "initiator": "script",
+      "transfer": 2856,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/helperFunctions-DZNRINgf.js",
+      "initiator": "script",
+      "transfer": 2598,
+      "duration": 15
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneVertexDeclaration-D3WnijyJ.js",
+      "initiator": "script",
+      "transfer": 631,
+      "duration": 22
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/sceneUboDeclaration-D4iD7xZF.js",
+      "initiator": "script",
+      "transfer": 665,
+      "duration": 31
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/meshUboDeclaration-BYHeejp1.js",
+      "initiator": "script",
+      "transfer": 646,
+      "duration": 31
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/depthBoxBlur.fragment-CxSygnjQ.js",
+      "initiator": "script",
+      "transfer": 934,
+      "duration": 31
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/shadowMapFragmentSoftTransparentShadow-CAEWSIRN.js",
+      "initiator": "script",
+      "transfer": 770,
+      "duration": 30
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/vegetation.glb?v=22d88978198973b2",
+      "initiator": "xmlhttprequest",
+      "transfer": 945048,
+      "duration": 7
+    },
+    {
+      "url": "http://127.0.0.1:4191/mandats/models/architecture.glb?v=f8e0fc41499a6063",
+      "initiator": "xmlhttprequest",
+      "transfer": 5437580,
+      "duration": 682
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterial.pure-CabRat1K.js",
+      "initiator": "script",
+      "transfer": 26269,
+      "duration": 19
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/brdfTextureTools-BjZmSqVM.js",
+      "initiator": "script",
+      "transfer": 45102,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrMaterialLoadingAdapter-C0LCSRsP.js",
+      "initiator": "script",
+      "transfer": 2723,
+      "duration": 13
+    },
+    {
+      "url": "http://127.0.0.1:4191/brand/favicon.svg",
+      "initiator": "other",
+      "transfer": 713,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/rgbdDecode.fragment-D2LAqoIR.js",
+      "initiator": "script",
+      "transfer": 929,
+      "duration": 4
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/postprocess.vertex-_ZDXCMXV.js",
+      "initiator": "script",
+      "transfer": 860,
+      "duration": 8
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.vertex-BIrbCG87.js",
+      "initiator": "script",
+      "transfer": 2595,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthVertex-BxKgOluu.js",
+      "initiator": "script",
+      "transfer": 2272,
+      "duration": 6
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/defaultUboDeclaration-cg-PFwuS.js",
+      "initiator": "script",
+      "transfer": 854,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/instancesDeclaration-C7jQQ4Bj.js",
+      "initiator": "script",
+      "transfer": 1234,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/logDepthDeclaration-B3l18u5R.js",
+      "initiator": "script",
+      "transfer": 749,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertexDeclaration-Hqq4krV_.js",
+      "initiator": "script",
+      "transfer": 642,
+      "duration": 12
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpVertex-CCwdBHAF.js",
+      "initiator": "script",
+      "transfer": 823,
+      "duration": 14
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/default.fragment-DvpHBFZp.js",
+      "initiator": "script",
+      "transfer": 6298,
+      "duration": 17
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/reflectionFunction-C4pnV818.js",
+      "initiator": "script",
+      "transfer": 1601,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/oitFragment-CPzx1Lrw.js",
+      "initiator": "script",
+      "transfer": 11561,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/lightFragment-DQk_aPaw.js",
+      "initiator": "script",
+      "transfer": 3655,
+      "duration": 21
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/bumpFragment--GdbEYet.js",
+      "initiator": "script",
+      "transfer": 2699,
+      "duration": 18
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.vertex-BZYAJYvP.js",
+      "initiator": "script",
+      "transfer": 3911,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrUboDeclaration-DR6ARGCm.js",
+      "initiator": "script",
+      "transfer": 977,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrBRDFFunctions-DRGV_4ui.js",
+      "initiator": "script",
+      "transfer": 4420,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/harmonicsFunctions-jmkjeccx.js",
+      "initiator": "script",
+      "transfer": 798,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbr.fragment-DfTNztfg.js",
+      "initiator": "script",
+      "transfer": 18441,
+      "duration": 11
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrDebug-CgcWe3Nn.js",
+      "initiator": "script",
+      "transfer": 8797,
+      "duration": 10
+    },
+    {
+      "url": "http://127.0.0.1:4191/assets/pbrIBLFunctions-CV8W5WCL.js",
+      "initiator": "script",
+      "transfer": 1183,
+      "duration": 15
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "consoleMessages": [],
+  "failedResponses": [],
+  "navigation": {
+    "status": 200
+  },
+  "method": "Fresh Chromium context at1672x941 with fonts loaded/reduced motion. Native DOM controls and camera buttons only. No camera API, no game state injection. Sector labels are visual review candidates, not geographic assertions from UI."
+}

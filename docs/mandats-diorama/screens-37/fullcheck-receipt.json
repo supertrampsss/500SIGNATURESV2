@@ -1,0 +1,8 @@
+{
+  "build": "37",
+  "command": "NODE_USE_ENV_PROXY=1 npm run check",
+  "exitCode": 0,
+  "confirmedBy": "ROOT consumed functions.write_stdin session88383 exit_code0",
+  "confirmedAt": "2026-10-09T12:08:33.497937+00:00",
+  "session": 88383
+}
