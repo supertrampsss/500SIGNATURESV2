@@ -2,6 +2,7 @@ import { annualDeficit } from './national-deficit.ts';
 import type { NarrativeChoice, NarrativeEvent, NarrativeEventRecord, NarrativeProject, NarrativePromise, NarrativeState } from './narrative-types.ts';
 import { clamp } from './types.ts';
 import type { Choice, Effect, Game } from './types.ts';
+import { pressureProjectWaitReason } from './pressure-engine.ts';
 
 export type NarrativeResolution = { state: NarrativeState; consequences: string[]; effect: Effect };
 const deliveryDefaults: Record<string, Effect> = {
@@ -96,7 +97,7 @@ export function resolveNarrativeConsequences(before: Game, after: Game, choice: 
         addEvent({ kind: 'repair', title: 'Le chantier reprend', detail: existing.label, causeTurn: turn, weight: 5 });
       } else {
         if (existing && existing.status !== 'withdrawn') throw new Error('Ce programme est déjà engagé.');
-        const funded = (choice.effect.investment ?? 0) > 0 || (choice.effect.operating ?? 0) > 0;
+        const funded = (choice.effect.investment ?? 0) > 0 || (choice.effect.operating ?? 0) > 0 || (after.version>=13&&(choice.effect.temporaryOperating??0)>0);
         const project: NarrativeProject = {
           id: spec.id, kind: spec.kind, label: spec.label, place: spec.place,
           status: funded ? 'funded' : 'blocked', startedTurn: turn,
@@ -117,7 +118,7 @@ export function resolveNarrativeConsequences(before: Game, after: Game, choice: 
         state.promises.push({ id: spec.id, label: spec.label, status: 'active', causeTurn: turn,
           dueTurn: turn + Math.max(1, spec.dueAfter ?? 3), targetProject: spec.targetProject,
           keepWhen: spec.keepWhen ?? (spec.targetProject ? 'project_delivered' : 'services_improved'),
-          funded: (choice.effect.operating ?? 0) > 0 || (choice.effect.investment ?? 0) > 0,
+          funded: (choice.effect.operating ?? 0) > 0 || (choice.effect.investment ?? 0) > 0 || (after.version>=13&&(choice.effect.temporaryOperating??0)>0),
           baseline: promiseBaseline(spec, before) });
         consequences.push(`Engagement pris : ${spec.label}`);
       }
@@ -138,6 +139,14 @@ export function resolveNarrativeConsequences(before: Game, after: Game, choice: 
 
   // A due project is resolved even when today's unrelated bill is rejected.
   for (const project of state.projects.filter(item => item.status === 'funded' && item.dueTurn <= turn)) {
+    const workDelay=after.version>=13?pressureProjectWaitReason(before,{...after,narrative:state},project.id):undefined;
+    if(workDelay){
+      project.dueTurn=turn+1;
+      project.note=`La mise en service attend : ${workDelay}. Les crédits restent engagés ; aucun nouveau paiement n’est demandé.`;
+      consequences.push(`Mise en service reportée : ${project.label}. ${project.note}`);
+      addEvent({kind:'project',title:'La mise en service attend les équipes',detail:project.label+'. '+project.note,causeTurn:project.causeTurn??project.startedTurn,weight:-1});
+      continue;
+    }
     const obstacle = deliveryObstacle(project, after);
     project.status = obstacle ? 'blocked' : 'delivered';
     project.resolvedTurn = turn;

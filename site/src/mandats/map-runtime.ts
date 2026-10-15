@@ -116,11 +116,24 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
   }
   function inspect(place: MapPlace) {
     if (failed) return;
+    setExpanded(true);
     zoom = Math.max(zoom, 2.2);
     centre = { ...ILLUSTRATED_MAP_PLACES[place] };
     host.dataset.inspection = place;
     draw();
   }
+
+  function setExpanded(expanded: boolean) {
+    host.dataset.expanded = String(expanded);
+    if (!expanded) host.dataset.inspection = "";
+    const button = host.querySelector<HTMLButtonElement>("[data-map-toggle]");
+    button?.setAttribute("aria-expanded", String(expanded));
+    if (button) button.textContent = expanded ? "Replier la carte" : "Déplier la carte";
+    scheduleDraw();
+  }
+  host.querySelector("[data-map-toggle]")?.addEventListener("click", () => {
+    setExpanded(host.dataset.expanded !== "true");
+  }, { signal });
 
   function rebuildEffects() {
     if (!effects) return;

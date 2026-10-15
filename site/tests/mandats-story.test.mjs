@@ -98,11 +98,11 @@ async function openSeed(page, seed, { reducedMotion = false } = {}) {
   return save;
 }
 
-test('fresh national play starts on the current v12 ruleset', async ({ page }) => {
+test('fresh national play starts on the current v13 ruleset', async ({ page }) => {
   await page.goto(HOME);
   await page.getByRole('button', { name: /Commencer un mandat/ }).click();
   const save = await stored(page);
-  expect(save).toMatchObject({ version: 12, mode: 'national', choices: [] });
+  expect(save).toMatchObject({ version: 13, mode: 'national', choices: [] });
   await expect(page.locator('[data-map-agenda]')).toBeVisible();
   const selectedId = await page.locator('[data-map-agenda] [data-action="story-select"]').first().getAttribute('data-story-id');
   await page.locator('[data-map-agenda] [data-action="story-select"]').first().click();

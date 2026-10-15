@@ -2,7 +2,7 @@ import type { Choice } from './types.ts';
 
 export type PoliticalBlocId = 'presidential' | 'reformist' | 'social' | 'conservative' | 'regional';
 export type PendingCrisis = 'coalition' | 'censure' | 'cabinet' | 'scandal' | 'destitution' | 'rupture';
-export type PoliticalAction = 'enact' | 'coalition_bargain' | 'reject_bargain' | 'confidence' | 'censure' | 'coalition_government' | 'dissolve' | 'publish_scandal' | 'cover_up' | 'destitute' | 'negotiate_rupture' | 'emergency_rule' | 'institutional_repair' | 'defy_institutions';
+export type PoliticalAction = 'administrative' | 'enact' | 'coalition_bargain' | 'reject_bargain' | 'confidence' | 'censure' | 'coalition_government' | 'dissolve' | 'publish_scandal' | 'cover_up' | 'destitute' | 'negotiate_rupture' | 'emergency_rule' | 'institutional_repair' | 'defy_institutions';
 export type PoliticalChoice = {
   action: PoliticalAction;
   targetBloc?: PoliticalBlocId;

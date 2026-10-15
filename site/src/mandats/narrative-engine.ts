@@ -8,6 +8,8 @@ import { nationalAgendaDossiersV9 } from './national-agenda.ts';
 import { resolveNarrativeConsequences } from './narrative-consequences.ts';
 import { EDUCATION_EVENT, EDUCATION_FAMILY, socialMovementFront } from './social-content.ts';
 import { REWORK_EVENTS, REWORK_FAMILIES, REWORK_BASE_EVENTS } from './rework-content.ts';
+import { pressureAgenda, isPressureFront } from './pressure-agenda.ts';
+import { authoredPressureChoice, authoredPressureEffects, isPressureOpportunity } from './pressure-content.ts';
 
 const contexts: NarrativeContext[] = ['coalition', 'hospital', 'redress'];
 export function narrativeContextForSeed(seed: number): NarrativeContext { return contexts[seed % contexts.length]; }
@@ -112,7 +114,12 @@ function agendaEntries(g:Game) {
   const deferred=(g.narrative?.deferred??[]).filter(d=>d.expiresTurn>=g.turn&&d.dueTurn<=g.turn&&!eventWasPlayed(g,d.eventId)&&!g.narrative?.retiredEvents?.includes(d.eventId)).sort((a,b)=>a.expiresTurn-b.expiresTurn||a.dueTurn-b.dueTurn).slice(0,slots);
   const events=g.version>=12?[...REWORK_BASE_EVENTS,...REWORK_EVENTS]:NARRATIVE_EVENTS;
   const families=g.version>=12?[...NARRATIVE_FAMILIES,...REWORK_FAMILIES]:NARRATIVE_FAMILIES;
-  for(const deferredItem of deferred){const event=events.find(x=>x.id===deferredItem.eventId),family=event&&families.find(x=>x.id===event.familyId);if(event&&family){addStory({...event,body:`${eventBody(g,event)}\n\nDernier créneau : décision ${deferredItem.expiresTurn+1}. Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.`},family,`À décider avant la décision ${deferredItem.expiresTurn+1}`,deferredItem.expiresTurn);}}
+  for(const deferredItem of deferred){const event=events.find(x=>x.id===deferredItem.eventId),family=event&&families.find(x=>x.id===event.familyId);if(event&&family){
+    const expiration=g.version>=13
+      ? isPressureOpportunity(event)?'Cette occasion pourra expirer sans crédit engagé ni pénalité générique de confiance.':'Ce créneau de proposition se ferme ensuite. Les fronts et programmes déjà engagés continuent d’évoluer.'
+      :'Si vous le dépassez, le dossier sort de l’agenda avec confiance −1 et cohésion −1.';
+    addStory({...event,body:`${eventBody(g,event)}\n\nDernier créneau : décision ${deferredItem.expiresTurn+1}. ${expiration}`},family,`À décider avant la décision ${deferredItem.expiresTurn+1}`,deferredItem.expiresTurn);
+  }}
   const recentFamilies=g.version>=12?new Set(g.history.slice(-2).flatMap(turn=>[...NARRATIVE_EVENTS,...REWORK_EVENTS].filter(event=>turn.choice.includes(`-${event.id}-`)).map(event=>event.familyId))):new Set<string>();
   const eligible=eligibleEvents(g).filter(x=>!items.some(i=>i.item.id===x.event.id)).sort((a,b)=>Number(recentFamilies.has(a.family.id))-Number(recentFamilies.has(b.family.id))),seen=new Set<string>(items.flatMap(i=>i.kind==='story'&&i.event?[i.event.familyId]:[])),unique=eligible.filter(x=>{if(seen.has(x.family.id))return false;seen.add(x.family.id);return true;});
   const diverse=unique.filter(item=>!recentFamilies.has(item.family.id));
@@ -120,6 +127,9 @@ function agendaEntries(g:Game) {
   const offset=available.length?stableHash(g.seed,g.turn,'agenda')%available.length:0;
   const remaining=Math.max(0,3-items.length),rotated=[...available.slice(offset),...available.slice(0,offset)].slice(0,remaining);
   items.push(...rotated.map(({family,event})=>({kind:'story' as const,event,item:{id:event.id,title:event.title,category:family.category,summary:eventBody(g,event),art:family.art,urgency:family.urgency}})));
+  // These fronts are persistent state, not expiring authored opportunities.
+  // Presentation may feature three; all remain selectable and replayable.
+  if(g.version>=13)for(const {event,family} of pressureAgenda(g))addStory(event,family);
   return items;
 }
 export function storyAgenda(g:Game):StoryAgendaItem[] { return agendaEntries(g).map(x=>x.item); }
@@ -171,9 +181,11 @@ const prefix=(eventId:string,choiceId:string,turn:number)=>`n11-${turn}-${eventI
 export function narrativeChoiceId(eventId:string,choiceId:string,turn:number):string{return prefix(eventId,choiceId,turn);}
 export function choicesForNarrative(g:Game):Choice[] {
   const event=focusedNarrativeEvent(g);if(!event)return [];
-  return event.choices.map(c=>toChoice(event,c,g.turn));
+  return event.choices.map(c=>toChoice(event,c,g));
 }
-function toChoice(event:NarrativeEvent,c:NarrativeChoice,turn:number):Choice {
+function toChoice(event:NarrativeEvent,c:NarrativeChoice,g:Game):Choice {
+  const turn=g.turn;
+  if(g.version>=13)c=authoredPressureChoice(g,event,c);
   const effect={...c.effect};if(c.amendment)for(const [k,v] of Object.entries(c.amendment.effect)){
     if(k==='society')effect.society={...effect.society,...v as object};else if(typeof v==='number'){const merged={...effect,[k]:((effect as Record<string,number|undefined>)[k]??0)+v};Object.assign(effect,merged);}
   }
@@ -181,7 +193,7 @@ function toChoice(event:NarrativeEvent,c:NarrativeChoice,turn:number):Choice {
   if(c.amendment?.support){political.supportDelta={...political.supportDelta,reformist:(political.supportDelta?.reformist??0)+c.amendment.support};}
   if(c.relationships)political.supportDelta={...political.supportDelta,...Object.fromEntries(Object.entries(c.relationships).map(([k,v])=>[k,(political.supportDelta?.[k as keyof typeof political.supportDelta]??0)+v]))};
   return {id:prefix(event.id,c.id,turn),title:c.title,description:c.description,cost:c.cost,benefit:c.benefit,sacrifice:c.sacrifice,effect,...(c.delayed?{delayed:c.delayed}:{}),political,amendment:c.amendment,
-    ...(c.social?{social:c.social}:{}),narrative:{eventId:event.id,press:c.press,promise:c.promise,project:c.project,relationships:c.relationships}} as Choice;
+    ...(c.social?{social:c.social}:{}),...(g.version>=13?{pressure:c.pressure??authoredPressureEffects(g,event,c)}:{}),narrative:{eventId:event.id,press:c.press,promise:c.promise,project:c.project,relationships:c.relationships}} as Choice;
 }
 export function narrativeEventByChoice(g:Game,id:string):NarrativeEvent|undefined {
   for(const {event} of agendaEntries(g))if(event&&event.choices.some(c=>prefix(event.id,c.id,g.turn)===id))return event;
@@ -194,11 +206,18 @@ export function applyNarrativeChoice(before:Game,after:Game,choice:Choice,event?
   const resolved=resolveNarrativeConsequences(before,after,choice,event),state=resolved.state,consequences=resolved.consequences;
   const selected=before.narrative!.focus;
   state.deferred=(state.deferred??[]).filter(d=>d.eventId!==selected);
-  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.event?.familyId!=='mobilisations-sociales'&&x.event?.familyId!==EDUCATION_FAMILY.id&&x.item.id!==selected))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
+  for(const front of agendaEntries(before).filter(x=>x.kind==='story'&&x.event?.requiresProjectStatus!=='blocked'&&x.event?.familyId!=='mobilisations-sociales'&&x.event?.familyId!==EDUCATION_FAMILY.id&&x.item.id!==selected&&!(before.version>=13&&x.event&&isPressureFront(x.event))))if(!state.deferred.some(d=>d.eventId===front.item.id))state.deferred.push({eventId:front.item.id,dueTurn:before.turn+1,expiresTurn:before.turn+4,originTurn:before.turn});
   if(before.politics?.pendingCrisis){for(const item of state.deferred)item.expiresTurn++;}
   else {
     const expired=state.deferred.filter(d=>d.expiresTurn<after.turn);
     for(const item of expired){
+      const sourceEvent=[...NARRATIVE_EVENTS,...(before.version>=12?REWORK_EVENTS:[])].find(event=>event.id===item.eventId);
+      if(before.version>=13&&sourceEvent){
+        const optional=isPressureOpportunity(sourceEvent);
+        consequences.push(optional?`L’occasion « ${sourceEvent.title} » est passée ; aucun crédit n’a été engagé.`:`Le créneau de la proposition « ${sourceEvent.title} » est passé. Les fronts et programmes déjà engagés continuent d’évoluer.`);
+        state.events.push({id:`expiration-${item.eventId}-${after.turn}`,turn:after.turn,kind:optional?'opportunity':'report',title:optional?'Une occasion arrive à son terme':'Un créneau de proposition se ferme',detail:sourceEvent.title,causeTurn:item.originTurn,weight:0,sourceEventId:item.eventId});
+        state.retiredEvents=[...new Set([...(state.retiredEvents??[]),item.eventId])];continue;
+      }
       const family=[...NARRATIVE_EVENTS,...(before.version>=12?REWORK_EVENTS:[])].find(event=>event.id===item.eventId)?.familyId??'';
       consequences.push(`Dossier reporté puis arrivé à échéance : ${[...NARRATIVE_FAMILIES,...(before.version>=12?REWORK_FAMILIES:[])].find(f=>f.id===family)?.title??item.eventId}.`);
       state.events.push({id:`report-${item.eventId}-${after.turn}`,turn:after.turn,kind:'report',title:'Échéance reportée',detail:'Le dossier sort de l’agenda après son échéance.',causeTurn:item.originTurn,weight:-2,sourceEventId:item.eventId});
