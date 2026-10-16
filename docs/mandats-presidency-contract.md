@@ -38,6 +38,8 @@ Une minute de partie sans clic doit produire des transitions et initiatives effe
 
 La nouvelle présidence utilise `presidency-engine.ts` pour les règles et `presidency-runtime.ts` pour l'horloge du navigateur. `Game.turn` compte seulement les trente passages du temps ; `choices` et `history` conservent chaque ordre et chaque période. Le replay sélectionne un index du journal et compare des états au même point du calendrier. Les données importées sont recalculées depuis ces entrées.
 
+Un programme durable livré porte le statut moteur `completed`, avec ses effets appliqués conservés : il reste visible « en service » dans Gouvernement et sur la carte. `active` concerne les interventions temporaires ; une intervention expirée n'est plus présentée en service. Les cartes de réforme distinguent l'engagement sur réserve du coût ou rendement annuel écrit dans le catalogue et présentent le bénéfice prévu. Les commandes temporaires précisent leur durée d'effet.
+
 Le fond livré est une illustration native de **1672 × 941 pixels**, convertie en WebP ; ce n'est pas un master Full HD ou 4K. Les villes sont des repères illustratifs des six secteurs nationaux, sans prétendre simuler leurs propres stocks territoriaux. Les liens de propagation proviennent des pertes de capacité effectivement calculées. Sur téléphone, un cadrage rapproché conserve les six repères, et « Vue France » montre le pays entier.
 
 - `npm run check` : 1 082 tests existants, vérification des types et construction complète réussis.

@@ -467,6 +467,15 @@ test('the prepared presidency reloads its real illustration and delivers a funde
     expect(programme.appliedCapacity).toBeGreaterThan(0);
     expect(delivered.pressure.sectors.health.capacity).toBeGreaterThan(before.pressure.sectors.health.capacity);
     await capture(page, info, 'presidence-livraison-reelle-hors-connexion', delivered);
+    const serviceBadge = page.locator('[data-live-pin="health"] [data-delivery-state]');
+    await expect.soft(serviceBadge).toHaveAttribute('data-delivery-state', 'completed', { timeout: 2_000 });
+    if (await serviceBadge.count()) await expect(serviceBadge).toHaveAccessibleName('Intervention en service');
+    await page.locator('[data-action="presidency-panel"][data-panel="government"]').click();
+    await capture(page, info, 'programme-permanent-toujours-en-service', delivered);
+    const permanent = page.locator(`[data-live-programme="${programme.id}"]`);
+    await expect.soft(permanent).toHaveAttribute('data-programme-state', 'completed', { timeout: 2_000 });
+    if (await permanent.count()) await expect(permanent).toContainText('En service · capacité durable');
+    expect((await saved(page)).pressure).toEqual(delivered.pressure);
   } finally { await context.setOffline(false); }
 });
 
