@@ -462,8 +462,10 @@ test('the prepared presidency reloads its real illustration and delivers a funde
     const delivered = await periods(page, 3);
     await pause(page);
     const programme = delivered.pressure.programmes.find(item => item.sourceChoice === 'live-pressure-health-programme');
-    expect(programme.status).toBe('active');
+    expect(programme.status).toBe('completed');
+    expect(programme.deliveredTurn).toBe(3);
     expect(programme.appliedCapacity).toBeGreaterThan(0);
+    expect(delivered.pressure.sectors.health.capacity).toBeGreaterThan(before.pressure.sectors.health.capacity);
     await capture(page, info, 'presidence-livraison-reelle-hors-connexion', delivered);
   } finally { await context.setOffline(false); }
 });
