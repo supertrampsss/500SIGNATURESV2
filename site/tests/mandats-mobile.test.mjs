@@ -83,9 +83,15 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
   const play=page.getByRole('link',{name:'Jouer un mandat national',exact:true});
   await expect(play).toHaveAttribute('href','/mandats/?mode=national');
   await activate(play,info);
-  await expect(page.locator('[data-mandate-map][data-renderer="illustrated"]')).toBeVisible();
-  await expect(page.locator('.map-game__header')).toContainText('Année 1');
-  await expect(page.getByRole('button',{name:'État du pays',exact:true})).toBeVisible();
+  await expect(page.locator('section[data-presidency]')).toBeVisible();
+  await expect(page.locator('[data-presidency-art]')).toBeVisible();
+  await expect(page.locator('[data-live-date]')).toContainText('année 1');
+  await expect(page.locator('[data-action="presidency-panel"][data-panel="government"]')).toBeInViewport();
+  await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
+  if(await page.locator('section[data-presidency]').getAttribute('data-preview')==='true')
+   await activate(page.getByRole('button',{name:'Jouer ce mandat',exact:true}),info);
+  await expect(page.locator('section[data-presidency]')).toHaveAttribute('data-preview','false');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(16);
  }
 });
 

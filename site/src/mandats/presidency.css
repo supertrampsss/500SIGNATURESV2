@@ -431,6 +431,49 @@
   .presidency .pr-navigation button { gap: 4px; font-size: 11px; }
   .pr-setting > span { font-size: 11px; }
 }
+@media (min-width: 651px) and (max-height: 500px) {
+  .pr-header { gap: 11px; }
+  .pr-brand { font-size: 25px; padding-right: 11px; }
+  .pr-calendar { min-width: 105px; }
+  .pr-calendar strong { font-size: 12px; }
+  .pr-calendar > span { font-size: 10px; }
+  .pr-resource { gap: 5px; padding-left: 9px; }
+  .pr-resource strong { font-size: 18px; }
+  .pr-country { inset: 63px 0 55px; }
+  .pr-world { max-width: calc((100dvh - 118px) * 1.777778); }
+  .pr-sectors { top: 77px; left: 8px; bottom: auto; width: 224px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .presidency .pr-sector { min-height: 58px; height: 58px; gap: 6px; padding: 7px; border-radius: 7px; }
+  .pr-sector__icon { width: 28px; height: 28px; }
+  .pr-sector__icon .pr-icon { width: 17px; height: 17px; }
+  .pr-sector__reading > span { font: 10px/1.2 Arial, Helvetica, sans-serif; }
+  .pr-sector__reading strong { font-size: 20px; }
+  .pr-sector__reading small .pr-icon { width: 12px; height: 12px; }
+  .pr-sector__reading i { height: 3px; }
+  .presidency .pr-pin { width: 44px; height: 44px; }
+  .pr-pin__symbol { width: 32px; height: 32px; border-width: 1.5px; }
+  .pr-pin__symbol::after { width: 6px; height: 6px; bottom: -5px; left: 11px; border-width: 1.5px; }
+  .pr-pin__symbol .pr-icon { width: 18px; height: 18px; }
+  .pr-pin__label { display: none; }
+  .pr-pin__ring { inset: -3px; }
+  .pr-pin__work { top: 0; right: -1px; width: 16px; height: 16px; }
+  .pr-pin__work .pr-icon { width: 11px; height: 11px; }
+  .pr-navigation { width: 62vw; bottom: 8px; }
+  .presidency .pr-navigation button { min-height: 48px; font-size: 16px; padding: 8px; }
+  .pr-navigation .pr-icon { width: 23px; height: 23px; }
+  .pr-fan { max-height: calc(100dvh - 140px); overflow-y: auto; }
+  .pr-fan > header { position: sticky; top: 0; z-index: 1; }
+  .pr-map-caption { bottom: 3px; }
+}
+@media (max-width: 350px) and (max-height: 650px) {
+  .pr-feed { width: 138px; }
+  .pr-feed > header { min-height: 24px; padding: 4px 8px; }
+  .pr-feed h2 { font-size: 10px; }
+  .pr-feed > header > span:last-child { display: none; }
+  .pr-feed__empty { font-size: 9px; line-height: 1.25; padding: 3px 8px; }
+  .pr-feed li { padding: 3px 0; }
+  .pr-feed li small { display: none; }
+  .pr-feed li strong { display: block; max-height: 22px; line-height: 11px; overflow: hidden; }
+}
 @media (prefers-reduced-motion: reduce) {
   .presidency *, .presidency *::before, .presidency *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
