@@ -1,0 +1,155 @@
+/* Editorial interiors of the Government / Projects drawers. The shell lives in map-game.css. */
+body[data-rework="true"] dialog#details .map-panel {
+  --panel-navy: #16283c;
+  --panel-red: #9e332a;
+  --panel-gold: #805d27;
+  --panel-muted: #67675f;
+  --panel-line: #d9d5c8;
+  --panel-paper: #fffdf7;
+  color: var(--panel-navy);
+}
+body[data-rework="true"] dialog#details .map-panel :is(p, h3, h4, h5, dl, ol, ul) { margin-block-start: 0; }
+body[data-rework="true"] dialog#details .map-panel__intro { margin-bottom: 24px; }
+body[data-rework="true"] dialog#details .map-panel__eyebrow { display: block; margin: 0 0 7px; color: var(--panel-muted); font: 650 10px/1.45 Inter, system-ui, sans-serif; letter-spacing: .115em; text-transform: uppercase; }
+body[data-rework="true"] dialog#details .map-panel__lead { margin: 0 0 12px; color: var(--panel-navy); font: 500 clamp(27px, 4vw, 37px)/1.08 Spectral, Georgia, serif; letter-spacing: -.025em; }
+body[data-rework="true"] dialog#details .map-panel__intro > p:last-child { max-width: 57ch; margin-bottom: 0; font-size: 13px; line-height: 1.6; color: var(--panel-muted); }
+body[data-rework="true"] dialog#details .map-panel__alert { margin: 0 0 24px; padding: 15px 18px; border-left: 3px solid var(--panel-red); background: #f6e9e3; }
+body[data-rework="true"] dialog#details .map-panel__alert .map-panel__eyebrow { color: var(--panel-red); }
+body[data-rework="true"] dialog#details .map-panel__alert p { margin: 0; font-size: 14px; line-height: 1.5; }
+body[data-rework="true"] dialog#details .map-panel__majority { padding: 21px; border: 1px solid var(--panel-line); background: var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel__majority-top { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+body[data-rework="true"] dialog#details .map-panel__majority-top p { margin: 0; }
+body[data-rework="true"] dialog#details .map-panel__majority-top strong { font: 500 55px/1 Spectral, Georgia, serif; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__majority-top p > span { color: var(--panel-muted); font-size: 12px; white-space: nowrap; }
+body[data-rework="true"] dialog#details .map-panel__majority-threshold { flex: none; padding-left: 16px; border-left: 1px solid var(--panel-line); font: 500 28px/1 Spectral, Georgia, serif; font-variant-numeric: tabular-nums; text-align: right; }
+body[data-rework="true"] dialog#details .map-panel__majority-threshold small { display: block; margin-top: 7px; color: var(--panel-muted); font: 400 10px/1.4 Inter, system-ui, sans-serif; }
+body[data-rework="true"] dialog#details .map-panel__seat-bar { display: flex; position: relative; height: 13px; margin: 20px 0 14px; }
+body[data-rework="true"] dialog#details .map-panel__seat-bar::after { content: ""; position: absolute; left: var(--majority-position); top: -4px; bottom: -4px; width: 1px; background: var(--panel-red); box-shadow: 0 0 0 1px var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel [data-panel-bloc="presidential"] { --bloc-color: #1c344c; }
+body[data-rework="true"] dialog#details .map-panel [data-panel-bloc="reformist"] { --bloc-color: #657f91; }
+body[data-rework="true"] dialog#details .map-panel [data-panel-bloc="social"] { --bloc-color: #b16b59; }
+body[data-rework="true"] dialog#details .map-panel [data-panel-bloc="conservative"] { --bloc-color: #898471; }
+body[data-rework="true"] dialog#details .map-panel [data-panel-bloc="regional"] { --bloc-color: #b6a984; }
+body[data-rework="true"] dialog#details .map-panel__seat-bar > span { flex-basis: 0; min-width: 0; background: var(--bloc-color, #898471); box-shadow: inset -1px 0 var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel__caption { margin: 0; color: var(--panel-muted); font-size: 11px; line-height: 1.55; }
+body[data-rework="true"] dialog#details .map-panel__indicators { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 22px 0 0; padding: 18px 0; border-top: 1px solid var(--panel-line); border-bottom: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__indicators > div { min-width: 0; padding: 0 14px; border-left: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__indicators > div:first-child { padding-left: 0; border-left: 0; }
+body[data-rework="true"] dialog#details .map-panel__indicators > div:last-child { padding-right: 0; }
+body[data-rework="true"] dialog#details .map-panel__indicators dt { margin: 0 0 8px; color: var(--panel-muted); font-size: 10px; line-height: 1.4; }
+body[data-rework="true"] dialog#details .map-panel__indicators dd { margin: 0; font: 500 30px/1 Spectral, Georgia, serif; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__indicators dd small { margin-left: 3px; font: 400 10px/1.4 Inter, system-ui, sans-serif; color: var(--panel-muted); }
+body[data-rework="true"] dialog#details .map-panel__section { margin-top: 30px; }
+body[data-rework="true"] dialog#details .map-panel__section-heading { margin-bottom: 17px; }
+body[data-rework="true"] dialog#details .map-panel__section-heading h3 { margin: 0; font: 500 25px/1.18 Spectral, Georgia, serif; letter-spacing: -.025em; }
+body[data-rework="true"] dialog#details .map-panel__list { margin: 0; padding: 0; list-style: none; }
+body[data-rework="true"] dialog#details .map-panel__list li { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__list li:first-child { border-top: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__list .map-panel__bloc-name { display: flex; align-items: center; gap: 12px; min-width: 0; }
+body[data-rework="true"] dialog#details .map-panel__bloc-name i { display: block; flex: none; width: 8px; height: 27px; background: var(--bloc-color); }
+body[data-rework="true"] dialog#details .map-panel__bloc-name > span { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+body[data-rework="true"] dialog#details .map-panel__list li > strong { margin-left: auto; font: 500 25px/1 Spectral, Georgia, serif; }
+body[data-rework="true"] dialog#details .map-panel__list small { margin-top: 4px; font: 400 10px/1.35 Inter, system-ui, sans-serif; color: var(--panel-muted); }
+body[data-rework="true"] dialog#details .map-panel__commitments { margin: 0; padding: 0; list-style: none; counter-reset: commitments; }
+body[data-rework="true"] dialog#details .map-panel__commitments li { position: relative; padding: 13px 0 13px 34px; border-top: 1px solid var(--panel-line); counter-increment: commitments; }
+body[data-rework="true"] dialog#details .map-panel__commitments li::before { content: counter(commitments, decimal-leading-zero); position: absolute; left: 0; top: 14px; font: 500 14px/1.4 Spectral, Georgia, serif; color: var(--panel-red); }
+body[data-rework="true"] dialog#details .map-panel__commitments span { display: block; font-size: 13px; line-height: 1.5; }
+body[data-rework="true"] dialog#details .map-panel__commitments small { display: block; margin-top: 6px; color: var(--panel-gold); font-size: 11px; }
+body[data-rework="true"] dialog#details .map-panel__empty { margin: 0; padding: 14px 0; color: var(--panel-muted); font-size: 13px; line-height: 1.5; }
+body[data-rework="true"] dialog#details .map-panel__vote { padding: 18px; border: 1px solid var(--panel-line); background: var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel__vote-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+body[data-rework="true"] dialog#details .map-panel__vote-heading > span:last-child { color: var(--panel-muted); font-size: 10px; }
+body[data-rework="true"] dialog#details .map-panel__vote h4 { margin: 15px 0; font: 500 22px/1.25 Spectral, Georgia, serif; }
+body[data-rework="true"] dialog#details .map-panel__vote p { font-size: 12px; line-height: 1.55; }
+body[data-rework="true"] dialog#details .map-panel__vote-tally { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; padding-top: 15px; border-top: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__vote-tally dt { font-size: 10px; color: var(--panel-muted); }
+body[data-rework="true"] dialog#details .map-panel__vote-tally dd { margin: 5px 0 0; font: 500 29px/1 Spectral, Georgia, serif; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__vote-tally > div:nth-child(2) dd { color: var(--panel-red); }
+body[data-rework="true"] dialog#details .map-panel__vote > .map-panel__caption { margin-top: 14px; }
+body[data-rework="true"] dialog#details .map-panel__status { display: inline-flex; flex: none; align-items: center; padding: 5px 8px; border: 1px solid #ccd3d6; border-radius: 2px; background: #edf0ef; color: var(--panel-navy); font: 650 9px/1.3 Inter, system-ui, sans-serif; letter-spacing: .045em; text-transform: uppercase; }
+body[data-rework="true"] dialog#details .map-panel__status[data-panel-tone="red"] { color: #8e2b23; border-color: #dfb3aa; background: #f7e7e0; }
+body[data-rework="true"] dialog#details .map-panel__status[data-panel-tone="gold"] { color: #74521d; border-color: #d8c6a0; background: #f6efdc; }
+body[data-rework="true"] dialog#details .map-panel__status[data-panel-tone="muted"] { color: #66675f; border-color: #d8d5cc; background: #efede5; }
+body[data-rework="true"] dialog#details .map-panel__execution { margin-top: 20px; padding: 18px; background: var(--panel-navy); color: #fbf7ea; }
+body[data-rework="true"] dialog#details .map-panel__execution :is(.map-panel__eyebrow, .map-panel__caption) { color: #d2d9db; }
+body[data-rework="true"] dialog#details .map-panel__execution > div p { margin: 9px 0 13px; }
+body[data-rework="true"] dialog#details .map-panel__execution strong { color: #fbf7ea; font: 500 33px/1 Spectral, Georgia, serif; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__execution > div p > span { color: #fbf7ea; font-size: 11px; }
+body[data-rework="true"] dialog#details .map-panel__execution meter { display: block; appearance: none; width: 100%; height: 7px; margin-bottom: 12px; border: 0; border-radius: 0; background: #45586b; }
+body[data-rework="true"] dialog#details .map-panel__execution meter::-webkit-meter-bar { height: 7px; border: 0; border-radius: 0; background: #45586b; }
+body[data-rework="true"] dialog#details .map-panel__execution meter::-webkit-meter-optimum-value { border-radius: 0; background: #e5d1a1; }
+body[data-rework="true"] dialog#details .map-panel__execution meter::-moz-meter-bar { background: #e5d1a1; }
+body[data-rework="true"] dialog#details .map-panel__project-grid { display: grid; gap: 14px; }
+body[data-rework="true"] dialog#details .map-panel .map-panel__project { padding: 18px; border: 1px solid var(--panel-line); background: var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel .map-panel__project:first-child { padding-top: 18px; }
+body[data-rework="true"] dialog#details .map-panel .map-panel__project:last-child { padding-bottom: 18px; border-bottom: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__project[data-panel-state="blocked"] { border-top: 3px solid var(--panel-red); }
+body[data-rework="true"] dialog#details .map-panel__project > header { align-items: flex-start; flex-wrap: nowrap; gap: 12px; margin-bottom: 17px; }
+body[data-rework="true"] dialog#details .map-panel__project > header > div { flex: 1; min-width: 0; }
+body[data-rework="true"] dialog#details .map-panel__project h4 { margin: 0; font: 500 24px/1.15 Spectral, Georgia, serif; letter-spacing: -.02em; overflow-wrap: anywhere; }
+body[data-rework="true"] dialog#details .map-panel__steps { display: flex; gap: 3px; margin: 0 0 16px; padding: 0; list-style: none; }
+body[data-rework="true"] dialog#details .map-panel__steps li { flex: 1; min-width: 0; padding-top: 7px; border-top: 2px solid #ddd9ce; color: var(--panel-muted); font-size: 9px; line-height: 1.3; }
+body[data-rework="true"] dialog#details .map-panel__steps li[data-step="done"] { border-color: #425c6e; color: var(--panel-navy); }
+body[data-rework="true"] dialog#details .map-panel__steps li[data-step="current"] { border-color: #ad873d; color: #805d27; }
+body[data-rework="true"] dialog#details .map-panel__project[data-panel-state="blocked"] .map-panel__steps li[data-step="current"] { border-color: var(--panel-red); color: var(--panel-red); }
+body[data-rework="true"] dialog#details .map-panel__milestones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 15px 0 0; padding-top: 13px; border-top: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__milestones dt { margin-bottom: 5px; color: var(--panel-muted); font-size: 10px; line-height: 1.4; }
+body[data-rework="true"] dialog#details .map-panel__milestones dd { margin: 0; color: var(--panel-navy); font-size: 12px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__project p.map-panel__project-note { margin: 14px 0 0; color: #5b605f; font-size: 12px; line-height: 1.65; }
+body[data-rework="true"] dialog#details .map-panel__effects { margin-top: 17px; padding: 13px 14px; background: #f1eee4; }
+body[data-rework="true"] dialog#details .map-panel__effects dl { display: grid; gap: 8px; margin: 10px 0; }
+body[data-rework="true"] dialog#details .map-panel__effects dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+body[data-rework="true"] dialog#details .map-panel__effects dt { font-size: 11px; line-height: 1.4; }
+body[data-rework="true"] dialog#details .map-panel__effects dd { flex: none; margin: 0; font: 600 17px/1.2 Spectral, Georgia, serif; font-variant-numeric: tabular-nums; }
+body[data-rework="true"] dialog#details .map-panel__effects dd small { font: 400 10px/1.4 Inter, system-ui, sans-serif; }
+body[data-rework="true"] dialog#details .map-panel__linked-programme { margin-top: 18px; padding-top: 17px; border-top: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__origin { margin-top: 18px; padding: 0; border: 0; background: transparent; }
+body[data-rework="true"] dialog#details .map-panel__origin summary { min-height: 36px; padding: 8px 0; color: var(--panel-navy); font-size: 11px; line-height: 1.4; cursor: pointer; }
+body[data-rework="true"] dialog#details .map-panel__origin > div { margin: 12px 0; padding: 12px 0 0; border-top: 1px solid var(--panel-line); }
+body[data-rework="true"] dialog#details .map-panel__origin > div > p { margin: 5px 0; font-size: 12px; line-height: 1.5; }
+body[data-rework="true"] dialog#details .map-panel__origin h5 { margin: 7px 0; font: 500 20px/1.2 Spectral, Georgia, serif; }
+body[data-rework="true"] dialog#details .map-panel__archive { margin-top: 25px; padding-top: 17px; border: 0; border-top: 1px solid var(--panel-line); border-radius: 0; background: transparent; }
+body[data-rework="true"] dialog#details .map-panel__archive > summary { padding: 8px 0; color: var(--panel-navy); font-size: 12px; line-height: 1.5; cursor: pointer; }
+body[data-rework="true"] dialog#details .map-panel__archive > .map-panel__project-grid { margin-top: 15px; }
+body[data-rework="true"] dialog#details .map-panel :is(.map-panel__origin, .map-panel__archive) > summary:focus-visible { outline: 2px solid var(--panel-red); outline-offset: 4px; }
+body[data-rework="true"] dialog#details .map-panel__empty-state { margin-top: 26px; padding: 25px 17px; border: 1px solid var(--panel-line); text-align: center; background: var(--panel-paper); }
+body[data-rework="true"] dialog#details .map-panel__empty-state h3 { margin: 0 0 11px; font: 500 24px/1.2 Spectral, Georgia, serif; }
+body[data-rework="true"] dialog#details .map-panel__empty-state p { max-width: 38ch; margin: 0 auto; color: var(--panel-muted); font-size: 12px; line-height: 1.6; }
+body[data-rework="true"] dialog#details .map-panel__footnote { margin: 26px 0 0; padding-top: 17px; border-top: 1px solid var(--panel-line); color: var(--panel-muted); font-size: 10px; line-height: 1.6; }
+@media (max-width: 379px) {
+  body[data-rework="true"] dialog#details .map-panel__majority { padding: 16px 13px; }
+  body[data-rework="true"] dialog#details .map-panel__majority-top strong { font-size: 43px; }
+  body[data-rework="true"] dialog#details .map-panel__majority-threshold { font-size: 24px; padding-left: 10px; }
+  body[data-rework="true"] dialog#details .map-panel__majority-threshold small { max-width: 65px; }
+  body[data-rework="true"] dialog#details .map-panel__indicators > div { padding-inline: 8px; }
+  body[data-rework="true"] dialog#details .map-panel__indicators dd { font-size: 26px; }
+  body[data-rework="true"] dialog#details .map-panel .map-panel__project { padding-inline: 14px; }
+  body[data-rework="true"] dialog#details .map-panel__project > header { flex-wrap: wrap; }
+  body[data-rework="true"] dialog#details .map-panel__project > header > div { flex-basis: 100%; }
+  body[data-rework="true"] dialog#details .map-panel__project h4 { font-size: 23px; }
+  body[data-rework="true"] dialog#details .map-panel__milestones { gap: 10px; }
+}
+/* V14 keeps the same strategic frame for inspection and for initiatives. */
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel { --panel-paper: #f8f5e9; --panel-line: #bdc5c3; --panel-navy: #142b3d; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__intro { margin-bottom: 18px; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__lead { margin-bottom: 10px; font: 650 28px/1.12 "Source Sans 3", Inter, Arial, sans-serif; letter-spacing: -.025em; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__eyebrow { font-size: 10px; letter-spacing: .09em; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority { padding: 18px; border: 1px solid #607987; background: #142b3d; color: #fff8e8; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority :is(strong, .map-panel__majority-threshold) { color: #fff8e8; font-family: "Source Sans 3", Inter, Arial, sans-serif; font-weight: 600; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority :is(.map-panel__eyebrow, .map-panel__caption, small, p > span) { color: #d5dfe0; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority-threshold { border-color: #637b89; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority .map-panel__seat-bar > span { box-shadow: inset -1px 0 #142b3d; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__majority .map-panel__seat-bar::after { background: #f4d2a0; box-shadow: 0 0 0 1px #142b3d; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__indicators { margin-top: 18px; padding-block: 15px; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__indicators dd { font: 650 29px/1 "Source Sans 3", Inter, Arial, sans-serif; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__section { margin-top: 24px; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__section-heading { margin-bottom: 12px; }
+body[data-rework="true"]:has(.map-game--command) dialog#details :is(.map-panel__section-heading h3, .map-panel__project h4, .map-panel__vote h4, .map-panel__empty-state h3) { font: 650 22px/1.18 "Source Sans 3", Inter, Arial, sans-serif; letter-spacing: -.02em; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel .map-panel__project { padding: 15px; border-radius: 0; box-shadow: none; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__project > header { gap: 10px; margin-bottom: 14px; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__status { border-radius: 0; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__effects { padding: 11px 12px; border: 1px solid #c3cdca; border-left: 2px solid #637b86; background: #e9eeea; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__effects dd { font: 650 17px/1.2 "Source Sans 3", Inter, Arial, sans-serif; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__empty-state { padding: 22px 16px; text-align: left; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel__empty-state p { max-width: none; }
+body[data-rework="true"]:has(.map-game--command) dialog#details .map-panel :is(.map-panel__origin, .map-panel__archive) > summary { min-height: 44px; display: flex; align-items: center; padding-block: 10px; }

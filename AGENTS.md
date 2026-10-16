@@ -52,6 +52,31 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: interface rework (16 October 2026)
+
+The owner explicitly rejected the Mobbin map-exploration / bottom-sheet direction
+and requires Plague Inc as the interface reference. The approved illustrated map
+remains the visual source. V14 uses a strategic board: persistent situation news,
+six simultaneous sector readings, actual execution resources and coalition support,
+and a separate initiative menu. Keep header, HUD and navigation within the viewport.
+The phone initiative menu occupies the central play area; Pays / Fermer returns to
+the board. Keep every front actionable or linked to Bilan without spending time.
+Do not hide all six stocks behind a disclosure or invent a global crisis score,
+DNA, real-time deterioration, speed controls, or new policy dependencies.
+
+`map-interface.css` owns the composition, `map-situation-view.ts` and
+`map-situation.css` the state-derived HUD, `map-strategy.css` the initiative menu,
+`map-pressure-view.ts` and `map-pressure.css` the detailed Bilan, and
+`map-panels.ts` / `map-panels.css` Government and Projects. Render real seats,
+saved vote outcomes, delivery capacity, costs and deadlines; never add display-only
+game rules. Preserve full-card decisions, scrolling to the last choice, keyboard,
+inline save errors, camera controls and the site link. Run
+`npx playwright test --config playwright.command.config.ts` and the interface,
+rework, social and pressure checks. Retain before/after captures and inspect the approved
+1672 × 941 format plus desktop, 390 px, 320 px and WebKit. See
+[the interface evidence](docs/mandats-interface-rework.md). The existing raster
+illustration is not a new Full HD master.
+
 ### Mandats: persistent pressure (15 October 2026)
 
 The owner requests iterative multi-agent scenario modelling and a pressure loop

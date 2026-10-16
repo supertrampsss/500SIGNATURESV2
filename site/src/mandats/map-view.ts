@@ -24,7 +24,12 @@ import type { StoryAgendaItem } from "./narrative-types.ts";
 import type { PressureFront, PressureSectorId, PressureStage } from "./pressure-types.ts";
 import { isPressureIncidentId, PRESSURE_INCIDENTS } from "./pressure-content.ts";
 
+import { mapPressureBoard } from "./map-pressure-view.ts";
+import { mapSituationNews, mapSituationDock } from "./map-situation-view.ts";
+
 const referenceMapUrl = new URL("./textures/reference-map.svg", import.meta.url).href;
+const hasCommand = (game: Game | null | undefined): game is Game & { version: 14; mode: "national" } => !!game && game.mode === "national" && game.version === 14;
+const commandClass = (game: Game) => hasCommand(game) ? " map-game--command" : "";
 
 export const cleanGameText = (text: string) =>
   text
@@ -34,10 +39,6 @@ export const cleanGameText = (text: string) =>
     .trim();
 const e = (text: string) => escape(cleanGameText(text));
 const firstSentence = (text: string) => text.split(/(?<=[.!?])\s+/)[0];
-const pressureNames: Record<PressureSectorId, string> = {
-  health: "Santé", housing: "Logement", transport: "Transports",
-  energy: "Énergie", education: "Enseignement", administration: "Démarches publiques",
-};
 const pressureStages = {
   stable: "Maîtrisé", watch: "À surveiller", strained: "Sous tension",
   disrupted: "Perturbé", crisis: "En crise",
@@ -63,26 +64,7 @@ const periodDate = (completedTurn: number) => completedTurn > 30
   ? `${completedTurn - 30} période${completedTurn > 31 ? "s" : ""} après le mandat`
   : `année ${Math.max(1, Math.ceil(completedTurn / 6))}, période ${Math.max(1, (completedTurn - 1) % 6 + 1)}`;
 
-function pressureFront(front: PressureFront, selectable: boolean): string {
-  const causes = [...new Set(front.causes.slice(-2).map(cause => cause.label))];
-  const forecast = front.nextRiskIn !== undefined && front.nextRiskIn > 0
-    ? `<p class="map-pressure__forecast">Seuil suivant estimé dans ${front.nextRiskIn} période${front.nextRiskIn > 1 ? "s" : ""}, si la tendance continue.</p>`
-    : "";
-  return `<li class="map-pressure__front" data-pressure-front="${front.id}" data-pressure-stage="${front.stage}" data-pressure-trend="${front.trend}" data-pressure-level="${front.pressure}"><header>${selectable ? `<button type="button" data-action="story-select" data-story-id="pressure-${front.id}" aria-label="Ouvrir le front ${pressureNames[front.id]}">${pressureNames[front.id]}</button>` : `<strong>${pressureNames[front.id]}</strong>`}<span>${pressureStages[front.stage]} · ${pressureTrendLabel(front.pressure, front.lastChange, front.trend)}</span></header><meter min="0" max="100" value="${front.pressure}" aria-label="Pression simulée sur ${pressureNames[front.id]} : ${Math.round(front.pressure)} sur 100">${Math.round(front.pressure)}/100</meter><dl><div><dt>En attente</dt><dd>${simulatedNumber(front.backlog)}</dd></div><div><dt>Besoins / période</dt><dd>${simulatedNumber(front.incomingNeed)}</dd></div><div><dt>Capacité / période</dt><dd>${simulatedNumber(front.effectiveCapacity)}</dd></div></dl><p class="map-pressure__units">Unités de besoin simulées · attente ${front.lastChange > 0 ? "+" : ""}${simulatedNumber(front.lastChange)} cette période · pression ${Math.round(front.pressure)}/100.</p>${forecast}${causes.map(cause => `<p class="map-pressure__cause">${e(cause)}</p>`).join("")}</li>`;
-}
-
-/** Every sector remains inspectable even when only the first priorities are open. */
-export function mapPressureBoard(game: Game, compact = false): string {
-  const pressure = game.pressure;
-  if (!pressure) return "";
-  const available = new Set(mapState(game).agenda.map(item => item.id));
-  const fronts = Object.values(pressure.sectors).sort((a, b) => b.pressure - a.pressure);
-  const accumulating = fronts.filter(front => front.lastChange > .05).length;
-  const strained = fronts.filter(front => front.stage !== "stable" && front.stage !== "watch").length;
-  const upcoming = pressure.programmes.filter(programme => programme.status === "preparing")
-    .sort((a, b) => a.dueTurn - b.dueTurn || a.sourceTurn - b.sourceTurn);
-  return `<section class="map-pressure${compact ? " map-pressure--compact" : ""}" data-pressure-board aria-label="Pressions et capacités du pays"><header><h2>Pressions du pays</h2><strong>${fronts.length} fronts suivis</strong></header><p class="map-pressure__summary"><b>${strained} sous tension</b> · ${accumulating} file${accumulating > 1 ? "s" : ""} en hausse</p>${compact ? "" : `<ul class="map-pressure__priorities">${fronts.slice(0, 3).map(front => `<li data-pressure-stage="${front.stage}"><span>${pressureNames[front.id]}</span><strong>${pressureStages[front.stage]}</strong><small>${pressureTrendLabel(front.pressure, front.lastChange, front.trend)}</small></li>`).join("")}</ul>`}<details class="map-pressure__details"><summary>Tous les fronts du pays</summary><ul>${fronts.map(front => pressureFront(front, available.has(`pressure-${front.id}`))).join("")}</ul><p class="map-pressure__execution"><strong>Mise en œuvre : ${simulatedNumber(pressure.execution.used)} / ${simulatedNumber(pressure.execution.capacity)}</strong> unités d’exécution mobilisées${pressure.execution.waiting ? ` · ${pressure.execution.waiting} chantier${pressure.execution.waiting > 1 ? "s" : ""} en attente` : ""}.</p><p class="map-pressure__units">Hypothèses du scénario. Le temps avance à chaque décision validée ; consulter un dossier ne consomme aucune période.</p></details>${upcoming[0] ? `<p class="map-pressure__next" data-pressure-next-deadline><strong>Prochaine mise en place</strong>${e(upcoming[0].label)} · au plus tôt ${periodDate(upcoming[0].dueTurn)}${upcoming[0].dueTurn <= game.turn ? " · en attente de capacité d’exécution" : ""}.</p>` : ""}</section>`;
-}
+export { mapPressureBoard } from "./map-pressure-view.ts";
 
 function pressureChoice(choice: Choice): string {
   const pressure = choice.pressure;
@@ -175,7 +157,7 @@ function agendaCard(item: ReturnType<typeof mapState>["agenda"][number], index: 
   const state = item.pressureStage
     ? `${pressureStages[item.pressureStage]} · ${pressureTrendLabel(item.pressureLevel ?? 0, item.pressureStockChange ?? 0, item.pressureTrend ?? "steady")}`
     : item.incidentStatus === "contained" ? "Secours opérationnel · perturbation contenue" : item.urgent ? "Urgent" : "";
-  return `<button class="map-agenda__item map-tone--${topicTone(item)} ${agendaTitleClass(title)} ${item.urgent ? "map-agenda__item--urgent" : ""} ${index === 0 ? "map-agenda__item--primary" : ""}" data-action="story-select" data-story-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)}${state ? ` · ${state}` : ""}"><span class="map-topic-icon">${mapIcon(topicIcon(item))}</span><span class="map-agenda__copy"><strong>${e(title)}</strong><span class="map-agenda__meta">${e(item.label)}${state ? ` · <b>${state}</b>` : ""}</span></span><svg class="map-agenda__chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="m3 3 6 7-6 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>${index === 0 ? '<span class="map-agenda__action" aria-hidden="true">Ouvrir le sujet</span>' : ""}</button>`;
+  return `<button class="map-agenda__item map-tone--${topicTone(item)} ${agendaTitleClass(title)} ${item.urgent ? "map-agenda__item--urgent" : ""} ${index === 0 ? "map-agenda__item--primary" : ""}" data-action="story-select" data-story-id="${e(item.id)}" aria-label="${e(item.title)} · ${e(item.label)}${state ? ` · ${state}` : ""}"><span class="map-topic-icon">${mapIcon(topicIcon(item))}</span><span class="map-agenda__copy"><strong>${e(title)}</strong><span class="map-agenda__meta">${e(item.label)}${state ? ` · <b>${state}</b>` : ""}</span></span><svg class="map-agenda__chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="m3 3 6 7-6 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>${index === 0 ? `<span class="map-agenda__action" aria-hidden="true">${hasCommand(game) ? "Arbitrer" : "Ouvrir le sujet"}</span>` : ""}</button>`;
 }
 function fallbackMap() {
   const paths = FRANCE_OUTLINES.map(
@@ -197,7 +179,7 @@ export function mapWorld(game: Game | null): string {
       .map((item, index) => {
         const { x, z } = item.id.startsWith("policy:") ? { x: 0, z: 0 } :
           mapSourcePosition(MAP_PLACES[item.place].lon, MAP_PLACES[item.place].lat);
-        return `<button class="map-marker map-tone--${topicTone(item)} ${item.urgent ? "map-marker--urgent" : ""} ${state.selected === item.id ? "is-selected" : ""}" data-map-marker="${e(item.id)}" data-action="story-select" data-story-id="${e(item.id)}" style="left:${50 + x * 7.2 + index * 2}%;top:${49 - z * 7.8 + index * 5}%" aria-label="${e(item.title)}${item.id.startsWith("policy:") ? " · portée nationale" : ` · ${e(markerLabel(item))}`}" aria-pressed="${state.selected === item.id}">${item.urgent ? `<span class="map-marker__subject" aria-hidden="true">${e(game ? agendaTitle(item, game) : item.title)}</span>` : ""}<svg class="map-marker__leader" data-map-leader viewBox="0 0 1 1" aria-hidden="true"><path /></svg><span class="map-marker__point" aria-hidden="true">${mapIcon(topicIcon(item))}</span><span class="map-marker__anchor" data-map-anchor aria-hidden="true"></span><span class="map-marker__label">${e(item.label)}</span></button>`;
+        return `<button class="map-marker map-tone--${topicTone(item)} ${item.urgent ? "map-marker--urgent" : ""} ${state.selected === item.id ? "is-selected" : ""}" data-map-marker="${e(item.id)}" ${hasCommand(game) && item.pressureLevel !== undefined ? `data-marker-pressure="${item.pressureLevel}" data-marker-stage="${item.pressureStage}"` : ""} data-action="story-select" data-story-id="${e(item.id)}" style="left:${50 + x * 7.2 + index * 2}%;top:${49 - z * 7.8 + index * 5}%;${hasCommand(game) && item.pressureLevel !== undefined ? `--marker-pressure:${item.pressureLevel};` : ""}" aria-label="${e(item.title)}${item.id.startsWith("policy:") ? " · portée nationale" : ` · ${e(markerLabel(item))}`}" aria-pressed="${state.selected === item.id}">${item.urgent ? `<span class="map-marker__subject" aria-hidden="true">${e(game ? agendaTitle(item, game) : item.title)}</span>` : ""}<svg class="map-marker__leader" data-map-leader viewBox="0 0 1 1" aria-hidden="true"><path /></svg><span class="map-marker__point" aria-hidden="true">${mapIcon(topicIcon(item))}</span><span class="map-marker__anchor" data-map-anchor aria-hidden="true"></span><span class="map-marker__label">${e(item.label)}${hasCommand(game) && item.pressureLevel !== undefined ? `<small class="map-marker__pressure">${Math.round(item.pressureLevel)}/100 · ${e(pressureStages[item.pressureStage!])}</small>` : ""}</span></button>`;
       })
       .join(
         "",
@@ -221,10 +203,10 @@ function mapHeader(game: Game | null) {
     const budgetValue = `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(Math.abs(deficit))} Md€`;
     status = `<span class="map-game__calendar"><span class="map-game__year">Année ${year} / 5<small>Période ${calendar.slot} / ${calendar.slots}</small></span><span class="map-game__years" aria-hidden="true">${Array.from({ length: 5 }, (_, index) => `<i${index + 1 === year ? ' class="is-current"' : index + 1 < year ? ' class="is-complete"' : ""}></i>`).join("")}</span></span>${reading("Services", game.metrics.services, "institution", "blue")}${reading("Confiance", game.metrics.trust, "people", "red")}<button class="map-game__budget" data-action="view" data-view="finance" aria-label="État du pays" aria-describedby="map-budget-description">${mapIcon("budget")}<span class="map-game__metric-copy"><span class="map-game__budget-title">${deficit > 0 ? "Déficit" : deficit < 0 ? "Excédent" : "Équilibre"}<strong>${budgetValue}</strong></span><span class="map-game__bar" style="--map-reading:${sustainability}%" aria-hidden="true"></span></span><span class="map-game__budget-compact">${deficit > 0 ? "Déficit" : "Solde"}<strong>${budgetValue}</strong></span></button><span id="map-budget-description" class="map-visually-hidden">${budgetDescription}</span>`;
   }
-  return `<header class="map-game__header"><a href="/mandats/" class="map-game__brand" aria-label="Accueil Mandats">MANDATS</a><div class="map-game__status${game ? "" : " map-game__status--empty"}">${status}<button class="map-game__tools" data-action="tools" aria-label="Ma partie" title="Ma partie">${mapIcon("settings")}<span class="map-game__tools-label">Ma partie</span></button></div></header>`;
+  return `<header class="map-game__header"><a href="/mandats/" class="map-game__brand" aria-label="Accueil Mandats">MANDATS</a><div class="map-game__status${game ? "" : " map-game__status--empty"}">${status}<button class="map-game__tools" data-action="tools" aria-label="Ma partie" title="Ma partie">${mapIcon("settings")}<span class="map-game__tools-label">Ma partie</span></button></div></header>${hasCommand(game) ? mapSituationNews(game) : ""}`;
 }
-function mapFooter(active: "country" | "finance" | null): string {
-  return `<footer class="map-game__footer"><nav aria-label="Vues du mandat"><button data-action="view" data-view="decision"${active === "country" ? ' aria-current="page"' : ""}>${mapIcon("country")}<span>Pays</span></button><button data-action="map-government" aria-haspopup="dialog">${mapIcon("institution")}<span>Gouvernement</span></button><button data-action="map-projects" aria-haspopup="dialog">${mapIcon("project")}<span>Projets</span></button><button data-action="view" data-view="finance"${active === "finance" ? ' aria-current="page"' : ""}>${mapIcon("balance")}<span>Bilan</span></button></nav><p class="map-game__fiction">Scénario fictif</p></footer>`;
+function mapFooter(active: "country" | "finance" | null, game?: Game): string {
+  return `${hasCommand(game) ? mapSituationDock(game) : ""}<footer class="map-game__footer"><nav aria-label="Vues du mandat"><button data-action="view" data-view="decision"${active === "country" ? ' aria-current="page"' : ""}>${mapIcon("country")}<span>Pays</span></button><button data-action="map-government" aria-haspopup="dialog">${mapIcon("institution")}<span>Gouvernement</span></button><button data-action="map-projects" aria-haspopup="dialog">${mapIcon("project")}<span>Projets</span></button><button data-action="view" data-view="finance"${active === "finance" ? ' aria-current="page"' : ""}>${mapIcon("balance")}<span>Bilan</span></button></nav><p class="map-game__fiction">Scénario fictif</p></footer>`;
 }
 export function mapEntry(saved: Game | null): string {
   const contexts = {
@@ -232,7 +214,7 @@ export function mapEntry(saved: Game | null): string {
     hospital: "Un hôpital à sauver",
     redress: "Des comptes à redresser",
   };
-  return `<section class="map-game map-game--entry">${mapHeader(null)}${mapWorld(null)}<section class="map-entry"><p class="map-entry__kicker">GOUVERNER LA FRANCE</p><h1 tabindex="-1">Tenir cinq ans.</h1><p>Des sujets apparaissent dans le pays. Vos décisions changent leur suite.</p>${saved ? `<button class="map-primary" data-action="resume">Reprendre</button><p class="map-entry__saved">Année ${calendarFor(saved).year} · ${saved.turn} décisions enregistrées</p>` : ""}<button class="${saved ? "map-secondary" : "map-primary"}" data-action="new-run">${saved ? "Nouveau mandat" : "Commencer un mandat"}</button><details class="map-entry__contexts"><summary>Choisir une situation de départ</summary>${storyContextOptions()
+  return `<section class="map-game map-game--entry">${mapHeader(null)}${mapWorld(null)}<section class="map-entry"><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div><p class="map-entry__kicker">GOUVERNER LA FRANCE</p><h1 tabindex="-1">Tenir cinq ans.</h1><p>Soins, écoles, énergie : arbitrez les moyens du pays. Chaque décision engage les deux mois suivants.</p><div class="map-entry__format"><span><strong>30</strong> décisions</span><span><strong>5</strong> années</span><span>Un pays à gouverner</span></div>${saved ? `<button class="map-primary" data-action="resume">Reprendre</button><p class="map-entry__saved">Année ${calendarFor(saved).year} · ${saved.turn} décisions enregistrées</p>` : ""}<button class="${saved ? "map-secondary" : "map-primary"}" data-action="new-run">${saved ? "Nouveau mandat" : "Commencer un mandat"}</button><details class="map-entry__contexts"><summary>Choisir une situation de départ</summary>${storyContextOptions()
     .map(
       (item) =>
         `<button data-action="start-context" data-context="${item.context}">${contexts[item.context]}</button>`,
@@ -248,12 +230,14 @@ export function mapGame(game: Game, shared = false): string {
   const focus = agenda.find((item) => item.id === game.narrative?.focus);
   const event = focus ? focusedNarrativeEvent(game) : undefined;
   const choices = focus ? choicesFor(game) : [];
+  const strainedCount = game.pressure ? Object.values(game.pressure.sectors).filter(front => front.stage !== "stable" && front.stage !== "watch").length : 0;
+  const visibleAgenda = hasCommand(game) ? 1 : game.pressure ? 3 : agenda.length;
   const place = focus ? MAP_PLACES[placeForTopic(focus)] : undefined;
   const summary = focus ? firstSentence(focus.summary) : "";
   const incident = focus && game.version >= 14 && isPressureIncidentId(focus.id)
     ? { spec: PRESSURE_INCIDENTS[focus.id], contained: focus.incidentStatus === "contained" } : undefined;
   const incidentReading = incident
-    ? `<p class="map-subject__deadline" data-map-incident>${incident.contained ? "Secours opérationnel ; la perturbation reste à résoudre." : "Crise active ; aucune réponse n’est encore opérationnelle."} Capacité effective réduite de ${simulatedNumber(incident.contained ? incident.spec.containedLoss : incident.spec.capacityLoss)} unité par période (hypothèse de simulation). Les retards acquis restent à rattraper.</p>`
+    ? `<aside class="map-subject__incident" data-map-incident><strong>${incident.contained ? "Secours opérationnel" : "Crise active"}</strong><span>Capacité réduite de ${simulatedNumber(incident.contained ? incident.spec.containedLoss : incident.spec.capacityLoss)} unité / période.</span><small>hypothèse de simulation · retards acquis à rattraper.</small></aside>`
     : "";
   const details = focus
     ? `<details class="map-subject__details"><summary>Voir les détails</summary><p>${e(focus.summary)}</p>${choices.map((choice) => `<section><h3>${e(choice.title)}</h3><p>${e(choice.description)}</p><p>${e(choice.cost)}</p><p>${e(choice.benefit)}</p>${choice.delayed ? `<p>Après ${choice.delayed.after} année${choice.delayed.after > 1 ? "s" : ""} : ${e(choice.delayed.label)}</p>` : ""}</section>`).join("")}<p class="map-fiction-note">Événement fictif du scénario. ${focus.id.startsWith("policy:") || focus.id.startsWith("institutional:") ? "Décision de portée nationale." : `${e(place!.name)} sert de repère géographique ; les personnes et organismes sont simulés.`}</p></details>`
@@ -264,11 +248,11 @@ export function mapGame(game: Game, shared = false): string {
       : focus?.id.startsWith("mvt-")
         ? `<p class="map-subject__deadline">${e(String(focus.urgency))}</p>`
         : "";
-  return `<section class="map-game map-game--playing ${focus ? "map-game--focused" : ""}" data-map-game data-turn="${game.turn}">${mapHeader(game)}${mapWorld(game)}
-    <section class="map-subject ${focus ? "" : "map-subject--agenda"}" ${focus ? "data-map-decision" : "data-map-agenda"}>${mapPressureBoard(game, !!focus)}${focus ? "" : lastPressureReceipt(game)}
+  return `<section class="map-game map-game--playing${commandClass(game)} ${focus ? "map-game--focused" : ""}" data-map-game data-turn="${game.turn}">${mapHeader(game)}${mapWorld(game)}
+    <section class="map-subject ${focus ? "" : "map-subject--agenda"}" ${focus ? "data-map-decision" : "data-map-agenda"}><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div>
       ${
         focus
-          ? `<p class="map-subject__eyebrow map-tone--${topicTone(focus)}"><span class="map-topic-icon">${mapIcon(topicIcon(focus))}</span>${e(focus.label)}</p><header><h1 tabindex="-1">${e(event?.title ?? focus.title)}</h1><button data-action="map-close" aria-label="Fermer le sujet">Fermer</button></header><p class="map-subject__intro">${e(summary)}</p>${urgent}${incidentReading}<div class="map-choices">${choices
+          ? `<p class="map-subject__eyebrow map-tone--${topicTone(focus)}"><span class="map-topic-icon">${mapIcon(topicIcon(focus))}</span><span>${e(focus.label)}${focus.urgent ? '<b>À traiter en priorité</b>' : '<b>Votre prochain arbitrage</b>'}</span></p><header><h1 tabindex="-1">${e(event?.title ?? focus.title)}</h1><button data-action="map-close" aria-label="Fermer le sujet">Fermer</button></header><p class="map-subject__intro">${e(summary)}</p>${urgent}${incidentReading}<p class="map-choices__label">Votre décision</p><div class="map-choices">${choices
               .map((choice) => {
                 const error = preview(game, choice.id).error;
                 return `<button class="choice map-choice" data-action="choose" data-choice="${e(choice.id)}" ${error ? "disabled" : ""}><strong>${e(choice.title)}</strong><span>${e(choice.sacrifice)}</span>${pressureChoice(choice)}<span class="map-choice__footer"><small>${e(choice.cost)}</small><span class="map-choice__action" aria-hidden="true">Choisir</span></span>${error ? `<span class="choice-error">${e(error)}</span>` : ""}</button>`;
@@ -276,10 +260,10 @@ export function mapGame(game: Game, shared = false): string {
               .join(
                 "",
               )}</div>${focus.id.startsWith("policy:") ? "" : `<button class="map-inspect" data-action="map-inspect" data-place="${placeForTopic(focus)}">Voir le lieu</button>`}${details}`
-          : `<h1 tabindex="-1" class="map-agenda__heading">À traiter</h1><div class="map-agenda">${agenda.slice(0, game.pressure ? 3 : agenda.length).map((item, index) => agendaCard(item, index, game)).join("")}</div>${game.pressure && agenda.length > 3 ? `<details class="map-other-dossiers"><summary>Autres dossiers (${agenda.length - 3})</summary><div class="map-agenda">${agenda.slice(3).map((item, index) => agendaCard(item, index + 3, game)).join("")}</div></details>` : ""}<ul class="map-agenda__legend" aria-label="Repères de la carte"><li class="map-tone--red"><span class="map-topic-icon">${mapIcon("people")}</span>Urgent</li><li class="map-tone--gold"><span class="map-topic-icon">${mapIcon("health")}</span>À surveiller</li><li class="map-tone--blue"><span class="map-topic-icon">${mapIcon("industry")}</span>Projet</li></ul>`
+          : `<div class="map-agenda__intro"><h1 tabindex="-1" class="map-agenda__heading">À traiter</h1><p>${agenda.length} dossiers ouverts${strainedCount ? ` · <b>${strainedCount} front${strainedCount > 1 ? "s" : ""} sous tension</b>` : ""}${agenda.some(item => item.urgent) ? ` · <b>${agenda.filter(item => item.urgent).length} prioritaire${agenda.filter(item => item.urgent).length > 1 ? "s" : ""}</b>` : ""}</p></div><div class="map-agenda">${agenda.slice(0, visibleAgenda).map((item, index) => agendaCard(item, index, game)).join("")}</div>${game.pressure && agenda.length > visibleAgenda ? `<details class="map-other-dossiers"><summary>Autres dossiers (${agenda.length - visibleAgenda})</summary><div class="map-agenda">${agenda.slice(visibleAgenda).map((item, index) => agendaCard(item, index + visibleAgenda, game)).join("")}</div></details>` : ""}<ul class="map-agenda__legend" aria-label="Repères de la carte"><li class="map-tone--red"><span class="map-topic-icon">${mapIcon("people")}</span>Urgent</li><li class="map-tone--gold"><span class="map-topic-icon">${mapIcon("health")}</span>À surveiller</li><li class="map-tone--blue"><span class="map-topic-icon">${mapIcon("industry")}</span>Projet</li></ul>`
       }
-      ${focus ? lastPressureReceipt(game) : ""}${shared ? '<p class="map-fiction-note">Parcours partagé. Votre sauvegarde reste intacte.</p>' : ""}
-    </section>${mapFooter("country")}
+      ${mapPressureBoard(game, true)}${lastPressureReceipt(game)}${shared ? '<p class="map-fiction-note">Parcours partagé. Votre sauvegarde reste intacte.</p>' : ""}
+    </section>${mapFooter("country", game)}
   </section>`;
 }
 
@@ -302,20 +286,20 @@ function commitments(game: Game): string {
 export function mapYear(game: Game): string {
   const year = game.history.at(-1)!.year,
     decisions = game.history.filter((item) => item.year === year);
-  return `<section class="map-game map-game--playing">${mapHeader(game)}${mapWorld(game)}<section class="map-subject map-summary" data-map-year><p class="map-entry__kicker">ANNÉE ${year} ACHEVÉE</p><h1 tabindex="-1">Le mandat continue.</h1><p class="map-subject__intro">Les décisions de cette année restent inscrites dans le pays.</p>${countryReadings(game)}${mapPressureBoard(game, true)}${lastPressureReceipt(game)}<button class="map-primary" data-action="next-year">Reprendre le mandat</button>${commitments(game)}<details class="map-subject__details"><summary>Les ${decisions.length} décisions de l’année</summary><ol>${decisions.map((item) => `<li>${e(item.title)}</li>`).join("")}</ol></details></section>${mapFooter("country")}</section>`;
+  return `<section class="map-game map-game--playing${commandClass(game)}">${mapHeader(game)}${mapWorld(game)}<section class="map-subject map-summary" data-map-year><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div><p class="map-entry__kicker">ANNÉE ${year} ACHEVÉE</p><h1 tabindex="-1">Le mandat continue.</h1><p class="map-subject__intro">Les décisions de cette année restent inscrites dans le pays.</p>${countryReadings(game)}${mapPressureBoard(game, true)}${lastPressureReceipt(game)}<button class="map-primary" data-action="next-year">Reprendre le mandat</button>${commitments(game)}<details class="map-subject__details"><summary>Les ${decisions.length} décisions de l’année</summary><ol>${decisions.map((item) => `<li>${e(item.title)}</li>`).join("")}</ol></details></section>${mapFooter("country", game)}</section>`;
 }
 export function mapResult(game: Game, shared = false): string {
   const complete = game.politics?.ending?.kind === "term_complete",
     epilogue = narrativeElectionOutcome(game);
-  return `<section class="map-game map-game--playing">${mapHeader(null)}${mapWorld(game)}<article class="map-subject map-summary map-result" data-map-result><p class="map-entry__kicker">${shared ? "MANDAT PARTAGÉ" : complete ? "CINQ ANS ACCOMPLIS" : "MANDAT INTERROMPU"}</p><h1 tabindex="-1">${complete ? "Vous avez tenu cinq ans." : e(game.politics?.ending?.title ?? "Le mandat s’achève.")}</h1><p class="map-subject__intro">${complete ? `${game.turn} décisions. Le pays garde leurs conséquences.` : e(game.politics?.ending?.reason ?? `${game.turn} décisions enregistrées.`)}</p>${countryReadings(game)}${mapPressureBoard(game, true)}${lastPressureReceipt(game)}<button class="map-primary" data-action="new-run">Nouveau mandat</button><button class="map-secondary" data-action="open-replay-selection">Rejouer un tournant du mandat</button><button class="map-inspect" data-action="view" data-view="finance">Consulter le bilan complet</button>${commitments(game)}${epilogue ? `<details class="map-subject__details"><summary>La suite politique</summary><h3>${e(epilogue.title)}</h3><p>${e(epilogue.detail)}</p></details>` : ""}<details class="map-subject__details"><summary>Partager ou retrouver ce scénario</summary><button class="map-secondary" data-action="share">Partager cet héritage</button><button class="map-secondary" data-action="replay">Rejouer exactement ce défi</button><p>Scénario ${game.seed} · version ${game.version} · simulation.</p></details></article>${mapFooter("country")}</section>`;
+  return `<section class="map-game map-game--playing${commandClass(game)}">${mapHeader(hasCommand(game) ? game : null)}${mapWorld(game)}<article class="map-subject map-summary map-result" data-map-result><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div><p class="map-entry__kicker">${shared ? "MANDAT PARTAGÉ" : complete ? "CINQ ANS ACCOMPLIS" : "MANDAT INTERROMPU"}</p><h1 tabindex="-1">${complete ? "Vous avez tenu cinq ans." : e(game.politics?.ending?.title ?? "Le mandat s’achève.")}</h1><p class="map-subject__intro">${complete ? `${game.turn} décisions. Le pays garde leurs conséquences.` : e(game.politics?.ending?.reason ?? `${game.turn} décisions enregistrées.`)}</p>${countryReadings(game)}${mapPressureBoard(game, true)}${lastPressureReceipt(game)}<button class="map-primary" data-action="new-run">Nouveau mandat</button><button class="map-secondary" data-action="open-replay-selection">Rejouer un tournant du mandat</button><button class="map-inspect" data-action="view" data-view="finance">Consulter le bilan complet</button>${commitments(game)}${epilogue ? `<details class="map-subject__details"><summary>La suite politique</summary><h3>${e(epilogue.title)}</h3><p>${e(epilogue.detail)}</p></details>` : ""}<details class="map-subject__details"><summary>Partager ou retrouver ce scénario</summary><button class="map-secondary" data-action="share">Partager cet héritage</button><button class="map-secondary" data-action="replay">Rejouer exactement ce défi</button><p>Scénario ${game.seed} · version ${game.version} · simulation.</p></details></article>${mapFooter("country", game)}</section>`;
 }
 export function mapReview(
   game: Game,
   accounts: string,
   journal: string,
 ): string {
-  return `<section class="map-game map-game--playing">${mapHeader(game)}${mapWorld(game)}<section class="map-subject map-summary" data-map-review><header><h1 tabindex="-1">État du pays</h1><button data-action="view" data-view="decision">Revenir au mandat</button></header>${countryReadings(game)}${mapPressureBoard(game)}${lastPressureReceipt(game)}<details class="map-subject__details"><summary>Comptes et indicateurs</summary>${accounts}</details><details class="map-subject__details"><summary>Les effets sur les territoires</summary>${game.areas.map((item) => `<button class="map-secondary" data-action="area" data-area="${item.id}">${e(item.name)} · services ${Math.round(item.services)}/100</button>`).join("")}</details>${commitments(game)}<details class="map-subject__details"><summary>Le journal de vos décisions</summary>${journal}</details></section>${mapFooter("finance")}</section>`;
+  return `<section class="map-game map-game--playing${commandClass(game)}">${mapHeader(game)}${mapWorld(game)}<section class="map-subject map-summary" data-map-review><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div><header><h1 tabindex="-1">État du pays</h1><button data-action="view" data-view="decision">Revenir au mandat</button></header>${countryReadings(game)}${mapPressureBoard(game)}${lastPressureReceipt(game)}<details class="map-subject__details"><summary>Comptes et indicateurs</summary>${accounts}</details><details class="map-subject__details"><summary>Les effets sur les territoires</summary>${game.areas.map((item) => `<button class="map-secondary" data-action="area" data-area="${item.id}">${e(item.name)} · services ${Math.round(item.services)}/100</button>`).join("")}</details>${commitments(game)}<details class="map-subject__details"><summary>Le journal de vos décisions</summary>${journal}</details></section>${mapFooter("finance", game)}</section>`;
 }
 export function mapReplay(game: Game, content: string): string {
-  return `<section class="map-game map-game--playing">${mapHeader(null)}${mapWorld(game)}<section class="map-subject map-summary map-replay">${content}</section>${mapFooter(null)}</section>`;
+  return `<section class="map-game map-game--playing${commandClass(game)}">${mapHeader(hasCommand(game) ? game : null)}${mapWorld(game)}<section class="map-subject map-summary map-replay"><div class="map-sheet-grip" aria-hidden="true"></div><div class="map-notice-slot" data-map-notice-slot></div>${content}</section>${mapFooter(null, game)}</section>`;
 }
