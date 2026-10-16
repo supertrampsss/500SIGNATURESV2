@@ -40,6 +40,11 @@ import { mapGovernmentPanel, mapProjectsPanel } from './map-panels.ts';
 import { syncMandateMap, moveMapCamera, inspectMapPlace } from './map-runtime.ts';
 import { showMapDecisionVerdict } from './map-verdict.ts';
 import './map-game.css';
+import './map-interface.css';
+import './map-pressure.css';
+import './map-panels.css';
+import './map-situation.css';
+import './map-strategy.css';
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -149,11 +154,17 @@ function freshSeed(): number {
     return Date.now() % 10000;
   }
 }
-function announce(message: string, quiet = false) {
+let noticeTimer: number | undefined;
+function announce(message: string, quiet = false, tone: "info" | "success" | "error" = "info") {
+  if (noticeTimer !== undefined) window.clearTimeout(noticeTimer);
   notice.classList.toggle("status-quiet",quiet);
   const activeNotice = dialog.open ? dialog.querySelector<HTMLElement>(".sheet-status") : notice;
   notice.textContent = "";
-  if (activeNotice) activeNotice.textContent = message;
+  if (activeNotice) { activeNotice.dataset.tone = tone; activeNotice.textContent = message; }
+  if (tone === "success" && activeNotice === notice) noticeTimer = window.setTimeout(() => {
+    if (notice.textContent === message) notice.textContent = "";
+    noticeTimer = undefined;
+  }, 4500);
 }
 function adopt(game: Game) {
   announce("");
@@ -360,6 +371,9 @@ function render(focus = true, restoreScroll?: number) {
   }
   syncNationalScene(root, g, { light, inherited });
   syncMandateMap(root, g, light);
+  const noticeSlot = root.querySelector<HTMLElement>("[data-situation-notice-slot]") ?? root.querySelector<HTMLElement>("[data-map-notice-slot]");
+  if (noticeSlot) noticeSlot.append(notice);
+  else root.after(notice);
   root.dataset.turn = String(g?.turn ?? 0);
   root.dataset.screen = screen;
   document.querySelector("#game-tools")!.removeAttribute("hidden");
@@ -371,7 +385,7 @@ function render(focus = true, restoreScroll?: number) {
 function persist() {
   if (!g || shared || ephemeralChallenge) return;
   saved = g;
-  try { if (!save(g, localStorage)) announce("Votre navigateur ne peut pas sauvegarder. Exportez la partie depuis le menu."); } catch { announce("Sauvegarde indisponible. Exportez votre partie depuis le menu."); }
+  try { if (!save(g, localStorage)) announce("Votre navigateur ne peut pas sauvegarder. Exportez la partie depuis le menu.", false, "error"); } catch { announce("Sauvegarde indisponible. Exportez votre partie depuis le menu.", false, "error"); }
 }
 function sheet(title: string, content: string) {
   const replacing = dialog.open;
@@ -418,6 +432,11 @@ async function action(target: HTMLElement) {
   const a = target.dataset.action;
   if (a === 'map-camera') { moveMapCamera(target.dataset.camera ?? 'reset'); return; }
   if (a === 'map-inspect') {
+    if (g?.version === 14 && g.mode === 'national' && g.narrative?.focus && matchMedia('(max-width: 820px)').matches) {
+      // The phone initiative menu occupies the board; return to the actual map
+      // before inspecting a place, without spending a decision.
+      g = structuredClone(g); delete g.narrative!.focus; persist(); render(false);
+    }
     inspectMapPlace(target.dataset.place ?? '');
     if (matchMedia('(max-width: 820px)').matches) {
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -586,6 +605,9 @@ async function action(target: HTMLElement) {
   else if (a === "show-result" && g) { screen = isFinished(g) ? "result" : "play"; view = "decision"; }
   else if (a === "view") {
     view = target.dataset.view as View;
+    if (g?.version === 14 && view === "decision" && target.closest(".map-game__footer") && g.narrative) {
+      g = structuredClone(g); delete g.narrative!.focus; persist();
+    }
     if (g && g.version >= 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
     if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
   }
@@ -599,7 +621,7 @@ async function action(target: HTMLElement) {
       try {
         if (!save(original, localStorage)) throw new Error('Sauvegarde indisponible.');
       } catch {
-        announce('Votre navigateur ne peut pas restaurer le mandat d’origine. Votre branche reste inchangée ; vous pourrez réessayer ou l’exporter.');
+        announce('Votre navigateur ne peut pas restaurer le mandat d’origine. Votre branche reste inchangée ; vous pourrez réessayer ou l’exporter.', false, 'error');
         return;
       }
       clearBranchReference();
@@ -635,7 +657,7 @@ async function action(target: HTMLElement) {
         } catch { restored = false; }
         announce(restored
           ? 'Votre navigateur ne peut pas conserver le mandat d’origine. Votre partie reste inchangée ; exportez-la avant de la rejouer.'
-          : 'Le rejeu n’a pas pu être enregistré. Le stockage est indisponible ; exportez votre partie avant de fermer cette page.');
+          : 'Le rejeu n’a pas pu être enregistré. Le stockage est indisponible ; exportez votre partie avant de fermer cette page.', false, 'error');
         return;
       }
       g = branch;
@@ -705,7 +727,7 @@ document.addEventListener("change", async event => {
   }
   if (input.id !== "save-file" || !input.files?.[0]) return;
   decisionTransition.cancel();
-  try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); const imported = decode(await input.files[0].text()); clearBranchReference(); adopt(imported); dialog.close(); render(); announce("Partie importée et recalculée."); persist(); }
+  try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); const imported = decode(await input.files[0].text()); clearBranchReference(); adopt(imported); dialog.close(); render(); announce("Partie importée et recalculée.", false, "success"); persist(); }
   catch (err) { announce(err instanceof Error ? err.message : "Import impossible."); }
 });
 render(false);

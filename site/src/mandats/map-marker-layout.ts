@@ -4,9 +4,13 @@ import type { MandateMapState } from "./map-state.ts";
 type MarkerBox = { x: number; y: number; width: number; height: number };
 export function mapObstacles(host: HTMLElement): MarkerBox[] {
   const bounds = host.getBoundingClientRect();
-  return [...host.querySelectorAll<HTMLElement>(".map-camera, [data-map-toggle]")]
+  const controls = [...host.querySelectorAll<HTMLElement>(".map-camera, [data-map-toggle]")];
+  const command = host.closest(".map-game--command");
+  if (command) controls.push(...command.querySelectorAll<HTMLElement>(":scope > .map-subject, :scope > .map-situation-news, :scope > .map-situation-dock"));
+  return controls.filter(control => getComputedStyle(control).visibility !== "hidden")
     .map(control => control.getBoundingClientRect())
-    .filter(rectangle => rectangle.width > 0 && rectangle.height > 0)
+    .filter(rectangle => rectangle.width > 0 && rectangle.height > 0 &&
+      rectangle.bottom > bounds.top && rectangle.top < bounds.bottom && rectangle.right > bounds.left && rectangle.left < bounds.right)
     .map(rectangle => ({
       x: rectangle.x - bounds.x + rectangle.width / 2,
       y: rectangle.y - bounds.y + rectangle.height / 2,
@@ -32,6 +36,11 @@ export function placeMarker(
   anchor?.style.removeProperty("top");
   const width = element.offsetWidth,
     height = element.offsetHeight;
+  // On a short command board, nearest-first placement can fill its middle
+  // with two callouts and strand the third under the camera. Fill the first
+  // free rows in this constrained view; the ground rings keep their real places.
+  const compactCommand = host.clientWidth <= 350 && host.clientHeight < height * 4 &&
+    !!host.closest(".map-game--command");
   // The visual ring, rather than the centre of the complete icon and label,
   // locates the saved subject on the ground. CSS adapts its exact dimensions
   // for ordinary, urgent and small tracking pins on each screen size.
@@ -72,7 +81,7 @@ export function placeMarker(
   const fits = (candidate: MarkerBox) => placed.every(previous =>
     Math.abs(previous.x - candidate.x) >= (previous.width + width) / 2 + 6 ||
     Math.abs(previous.y - candidate.y) >= (previous.height + height) / 2 + 6);
-  let point = candidates.find(fits);
+  let point = compactCommand ? undefined : candidates.find(fits);
   if (!point) {
     // The regular offsets can miss a narrow free pocket between controls and
     // earlier pins. Try their exact edges before accepting an overlapping pin.
@@ -88,10 +97,12 @@ export function placeMarker(
       ])].map(y => Math.max(marginY, Math.min(host.clientHeight - marginY, y)));
     const edges = [...new Set(xs)].flatMap(x =>
       [...new Set(ys)].map(y => ({ x, y, width, height })));
-    edges.sort((a, b) =>
-      (a.x - origin.x) ** 2 + (a.y - origin.y) ** 2 -
-      (b.x - origin.x) ** 2 - (b.y - origin.y) ** 2);
-    point = edges.find(fits);
+    const available = compactCommand ? [...candidates, ...edges] : edges;
+    available.sort((a, b) => compactCommand
+      ? a.y - b.y || (a.x - origin.x) ** 2 - (b.x - origin.x) ** 2
+      : (a.x - origin.x) ** 2 + (a.y - origin.y) ** 2 -
+        (b.x - origin.x) ** 2 - (b.y - origin.y) ** 2);
+    point = available.find(fits);
   }
   point ??= candidates[0];
   placed.push(point);

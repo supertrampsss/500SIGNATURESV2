@@ -29,6 +29,7 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
   let state = initial, zoom = 1, centre = { x: .5, y: .5 },
     scale = 1, left = 0, top = 0, frame: number | undefined,
     ready = false, failed = false, disposed = false, effectsKey = "";
+  let commandOverlays: Element[] = [];
   if (!host.hasAttribute("tabindex")) host.tabIndex = 0;
   host.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight + - Home");
   host.dataset.renderer = "loading";
@@ -182,6 +183,9 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
     host.dataset.movements = String(state.movements.length);
     host.dataset.projects = String(state.projects.length);
     host.dataset.motion = reduced || reducedMotion.matches ? "reduced" : "active";
+    for (const overlay of commandOverlays) resize.unobserve(overlay);
+    commandOverlays = [...(host.closest(".map-game--command")?.querySelectorAll(":scope > .map-subject, :scope > .map-situation-news, :scope > .map-situation-dock") ?? [])];
+    for (const overlay of commandOverlays) resize.observe(overlay);
     rebuildEffects();
     draw();
   }
