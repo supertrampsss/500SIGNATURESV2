@@ -29,12 +29,15 @@ jobs:
         run: npx playwright test --config playwright.interface.config.ts
       - name: Verify the crisis command board, simultaneous fronts and initiative menu
         run: npx playwright test --config playwright.command.config.ts
+      - name: Verify visible reform access, quantified reports and delivered crisis recovery
+        run: npx playwright test --config playwright.reports.config.ts
       - name: Verify illustration, full mandates, actual replay and image fallback
         run: npx playwright test --config playwright.rework.config.ts
       - name: Verify delivery, rejected votes and imported saves
         run: npx playwright test --config playwright.social.config.ts --project desktop-chromium --project android-chromium --project compact-chromium --project iphone-webkit
       - name: Explore persistent pressure and accounting invariants
         env:
+          MANDATS_PRESSURE_VERSION: '15'
           MANDATS_PRESSURE_SEEDS: '3'
           MANDATS_PRESSURE_BRANCH_SEEDS: '1'
         run: |
@@ -54,6 +57,7 @@ jobs:
           path: |
             site/rework-artifacts/
             site/interface-artifacts/
+            site/reports-artifacts/
             site/social-artifacts/
             site/pressure-artifacts/
             site/incidents-artifacts/

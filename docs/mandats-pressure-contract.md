@@ -1,4 +1,11 @@
-# Mandats v13 et v14 : pression, arbitrages et rétablissement
+# Mandats v13 à v15 : pression, arbitrages et rétablissement
+
+La v15 ajoute un rattrapage temporaire dimensionné aux retards en perturbation ou
+crise, avec préparation et exécution réelles. L’accès aux grandes réformes et la
+restitution chiffrée des reports sont décrits dans [la passe reports et réformes](mandats-reports-reformes.md).
+Les nouvelles parties utilisent v15 ; les liens explicites v13 et v14 gardent
+leurs règles numériques. Les sections suivantes conservent l’historique et le
+socle de pression introduits dans ces versions.
 
 La passe globale suivante crée la v14 pour les nouvelles parties. Deux crises
 écrites, cyberattaque hospitalière et port bloqué, conservent désormais leur

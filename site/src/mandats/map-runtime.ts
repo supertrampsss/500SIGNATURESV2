@@ -184,7 +184,7 @@ function mountIllustration(host: HTMLElement, initial: MandateMapState, light: b
     host.dataset.projects = String(state.projects.length);
     host.dataset.motion = reduced || reducedMotion.matches ? "reduced" : "active";
     for (const overlay of commandOverlays) resize.unobserve(overlay);
-    commandOverlays = [...(host.closest(".map-game--command")?.querySelectorAll(":scope > .map-subject, :scope > .map-situation-news, :scope > .map-situation-dock") ?? [])];
+    commandOverlays = [...(host.closest(".map-game--command")?.querySelectorAll(":scope > .map-subject, :scope > .map-command-band, :scope > .map-situation-news, :scope > .map-situation-dock") ?? [])];
     for (const overlay of commandOverlays) resize.observe(overlay);
     rebuildEffects();
     draw();

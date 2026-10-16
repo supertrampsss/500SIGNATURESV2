@@ -105,7 +105,7 @@ export function campaignDomain(g:Game):Domain {
     }
   };
 }
-export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12|13|14=3):Game {
+export function startCampaign(mode:Mode,seed:number,ambition:Ambition,city?:CityBaseline,version:3|4|5|6|7|8|9|10|11|12|13|14|15=3):Game {
   if(version>=10&&mode!=='national')throw new Error('Cette version concerne uniquement le mandat national.');
   if(city && mode!=='municipal')throw new Error('Une commune appartient au mandat municipal.');
   if(city && !validateCityBaseline(city))throw new Error('Instantané communal invalide.');

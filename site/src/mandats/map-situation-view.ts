@@ -25,7 +25,20 @@ const trendSigns = { improving: "↓", steady: "→", worsening: "↑" } as cons
 const number = (value: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(value);
 const e = (value: string) => escape(value.replace(/[—–]/g, ", ").replace(/\s+/g, " ").trim());
 const availableFor = (game: Game) => new Set(game.politics?.ending || game.turn >= 30 ? [] : storyAgenda(game).map(item => item.id));
-const activeGame = (game: Game) => game.version === 14 && game.mode === "national" && !!game.pressure;
+const activeGame = (game: Game) => game.version >= 14 && game.mode === "national" && !!game.pressure;
+
+/** The latest explicit wait stays readable after the transient decision receipt.
+ * Values are actual stocks after this period, including funded work and shocks.
+ */
+function waitingReading(game: Game): { front: PressureFront; funded: boolean } | undefined {
+  const last = game.history.at(-1);
+  if (!last || !game.pressure) return undefined;
+  const match = last.choice.match(/^n11-\d+-pressure-(health|housing|transport|energy|education|administration)-maintain$/);
+  const incident = last.choice.match(/^n11-\d+-(cyber-hopital|port-bloque)-attendre-incident$/);
+  const sector = match?.[1] as PressureSectorId | undefined
+    ?? (incident ? PRESSURE_INCIDENTS[incident[1] as keyof typeof PRESSURE_INCIDENTS].sector : undefined);
+  return sector ? { front: game.pressure.sectors[sector], funded: last.title.startsWith("Laisser avancer") } : undefined;
+}
 
 function trendLabel(front: PressureFront): string {
   return front.pressure >= 100 && front.lastChange > .05 ? "retards en hausse" : `pression ${trendNames[front.trend]}`;
@@ -43,6 +56,7 @@ export function mapSituationNews(game: Game): string {
   if (!activeGame(game)) return "";
   const pressure = game.pressure!;
   const politics = game.politics;
+  const waiting = waitingReading(game);
   const fronts = Object.values(pressure.sectors).sort((a, b) => b.pressure - a.pressure);
   const incident = pressure.incidents?.find(item => item.status === "active")
     ?? pressure.incidents?.find(item => item.status === "contained");
@@ -59,6 +73,11 @@ export function mapSituationNews(game: Game): string {
       ? "La continuité du mandat est en jeu."
       : `${crisis.remaining} décision${crisis.remaining > 1 ? "s" : ""} pour réparer la crise institutionnelle.`, tone: "alert" };
   } else if (politics?.pendingCrisis) news = { label: "ALERTE POLITIQUE", text: politicalAlerts[politics.pendingCrisis], tone: "alert" };
+  else if (waiting) news = {
+    label: waiting.funded ? "MISE EN ŒUVRE" : waiting.front.lastChange > .05 ? "REPORT : LE RETARD AUGMENTE" : "MOYENS MAINTENUS",
+    text: `${sectorNames[waiting.front.id]} : retard ${waiting.front.lastChange > 0 ? "+" : ""}${number(waiting.front.lastChange)} ; total ${number(waiting.front.backlog)} unités en attente.`,
+    tone: waiting.front.lastChange > .05 ? "alert" : "neutral",
+  };
   else if (incident) news = {
     label: incident.status === "active" ? "CRISE ACTIVE" : "SECOURS EN PLACE",
     text: `${PRESSURE_INCIDENTS[incident.id].label}.`,
@@ -77,7 +96,8 @@ export function mapSituationNews(game: Game): string {
     : next ? next.dueTurn <= game.turn ? "Mise en place : échéance atteinte, mesure toujours en attente."
       : `Prochaine mise en place : ${periodDate(next.dueTurn)}, au plus tôt.`
     : risk ? `${sectorNames[risk.id]} : seuil suivant estimé dans ${risk.nextRiskIn} période${risk.nextRiskIn! > 1 ? "s" : ""}, si la tendance continue.` : "";
-  return `<section class="map-situation-news" data-situation-news data-situation-turn="${game.turn}" data-news-tone="${news.tone}" aria-label="Fil de situation du pays : ${e(news.text)}${horizon ? ` ${e(horizon)}` : ""}"><span class="map-situation-news__label">${news.label}</span><div><p>${e(news.text)}</p>${horizon ? `<p class="map-situation-news__horizon">${e(horizon)}</p>` : ""}</div><button type="button" data-action="view" data-view="finance" aria-label="Consulter le bilan de la situation">Bilan<span aria-hidden="true">›</span></button><div class="map-situation-news__notice" data-situation-notice-slot></div></section>`;
+  const report = waiting ? ` data-situation-report="${waiting.front.id}" data-report-change="${waiting.front.lastChange}" data-report-backlog="${waiting.front.backlog}"` : "";
+  return `<section class="map-situation-news" data-situation-news data-situation-turn="${game.turn}" data-news-tone="${news.tone}"${report} aria-label="Fil de situation du pays : ${e(news.text)}${horizon ? ` ${e(horizon)}` : ""}"><span class="map-situation-news__label">${news.label}</span><div><p>${e(news.text)}</p>${horizon ? `<p class="map-situation-news__horizon">${e(horizon)}</p>` : ""}</div><button type="button" data-action="view" data-view="finance" aria-label="Consulter le bilan de la situation">Bilan<span aria-hidden="true">›</span></button><div class="map-situation-news__notice" data-situation-notice-slot></div></section>`;
 }
 
 function frontButton(front: PressureFront, available: boolean): string {
