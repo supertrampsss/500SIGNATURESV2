@@ -29,7 +29,7 @@ function resources(game: Game): string {
   const execution = game.pressure?.execution;
   const seats = game.politics?.blocs.reduce((sum, bloc) => sum + bloc.seats, 0) ?? 577;
   const support = game.politics?.blocs.filter(bloc => bloc.inGovernment).reduce((sum, bloc) => sum + bloc.seats, 0) ?? 0;
-  return `<div class="pr-resource" title="Crédits encore disponibles dans votre autorisation de dépense">${icon("coins")}<span><small>Crédits disponibles</small><strong data-live-reserve>${n(p?.reserve ?? 0)} <em>Md€</em></strong></span></div>
+  return `<div class="pr-resource" title="Crédits encore disponibles dans votre autorisation de dépense">${icon("coins")}<span><small>Crédits</small><strong data-live-reserve>${n(p?.reserve ?? 0)} <em>Md€</em></strong></span></div>
     <div class="pr-resource pr-resource--teams" title="Capacité d’exécution utilisée sur la période">${icon("people")}<span><small>Équipes mobilisées</small><strong data-live-teams>${n(execution?.used ?? 0)} <em>/ ${n(execution?.capacity ?? 0)}</em></strong></span></div>
     <div class="pr-resource pr-resource--seats" title="Les soutiens à l’Assemblée ne garantissent pas chaque vote">${icon("government")}<span><small>Coalition</small><strong data-live-seats>${support} <em>/ ${seats}</em></strong><i style="--pr-value:${support / Math.max(1, seats) * 100}%"></i></span></div>`;
 }
