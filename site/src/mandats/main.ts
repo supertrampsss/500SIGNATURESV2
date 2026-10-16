@@ -45,6 +45,9 @@ import './map-pressure.css';
 import './map-panels.css';
 import './map-situation.css';
 import './map-strategy.css';
+import { mountPresidency } from './presidency-runtime.ts';
+import './presidency.css';
+import './presidency-session.css';
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;
@@ -57,6 +60,10 @@ function track(event: Parameters<typeof recordPilot>[1]) { try { recordPilot(loc
 let light = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ?? false;
 try { light = localStorage.getItem("mandats.light") === "true" || light; } catch {}
 let g: Game | null = null, saved: Game | null = null, screen: Screen = "select", view: View = "decision", shared = false, ephemeralChallenge = false;
+let presidencyController: ReturnType<typeof mountPresidency> | undefined;
+let presidencyControllerGame: Game | undefined;
+let presidencyAutoplay = false;
+let presidencySheetResume: ReturnType<typeof mountPresidency> | undefined;
 let progression = (() => { try { return readProgression(localStorage); } catch { return readProgression({getItem:()=>null}); } })();
 const decisionTransition = createDecisionTransition();
 let boardMotionTimer: number | undefined;
@@ -167,6 +174,7 @@ function announce(message: string, quiet = false, tone: "info" | "success" | "er
   }, 4500);
 }
 function adopt(game: Game) {
+  presidencyAutoplay = false;
   announce("");
   ({ g, shared, inherited, screen, view } = localSession(game, history));
   ephemeralChallenge = false;
@@ -174,11 +182,13 @@ function adopt(game: Game) {
 }
 try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const candidate = decode(raw); saved = candidate.mode === "national" ? candidate : null; } } catch { announce("La sauvegarde locale est indisponible ou incompatible. Vous pouvez commencer une nouvelle partie."); }
 function openEntry() {
+  presidencyController?.dispose(); presidencyController = undefined; presidencyControllerGame = undefined; presidencyAutoplay = false;
   g = null; shared = false; inherited = false; ephemeralChallenge = false; screen = "select"; view = "decision"; planIds = null;
   try {
     ({ g, shared, inherited, screen, view } = entrySession(new URL(location.href)));
     const entryUrl = new URL(location.href);
-    ephemeralChallenge = !!g && !shared && (entryUrl.hash.startsWith("#dilemma=") || entryUrl.hash.startsWith("#challenge=") || (entryUrl.searchParams.has("mode") && entryUrl.searchParams.has("seed")));
+    ephemeralChallenge = !!g && !shared && (g.version === 16 || entryUrl.hash.startsWith("#dilemma=") || entryUrl.hash.startsWith("#challenge=") || (entryUrl.searchParams.has("mode") && entryUrl.searchParams.has("seed")));
+    if (g?.version === 16 && saved && encode(g) === encode(saved)) ephemeralChallenge = false;
     if (g?.mode === "municipal") { g = null; shared = false; inherited = false; screen = "select"; view = "decision"; announce("Le mandat communal est temporairement indisponible."); }
   }
   catch (error) { announce(error instanceof Error ? error.message : "Lien invalide."); }
@@ -206,6 +216,39 @@ function render(focus = true, restoreScroll?: number) {
   document.body.dataset.screen = screen;
   document.body.dataset.view = view;
   document.body.dataset.rework = String(!g || g.version >= 12);
+  document.body.dataset.presidencyMode = String(g?.version === 16);
+  if (g?.version === 16 && (screen === 'play' || screen === 'result') && view === 'decision') {
+    document.body.dataset.art = 'cinema'; document.body.dataset.cinema = 'true'; document.body.dataset.mode = 'national';
+    if (presidencyController && presidencyControllerGame === g) { presidencyController.update(g); return; }
+    presidencyController?.dispose();
+    presidencyControllerGame = g;
+    presidencyController = mountPresidency(root, g, {
+      autoplay: presidencyAutoplay && !ephemeralChallenge && !shared,
+      preview: ephemeralChallenge,
+      onAdopt: adoptPresidencyPreview,
+      commit: commitPresidency,
+      comparison: game => branchReference ? `<div class="pr-branch-review">${comparisonMarkup(game, branchReference)}<button data-action="restore-origin">Revenir au mandat d’origine</button></div>` : '',
+      openMenu: () => {
+        const trigger = document.createElement('button'); trigger.dataset.action = 'tools';
+        void action(trigger).catch(error => announce(error instanceof Error ? error.message : 'Le menu ne peut pas être ouvert.'));
+      },
+    });
+    syncMandateMap(root, null, light);
+    syncNationalScene(root, null, { light, inherited: false });
+    presidencyAutoplay = false;
+    (root.querySelector<HTMLElement>('[data-live-notice-slot]') ?? root).append(notice);
+    root.dataset.turn = String(g.turn); root.dataset.screen = screen;
+    document.querySelector('#game-tools')?.setAttribute('hidden', '');
+    return;
+  }
+  presidencyController?.dispose(); presidencyController = undefined; presidencyControllerGame = undefined;
+  if (g?.version === 16 && screen === 'replay') {
+    root.innerHTML = `<section class="presidency-replay"><header><strong>MANDATS</strong><span>Votre trajectoire · ${g.turn * 2} mois</span><button class="button" data-action="show-result">Revenir au pays</button></header><div class="presidency-replay__body">${renderReplaySelection(g)}</div></section>`;
+    root.after(notice); root.dataset.screen = screen; root.dataset.turn = String(g.turn);
+    syncMandateMap(root, null, light); syncNationalScene(root, null, { light, inherited: false });
+    if (focus) root.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
+    return;
+  }
   // The cinematic shell is active throughout the national journey, including
   // the entry/selection screens. Scene focus remains a separate, data-driven hook.
   const nationalCinema = !g || g.mode === "national";
@@ -384,16 +427,70 @@ function render(focus = true, restoreScroll?: number) {
 }
 function persist() {
   if (!g || shared || ephemeralChallenge) return;
+  if (g.version === 16) {
+    try {
+      if (!save(g, localStorage)) throw new Error('Stockage indisponible.');
+      saved = g;
+    } catch {
+      presidencyAutoplay = false; presidencyController?.pause();
+      announce('La sauvegarde est indisponible. Le temps est suspendu ; exportez la partie depuis le menu avant de quitter.', false, 'error');
+    }
+    return;
+  }
   saved = g;
   try { if (!save(g, localStorage)) announce("Votre navigateur ne peut pas sauvegarder. Exportez la partie depuis le menu.", false, "error"); } catch { announce("Sauvegarde indisponible. Exportez votre partie depuis le menu.", false, "error"); }
 }
+/** Publish a live transition only after its journal is durably saved. */
+function commitPresidency(id: string): Game | null {
+  if (!g || g.version !== 16 || shared || ephemeralChallenge) return null;
+  try {
+    const next = decide(g, id);
+    if (!save(next, localStorage)) throw new Error('La sauvegarde est indisponible. Le temps est suspendu et votre dernière partie enregistrée est conservée. Réessayez ou exportez-la depuis le menu.');
+    g = next; saved = next; presidencyControllerGame = next;
+    screen = isFinished(next) ? 'result' : 'play';
+    root.dataset.turn = String(next.turn); root.dataset.screen = screen;
+    if (isFinished(next)) {
+      track('game_completed');
+      try { progression = recordCompletedMandate(localStorage, next); } catch {}
+    }
+    announce('');
+    return next;
+  } catch (error) {
+    presidencyController?.pause();
+    announce(error instanceof Error ? error.message : 'Cet ordre n’a pas pu être enregistré. Le temps est suspendu.', false, 'error');
+    return null;
+  }
+}
+function adoptPresidencyPreview(): Game | null {
+  if (!g || g.version !== 16 || !ephemeralChallenge) return null;
+  try {
+    if (!save(g, localStorage)) throw new Error('La sauvegarde est indisponible. Votre partie locale est conservée ; réessayez pour commencer ce mandat.');
+    saved = g; ephemeralChallenge = false; shared = false;
+    clearBranchReference(); clearEntryLink(history); announce('');
+    return g;
+  } catch (error) {
+    announce(error instanceof Error ? error.message : 'Ce mandat ne peut pas être enregistré.', false, 'error');
+    return null;
+  }
+}
 function sheet(title: string, content: string) {
+  if (!dialog.open) presidencySheetResume = presidencyController?.isRunning() ? presidencyController : undefined;
+  presidencyController?.pause();
   const replacing = dialog.open;
   dialog.innerHTML = `<div class="sheet-heading"><h2 id="sheet-title">${escape(title)}</h2><button data-action="close" aria-label="Fermer">${(g?.version ?? 0)>=12?'Fermer':icon("close")}</button></div><p class="sheet-status status" role="status" aria-live="polite"></p>${content}`;
   dialog.setAttribute("aria-labelledby", "sheet-title");
   dialog.removeAttribute("aria-label");
   if (!replacing) dialog.showModal();
   else (dialog.querySelector<HTMLElement>("textarea") ?? dialog.querySelector<HTMLElement>("button"))?.focus();
+}
+dialog.addEventListener('close', () => {
+  const paused = presidencySheetResume; presidencySheetResume = undefined;
+  if (paused && presidencyController === paused) paused.resume();
+});
+function presidencyTools() {
+  if (!g || g.version !== 16) return;
+  const hasOrders = g.choices.some(id => id !== 'live-tick');
+  sheet('Votre partie', `<p>Votre mandat est enregistré sur cet appareil. Le temps est suspendu pendant la lecture de ce menu.</p><div class="presidency-session-actions">${hasOrders && !ephemeralChallenge ? '<button class="button" data-action="open-plan">Rejouer un ordre et comparer</button>' : ''}<button class="button" data-action="export">Exporter la sauvegarde</button><label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="share">Partager ${isFinished(g) ? 'mon mandat' : hasOrders ? 'un ordre' : 'ce défi'}</button></div><details><summary>Jouer hors connexion</summary><p>Préparez le jeu avec une connexion disponible. La simulation et vos sauvegardes restent ensuite sur cet appareil.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button></details><a class="button" href="/mandats/methode/">Règles et méthode</a><button class="button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`);
 }
 function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -425,11 +522,13 @@ function shouldRevealPoliticalVote(game: Game, choiceId: string, vote?: VoteReco
 }
 function sharingSheet() {
   if (!g) return;
+  if (g.version === 16 && cardKind === 'result' && !isFinished(g)) cardKind = g.choices.some(id => id !== 'live-tick') ? 'decision' : 'challenge';
   const model = cardModel(g, cardKind);
-  sheet("Partager votre mandat", `<div class="card-kind-picker" role="group" aria-label="Type de carte">${([...(isFinished(g) ? ["result"] : []), ...(g.turn ? ["decision"] : []), "challenge"] as CardKind[]).map(kind => `<button class="button" data-action="card-kind" data-kind="${kind}" aria-pressed="${kind === cardKind}">${({result:"Héritage",decision:"Décision",challenge:"Défi"})[kind]}</button>`).join("")}</div><p>${cardKind === "challenge" ? "Le défi contient le point de départ et les règles du jeu, sans votre parcours." : cardKind === "decision" ? "Le lien restitue les décisions antérieures pour replacer le destinataire devant ce dilemme. Votre carte décrit le choix effectué. Partagez le défi pour garder le parcours privé." : "Le lien de résultat permet de reconstruire vos décisions dans le jeu. Partagez le défi pour garder votre parcours privé."}</p><div class="share-preview">${cardSVG(g, cardKind, "landscape")}</div><div class="share-buttons"><button class="button primary" data-action="native-share">Partager ${cardKind === "decision" ? "le dilemme" : cardKind === "challenge" ? "le défi" : "le résultat"}</button><button class="button" data-action="copy-result">Copier le lien</button><button class="button" data-action="copy-description">Copier la description de l’image</button></div><h3>Télécharger la carte</h3><div class="format-buttons">${Object.entries(CARD_SIZES).map(([key,[w,h]])=>`<button class="button" data-action="png" data-format="${key}">${w} × ${h}</button>`).join("")}</div><section class="tool-section"><h3>Texte de la carte</h3><p>${escape(model.alt)}</p></section><p class="scope">Image créée sur votre appareil. Aucun envoi automatique. Les aperçus des réseaux restent génériques ; la carte téléchargée contient votre résultat.</p>`);
+  sheet("Partager votre mandat", `<div class="card-kind-picker" role="group" aria-label="Type de carte">${([...(isFinished(g) ? ["result"] : []), ...((g.version === 16 ? g.choices.some(id => id !== 'live-tick') : g.turn > 0) ? ["decision"] : []), "challenge"] as CardKind[]).map(kind => `<button class="button" data-action="card-kind" data-kind="${kind}" aria-pressed="${kind === cardKind}">${({result:"Héritage",decision:"Décision",challenge:"Défi"})[kind]}</button>`).join("")}</div><p>${cardKind === "challenge" ? "Le défi contient le point de départ et les règles du jeu, sans votre parcours." : cardKind === "decision" ? "Le lien restitue les décisions antérieures pour replacer le destinataire devant ce dilemme. Votre carte décrit le choix effectué. Partagez le défi pour garder le parcours privé." : "Le lien de résultat permet de reconstruire vos décisions dans le jeu. Partagez le défi pour garder votre parcours privé."}</p><div class="share-preview">${cardSVG(g, cardKind, "landscape")}</div><div class="share-buttons"><button class="button primary" data-action="native-share">Partager ${cardKind === "decision" ? "le dilemme" : cardKind === "challenge" ? "le défi" : "le résultat"}</button><button class="button" data-action="copy-result">Copier le lien</button><button class="button" data-action="copy-description">Copier la description de l’image</button></div><h3>Télécharger la carte</h3><div class="format-buttons">${Object.entries(CARD_SIZES).map(([key,[w,h]])=>`<button class="button" data-action="png" data-format="${key}">${w} × ${h}</button>`).join("")}</div><section class="tool-section"><h3>Texte de la carte</h3><p>${escape(model.alt)}</p></section><p class="scope">Image créée sur votre appareil. Aucun envoi automatique. Les aperçus des réseaux restent génériques ; la carte téléchargée contient votre résultat.</p>`);
 }
 async function action(target: HTMLElement) {
   const a = target.dataset.action;
+  if (a === 'tools' && g?.version === 16) { presidencyTools(); return; }
   if (a === 'map-camera') { moveMapCamera(target.dataset.camera ?? 'reset'); return; }
   if (a === 'map-inspect') {
     if (g && g.version >= 14 && g.mode === 'national' && g.narrative?.focus && matchMedia('(max-width: 820px)').matches) {
@@ -492,7 +591,7 @@ async function action(target: HTMLElement) {
     if (ephemeralChallenge) { announce('Jouez un premier choix pour comparer les décisions de ce mandat.'); return; }
     dialog.close();
     if (g.mode === "national" && g.version >= 11) {
-      screen = g.turn > 0 ? "replay" : "play";
+      screen = (g.version === 16 ? g.choices.length > 0 : g.turn > 0) ? "replay" : "play";
       view = "decision";
     } else { screen = "play"; view = "plan"; }
     render(); return;
@@ -512,7 +611,7 @@ async function action(target: HTMLElement) {
   if (a === "mode") {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
-    g = start("national", freshSeed(), "equilibre", 15);
+    g = start("national", freshSeed(), "equilibre", 16); presidencyAutoplay = true;
     clearBranchReference();
     shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null;
     clearEntryLink(history); track("mode_selected"); persist();
@@ -520,9 +619,9 @@ async function action(target: HTMLElement) {
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
-    g = start("national", g.seed, ambition, g.version >= 15 ? 15 : g.version >= 14 ? 14 : g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
+    g = start("national", g.seed, ambition, g.version >= 16 ? 16 : g.version >= 15 ? 15 : g.version >= 14 ? 14 : g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
     clearBranchReference();
-    shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
+    shared = false; inherited = false; screen = g.version === 16 ? 'play' : "briefing"; view = "decision"; planIds = null; presidencyAutoplay = g.version === 16;
     persist(); track("onboarding_completed");
   }
   else if (a === "resume" && saved) { if (saved.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; } adopt(saved); attachBranchReference(g!); }
@@ -598,7 +697,7 @@ async function action(target: HTMLElement) {
     const context = target.dataset.context;
     const option = storyContextOptions().find(item => item.context === context);
     if (!option) { announce("Ce contexte n’est plus disponible."); return; }
-    clearBranchReference(); g = start("national", option.seed, "equilibre", 15); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
+    clearBranchReference(); g = start("national", option.seed, "equilibre", 16); presidencyAutoplay = true; shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
   }
   else if (a === "next-year" && g) { screen = g.version >= 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
@@ -612,8 +711,8 @@ async function action(target: HTMLElement) {
     if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
   }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 15); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
-  else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 16); presidencyAutoplay = true; shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); presidencyAutoplay = g!.version === 16; persist(); }
   else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
   else if (a === "restore-origin" && g) {
     if (branchReference) {
@@ -703,6 +802,7 @@ document.addEventListener("click", event => {
   action(target).catch(err => announce(err instanceof Error ? err.message : "Cette action n'a pas pu aboutir."));
 });
 window.addEventListener("pagehide", () => {
+  presidencyController?.pause();
   clearDecisionVerdict();
   decisionTransition.cancel();
   clearBoardMotion();
@@ -727,7 +827,13 @@ document.addEventListener("change", async event => {
   }
   if (input.id !== "save-file" || !input.files?.[0]) return;
   decisionTransition.cancel();
-  try { if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux."); const imported = decode(await input.files[0].text()); clearBranchReference(); adopt(imported); dialog.close(); render(); announce("Partie importée et recalculée.", false, "success"); persist(); }
+  try {
+    if (input.files[0].size > MAX_SAVE_BYTES) throw new Error("Fichier trop volumineux.");
+    const imported = decode(await input.files[0].text());
+    if (imported.version === 16 && !save(imported, localStorage)) throw new Error('L’import ne peut pas être sauvegardé. Votre partie précédente est conservée.');
+    clearBranchReference(); adopt(imported); dialog.close(); render();
+    announce("Partie importée et recalculée.", false, "success"); persist();
+  }
   catch (err) { announce(err instanceof Error ? err.message : "Import impossible."); }
 });
 render(false);

@@ -135,7 +135,7 @@ function workThisPeriod(before: Game, afterChoice: Game, state: PressureState, c
   let available = capacity;
   for (const programme of state.programmes.filter(item => item.status === 'preparing').sort((a, b) => a.sourceTurn - b.sourceTurn || a.id.localeCompare(b.id))) {
     const project = programme.projectId ? afterChoice.narrative?.projects.find(item => item.id === programme.projectId) : undefined;
-    if (project?.status === 'withdrawn' || programme.sourceTurn >= before.turn) continue;
+    if (project?.status === 'withdrawn' || (before.version >= 16 ? programme.sourceTurn > before.turn : programme.sourceTurn >= before.turn)) continue;
     const work = Math.max(0, Math.min(programme.remainingWork, programme.implementation ?? 1, available));
     allocation.set(programme.id, round(work)); available = round(available - work);
   }
@@ -270,7 +270,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
       continue;
     }
     // The financing decision itself does not consume one of its future delivery periods.
-    if (programme.sourceTurn < before.turn && programme.remainingWork > 0) {
+    if ((before.version >= 16 ? programme.sourceTurn <= before.turn : programme.sourceTurn < before.turn) && programme.remainingWork > 0) {
       const work = allocation.get(programme.id) ?? 0;
       programme.remainingWork = round(programme.remainingWork - work);
       state.execution.used = round(state.execution.used + work);

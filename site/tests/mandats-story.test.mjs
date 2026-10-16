@@ -98,12 +98,13 @@ async function openSeed(page, seed, { reducedMotion = false } = {}) {
   return save;
 }
 
-test('fresh national play starts on the current v15 ruleset', async ({ page }) => {
+test('an explicit v15 save retains its authored agenda and selected front', async ({ page }) => {
   await page.goto(HOME);
-  await page.getByRole('button', { name: /Commencer un mandat/ }).click();
+  await page.getByRole('button', { name: 'Ma partie', exact: true }).click();
+  await page.locator('#save-file').setInputFiles({name:'historical-v15.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:15,mode:'national',seed:0,ambition:'equilibre',choices:[]}))});
+  await expect(page.locator('[data-map-agenda]')).toBeVisible();
   const save = await stored(page);
   expect(save).toMatchObject({ version: 15, mode: 'national', choices: [] });
-  await expect(page.locator('[data-map-agenda]')).toBeVisible();
   const front = page.locator('[data-map-agenda] [data-action="story-select"]').filter({ visible: true }).first();
   const selectedId = await front.getAttribute('data-story-id');
   await front.click();

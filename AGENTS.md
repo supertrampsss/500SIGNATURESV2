@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v15; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: v16 has thirty two-month clock periods over five years, with presidential orders and autonomous government initiatives independent of that clock. New national games use v16; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -51,6 +51,34 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: living presidency, approved mockups 2 + 4 (16 October 2026)
+
+The owner validated a full gameplay change: independent time, standing presidential
+priorities and operational initiatives by the government. This supersedes the old
+prohibition on time controls for v16. Use the approved propagation map and direct
+map commands in `docs/mandats-presidency/reference-{2,4}.png`; the country remains
+visible without a mandatory queue of questions. See
+[the contract and prewritten failure modes](docs/mandats-presidency-contract.md).
+
+`presidency-engine.ts` owns rules and resources, `presidency-runtime.ts` the browser
+clock and interactions, and `presidency-view.ts` / `presidency.css` the new board.
+Only `live-tick` advances `Game.turn`; `choices` and `history` contain every journal
+entry, including orders. The current illustration is 1672 by 941 native pixels,
+not a Full HD master. Never bake UI, routes, progress or minister decisions into art.
+
+Persist a transition before showing it. Pause on storage failure, hidden tabs and
+reading panels; no elapsed-time catchup. A shared preview stays read-only until
+explicit adoption. Government spending uses the same finite reserve and execution
+as player orders. A minister cannot create credits or pass a law. Source rules,
+votes, charges, actual delivery and expiration must agree. Keep explicit versions
+1–15 and municipal compatibility; do not feed v16 order journals into legacy
+sequential dossier reconstruction.
+
+Run the presidency browser suite and bounded model audit alongside the existing
+gates. Retain legal inputs, source hashes, before/after failures and inspected
+1672 × 941, 390 px, 320 px and WebKit captures. The owner has approved implementation
+and systematic PR delivery; ask no additional direction confirmation.
 
 ### Mandats: reports and reform access (16 October 2026)
 

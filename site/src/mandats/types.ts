@@ -3,6 +3,7 @@ import type { Amendment } from './narrative-types.ts';
 import type { NarrativeState } from './narrative-types.ts';
 import type { SocialChoice, SocialState } from './social-types.ts';
 import type { PressureChoice, PressureState } from './pressure-types.ts';
+import type { PresidencyState, PresidencyOrder } from './presidency-types.ts';
 export type Ambition = "equilibre" | "services" | "resilience";
 export type Mode = "municipal" | "national";
 export type Society = Record<'workers' | 'pensioners' | 'vulnerable' | 'businesses' | 'newcomers' | 'publicStaff' | 'affluent', number>;
@@ -23,7 +24,7 @@ export type Effect = {
 };
 export type Choice = {
   id: string; title: string; description: string; cost: string; benefit: string; sacrifice: string;
-  effect: Effect; physicalProject?: false; delayed?: { after: number; label: string; effect: Effect }; political?: PoliticalChoice; amendment?: Amendment; social?: SocialChoice; pressure?: PressureChoice;
+  effect: Effect; presidencyOrder?: PresidencyOrder; physicalProject?: false; delayed?: { after: number; label: string; effect: Effect }; political?: PoliticalChoice; amendment?: Amendment; social?: SocialChoice; pressure?: PressureChoice;
   narrative?: { eventId: string; press?: string; promise?: { id: string; label: string; dueAfter?: number }; project?: { id: string; kind: string; label: string; place: string; dueAfter: number; repair?: boolean }; relationships?: Partial<Record<'presidential' | 'reformist' | 'social' | 'conservative' | 'regional', number>> };
 };
 export type Dossier = { category: string; title: string; story: string; advisor: string; choices: Choice[] };
@@ -31,8 +32,8 @@ export type Ledger = { revenue: number; operating: number; interest: number; sav
 export type Pending = { due: number; label: string; effect: Effect };
 export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[]; vote?: VoteRecord; politicalConsequences?: string[]; dossier?: Dossier };
 export type Game = {
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
-  areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[]; politics?: PoliticalState; narrative?: NarrativeState; social?: SocialState; pressure?: PressureState;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[]; politics?: PoliticalState; narrative?: NarrativeState; social?: SocialState; pressure?: PressureState; presidency?: PresidencyState;
 };
 export type Domain = {
   id: Mode; label: string; place: string; role: string; duration: string; turns: number; unit: string;

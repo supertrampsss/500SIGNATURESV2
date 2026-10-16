@@ -20,7 +20,7 @@ export function sharedResult(hash: string): Game | null {
   return g;
 }
 export function challengeFromURL(url: URL): Game | null {
-  if(url.hash.startsWith("#challenge=")){const game=decode(decodeURIComponent(url.hash.slice(11)));if(game.turn)throw new Error("Un défi ne contient pas de décisions.");return game;}
+  if(url.hash.startsWith("#challenge=")){const game=decode(decodeURIComponent(url.hash.slice(11)));if(game.turn||game.choices.length)throw new Error("Un défi ne contient pas de décisions.");return game;}
   const mode = url.searchParams.get("mode");
   if (!mode) return null;
   if (!Object.hasOwn(DOMAINS, mode)) throw new Error("Ce mode n'existe pas.");
@@ -29,13 +29,14 @@ export function challengeFromURL(url: URL): Game | null {
   // A direct France entry starts the current mandate. Old seeded challenges
   // retain their original rules when they predate explicit version tags.
   const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
-  const version = url.searchParams.get("v") ?? (directFrance ? "15" : "1");
-  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9" && version !== "10" && version !== "11" && version !== "12" && version !== "13" && version !== "14" && version !== "15") throw new Error("Version de défi inconnue.");
+  const version = url.searchParams.get("v") ?? (directFrance ? "16" : "1");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9" && version !== "10" && version !== "11" && version !== "12" && version !== "13" && version !== "14" && version !== "15" && version !== "16") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16);
 }
 export function shareText(g: Game): string {
   const s = score(g); const d = domainFor(g);
+  if(g.version===16)return `Mandats · France. ${g.turn*2} mois de présidence, ${g.choices.filter(id=>id!=='live-tick').length} ordres. Services ${Math.round(g.metrics.services)}/100, confiance ${Math.round(g.metrics.trust)}/100. Gouvernement autonome et conséquences simulées. Scénario ${g.seed}, simulation v16, aucune prédiction.`;
   if(g.version>=9) return `Mandats · ${d.place}. ${g.politics?.ending && g.politics.ending.kind !== "term_complete" ? `Mandat interrompu après ${g.turn} décisions (${g.politics.ending.title}).` : `Cinq années, ${g.turn} décisions.`} Mission : ${ambitionFor(g).label}. Services ${Math.round(g.metrics.services)}/100, cohésion ${Math.round(g.metrics.cohesion)}/100, confiance ${Math.round(g.metrics.trust)}/100, résilience ${Math.round(g.metrics.resilience)}/100. Résultat de jeu, scénario ${g.seed}, simulation v${g.version}.`;
   return `Mandats · ${d.place}. ${s.legacy} : ${s.total}/100. ${g.version !== 1 ? `Priorité : ${ambitionFor(g).label}. ` : ""}Point fort : ${s.strength}. À améliorer : ${s.weakness}. Résultat de jeu, scénario simulé v${g.version}.`;
 }

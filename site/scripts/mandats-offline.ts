@@ -8,7 +8,7 @@ const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
 // These editorial images appear in the national game and its replay journey.
 // Keep the full-resolution illustration set opt-in with the game cache; the
 // generated service worker is only installed when the player requests offline use.
-const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture']
+const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture', 'presidency-france']
   .map(name => `/mandats/art/${name}.webp`);
 const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', '/mandats/art/winter-quarter-small.webp', '/mandats/art/winter-quarter.webp', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow the game's dependencies, including the approved illustrated map.
