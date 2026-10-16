@@ -104,7 +104,7 @@ test('SEO : les aides d’usage restent accessibles sans JavaScript sur accueil 
 test('SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu', async ({ page }, info) => {
   await page.goto('/mandats/comprendre/');
   await expect(page.getByRole('heading', { level: 1, name: 'Comment jouer à Mandats ?' })).toBeVisible();
-  await expect(page.locator('.lead')).toContainText('30 décisions');
+  await expect(page.locator('.lead')).toContainText('priorités au gouvernement');
   await expect(page.locator('#mandats-questions')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ path: info.outputPath('guide-mandats.png'), fullPage: true });

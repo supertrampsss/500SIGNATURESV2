@@ -1,5 +1,5 @@
 import { choiceCopy } from "./novice.ts";
-import { choicesFor, domainFor, calendarFor, score, isFinished, startingGame } from "./engine.ts";
+import { choicesFor, domainFor, calendarFor, replayGame, score, isFinished, startingGame } from "./engine.ts";
 import { CARD_SIZES, challengeURL, escape as e, resultURL, shareText } from "./sharing.ts";
 import { decode, encode } from "./storage.ts";
 import { ambitionFor } from "./ambitions.ts";
@@ -11,14 +11,67 @@ export type CardKind = "result" | "decision" | "challenge";
 
 /** Share the exact, replay-validated state immediately before the last decision. */
 export function exactDilemmaShareState(g: Game) {
-  if (!g.turn) throw new Error('Prenez une décision avant de partager un dilemme.');
-  const state = focusForRecordedDecision(g, g.turn - 1);
+  const index = g.version === 16 ? lastPresidentialOrderIndex(g) : g.turn - 1;
+  if (index < 0) throw new Error('Prenez une décision avant de partager un dilemme.');
+  const state = g.version === 16 ? replayGame(g, g.choices.slice(0, index)) : focusForRecordedDecision(g, index);
   const encoded = encode(state);
   const url = `${new URL('/mandats/', 'https://500signatures.fr').href}#dilemma=${encodeURIComponent(encoded)}`;
   return { version: state.version, seed: state.seed, choices: [...state.choices], focus: state.narrative?.focus ?? null, encoded, url };
 }
 
+function lastPresidentialOrderIndex(game: Game): number {
+  for (let index = game.choices.length - 1; index >= 0; index--) if (game.choices[index] !== 'live-tick') return index;
+  return -1;
+}
+
+const number = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 }).format(value);
+
+/** V16 shares clock progress and real initiatives, independently of the legacy
+ * question campaign. A tick after an order does not become its shared dilemma. */
+function presidencyCardModel(game: Game, kind: CardKind) {
+  if (kind === 'decision') {
+    const index = lastPresidentialOrderIndex(game);
+    if (index < 0) throw new Error('Donnez un ordre avant de le partager.');
+    const previous = replayGame(game, game.choices.slice(0, index));
+    const after = replayGame(game, game.choices.slice(0, index + 1));
+    const id = game.choices[index]!;
+    const initiative = after.presidency?.initiatives.filter(item => item.actor === 'president' && item.choice === id).at(-1);
+    if (!initiative) throw new Error('Cet ordre ne possède pas de compte rendu vérifiable.');
+    const choice = choicesFor(previous).find(item => item.id === id);
+    const deadline = initiative.status === 'rejected' ? 'Aucune mise en œuvre : texte rejeté.'
+      : choice?.pressure ? `${(choice.presidencyOrder?.delay ?? choice.pressure.delay ?? 1) * 2} mois au minimum, selon les équipes disponibles.`
+      : choice?.delayed ? `Effet différé après ${choice.delayed.after} année${choice.delayed.after > 1 ? 's' : ''}.`
+      : 'Aucun chantier différé pour cet ordre.';
+    const status = initiative.status === 'rejected' ? 'Rejeté' : initiative.status === 'information' ? 'Consigne enregistrée' : 'Engagé';
+    const cost = `${number(initiative.cost)} Md€ engagés`;
+    const url = exactDilemmaShareState(game).url;
+    return { label: `ORDRE PRÉSIDENTIEL · PÉRIODE ${previous.turn + 1}`, title: initiative.title,
+      fields: [['Issue', status], ['Engagement', cost], ['Mise en œuvre', deadline], ['Crédits restants', `${number(after.presidency?.reserve ?? 0)} Md€ d’autorisation`]], url,
+      alt: `Ordre présidentiel, France, période ${previous.turn + 1}. ${initiative.title}. ${status}. ${cost}. ${initiative.detail} ${deadline} Le lien restitue le journal exact avant cet ordre. Simulation fictive, aucune prédiction.` };
+  }
+  if (kind === 'challenge') {
+    const initial = startingGame(game), reserve = initial.presidency?.reserve ?? 0;
+    const duration = `${domainFor(game).turns} périodes de deux mois · cinq ans`;
+    const mandate = initial.presidency?.autonomy ? 'Des ministères autonomes dans votre enveloppe.' : 'Vous dirigez les nouveaux engagements des ministères.';
+    return { label: 'DÉFI JOUABLE · PRÉSIDENCE VIVANTE', title: 'Quel cap pour la France ?',
+      fields: [['Durée', duration], ['Crédits de départ', `${number(reserve)} Md€ d’autorisation`], ['Gouvernement', mandate], ['Même départ', `Scénario ${game.seed} · sans vos ordres`]],
+      url: challengeURL(game, 'https://500signatures.fr'),
+      alt: `Défi Mandats, présidence vivante. ${duration}. ${number(reserve)} Md€ d’autorisation initiale, hypothèse de simulation. ${mandate} Scénario ${game.seed}. Le lien ouvre une nouvelle partie sans vos ordres. Simulation fictive, aucune prédiction.` };
+  }
+  const interrupted = Boolean(game.politics?.ending && game.politics.ending.kind !== 'term_complete');
+  if (!isFinished(game)) throw new Error('Terminez le mandat avant de partager son héritage.');
+  const orders = game.choices.filter(id => id !== 'live-tick').length;
+  const progress = `${game.turn} / ${domainFor(game).turns} périodes · ${orders} ordre${orders > 1 ? 's' : ''}`;
+  const spent = `${number(game.presidency?.spent ?? 0)} Md€ d’engagements`;
+  return { label: interrupted ? 'MANDAT INTERROMPU · HÉRITAGE SIMULÉ' : 'HÉRITAGE SIMULÉ · CINQ ANNÉES',
+    title: interrupted ? game.politics!.ending!.title : 'Votre trajectoire de mandat',
+    fields: [['Calendrier', progress], ['Services', `${Math.round(game.metrics.services)}/100`], ['Confiance', `${Math.round(game.metrics.trust)}/100`], ['Interventions', spent]],
+    url: resultURL(game, 'https://500signatures.fr'),
+    alt: `${interrupted ? 'Mandat interrompu' : 'Héritage simulé'}, scénario ${game.seed}. ${progress}. Services ${Math.round(game.metrics.services)}/100, confiance ${Math.round(game.metrics.trust)}/100. ${spent}. Autorisations et coûts de simulation. Aucune prédiction.` };
+}
+
 export function cardModel(g: Game, kind: CardKind) {
+  if (g.version === 16) return presidencyCardModel(g, kind);
   const d = domainFor(g);
   if (kind === 'decision') {
     if (!g.turn) throw new Error('Prenez une décision avant de la partager.');
@@ -70,13 +123,17 @@ function wrap(text: string, max: number): string[] {
 }
 export function cardSVG(g: Game, kind: CardKind, format: keyof typeof CARD_SIZES) {
   const m = cardModel(g, kind), [w,h] = CARD_SIZES[format], tall = h > 900;
-  const titleSize = tall ? 49 : 39, gap = tall ? (h - 650)/3 : 104;
+  const live = g.version === 16;
+  const titleSize = tall ? 49 : 39, gap = tall ? (h - 650)/3 : live ? 92 : 104;
   const modelLabel = g.version >= 11 ? domainFor(g).place : `${domainFor(g).place} · Modèle v${g.version}`;
   const label = (text:string,x:number,y:number,size:number,color='#f4f0e7') => `<text x="${x}" y="${y}" font-family="sans-serif" font-size="${size}" fill="${color}">${e(text)}</text>`;
-  const title = wrap(m.title, tall ? 31 : 48).map((line,i)=>label(line,72,218+i*(titleSize+8),titleSize)).join('');
+  const titleLines = wrap(m.title, tall ? 31 : 48);
+  const maxTitleLines = tall ? 3 : 2;
+  const visibleTitle = live && titleLines.length > maxTitleLines ? [...titleLines.slice(0, maxTitleLines - 1), `${titleLines[maxTitleLines - 1]!.slice(0, tall ? 29 : 46)}…`] : titleLines;
+  const title = visibleTitle.map((line,i)=>label(line,72,218+i*(titleSize+8),titleSize)).join('');
   const fields = m.fields.map(([name,value],i)=>{
-    const x = tall ? 72 : 72+(i%2)*550, y = tall ? 340+i*gap : 325+Math.floor(i/2)*gap;
-    return label(name.toLocaleUpperCase('fr'),x,y,17,'#aac7c9')+wrap(value,tall ? 61 : 42).map((line,j)=>label(line,x,y+32+j*26,21)).join('');
+    const x = tall ? 72 : 72+(i%2)*550, y = tall ? (live ? 390 : 340)+i*gap : (live ? 304 : 325)+Math.floor(i/2)*gap;
+    return label(name.toLocaleUpperCase('fr'),x,y,17,'#aac7c9')+wrap(value,tall ? 61 : 42).map((line,j)=>label(line,x,y+32+j*(live && !tall ? 22 : 26),live && !tall ? 18 : 21)).join('');
   }).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>${e(m.alt)}</title><rect width="${w}" height="${h}" fill="#09151b"/><rect x="30" y="30" width="${w-60}" height="${h-60}" rx="24" fill="#142e35" stroke="#50727b"/><path d="M${w-310} 30V150H${w-30}" fill="none" stroke="#e8c69b" opacity=".35"/>${label('MANDATS  /  500 SIGNATURES',72,97,25,'#e8c69b')}${label(m.label,72,145,19,'#bdd3d4')}${title}${fields}<path d="M72 ${h-139}H${w-72}" stroke="#50727b"/>${label('À vous de jouer : 500signatures.fr/mandats/',72,h-102,21,'#e8c69b')}${label(modelLabel,72,h-69,18,'#bdd3d4')}${label('SIMULATION FICTIVE · AUCUNE PRÉDICTION',72,h-43,16,'#bdd3d4')}</svg>`;
 }

@@ -1,0 +1,38 @@
+name: Mandats living presidency
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  presidency:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Explore independent time, autonomous government and resource invariants
+        run: node --experimental-strip-types scripts/mandats-presidency-audit.ts
+      - name: Play the live presidency on desktop, mobile and WebKit
+        run: npx playwright test --config playwright.presidency.config.ts
+      - name: Retain journals, screenshots, traces and model reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandats-presidency-${{ github.sha }}
+          path: site/presidency-artifacts/
+          retention-days: 14
