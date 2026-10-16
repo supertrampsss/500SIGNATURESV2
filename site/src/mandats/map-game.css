@@ -829,6 +829,7 @@ html body[data-rework="true"] #mandats .map-replay .replay-card { display: block
 .map-replay .replay-card__original { background: transparent; border-left: 0; padding: 0; color: var(--map-muted); font-size: 12px; }
 .map-replay .replay-selection__all { margin: 20px 0; }
 .map-replay .replay-selection__all summary { font-size: 14px; }
+html body[data-rework="true"] #mandats .map-replay .replay-selection__all > summary { color: var(--map-ink); }
 html body[data-rework="true"] #mandats .map-replay .replay-selection__back { background: transparent; color: var(--map-ink); border-color: #b6b5b4; margin-top: 16px; }
 body[data-rework="true"] .map-summary .trajectory-comparison { padding: 0; background: transparent; color: var(--map-ink); }
 body[data-rework="true"] .map-summary .trajectory-comparison h1 { font-size: 30px; color: var(--map-ink); }

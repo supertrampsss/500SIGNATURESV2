@@ -16,13 +16,13 @@ import type { PressureState, PressureChoice } from '../src/mandats/pressure-type
 import { AUTHORED_PRESSURE_EFFECTS, policyPressureEffects } from '../src/mandats/pressure-content.ts';
 
 type Intervention = Pick<PressureChoice, 'sector' | 'kind' | 'projectId'>;
-type Strategy = 'neglect' | 'anticipate' | 'temporary' | 'late-rescue' | 'overcommit' | 'austerity' | 'solidarity' | 'delegation';
+type Strategy = 'neglect' | 'anticipate' | 'temporary' | 'late-rescue' | 'overcommit' | 'austerity' | 'solidarity' | 'delegation' | 'crisis-recovery';
 type Option = { front: string; game: Game; choice: Choice; intervention?: Intervention };
 type Issue = { scenario: string; turn: number; message: string };
 
-const strategies: Strategy[] = ['neglect', 'anticipate', 'temporary', 'late-rescue', 'overcommit', 'austerity', 'solidarity', 'delegation'];
+const version = Number(process.env.MANDATS_PRESSURE_VERSION ?? 15) as Game['version'];
+const strategies: Strategy[] = ['neglect', 'anticipate', 'temporary', 'late-rescue', 'overcommit', 'austerity', 'solidarity', 'delegation', ...(version >= 15 ? ['crisis-recovery' as const] : [])];
 const ambitions: Ambition[] = ['equilibre', 'services', 'resilience'];
-const version = Number(process.env.MANDATS_PRESSURE_VERSION ?? 14) as Game['version'];
 const configuredSeedCount = boundedNumber(process.env.MANDATS_PRESSURE_SEEDS, 12, 1, 120);
 const seeds = process.env.MANDATS_PRESSURE_SEED_LIST
   ? [...new Set(process.env.MANDATS_PRESSURE_SEED_LIST.split(',').map(seed => boundedNumber(seed.trim(), 0, 0, 9999)))]
@@ -34,7 +34,7 @@ const runMatrix = process.env.MANDATS_PRESSURE_MATRIX !== '0';
 const authoredGuide = process.env.MANDATS_PRESSURE_AUTHORED_GUIDE ?? 'neglect';
 if (!['neglect', 'authored-first'].includes(authoredGuide)) throw new Error('Guide de parcours auteur invalide.');
 const output = resolve(process.env.MANDATS_PRESSURE_OUTPUT ?? 'pressure-artifacts/model');
-const sourceModules = ['types.ts', 'pressure-types.ts', 'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts',
+const sourceModules = ['types.ts', 'pressure-types.ts', 'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts', 'pressure-recovery.ts',
   'engine.ts', 'campaign.ts', 'narrative-engine.ts', 'narrative-consequences.ts', 'narrative-content.ts', 'rework-content.ts',
   'politics.ts', 'political-dilemmas.ts', 'social-engine.ts', 'social-content.ts', 'social-types.ts', 'national-agenda.ts', 'storage.ts'];
 async function sourceManifest() {
@@ -99,7 +99,7 @@ function safePolitical(c: Choice): number {
 /** Policies use only advertised effects and the current situation, never future votes. */
 function pick(g: Game, strategy: Strategy): Option {
   const current = pressure(g);
-  const actual = strategy === 'late-rescue' && g.turn < 10 ? 'neglect' : strategy;
+  const actual = (strategy === 'late-rescue' || strategy === 'crisis-recovery') && g.turn < 10 ? 'neglect' : strategy;
   const programmeExists = (sector: string) => current?.programmes.some(p => p.sector === sector && !['completed', 'cancelled', 'failed', 'withdrawn'].includes(p.status));
   // Rank fronts from the current, visible situation before reading their options.
   // This avoids rebuilding every unrelated dossier for every simulated decision.
@@ -122,6 +122,7 @@ function pick(g: Game, strategy: Strategy): Option {
     if (actual === 'austerity') return (o.front.startsWith('policy:') ? 100 : 0) + budget * 3 - (c.effect.investment ?? 0) + safePolitical(c);
     if (!p) return (actual === 'solidarity' && o.front.startsWith('policy:') && g.turn % 4 === 0 ? 180 : 0) + budget + safePolitical(c);
     const urgent = risk(g, p.sector), active = programmeExists(p.sector);
+    if (actual === 'crisis-recovery') return urgent + (c.id.endsWith('-recovery') ? 160 : p.kind === 'programme' ? active ? -70 : 90 : p.kind === 'relief' ? 35 : -80);
     if (actual === 'temporary') return urgent + (p.kind === 'relief' ? 100 : p.kind === 'maintain' ? 0 : -1000);
     if (actual === 'delegation') return urgent + (p.kind === 'delegate' ? 100 : p.kind === 'maintain' ? 0 : -1000);
     if (actual === 'overcommit') return urgent / 10 + (p.kind === 'programme' ? active ? 50 : 150 : -100);

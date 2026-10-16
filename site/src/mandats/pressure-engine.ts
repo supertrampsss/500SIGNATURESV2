@@ -177,7 +177,9 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     const event: PressureEvent = { id: `pressure-${sector}-${turn}-${result.events.length}`, sector, turn, kind: 'pressure', title, detail, causeTurn, weight };
     result.events.push(event); result.messages.push(detail); state.lastEvents.push(event);
     (kind === 'decision' ? state.lastDecision : state.lastWorld).push(detail);
+    return event;
   }
+  let waitingReceipt: PressureEvent | undefined;
 
   // Merely rendering an agenda never activates anything. The campaign supplies
   // the incident dossiers present when this real decision spends its period.
@@ -228,7 +230,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
       front.need = round(Math.max(0, front.need + (action.need ?? 0)));
       front.backlog = round(Math.max(0, front.backlog + (action.backlog ?? 0)));
       front.fatigue = round(limit(front.fatigue + (action.fatigue ?? 0), 0, 70));
-      record(action.sector, 'Le dossier reste ouvert', changesCapacity
+      waitingReceipt = record(action.sector, 'Le dossier reste ouvert', changesCapacity
         ? `${action.label} : l’organisation et les capacités sont modifiées comme annoncé. Les besoins continuent d’arriver.`
         : `${action.label} : aucune capacité supplémentaire n’est engagée. Les besoins et les moyens déjà en place déterminent la suite.`, 'decision');
       addCause(front, { kind: 'decision', turn: before.turn, choice: choice.id, label: action.label, direction: directionOf(action) });
@@ -385,6 +387,30 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
         result.unrest -= .5;
       }
     }
+  }
+
+  // The report describes this committed period, after deliveries and every
+  // sector have evolved. Published v14 quantities and accounting are unchanged.
+  // Replace the original receipt so the short verdict and durable history agree.
+  if (before.version >= 14 && action && waitingReceipt) {
+    const old = previous.sectors[action.sector], front = state.sectors[action.sector];
+    const number = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 }).format(value);
+    const waitingForFundedMeans = previous.programmes.some(item => item.sector === action.sector && item.status === 'preparing'
+      && ((item.capacity ?? 0) > 0 || (item.need ?? 0) < 0 || (item.backlog ?? 0) < 0));
+    const changesOrganisation = Boolean(action.capacity || action.need || action.backlog || action.fatigue);
+    const label = changesOrganisation ? 'Organisation modifiée'
+      : waitingForFundedMeans ? 'Attente des moyens déjà financés'
+      : action.kind === 'defer' ? 'Report sans renfort nouveau' : 'Moyens maintenus';
+    const delta = front.lastChange > 0 ? `+${number(front.lastChange)}` : number(front.lastChange);
+    const stage = front.stage === old.stage ? STAGE_LABELS[front.stage]
+      : `${STAGE_LABELS[old.stage]} → ${STAGE_LABELS[front.stage]}`;
+    const detail = `${label}. ${PRESSURE_SECTORS[action.sector].label} : retard ${delta} unité${Math.abs(front.lastChange) === 1 ? '' : 's'} sur la période, ${number(front.backlog)} au total. ${stage}. Pression ${number(old.pressure)} → ${number(front.pressure)}/100 ; fatigue ${number(old.fatigue)} → ${number(front.fatigue)}/100.${front.pressure >= 100 && front.lastChange > 0 ? ' La jauge est plafonnée à 100, pas le retard.' : ''}`;
+    const previousDetail = waitingReceipt.detail;
+    waitingReceipt.title = label;
+    waitingReceipt.detail = detail;
+    state.lastDecision = [detail, ...state.lastDecision.filter(item => item !== previousDetail)];
+    const messageIndex = result.messages.indexOf(previousDetail);
+    if (messageIndex >= 0) result.messages[messageIndex] = detail;
   }
 
   // Expenses are annual rates integrated only over periods actually active.

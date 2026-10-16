@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v14; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: 30 decisions over five annual chapters, with possible early political endings. New national games use v15; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -51,6 +51,22 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: reports and reform access (16 October 2026)
+
+The owner requires visible consequences for repeated deferrals and direct access to
+major national reforms. Keep the national reform button outside the emergency
+console's scrolling and disclosures, including while a front is open. Show the
+real current reform and identify upcoming authored reforms honestly; the existing
+residency/benefits dossier is not a complete immigration law.
+
+V15 adds a temporary recovery programme in disrupted/crisis sectors, dimensioned
+to the actual backlog with funding, preparation, shared implementation and finite
+delivery. Do not reset stocks or add a generic penalty per click. Preserve explicit
+v13/v14 numerical rules. Quantified waiting receipts are presentation fixes from
+v14 onward, including actual backlog changes beyond pressure 100 and funded waiting.
+Run `playwright.reports.config.ts` alongside command, pressure and existing gates.
+See [failure hypotheses and evidence](docs/mandats-reports-reformes.md).
 
 ### Mandats: interface rework (16 October 2026)
 

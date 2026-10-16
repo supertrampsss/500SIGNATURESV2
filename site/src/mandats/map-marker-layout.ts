@@ -6,7 +6,7 @@ export function mapObstacles(host: HTMLElement): MarkerBox[] {
   const bounds = host.getBoundingClientRect();
   const controls = [...host.querySelectorAll<HTMLElement>(".map-camera, [data-map-toggle]")];
   const command = host.closest(".map-game--command");
-  if (command) controls.push(...command.querySelectorAll<HTMLElement>(":scope > .map-subject, :scope > .map-situation-news, :scope > .map-situation-dock"));
+  if (command) controls.push(...command.querySelectorAll<HTMLElement>(":scope > .map-subject, :scope > .map-command-band, :scope > .map-situation-news, :scope > .map-situation-dock"));
   return controls.filter(control => getComputedStyle(control).visibility !== "hidden")
     .map(control => control.getBoundingClientRect())
     .filter(rectangle => rectangle.width > 0 && rectangle.height > 0 &&

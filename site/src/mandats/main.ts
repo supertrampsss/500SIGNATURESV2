@@ -432,7 +432,7 @@ async function action(target: HTMLElement) {
   const a = target.dataset.action;
   if (a === 'map-camera') { moveMapCamera(target.dataset.camera ?? 'reset'); return; }
   if (a === 'map-inspect') {
-    if (g?.version === 14 && g.mode === 'national' && g.narrative?.focus && matchMedia('(max-width: 820px)').matches) {
+    if (g && g.version >= 14 && g.mode === 'national' && g.narrative?.focus && matchMedia('(max-width: 820px)').matches) {
       // The phone initiative menu occupies the board; return to the actual map
       // before inspecting a place, without spending a decision.
       g = structuredClone(g); delete g.narrative!.focus; persist(); render(false);
@@ -512,7 +512,7 @@ async function action(target: HTMLElement) {
   if (a === "mode") {
     if (target.dataset.mode !== "national") { announce("Le mandat communal est temporairement indisponible."); return; }
     if (g) track("mode_switched");
-    g = start("national", freshSeed(), "equilibre", 14);
+    g = start("national", freshSeed(), "equilibre", 15);
     clearBranchReference();
     shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null;
     clearEntryLink(history); track("mode_selected"); persist();
@@ -520,7 +520,7 @@ async function action(target: HTMLElement) {
   else if (a === "choose-mission" && g) {
     const ambition = target.dataset.ambition as Ambition;
     if (!["equilibre","services","resilience"].includes(ambition)) { announce("Mission inconnue."); return; }
-    g = start("national", g.seed, ambition, g.version >= 14 ? 14 : g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
+    g = start("national", g.seed, ambition, g.version >= 15 ? 15 : g.version >= 14 ? 14 : g.version >= 13 ? 13 : g.version >= 12 ? 12 : g.version >= 11 ? 11 : g.version >= 10 ? 10 : 9);
     clearBranchReference();
     shared = false; inherited = false; screen = "briefing"; view = "decision"; planIds = null;
     persist(); track("onboarding_completed");
@@ -598,21 +598,21 @@ async function action(target: HTMLElement) {
     const context = target.dataset.context;
     const option = storyContextOptions().find(item => item.context === context);
     if (!option) { announce("Ce contexte n’est plus disponible."); return; }
-    clearBranchReference(); g = start("national", option.seed, "equilibre", 14); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
+    clearBranchReference(); g = start("national", option.seed, "equilibre", 15); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist();
   }
   else if (a === "next-year" && g) { screen = g.version >= 11 && g.mode === "national" ? "play" : "briefing"; view = "decision"; }
   else if (a === "start-year" && g) { screen = "play"; view = "decision"; }
   else if (a === "show-result" && g) { screen = isFinished(g) ? "result" : "play"; view = "decision"; }
   else if (a === "view") {
     view = target.dataset.view as View;
-    if (g?.version === 14 && view === "decision" && target.closest(".map-game__footer") && g.narrative) {
+    if (g && g.version >= 14 && view === "decision" && target.closest(".map-game__footer") && g.narrative) {
       g = structuredClone(g); delete g.narrative!.focus; persist();
     }
     if (g && g.version >= 12 && screen === "replay") screen = isFinished(g) ? "result" : "play";
     if ((g && g.version >= 11) && g.mode === "national" && view === "finance" && screen === "year") screen = "play";
   }
   else if (a === "new") { clearBranchReference(); inherited = false; ephemeralChallenge = false; screen = "select"; shared = false; g = null; planIds = null; clearEntryLink(history); }
-  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 14); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
+  else if (a === "new-run") { clearBranchReference(); g = start("national", freshSeed(), "equilibre", 15); shared = false; inherited = false; ephemeralChallenge = false; screen = "play"; view = "decision"; planIds = null; clearEntryLink(history); persist(); }
   else if (a === "replay" && g) { clearBranchReference(); track("replay_started"); adopt(startingGame(g)); persist(); }
   else if (a === "open-replay-selection" && g) { screen = "replay"; view = "decision"; planIds = null; }
   else if (a === "restore-origin" && g) {

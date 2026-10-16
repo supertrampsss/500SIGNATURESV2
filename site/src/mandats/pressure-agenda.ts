@@ -2,6 +2,7 @@ import type { NarrativeChoice, NarrativeEvent, NarrativeFamily } from './narrati
 import type { PressureChoice, PressureFront, PressureSectorId } from './pressure-types.ts';
 import type { Game } from './types.ts';
 import { PRESSURE_ASSUMPTION_NOTE, PRESSURE_DOSSIERS } from './pressure-content.ts';
+import { isPressureRecovery, pressureRecoveryPlan } from './pressure-recovery.ts';
 
 export type PressureAgendaFront = { event: NarrativeEvent; family: NarrativeFamily };
 const number = (value: number): string => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
@@ -27,7 +28,7 @@ function frontForSector(g: Game, sector: PressureSectorId): PressureAgendaFront 
   const live = programmes.filter(item => item.status === 'active' || item.status === 'preparing');
   const reliefActive = live.some(item => item.kind === 'relief' && addsSupport(item));
   const delegationActive = live.some(item => item.kind === 'delegate' && item.duration && addsSupport(item));
-  const supportPreparing = preparing.some(item => !item.duration && addsSupport(item));
+  const supportPreparing = preparing.some(item => (g.version >= 15 || !item.duration) && addsSupport(item));
   const structuralPreparing = preparing.some(item => !item.duration && addsSupport(item) && item.label === content.programme.title);
   const title = front.stage === 'crisis' || front.stage === 'disrupted'
     ? content.crisisTitle : front.stage === 'stable' ? content.calmTitle : content.strainTitle;
@@ -70,6 +71,24 @@ function frontForSector(g: Game, sector: PressureSectorId): PressureAgendaFront 
       effect: { investment: programme.investment, operating: programme.operating },
       relationships: { social: 3, regional: 2, reformist: 1 },
     }, metadata('programme', programme.title, { capacity: programme.capacity, delay: programme.delay, implementation: 2, fatigue: -8 })));
+  }
+
+  if (g.version >= 15 && (front.stage === 'disrupted' || front.stage === 'crisis')
+    && !live.some(isPressureRecovery)) {
+    const recovery = pressureRecoveryPlan(front, content);
+    const title = `Plan de rattrapage : ${content.family.title}`;
+    choices.push(withPressure({
+      id: 'recovery', title,
+      description: `Mobiliser une équipe temporaire dimensionnée à ${number(recovery.backlog)} unités du retard actuel, avec les besoins qui continuent d’arriver. Le programme prépare des moyens supplémentaires ; il n’efface pas la file à son financement.`,
+      cost: `${money(recovery.investment)} d’investissement ponctuel et ${money(recovery.operating)}/an pendant huit mois, soit environ ${money(recovery.operating * recovery.duration / 6)} de fonctionnement au total`,
+      benefit: `+${number(recovery.capacity)} unités de capacité par période pendant quatre périodes, au plus tôt après ${recovery.delay * 2} mois. Le retard diminue si la capacité effective dépasse les besoins entrants.`,
+      sacrifice: `Charge de mise en œuvre : ${recovery.implementation} unité${recovery.implementation > 1 ? 's' : ''} par période pendant au moins ${recovery.delay} périodes, partagée avec les autres chantiers. Le renfort prend fin après huit mois ; les moyens durables restent à financer.${g.turn + 1 + recovery.delay > 30 ? ' La première mise en service estimée dépasse la fin de ce mandat.' : ''}`,
+      effect: { investment: recovery.investment, temporaryOperating: recovery.operating },
+      relationships: { social: 2, regional: 1 },
+    }, metadata('programme', title, {
+      capacity: recovery.capacity, duration: recovery.duration,
+      delay: recovery.delay, implementation: recovery.implementation,
+    })));
   }
 
   if (!delegationActive) {
