@@ -1,0 +1,179 @@
+{
+  "version": 16,
+  "scope": "Matrice bornée, branches locales légales ; aucune exhaustivité revendiquée.",
+  "startedAt": "2026-10-17T11:57:33.370Z",
+  "completedAt": "2026-10-17T11:58:49.985Z",
+  "baseCommit": "9ea5f51919aab5133bee5f5cf678cde52dbccadf",
+  "sourceAtStart": {
+    "engine.ts": "9c6eb0c4f16c491dd5fd8606b549809ae82f33572e5c29b699bb91d12433d0ed",
+    "campaign.ts": "0569ba1679fb8d7e59b1bc0dae06e2fffba188f5d953d8c13a9b13701e84e5a3",
+    "types.ts": "aa1569979f5668b47fc68c0e1a44d81060d821ec3d7c8e26e768e2b25b6245f6",
+    "presidency-types.ts": "4bb43ce8958556da502fa30005f31db6c2a13308fe7d8bde2ff38acdac855b0f",
+    "presidency-engine.ts": "81626a772a88c6a2535613aa2592736e87aaec77d72748bac3f5ab1ebcc68e9b",
+    "pressure-types.ts": "c9a698025dd8f443c5cdeed30f318977351869f33fcbf8acb1473979c7550662",
+    "presidency-crises.ts": "dc0bb00d87d116d7ef38820a90eef81f1ccb61e09b3a73196667641afe9d105e",
+    "pressure-engine.ts": "f050461a808a71f66cf41e33f91b44fdfc821380f22d6db67e3895397fd3a7c8",
+    "pressure-content.ts": "c2339938a9caef4fb4184c5caf264e49d7eb6f709903b56ef3bd3a7cd73ecd55",
+    "pressure-agenda.ts": "9ca766c9c42e8940d254b92ef9bc2c50bbe96d4737dac30ed345bf8a10a40e67",
+    "pressure-recovery.ts": "99365a66b2bbbbfe72a788e05bc9c589aa29f5204d84733a7eb8ef459f880527",
+    "narrative-engine.ts": "b746a826553840de3b6e4206434cb6156ad84da5d767e9fbf058f72f2cf33d40",
+    "narrative-consequences.ts": "9f8181dc8c420c9ced8fd8bc48f539c3cb422b941afa3fc83f468fb2686edb46",
+    "narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+    "politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+    "political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+    "social-engine.ts": "12719608cf0d54ed74ca284ccc40ba5be23331fd67df3e89d2190d34c0b3ee44",
+    "social-content.ts": "1b0502efc86ed6ace5b300d7eefb8ae131018f9ffdc902c42f69ec99775e9109",
+    "social-types.ts": "2eaed854a5806f21753c9f86d129c7977c3fdb7f99cf36f4937e26218453e726",
+    "national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+    "storage.ts": "6ca0ca1dcfad062c7bc0c996967e4d15321dbf06b7c8ff9ac9a978af7a1bc3e2"
+  },
+  "sourceAtEnd": {
+    "engine.ts": "9c6eb0c4f16c491dd5fd8606b549809ae82f33572e5c29b699bb91d12433d0ed",
+    "campaign.ts": "0569ba1679fb8d7e59b1bc0dae06e2fffba188f5d953d8c13a9b13701e84e5a3",
+    "types.ts": "aa1569979f5668b47fc68c0e1a44d81060d821ec3d7c8e26e768e2b25b6245f6",
+    "presidency-types.ts": "4bb43ce8958556da502fa30005f31db6c2a13308fe7d8bde2ff38acdac855b0f",
+    "presidency-engine.ts": "81626a772a88c6a2535613aa2592736e87aaec77d72748bac3f5ab1ebcc68e9b",
+    "pressure-types.ts": "c9a698025dd8f443c5cdeed30f318977351869f33fcbf8acb1473979c7550662",
+    "presidency-crises.ts": "dc0bb00d87d116d7ef38820a90eef81f1ccb61e09b3a73196667641afe9d105e",
+    "pressure-engine.ts": "f050461a808a71f66cf41e33f91b44fdfc821380f22d6db67e3895397fd3a7c8",
+    "pressure-content.ts": "c2339938a9caef4fb4184c5caf264e49d7eb6f709903b56ef3bd3a7cd73ecd55",
+    "pressure-agenda.ts": "9ca766c9c42e8940d254b92ef9bc2c50bbe96d4737dac30ed345bf8a10a40e67",
+    "pressure-recovery.ts": "99365a66b2bbbbfe72a788e05bc9c589aa29f5204d84733a7eb8ef459f880527",
+    "narrative-engine.ts": "b746a826553840de3b6e4206434cb6156ad84da5d767e9fbf058f72f2cf33d40",
+    "narrative-consequences.ts": "9f8181dc8c420c9ced8fd8bc48f539c3cb422b941afa3fc83f468fb2686edb46",
+    "narrative-content.ts": "7ae3264933f79aee667c7c150f338bcd67465614c3caf0b894d0737717d6f0bb",
+    "politics.ts": "975a6df55492850ff684f1b72b55a0553ba80b6a69ef42afa88942c2d3a92b04",
+    "political-dilemmas.ts": "c49fa5b460246639b9fc724f5546ab575e08c5e5eee802ba0d075873298316a2",
+    "social-engine.ts": "12719608cf0d54ed74ca284ccc40ba5be23331fd67df3e89d2190d34c0b3ee44",
+    "social-content.ts": "1b0502efc86ed6ace5b300d7eefb8ae131018f9ffdc902c42f69ec99775e9109",
+    "social-types.ts": "2eaed854a5806f21753c9f86d129c7977c3fdb7f99cf36f4937e26218453e726",
+    "national-agenda.ts": "e53d9ac422a70ec33daae7c2ee27a4897216e5adf66415a299ac609db5a99d87",
+    "storage.ts": "6ca0ca1dcfad062c7bc0c996967e4d15321dbf06b7c8ff9ac9a978af7a1bc3e2"
+  },
+  "sourceChangedDuringRun": false,
+  "invariantChecks": 140420,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "ambitions": [
+    "equilibre",
+    "services",
+    "resilience"
+  ],
+  "trajectoryCount": 69,
+  "branchCount": 652,
+  "coverage": {
+    "ticks": 1680,
+    "commands": 1554,
+    "annualClosings": 253,
+    "governmentInitiatives": 365,
+    "rejectedVotes": 229,
+    "adoptedVotes": 356,
+    "preparations": 867,
+    "deliveries": 657,
+    "expirations": 430,
+    "executionContention": 208,
+    "blockedCommands": 1605,
+    "simultaneousCommands": 9,
+    "links": 10,
+    "contexts": [
+      "coalition",
+      "hospital",
+      "redress"
+    ],
+    "recoveredTrajectories": 6,
+    "fiveYearTrajectories": 15,
+    "legacyPeriods": 118,
+    "creditRequests": 2,
+    "creditRefusals": 1,
+    "journalBoundary": true
+  },
+  "legacy": {
+    "available": true,
+    "path": "/workspace/scratch/dfd933967793/500SIGNATURESV2/site/tests/fixtures/presidency-v15-before-crises.json.gz",
+    "trajectories": 6,
+    "periods": 118
+  },
+  "comparisons": [
+    {
+      "seed": 0,
+      "ambition": "equilibre",
+      "autonomousBacklogRelief": 242.073,
+      "structuralBacklogRelief": 271.07899999999995,
+      "lateRecoveryBacklogRelief": 97.475
+    },
+    {
+      "seed": 0,
+      "ambition": "services",
+      "autonomousBacklogRelief": 281.978,
+      "structuralBacklogRelief": 288.44300000000004,
+      "lateRecoveryBacklogRelief": 97.475
+    },
+    {
+      "seed": 0,
+      "ambition": "resilience",
+      "autonomousBacklogRelief": 242.53000000000003,
+      "structuralBacklogRelief": 271.799,
+      "lateRecoveryBacklogRelief": 97.475
+    },
+    {
+      "seed": 1,
+      "ambition": "equilibre",
+      "autonomousBacklogRelief": 127.81399999999998,
+      "structuralBacklogRelief": 209.61699999999996,
+      "lateRecoveryBacklogRelief": 122.05900000000001
+    },
+    {
+      "seed": 1,
+      "ambition": "services",
+      "autonomousBacklogRelief": 193.009,
+      "structuralBacklogRelief": 193.009,
+      "lateRecoveryBacklogRelief": 122.05900000000001
+    },
+    {
+      "seed": 1,
+      "ambition": "resilience",
+      "autonomousBacklogRelief": 146.89799999999997,
+      "structuralBacklogRelief": 266.193,
+      "lateRecoveryBacklogRelief": 122.05900000000001
+    },
+    {
+      "seed": 2,
+      "ambition": "equilibre",
+      "autonomousBacklogRelief": 193.356,
+      "structuralBacklogRelief": 218.27600000000004,
+      "lateRecoveryBacklogRelief": 178.84
+    },
+    {
+      "seed": 2,
+      "ambition": "services",
+      "autonomousBacklogRelief": 194.85000000000002,
+      "structuralBacklogRelief": 194.85000000000002,
+      "lateRecoveryBacklogRelief": 178.84
+    },
+    {
+      "seed": 2,
+      "ambition": "resilience",
+      "autonomousBacklogRelief": 134.987,
+      "structuralBacklogRelief": 224.434,
+      "lateRecoveryBacklogRelief": 178.84
+    }
+  ],
+  "priorities": [
+    {
+      "seed": 0,
+      "outcomesDiffer": true
+    },
+    {
+      "seed": 1,
+      "outcomesDiffer": true
+    },
+    {
+      "seed": 2,
+      "outcomesDiffer": true
+    }
+  ],
+  "issues": []
+}

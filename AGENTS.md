@@ -52,6 +52,33 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: contextual mobile board and complete decision loops (17 October 2026)
+
+The owner approved `docs/mandats-audit-plan-mobile-boucles.md`. Remove the old
+Réformes / Gouvernement / Priorités navigation: decisions belong on the map.
+Sector priorities are in sector cards, institutions and budgets in contextual
+events, programme preparation and delivery in sector follow-ups. The existing
+approved illustration remains. `presidency-board.css` owns the new viewport
+composition; `presidency-board-layout.ts` projects anchors, separates labels and
+groups close events when a small phone cannot fit them. A grouped event must
+remain named and actionable through its group. Keep the map draggable and its
+whole-country view available. Show pressure as pressure, never as service quality.
+
+Government agreement, vote result and appointment are separate saved transitions.
+A rejected identical proposal cannot be submitted repeatedly in one period.
+Reforms have contextual arrival, one explicit deferral, expiration, withdrawal
+and another orientation after rejection. `presidencyFeedback` supplies the real
+order result. A funded intervention still awaits teams and actual delivery.
+Budget redeployment conserves accounts and happens at most once per year.
+Seeded crisis selection considers conditions and prevention; civil pressure can
+recede when causes are treated. Preserve replay and explicit v1–15 rules.
+
+Verify both existing presidency/crisis journeys through
+`playwright.mobile-boucles.config.ts`, plus bounded, escalation and loops audits.
+Retain real mobile Chromium and WebKit gameplay recordings and saved legal inputs.
+Inspect labels, clusters, keyboard focus, both outcomes, pause and reduced motion.
+Animation presence in CSS is not proof of its visibility or of gameplay quality.
+
 ### Mandats: faithful miniature, spontaneous reforms and major crises (17 October 2026)
 
 The owner explicitly replaces the old map with the attached October 17 ImageGen

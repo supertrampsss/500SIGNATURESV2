@@ -1,0 +1,35 @@
+{
+  "input": {
+    "version": 16,
+    "mode": "national",
+    "seed": 2,
+    "ambition": "equilibre",
+    "choices": [
+      "live-autonomy"
+    ]
+  },
+  "final": {
+    "version": 16,
+    "mode": "national",
+    "seed": 2,
+    "choices": [
+      "live-autonomy",
+      "live-crisis-port-0-accord",
+      "live-tick",
+      "live-tick"
+    ],
+    "ambition": "equilibre"
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": "chromium",
+  "errors": [],
+  "phases": [
+    {
+      "phase": "recovery",
+      "operation": "none"
+    }
+  ]
+}

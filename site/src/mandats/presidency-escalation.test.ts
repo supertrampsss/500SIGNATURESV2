@@ -7,7 +7,7 @@ test('spontaneous reforms are seeded, actionable and disappear after a saved dec
   let g = startPresidency(2);
   const events = presidencyEvents(g).filter(e => e.kind === 'reform');
   assert.ok(events.length > 0);
-  assert.deepEqual(events, presidencyEvents(startPresidency(2)));
+  assert.deepEqual(events, presidencyEvents(startPresidency(2)).filter(e => e.kind === 'reform'));
   assert.notEqual(events[0].id, presidencyEvents(startPresidency(3)).find(e => e.kind === 'reform')!.id);
   const event = events[0], choice = event.choices.find(c => !c.presidencyOrder?.unavailable)!;
   g = decidePresidency(g, choice.id);

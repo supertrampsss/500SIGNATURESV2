@@ -18,7 +18,10 @@ export type PresidencyState = {
   crises?: PresidencyCrisis[];
   /** Civil escalation is clock-owned and separate from local incident slots. */
   civic?: { crisis?: PresidencyCrisis; nextPeriod: number; sustained: number; serial: number; cabinetResignationPeriod?: number };
-  reformEvents?: Array<{ id: string; offeredPeriod: number }>;
+  reformEvents?: Array<{ id: string; offeredPeriod: number; availablePeriod?: number; expiresPeriod?: number; reason?: string; deferred?: boolean }>;
+  reformArchive?: Array<{ id: string; period: number; outcome: 'expired' | 'withdrawn' }>;
+  cabinet?: { serial: number; name: string; appointedPeriod: number; agreement?: { name: string; period: number }; attempts: Array<{ choice: string; period: number }> };
+  lastFeedback?: { status: 'adopted' | 'rejected' | 'engaged' | 'delivered' | 'information'; title: string; detail: string };
   nextReformPeriod?: number;
   nextCrisisPeriod?: number;
   quietUntilPeriod?: number;
@@ -30,6 +33,8 @@ export type PresidencyState = {
   initiativeSerial?: number;
   initiatives: PresidencyInitiative[];
   reforms: Array<{ id: string; choice: string; period: number; adopted: boolean }>;
+  redeploymentYears?: number[];
+  budgetHoldYears?: number[];
   creditsRequested: number;
   creditYears: number[];
   /** Annual preparation happens once, even with several orders before a tick. */
