@@ -537,3 +537,9 @@ to {
   gap:1px
 }
 
+@media (max-width: 650px) {
+  .presidency:has([data-live-fan]:not([hidden])) .pr-sound,
+  .presidency:has([data-live-panel]:not([hidden])) .pr-sound {
+    visibility: hidden;
+  }
+}

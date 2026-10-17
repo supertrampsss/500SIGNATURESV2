@@ -27,6 +27,7 @@ test('crisis response is specific, paid once and animated only through actual de
   await page.locator('[data-crisis-id="cyber-0"]').click(); await page.clock.runFor(50);
   const response=page.locator('[data-order="live-crisis-cyber-0-restaurer"]');
   await expect(response).toContainText('Restaurer les systèmes isolés');
+  if(page.viewportSize().width<=650) await expect(page.locator('[data-action=presidency-sound]')).toBeHidden();
   await response.click();
   expect(JSON.parse(await page.evaluate(k=>localStorage.getItem(k),KEY)).choices.at(-1)).toBe('live-crisis-cyber-0-restaurer');
   await expect(page.locator('[data-crisis-effect="cyber-0"]')).toHaveAttribute('data-phase','intervention');

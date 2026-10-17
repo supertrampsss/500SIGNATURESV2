@@ -26,3 +26,28 @@ Les réponses sont identifiées par incident et option, les origines de propagat
 ## Vérification prévue
 
 Scénarios déterministes de financement, livraison, expiration/rechute, propagation, récupération, réserve et replay ; suite présidence et audit borné existants. Parcours navigateur au lancement, aggravation, réponses spécifiques, propagation, pause, motion réduite, clavier, mobile 390/320 px et WebKit. Captures et entrées conservées. Aucune prétention d'exhaustivité de toutes les suites de commandes.
+
+## Résultats et revue
+
+- `npm run check` : 1 086 tests et construction complète, dont pré-rendu, guides et précache, réussis. Une vérification des types et reconstruction du client ont suivi les corrections d'interface.
+- Audit borné : 60 trajectoires complètes, 1 006 branches locales, 166 008 contrôles d'invariants, aucune anomalie. Les empreintes moteur sont identiques avant et après l'exécution.
+- Les valeurs numériques v15 ont été extraites de `4c21961ac76802df192815a43fe951902eb5fd0f` dans une arborescence séparée, avant comparaison : six trajectoires et 118 périodes inchangées. La fixture compressée est conservée dans `site/tests/fixtures/presidency-v15-before-crises.json.gz` et relue par la CI.
+- Nouveaux parcours : financement et livraison, propagation, pause, mouvement réduit, deux incidents concurrents du même secteur, focus clavier après commande. Les formats 1672 × 941, 390 × 844, 320 × 740 et WebKit sont couverts. Les rapports et entrées restent sous `site/crises-artifacts/`; les contrôles historiques sous `site/presidency-artifacts/`.
+- Revue indépendante : correction de l'arbitrage ministériel qui ignorait un second incident dans un secteur déjà aidé, affichage immédiat du lien d'origine et retour du focus au secteur réellement commandé.
+- Revue des limites : le nombre de trois foyers simultanés et les douze incidents sont des choix de scénario, pas une couverture exhaustive des crises d'un pays. Le rythme et les coûts demandent encore un retour de parties humaines. Les six villes restent des repères illustratifs de stocks nationaux.
+
+Les essais initiaux sont conservés : une couche de carte interceptait les alertes et une entrée animée pouvait rester invisible en pause ; ces défauts ont été corrigés. Les parcours historiques ont été adaptés pour ouvrir puis parcourir les investissements généraux, désormais secondaires aux réponses spécifiques. Le fil ministériel reste visible sur téléphone même avec trois alertes. Une erreur d'archive de trace a entraîné le rejeu du parcours concerné, sans échec de ses assertions de jeu. Les rapports des phases sont séparés pour éviter leur écrasement.
+
+La vidéo de démonstration utilise les entrées légales v16, graine 2, autonomie suspendue, vitesse ×2 puis accord sur les horaires du port. Les effets filmés viennent du moteur et des programmes réellement livrés. Les sons sont désactivés par défaut.
+
+### Livraison vérifiée
+
+Les 20 nouveaux parcours passent sur les quatre formats. Les 44 parcours actifs de la suite présidence passent également ; ses 12 exclusions restent celles prévues par la configuration, sans exclusion nouvelle pour cette refonte. La dernière correction mobile masque le bouton sonore pendant l'ouverture des commandes pour préserver la lecture et les cibles.
+
+Sur trois graines supplémentaires de contrôle (0, 1, 2), une stratégie d'intervention durable termine les trente périodes et résout les huit incidents rencontrés, avec 2,38 à 2,77 Md€ de réserve restante. Ce contrôle borné confirme une sortie possible des crises ; il ne mesure pas la difficulté ressentie par des joueurs humains.
+
+- [Avant, ordinateur](mandats-crises-vivantes/avant-ordinateur.png)
+- [Après, propagation sur ordinateur](mandats-crises-vivantes/apres-ordinateur.png)
+- [Après, téléphone WebKit](mandats-crises-vivantes/apres-mobile.png)
+- [Vidéo de la partie réelle](mandats-crises-vivantes/mandats-crises.webm)
+- [Empreintes et résumé de l'audit](mandats-crises-modele.json)
