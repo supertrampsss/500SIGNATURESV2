@@ -127,12 +127,15 @@ async function capture(page, info, label, game = undefined) {
   // A frozen Playwright clock can leave Chromium's full-page capture waiting
   // for rendering frames. Pause the country, release browser frames for the
   // capture, then restore the controlled clock without changing saved inputs.
-  const wasRunning = await page.locator('[data-presidency-clock]').getAttribute('data-paused') === 'false';
+  const clock = page.locator('[data-presidency-clock]');
+  const hasPresidency = await clock.count() > 0;
+  const wasRunning = hasPresidency && await clock.getAttribute('data-paused') === 'false';
   const durable = await rawSave(page);
-  await pause(page);
+  // Explicit v15 imports render the legacy board, without a presidency clock.
+  if (hasPresidency) await pause(page);
   await page.clock.resume();
   try {
-    await page.screenshot({ path: screenshot, fullPage: true, animations: 'disabled' });
+    await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 });
   } finally {
     await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
     if (wasRunning) await resume(page);
