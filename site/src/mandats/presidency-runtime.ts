@@ -179,7 +179,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const news = presidencyCrises(next).filter(c => !presidencyCrises(previous).some(old => old.id === c.id));
     const changes = presidencyCrises(next).filter(c => presidencyCrises(previous).some(old => old.id === c.id && (old.status !== c.status || old.spec !== c.spec)));
     if (news.length || changes.length) {
-      slot<HTMLElement>("[data-live-announcement]").textContent = [...news.map(c => `${crisisSpec(c).title}. ${crisisSpec(c).cause}`), ...changes.map(c => `${crisisSpec(c).title} : ${c.status === "resolved" ? "incident levé" : c.status === "contained" ? "secours en service" : crisisSpec(c).cause}.`)].join(" ");
+      slot<HTMLElement>("[data-live-announcement]").textContent = [...news.map(c => `${crisisSpec(c).title}. ${c.originReason ?? crisisSpec(c).cause}`), ...changes.map(c => `${crisisSpec(c).title} : ${c.status === "resolved" ? "incident levé" : c.status === "contained" ? "secours en service" : crisisSpec(c).cause}.`)].join(" ");
       if (news.length || changes.length) tone(true);
     }
     host.dataset.turn = String(game.turn);
