@@ -28,7 +28,7 @@ export function crisisBrief(game: Game, sector: PressureSectorId): string {
   return presidencyCrises(game).filter(c => c.sector === sector && c.status !== 'resolved').map(c => {
     const s = crisisSpec(c);
     const parent = c.parentId ? presidencyCrises(game).find(p => p.id === c.parentId) : undefined;
-    return `<div class="pr-crisis-brief"><strong>${e(s.title)}</strong><p>${e(s.cause)}</p>${parent ? `<small>Conséquence de : ${e(crisisSpec(parent).title)}.</small>` : ''}<small>${c.status === 'contained' ? 'Le secours est temporaire. Une réponse durable reste possible.' : crisisSeverity(c, game.turn) > 1 ? e(s.worsening) : `Aggravation après ${c.deadline * 2} mois sans réponse opérationnelle.`}</small></div>`;
+    return `<div class="pr-crisis-brief"><strong>${e(s.title)}</strong><p>${e(c.originReason ?? s.cause)}</p>${parent ? `<small>Conséquence de : ${e(crisisSpec(parent).title)}.</small>` : ''}<small>${c.status === 'contained' ? 'Le secours est temporaire. Une réponse durable reste possible.' : crisisSeverity(c, game.turn) > 1 ? e(s.worsening) : `Aggravation après ${c.deadline * 2} mois sans réponse opérationnelle.`}</small></div>`;
   }).join('');
 }
 /** Live vectors are separate from the approved artwork. Every layer comes from
