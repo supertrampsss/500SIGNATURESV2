@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 const KEY='500signatures.mandats.v1';
 async function load(page, seed=0, choices=['live-autonomy']) {
   await page.clock.install(); await page.clock.pauseAt(Date.now()+1000);
@@ -70,7 +71,14 @@ test('reduced motion keeps alert and command information without flashing',async
 test('a second incident in the same sector gets ministerial means and keeps its own origin',async({page},info)=>{
   await load(page,0,Array(12).fill('live-tick'));
   await page.locator('[data-action="presidency-panel"][data-panel="government"]').click();
-  await expect(page.locator('[data-live-programme]').filter({hasText:'Mobiliser les réserves sanitaires'})).toHaveCount(1);
+  // The minister's finite relief can already have expired at period 12.
+  // Reconstruct the saved legal inputs to inspect its actual delivered origin.
+  const raw=await page.evaluate(k=>localStorage.getItem(k),KEY);
+  const storage=new URL('../src/mandats/storage.ts',import.meta.url).href;
+  const g=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','--input-type=module','-e',`import{decode}from${JSON.stringify(storage)};let raw='';for await(const p of process.stdin)raw+=p;process.stdout.write(JSON.stringify(decode(raw)));`],{input:raw,encoding:'utf8'}));
+  const incident=g.presidency.crises.find(c=>c.spec==='medicaments');
+  expect(incident.parentId).toBe('port-2');
+  expect(g.pressure.programmes.some(p=>p.crisisId===incident.id && p.label==='Mobiliser les réserves sanitaires' && p.deliveredTurn!==undefined)).toBe(true);
   await capture(page,info,'07-deux-incidents-meme-secteur');
 });
 
@@ -91,4 +99,58 @@ test('live updates preserve an open development section and its reading position
   await tick(page);
   await expect(page.locator('.pr-sector-development')).toHaveAttribute('open','');
   expect(Math.abs(await fan.evaluate(e=>e.scrollTop)-scroll)).toBeLessThan(3);
+});
+
+test('reforms arrive on the map and one choice saves its vote without opening the reform tab',async({page},info)=>{
+  await load(page,2);
+  const brand=await page.locator('.pr-brand').boundingBox(), calendar=await page.locator('.pr-calendar').boundingBox();
+  expect(brand.x+brand.width).toBeLessThanOrEqual(calendar.x+1);
+  const lastResource=await page.locator('.pr-resource--seats').boundingBox();
+  expect(lastResource.x+lastResource.width).toBeLessThanOrEqual(page.viewportSize().width);
+  const pin=page.locator('[data-live-event-pin]').first();
+  const id=await pin.getAttribute('data-live-event-pin');
+  await pin.focus();await page.keyboard.press('Enter');await page.clock.runFor(80);
+  const fan=page.locator('[data-presidency-event]');
+  await expect(fan).toBeVisible();
+  await expect(page.locator('[data-presidency-panel]')).toHaveCount(0);
+  const action=fan.locator('[data-order]:not(:disabled)').first();
+  const choice=await action.getAttribute('data-order');await action.click();
+  expect(JSON.parse(await page.evaluate(k=>localStorage.getItem(k),KEY)).choices.at(-1)).toBe(choice);
+  await expect(page.locator(`[data-live-event-pin="${id}"]`)).toHaveCount(0);
+  await expect(page.locator('[data-presidency]')).toHaveAttribute('data-turn','0');
+  await expect(page.locator('[data-presidency-art]')).toHaveAttribute('src','/mandats/art/presidency-france-v2.webp');
+  await capture(page,info,'08-reforme-sur-carte');
+});
+
+test('major civil stages are visible and neglect ends the mandate with a persisted defeat',async({page},info)=>{
+  await load(page,2);
+  for(const stage of ['Grève interprofessionnelle','Blocages dans le pays','Révolte sociale','Crise révolutionnaire']) {
+    for(let p=0;p<9 && !await page.locator('[data-crisis-id="civil-0"] strong').filter({hasText:stage}).count();p++) await tick(page);
+    await expect(page.locator('[data-crisis-id="civil-0"]')).toContainText(stage);
+    await expect(page.locator('[data-live-event-pin="civil-0"]')).toBeVisible();
+    await capture(page,info,'09-'+stage.split(' ')[0]);
+  }
+  await page.locator('[data-live-event-pin="civil-0"]').click();await page.clock.runFor(80);
+  await expect(page.locator('[data-presidency-event="civil-0"] [data-order="live-resign"]')).toBeVisible();
+  await page.locator('[data-action=presidency-deselect]').click();
+  for(let p=0;p<6 && !await page.locator('[data-presidency-panel=ending]').count();p++) await tick(page);
+  await expect(page.locator('[data-presidency-panel=ending]')).toContainText('Le mandat s’interrompt');
+  await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
+  const save=await page.evaluate(k=>localStorage.getItem(k),KEY);await page.clock.runFor(60000);
+  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe(save);
+  await capture(page,info,'10-defaite');
+});
+
+test('a civil agreement uses the map, waits for delivery and lifts the blockade',async({page},info)=>{
+  await load(page,2);
+  for(let p=0;p<9 && !await page.locator('[data-live-event-pin="civil-0"]').count();p++) await tick(page);
+  await page.locator('[data-live-event-pin="civil-0"]').click();await page.clock.runFor(80);
+  const action=page.locator('[data-presidency-event="civil-0"] [data-order$="-accord-social"]');
+  await action.scrollIntoViewIfNeeded();await action.click();
+  await expect(page.locator('[data-crisis-effect="civil-0"]')).toHaveAttribute('data-phase','intervention');
+  await tick(page,2);
+  await expect(page.locator('[data-crisis-id="civil-0"]')).toHaveCount(0);
+  await expect(page.locator('[data-live-event-pin="civil-0"]')).toHaveCount(0);
+  await expect(page.locator('[data-presidency-panel=ending]')).toHaveCount(0);
+  await capture(page,info,'11-accord-social-livre');
 });

@@ -1,0 +1,27 @@
+# Carte miniature et événements sur le pays
+
+17 octobre 2026. La [référence ImageGen jointe par le propriétaire](mandats-reference-v2/reference.png) remplace l’ancienne illustration pour la présidence v16. La consigne courante prime les anciennes instructions de conservation de cette carte. L’interface doit reprendre le rendu détaillé, les mers bleu marine, les terres ivoire, les reliefs alpins et le port, avec de vrais contrôles au-dessus de l’image.
+
+## Réalisation
+
+L’image de production `site/public/mandats/art/presidency-france-v2.webp` (1672 × 941) provient d’une édition avec l’outil intégré ImageGen de la référence approuvée. Conversion WebP qualité 94 ; aucun contrôle, chiffre ou texte n’est inclus dans le fond. Les anciennes versions gardent leur image. Les six secteurs métiers existants restent ceux du moteur ; les six exemples de secteurs de la maquette ne constituent pas un changement de modèle.
+
+La composition v16 comporte un bandeau marine, les ressources réelles sur papier, la carte, des étiquettes ivoire, la situation à droite, un fil d’actualité et les six secteurs en bas. Les crises locales, les mouvements civils, les décisions institutionnelles et les réformes s’ouvrent directement depuis la carte. Le catalogue reste un accès supplémentaire. Un ordre ne consomme pas de période. Son financement, sa préparation, son vote et sa livraison gardent leurs règles.
+
+Les anneaux, circulations, véhicules d’intervention, files, attroupements, barricades et fumées sont calculés à partir des événements enregistrés. Les fumées concernent les défaillances électriques graves et les révoltes ; une panne informatique ne devient pas arbitrairement un incendie. Les fronts propagés dessinent une route causale. Les rythmes suivent gravité et vitesse. Pause arrête délais et animations ; mouvement réduit garde les mêmes informations sans pulsation. Les sons sont facultatifs. Les panneaux conservent leur défilement pendant les mises à jour et le clavier retrouve un contrôle après fermeture.
+
+Les réformes arrivent selon une permutation reproductible avec la graine. Les troubles majeurs exigent une situation dégradée et des incidents ignorés ; aucun tirage isolé ne termine le mandat. Voir [les règles et les parcours](mandats-escalade-v16.md).
+
+## Prompt utilisé, outil ImageGen intégré
+
+> Use case: precise-object-edit. Asset type: production background for the Mandats strategy browser game. Input image 1 is the approved visual reference. Extract and reconstruct ONLY its main France map as a full 16:9 landscape artwork, filling the entire image. Faithfully preserve the remarkable detailed realistic isometric miniature rendering, warm sandy ivory fields, navy blue sea, fine roads and railways, dense tiny cities and people, Paris Eiffel Tower at x43% y29%, Lille at x51% y11%, Lyon industrial town at x64% y50%, Marseille large working port at x68% y77%, Bordeaux at x34% y65%, Rennes at x24% y31%, Strasbourg at x69% y25%, snowy Alpine mountain chain on the right. Northern France at top, Atlantic at left, Mediterranean at bottom right. Same low oblique camera, cinematic sunlight, tangible stone buildings, rich microdetail and restrained natural colors as original. Remove ALL interface elements: header, bottom strips, side storyboard, alert labels, rings, red paths, choice cards, typography, numbers, map place names. Reconstruct terrain behind removed UI. No baked emergency smoke, fires, red circles or disaster effects; map is calm, emergency effects will be live layers. No borders, no text, no labels, no UI. This must look like the original illustrated miniature, never a flat vector or geometric mockup.
+
+Le fond est une illustration, pas un rendu 3D navigable. La géographie est illustrative et les repères décrivent une situation nationale.
+
+## Vérifications
+
+Les captures après sont issues de la partie réelle, pas de la maquette ImageGen. Les parcours conservent graine, commandes, navigateur, dimensions, captures et traces. Les configurations `playwright.crises.config.ts` et `playwright.presidency.config.ts` couvrent 1672 × 941, 390 × 844, 320 × 740 et WebKit. Le parcours annuel résout maintenant les mouvements civils avant de vérifier le terme à trente périodes ; laisser tout se dégrader ne doit plus gagner automatiquement.
+
+Le build complet et les **1 090 tests** passent. Les configurations couvrent **80 parcours navigateur distincts validés** (44 présidence, 36 crises), plus les douze exclusions de configuration déjà présentes. Les vérifications ciblées après corrections passent : 16 parcours crises et six présidence. Le [rapport agrégé](mandats-reference-v2/validation.json) conserve les premiers résultats, les reprises et les causes des corrections, sans effacer les échecs initiaux. Le mode hors connexion télécharge réellement le nouveau fond.
+
+Les [captures ordinateur](mandats-reference-v2/ordinateur-revolte.png), [mobile](mandats-reference-v2/mobile.png), [320 px](mandats-reference-v2/compact.png) et [WebKit](mandats-reference-v2/webkit.png) ont été inspectées. La [vidéo de partie réelle](mandats-reference-v2/mandats-reference.webm) utilise la graine 2 : révolte, révolution, financement puis livraison d’un accord avec les équipes disponibles. Les [entrées de cette partie](mandats-reference-v2/partie.json) sont conservées. La difficulté reste un réglage de simulation et les parcours bornés ne couvrent pas toutes les combinaisons.

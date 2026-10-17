@@ -1,5 +1,6 @@
 /** Compact inline symbols stay legible on the board without an icon font. */
 const paths: Record<string, string> = {
+  port: '<circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 11h10M3 14c0 9 18 9 18 0M3 14l-1 4m1-4 4 1m14-1 1 4m-1-4-4 1"/>',
   health: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z" fill="currentColor" stroke="none"/>',
   housing: '<path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10"/>',
   transport: '<rect x="5" y="3" width="14" height="15" rx="4"/><path d="M5 11h14M8 21l2-3m6 3-2-3M9 14h.01M15 14h.01"/>',

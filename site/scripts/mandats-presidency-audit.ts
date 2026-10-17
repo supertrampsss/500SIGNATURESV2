@@ -15,14 +15,14 @@ import { decode, encode } from '../src/mandats/storage.ts';
 import type { PressureSectorId } from '../src/mandats/pressure-types.ts';
 import type { Ambition, Choice, Game } from '../src/mandats/types.ts';
 
-type Strategy = 'autonomy' | 'neglect' | 'health' | 'structural' | 'late-recovery' | 'overcommit' | 'priority-health' | 'priority-education';
+type Strategy = 'autonomy' | 'neglect' | 'health' | 'structural' | 'late-recovery' | 'overcommit' | 'priority-health' | 'priority-education' | 'civil-recovery';
 type Issue = { scenario: string; period: number; message: string; choice?: string };
 const output = resolve(process.env.MANDATS_PRESIDENCY_OUTPUT ?? 'presidency-artifacts/model');
 const seeds = (process.env.MANDATS_PRESIDENCY_SEEDS ?? '0,1,2').split(',').map(Number);
 if (!seeds.length || seeds.length > 12 || seeds.some(seed => !Number.isInteger(seed) || seed < 0 || seed > 9999)) throw Error('Graines invalides.');
 const ambitions: Ambition[] = ['equilibre', 'services', 'resilience'];
 const sectors: PressureSectorId[] = ['health', 'housing', 'transport', 'energy', 'education', 'administration'];
-const strategies: Strategy[] = ['autonomy', 'neglect', 'health', 'structural', 'late-recovery', 'overcommit'];
+const strategies: Strategy[] = ['autonomy', 'neglect', 'health', 'structural', 'late-recovery', 'overcommit', 'civil-recovery'];
 const modules = ['engine.ts', 'campaign.ts', 'types.ts', 'presidency-types.ts', 'presidency-engine.ts', 'pressure-types.ts',
   'presidency-crises.ts', 'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts', 'pressure-recovery.ts', 'narrative-engine.ts',
   'narrative-consequences.ts', 'narrative-content.ts', 'politics.ts', 'political-dilemmas.ts', 'social-engine.ts',
@@ -212,6 +212,16 @@ function programmeExists(g: Game, sector: PressureSectorId) {
   return g.pressure!.programmes.some(item => item.sector === sector && item.kind === 'programme' && !item.duration && item.status !== 'cancelled');
 }
 function commands(g: Game, strategy: Strategy, scenario: string) {
+  if (strategy === 'civil-recovery') {
+    if (g.presidency!.autonomy) g = transition(g, 'live-autonomy', scenario);
+    const civic = g.presidency!.civic?.crisis;
+    const response = available(g).filter(choice => choice.pressure?.crisisOutcome === 'resolve')
+      .sort((a, b) => Number(b.pressure?.crisisId === civic?.id) - Number(a.pressure?.crisisId === civic?.id))[0];
+    if (response) g = execute(g, response, scenario);
+    const credit = presidencyCreditsChoice(g);
+    if (g.presidency!.reserve < 1.3 && !credit.presidencyOrder?.unavailable) g = execute(g, credit, scenario);
+    return g;
+  }
   if (['autonomy', 'neglect', 'priority-health', 'priority-education'].includes(strategy)) return g;
   if (strategy === 'health') {
     if (!programmeExists(g, 'health')) g = execute(g, best(g, 'programme', 'health'), scenario);
@@ -226,6 +236,15 @@ function commands(g: Game, strategy: Strategy, scenario: string) {
     return g;
   }
   if (strategy === 'late-recovery') {
+    // Service investment is delayed until period 10, but the president still
+    // answers an announced civil crisis before its actual intervention window.
+    const civic = g.presidency!.civic?.crisis;
+    if (civic?.status === 'active') {
+      const response = available(g, civic.sector).find(choice => choice.pressure?.crisisId === civic.id && choice.pressure.crisisOutcome === 'resolve');
+      g = execute(g, response, scenario);
+    }
+    const credit = presidencyCreditsChoice(g);
+    if (g.turn >= 10 && g.presidency!.reserve < 1.3 && !credit.presidencyOrder?.unavailable) g = execute(g, credit, scenario);
     if (g.turn < 10) return g;
     return execute(g, best(g, 'recovery') ?? best(g, 'programme') ?? best(g, 'relief'), scenario);
   }
@@ -310,7 +329,7 @@ try {
   try { decidePresidency(g, 'live-autonomy'); } catch { nextOrderRejected = true; }
   check(nextOrderRejected, scenario, 0, 'Les ordres peuvent consommer les places réservées aux dernières périodes.');
   while (!isFinished(g)) g = transition(g, 'live-tick', scenario);
-  check(g.choices.length === 512 && g.turn === 30, scenario, 30, 'La limite du journal empêche de finir le calendrier.');
+  check(g.choices.length === 482 + g.turn && g.choices.length <= 512 && !!g.politics?.ending, scenario, g.turn, 'La limite du journal empêche de terminer le mandat ou dépasse les entrées réservées.');
   validateRoundTrip(g, scenario); coverage.journalBoundary = true;
   specialCases.push({ scenario, input: JSON.parse(encode(g)), details: { journalLength: g.choices.length, period: g.turn } });
 } catch (error) { issues.push({ scenario: 'journal-boundary', period: -1, message: error instanceof Error ? error.stack ?? error.message : String(error) }); }
