@@ -124,7 +124,20 @@ async function capture(page, info, label, game = undefined) {
   const state = game ?? await saved(page);
   const screenshot = info.outputPath(`${label}.png`);
   const inputs = info.outputPath(`${label}.json`);
-  await page.screenshot({ path: screenshot, fullPage: true, animations: 'disabled' });
+  // A frozen Playwright clock can leave Chromium's full-page capture waiting
+  // for rendering frames. Pause the country, release browser frames for the
+  // capture, then restore the controlled clock without changing saved inputs.
+  const wasRunning = await page.locator('[data-presidency-clock]').getAttribute('data-paused') === 'false';
+  const durable = await rawSave(page);
+  await pause(page);
+  await page.clock.resume();
+  try {
+    await page.screenshot({ path: screenshot, fullPage: true, animations: 'disabled' });
+  } finally {
+    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
+    if (wasRunning) await resume(page);
+  }
+  expect(await rawSave(page)).toBe(durable);
   await writeFile(inputs, JSON.stringify({ url: page.url(), browser: info.project.name, viewport: page.viewportSize(), inputs: { version: state.version, mode: state.mode, seed: state.seed, ambition: state.ambition, choices: state.choices }, state }, null, 2));
   await info.attach(label, { path: screenshot, contentType: 'image/png' });
   await info.attach(`${label}-inputs-and-state`, { path: inputs, contentType: 'application/json' });
