@@ -36,6 +36,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
   let focusReturn: HTMLElement | null = null;
   let fanFrame = 0;
+  let renderedSector: PressureSectorId | null = null;
   let sound = false;
   let audio: AudioContext | undefined;
   let lastBeat = 0;
@@ -134,8 +135,16 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
 
   function drawFan(): void {
     const anchor = slot<HTMLElement>("[data-live-fan]");
+    const sameSector = selected !== null && renderedSector === selected;
+    const oldFan = anchor.querySelector<HTMLElement>(".pr-fan");
+    const scroll = sameSector ? oldFan?.scrollTop ?? 0 : 0;
+    const developmentOpen = sameSector && Boolean(anchor.querySelector(".pr-sector-development[open]"));
     anchor.hidden = !selected;
     anchor.innerHTML = selected ? presidencyFan(game, selected) : "";
+    renderedSector = selected;
+    if (developmentOpen) anchor.querySelector<HTMLDetailsElement>(".pr-sector-development")?.setAttribute("open", "");
+    const nextFan = anchor.querySelector<HTMLElement>(".pr-fan");
+    if (nextFan) nextFan.scrollTop = scroll;
     if (selected) positionFan();
   }
 

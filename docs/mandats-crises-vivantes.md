@@ -42,7 +42,7 @@ La vidéo de démonstration utilise les entrées légales v16, graine 2, autonom
 
 ### Livraison vérifiée
 
-Les 20 nouveaux parcours passent sur les quatre formats. Les 44 parcours actifs de la suite présidence passent également ; ses 12 exclusions restent celles prévues par la configuration, sans exclusion nouvelle pour cette refonte. La dernière correction mobile masque le bouton sonore pendant l'ouverture des commandes pour préserver la lecture et les cibles.
+Les 24 nouveaux parcours passent sur les quatre formats. Les 44 parcours actifs de la suite présidence passent également ; ses 12 exclusions restent celles prévues par la configuration, sans exclusion nouvelle pour cette refonte. La dernière correction mobile masque le bouton sonore pendant l'ouverture des commandes pour préserver la lecture et les cibles.
 
 Sur trois graines supplémentaires de contrôle (0, 1, 2), une stratégie d'intervention durable termine les trente périodes et résout les huit incidents rencontrés, avec 2,38 à 2,77 Md€ de réserve restante. Ce contrôle borné confirme une sortie possible des crises ; il ne mesure pas la difficulté ressentie par des joueurs humains.
 
@@ -51,3 +51,5 @@ Sur trois graines supplémentaires de contrôle (0, 1, 2), une stratégie d'inte
 - [Après, téléphone WebKit](mandats-crises-vivantes/apres-mobile.png)
 - [Vidéo de la partie réelle](mandats-crises-vivantes/mandats-crises.webm)
 - [Empreintes et résumé de l'audit](mandats-crises-modele.json)
+
+Un dernier parcours reproduit puis corrige la fermeture de « Développer ce secteur » lors du passage du temps. Les quatre formats conservent désormais l’ouverture et la position de lecture, sans suspendre le pays.

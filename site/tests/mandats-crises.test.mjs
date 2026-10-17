@@ -80,3 +80,15 @@ test('a crisis order returns keyboard focus to its own sector',async({page})=>{
   await page.locator('[data-order="live-crisis-port-0-detourner"]').click();
   await expect(page.locator('[data-live-pin="transport"]')).toBeFocused();
 });
+
+test('live updates preserve an open development section and its reading position',async({page})=>{
+  await load(page);
+  await page.locator('[data-crisis-id="cyber-0"]').click();await page.clock.runFor(50);
+  await page.locator('.pr-sector-development summary').click();
+  const fan=page.locator('.pr-fan');
+  await fan.evaluate(e=>{e.scrollTop=100;});
+  const scroll=await fan.evaluate(e=>e.scrollTop);
+  await tick(page);
+  await expect(page.locator('.pr-sector-development')).toHaveAttribute('open','');
+  expect(Math.abs(await fan.evaluate(e=>e.scrollTop)-scroll)).toBeLessThan(3);
+});
