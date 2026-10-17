@@ -154,7 +154,7 @@ function spawn(g: Game, spec: CrisisSpec, parentId?: string, originReason?: stri
   const p = g.presidency!; p.crises ??= [];
   p.crises.push({ id: `${spec.id}-${g.turn}`, spec: spec.id, sector: spec.sector,
     startedPeriod: g.turn, sourceJournalIndex: g.choices.length, deadline: spec.deadline, status: 'active', ...(originReason ? { originReason } : {}), ...(parentId ? { parentId } : {}) });
-  p.lastEvents.push(`${spec.title}. ${parentId ? `Conséquence de « ${crisisSpec(p.crises.find(c => c.id === parentId)!).title} ». ` : ''}${spec.cause}`);
+  p.lastEvents.push(`${spec.title}. ${parentId ? `Conséquence de « ${crisisSpec(p.crises.find(c => c.id === parentId)!).title} ». ` : ''}${originReason ?? spec.cause}`);
 }
 export function initialCrises(g: Game): void {
   const p = g.presidency!; p.crises = []; p.nextCrisisPeriod = 2;
