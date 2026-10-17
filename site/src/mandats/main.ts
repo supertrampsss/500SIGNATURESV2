@@ -49,6 +49,7 @@ import { mountPresidency } from './presidency-runtime.ts';
 import './presidency.css';
 import './presidency-crises.css';
 import './presidency-reference.css';
+import './presidency-board.css';
 import './presidency-session.css';
 
 const root = document.querySelector<HTMLElement>("#mandats")!;

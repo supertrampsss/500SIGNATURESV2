@@ -28,30 +28,42 @@ export function crisisBrief(game: Game, sector: PressureSectorId): string {
   return presidencyCrises(game).filter(c => c.sector === sector && c.status !== 'resolved').map(c => {
     const s = crisisSpec(c);
     const parent = c.parentId ? presidencyCrises(game).find(p => p.id === c.parentId) : undefined;
-    return `<div class="pr-crisis-brief"><strong>${e(s.title)}</strong><p>${e(s.cause)}</p>${parent ? `<small>Conséquence de : ${e(crisisSpec(parent).title)}.</small>` : ''}<small>${c.status === 'contained' ? 'Le secours est temporaire. Une réponse durable reste possible.' : crisisSeverity(c, game.turn) > 1 ? e(s.worsening) : `Aggravation après ${c.deadline * 2} mois sans réponse opérationnelle.`}</small></div>`;
+    return `<div class="pr-crisis-brief"><strong>${e(s.title)}</strong><p>${e(c.originReason ?? s.cause)}</p>${parent ? `<small>Conséquence de : ${e(crisisSpec(parent).title)}.</small>` : ''}<small>${c.status === 'contained' ? 'Le secours est temporaire. Une réponse durable reste possible.' : crisisSeverity(c, game.turn) > 1 ? e(s.worsening) : `Aggravation après ${c.deadline * 2} mois sans réponse opérationnelle.`}</small></div>`;
   }).join('');
 }
 /** Live vectors are separate from the approved artwork. Every layer comes from
  * saved incidents/programmes, including real delivery and temporary expiration. */
 export function crisisEffects(game: Game): string {
-  const effects = presidencyCrises(game).filter(c => c.status !== 'resolved' || c.resolvedPeriod === game.turn).map(c => {
+  const effects = presidencyCrises(game).filter(c => c.status !== 'resolved' || c.resolvedPeriod !== undefined && game.turn - c.resolvedPeriod <= 1).map(c => {
     const [x, y] = crisisAnchor(c), severity = crisisSeverity(c, game.turn);
-    const preparing = game.pressure!.programmes.some(p => p.crisisId === c.id && p.status === 'preparing');
+    const programme = game.pressure!.programmes.find(p => p.crisisId === c.id && p.status === 'preparing');
+    const preparing = !!programme;
     const phase = c.status === 'resolved' ? 'recovery' : preparing ? 'intervention' : c.status;
-    const windows = Array.from({length: 8}, (_, i) => `<rect class="pr-life-window" x="${(i % 4) * 8 - 14}" y="${Math.floor(i / 4) * 9 - 12}" width="3" height="4" style="--i:${i}"/>`).join('');
-    const people = Array.from({length: 8}, (_, i) => `<g class="pr-life-person" style="--i:${i}" transform="translate(${i * 5 - 20} ${20 + i % 2 * 5})"><circle r="1.5" cy="-3"/><path d="M0 0v5m-2-3h4"/></g>`).join('');
+    const totalWork = programme ? Math.max(1, (programme.delay ?? 1) * (programme.implementation ?? 1)) : 1;
+    const progress = programme ? Math.max(0, Math.min(99, Math.round(100 * (1 - programme.remainingWork / totalWork)))) : 0;
+    const operation = programme ? programme.lastDelayTurn === game.turn ? 'late' : progress > 0 ? 'working' : 'preparing' : 'none';
     const civil = ['greve','blocage','revolte','revolution'].includes(c.spec);
-    const crowd = civil ? `<g class="pr-life-crowd">${Array.from({length: c.spec === 'greve' ? 22 : 65},(_,i)=>`<g transform="translate(${(i%13)*4-26} ${Math.floor(i/13)*4-5})"><circle r="1"/><path d="M0 1v3"/></g>`).join('')}<path class="pr-life-barricade" d="M-35 21h70m-62-4 5 8m8-8 5 8m8-8 5 8m8-8 5 8"/></g>` : '';
-    const smoke = c.status === 'active' && ((c.sector === 'energy' && severity >= 2) || ['revolte','revolution'].includes(c.spec)) ? `<g>${Array.from({length:4},(_,i)=>`<ellipse class="pr-life-smoke" cx="${i*9-16}" cy="-9" rx="9" ry="13" style="--i:${i}"/>`).join('')}${['energy','transport'].includes(c.sector) || civil ? '<path class="pr-life-fire" d="M-8 6Q-13-6-4-12Q-7 0 1-4Q7-21 11-9Q23 9 7 12Z"/>' : ''}</g>` : '';
-    const intervention = preparing ? '<path class="pr-response-route" d="M-110 50Q-50 50 0 0"/><g class="pr-response-vehicle"><rect x="-5" y="-3" width="10" height="6"/><path d="M-2 0h4m-2-2v4"/></g>' : '';
-    return `<g class="pr-life" data-crisis-effect="${e(c.id)}" data-phase="${phase}" data-sector="${c.sector}" data-severity="${severity}" transform="translate(${x} ${y})"><title>${e(crisisSpec(c).title)} : ${phase === 'recovery' ? 'rétablissement' : phase === 'intervention' ? 'réponse en préparation' : c.status === 'contained' ? 'secours en service' : 'perturbation active'}</title><ellipse class="pr-life-ground" rx="54" ry="28"/><ellipse class="pr-life-wave" rx="36" ry="20"/><ellipse class="pr-life-wave pr-life-wave--second" rx="36" ry="20"/>
-      <g class="pr-life-city">${windows}</g>${crowd}${smoke}${people}<path class="pr-life-road" d="M-50 32Q0 5 55 30"/><rect class="pr-life-traffic" x="-3" y="-2" width="6" height="4"/>
-      ${c.sector === 'energy' && c.status === 'active' ? '<path class="pr-life-fault" d="m-10-26 7 12-8 8 16 10"/>' : ''}${intervention}
-      ${phase === 'recovery' ? '<path class="pr-recovery-stroke" d="M-25 3Q0-25 25 3"/>' : ''}</g>`;
+    const recovered = phase === 'recovery';
+    const contained = c.status === 'contained';
+    const relieved = recovered || contained;
+    const windows = Array.from({length: 8}, (_, i) => `<rect class="pr-life-window" x="${(i % 4) * 10 - 18}" y="${Math.floor(i / 4) * 10 - 18}" width="5" height="6" style="--i:${i}"/>`).join('');
+    // People and vehicles are screen-legible scene elements, not a population count.
+    const people = Array.from({length: relieved ? 3 : severity * 3 + 3}, (_, i) => `<g transform="translate(${i % 6 * 9 - 24} ${18 + Math.floor(i / 6) * 10})"><g class="pr-life-person" style="--i:${i}"><circle r="2.3" cy="-4"/><path d="M0 0v7m-3-4h6"/></g></g>`).join('');
+    const crowd = civil ? `<g class="pr-life-crowd">${Array.from({length: relieved ? 8 : c.spec === 'greve' ? 18 : 36},(_,i)=>`<g transform="translate(${(i%9)*7-28} ${Math.floor(i/9)*8-13})"><g class="pr-life-protester" style="--i:${i}"><circle r="2"/><path d="M0 3v5m-3-3h6"/>${i%5 === 0 ? '<path class="pr-life-placard" d="M3 3v-10h9v6H3"/>' : ''}</g></g>`).join('')}</g>` : '';
+    const blockade = !recovered && (c.spec === 'port' || civil && c.spec !== 'greve') ? '<g class="pr-life-barricade"><path d="M-40 30h80m-76-5 8 10m12-10 8 10m12-10 8 10m12-10 8 10"/><path d="M-38 30v9m76-9v9"/></g>' : '';
+    const smoke = c.status === 'active' && ((c.sector === 'energy' && severity >= 2) || ['revolte','revolution'].includes(c.spec)) ? `<g>${Array.from({length:4},(_,i)=>`<ellipse class="pr-life-smoke" cx="${i*11-18}" cy="-10" rx="11" ry="16" style="--i:${i}"/>`).join('')}<path class="pr-life-fire" d="M-8 6Q-13-6-4-12Q-7 0 1-4Q7-21 11-9Q23 9 7 12Z"/></g>` : '';
+    const physicalResponse = ['energy','health','housing','transport'].includes(c.sector) && c.spec !== 'port';
+    const work = preparing ? `<g class="pr-response-work" data-work-progress="${progress}"><title>${operation === 'late' ? 'Équipes partagées, intervention retardée' : progress ? 'Intervention en cours' : 'Préparation engagée'} : ${progress} % du travail effectué</title><rect x="-35" y="44" width="70" height="6"/><rect class="pr-response-progress" x="-35" y="44" width="${70 * progress / 100}" height="6"/><path class="pr-response-tools" d="m-7 34 14-14m-14 0 14 14"/>${physicalResponse ? '<path class="pr-response-route" d="M-110 50Q-50 50 0 0"/><g class="pr-response-vehicle"><rect x="-9" y="-5" width="18" height="10"/><path d="M-4 0h8m-4-4v8"/><circle cx="-5" cy="6" r="2"/><circle cx="5" cy="6" r="2"/></g>' : '<g class="pr-response-talk"><circle cx="-10" cy="26" r="4"/><circle cx="10" cy="26" r="4"/><path d="M-6 29h12"/></g>'}</g>` : '';
+    const ship = c.spec === 'port' ? `<g class="pr-life-ship"><path class="pr-ship-hull" d="M-27 0L20-7 29-2 16 12-17 15Z"/><path class="pr-ship-deck" d="M-23-1L19-7 24-3 14 4-16 8Z"/><path class="pr-ship-cargo" d="M-9-5l10-2 0 7-10 2Zm13-2 10-2v7L4 0Z"/><path class="pr-ship-bridge" d="M-19-9l7-1v12l-7 2Z"/><path d="M-17-8v-6m-3 0h6"/><path class="pr-ship-detail" d="M-17-4h3m6 2 8-1m5-2 7-1"/><path class="pr-ship-wake" d="M-35 8h-20m23 6h-15"/></g>` : '';
+    const traffic = ['transport','health'].includes(c.sector) ? '<path class="pr-life-road" d="M-50 32Q0 5 55 30"/><g class="pr-life-traffic"><rect x="-8" y="-4" width="16" height="8"/><circle cx="-4" cy="5" r="2"/><circle cx="5" cy="5" r="2"/></g>' : '';
+    return `<g class="pr-life" data-crisis-effect="${e(c.id)}" data-phase="${phase}" data-service="${c.status}" data-operation="${operation}" data-kind="${e(c.spec)}" data-sector="${c.sector}" data-severity="${severity}" transform="translate(${x} ${y})"><title>${e(crisisSpec(c).title)} : ${recovered ? 'rétablissement, retards encore à résorber' : preparing ? `réponse engagée, ${progress} % du travail effectué` : contained ? 'secours temporaire en service' : 'perturbation active'}</title><g class="pr-life-scene"><ellipse class="pr-life-ground" rx="${48 + severity * 8}" ry="${24 + severity * 4}"/><ellipse class="pr-life-wave" rx="36" ry="20"/><ellipse class="pr-life-wave pr-life-wave--second" rx="36" ry="20"/>
+      ${c.sector === 'energy' ? `<g class="pr-life-city">${windows}</g>` : ''}${crowd}${smoke}${!civil && c.sector !== 'energy' ? people : ''}${blockade}${ship}${traffic}
+      ${c.sector === 'energy' && !relieved ? '<path class="pr-life-fault" d="m-10-26 7 12-8 8 16 10"/>' : ''}${work}
+      ${recovered ? '<path class="pr-recovery-stroke" d="M-25 3Q0-25 25 3"/>' : ''}</g></g>`;
   });
   const routes = presidencyCrises(game).filter(c => c.parentId && c.status !== 'resolved').map(c => {
     const parent = presidencyCrises(game).find(p => p.id === c.parentId)!;
-    if (parent.status !== 'active') return '';
+    if (!parent || parent.status !== 'active') return '';
     const [x1, y1] = crisisAnchor(parent), [x2, y2] = crisisAnchor(c);
     // A same-sector sequel is represented by its alert, without a zero-length route.
     if (parent.sector === c.sector) return '';

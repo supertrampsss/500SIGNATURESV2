@@ -6,6 +6,7 @@ export type PresidencyCrisis = {
   id: string; spec: string; sector: PressureSectorId; startedPeriod: number;
   sourceJournalIndex: number; stageStartedPeriod?: number; deadline: number; status: 'active' | 'contained' | 'resolved';
   parentId?: string; propagated?: boolean; resolvedPeriod?: number;
+  originReason?: string; recoveryPeriods?: number;
 };
 type Response = { id: string; title: string; detail: string; sacrifice: string; investment: number;
   operating: number; delay: number; work: number; capacity: number; duration?: number; outcome: 'contain' | 'resolve' };
@@ -20,14 +21,17 @@ export const PRESIDENCY_CRISES: readonly CrisisSpec[] = [
   { id: 'cyber', sector: 'health', title: 'Hôpital paralysé', cause: 'Une cyberattaque bloque les dossiers et désorganise les admissions.',
     worsening: 'Les admissions sont réorientées ; les transferts s’accumulent.', recovery: 'Les admissions reprennent ; les soins reportés restent à rattraper.', loss: 2.4, need: .6, deadline: 2, propagation: 'ambulances', responses: [
       response('papier', 'Passer en dossiers papier', 'Organiser les soins en mode dégradé pendant quatre mois.', 'La panne informatique reste ouverte.', 0, .36, 1, 1, .3, 'contain', 2),
+      response('unite-mobile', 'Installer une unité de soins autonome', 'Maintenir les admissions urgentes hors du système informatique pendant huit mois.', 'Trois équipes mobilisées ; la cyberattaque reste à réparer.', .3, .72, 1, 3, 1.1, 'contain', 4),
       response('restaurer', 'Restaurer les systèmes isolés', 'Reconstruire les accès sécurisés avant de reconnecter les services.', 'Deux unités d’exécution par période pendant quatre mois minimum.', .55, 0, 2, 2, .4, 'resolve') ] },
   { id: 'transformateur', sector: 'energy', title: 'Réseau électrique coupé', cause: 'Un transformateur endommagé prive plusieurs équipements de leur alimentation habituelle.',
     worsening: 'Les équipements de secours fatiguent et des services ferment.', recovery: 'Le réseau reprend son alimentation normale.', loss: 2.3, need: .4, deadline: 2, propagation: 'medicaments', responses: [
       response('groupes', 'Déployer les groupes de secours', 'Alimenter les équipements prioritaires pendant six mois.', 'Les groupes ne réparent pas le réseau.', .05, .3, 1, 1, .2, 'contain', 3),
+      response('reparation-urgence', 'Réparer en urgence avec une équipe renforcée', 'Mobiliser immédiatement un transformateur de réserve et quatre équipes spécialisées.', 'Investissement supérieur ; quatre équipes retirées aux autres interventions.', 1.2, 0, 1, 4, .3, 'resolve'),
       response('remplacer', 'Remplacer le transformateur', 'Réparer le point de rupture avec une équipe spécialisée.', 'L’équipe reste mobilisée quatre mois minimum.', .65, 0, 2, 2, .6, 'resolve') ] },
   { id: 'port', sector: 'transport', title: 'Port bloqué', cause: 'Un conflit sur les horaires interrompt le chargement des marchandises.',
     worsening: 'Les stocks de pièces et de fournitures diminuent.', recovery: 'Les quais rouvrent et les livraisons redémarrent.', loss: 2.2, need: .5, deadline: 2, propagation: 'medicaments', responses: [
       response('detourner', 'Détourner les livraisons', 'Réserver des itinéraires alternatifs pendant quatre mois.', 'Deux unités logistiques mobilisées ; le conflit reste ouvert.', 0, .6, 1, 2, .4, 'contain', 2),
+      response('accord-accelere', 'Financer une reprise négociée en urgence', 'Appliquer un accord de reprise avec une équipe de négociation et une équipe logistique.', 'Deux équipes et une enveloppe plus élevée ; rotations supplémentaires durables.', .32, .36, 1, 2, .3, 'resolve'),
       response('accord', 'Négocier un accord sur les horaires', 'Financer les rotations supplémentaires et préparer la reprise.', 'Le nouvel accord conserve un coût annuel.', .08, .18, 2, 1, .5, 'resolve') ] },
   { id: 'evacuation', sector: 'housing', title: 'Immeubles évacués', cause: 'Une expertise impose l’évacuation de logements dangereux.',
     worsening: 'L’hébergement provisoire se remplit.', recovery: 'Les logements sécurisés accueillent à nouveau les habitants.', loss: 1.4, need: 1.6, deadline: 3, propagation: 'guichets', responses: [
@@ -109,6 +113,7 @@ export const presidencyCrises = (g: Game): PresidencyCrisis[] => [...(g.presiden
 const active = (g: Game) => presidencyCrises(g).filter(c => c.status !== 'resolved');
 const localActive = (g: Game) => (g.presidency?.crises ?? []).filter(c => c.status !== 'resolved');
 export function crisisPhase(crisis: PresidencyCrisis, programmes: readonly PressureProgramme[], period: number): PresidencyCrisis['status'] {
+  if (crisis.status === 'resolved') return 'resolved';
   const delivered = programmes.filter(p => p.crisisId === crisis.id && p.deliveredTurn !== undefined && p.deliveredTurn <= period);
   if (delivered.some(p => p.crisisOutcome === 'resolve' && p.status !== 'cancelled')) return 'resolved';
   if (delivered.some(p => p.crisisOutcome === 'contain' && p.status !== 'cancelled' && (p.endsTurn ?? Infinity) > period)) return 'contained';
@@ -145,11 +150,11 @@ export function crisisChoices(g: Game, sector: PressureSectorId): Choice[] {
     }));
   });
 }
-function spawn(g: Game, spec: CrisisSpec, parentId?: string): void {
+function spawn(g: Game, spec: CrisisSpec, parentId?: string, originReason?: string): void {
   const p = g.presidency!; p.crises ??= [];
   p.crises.push({ id: `${spec.id}-${g.turn}`, spec: spec.id, sector: spec.sector,
-    startedPeriod: g.turn, sourceJournalIndex: g.choices.length, deadline: spec.deadline, status: 'active', ...(parentId ? { parentId } : {}) });
-  p.lastEvents.push(`${spec.title}. ${parentId ? `Conséquence de « ${crisisSpec(p.crises.find(c => c.id === parentId)!).title} ». ` : ''}${spec.cause}`);
+    startedPeriod: g.turn, sourceJournalIndex: g.choices.length, deadline: spec.deadline, status: 'active', ...(originReason ? { originReason } : {}), ...(parentId ? { parentId } : {}) });
+  p.lastEvents.push(`${spec.title}. ${parentId ? `Conséquence de « ${crisisSpec(p.crises.find(c => c.id === parentId)!).title} ». ` : ''}${originReason ?? spec.cause}`);
 }
 export function initialCrises(g: Game): void {
   const p = g.presidency!; p.crises = []; p.nextCrisisPeriod = 2;
@@ -178,13 +183,36 @@ export function advanceCrises(g: Game, previous: Game): void {
     spawn(g, target, old.id); c.propagated = true; used.add(target.id);
   }
   if (g.turn < (p.nextCrisisPeriod ?? 2) || localActive(g).length >= 3) return;
-  const candidates = PRESIDENCY_CRISES.filter(s => !CIVIC_STAGES.includes(s.id) && !used.has(s.id));
-  candidates.sort((a, b) => {
-    const score = (s: CrisisSpec) => g.pressure!.sectors[s.sector].pressure + ((g.seed * 13 + g.turn * 17 + PRESIDENCY_CRISES.indexOf(s) * 23) % 41);
-    return score(b) - score(a) || a.id.localeCompare(b.id);
+  const candidates = crisisDirectorCandidates(g);
+  if (candidates.length) {
+    const total = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
+    let draw = directorRandom(g.seed, g.turn, p.crises.length) * total;
+    const picked = candidates.find(candidate => (draw -= candidate.weight) < 0) ?? candidates[candidates.length - 1];
+    spawn(g, picked.spec, undefined, picked.reason);
+  }
+  const load = localActive(g).length;
+  p.nextCrisisPeriod = g.turn + 2 + Math.floor(directorRandom(g.seed, g.turn, 91) * 3) + (load >= 2 ? 1 : 0);
+}
+
+/** Stateless seeded draw: reloads, inspection and repeated clicks cannot reroll it. */
+function directorRandom(seed: number, period: number, salt: number): number {
+  let x = (seed ^ Math.imul(period + 1, 0x45d9f3b) ^ Math.imul(salt + 1, 0x27d4eb2d)) >>> 0;
+  x = Math.imul(x ^ (x >>> 16), 0x45d9f3b) >>> 0;
+  return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
+}
+/** Weighted eligible opportunities. Authored propagation remains causal, not random. */
+export function crisisDirectorCandidates(g: Game): { spec: CrisisSpec; weight: number; reason: string }[] {
+  const crises = g.presidency?.crises ?? [], used = new Set(crises.map(c => c.spec));
+  const season = g.turn % 6;
+  return PRESIDENCY_CRISES.filter(spec => !CIVIC_STAGES.includes(spec.id) && !used.has(spec.id)
+    && (spec.id !== 'chaleur' || season === 2 || season === 3)).map(spec => {
+    const pressure = g.pressure!.sectors[spec.sector].pressure;
+    const recent = crises.some(c => c.sector === spec.sector && g.turn - (c.resolvedPeriod ?? c.startedPeriod) <= 4);
+    const prevention = g.pressure!.programmes.some(p => p.sector === spec.sector && p.status === 'active' && (p.capacity ?? 0) > 0);
+    const seasonal = spec.id === 'chaleur' || (['transformateur', 'maintenance'].includes(spec.id) && (season === 0 || season === 5));
+    const weight = Math.max(1, (12 + pressure + (seasonal ? 25 : 0)) * (recent ? .25 : 1) * (prevention ? .55 : 1));
+    return { spec, weight, reason: `${spec.cause} Pression du secteur : ${Math.round(pressure)}/100.${seasonal ? ' Vulnérabilité saisonnière.' : ''}${prevention ? ' Les moyens déjà livrés réduisent le risque, sans le supprimer.' : ''}` };
   });
-  if (candidates[0]) spawn(g, candidates[0]);
-  p.nextCrisisPeriod = g.turn + 3 + g.seed % 2;
 }
 
 /** Civil stages are simulation hypotheses, not a constitutional destitution rule.
@@ -212,7 +240,25 @@ export function advanceCivicPressure(g: Game): void {
         return;
       }
     }
+    // Removing the causes can reverse mobilisation; it does not restore a fallen cabinet.
+    c.recoveryPeriods = ignored === 0 && mean < 45 ? (c.recoveryPeriods ?? 0) + 1 : 0;
+    if (c.recoveryPeriods >= 2) {
+      const stage = CIVIC_STAGES.indexOf(c.spec);
+      c.recoveryPeriods = 0;
+      if (stage > 0) {
+        c.spec = CIVIC_STAGES[stage - 1]; c.stageStartedPeriod = g.turn; c.deadline = 3;
+        p.lastEvents.push(`La mobilisation recule : ${crisisSpec(c).title.toLocaleLowerCase('fr-FR')}. Les incidents négligés ont disparu et la pression des services diminue.`);
+        politics.unrest = clamp(politics.unrest - 6);
+      } else {
+        c.status = 'resolved'; c.resolvedPeriod = g.turn; civic.nextPeriod = g.turn + 4; civic.sustained = 0;
+        politics.unrest = clamp(politics.unrest - 12);
+        p.lastEvents.push('La grève prend fin après le rétablissement des services. Les retards acquis restent à traiter.');
+      }
+      return;
+    }
     if (phase === 'contained') { c.deadline++; return; }
+    // A deadline alone cannot turn an improving conflict into a revolution.
+    if (ignored === 0) { c.deadline++; return; }
     if (g.turn - (c.stageStartedPeriod ?? c.startedPeriod) < c.deadline) return;
     const stage = CIVIC_STAGES.indexOf(c.spec);
     if (stage === 3) {

@@ -1,0 +1,1239 @@
+{
+  "journeys": 16,
+  "records": [
+    {
+      "seed": 0,
+      "strategy": "neglect",
+      "period": 15,
+      "ending": {
+        "kind": "rupture",
+        "title": "Le mandat s’interrompt",
+        "reason": "La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.",
+        "turn": 15,
+        "causes": [
+          "Grève puis blocages non résolus",
+          "Révolte devenue crise révolutionnaire",
+          "Délai de sortie de crise épuisé"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 6,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "blocage",
+          "deadline": 10,
+          "status": "active"
+        },
+        {
+          "period": 10,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 15,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 0,
+      "strategy": "civil-negotiation",
+      "period": 30,
+      "ending": {
+        "kind": "term_complete",
+        "title": "Fin du mandat",
+        "reason": "Les cinq années du mandat se sont écoulées.",
+        "turn": 30,
+        "causes": []
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 6,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "greve",
+          "deadline": 6,
+          "status": "resolved"
+        },
+        {
+          "period": 10,
+          "stage": "greve",
+          "deadline": 12,
+          "status": "active"
+        },
+        {
+          "period": 12,
+          "stage": "greve",
+          "deadline": 12,
+          "status": "resolved"
+        },
+        {
+          "period": 16,
+          "stage": "greve",
+          "deadline": 18,
+          "status": "active"
+        },
+        {
+          "period": 18,
+          "stage": "greve",
+          "deadline": 18,
+          "status": "resolved"
+        },
+        {
+          "period": 22,
+          "stage": "greve",
+          "deadline": 24,
+          "status": "active"
+        },
+        {
+          "period": 24,
+          "stage": "greve",
+          "deadline": 24,
+          "status": "resolved"
+        }
+      ],
+      "reserve": 3.6,
+      "spent": 2.8,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-1-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-2-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-3-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 0,
+      "strategy": "resignation",
+      "period": 13,
+      "ending": {
+        "kind": "resignation",
+        "title": "Vous démissionnez",
+        "reason": "Vous présentez votre démission face à la crise révolutionnaire.",
+        "turn": 13,
+        "causes": [
+          "Crise révolutionnaire ouverte",
+          "Démission présidentielle choisie"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 6,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "blocage",
+          "deadline": 10,
+          "status": "active"
+        },
+        {
+          "period": 10,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 15,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 0,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-resign"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 1,
+      "strategy": "neglect",
+      "period": 16,
+      "ending": {
+        "kind": "rupture",
+        "title": "Le mandat s’interrompt",
+        "reason": "La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.",
+        "turn": 16,
+        "causes": [
+          "Grève puis blocages non résolus",
+          "Révolte devenue crise révolutionnaire",
+          "Délai de sortie de crise épuisé"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 7,
+          "stage": "blocage",
+          "deadline": 9,
+          "status": "active"
+        },
+        {
+          "period": 9,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 16,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 1,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 1,
+      "strategy": "civil-negotiation",
+      "period": 30,
+      "ending": {
+        "kind": "term_complete",
+        "title": "Fin du mandat",
+        "reason": "Les cinq années du mandat se sont écoulées.",
+        "turn": 30,
+        "causes": []
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "resolved"
+        },
+        {
+          "period": 10,
+          "stage": "greve",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 12,
+          "stage": "greve",
+          "deadline": 13,
+          "status": "resolved"
+        },
+        {
+          "period": 16,
+          "stage": "greve",
+          "deadline": 19,
+          "status": "active"
+        },
+        {
+          "period": 18,
+          "stage": "greve",
+          "deadline": 19,
+          "status": "resolved"
+        },
+        {
+          "period": 22,
+          "stage": "greve",
+          "deadline": 25,
+          "status": "active"
+        },
+        {
+          "period": 24,
+          "stage": "greve",
+          "deadline": 25,
+          "status": "resolved"
+        }
+      ],
+      "reserve": 3.6,
+      "spent": 2.8,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 1,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-1-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-2-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-3-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 1,
+      "strategy": "resignation",
+      "period": 13,
+      "ending": {
+        "kind": "resignation",
+        "title": "Vous démissionnez",
+        "reason": "Vous présentez votre démission face à la crise révolutionnaire.",
+        "turn": 13,
+        "causes": [
+          "Crise révolutionnaire ouverte",
+          "Démission présidentielle choisie"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 7,
+          "stage": "blocage",
+          "deadline": 9,
+          "status": "active"
+        },
+        {
+          "period": 9,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 16,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 1,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-resign"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 2,
+      "strategy": "neglect",
+      "period": 17,
+      "ending": {
+        "kind": "rupture",
+        "title": "Le mandat s’interrompt",
+        "reason": "La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.",
+        "turn": 17,
+        "causes": [
+          "Grève puis blocages non résolus",
+          "Révolte devenue crise révolutionnaire",
+          "Délai de sortie de crise épuisé"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 8,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 17,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 2,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 2,
+      "strategy": "civil-negotiation",
+      "period": 30,
+      "ending": {
+        "kind": "term_complete",
+        "title": "Fin du mandat",
+        "reason": "Les cinq années du mandat se sont écoulées.",
+        "turn": 30,
+        "causes": []
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "resolved"
+        },
+        {
+          "period": 10,
+          "stage": "greve",
+          "deadline": 14,
+          "status": "active"
+        },
+        {
+          "period": 12,
+          "stage": "greve",
+          "deadline": 14,
+          "status": "resolved"
+        },
+        {
+          "period": 16,
+          "stage": "greve",
+          "deadline": 20,
+          "status": "active"
+        },
+        {
+          "period": 18,
+          "stage": "greve",
+          "deadline": 20,
+          "status": "resolved"
+        },
+        {
+          "period": 22,
+          "stage": "greve",
+          "deadline": 26,
+          "status": "active"
+        },
+        {
+          "period": 24,
+          "stage": "greve",
+          "deadline": 26,
+          "status": "resolved"
+        }
+      ],
+      "reserve": 3.6,
+      "spent": 2.8,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 2,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-1-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-2-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-3-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 2,
+      "strategy": "resignation",
+      "period": 13,
+      "ending": {
+        "kind": "resignation",
+        "title": "Vous démissionnez",
+        "reason": "Vous présentez votre démission face à la crise révolutionnaire.",
+        "turn": 13,
+        "causes": [
+          "Crise révolutionnaire ouverte",
+          "Démission présidentielle choisie"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 8,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 17,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 2,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-resign"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 17,
+      "strategy": "neglect",
+      "period": 17,
+      "ending": {
+        "kind": "rupture",
+        "title": "Le mandat s’interrompt",
+        "reason": "La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.",
+        "turn": 17,
+        "causes": [
+          "Grève puis blocages non résolus",
+          "Révolte devenue crise révolutionnaire",
+          "Délai de sortie de crise épuisé"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 8,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 17,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 17,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 17,
+      "strategy": "civil-negotiation",
+      "period": 30,
+      "ending": {
+        "kind": "term_complete",
+        "title": "Fin du mandat",
+        "reason": "Les cinq années du mandat se sont écoulées.",
+        "turn": 30,
+        "causes": []
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 6,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "resolved"
+        },
+        {
+          "period": 10,
+          "stage": "greve",
+          "deadline": 14,
+          "status": "active"
+        },
+        {
+          "period": 12,
+          "stage": "greve",
+          "deadline": 14,
+          "status": "resolved"
+        },
+        {
+          "period": 16,
+          "stage": "greve",
+          "deadline": 20,
+          "status": "active"
+        },
+        {
+          "period": 18,
+          "stage": "greve",
+          "deadline": 20,
+          "status": "resolved"
+        },
+        {
+          "period": 22,
+          "stage": "greve",
+          "deadline": 26,
+          "status": "active"
+        },
+        {
+          "period": 24,
+          "stage": "greve",
+          "deadline": 26,
+          "status": "resolved"
+        }
+      ],
+      "reserve": 3.6,
+      "spent": 2.8,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 17,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-1-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-2-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-3-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 17,
+      "strategy": "resignation",
+      "period": 13,
+      "ending": {
+        "kind": "resignation",
+        "title": "Vous démissionnez",
+        "reason": "Vous présentez votre démission face à la crise révolutionnaire.",
+        "turn": 13,
+        "causes": [
+          "Crise révolutionnaire ouverte",
+          "Démission présidentielle choisie"
+        ]
+      },
+      "stages": [
+        {
+          "period": 4,
+          "stage": "greve",
+          "deadline": 8,
+          "status": "active"
+        },
+        {
+          "period": 8,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "revolution",
+          "deadline": 17,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 17,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-resign"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 99,
+      "strategy": "neglect",
+      "period": 16,
+      "ending": {
+        "kind": "rupture",
+        "title": "Le mandat s’interrompt",
+        "reason": "La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.",
+        "turn": 16,
+        "causes": [
+          "Grève puis blocages non résolus",
+          "Révolte devenue crise révolutionnaire",
+          "Délai de sortie de crise épuisé"
+        ]
+      },
+      "stages": [
+        {
+          "period": 5,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 7,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 14,
+          "status": "active"
+        },
+        {
+          "period": 14,
+          "stage": "revolution",
+          "deadline": 16,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 99,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 99,
+      "strategy": "civil-negotiation",
+      "period": 30,
+      "ending": {
+        "kind": "term_complete",
+        "title": "Fin du mandat",
+        "reason": "Les cinq années du mandat se sont écoulées.",
+        "turn": 30,
+        "causes": []
+      },
+      "stages": [
+        {
+          "period": 5,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 7,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "resolved"
+        },
+        {
+          "period": 11,
+          "stage": "greve",
+          "deadline": 13,
+          "status": "active"
+        },
+        {
+          "period": 13,
+          "stage": "greve",
+          "deadline": 13,
+          "status": "resolved"
+        },
+        {
+          "period": 17,
+          "stage": "greve",
+          "deadline": 19,
+          "status": "active"
+        },
+        {
+          "period": 19,
+          "stage": "greve",
+          "deadline": 19,
+          "status": "resolved"
+        },
+        {
+          "period": 23,
+          "stage": "greve",
+          "deadline": 25,
+          "status": "active"
+        },
+        {
+          "period": 25,
+          "stage": "greve",
+          "deadline": 25,
+          "status": "resolved"
+        }
+      ],
+      "reserve": 3.6,
+      "spent": 2.8,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 99,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-1-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-2-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-3-accord-social",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 99,
+      "strategy": "resignation",
+      "period": 14,
+      "ending": {
+        "kind": "resignation",
+        "title": "Vous démissionnez",
+        "reason": "Vous présentez votre démission face à la crise révolutionnaire.",
+        "turn": 14,
+        "causes": [
+          "Crise révolutionnaire ouverte",
+          "Démission présidentielle choisie"
+        ]
+      },
+      "stages": [
+        {
+          "period": 5,
+          "stage": "greve",
+          "deadline": 7,
+          "status": "active"
+        },
+        {
+          "period": 7,
+          "stage": "blocage",
+          "deadline": 11,
+          "status": "active"
+        },
+        {
+          "period": 11,
+          "stage": "revolte",
+          "deadline": 14,
+          "status": "active"
+        },
+        {
+          "period": 14,
+          "stage": "revolution",
+          "deadline": 16,
+          "status": "active"
+        }
+      ],
+      "reserve": 6.4,
+      "spent": 0,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 99,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-resign"
+        ],
+        "ambition": "equilibre"
+      }
+    },
+    {
+      "seed": 2,
+      "strategy": "temporary-mediation-relapse",
+      "period": 7,
+      "input": {
+        "version": 16,
+        "mode": "national",
+        "seed": 2,
+        "choices": [
+          "live-autonomy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-crisis-civil-0-mediation",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      }
+    }
+  ]
+}

@@ -543,3 +543,70 @@ to {
     visibility: hidden;
   }
 }
+
+/* Larger state-driven miniature scenes retain the actual world anchors. */
+.presidency .pr-life .pr-life-scene { transform:translate(0,22px); transform-origin:0 0; }
+.presidency .pr-life .pr-life-wave { stroke-width:3; filter:none; }
+.presidency .pr-life[data-phase="intervention"] { --life-tone:#b83e35; }
+.presidency .pr-life .pr-life-ground { stroke:var(--life-tone); stroke-width:1.5; }
+.presidency .pr-life-person { stroke-width:1.2; animation-duration:calc(3s / var(--pr-motion-speed,1)); }
+.presidency .pr-life .pr-life-barricade { fill:none; stroke:#f2c078; stroke-width:4; }
+.presidency .pr-life .pr-life-crowd { fill:#f0debd; stroke:#122f40; stroke-width:1.5; }
+.pr-life-protester { animation:pr-crowd-move calc(2.6s / var(--pr-motion-speed,1)) ease-in-out infinite alternate; animation-delay:calc(var(--i) * -.23s); }
+.pr-life-placard { fill:#f1e6ce; stroke:#893b32; stroke-width:1.4; }
+.pr-response-work>rect { fill:#183b4a; stroke:#f1dfb4; stroke-width:1.5; }
+.pr-response-work>.pr-response-progress { fill:#e2b25f; stroke:none; }
+.pr-response-tools { fill:none; stroke:#ead09b; stroke-width:4; transform-origin:0 27px; animation:pr-work calc(2s / var(--pr-motion-speed,1)) ease-in-out infinite alternate; }
+.pr-response-talk { fill:#f2d19b; stroke:#193e4b; stroke-width:1.5; animation:pr-crowd-move calc(3s / var(--pr-motion-speed,1)) ease-in-out infinite alternate; }
+.pr-life[data-operation="late"] .pr-response-tools,.pr-life[data-operation="late"] .pr-response-vehicle { animation-play-state:paused; }
+.pr-life[data-operation="late"] .pr-response-work>rect:first-of-type { stroke:#c76d4b; stroke-dasharray:4 3; }
+.presidency .pr-response-route { stroke:#ead09b; stroke-width:3; }
+.presidency .pr-response-vehicle { animation-duration:calc(6s / var(--pr-motion-speed,1)); stroke-width:1.8; }
+.presidency .pr-life-traffic { stroke-width:1.2; animation-duration:calc(14s / var(--pr-motion-speed,1)); }
+.presidency .pr-life[data-severity="3"] .pr-life-traffic { animation-duration:calc(28s / var(--pr-motion-speed,1)); }
+.presidency .pr-life[data-kind="port"]:not([data-phase="recovery"]) .pr-life-traffic { animation-play-state:paused; offset-distance:20%; }
+.presidency .pr-life[data-phase="contained"] .pr-life-traffic,.presidency .pr-life[data-phase="recovery"] .pr-life-traffic { animation-duration:calc(5s / var(--pr-motion-speed,1)); animation-play-state:running; }
+.pr-life-ship { fill:#e7d2a8; stroke:#183b4a; stroke-width:2; transform:translate(8px,55px); }
+.pr-ship-wake { fill:none; stroke:#b7d9da; opacity:0; }
+.pr-life[data-phase="recovery"] .pr-life-ship { animation:pr-ship-depart calc(8s / var(--pr-motion-speed,1)) ease-in-out infinite; }
+.pr-life[data-phase="recovery"] .pr-ship-wake { opacity:.8; }
+.presidency .pr-life[data-phase="recovery"] .pr-life-ground { fill:#e7c789; stroke:#3b806c; opacity:.24; }
+.presidency .pr-life[data-phase="contained"] .pr-life-ground { stroke-dasharray:6 4; }
+.presidency .pr-life[data-phase="contained"] .pr-life-barricade { opacity:.55; }
+.presidency .pr-life[data-phase="recovery"] .pr-life-crowd { opacity:.5; }
+.presidency .pr-life[data-phase="intervention"][data-sector="energy"] .pr-life-ground { fill:#17252d; opacity:.65; }
+.presidency .pr-life .pr-life-smoke { animation-duration:calc(4s / var(--pr-motion-speed,1)); }
+.presidency .pr-spread path { stroke-width:3; }
+.presidency .pr-spread .pr-spread__flow { stroke-width:4; stroke-dasharray:10 18; }
+@keyframes pr-crowd-move { from { translate:-1px 1px; } to { translate:2px -2px; } }
+@keyframes pr-work { from { rotate:-12deg; } to { rotate:12deg; } }
+@keyframes pr-ship-depart { 0%,12% { transform:translate(8px,55px); opacity:1; } 80% { transform:translate(90px,70px); opacity:1; } 100% { transform:translate(110px,74px); opacity:0; } }
+@media (max-width:650px) {
+  .presidency .pr-life .pr-life-scene { transform:translate(0,30px) scale(1.2); }
+  .presidency .pr-life .pr-life-wave { stroke-width:3.5; }
+  .presidency .pr-spread path { stroke-width:4; }
+  .presidency .pr-spread .pr-spread__flow { stroke-width:5; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .presidency .pr-life .pr-life-smoke { opacity:.45; }
+  .presidency .pr-life .pr-life-wave { opacity:.7; }
+  .presidency .pr-life[data-phase="recovery"] .pr-life-ship { transform:translate(55px,63px); }
+  .presidency .pr-response-vehicle { offset-distance:70%; }
+}
+
+/* A durable repair may prepare while an earlier temporary rescue is in service.
+   Keep that actual partial relief visible instead of repainting a total outage. */
+.presidency .pr-life[data-service="contained"] { --life-tone:#a57a35; }
+.presidency .pr-life[data-service="contained"] .pr-life-window { animation:none; fill:#ffe1a0; }
+.presidency .pr-life[data-service="contained"][data-sector] .pr-life-ground { opacity:.25; stroke-dasharray:6 4; }
+.presidency .pr-life[data-service="contained"] .pr-life-barricade { opacity:.55; }
+.presidency .pr-life[data-service="contained"] .pr-life-traffic {
+  animation-duration:calc(5s / var(--pr-motion-speed,1));
+  animation-play-state:running;
+}
+
+.pr-life-ship .pr-ship-hull { fill:#8f3528; stroke:#173443; stroke-width:1; }
+.pr-life-ship .pr-ship-deck { fill:#d6bc8b; stroke-width:.6; }
+.pr-life-ship .pr-ship-cargo { fill:#315d6b; stroke:#eee0ba; stroke-width:.7; }
+.pr-life-ship .pr-ship-bridge { fill:#f2e4be; stroke-width:.7; }
+.pr-life-ship .pr-ship-detail { stroke:#a77645; stroke-width:1; }

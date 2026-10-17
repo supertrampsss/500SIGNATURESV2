@@ -1,0 +1,148 @@
+/* Contextual map board. Phone geometry is measured in the usable viewport. */
+.presidency .pr-country { inset:72px 0 104px; }
+.presidency .pr-world { position:absolute; left:50%; width:max(100%,calc((100dvh - 176px)*1.777778)); transform:translateX(calc(-50% + var(--pr-pan,0px))); }
+.presidency[data-whole-map=true] .pr-world { width:100%; transform:translateX(-50%); }
+.pr-pin-leaders { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:5; }
+.pr-pin-leaders path { stroke:#f2e1bb; stroke-width:1; fill:none; opacity:.8; }
+.pr-pin-leaders circle { fill:#b52f26; stroke:#f5eddb; stroke-width:1.5; }
+.presidency .pr-pins,.presidency .pr-event-pins { inset:0; pointer-events:none; }
+.presidency .pr-board-pin { position:absolute; height:76px; min-height:44px; transform:none; display:flex; align-items:center; gap:7px; padding:7px; background:#f5f0e3; border:1px solid #b7aa8f; border-left:4px solid var(--pr-tone); color:#152d39; text-align:left; filter:none; pointer-events:auto; animation:pr-board-arrival .5s ease-out both; }
+.presidency .pr-board-pin .pr-pin__symbol { flex:0 0 27px; width:27px; height:30px; border:0; border-radius:0; }
+.presidency .pr-board-pin .pr-pin__symbol::after { display:none; }
+.presidency .pr-board-pin .pr-pin__symbol .pr-icon { width:21px; height:21px; }
+.presidency .pr-board-pin .pr-pin__label { position:static; display:block; min-width:0; max-width:none; padding:0; border:0; background:none; font:700 12px/1.2 Georgia,serif; color:#162b38; white-space:normal; }
+.pr-board-pin .pr-pin__label strong { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font:inherit; }
+.presidency .pr-board-pin .pr-pin__label b { font:700 8px/1.2 Arial,sans-serif; color:#6c6454; margin-bottom:3px; letter-spacing:.07em; }
+.presidency .pr-board-pin .pr-pin__label small { display:block; color:#6a5c45; font:9px/1.2 Arial,sans-serif; margin-top:4px; }
+.presidency .pr-board-pin .pr-pin__countdown { top:-9px; left:auto; right:5px; min-width:36px; font-size:11px; margin:0; }
+.presidency .pr-board-pin[data-selected=true] { outline:2px solid #173f51; outline-offset:2px; }
+.presidency .pr-board-pin[data-selected=true] .pr-pin__symbol { outline:none; }
+.presidency .pr-board-pin[data-event-kind=political] { --pr-tone:#b32b25!important; }
+.presidency .pr-board-pin[data-event-kind=followup] { --pr-tone:#34675d!important; }
+.presidency .pr-board-pin[data-event-kind=government],.presidency .pr-board-pin[data-event-kind=budget] { --pr-tone:#274f65!important; }
+.presidency .pr-newswire { right:0; height:36px; }
+.presidency .pr-mapview { display:block; position:absolute; z-index:8; left:12px; bottom:8px; min-height:44px; padding:6px 12px; border:1px solid #baaf98; background:#f4eedf; color:#15333f; }
+.presidency .pr-sound { top:auto; bottom:116px; left:auto; right:12px; z-index:8; min-height:44px; border:1px solid #baaf98; background:#f4eedf; color:#15333f; }
+.pr-work-progress { margin:8px 12px; padding:10px; border-left:3px solid #316a5b; background:#e7e9dc; }
+.pr-work-progress strong,.pr-work-progress span,.pr-work-progress small { display:block; }
+.pr-work-progress strong { font-size:13px; }
+.pr-work-progress span { margin-top:4px; font-size:12px; }
+.pr-work-progress small { margin-top:5px; font-size:11px; }
+.pr-sector-priority { border-top:1px solid #c2b9a6; }
+.pr-sector-priority .pr-command { min-height:52px; }
+.pr-sector-priority .pr-command__price { display:none; }
+.pr-board-history { padding:12px; }
+.pr-board-history li { margin:8px 0; }
+.presidency .pr-feedback { bottom:116px; padding:12px 16px; border-radius:1px; box-shadow:none; text-align:left; background:#f5efdf; border:1px solid #ada187; border-left:5px solid #346a5c; color:#163b3a; font-size:13px; max-width:min(480px,calc(100% - 24px)); }
+.pr-feedback strong,.pr-feedback span { display:block; }
+.pr-feedback strong { font:700 18px/1.2 Georgia,serif; margin-bottom:5px; }
+.presidency .pr-feedback[data-result=rejected],.presidency .pr-feedback[data-failure=true] { background:#f1e0d3; border-left-color:#b23026; color:#75271d; }
+.pr-feedback[data-result=delivered] { animation:pr-board-arrival .4s ease-out both; }
+.presidency .pr-fan { width:min(420px,calc(100vw - 16px)); max-height:min(580px,calc(100dvh - 210px)); box-shadow:0 3px 12px #051c2933; }
+.presidency .pr-fan__actions { grid-template-columns:1fr; }
+.presidency .pr-command { padding:10px 12px; min-height:64px; }
+.presidency .pr-command__body strong { font:700 16px/1.15 Georgia,serif; }
+.presidency .pr-command__price { font-size:11px; margin:4px 0; }
+.presidency .pr-command__body small { font-size:11px; line-height:1.35; }
+.presidency .pr-event-brief { padding:10px 12px; font:13px/1.4 Arial,sans-serif; }
+.presidency .pr-event-brief strong { font:700 21px/1.1 Georgia,serif; margin-bottom:7px; }
+.pr-event-brief p { margin:0; }
+.presidency .pr-crisis-brief { padding:10px 12px; }
+.presidency .pr-crisis-brief>strong { font-size:21px; }
+.presidency .pr-crisis-brief p { font:13px/1.35 Arial,sans-serif; }
+.presidency .pr-crisis-brief small { font-size:11px; }
+.presidency .pr-sector__reading strong { font-size:11px; }
+.presidency .pr-sector__reading small { font-size:10px; }
+.presidency[data-ended=true] .pr-pin-leaders { display:none; }
+@keyframes pr-board-arrival { from { opacity:0; translate:0 8px; } to { opacity:1; translate:0 0; } }
+@media(max-width:650px) {
+ .presidency .pr-header { height:96px; grid-template-columns:94px minmax(0,1fr) 44px; grid-template-rows:35px 44px; padding:4px 8px; row-gap:3px; }
+ .presidency .pr-brand { font-size:18px; padding-right:6px; }
+ .presidency .pr-calendar strong { font-size:10px; }
+ .presidency .pr-calendar>span { font-size:9px; }
+ .presidency .pr-clock { height:44px; }
+ .presidency .pr-resources { max-width:calc(100% - 180px); padding:3px 5px; }
+ .presidency .pr-resource strong { font-size:16px; }
+ .presidency .pr-resource small { font-size:8px; }
+ .presidency .pr-speeds button { min-width:44px; width:44px; }
+ .presidency .pr-country { inset:96px 0 100px; }
+ .presidency .pr-world { width:max(100%,calc((100dvh - 196px)*1.777778)); }
+ .presidency .pr-board-pin { height:68px; padding:5px; gap:5px; border-left-width:3px; }
+ .presidency .pr-board-pin .pr-pin__label { font-size:11px; }
+ .presidency .pr-board-pin .pr-pin__label b { font-size:7px; letter-spacing:.02em; }
+ .presidency .pr-board-pin .pr-pin__label small { font-size:8px; line-height:1.1; margin-top:3px; }
+ .presidency .pr-board-pin .pr-pin__symbol { flex-basis:22px; width:22px; height:26px; }
+ .presidency .pr-board-pin .pr-pin__symbol .pr-icon { width:18px; height:18px; }
+ .presidency .pr-sectors { bottom:0; height:76px; padding:2px 4px; }
+ .presidency .pr-sector { min-height:34px; padding:2px 5px; gap:5px; }
+ .presidency .pr-sector__icon { width:18px; height:22px; }
+ .presidency .pr-sector__icon .pr-icon { width:18px; height:18px; }
+ .presidency .pr-sector__reading>span { font-size:8px; letter-spacing:0; }
+ .presidency .pr-sector__reading strong { font-size:9px; line-height:1.4; }
+ .presidency .pr-sector__reading small { font-size:8px; }
+ .presidency .pr-sector__reading i { height:2px; }
+ .presidency .pr-newswire { bottom:76px; height:24px; padding:0 8px; gap:7px; }
+ .presidency .pr-newswire>strong { font-size:8px; letter-spacing:.02em; }
+ .presidency .pr-newswire>span { font-size:10px; }
+ .presidency .pr-newswire>i { width:5px; height:5px; }
+ .presidency .pr-sound { bottom:108px; top:auto; right:8px; left:auto; }
+ .presidency .pr-mapview { bottom:8px; left:8px; font-size:11px; }
+ .presidency .pr-map-caption { display:none; }
+ .presidency .pr-fan { max-height:min(480px,calc((100dvh - 196px)*.72)); }
+ .presidency .pr-fan>header { min-height:44px; }
+ .presidency .pr-fan__title strong { font-size:14px; letter-spacing:.04em; }
+ .presidency .pr-event-brief strong,.presidency .pr-crisis-brief>strong { font-size:19px; }
+ .presidency .pr-command__body strong { font-size:14px; }
+ .presidency .pr-feedback { bottom:108px; max-width:calc(100% - 16px); font-size:12px; }
+ .presidency .pr-feedback strong { font-size:16px; }
+ .presidency:has([data-live-fan]:not([hidden])) .pr-board-pin { opacity:.65; }
+ .presidency:has([data-live-fan]:not([hidden])) .pr-board-pin[data-selected=true] { opacity:1; }
+}
+@media(max-width:350px) {
+ .presidency .pr-resources { max-width:calc(100% - 178px); gap:3px; padding:3px; }
+ .presidency .pr-resource strong { font-size:13px; }
+ .presidency .pr-resource { padding-left:3px; }
+ .presidency .pr-resource small { font-size:7px; }
+ .presidency .pr-resource em { font-size:.6em; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .presidency .pr-board-pin,.pr-feedback[data-result=delivered] { animation:none; }
+}
+
+.pr-event-context { margin-top:6px; font-size:12px; }
+.pr-event-context summary { min-height:32px; display:flex; align-items:center; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.pr-event-context p { margin:6px 0; }
+.pr-event-progress { margin-top:10px; display:grid; gap:5px; font-size:12px; }
+.pr-event-progress progress { width:100%; height:7px; accent-color:#346a5c; }
+.pr-board-vote { margin:10px 12px; padding:10px; border-left:3px solid #376c5a; background:#e7e9dc; font-size:12px; }
+.pr-board-vote[data-vote-passed=false] { border-color:#b62f26; background:#f1e0d3; }
+.presidency .pr-country { touch-action:pan-y; }
+
+.pr-pin-count { position:absolute; top:-8px; left:-4px; padding:2px 6px; background:#173c4c; color:#f5efdd; border:1px solid #f5efdd; font:700 12px Arial,sans-serif; }
+.presidency .pr-cluster-choice { display:block; width:100%; text-align:left; padding:10px 14px; border-bottom:1px solid #c5bba5; }
+.pr-cluster-choice b,.pr-cluster-choice strong,.pr-cluster-choice small { display:block; }
+.pr-cluster-choice b { font-size:9px; color:#716044; }
+.pr-cluster-choice strong { font:700 16px Georgia,serif; margin:4px 0; }
+.pr-cluster-choice small { font-size:11px; }
+@media(max-width:650px) { .presidency .pr-header { grid-template-columns:103px minmax(0,1fr) 44px; } .presidency .pr-brand { font-size:17px; } }
+
+@media(max-width:650px) { .presidency .pr-board-pin .pr-pin__label { font-size:12px; } .presidency .pr-board-pin .pr-pin__label b { font-size:8px; } .presidency .pr-board-pin .pr-pin__label small { font-size:9px; } }
+
+.presidency .pr-board-pin[data-stage] .pr-pin__label { display:block; }
+
+.pr-command__fiscal { display:block; color:#3c5860; font-size:11px; line-height:1.3; margin-bottom:4px; }
+
+.pr-cluster-time { display:block; margin-top:5px; color:#ae2c24; font-weight:700; font-size:12px; }
+@media(max-width:650px) {
+ .presidency .pr-country { bottom:116px; }
+ .presidency .pr-world { width:max(100%,calc((100dvh - 212px)*1.777778)); }
+ .presidency .pr-sectors { height:92px; }
+ .presidency .pr-sector { min-height:44px; }
+ .presidency .pr-sector__reading>span { font-size:9px; }
+ .presidency .pr-sector__reading strong { font-size:10px; }
+ .presidency .pr-newswire { bottom:92px; }
+ .presidency .pr-sound,.presidency .pr-feedback { bottom:124px; }
+ .presidency .pr-fan { max-height:min(480px,calc((100dvh - 212px)*.72)); }
+}
+
+@media(max-width:650px) { .presidency .pr-feedback { top:104px; bottom:auto; } }

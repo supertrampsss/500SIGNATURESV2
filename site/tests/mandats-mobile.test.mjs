@@ -86,7 +86,7 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
   await expect(page.locator('section[data-presidency]')).toBeVisible();
   await expect(page.locator('[data-presidency-art]')).toBeVisible();
   await expect(page.locator('[data-live-date]')).toContainText('année 1');
-  await expect(page.locator('[data-action="presidency-panel"][data-panel="government"]')).toBeInViewport();
+  await expect(page.locator('[data-live-event-pin="government-orders"]')).toBeInViewport();
   await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
   if(await page.locator('section[data-presidency]').getAttribute('data-preview')==='true')
    await activate(page.getByRole('button',{name:'Jouer ce mandat',exact:true}),info);
