@@ -1,0 +1,55 @@
+{
+  "viewport": {
+    "width": 1672,
+    "height": 941
+  },
+  "browser": "Chromium",
+  "input": {
+    "version": 16,
+    "mode": "national",
+    "seed": 2,
+    "ambition": "equilibre",
+    "choices": [
+      "live-autonomy",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick"
+    ]
+  },
+  "final": {
+    "version": 16,
+    "mode": "national",
+    "seed": 2,
+    "choices": [
+      "live-autonomy",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-crisis-civil-0-accord-social",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick",
+      "live-tick"
+    ],
+    "ambition": "equilibre"
+  }
+}

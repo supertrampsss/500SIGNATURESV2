@@ -1,8 +1,8 @@
 import { crisisEffects } from "./presidency-crisis-view.ts";
-import { crisisSeverity, crisisSpec } from "./presidency-crises.ts";
+import { crisisSeverity, crisisSpec, presidencyCrises } from "./presidency-crises.ts";
 import type { Game } from "./types.ts";
 import type { PressureSectorId } from "./pressure-types.ts";
-import { crisisAlerts, presidencyDate, presidencyFan, presidencyFeed, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, type PresidencyPanel } from "./presidency-view.ts";
+import { crisisAlerts, presidencyEventPins, presidencyEventAlerts, presidencyEventFan, presidencyDate, presidencyFan, presidencyFeed, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, type PresidencyPanel } from "./presidency-view.ts";
 import { presidencyIcon } from "./presidency-icons.ts";
 
 export const PRESIDENCY_PERIOD_MS = 15_000;
@@ -29,6 +29,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let progress = 0;
   let stamp = performance.now();
   let selected: PressureSectorId | null = null;
+  let selectedEvent: string | null = null;
   let panel: PresidencyPanel | null = null;
   let wholeMap = false;
   let disposed = false;
@@ -37,6 +38,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let focusReturn: HTMLElement | null = null;
   let fanFrame = 0;
   let renderedSector: PressureSectorId | null = null;
+  let renderedEvent: string | null = null;
   let sound = false;
   let audio: AudioContext | undefined;
   let lastBeat = 0;
@@ -72,7 +74,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       lastAlertMarkup = alerts;
       if (focused) host.querySelector<HTMLElement>(`[data-crisis-id="${focused}"]`)?.focus({ preventScroll: true });
     }
-    const crises = game.presidency?.crises?.filter(c => c.status !== "resolved") ?? [];
+    const crises = presidencyCrises(game).filter(c => c.status !== "resolved") ?? [];
     host.dataset.crisisCount = String(crises.length);
     host.dataset.threat = String(Math.max(0, ...crises.map(c => crisisSeverity(c, game.turn))));
     updateCountdowns();
@@ -113,18 +115,18 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   function positionFan(): void {
     cancelAnimationFrame(fanFrame);
     fanFrame = requestAnimationFrame(() => {
-      if (disposed || !selected) return;
+      if (disposed || (!selected && !selectedEvent)) return;
       const anchor = slot<HTMLElement>("[data-live-fan]");
       const country = slot<HTMLElement>(".pr-country").getBoundingClientRect();
-      const pin = host.querySelector<HTMLElement>(`[data-live-pin="${selected}"]`)?.getBoundingClientRect();
+      const pin = (selectedEvent ? [...host.querySelectorAll<HTMLElement>("[data-live-event-pin]")].find(el=>el.dataset.liveEventPin===selectedEvent) : host.querySelector<HTMLElement>(`[data-live-pin="${selected}"]`))?.getBoundingClientRect();
       const fan = anchor.firstElementChild?.getBoundingClientRect();
       if (!pin || !fan) return;
       const mobile = country.width <= 650;
-      const preferredX = mobile ? (country.width - fan.width) / 2 : pin.right - country.left + 15;
+      const preferredX = mobile ? (country.width - fan.width) / 2 : 20;
       const x = Math.max(8, Math.min(country.width - fan.width - 8, preferredX));
-      const preferredY = mobile ? pin.bottom - country.top + 8 : pin.top - country.top - 28;
+      const preferredY = country.height - fan.height - (mobile ? 5 : 20);
       const headerBottom = slot<HTMLElement>(".pr-header").getBoundingClientRect().bottom;
-      const navTop = slot<HTMLElement>(".pr-navigation").getBoundingClientRect().top;
+      const navTop = country.bottom;
       const minY = Math.max(8, headerBottom - country.top + 8);
       const maxY = Math.min(country.height, navTop - country.top) - fan.height - 8;
       const y = Math.max(minY, Math.min(maxY, preferredY));
@@ -135,17 +137,18 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
 
   function drawFan(): void {
     const anchor = slot<HTMLElement>("[data-live-fan]");
-    const sameSector = selected !== null && renderedSector === selected;
+    const sameSector = (selected !== null && renderedSector === selected) || (selectedEvent !== null && renderedEvent === selectedEvent);
     const oldFan = anchor.querySelector<HTMLElement>(".pr-fan");
     const scroll = sameSector ? oldFan?.scrollTop ?? 0 : 0;
     const developmentOpen = sameSector && Boolean(anchor.querySelector(".pr-sector-development[open]"));
-    anchor.hidden = !selected;
-    anchor.innerHTML = selected ? presidencyFan(game, selected) : "";
-    renderedSector = selected;
+    anchor.hidden = !selected && !selectedEvent;
+    anchor.innerHTML = selectedEvent ? presidencyEventFan(game,selectedEvent) : selected ? presidencyFan(game, selected) : "";
+    if(selectedEvent && !anchor.innerHTML) { selectedEvent=null; anchor.hidden=true; }
+    renderedSector = selected; renderedEvent = selectedEvent;
     if (developmentOpen) anchor.querySelector<HTMLDetailsElement>(".pr-sector-development")?.setAttribute("open", "");
     const nextFan = anchor.querySelector<HTMLElement>(".pr-fan");
     if (nextFan) nextFan.scrollTop = scroll;
-    if (selected) positionFan();
+    if (selected || selectedEvent) positionFan();
   }
 
   function drawPanel(keepPosition = false): void {
@@ -169,11 +172,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const focusSector = activeElement?.dataset.sector;
     const previous = game;
     game = next;
-    const news = (next.presidency?.crises ?? []).filter(c => !previous.presidency?.crises?.some(old => old.id === c.id));
-    const changes = (next.presidency?.crises ?? []).filter(c => previous.presidency?.crises?.some(old => old.id === c.id && old.status !== c.status));
+    const news = presidencyCrises(next).filter(c => !presidencyCrises(previous).some(old => old.id === c.id));
+    const changes = presidencyCrises(next).filter(c => presidencyCrises(previous).some(old => old.id === c.id && (old.status !== c.status || old.spec !== c.spec)));
     if (news.length || changes.length) {
-      slot<HTMLElement>("[data-live-announcement]").textContent = [...news.map(c => `${crisisSpec(c).title}. ${crisisSpec(c).cause}`), ...changes.map(c => `${crisisSpec(c).title} : ${c.status === "resolved" ? "incident levé" : c.status === "contained" ? "secours en service" : "reprise de la perturbation"}.`)].join(" ");
-      if (news.length) tone(true);
+      slot<HTMLElement>("[data-live-announcement]").textContent = [...news.map(c => `${crisisSpec(c).title}. ${crisisSpec(c).cause}`), ...changes.map(c => `${crisisSpec(c).title} : ${c.status === "resolved" ? "incident levé" : c.status === "contained" ? "secours en service" : crisisSpec(c).cause}.`)].join(" ");
+      if (news.length || changes.length) tone(true);
     }
     host.dataset.turn = String(game.turn);
     slot<HTMLElement>("[data-live-date]").textContent = presidencyDate(game);
@@ -183,6 +186,9 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     slot("[data-live-pins]").innerHTML = presidencyPins(game, selected);
     slot("[data-live-links]").innerHTML = presidencyRoutes(game);
     slot("[data-live-feed]").innerHTML = presidencyFeed(game);
+    slot("[data-live-event-pins]").innerHTML = presidencyEventPins(game);
+    slot("[data-live-events]").innerHTML = presidencyEventAlerts(game);
+    slot<HTMLElement>("[data-live-headline]").textContent = game.presidency?.lastEvents.at(-1) ?? game.presidency?.initiatives.at(-1)?.title ?? "Le pays attend vos décisions.";
     drawCrises();
     drawFan();
     if (ended() && panel !== "ending") {
@@ -210,6 +216,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     if (preview) { feedback("Touchez « Jouer ce mandat » pour adopter cette partie."); return; }
     committing = true;
     const oldInitiative = game.presidency?.initiatives.at(-1)?.id;
+    const originEvent=selectedEvent, originSector=selected;
     try {
       const next = options.commit(id);
       if (!next) {
@@ -224,12 +231,13 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       if (id !== "live-tick") {
         feedback(latest && latest.id !== oldInitiative ? `${latest.title}${latest.cost ? ` · ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(latest.cost)} Md€ engagés` : ""}` : next.presidency?.lastEvents.at(-1) ?? "Consigne enregistrée.");
       }
-      if (id !== "live-tick" && selected && !panel) {
+      if (id !== "live-tick" && (originSector || originEvent) && !panel) {
         selected = null;
+        selectedEvent = null;
         slot("[data-live-sectors]").innerHTML = presidencyReadings(game, null);
         slot("[data-live-pins]").innerHTML = presidencyPins(game, null);
         drawFan();
-        slot<HTMLElement>(`[data-live-pin="${focusSectorForOrder(id)}"]`)?.focus({ preventScroll: true });
+        restoreBoardFocus(originEvent, originSector ?? focusSectorForOrder(id));
       }
     } catch {
       pause();
@@ -237,8 +245,13 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     } finally { committing = false; }
   }
 
+  function restoreBoardFocus(eventId: string | null, sector: string | null): void {
+    const eventPin=eventId ? [...host.querySelectorAll<HTMLElement>('[data-live-event-pin]')].find(el=>el.dataset.liveEventPin===eventId) : null;
+    const sectorPin=sector ? host.querySelector<HTMLElement>(`[data-live-pin="${sector}"]`) : null;
+    (eventPin ?? (eventId ? host.querySelector<HTMLElement>('[data-live-event-pin]') : null) ?? sectorPin ?? slot<HTMLElement>('[data-action="presidency-pause"]')).focus({preventScroll:true});
+  }
   function focusSectorForOrder(id: string): string {
-    return game.presidency?.crises?.find(c => id.startsWith(`live-crisis-${c.id}-`))?.sector ?? id.match(/^live-pressure-(health|housing|transport|energy|education|administration)-/)?.[1] ?? "health";
+    return presidencyCrises(game).find(c => id.startsWith(`live-crisis-${c.id}-`))?.sector ?? id.match(/^live-pressure-(health|housing|transport|energy|education|administration)-/)?.[1] ?? "health";
   }
 
   function closePanel(): void {
@@ -271,19 +284,24 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       speed = Number(target.dataset.speed);
       stamp = performance.now();
       clock();
+    } else if (action === "presidency-event") {
+      selected=null; selectedEvent=selectedEvent===target.dataset.event ? null : target.dataset.event!;
+      drawFan();
+      if(selectedEvent && event.detail===0) slot<HTMLElement>("[data-live-fan] button[data-order]:not(:disabled)")?.focus({preventScroll:true});
     } else if (action === "presidency-sector") {
+      selectedEvent=null;
       selected = selected === target.dataset.sector ? null : target.dataset.sector as PressureSectorId;
       slot("[data-live-sectors]").innerHTML = presidencyReadings(game, selected);
       slot("[data-live-pins]").innerHTML = presidencyPins(game, selected);
       drawFan();
       if (selected && event.detail === 0) slot<HTMLElement>("[data-live-fan] button[data-order]:not(:disabled)")?.focus({ preventScroll: true });
     } else if (action === "presidency-deselect") {
-      const previous = selected;
-      selected = null;
+      const previous = selected, previousEvent=selectedEvent;
+      selected = null; selectedEvent=null;
       drawFan();
       slot("[data-live-sectors]").innerHTML = presidencyReadings(game, selected);
       slot("[data-live-pins]").innerHTML = presidencyPins(game, selected);
-      if (previous) slot<HTMLElement>(`[data-live-pin="${previous}"]`).focus({ preventScroll: true });
+      restoreBoardFocus(previousEvent,previous);
     } else if (action === "presidency-order") {
       commit(target.dataset.order!);
     } else if (action === "presidency-mapview") {
@@ -295,7 +313,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     } else if (action === "presidency-panel") {
       focusReturn = target;
       panel = target.dataset.panel as PresidencyPanel;
-      selected = null;
+      selected = null; selectedEvent=null;
       drawFan();
       drawPanel();
       stamp = performance.now();
@@ -315,13 +333,13 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   function onKey(event: KeyboardEvent): void {
     if (event.key === "Escape") {
       if (panel) { event.preventDefault(); closePanel(); }
-      else if (selected) {
-        const sector = selected;
-        selected = null;
+      else if (selected || selectedEvent) {
+        const sector = selected, eventId=selectedEvent;
+        selected = null; selectedEvent=null;
         drawFan();
         slot("[data-live-sectors]").innerHTML = presidencyReadings(game, selected);
         slot("[data-live-pins]").innerHTML = presidencyPins(game, selected);
-        slot<HTMLElement>(`[data-live-pin="${sector}"]`)?.focus({ preventScroll: true });
+        restoreBoardFocus(eventId,sector);
       }
     }
     if (panel && event.key === "Tab") {

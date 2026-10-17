@@ -1,9 +1,10 @@
 import type { Choice, Game } from './types.ts';
+import { clamp } from './types.ts';
 import type { PressureProgramme, PressureSectorId } from './pressure-types.ts';
 
 export type PresidencyCrisis = {
   id: string; spec: string; sector: PressureSectorId; startedPeriod: number;
-  sourceJournalIndex: number; deadline: number; status: 'active' | 'contained' | 'resolved';
+  sourceJournalIndex: number; stageStartedPeriod?: number; deadline: number; status: 'active' | 'contained' | 'resolved';
   parentId?: string; propagated?: boolean; resolvedPeriod?: number;
 };
 type Response = { id: string; title: string; detail: string; sacrifice: string; investment: number;
@@ -64,10 +65,49 @@ export const PRESIDENCY_CRISES: readonly CrisisSpec[] = [
     worsening: 'Les heures perdues désorganisent les familles.', recovery: 'Les remplacements assurent de nouveau les cours.', loss: 1.6, need: .5, deadline: 2, propagation: 'guichets', responses: [
       response('vacataires', 'Mobiliser des remplaçants temporaires', 'Ouvrir des vacations pendant six mois.', 'Le vivier doit être renouvelé après six mois.', 0, .3, 1, 1, .5, 'contain', 3),
       response('vivier', 'Former un vivier de remplacement', 'Préparer une équipe permanente de remplaçants.', 'Six mois de formation et un coût annuel durable.', .24, .16, 3, 1, .8, 'resolve') ] },
+  ...([
+    ['greve', 'Grève interprofessionnelle', 'Des services interrompus depuis plusieurs mois alimentent une grève coordonnée.', 2.4, 1, 3],
+    ['blocage', 'Blocages dans le pays', 'Le conflit non résolu gagne les dépôts, les gares et les accès aux services.', 3.4, 1.4, 3],
+    ['revolte', 'Révolte sociale', 'Le blocage durable transforme les revendications en contestation du gouvernement.', 4.2, 1.8, 3],
+    ['revolution', 'Crise révolutionnaire', 'La révolte se prolonge. Des collectifs réclament le départ du pouvoir et une transition du régime.', 5, 2, 3],
+  ] as const).map(([id, title, cause, loss, need, deadline]): CrisisSpec => ({ id, title, cause, loss, need, deadline, sector: 'administration',
+    worsening: 'Le conflit s’étend faute d’accord livré ; les services essentiels restent perturbés.',
+    recovery: 'Un accord entre en vigueur. Les blocages se lèvent progressivement ; les retards acquis restent à traiter.',
+    propagation: '', responses: id === 'greve' ? [
+      response('mediation', 'Ouvrir des médiations dans les services en grève',
+        'Financer des permanences locales pour maintenir l’accueil pendant les négociations.',
+        'Une équipe pendant deux mois ; les revendications restent ouvertes et le relais expire après quatre mois.', .04, .36, 1, 1, .4, 'contain', 2),
+      response('accord-social', 'Financer un accord sur les horaires et les effectifs',
+        'Organiser les remplacements et les rotations négociées avec les équipes.',
+        'Une équipe pendant quatre mois minimum ; les recrutements conservent une charge annuelle.', .4, .3, 2, 1, .8, 'resolve'),
+    ] : id === 'blocage' ? [
+      response('mediation', 'Organiser des couloirs pour les livraisons essentielles',
+        'Réserver des trajets et des créneaux négociés pour les fournitures prioritaires.',
+        'Deux équipes logistiques retirées aux chantiers ; le détour expire après quatre mois et les dépôts restent bloqués.', .12, .6, 1, 2, .7, 'contain', 2),
+      response('accord-social', 'Négocier la réouverture des dépôts et des transports',
+        'Financer les rotations supplémentaires et appliquer un accord de reprise contrôlé.',
+        'Deux équipes pendant quatre mois minimum ; l’accord finance durablement les rotations.', .65, .4, 2, 2, 1.2, 'resolve'),
+    ] : id === 'revolte' ? [
+      response('mediation', 'Déployer des permanences de conciliation sur le terrain',
+        'Maintenir des interlocuteurs et un accueil social mobile dans les territoires mobilisés.',
+        'Une équipe pendant deux mois ; les permanences durent six mois mais aucun accord national n’est conclu.', .08, .9, 1, 1, .5, 'contain', 3),
+      response('accord-social', 'Financer un pacte social avec des engagements de service',
+        'Former les équipes et ouvrir les services promis dans un accord public suivi localement.',
+        'Deux équipes pendant quatre mois minimum ; engagements budgétaires et effectifs durables.', 1.1, .65, 2, 2, 1.4, 'resolve'),
+    ] : [
+      response('mediation', 'Installer une conciliation nationale et un accueil garanti',
+        'Mettre en place des interlocuteurs indépendants et des services essentiels pendant la recherche d’un accord.',
+        'Deux équipes ; deux mois de répit seulement après livraison. Aucune issue institutionnelle n’est garantie.', .25, .6, 1, 2, .3, 'contain', 1),
+      response('accord-social', 'Faire garantir un accord de sortie de crise',
+        'Financer un accord public, ses moyens de service et un contrôle indépendant des engagements.',
+        'Trois équipes pendant quatre mois minimum ; engagement annuel élevé et risque de dépasser le délai si les équipes sont déjà occupées.', 1.6, .9, 2, 3, 1.8, 'resolve'),
+    ] })),
 ];
 export const crisisSpec = (crisis: PresidencyCrisis): CrisisSpec => PRESIDENCY_CRISES.find(item => item.id === crisis.spec)!;
 const round = (n: number) => Math.round(n * 1000) / 1000;
-const active = (g: Game) => g.presidency?.crises?.filter(c => c.status !== 'resolved') ?? [];
+export const presidencyCrises = (g: Game): PresidencyCrisis[] => [...(g.presidency?.crises ?? []), ...(g.presidency?.civic?.crisis ? [g.presidency.civic.crisis] : [])];
+const active = (g: Game) => presidencyCrises(g).filter(c => c.status !== 'resolved');
+const localActive = (g: Game) => (g.presidency?.crises ?? []).filter(c => c.status !== 'resolved');
 export function crisisPhase(crisis: PresidencyCrisis, programmes: readonly PressureProgramme[], period: number): PresidencyCrisis['status'] {
   const delivered = programmes.filter(p => p.crisisId === crisis.id && p.deliveredTurn !== undefined && p.deliveredTurn <= period);
   if (delivered.some(p => p.crisisOutcome === 'resolve' && p.status !== 'cancelled')) return 'resolved';
@@ -75,11 +115,11 @@ export function crisisPhase(crisis: PresidencyCrisis, programmes: readonly Press
   return 'active';
 }
 export function crisisSeverity(crisis: PresidencyCrisis, period: number): number {
-  return crisis.status === 'contained' ? 1 : Math.min(3, 1 + Math.floor(Math.max(0, period - crisis.startedPeriod) / crisis.deadline));
+  return crisis.status === 'contained' ? 1 : Math.min(3, 1 + Math.floor(Math.max(0, period - (crisis.stageStartedPeriod ?? crisis.startedPeriod)) / crisis.deadline));
 }
 export function crisisImpact(g: Game, sector: PressureSectorId, programmes: readonly PressureProgramme[], period: number): { loss: number; need: number; labels: string[] } {
   let loss = 0, need = 0; const labels: string[] = [];
-  for (const crisis of g.presidency?.crises ?? []) {
+  for (const crisis of presidencyCrises(g)) {
     if (crisis.sector !== sector) continue;
     const phase = crisisPhase(crisis, programmes, period);
     if (phase === 'resolved') continue;
@@ -132,17 +172,70 @@ export function advanceCrises(g: Game, previous: Game): void {
   const used = new Set(p.crises.map(c => c.spec));
   for (const old of previous.presidency?.crises ?? []) {
     const c = p.crises.find(item => item.id === old.id)!;
-    if (old.status !== 'active' || c.status !== 'active' || c.propagated || g.turn - old.startedPeriod < old.deadline || active(g).length >= 3) continue;
+    if (old.status !== 'active' || c.status !== 'active' || c.propagated || g.turn - old.startedPeriod < old.deadline || localActive(g).length >= 3) continue;
     const target = PRESIDENCY_CRISES.find(s => s.id === crisisSpec(old).propagation)!;
     if (used.has(target.id)) continue;
     spawn(g, target, old.id); c.propagated = true; used.add(target.id);
   }
-  if (g.turn < (p.nextCrisisPeriod ?? 2) || active(g).length >= 3) return;
-  const candidates = PRESIDENCY_CRISES.filter(s => !used.has(s.id));
+  if (g.turn < (p.nextCrisisPeriod ?? 2) || localActive(g).length >= 3) return;
+  const candidates = PRESIDENCY_CRISES.filter(s => !CIVIC_STAGES.includes(s.id) && !used.has(s.id));
   candidates.sort((a, b) => {
     const score = (s: CrisisSpec) => g.pressure!.sectors[s.sector].pressure + ((g.seed * 13 + g.turn * 17 + PRESIDENCY_CRISES.indexOf(s) * 23) % 41);
     return score(b) - score(a) || a.id.localeCompare(b.id);
   });
   if (candidates[0]) spawn(g, candidates[0]);
   p.nextCrisisPeriod = g.turn + 3 + g.seed % 2;
+}
+
+/** Civil stages are simulation hypotheses, not a constitutional destitution rule.
+ * Every escalation has its own visible seeded two-to-four-period intervention window. */
+export const CIVIC_STAGES: readonly string[] = ['greve', 'blocage', 'revolte', 'revolution'];
+export function advanceCivicPressure(g: Game): void {
+  const p = g.presidency!, politics = g.politics!;
+  p.civic ??= { nextPeriod: 3, sustained: 0, serial: 0 };
+  const civic = p.civic, c = civic.crisis;
+  if (politics.pendingCrisis !== 'cabinet') delete civic.cabinetResignationPeriod;
+  const ignored = (p.crises ?? []).filter(item => item.status === 'active' && g.turn - item.startedPeriod >= item.deadline).length;
+  const delivered = (p.crises ?? []).filter(item => item.resolvedPeriod === g.turn).length;
+  const mean = Object.values(g.pressure!.sectors).reduce((sum, sector) => sum + sector.pressure, 0) / 6;
+  civic.sustained = ignored ? civic.sustained + 1 : Math.max(0, civic.sustained - 1);
+  politics.unrest = clamp(politics.unrest + Math.min(5, ignored * 1.5) - delivered * 3);
+  politics.legitimacy = clamp(politics.legitimacy - ignored * .8 + delivered * 1.5);
+  if (c && c.status !== 'resolved') {
+    const phase = crisisPhase(c, g.pressure!.programmes, g.turn);
+    if (phase !== c.status) {
+      c.status = phase;
+      p.lastEvents.push(phase === 'resolved' ? crisisSpec(c).recovery : phase === 'contained' ? 'La médiation entre en service : l’escalade civile est suspendue.' : 'La médiation temporaire expire ; le conflit reste ouvert.');
+      if (phase === 'resolved') {
+        c.resolvedPeriod = g.turn; civic.nextPeriod = g.turn + 4; civic.sustained = 0;
+        politics.unrest = clamp(politics.unrest - 18); politics.legitimacy = clamp(politics.legitimacy + 9);
+        return;
+      }
+    }
+    if (phase === 'contained') { c.deadline++; return; }
+    if (g.turn - (c.stageStartedPeriod ?? c.startedPeriod) < c.deadline) return;
+    const stage = CIVIC_STAGES.indexOf(c.spec);
+    if (stage === 3) {
+      // A visible revolution must persist a full response window before defeat.
+      politics.ending = { kind: 'rupture', title: 'Le mandat s’interrompt', reason: 'La crise révolutionnaire demeure sans accord opérationnel. Le pouvoir ne parvient plus à gouverner ; une transition de régime met fin au mandat.', turn: g.turn,
+        causes: ['Grève puis blocages non résolus', 'Révolte devenue crise révolutionnaire', 'Délai de sortie de crise épuisé'] };
+      p.lastEvents.push(politics.ending.reason); return;
+    }
+    const spec = PRESIDENCY_CRISES.find(item => item.id === CIVIC_STAGES[stage + 1])!;
+    // Retain the ID: an already funded negotiation still delivers after escalation.
+    c.spec = spec.id; c.stageStartedPeriod = g.turn; c.deadline = 2 + (g.seed * 13 + (stage + 1) * 5) % 3;
+    p.lastEvents.push(`${spec.title}. ${spec.cause}`);
+    if (stage === 0 && !politics.pendingCrisis) politics.pendingCrisis = 'censure';
+    if (stage === 1 && politics.cabinet !== 'fallen') {
+      politics.cabinet = 'fallen'; politics.pendingCrisis = 'cabinet'; civic.cabinetResignationPeriod = g.turn;
+      p.lastEvents.push('Le gouvernement présente sa démission face au blocage. Vous restez président : un nouveau gouvernement doit être nommé.');
+    }
+    if (stage === 2) politics.pendingCrisis = 'rupture';
+    return;
+  }
+  if (g.turn >= 25 || g.turn < civic.nextPeriod || civic.sustained < 2 + g.seed % 2 || (mean < 35 && politics.unrest < 35)) return;
+  const spec = PRESIDENCY_CRISES.find(item => item.id === 'greve')!;
+  civic.crisis = { id: `civil-${civic.serial++}`, spec: spec.id, sector: spec.sector, startedPeriod: g.turn,
+    sourceJournalIndex: g.choices.length, deadline: 2 + g.seed * 13 % 3, status: 'active' };
+  p.lastEvents.push(`${spec.title}. ${spec.cause}`);
 }

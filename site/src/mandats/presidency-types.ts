@@ -16,6 +16,10 @@ export type PresidencyInitiative = {
 };
 export type PresidencyState = {
   crises?: PresidencyCrisis[];
+  /** Civil escalation is clock-owned and separate from local incident slots. */
+  civic?: { crisis?: PresidencyCrisis; nextPeriod: number; sustained: number; serial: number; cabinetResignationPeriod?: number };
+  reformEvents?: Array<{ id: string; offeredPeriod: number }>;
+  nextReformPeriod?: number;
   nextCrisisPeriod?: number;
   quietUntilPeriod?: number;
   reserve: number;

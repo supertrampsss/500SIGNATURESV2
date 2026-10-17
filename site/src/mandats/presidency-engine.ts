@@ -1,4 +1,4 @@
-import { initialCrises, advanceCrises, crisisChoices, crisisSeverity } from './presidency-crises.ts';
+import { initialCrises, advanceCrises, advanceCivicPressure, presidencyCrises, crisisSpec, crisisChoices, crisisSeverity } from './presidency-crises.ts';
 import type { Ambition, Choice, Effect, Game, Ledger } from './types.ts';
 import type { PressureChoice, PressureProgramme, PressureSectorId } from './pressure-types.ts';
 import type { PresidencyInitiative, PresidencyOrder, PresidencyState } from './presidency-types.ts';
@@ -173,9 +173,49 @@ export function presidencyReforms(g: Game): Array<{ id: string; title: string; c
     }),
   }));
 }
+export type PresidencyEvent = { id: string; title: string; kind: 'reform' | 'political'; sector: PressureSectorId; detail: string; choices: Choice[]; deadline?: number };
+function advanceReformEvents(g: Game): void {
+  const p = state(g);
+  p.reformEvents ??= []; p.nextReformPeriod ??= 0;
+  p.reformEvents = p.reformEvents.filter(event => !p.reforms.some(item => item.id === event.id));
+  if (g.turn < p.nextReformPeriod || p.reformEvents.length >= 2 || g.turn >= 28) return;
+  const remaining = presidencyReforms(g).filter(item => !p.reformEvents!.some(event => event.id === item.id));
+  if (!remaining.length) return;
+  // Stateless seeded permutation: replay never depends on browser random values.
+  const index = (g.seed * 7 + g.turn * 11 + p.reforms.length * 3) % remaining.length;
+  const item = remaining[index];
+  p.reformEvents.push({ id: item.id, offeredPeriod: g.turn });
+  p.nextReformPeriod = g.turn + 3 + (g.seed + g.turn) % 2;
+  p.lastEvents.push(`Une réforme arrive à l’ordre du jour : ${item.title}`);
+}
+export function presidencyEvents(g: Game): PresidencyEvent[] {
+  if (g.version !== 16 || !g.presidency || finished(g)) return [];
+  const reforms = presidencyReforms(g);
+  const events: PresidencyEvent[] = (g.presidency.reformEvents ?? []).flatMap(event => {
+    const reform = reforms.find(item => item.id === event.id);
+    return reform ? [{ ...reform, kind: 'reform' as const, sector: reform.choices.find(c => c.pressure)?.pressure?.sector ?? 'administration' as PressureSectorId,
+      detail: NATIONAL_AGENDA.find(item => item.id === reform.id)!.dossier.story }] : [];
+  });
+  const civil = g.presidency.civic?.crisis;
+  if (civil && civil.status !== 'resolved') events.push({ id: civil.id, kind: 'political', title: crisisSpec(civil).title, sector: civil.sector,
+    detail: crisisSpec(civil).cause, deadline: (civil.stageStartedPeriod ?? civil.startedPeriod) + civil.deadline,
+    choices: [...crisisChoices(g, civil.sector).filter(choice => choice.pressure?.crisisId === civil.id).map(choice => withMetadata(g, choice)), ...presidencyPoliticalActions(g).filter(choice => choice.id === 'live-resign')] });
+  if (g.politics?.pendingCrisis) {
+    const dossier = politicalDossier(g);
+    if (dossier) events.push({ id: `political-${g.politics.pendingCrisis}`, kind: 'political', title: dossier.title, sector: 'administration',
+      detail: g.politics.pendingCrisis === 'cabinet' && g.presidency.civic?.cabinetResignationPeriod !== undefined
+        ? 'Le gouvernement a présenté sa démission face à la révolte sociale. Votre mandat présidentiel continue : il faut constituer un gouvernement disposant d’un appui à l’Assemblée.'
+        : dossier.story, choices: presidencyPoliticalActions(g) });
+  }
+  return events;
+}
 export function presidencyPoliticalActions(g: Game): Choice[] {
   if (g.version !== 16 || !g.presidency || finished(g)) return [];
-  return (politicalDossier(g)?.choices ?? []).map(choice => withMetadata(g, choice));
+  const choices = (politicalDossier(g)?.choices ?? []).map(choice => withMetadata(g, choice));
+  if (g.presidency.civic?.crisis?.spec === 'revolution' && g.presidency.civic.crisis.status !== 'resolved') choices.push({
+    id: 'live-resign', title: 'Présenter votre démission', description: 'Mettre fin à votre mandat présidentiel et ouvrir une transition.',
+    cost: 'Le mandat prend fin immédiatement.', benefit: 'Une transition est engagée.', sacrifice: 'Vous quittez la présidence avant cinq ans.', effect: {}, political: { action: 'administrative' }, presidencyOrder: { cost: 0, delay: 0, implementation: 0 } });
+  return choices;
 }
 export function presidencyCreditsChoice(g: Game): Choice {
   const p = state(g), year = yearFor(g), used = p.creditYears.includes(year);
@@ -224,8 +264,8 @@ function governmentInitiative(g: Game) {
       && (priority || choice.presidencyOrder!.cost <= PRESIDENCY_OPERATIONAL_LIMIT));
     const kinds = front.pressure >= 65 ? ['recovery', 'relief', 'delegate'] : priority ? ['programme', 'delegate', 'relief'] : ['delegate', 'relief'];
     const incidents = choices.filter(choice => choice.pressure?.crisisId).sort((a, b) => {
-      const ca = p.crises!.find(c => c.id === a.pressure!.crisisId)!;
-      const cb = p.crises!.find(c => c.id === b.pressure!.crisisId)!;
+      const ca = presidencyCrises(g).find(c => c.id === a.pressure!.crisisId)!;
+      const cb = presidencyCrises(g).find(c => c.id === b.pressure!.crisisId)!;
       return Number(cb.status === 'active') - Number(ca.status === 'active')
         || crisisSeverity(cb, g.turn) - crisisSeverity(ca, g.turn)
         || ca.startedPeriod - cb.startedPeriod
@@ -252,11 +292,17 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
   // calendar: only its 30th clock tick can complete the term.
   if (political.ending?.kind === 'term_complete' && g.turn < 30) delete political.ending;
   g.politics = political;
+  if (state(g).civic && political.pendingCrisis !== 'cabinet') delete state(g).civic!.cabinetResignationPeriod;
   if (choice.id === 'live-credits') {
     const p = state(g); p.creditsRequested++; p.creditYears.push(yearFor(g));
     if (adopted) { p.reserve = round(p.reserve + PRESIDENCY_CREDIT_AMOUNT); p.authorised = round(p.authorised + PRESIDENCY_CREDIT_AMOUNT); }
   }
-  if (reformId) state(g).reforms.push({ id: reformId, choice: choice.id, period: g.turn, adopted });
+  if (reformId) {
+    state(g).reforms.push({ id: reformId, choice: choice.id, period: g.turn, adopted });
+    state(g).reformEvents = state(g).reformEvents?.filter(event => event.id !== reformId);
+  }
+  if (choice.id === 'live-resign') g.politics!.ending = { kind: 'resignation', title: 'Vous démissionnez',
+    reason: 'Vous présentez votre démission face à la crise révolutionnaire.', turn: g.turn, causes: ['Crise révolutionnaire ouverte', 'Démission présidentielle choisie'] };
   addInitiative(g, { actor: 'president', ...(choice.pressure ? { sector: choice.pressure.sector } : {}), title: choice.title,
     detail: adopted ? choice.id === 'live-credits' ? 'Le Parlement autorise 10 Md€ supplémentaires ; aucun montant n’est ajouté aux recettes.'
       : `${choice.title} : ${money(orderCost(choice))} engagés. ${choice.pressure ? 'Les moyens attendent le calendrier et les équipes de mise en œuvre.' : choice.benefit}`
@@ -301,6 +347,8 @@ function tick(g: Game): Game {
   // from a service-pressure gauge; a pending institutional crisis stays playable.
   const resolution = resolvePoliticalChoice(g.politics!, clock, g.seed, g.turn - 1, g.society?.workers ?? 50);
   g.politics = applyPoliticalResolution(g.politics!, g, clock, resolution, g.seed, g.turn - 1);
+  advanceCivicPressure(g);
+  advanceReformEvents(g);
   if (g.turn === 30 && g.politics.ending?.kind === 'term_complete') {
     g.politics.ending.turn = 30; g.politics.ending.reason = 'Les cinq années du mandat se sont écoulées.';
   }
@@ -324,6 +372,7 @@ export function startPresidency(seed = 0, ambition: Ambition = 'equilibre'): Gam
     budget: { year: 1, accruedOperating: 0, accruedRevenue: 0 },
     lastEvents: ['Le gouvernement est en fonction. Les ministères interviennent dans leurs crédits ; vous fixez le cap.'] };
   initialCrises(g);
+  advanceReformEvents(g);
   return g;
 }
 export function decidePresidency(game: Game, id: string): Game {

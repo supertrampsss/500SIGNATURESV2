@@ -428,7 +428,16 @@ test('five years close each annual account exactly once and the finished mandate
   test.skip(info.project.name !== 'desktop', 'The four formats cover elapsed time; desktop plays all thirty periods and the final annual closure.');
   await load(page, { ...BASE, choices: ['live-autonomy'] });
   await page.locator('[data-action="presidency-speed"][data-speed="4"]').click();
-  const ended = await periods(page, 30, 4);
+  let ended = await saved(page);
+  for(let period=0;period<30;period++) {
+    const civil=ended.presidency?.civic?.crisis;
+    if(civil?.status==='active' && !ended.pressure.programmes.some(p=>p.crisisId===civil.id && p.status==='preparing')) {
+      await page.locator(`[data-live-event-pin="${civil.id}"]`).click();
+      const command=page.locator(`[data-presidency-event="${civil.id}"] [data-order$="-accord-social"]`);
+      await command.scrollIntoViewIfNeeded(); await command.click();
+    }
+    ended=await periods(page,1,4);
+  }
   expect(ended.turn).toBe(30);
   expect(ended.choices.filter(id => id === 'live-tick')).toHaveLength(30);
   expect(ended.history).toHaveLength(ended.choices.length);
@@ -484,7 +493,9 @@ test('the prepared presidency reloads its real illustration and delivers a funde
 });
 
 test('a crisis leaves all four direct commands reachable and funded recovery creates real breathing room', async ({ page }, info) => {
-  const inputs = { ...BASE, choices: ['live-autonomy', ...Array.from({ length: 10 }, () => 'live-tick')] };
+  const inputs = { ...BASE, choices: ['live-autonomy', ...Array(4).fill('live-tick'), 'live-crisis-civil-0-accord-social', ...Array(6).fill('live-tick')] };
+  // Preserve a functioning cabinet: a civil revolt otherwise consumes the teams
+  // needed by this independent service-recovery journey.
   await load(page, inputs);
   const before = await saved(page);
   expect(before.pressure.sectors.health.stage).toBe('crisis');

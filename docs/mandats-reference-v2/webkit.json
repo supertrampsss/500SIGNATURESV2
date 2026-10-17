@@ -1,0 +1,17 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": "webkit",
+  "inputs": {
+    "version": 16,
+    "mode": "national",
+    "seed": 2,
+    "choices": [
+      "live-autonomy",
+      "r15a"
+    ],
+    "ambition": "equilibre"
+  }
+}

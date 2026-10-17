@@ -52,6 +52,29 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: faithful miniature, spontaneous reforms and major crises (17 October 2026)
+
+The owner explicitly replaces the old map with the attached October 17 ImageGen
+reference in `docs/mandats-reference-v2/reference.png`. V16 uses `presidency-france-v2.webp`, a clean detailed miniature with
+navy seas and ivory land. This supersedes earlier requirements to retain the old
+v16 illustration. Keep actual HTML controls and state-driven effects above it;
+never bake labels, alerts or values into the artwork. The sidebar is actual news,
+not the reference's explanatory three-frame storyboard. Sector rules stay real.
+
+Reforms and institutional choices appear directly on the map through
+`presidencyEvents`; the catalogue is optional. `presidencyCrises` combines local
+and civil incidents. Prolonged neglected service crises can cause strike, blockade,
+revolt, government resignation and revolution with visible response windows.
+Each stage has distinct funded responses. A delivered agreement provides respite;
+a neglected revolution can end the mandate early. Presidential resignation is a
+voluntary saved choice. Censure still concerns the government. Seeded variation
+must preserve replay, export, offline behavior and v1–15 numeric rules.
+
+`presidency-reference.css` owns this composition. Compare the live page with the
+approved reference and inspect phone, compact, desktop and WebKit before delivery.
+Run the presidency and crises suites, the bounded model audit and escalation audit.
+See `docs/mandats-reference-v2.md` and `docs/mandats-escalade-v16.md`.
+
 ### Mandats: persistent incidents and animated pressure (17 October 2026)
 
 The owner approved the crisis refactor and emphasised animation, simultaneous
