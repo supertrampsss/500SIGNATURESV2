@@ -1,3 +1,4 @@
+import type { PresidencyCrisis } from './presidency-crises.ts';
 import type { PressureSectorId } from './pressure-types.ts';
 
 /** V16 deterministic scenario state. Credits authorise interventions; they are
@@ -14,11 +15,15 @@ export type PresidencyInitiative = {
   status: 'engaged' | 'rejected' | 'delivered' | 'information';
 };
 export type PresidencyState = {
+  crises?: PresidencyCrisis[];
+  nextCrisisPeriod?: number;
+  quietUntilPeriod?: number;
   reserve: number;
   authorised: number;
   spent: number;
   autonomy: boolean;
   priority: PressureSectorId | null;
+  initiativeSerial?: number;
   initiatives: PresidencyInitiative[];
   reforms: Array<{ id: string; choice: string; period: number; adopted: boolean }>;
   creditsRequested: number;

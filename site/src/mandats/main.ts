@@ -47,6 +47,7 @@ import './map-situation.css';
 import './map-strategy.css';
 import { mountPresidency } from './presidency-runtime.ts';
 import './presidency.css';
+import './presidency-crises.css';
 import './presidency-session.css';
 
 const root = document.querySelector<HTMLElement>("#mandats")!;

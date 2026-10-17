@@ -1,6 +1,8 @@
+import { crisisEffects } from "./presidency-crisis-view.ts";
+import { crisisSeverity, crisisSpec } from "./presidency-crises.ts";
 import type { Game } from "./types.ts";
 import type { PressureSectorId } from "./pressure-types.ts";
-import { presidencyDate, presidencyFan, presidencyFeed, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, type PresidencyPanel } from "./presidency-view.ts";
+import { crisisAlerts, presidencyDate, presidencyFan, presidencyFeed, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, type PresidencyPanel } from "./presidency-view.ts";
 import { presidencyIcon } from "./presidency-icons.ts";
 
 export const PRESIDENCY_PERIOD_MS = 15_000;
@@ -34,6 +36,47 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
   let focusReturn: HTMLElement | null = null;
   let fanFrame = 0;
+  let renderedSector: PressureSectorId | null = null;
+  let sound = false;
+  let audio: AudioContext | undefined;
+  let lastBeat = 0;
+  let lastEffectMarkup = "";
+  let lastAlertMarkup = "";
+  function updateCountdowns(): void {
+    for (const element of host.querySelectorAll<HTMLElement>("[data-crisis-due]")) {
+      const seconds = Math.max(0, Math.ceil(((Number(element.dataset.crisisDue) - game.turn) * PRESIDENCY_PERIOD_MS - progress) / (1000 * speed)));
+      element.textContent = `${seconds} s`;
+      element.setAttribute("aria-label", `${active() ? "Prochaine évolution" : "En pause, prochaine évolution"} dans ${seconds} secondes de jeu à cette vitesse`);
+    }
+  }
+  function tone(urgent = false): void {
+    if (!sound || !audio || !active() || audio.state !== "running") return;
+    const oscillator = audio.createOscillator(), gain = audio.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(urgent ? 220 : 130, audio.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(80, audio.currentTime + .12);
+    gain.gain.setValueAtTime(.025, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + .16);
+    oscillator.connect(gain); gain.connect(audio.destination);
+    oscillator.start(); oscillator.stop(audio.currentTime + .18);
+  }
+  function drawCrises(): void {
+    const effects = crisisEffects(game), alerts = crisisAlerts(game);
+    if (effects !== lastEffectMarkup) {
+      slot("[data-live-crisis-effects]").innerHTML = effects;
+      lastEffectMarkup = effects;
+    }
+    if (alerts !== lastAlertMarkup) {
+      const focused = document.activeElement instanceof HTMLElement ? document.activeElement.closest<HTMLElement>("[data-crisis-id]")?.dataset.crisisId : undefined;
+      slot("[data-live-crisis-alerts]").innerHTML = alerts;
+      lastAlertMarkup = alerts;
+      if (focused) host.querySelector<HTMLElement>(`[data-crisis-id="${focused}"]`)?.focus({ preventScroll: true });
+    }
+    const crises = game.presidency?.crises?.filter(c => c.status !== "resolved") ?? [];
+    host.dataset.crisisCount = String(crises.length);
+    host.dataset.threat = String(Math.max(0, ...crises.map(c => crisisSeverity(c, game.turn))));
+    updateCountdowns();
+  }
 
   function ended(): boolean { return game.turn >= 30 || Boolean(game.politics?.ending); }
   function active(): boolean { return running && !panel && !preview && !ended() && !document.hidden; }
@@ -49,6 +92,9 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     toggle.setAttribute("aria-pressed", String(!paused));
     toggle.disabled = ended();
     host.dataset.running = String(!paused);
+    host.style.setProperty("--pr-motion-speed", String(speed));
+    if (sound && audio) { if (paused) void audio.suspend(); else void audio.resume(); }
+    updateCountdowns();
     host.dataset.preview = String(preview);
     slot<HTMLElement>("[data-live-status]").textContent = ended() ? "Terminé" : paused ? "En pause" : "En cours";
     slot<HTMLElement>("[data-live-progress]").style.width = `${progress / PRESIDENCY_PERIOD_MS * 100}%`;
@@ -89,8 +135,16 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
 
   function drawFan(): void {
     const anchor = slot<HTMLElement>("[data-live-fan]");
+    const sameSector = selected !== null && renderedSector === selected;
+    const oldFan = anchor.querySelector<HTMLElement>(".pr-fan");
+    const scroll = sameSector ? oldFan?.scrollTop ?? 0 : 0;
+    const developmentOpen = sameSector && Boolean(anchor.querySelector(".pr-sector-development[open]"));
     anchor.hidden = !selected;
     anchor.innerHTML = selected ? presidencyFan(game, selected) : "";
+    renderedSector = selected;
+    if (developmentOpen) anchor.querySelector<HTMLDetailsElement>(".pr-sector-development")?.setAttribute("open", "");
+    const nextFan = anchor.querySelector<HTMLElement>(".pr-fan");
+    if (nextFan) nextFan.scrollTop = scroll;
     if (selected) positionFan();
   }
 
@@ -113,7 +167,14 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusOrder = activeElement?.dataset.order;
     const focusSector = activeElement?.dataset.sector;
+    const previous = game;
     game = next;
+    const news = (next.presidency?.crises ?? []).filter(c => !previous.presidency?.crises?.some(old => old.id === c.id));
+    const changes = (next.presidency?.crises ?? []).filter(c => previous.presidency?.crises?.some(old => old.id === c.id && old.status !== c.status));
+    if (news.length || changes.length) {
+      slot<HTMLElement>("[data-live-announcement]").textContent = [...news.map(c => `${crisisSpec(c).title}. ${crisisSpec(c).cause}`), ...changes.map(c => `${crisisSpec(c).title} : ${c.status === "resolved" ? "incident levé" : c.status === "contained" ? "secours en service" : "reprise de la perturbation"}.`)].join(" ");
+      if (news.length) tone(true);
+    }
     host.dataset.turn = String(game.turn);
     slot<HTMLElement>("[data-live-date]").textContent = presidencyDate(game);
     slot<HTMLElement>("[data-live-period]").textContent = `Période ${Math.min(30, game.turn + 1)} / 30`;
@@ -122,6 +183,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     slot("[data-live-pins]").innerHTML = presidencyPins(game, selected);
     slot("[data-live-links]").innerHTML = presidencyRoutes(game);
     slot("[data-live-feed]").innerHTML = presidencyFeed(game);
+    drawCrises();
     drawFan();
     if (ended() && panel !== "ending") {
       running = false;
@@ -176,7 +238,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   }
 
   function focusSectorForOrder(id: string): string {
-    return id.match(/^live-pressure-(health|housing|transport|energy|education|administration)-/)?.[1] ?? "health";
+    return game.presidency?.crises?.find(c => id.startsWith(`live-crisis-${c.id}-`))?.sector ?? id.match(/^live-pressure-(health|housing|transport|energy|education|administration)-/)?.[1] ?? "health";
   }
 
   function closePanel(): void {
@@ -195,6 +257,16 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     if (action === "presidency-pause") {
       if (preview) { slot<HTMLButtonElement>('[data-action="presidency-adopt"]')?.focus(); return; }
       running ? pause() : resume();
+    } else if (action === "presidency-sound") {
+      sound = !sound;
+      if (sound) {
+        try { audio ??= new AudioContext(); if (active()) void audio.resume(); }
+        catch { sound = false; feedback("Le son n’est pas disponible sur ce navigateur."); }
+      } else if (audio) void audio.suspend();
+      target.setAttribute("aria-pressed", String(sound));
+      target.setAttribute("aria-label", sound ? "Désactiver les sons" : "Activer les sons");
+      target.textContent = sound ? "Son actif" : "Son";
+      if (sound) tone();
     } else if (action === "presidency-speed") {
       speed = Number(target.dataset.speed);
       stamp = performance.now();
@@ -268,6 +340,9 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     stamp = now;
     if (!active()) return;
     progress += elapsed * speed;
+    updateCountdowns();
+    const threat = Number(host.dataset.threat ?? 0);
+    if (sound && threat && now - lastBeat > 2400 / threat) { tone(threat > 1); lastBeat = now; }
     if (progress >= PRESIDENCY_PERIOD_MS) { progress = 0; commit("live-tick"); }
     slot<HTMLElement>("[data-live-progress]").style.width = `${progress / PRESIDENCY_PERIOD_MS * 100}%`;
   }, 100);
@@ -294,6 +369,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       if (disposed) return;
       disposed = true;
       clearInterval(timer);
+      if (audio) void audio.close();
       clearTimeout(feedbackTimer);
       cancelAnimationFrame(fanFrame);
       resize.disconnect();

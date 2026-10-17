@@ -4,6 +4,7 @@
  * This is a model audit, not a claim to cover every journal or a UI test.
  * Run: node --experimental-strip-types scripts/mandats-presidency-audit.ts
  */
+import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -23,7 +24,7 @@ const ambitions: Ambition[] = ['equilibre', 'services', 'resilience'];
 const sectors: PressureSectorId[] = ['health', 'housing', 'transport', 'energy', 'education', 'administration'];
 const strategies: Strategy[] = ['autonomy', 'neglect', 'health', 'structural', 'late-recovery', 'overcommit'];
 const modules = ['engine.ts', 'campaign.ts', 'types.ts', 'presidency-types.ts', 'presidency-engine.ts', 'pressure-types.ts',
-  'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts', 'pressure-recovery.ts', 'narrative-engine.ts',
+  'presidency-crises.ts', 'pressure-engine.ts', 'pressure-content.ts', 'pressure-agenda.ts', 'pressure-recovery.ts', 'narrative-engine.ts',
   'narrative-consequences.ts', 'narrative-content.ts', 'politics.ts', 'political-dilemmas.ts', 'social-engine.ts',
   'social-content.ts', 'social-types.ts', 'national-agenda.ts', 'storage.ts'];
 async function manifest() {
@@ -85,6 +86,12 @@ function validate(before: Game, after: Game, id: string, scenario: string, offer
   const nonFinite = Object.entries(numeric(after)).filter(([, value]) => !Number.isFinite(value));
   check(nonFinite.length === 0, scenario, after.turn, `Valeurs non finies : ${nonFinite.slice(0, 5).map(([key]) => key).join(', ')}`);
   const p = after.presidency!;
+  if (p.crises) {
+    check(p.crises.filter(c => c.status !== 'resolved').length <= 3, scenario, after.turn, 'Trop de crises simultanées.');
+    check(new Set(p.crises.map(c => c.spec)).size === p.crises.length, scenario, after.turn, 'Un incident du catalogue réapparaît sans nouvelle cause.');
+    check(p.crises.every(c => !c.parentId || p.crises!.some(parent => parent.id === c.parentId && parent.startedPeriod < c.startedPeriod)), scenario, after.turn, 'Propagation sans parent antérieur.');
+    check(p.crises.every(c => c.status !== 'resolved' || after.pressure!.programmes.some(plan => plan.crisisId === c.id && plan.crisisOutcome === 'resolve' && plan.deliveredTurn !== undefined && plan.deliveredTurn <= after.turn)), scenario, after.turn, 'Crise résolue sans livraison.');
+  }
   check(p.reserve >= -0.001 && p.spent >= -0.001 && p.authorised >= -0.001 && Math.abs(p.reserve - p.authorised + p.spent) <= 0.002,
     scenario, after.turn, 'L’enveloppe disponible diverge des autorisations et dépenses engagées.');
   check(p.spent >= before.presidency!.spent - 0.001, scenario, after.turn, 'Une dépense engagée a été effacée.');
@@ -373,10 +380,11 @@ check(coverage.blockedCommands > 0 && coverage.simultaneousCommands > 0 && cover
 check(coverage.fiveYearTrajectories > 0, 'coverage', 30, 'Aucune trajectoire ne parvient aux cinq clôtures annuelles.');
 check(coverage.creditRefusals > 0 && coverage.creditRequests > coverage.creditRefusals, 'coverage', 30, 'Les autorisations supplémentaires adoptées et rejetées ne sont pas toutes exercées.');
 
-const baselinePath = resolve(process.env.MANDATS_PRESIDENCY_LEGACY_BASELINE ?? 'presidency-artifacts/model-baseline/v15-numeric.json');
+const baselinePath = resolve(process.env.MANDATS_PRESIDENCY_LEGACY_BASELINE ?? 'tests/fixtures/presidency-v15-before-crises.json.gz');
 let legacy: { available: boolean; path: string; trajectories: number; periods: number } = { available: false, path: baselinePath, trajectories: 0, periods: 0 };
 try {
-  const baseline = JSON.parse(await readFile(baselinePath, 'utf8')) as Array<{ seed: number; ambition: Ambition; choices: string[]; turns: Record<string, number>[] }>;
+  const baselineBytes = await readFile(baselinePath);
+  const baseline = JSON.parse((baselinePath.endsWith('.gz') ? gunzipSync(baselineBytes) : baselineBytes).toString('utf8')) as Array<{ seed: number; ambition: Ambition; choices: string[]; turns: Record<string, number>[] }>;
   for (const row of baseline) {
     let game = start('national', row.seed, row.ambition, 15);
     check(same(numeric(game), row.turns[0]), `legacy-${row.seed}`, 0, 'Les valeurs initiales v15 ont changé.');

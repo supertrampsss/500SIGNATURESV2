@@ -52,6 +52,32 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Mandats: persistent incidents and animated pressure (17 October 2026)
+
+The owner approved the crisis refactor and emphasised animation, simultaneous
+problems and fast pressure. Keep the approved illustrated map. The twelve authored
+incidents in `presidency-crises.ts` replace the fixed generic shock calendar only
+for the new v16 presidency. Preserve versions 1–15. Incident responses share actual
+credits, preparation and execution with other programmes; only delivery contains
+or resolves them. Temporary containment can expire, acquired backlog remains, and
+successful recovery provides real quiet periods. Origins use incident IDs and a
+separate journal index, never a guessed period-to-journal conversion.
+
+`presidency-crisis-view.ts` derives live vector effects, alerts and incident briefs;
+`presidency-crises.css` owns choreography. Do not bake controls or numbers into art,
+let animations issue commands, replace state with animation completion, or hide
+ministerial news entirely on mobile. Keep specific responses first and ordinary
+sector development accessible below. Pause stops deadlines and ambient motion;
+reduced motion retains the same information. Sounds are opt-in. The sound control
+must not overlap an open phone command panel.
+
+Run `playwright.crises.config.ts` alongside the presidency suite and bounded model
+audit. `MANDATS_CRISES_PHASE` separates reports from concurrent review runs. Retain
+before/after captures, legal inputs and a real gameplay clip. The compressed v15
+fixture is a numeric snapshot of main at 4c21961, not a generated expectation from
+the new implementation. See `docs/mandats-crises-vivantes.md` for assumptions,
+failure modes, reviewed corrections and evidence.
+
 ### Mandats: living presidency, approved mockups 2 + 4 (16 October 2026)
 
 The owner validated a full gameplay change: independent time, standing presidential

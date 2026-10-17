@@ -87,7 +87,9 @@ async function order(page, sector, kind) {
   const before = await saved(page);
   await openFront(page, sector);
   const command = page.locator(`[data-presidency-order][data-order="live-pressure-${sector}-${kind}"]`);
+  if (!(await command.isVisible())) await page.locator('.pr-sector-development summary').click();
   await expect(command).toBeEnabled();
+  await command.evaluate(e => e.scrollIntoView({block:"center"}));
   await hitTarget(command);
   await command.click();
   await expect.poll(async () => JSON.parse(await rawSave(page)).choices.length).toBe(before.choices.length + 1);
@@ -154,7 +156,8 @@ test('all six fronts stay readable and clickable and an order takes two gestures
     await front.click();
     await page.clock.runFor(32);
     await expect(page.locator('[data-presidency-order]').first()).toBeVisible();
-    for (const command of await page.locator('[data-presidency-commands] [data-presidency-order]').all()) {
+    for (const command of await page.locator('[data-presidency-commands] [data-presidency-order]:visible').all()) {
+      await command.evaluate(e => e.scrollIntoView({block:"center"}));
       if (await command.isDisabled()) await expect(command).toBeInViewport({ ratio: 1 });
       else await hitTarget(command);
     }
@@ -256,6 +259,7 @@ test('refused clock and order saves pause and preserve the last durable country'
   const visibleReserve = await page.locator('[data-live-reserve]').innerText();
   await refuseStorage(page);
   await openFront(page, 'health');
+  await page.locator('.pr-sector-development summary').click();
   await page.locator('[data-presidency-order][data-order="live-pressure-health-programme"]').click();
   expect(await rawSave(page)).toBe(durable);
   expect((await saved(page)).finance).toEqual(fundedBefore.finance);
@@ -485,9 +489,10 @@ test('a crisis leaves all four direct commands reachable and funded recovery cre
   const before = await saved(page);
   expect(before.pressure.sectors.health.stage).toBe('crisis');
   await openFront(page, 'health');
-  const commands = page.locator('[data-presidency-commands] [data-presidency-order]');
+  await page.locator('.pr-sector-development summary').click();
+  const commands = page.locator('.pr-sector-development [data-presidency-order]');
   await expect(commands).toHaveCount(4);
-  for (const command of await commands.all()) await hitTarget(command);
+  for (const command of await commands.all()) { await command.evaluate(e => e.scrollIntoView({block:"center"})); await hitTarget(command); }
   await capture(page, info, 'crise-quatre-commandes-accessibles', before);
   await page.locator('[data-presidency-order][data-order="live-pressure-health-recovery"]').click();
   const funded = await saved(page);

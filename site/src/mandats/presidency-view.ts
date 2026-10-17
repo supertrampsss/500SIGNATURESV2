@@ -1,3 +1,5 @@
+import { crisisSeverity, crisisSpec } from "./presidency-crises.ts";
+import { crisisAlerts, crisisBrief } from "./presidency-crisis-view.ts";
 import type { Choice, Game } from "./types.ts";
 import type { PressureProgramme, PressureSectorId } from "./pressure-types.ts";
 import { presidencyActions, presidencyReforms, presidencyLinks, presidencyCreditsChoice, presidencyPoliticalActions, presidencyLedger } from "./presidency-engine.ts";
@@ -49,12 +51,14 @@ export function presidencyShell(game: Game): string {
         <div class="pr-clock__track" aria-hidden="true"><span data-live-progress></span></div>
       </div>
       <div class="pr-resources" data-live-resources>${resources(game)}</div>
+      <button type="button" class="pr-sound" data-action="presidency-sound" aria-pressed="false" aria-label="Activer les sons">Son</button>
       <button class="pr-menu" type="button" data-action="presidency-menu" aria-label="Ma partie">${icon("menu")}</button>
     </header>
     <div class="pr-country" role="region" aria-label="Carte de France">
       <div class="pr-world" data-presidency-world>
         <img class="pr-art" src="/mandats/art/presidency-france.webp" alt="France illustrée : villes, réseaux, reliefs et littoraux" data-presidency-art decoding="async" fetchpriority="high">
         <svg class="pr-links" viewBox="0 0 1000 562.5" preserveAspectRatio="none" aria-label="Perturbations entre secteurs" data-live-links></svg>
+        <svg class="pr-crisis-effects" viewBox="0 0 1000 562.5" preserveAspectRatio="none" aria-label="Incidents et interventions" data-live-crisis-effects></svg>
         <div class="pr-pins" data-live-pins></div>
       </div>
       <div class="pr-fan-anchor" data-live-fan hidden></div>
@@ -62,7 +66,7 @@ export function presidencyShell(game: Game): string {
       <p class="pr-map-caption">Repères illustratifs · situation nationale</p>
     </div>
     <aside class="pr-sectors" aria-label="Les six secteurs du pays" data-live-sectors></aside>
-    <aside class="pr-feed" aria-label="Fil du gouvernement"><header><span class="pr-feed__live" aria-hidden="true"></span><h2>Fil du gouvernement</h2><span data-live-status>En pause</span></header><div data-live-feed data-presidency-feed></div></aside>
+    <aside class="pr-feed" aria-label="Fil du gouvernement"><header><span class="pr-feed__live" aria-hidden="true"></span><h2>Situation du pays</h2><span data-live-status>En pause</span></header><div data-live-crisis-alerts></div><div data-live-feed data-presidency-feed></div></aside>
     <nav class="pr-navigation" aria-label="Commandes présidentielles">${([["reforms", "administration", "Réformes"], ["government", "government", "Gouvernement"], ["priorities", "target", "Priorités"]] as const).map(([panel, symbol, label]) => `<button type="button" data-action="presidency-panel" data-panel="${panel}"${panel === "reforms" ? ' class="pr-navigation__reforms"' : ""}>${icon(symbol)}<span>${label}</span></button>`).join("")}</nav>
     <div class="pr-notice-slot" data-live-notice-slot></div>
     <div class="pr-feedback" role="status" aria-live="polite" data-live-feedback hidden></div>
@@ -75,9 +79,9 @@ export function presidencyReadings(game: Game, selected: PressureSectorId | null
   return presidencySectorIds.map(id => {
     const front = game.pressure?.sectors[id];
     if (!front) return "";
-    const trend = front.trend === "worsening" ? "trend-up" : front.trend === "improving" ? "trend-down" : "trend-steady";
+    const trend = front.pressureChange > .35 ? `+${n(front.pressureChange, 0)}` : front.pressureChange < -.35 ? n(front.pressureChange, 0) : "=";
     return `<button type="button" class="pr-sector" data-live-sector="${id}" data-presidency-front="${id}" data-action="presidency-sector" data-sector="${id}" data-stage="${front.stage}" aria-pressed="${selected === id}" aria-label="${e(PRESIDENCY_PLACES[id].label)}, pression ${n(front.pressure, 0)} sur 100, ${e(stageNames[front.stage])}">
-      <span class="pr-sector__icon">${icon(id)}</span><span class="pr-sector__reading"><span>${e(PRESIDENCY_PLACES[id].label)}</span><strong>${n(front.pressure, 0)}<small aria-hidden="true">${icon(trend)}</small></strong><i style="--pr-value:${front.pressure}%" aria-hidden="true"></i></span>
+      <span class="pr-sector__icon">${icon(id)}</span><span class="pr-sector__reading"><span>${e(PRESIDENCY_PLACES[id].label)}</span><strong>${n(front.pressure, 0)}<small aria-hidden="true">${trend}</small></strong><i style="--pr-value:${front.pressure}%" aria-hidden="true"></i></span>
     </button>`;
   }).join("");
 }
@@ -88,7 +92,10 @@ export function presidencyPins(game: Game, selected: PressureSectorId | null): s
     if (!front) return "";
     const programme = game.pressure?.programmes.filter(item => item.sector === id && visibleProgramme(item)).at(-1);
     const preparing = programme?.status === "preparing";
-    return `<button type="button" class="pr-pin" data-live-pin="${id}" data-action="presidency-sector" data-sector="${id}" data-stage="${front.stage}" data-selected="${selected === id}" style="--pr-x:${p.x}%;--pr-y:${p.y}%" aria-label="${e(p.label)} : ${e(stageNames[front.stage])}, ouvrir les commandes" aria-pressed="${selected === id}"><span class="pr-pin__ring" aria-hidden="true"></span><span class="pr-pin__symbol">${icon(id)}</span><span class="pr-pin__label">${e(p.label)}<small>${programme ? preparing ? "Équipes en préparation" : durableInService(programme) ? "Effet durable en service" : "Renfort en service" : e(stageNames[front.stage])}</small></span>${programme ? `<span class="pr-pin__work" data-delivery-state="${programme.status}" aria-label="${preparing ? "Intervention en préparation" : "Intervention en service"}">${icon(preparing ? "clock" : "check")}</span>` : ""}</button>`;
+    const crisis = game.presidency?.crises?.find(c => c.sector === id && c.status !== "resolved");
+    const pinStage = crisis?.status === "active" ? crisisSeverity(crisis, game.turn) > 1 ? "crisis" : "disrupted" : front.stage;
+    const label = crisis ? crisisSpec(crisis).title : p.label;
+    return `<button type="button" class="pr-pin" data-live-pin="${id}" data-action="presidency-sector" data-sector="${id}" data-stage="${pinStage}" data-selected="${selected === id}" style="--pr-x:${p.x}%;--pr-y:${p.y}%" aria-label="${e(p.label)} : ${e(stageNames[front.stage])}, ouvrir les commandes" aria-pressed="${selected === id}"><span class="pr-pin__ring" aria-hidden="true"></span><span class="pr-pin__symbol">${icon(id)}</span><span class="pr-pin__label">${e(label)}<small>${programme ? preparing ? "Équipes en préparation" : durableInService(programme) ? "Effet durable en service" : "Renfort en service" : crisis ? "Intervention nécessaire" : e(stageNames[front.stage])}</small></span>${programme ? `<span class="pr-pin__work" data-delivery-state="${programme.status}" aria-label="${preparing ? "Intervention en préparation" : "Intervention en service"}">${icon(preparing ? "clock" : "check")}</span>` : ""}</button>`;
   }).join("");
 }
 
@@ -111,16 +118,20 @@ function command(choice: Choice, compact = false): string {
   const unavailable = order?.unavailable;
   const kind = choice.pressure?.kind;
   const symbol = kind === "relief" ? "people" : kind === "programme" ? "government" : "link";
-  const title = compact ? kind === "relief" ? "Renfort temporaire" : kind === "delegate" ? "Coordonner" : kind === "programme" && choice.pressure?.duration ? "Rattraper les retards" : "Investir durablement" : choice.title;
-  return `<button type="button" class="pr-command${compact ? " pr-command--compact" : ""}" data-action="presidency-order" data-presidency-order data-live-action="${e(choice.id)}" data-order="${e(choice.id)}"${unavailable ? ` disabled aria-disabled="true"` : ""}>
-    ${icon(symbol)}<span class="pr-command__body"><strong>${e(title)}</strong><span class="pr-command__price">${order ? `${compact ? "" : "Engagement : "}${n(order.cost, 2)} Md€${order.delay ? ` · ${order.delay * 2} mois minimum` : " · sans délai de préparation"}` : e(choice.cost)}</span>${!compact ? `<span class="pr-command__description">${e(choice.description)}</span><span class="pr-command__description">${e(choice.cost)}</span><span class="pr-command__description">${e(choice.benefit)}</span><small>${e(choice.sacrifice)}</small>` : ""}${unavailable ? `<small class="pr-command__unavailable">${e(unavailable)}</small>` : compact ? `<small>${e(choice.benefit)}${choice.pressure?.duration ? ` · Effet pendant ${choice.pressure.duration * 2} mois.` : ""}</small>` : ""}</span>
+  const title = choice.title;
+  return `<button type="button" class="pr-command${compact ? " pr-command--compact" : ""}" data-action="presidency-order" data-presidency-order data-live-action="${e(choice.id)}" data-order="${e(choice.id)}"${choice.pressure?.crisisId ? ` data-crisis-response="${e(choice.pressure.crisisId)}"` : ""}${unavailable ? ` disabled aria-disabled="true"` : ""}>
+    ${icon(symbol)}<span class="pr-command__body"><strong>${e(title)}</strong><span class="pr-command__price">${order ? `${compact ? "" : "Engagement : "}${n(order.cost, 2)} Md€${order.delay ? ` · ${order.delay * 2} mois minimum` : " · sans délai de préparation"}` : e(choice.cost)}</span>${!compact ? `<span class="pr-command__description">${e(choice.description)}</span><span class="pr-command__description">${e(choice.cost)}</span><span class="pr-command__description">${e(choice.benefit)}</span><small>${e(choice.sacrifice)}</small>` : ""}${compact && choice.pressure?.crisisId ? `<small class="pr-command__sacrifice">${e(choice.sacrifice)}</small>` : ""}${unavailable ? `<small class="pr-command__unavailable">${e(unavailable)}</small>` : compact ? `<small>${e(choice.benefit)}${choice.pressure?.duration ? ` · Effet pendant ${choice.pressure.duration * 2} mois.` : ""}</small>` : ""}</span>
   </button>`;
 }
 
 export function presidencyFan(game: Game, sector: PressureSectorId): string {
   const front = game.pressure?.sectors[sector];
   const actions = finished(game) ? [] : presidencyActions(game, sector);
-  return `<section class="pr-fan" data-presidency-commands aria-label="Commandes : ${e(PRESIDENCY_PLACES[sector].label)}"><header><span class="pr-fan__title">${icon(sector)}<strong>${e(PRESIDENCY_PLACES[sector].label)}</strong></span><button type="button" data-action="presidency-deselect" aria-label="Fermer les commandes">${icon("close")}</button></header><div class="pr-fan__actions">${actions.map(choice => command(choice, true)).join("") || '<p class="pr-fan__empty">Les interventions disponibles sont déjà engagées.</p>'}</div>${front ? `<footer>Retard : ${n(front.backlog)} · capacité : ${n(front.effectiveCapacity)} / période</footer>` : ""}</section>`;
+  const responses = actions.filter(choice => choice.pressure?.crisisId);
+  const ordinary = actions.filter(choice => !choice.pressure?.crisisId);
+  const hasIncident = game.presidency?.crises?.some(c => c.sector === sector && c.status !== "resolved");
+  const actionMarkup = hasIncident ? `${responses.length ? `<div class="pr-fan__actions">${responses.map(choice => command(choice, true)).join("")}</div>` : '<p class="pr-fan__empty">Les équipes préparent la réponse déjà financée.</p>'}<details class="pr-sector-development"><summary>Développer ce secteur</summary><div class="pr-fan__actions">${ordinary.map(choice => command(choice, true)).join("")}</div></details>` : `<div class="pr-fan__actions">${ordinary.map(choice => command(choice, true)).join("") || '<p class="pr-fan__empty">Les interventions disponibles sont déjà engagées.</p>'}</div>`;
+  return `<section class="pr-fan" data-presidency-commands aria-label="Commandes : ${e(PRESIDENCY_PLACES[sector].label)}"><header><span class="pr-fan__title">${icon(sector)}<strong>${e(PRESIDENCY_PLACES[sector].label)}</strong></span><button type="button" data-action="presidency-deselect" aria-label="Fermer les commandes">${icon("close")}</button></header>${crisisBrief(game, sector)}${actionMarkup}${front ? `<footer>Retard : ${n(front.backlog)} · capacité : ${n(front.effectiveCapacity)} / période</footer>` : ""}</section>`;
 }
 
 function government(game: Game): string {
@@ -166,3 +177,5 @@ export function presidencyPanel(game: Game, panel: PresidencyPanel, comparison =
 }
 
 export { resources as presidencyResources };
+
+export { crisisAlerts };

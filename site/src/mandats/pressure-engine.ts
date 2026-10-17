@@ -1,3 +1,4 @@
+import { crisisImpact } from './presidency-crises.ts';
 import type { Choice, Effect, Game } from './types.ts';
 import type { NarrativeContext } from './narrative-types.ts';
 import type {
@@ -316,7 +317,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     }
   }
 
-  const scenarioShocks = shocks(before.seed);
+  const scenarioShocks = before.version === 16 && before.presidency?.crises ? [] : shocks(before.seed);
   if (slot === 1 && year > 1) {
     for (const id of IDS) {
       const profile = PRESSURE_CHAPTER_NEEDS[id];
@@ -338,7 +339,8 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     const external = scenarioShocks.filter(item => item.sector === id && turn >= item.at && turn < item.at + item.duration);
     const seasonalNeed = id === 'health' && (slot === 1 || slot === 6) ? 1.2 : id === 'energy' && (slot === 1 || slot === 6) ? 1 : id === 'education' && slot === 4 ? 1 : 0;
     const chapterNeed = PRESSURE_CHAPTER_NEEDS[id][Math.min(4, year - 1)];
-    const need = Math.max(0, front.need + chapterNeed + seasonalNeed + external.reduce((sum, item) => sum + (item.need ?? 0), 0));
+    const crisis = before.version === 16 ? crisisImpact(before, id, state.programmes, turn) : { loss: 0, need: 0, labels: [] };
+    const need = Math.max(0, front.need + crisis.need + chapterNeed + seasonalNeed + external.reduce((sum, item) => sum + (item.need ?? 0), 0));
     front.incomingNeed = round(need);
     const linkLoss = Math.min(2.2, links.reduce((sum, link) => sum + link.loss, 0));
     const incidents = before.version >= 14 ? (state.incidents ?? []).filter(item => item.sector === id && item.status !== 'resolved') : [];
@@ -346,7 +348,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
       const spec = PRESSURE_INCIDENTS[item.id];
       return sum + (item.status === 'contained' ? spec.containedLoss : spec.capacityLoss);
     }, 0);
-    const effectiveCapacity = Math.max(.5, front.capacity * (1 - front.fatigue / 300) - linkLoss - incidentLoss + external.reduce((sum, item) => sum + (item.capacity ?? 0), 0));
+    const effectiveCapacity = Math.max(.5, front.capacity * (1 - front.fatigue / 300) - linkLoss - incidentLoss - crisis.loss + external.reduce((sum, item) => sum + (item.capacity ?? 0), 0));
     const added = need - effectiveCapacity;
     front.effectiveCapacity = round(effectiveCapacity);
     front.backlog = round(Math.max(0, front.backlog + added));
@@ -362,6 +364,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     front.causes = front.causes.filter(cause => cause.kind !== 'link');
     if (before.version >= 14) {
       front.causes = front.causes.filter(cause => cause.kind !== 'incident');
+      for (const label of crisis.labels) addCause(front, { kind: 'incident', turn: before.turn, direction: 'increase', label });
       for (const incident of incidents) {
         const spec = PRESSURE_INCIDENTS[incident.id];
         addCause(front, { kind: 'incident', turn: incident.startedTurn, direction: 'increase',
