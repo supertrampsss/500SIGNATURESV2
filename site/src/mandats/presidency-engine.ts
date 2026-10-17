@@ -1,3 +1,4 @@
+import { initialCrises, advanceCrises, crisisChoices, crisisSeverity } from './presidency-crises.ts';
 import type { Ambition, Choice, Effect, Game, Ledger } from './types.ts';
 import type { PressureChoice, PressureProgramme, PressureSectorId } from './pressure-types.ts';
 import type { PresidencyInitiative, PresidencyOrder, PresidencyState } from './presidency-types.ts';
@@ -59,7 +60,8 @@ function apply(g: Game, effect: Effect) {
 }
 function addInitiative(g: Game, item: Omit<PresidencyInitiative, 'id' | 'period'>) {
   const p = state(g);
-  p.initiatives.push({ ...item, id: `presidency-${g.choices.length}-${g.turn}-${p.initiatives.length}`, period: g.turn });
+  p.initiatives.push({ ...item, id: `presidency-${g.choices.length}-${g.turn}-${p.initiativeSerial ?? 0}`, period: g.turn });
+  p.initiativeSerial = (p.initiativeSerial ?? 0) + 1;
   if (p.initiatives.length > 96) p.initiatives.splice(0, p.initiatives.length - 96);
   p.lastEvents.push(item.detail);
   if (p.lastEvents.length > 12) p.lastEvents.splice(0, p.lastEvents.length - 12);
@@ -156,7 +158,7 @@ export function presidencyActions(g: Game, sector: PressureSectorId): Choice[] {
     if (kind === 'recovery' && !['disrupted', 'crisis'].includes(g.pressure.sectors[sector].stage)) continue;
     actions.push(operationalChoice(g, sector, kind));
   }
-  return actions;
+  return [...crisisChoices(g, sector).map(choice => withMetadata(g, choice)), ...actions];
 }
 /** The authored reform catalogue is freely selectable, once per family. The
  * residency/benefits dossier retains its limited wording and zero claimed yield. */
@@ -218,11 +220,21 @@ function governmentInitiative(g: Game) {
     const live = g.pressure!.programmes.filter(item => item.sector === sector && (item.status === 'preparing' || item.status === 'active'));
     // A ministry waits for the measures it already funded; it cannot stack three
     // temporary purchases on the same front in one period.
-    if (live.some(item => (item.capacity ?? 0) > 0 || (item.need ?? 0) < 0)) continue;
     const choices = presidencyActions(g, sector).filter(choice => !choice.presidencyOrder?.unavailable
       && (priority || choice.presidencyOrder!.cost <= PRESIDENCY_OPERATIONAL_LIMIT));
     const kinds = front.pressure >= 65 ? ['recovery', 'relief', 'delegate'] : priority ? ['programme', 'delegate', 'relief'] : ['delegate', 'relief'];
-    const choice = kinds.flatMap(kind => choices.filter(item => item.id.endsWith(`-${kind}`)))[0];
+    const incidents = choices.filter(choice => choice.pressure?.crisisId).sort((a, b) => {
+      const ca = p.crises!.find(c => c.id === a.pressure!.crisisId)!;
+      const cb = p.crises!.find(c => c.id === b.pressure!.crisisId)!;
+      return Number(cb.status === 'active') - Number(ca.status === 'active')
+        || crisisSeverity(cb, g.turn) - crisisSeverity(ca, g.turn)
+        || ca.startedPeriod - cb.startedPeriod
+        || Number(b.pressure!.crisisOutcome === 'resolve') - Number(a.pressure!.crisisOutcome === 'resolve');
+    });
+    // A programme for one incident cannot suppress a different emergency in the
+    // same sector. Ordinary capacity purchases still wait for their funded means.
+    const choice = incidents[0] ?? (live.some(item => (item.capacity ?? 0) > 0 || (item.need ?? 0) < 0) ? undefined
+      : kinds.flatMap(kind => choices.filter(item => item.id.endsWith(`-${kind}`)))[0]);
     if (!choice) continue;
     spend(g, choice);
     addInitiative(g, { actor: 'government', sector, title: `${ministry(sector)} prend l’initiative`,
@@ -254,6 +266,7 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
 }
 function tick(g: Game): Game {
   prepareYear(g);
+  const previousCrisisState = structuredClone(g);
   const beforeProgrammes = new Map(g.pressure!.programmes.map(item => [item.id, item.status]));
   governmentInitiative(g);
   const before = structuredClone(g);
@@ -270,6 +283,7 @@ function tick(g: Game): Game {
   g.politics!.legitimacy = clamp(g.politics!.legitimacy + pressure.legitimacy);
   g.politics!.blocs = g.politics!.blocs.map(bloc => ({ ...bloc, loyalty: clamp(bloc.loyalty + (bloc.inGovernment ? pressure.support : 0)) }));
   g.turn = nextPeriod;
+  advanceCrises(g, previousCrisisState);
   for (const programme of g.pressure.programmes) {
     if (programme.deliveredTurn === g.turn && beforeProgrammes.get(programme.id) !== programme.status) {
       addInitiative(g, { actor: [...p.initiatives].reverse().find(item => item.choice === programme.sourceChoice && item.period === programme.sourceTurn && item.status === 'engaged')?.actor ?? 'president',
@@ -309,6 +323,7 @@ export function startPresidency(seed = 0, ambition: Ambition = 'equilibre'): Gam
     initiatives: [], reforms: [], creditsRequested: 0, creditYears: [], preparedYear: 1,
     budget: { year: 1, accruedOperating: 0, accruedRevenue: 0 },
     lastEvents: ['Le gouvernement est en fonction. Les ministères interviennent dans leurs crédits ; vous fixez le cap.'] };
+  initialCrises(g);
   return g;
 }
 export function decidePresidency(game: Game, id: string): Game {

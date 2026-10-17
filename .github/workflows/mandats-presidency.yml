@@ -29,10 +29,14 @@ jobs:
         run: node --experimental-strip-types scripts/mandats-presidency-audit.ts
       - name: Play the live presidency on desktop, mobile and WebKit
         run: npx playwright test --config playwright.presidency.config.ts
+      - name: Play persistent crises, delivery, propagation and reduced motion
+        run: npx playwright test --config playwright.crises.config.ts
       - name: Retain journals, screenshots, traces and model reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mandats-presidency-${{ github.sha }}
-          path: site/presidency-artifacts/
+          path: |
+            site/presidency-artifacts/
+            site/crises-artifacts/
           retention-days: 14

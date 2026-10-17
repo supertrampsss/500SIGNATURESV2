@@ -41,6 +41,9 @@ export type PressureChoice = {
   /** A funded concession only applies after the actual social commitment is kept. */
   socialMovementId?: string;
   /** v14: only actual delivery can contain or resolve an active incident. */
+  /** Presidency crisis identity, distinct from period and journal index. */
+  crisisId?: string;
+  crisisOutcome?: 'contain' | 'resolve';
   incidentId?: PressureIncidentId;
   incidentResponse?: 'contain' | 'resolve';
 };
