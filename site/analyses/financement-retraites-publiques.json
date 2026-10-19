@@ -22,7 +22,7 @@
   },
   "chiffres": [
     {"dit": "Recettes du système de retraite hors produits financiers", "valeur": 416600000000, "registre": "donnee_officielle", "lecture": "COR, juin 2026, page 85 : ensemble du système en 2025, hors produits financiers."},
-    {"dit": "Cotisations sociales", "valeur": 277000000000, "registre": "donnee_officielle", "lecture": "COR, juin 2026, page 87 : hors contributions d’équilibre et cotisations des employeurs opérateurs, comptées séparément."},
+    {"dit": "Cotisations sociales hors contribution d’équilibre", "valeur": 277000000000, "registre": "donnee_officielle", "lecture": "COR, juin 2026, page 87 : total de cotisations comprenant les cotisations des opérateurs de l’État présentées en sous-rubrique."},
     {"dit": "Autres ressources hors produits financiers", "valeur": 139600000000, "registre": "interpretation", "lecture": "416,6 moins 277 = 139,6 Md€ ; complément de financement, pas un déficit."},
     {"dit": "Part des crédits de l’Éducation nationale versée au CAS Pensions", "valeur": 32, "registre": "donnee_officielle", "lecture": "Direction du Budget, PLF 2027, pages 7 et 24-25 : contributions employeur et cotisations salariales, en pourcentage des crédits totaux."},
     {"dit": "Part des crédits de l’Intérieur versée au CAS Pensions", "valeur": 30, "registre": "donnee_officielle", "lecture": "Direction du Budget, PLF 2027, page 7 : même dénominateur ministériel, prévision budgétaire."}
@@ -45,7 +45,7 @@
     "series": [],
     "preuves": [
       {"id": "total-systeme", "libelle": "Ressources hors produits financiers", "value": 416.6, "unit": "billion_EUR", "period": "2025", "definition": "Ensemble du système de retraite, total publié par le COR page 85, hors produits financiers.", "sourceId": "cor-2026"},
-      {"id": "cotisations-systeme", "libelle": "Cotisations sociales", "value": 277, "unit": "billion_EUR", "period": "2025", "definition": "Ensemble du système, hors contributions d’équilibre et cotisations des employeurs opérateurs, isolées par le COR.", "sourceId": "cor-2026", "comparableGroup": "ressources-systeme-2025-hors-financiers"},
+      {"id": "cotisations-systeme", "libelle": "Cotisations hors contribution d’équilibre", "value": 277, "unit": "billion_EUR", "period": "2025", "definition": "Total du tableau 2.2 page 87 du COR, y compris la sous-rubrique des cotisations des opérateurs de l’État. La note 6 de la synthèse décrit un champ différent ; nous retenons ici explicitement celui du tableau.", "sourceId": "cor-2026", "comparableGroup": "ressources-systeme-2025-hors-financiers"},
       {"id": "autres-systeme", "libelle": "Autres ressources hors produits financiers", "value": 139.6, "unit": "billion_EUR", "period": "2025", "definition": "Calcul : total de 416,6 Md€ hors produits financiers moins 277 Md€ de cotisations. Ce complément n’est pas un déficit.", "sourceId": "cor-2026", "comparableGroup": "ressources-systeme-2025-hors-financiers", "qualityFlags": ["calcul-par-difference"]},
       {"id": "education-cas", "libelle": "Éducation nationale", "value": 32, "unit": "percent", "period": "2027", "definition": "PLF : part des crédits totaux du ministère versée au CAS Pensions, contributions employeur et cotisations salariales.", "sourceId": "budget-pensions-2027", "comparableGroup": "credits-ministeriels-plf-2027", "qualityFlags": ["prevision"]},
       {"id": "interieur-cas", "libelle": "Intérieur", "value": 30, "unit": "percent", "period": "2027", "definition": "PLF : part des crédits totaux du ministère versée au CAS Pensions, contributions employeur et cotisations salariales.", "sourceId": "budget-pensions-2027", "comparableGroup": "credits-ministeriels-plf-2027", "qualityFlags": ["prevision"]}
@@ -65,6 +65,7 @@
       "Les crédits ministériels 2027 sont ceux du projet de loi de finances, pas des dépenses exécutées.",
       "La ventilation alternative du CAS comporte une divergence entre le texte (41,5 Md€) et le graphique (43,9 Md€) ; aucun montant unique n’alimente les indicateurs du site.",
       "Les 139,6 Md€ sont calculés par différence à partir des recettes hors produits financiers ; ils ne constituent pas une mesure du déficit.",
+      "Pour les 277 Md€ de cotisations, nous retenons le tableau 2.2 du COR, qui inclut les opérateurs de l’État en sous-rubrique. La note 6 de sa synthèse les dit exclus ; nous signalons cette divergence de champ sans ajouter une seconde fois les 7,1 Md€ des opérateurs.",
       "Le champ COR de l’ensemble du système diffère de la fonction vieillesse Eurostat, du CAS Pensions et des budgets ministériels."
     ]
   }

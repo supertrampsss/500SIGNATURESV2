@@ -30,7 +30,7 @@ Champ : régimes français légalement obligatoires, FSV compris, hors RAFP. Il 
 | Dépenses brutes | 422,2 Md€ ; 14,1 % du PIB | Rapport p. 65 |
 | Prestations de base et complémentaires hors Aspa | 401 Md€ | p. 65 ; sous-totaux arrondis : droit direct 361, dérivé 39 |
 | Ressources hors produits financiers | 416,6 Md€ | p. 85 ; synthèse p. 9 : 417 arrondi |
-| Cotisations hors contribution d'équilibre et hors employeurs des opérateurs de l'État | 277 Md€ | p. 87 et note 6 de la synthèse |
+| Cotisations hors contribution d'équilibre, opérateurs inclus selon le tableau 2.2 | 277 Md€ | Tableau 2.2 p. 87 ; divergence avec la note 6 de la synthèse explicitée ci-dessous |
 | Autres ressources hors produits financiers | 139,6 Md€ | Calcul éditorial explicite : 416,6 − 277 ; contient fiscalité, contributions, transferts et autres produits |
 | Ressources avec produits financiers | 422,2 Md€ | p. 85 et tableau 2.2 p. 87 |
 | Solde hors charges et produits financiers | −5,1 Md€ | Synthèse p. 1 ; ne pas le recalculer depuis les seuls chiffres bruts arrondis |
@@ -38,7 +38,9 @@ Champ : régimes français légalement obligatoires, FSV compris, hors RAFP. Il 
 
 Le graphique de financement recommandé utilise **277 + 139,6 = 416,6 Md€**, avec un dénominateur hors produits financiers. La part calculée des cotisations est 66,5 %. Les 65,6 % publiés au tableau 2.2 utilisent le dénominateur **avec** produits financiers : ne pas mélanger les deux.
 
-Tableau 2.2, p. 87, en Md€ : cotisations 277 ; opérateurs 7,1 ; contributions d'équilibre 49,3 ; subventions 7,7 ; ITAF et CSG 64,7 ; transferts externes 16,5 ; produits financiers 5,6 ; autres produits 1,4. Somme des postes arrondis : 422,3, total publié : 422,2 ; écart d'arrondi de 0,1. Les sous-postes fiscaux et de transferts présentent également des arrondis. Aucune correction silencieuse.
+Tableau 2.2, p. 87, en Md€ : cotisations 277 ; contributions d'équilibre 49,3 ; subventions 7,7 ; ITAF et CSG 64,7 ; transferts externes 16,5 ; produits financiers 5,6 ; autres produits 1,4. Ces sept postes totalisent exactement 422,2 Md€ avec les valeurs publiées. Les 7,1 Md€ des opérateurs sont une sous-rubrique des 277 Md€ : les additionner au total créerait un double comptage. Les quatre sous-rubriques de cotisations totalisent 277,1 Md€ pour un agrégat arrondi à 277 ; les sous-postes fiscaux et de transferts présentent aussi des arrondis.
+
+La note 6 de la synthèse du COR décrit pourtant les 277 Md€ comme hors cotisations des employeurs opérateurs. Elle diverge du tableau 2.2 et de la somme de ses sous-rubriques. Le dossier retient explicitement le champ du tableau et signale la différence dans ses précautions ; aucun montant supplémentaire d’opérateurs n’est ajouté au graphique. Cette lecture remplace la première version du rapprochement, qui avait traité à tort cette sous-rubrique comme un poste supplémentaire.
 
 ## Démographie : ce que mesure le ratio
 

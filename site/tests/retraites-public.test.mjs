@@ -6,6 +6,8 @@ async function noOverflow(page) {
 }
 test('Retraites : périmètres explicites et financement public accessible depuis France',async({page},info)=>{
  await page.goto('/bilan/#arbitrages-generation');
+ const refus=page.getByRole('button',{name:'Refuser',exact:true});
+ if(await refus.isVisible())await refus.click();
  await expect(page.locator('#france-sorties')).toContainText('Vieillesse (hors réversion)');
  await expect(page.locator('#france-sorties')).toContainText('cotisations sociales');
  const theme=page.locator('#arbitrages-generation');
@@ -20,6 +22,8 @@ test('Retraites : périmètres explicites et financement public accessible depui
  await expect(page.locator('main')).toContainText('43,9');
  await expect(page.locator('#sources time[datetime="2026-10-19"]')).toBeVisible();
  await expect(page.locator('#sources a[href*="budget.gouv.fr"]')).not.toHaveCount(0);
+ await expect(page.locator('#sources')).toContainText('tableau 2.2 du COR');
+ await expect(page.locator('#sources')).toContainText('opérateurs');
  expect(await page.locator('#sources').evaluate(el=>el.compareDocumentPosition(document.querySelector('h1'))&Node.DOCUMENT_POSITION_PRECEDING)).toBeTruthy();
  await noOverflow(page);
  await page.screenshot({path:info.outputPath('financement-retraites-publiques.png'),fullPage:true,animations:'disabled',scale:'css'});

@@ -15,6 +15,8 @@ Voir [le rapprochement et les empreintes des trois PDF archivés](../../retraite
 
 La divergence Bercy 41,5/43,9 reste visible et exclue de tout indicateur unique. Le complément de ressources COR est calculé explicitement par différence. Les financements ne sont pas additionnés aux prestations. Aucun taux FPE n’est appliqué au profil OCDE ou à l’ensemble des fonctionnaires.
 
+Le tableau 2.2 du COR est retenu explicitement : les 7,1 Md€ des opérateurs sont inclus en sous-rubrique dans les 277 Md€. La note 6 de la synthèse dit pourtant les opérateurs exclus ; cette divergence de champ est signalée au lecteur. Le premier rapprochement avait compté cette sous-rubrique comme un agrégat supplémentaire : cette erreur a été corrigée, puis chaque somme a été recomptée à partir des PDF par deux relectures distinctes. Les valeurs des graphiques sont restées inchangées.
+
 ## Contrôles reproductibles
 
 Depuis `site/` :
