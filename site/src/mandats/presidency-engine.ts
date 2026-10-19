@@ -230,7 +230,20 @@ export function presidencyEvents(g: Game): PresidencyEvent[] {
    const projects=g.pressure!.programmes.filter(p=>p.sector===sector&&(p.status==='preparing'||(p.deliveredTurn!==undefined&&g.turn-p.deliveredTurn<=1)));
    if(!projects.length)continue;
    const pending=projects.filter(p=>p.status==='preparing'), total=projects.reduce((sum,p)=>sum+Math.max(1,(p.delay??1)*(p.implementation??1)),0), remaining=pending.reduce((sum,p)=>sum+p.remainingWork,0);
-   events.push({id:`followup-${sector}`,kind:'followup',sector,title:pending.length?`${pending.length} intervention${pending.length>1?'s':''} en préparation`:'Moyens en service',reason:projects.map(p=>p.label).join(' · '),detail:projects.map(p=>p.status==='preparing'?`${p.label} : travail restant ${number(p.remainingWork)}, équipes partagées.`:`${p.label} : capacité en service ; les retards restent à rattraper.`).join(' '),choices:[],status:pending.length?'preparing':'delivered',progress:Math.max(0,Math.min(1,1-remaining/total))});
+   // Never replace a named intervention by a generic "Moyens en service".
+   // Its label, origin and earliest delivery survive every saved transition.
+   const first=projects[0];
+   const followupTitle=projects.length===1
+     ? `${first.label} · ${pending.length?'en cours':'livré'}`
+     : `${first.label} + ${projects.length-1} autre${projects.length>2?'s':''}`;
+   const followupDetail=projects.map(project=>{
+     const actor=[...g.presidency!.initiatives].reverse().find(item=>item.choice===project.sourceChoice&&item.period===project.sourceTurn)?.actor;
+     const source=actor==='government'?'Ministres':'Présidence';
+     return project.status==='preparing'
+       ? `${project.label} (${source}) : livraison au plus tôt période ${project.dueTurn+1}, selon les équipes partagées ; ${number(project.remainingWork)} unités de travail à réaliser.`
+       : `${project.label} (${source}) : en service depuis la période ${(project.deliveredTurn??g.turn)+1} ; les retards doivent encore être résorbés.`;
+   }).join(' ');
+   events.push({id:`followup-${sector}`,kind:'followup',sector,title:followupTitle,reason:projects.map(project=>project.label).join(' · '),detail:followupDetail,choices:[],status:pending.length?'preparing':'delivered',progress:Math.max(0,Math.min(1,1-remaining/total))});
   }
   return events;
 }
@@ -376,7 +389,7 @@ function tick(g: Game): Game {
   for (const programme of g.pressure.programmes) {
     if (programme.deliveredTurn === g.turn && beforeProgrammes.get(programme.id) !== programme.status) {
       addInitiative(g, { actor: [...p.initiatives].reverse().find(item => item.choice === programme.sourceChoice && item.period === programme.sourceTurn && item.status === 'engaged')?.actor ?? 'president',
-        sector: programme.sector, title: 'Des moyens entrent en service', detail: `${programme.label} est opérationnel. Le retard évolue désormais avec cette capacité effective.`,
+        sector: programme.sector, title: `${programme.label} · livré`, detail: `${programme.label} est opérationnel. Le retard évolue désormais avec cette capacité effective.`,
         cost: 0, choice: programme.sourceChoice, status: 'delivered' });
     }
   }
