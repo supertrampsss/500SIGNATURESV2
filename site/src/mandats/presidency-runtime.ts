@@ -51,9 +51,9 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let layoutFrame = 0;
   function updateCountdowns(): void {
     for (const element of host.querySelectorAll<HTMLElement>("[data-crisis-due]")) {
-      const seconds = Math.max(0, Math.ceil(((Number(element.dataset.crisisDue) - game.turn) * PRESIDENCY_PERIOD_MS - progress) / (1000 * speed)));
-      element.textContent = `${seconds} s`;
-      element.setAttribute("aria-label", `${active() ? "Prochaine évolution" : "En pause, prochaine évolution"} dans ${seconds} secondes de jeu à cette vitesse`);
+      const months = Math.max(0, Number(element.dataset.crisisDue) - game.turn) * 2;
+      element.textContent = `${months} mois`;
+      element.setAttribute("aria-label", `${active() ? "Prochaine évolution" : "En pause, prochaine évolution"} dans ${months} mois simulés`);
     }
   }
   function tone(urgent = false): void {
@@ -227,7 +227,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       const next = options.commit(id);
       if (!next) {
         pause();
-        feedback("Sauvegarde impossible. Le temps est suspendu ; votre dernière partie enregistrée est conservée.", true);
+        feedback("Commande non appliquée. Le temps est suspendu et votre dernière sauvegarde est conservée.", true);
         return;
       }
       refresh(next);
