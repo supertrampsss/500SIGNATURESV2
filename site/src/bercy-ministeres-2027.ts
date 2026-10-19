@@ -1,0 +1,22 @@
+/** Figure 3B, annexe pensions PLF 2027, p. 24–25. Parts lues sur le graphique, non données budgétaires exactes. */
+export const MINISTERES_BERCY = [
+  { nom: "Éducation nationale", partRetraites: 31.911101614869757 },
+  { nom: "Intérieur", partRetraites: 30.10121975828674 },
+  { nom: "Enseignement supérieur, recherche et espace", partRetraites: 19.622941078002658 },
+  { nom: "Justice", partRetraites: 20.86129213321192 },
+  { nom: "Action et comptes publics", partRetraites: 16.95574485052989 },
+  { nom: "Défense · Armées et anciens combattants", partRetraites: 12.240533979465347 },
+  { nom: "Transition écologique, biodiversité et négociations internationales sur le climat et la nature", partRetraites: 11.573725838182595 },
+  { nom: "Agriculture, agro-alimentaire et souveraineté alimentaire", partRetraites: 11.38321960857559 },
+  { nom: "Culture", partRetraites: 5.382031124900041 },
+  { nom: "Services du Premier ministre", partRetraites: 4.286571854448783 },
+  { nom: "Europe et affaires étrangères", partRetraites: 4.143680069690784 },
+  { nom: "Sports, jeunesse et vie associative", partRetraites: 3.6197758257187767 },
+  { nom: "Outre-Mer", partRetraites: 1.857520526537513 },
+  { nom: "Travail et solidarités", partRetraites: 1.0002061556477564 },
+  { nom: "Économie, finances et souveraineté industrielle, énergétique et numérique", partRetraites: 0.3334101269177502 },
+  { nom: "Aménagement du territoire et de la décentralisation", partRetraites: 0.04763866995449799 },
+  { nom: "Ville et logement", partRetraites: 0.04763866995449799 },
+  { nom: "Santé, familles, autonomie et personnes handicapées", partRetraites: 0 },
+  { nom: "Transports", partRetraites: 0 },
+] as const;

@@ -297,3 +297,15 @@ test("analyse-rendu garde les anciens JSON et refuse un contrat long incomplet",
   });
   assert.match(rendu(invalide, []), /Sources/);
 });
+
+test("une composition exige des preuves percent bornées et sa légende",()=>{
+ for(const value of [-1,101]) {
+  const d=dossier();
+  d.preuves=[{id:"part-test",libelle:"Test",value,unit:"percent",period:"2027",definition:"Part publiée",sourceId:SOURCES[0]!.id}];
+  d.visualisations=[{id:"parts",type:"stacked_percent",titre:"Parts",resume:"Lecture",preuveIds:["part-test"],composition:{partLabel:"Part",remainderLabel:"Reste"}}];
+  d.sections=[{id:"lecture",titre:"Lecture",paragraphes:["Lecture"],visualisationIds:["parts"]}];delete d.sommaire;
+  assert.throws(()=>validerDossierAnalyse(d,SOURCES),/entre 0 et 100/);
+  d.preuves[0]!.value=25;assert.ok(validerDossierAnalyse(d,SOURCES));
+  delete d.visualisations[0]!.composition;assert.throws(()=>validerDossierAnalyse(d,SOURCES),/composition/);
+ }
+});

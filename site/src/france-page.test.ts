@@ -75,10 +75,8 @@ test('France : une seule ligne Retraites, réversion sortie du résidu et reclas
   const bloc=html.split('id="france-sorties"')[1].split('</section>')[0];
   assert.match(bloc, /<span>Retraites<\/span><strong>−10 €/);
   assert.match(bloc, /<span>Autres dépenses<\/span><strong>−70 €/);
+  assert.match(html, /Défense · Armées et anciens combattants/);
   assert.doesNotMatch(bloc, /Vieillesse \(hors réversion\)|réversion figurent dans les autres/);
-  assert.match(html, /Éducation nationale hors retraites<\/th><td>60,6/);
-  assert.match(html, /scope="row">Retraites<\/th><td>38,9/);
-  assert.match(html, /Total inchangé<\/th><td>123,3/);
 });
 
 test('France : la redistribution compare les deux situations d’une même année et neuf seuils',()=>{

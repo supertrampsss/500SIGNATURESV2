@@ -14,7 +14,7 @@
   ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "Comment les budgets de l’Éducation nationale et de l’Intérieur se répartissent-ils après regroupement du financement des retraites ?",
+    "texte": "Quelle part des crédits de chaque ministère finance les retraites dans le PLF 2027 ?",
     "auteur": null,
     "date": null,
     "source": {
@@ -25,7 +25,7 @@
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Sur les 123,3 milliards d’euros prévus pour ces deux ministères en 2027, 38,9 milliards financent les retraites. Les regrouper conserve le total."
+    "phrase": "La figure 3B de Bercy compare tous les ministères : nous regroupons les contributions et cotisations en une catégorie Retraites."
   },
   "chiffres": [
     {
@@ -47,13 +47,13 @@
       "lecture": "416,6 moins 277 = 139,6 Md€ ; complément de financement, pas un déficit."
     },
     {
-      "dit": "Éducation nationale hors financement des retraites identifié",
+      "dit": "Éducation nationale",
       "valeur": 60600000000.0,
       "registre": "interpretation",
       "lecture": "89,1 − 25,1 − 3,4 = 60,6 Md€, PLF 2027, Bercy p. 11."
     },
     {
-      "dit": "Intérieur hors financement des retraites identifié",
+      "dit": "Intérieur",
       "valeur": 23800000000.0,
       "registre": "interpretation",
       "lecture": "34,2 − 9,3 − 1,1 = 23,8 Md€, PLF 2027, Bercy p. 12."
@@ -109,7 +109,7 @@
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Au PLF 2027, les 123,3 milliards d’euros de l’Éducation nationale et de l’Intérieur peuvent se lire en trois lignes : 60,6 milliards pour l’Éducation hors financement des retraites identifié, 23,8 milliards pour l’Intérieur au même périmètre et 38,9 milliards regroupés en Retraites. Nous retirons les mêmes montants des ministères avant de les réunir : le total reste inchangé. Ce tableau porte sur ces deux ministères seulement.",
+    "chapo": "Dans le PLF 2027, quelle part des crédits de chaque ministère finance les retraites ? Nous reprenons la figure 3B de Bercy en réunissant contributions employeur et cotisations salariales dans une catégorie Retraites. Le reste constitue les autres crédits du ministère.",
     "series": [],
     "preuves": [
       {
@@ -146,7 +146,7 @@
       },
       {
         "id": "education-hors-retraites",
-        "libelle": "Éducation nationale hors financement des retraites identifié",
+        "libelle": "Éducation nationale",
         "value": 60.6,
         "unit": "billion_EUR",
         "period": "2027",
@@ -160,7 +160,7 @@
       },
       {
         "id": "interieur-hors-retraites",
-        "libelle": "Intérieur hors financement des retraites identifié",
+        "libelle": "Intérieur",
         "value": 23.8,
         "unit": "billion_EUR",
         "period": "2027",
@@ -199,19 +199,267 @@
           "prevision",
           "calcul-sur-arrondis-publies"
         ]
+      },
+      {
+        "id": "ministere-figure3b-1",
+        "libelle": "Santé, familles, autonomie et personnes handicapées",
+        "value": 0.0,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-2",
+        "libelle": "Transports",
+        "value": 0.0,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-3",
+        "libelle": "Éducation nationale",
+        "value": 31.911101614869757,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-4",
+        "libelle": "Intérieur",
+        "value": 30.10121975828674,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-5",
+        "libelle": "Enseignement supérieur, recherche et espace",
+        "value": 19.622941078002658,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-6",
+        "libelle": "Justice",
+        "value": 20.86129213321192,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-7",
+        "libelle": "Action et comptes publics",
+        "value": 16.95574485052989,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-8",
+        "libelle": "Défense · Armées et anciens combattants",
+        "value": 12.240533979465347,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-9",
+        "libelle": "Transition écologique, biodiversité et négociations internationales sur le climat et la nature",
+        "value": 11.573725838182595,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-10",
+        "libelle": "Agriculture, agro-alimentaire et souveraineté alimentaire",
+        "value": 11.38321960857559,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-11",
+        "libelle": "Culture",
+        "value": 5.382031124900041,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-12",
+        "libelle": "Services du Premier ministre",
+        "value": 4.286571854448783,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-13",
+        "libelle": "Europe et affaires étrangères",
+        "value": 4.143680069690784,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-14",
+        "libelle": "Sports, jeunesse et vie associative",
+        "value": 3.6197758257187767,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-15",
+        "libelle": "Outre-Mer",
+        "value": 1.857520526537513,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-16",
+        "libelle": "Travail et solidarités",
+        "value": 1.0002061556477564,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-17",
+        "libelle": "Économie, finances et souveraineté industrielle, énergétique et numérique",
+        "value": 0.3334101269177502,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-18",
+        "libelle": "Aménagement du territoire et de la décentralisation",
+        "value": 0.04763866995449799,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
+      },
+      {
+        "id": "ministere-figure3b-19",
+        "libelle": "Ville et logement",
+        "value": 0.04763866995449799,
+        "unit": "percent",
+        "period": "2027",
+        "definition": "Part approximative des crédits consacrée au financement des retraites, lue sur la figure 3B du PLF 2027 : contributions CAS T2 et T3 et cotisations salariales regroupées.",
+        "sourceId": "budget-pensions-2027",
+        "qualityFlags": [
+          "lecture-graphique"
+        ]
       }
     ],
     "visualisations": [
       {
         "id": "ministeres-reclasses",
-        "type": "bar",
-        "titre": "Deux ministères, trois lignes après reclassement",
-        "resume": "PLF 2027, milliards d’euros. Éducation nationale et Intérieur seulement : 60,6 + 23,8 + 38,9 = 123,3. La ligne Retraites regroupe leur financement identifié, retiré des deux budgets ; elle ne mesure pas toutes les pensions de France.",
+        "type": "stacked_percent",
+        "titre": "Le financement des retraites dans les crédits de chaque ministère",
+        "resume": "PLF 2027 : proportions approximatives lues sur la figure 3B de Bercy. Les contributions CAS T2 et T3 et les cotisations salariales sont regroupées en Retraites ; les autres crédits complètent chaque barre à 100 %. Santé et Transports : aucun financement des retraites identifié dans le tableau de Bercy, page 25.",
         "preuveIds": [
-          "education-hors-retraites",
-          "interieur-hors-retraites",
-          "retraites-deux-ministeres"
-        ]
+          "ministere-figure3b-3",
+          "ministere-figure3b-4",
+          "ministere-figure3b-5",
+          "ministere-figure3b-6",
+          "ministere-figure3b-7",
+          "ministere-figure3b-8",
+          "ministere-figure3b-9",
+          "ministere-figure3b-10",
+          "ministere-figure3b-11",
+          "ministere-figure3b-12",
+          "ministere-figure3b-13",
+          "ministere-figure3b-14",
+          "ministere-figure3b-15",
+          "ministere-figure3b-16",
+          "ministere-figure3b-17",
+          "ministere-figure3b-18",
+          "ministere-figure3b-19",
+          "ministere-figure3b-1",
+          "ministere-figure3b-2"
+        ],
+        "composition": {
+          "partLabel": "Retraites",
+          "remainderLabel": "Autres crédits"
+        }
       },
       {
         "id": "ressources-systeme",
@@ -227,15 +475,20 @@
     "sections": [
       {
         "id": "budgets-ministeriels",
-        "titre": "Reclasser les budgets à total constant",
+        "titre": "Les ministères, dans les proportions publiées par Bercy",
         "paragraphes": [
-          "À l’Éducation nationale, Bercy publie 89,1 milliards d’euros de crédits totaux, dont 84,6 milliards de personnel. Les 25,1 milliards de contributions employeur et les 3,4 milliards de cotisations salariales financent les retraites : nous retirons ces 28,5 milliards pour afficher 60,6 milliards hors financement identifié des retraites.",
-          "À l’Intérieur, les crédits totaux sont de 34,2 milliards, dont 25,1 milliards de personnel. Le financement identifié réunit 9,3 milliards de contributions employeur et 1,1 milliard de cotisations salariales, soit 10,4 milliards : le budget ainsi reclassé est de 23,8 milliards.",
-          "La ligne Retraites réunit une seule fois les 28,5 et 10,4 milliards, soit 38,9 milliards. Les trois lignes totalisent toujours 123,3 milliards. Les montants nominaux des pages 11–12 servent au calcul ; les pourcentages arrondis de 32 % et 30 % ne sont pas appliqués aux budgets.",
-          "Ce tableau couvre exclusivement ces deux ministères et les financements identifiés par Bercy, aux arrondis publiés. Il ne classe pas tous les ministères, ne mesure pas toutes les pensions et ne modifie pas la ventilation nationale Eurostat ou COFOG. Les transferts des opérateurs au CAS sont exclus par Bercy ; leurs subventions restent dans les autres dépenses."
+          "Chaque barre représente 100 % des crédits d’un ministère. La catégorie Retraites réunit les contributions au CAS Pensions inscrites en titre 2 et en titre 3 ainsi que les cotisations salariales. Les autres crédits occupent le reste de la barre.",
+          "Les proportions proviennent du graphique original, sans reconstituer de budgets en euros. Ce sont des crédits prévus au projet de loi de finances pour 2027. Les transferts des opérateurs au CAS sont exclus du champ de la figure par Bercy, sauf en partie pour l’Enseignement supérieur, la recherche et l’espace."
         ],
         "visualisationIds": [
           "ministeres-reclasses"
+        ]
+      },
+      {
+        "id": "exemples-montants",
+        "titre": "Deux exemples dans les montants publiés",
+        "paragraphes": [
+          "Bercy détaille aussi les montants pour deux ministères : à l’Éducation nationale, 25,1 milliards de contributions employeur et 3,4 milliards de cotisations salariales financent les retraites, sur 89,1 milliards de crédits. À l’Intérieur, ces montants sont de 9,3 et 1,1 milliard, sur 34,2 milliards. Ces exemples ne constituent pas un budget complet de tous les ministères."
         ]
       },
       {
@@ -276,7 +529,7 @@
       }
     ],
     "limitations": [
-      "Le reclassement en trois lignes couvre uniquement deux ministères et leur financement des retraites identifié aux pages 11–12. Le rapport seul ne permet pas d’étendre ce tableau en euros à tous les ministères ; aucune extrapolation aux autres ministères ou à COFOG n’est faite.",
+      "Les proportions ministérielles sont des lectures approximatives de la géométrie de la figure 3B de Bercy, et non des valeurs numériques exactes. Santé et Transports figurent à zéro d’après le tableau page 25. Aucun budget en euros n’est extrapolé à partir des proportions.",
       "Les crédits ministériels 2027 sont ceux du projet de loi de finances, pas des dépenses exécutées.",
       "La ventilation alternative du CAS comporte une divergence entre le texte (41,5 Md€) et le graphique (43,9 Md€) ; aucun montant unique n’alimente les indicateurs du site.",
       "Les 139,6 Md€ sont calculés par différence à partir des recettes hors produits financiers ; ils ne constituent pas une mesure du déficit.",

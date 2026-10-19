@@ -1,0 +1,355 @@
+{
+  "source": "docs/sources/retraites-2026/bercy-pensions-plf-2027.pdf",
+  "figure": "3B",
+  "year": 2027,
+  "unit": "share of each ministry credits, chart geometry",
+  "rows": [
+    {
+      "name": "Ville et logement",
+      "retirementShare": 0.00047638669954497986,
+      "rest": 0.999523613300455,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          285.4800109863281,
+          550.3199462890625,
+          285.6000061035156,
+          557.6400146484375
+        ],
+        "retirementBoundaryX": 285.4800109863281,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Aménagement du territoire et de la décentralisation",
+      "retirementShare": 0.00047638669954497986,
+      "rest": 0.999523613300455,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          285.4800109863281,
+          537.9599609375,
+          285.9599914550781,
+          545.2799682617188
+        ],
+        "retirementBoundaryX": 285.4800109863281,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Économie, finances et souveraineté industrielle, énergétique et numérique",
+      "retirementShare": 0.003334101269177502,
+      "rest": 0.9966658987308225,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          286.20001220703125,
+          525.719970703125,
+          288.7200012207031,
+          532.9199829101562
+        ],
+        "retirementBoundaryX": 286.20001220703125,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Travail et solidarités",
+      "retirementShare": 0.010002061556477563,
+      "rest": 0.9899979384435225,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          287.8800048828125,
+          513.3599853515625,
+          293.6400146484375,
+          520.5599365234375
+        ],
+        "retirementBoundaryX": 287.8800048828125,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Outre-Mer",
+      "retirementShare": 0.01857520526537513,
+      "rest": 0.9814247947346249,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          290.0400085449219,
+          500.9999694824219,
+          299.5199890136719,
+          508.1999816894531
+        ],
+        "retirementBoundaryX": 290.0400085449219,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Sports, jeunesse et vie associative",
+      "retirementShare": 0.03619775825718777,
+      "rest": 0.9638022417428123,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          294.4800109863281,
+          488.6399841308594,
+          311.5199890136719,
+          495.9599914550781
+        ],
+        "retirementBoundaryX": 294.4800109863281,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Europe et affaires étrangères",
+      "retirementShare": 0.04143680069690783,
+      "rest": 0.9585631993030922,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          295.79998779296875,
+          476.39996337890625,
+          350.0400085449219,
+          483.5999755859375
+        ],
+        "retirementBoundaryX": 295.79998779296875,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Services du Premier ministre",
+      "retirementShare": 0.042865718544487834,
+      "rest": 0.9571342814555122,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          296.1600036621094,
+          464.03997802734375,
+          332.2799987792969,
+          471.239990234375
+        ],
+        "retirementBoundaryX": 296.1600036621094,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Culture",
+      "retirementShare": 0.05382031124900041,
+      "rest": 0.9461796887509996,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          298.9200134277344,
+          451.67999267578125,
+          329.0400085449219,
+          458.8799743652344
+        ],
+        "retirementBoundaryX": 298.9200134277344,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Agriculture, agro-alimentaire et souveraineté alimentaire",
+      "retirementShare": 0.1138321960857559,
+      "rest": 0.8861678039142441,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          314.0400085449219,
+          439.3199768066406,
+          388.44000244140625,
+          446.6399841308594
+        ],
+        "retirementBoundaryX": 314.0400085449219,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Transition écologique, biodiversité et négociations internationales sur le climat et la nature",
+      "retirementShare": 0.11573725838182594,
+      "rest": 0.8842627416181741,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          314.5199890136719,
+          426.9599914550781,
+          385.44000244140625,
+          434.27996826171875
+        ],
+        "retirementBoundaryX": 314.5199890136719,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Armées et anciens combattants",
+      "retirementShare": 0.12240533979465347,
+      "rest": 0.8775946602053465,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          316.20001220703125,
+          414.719970703125,
+          366.9599914550781,
+          421.91998291015625
+        ],
+        "retirementBoundaryX": 316.20001220703125,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Action et comptes publics",
+      "retirementShare": 0.16955744850529889,
+      "rest": 0.8304425514947011,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          328.0799865722656,
+          402.3599853515625,
+          408.6000061035156,
+          409.5599670410156
+        ],
+        "retirementBoundaryX": 328.0799865722656,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Justice",
+      "retirementShare": 0.20861292133211917,
+      "rest": 0.7913870786678808,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          337.9200134277344,
+          389.9999694824219,
+          435.1199951171875,
+          397.3199768066406
+        ],
+        "retirementBoundaryX": 337.9200134277344,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Enseignement supérieur, recherche et espace",
+      "retirementShare": 0.1962294107800266,
+      "rest": 0.8037705892199734,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          334.79998779296875,
+          377.6399841308594,
+          337.44000244140625,
+          384.9599914550781
+        ],
+        "retirementBoundaryX": 334.79998779296875,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Intérieur",
+      "retirementShare": 0.3010121975828674,
+      "rest": 0.6989878024171325,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          361.20001220703125,
+          365.39996337890625,
+          469.79998779296875,
+          372.5999755859375
+        ],
+        "retirementBoundaryX": 361.20001220703125,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Éducation nationale",
+      "retirementShare": 0.3191110161486976,
+      "rest": 0.6808889838513024,
+      "sourceGeometry": {
+        "pdfPage": 24,
+        "x0": 285.3599853515625,
+        "x100": 537.3099975585938,
+        "restPersonnelRect": [
+          365.760009765625,
+          353.03997802734375,
+          524.6400146484375,
+          360.239990234375
+        ],
+        "retirementBoundaryX": 365.760009765625,
+        "extraction": "PDF vector: x-coordinate at start of remaining-personnel blue rectangle; includes contiguous T2 CAS, T3 CAS and salaried contributions",
+        "precision": "published chart geometry, not an exact underlying numerical budget value"
+      }
+    },
+    {
+      "name": "Santé, familles, autonomie et personnes handicapées",
+      "retirementShare": 0,
+      "rest": 1,
+      "sourceGeometry": {
+        "pdfPage": 25,
+        "extraction": "Explicit published note: ministries omitted because no State employer CAS Pensions contributions"
+      }
+    },
+    {
+      "name": "Transports",
+      "retirementShare": 0,
+      "rest": 1,
+      "sourceGeometry": {
+        "pdfPage": 25,
+        "extraction": "Explicit published note: ministries omitted because no State employer CAS Pensions contributions"
+      }
+    }
+  ],
+  "notes": [
+    "Retirement components grouped: T2 CAS + T3 CAS + cotisations salariales.",
+    "Salary contributions are estimates in the original Bercy source (page25 note2).",
+    "Ville/logement and Aménagement have less than1% employer contributions; the published vector boundary is less than0.1% from the axis, below meaningful chart reading precision.",
+    "Operator flows excluded in source except partial ESR T3CAS; do not extend scope."
+  ]
+}

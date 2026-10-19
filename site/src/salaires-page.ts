@@ -1,3 +1,4 @@
+import './styles/stacked-percent.css';
 import { bindChartControls } from "./chart-controls.ts";
 import { brancherSalaires, renduSalaires } from './salaires.ts';
 import { brancherMenuNavigation, suivreHauteurEntete, renduNavigation } from './navigation.ts';
