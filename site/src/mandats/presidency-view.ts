@@ -36,7 +36,7 @@ function resources(game: Game): string {
   const seats = game.politics?.blocs.reduce((sum, bloc) => sum + bloc.seats, 0) ?? 577;
   const support = game.politics?.blocs.filter(bloc => bloc.inGovernment).reduce((sum, bloc) => sum + bloc.seats, 0) ?? 0;
   return `<div class="pr-resource" title="Crédits encore disponibles dans votre autorisation de dépense">${icon("coins")}<span><small>Crédits</small><strong data-live-reserve>${n(p?.reserve ?? 0)} <em>Md€</em></strong></span></div>
-    <div class="pr-resource pr-resource--teams" title="Capacité d’exécution utilisée sur la période">${icon("people")}<span><small>Équipes mobilisées</small><strong data-live-teams>${n(execution?.used ?? 0)} <em>/ ${n(execution?.capacity ?? 0)}</em></strong></span></div>
+    <div class="pr-resource pr-resource--teams" title="Capacité d’exécution utilisée sur la période">${icon("people")}<span><small>Capacité chantier</small><strong data-live-teams>${n(execution?.used ?? 0)} <em>/ ${n(execution?.capacity ?? 0)}</em></strong></span></div>
     <div class="pr-resource pr-resource--seats" title="Les soutiens à l’Assemblée ne garantissent pas chaque vote">${icon("government")}<span><small>Coalition</small><strong data-live-seats>${support} <em>/ ${seats}</em></strong><i style="--pr-value:${support / Math.max(1, seats) * 100}%"></i></span></div>`;
 }
 
@@ -134,7 +134,7 @@ function command(choice: Choice, compact = false): string {
   const symbol = kind === "relief" ? "people" : kind === "programme" ? "government" : "link";
   const title = choice.title;
   const price = order && (order.cost > 0 || choice.pressure) ? `${n(order.cost,2)} Md€ engagés${order.delay ? ` · ${order.delay*2} mois minimum` : ''}` : choice.political?.vote ? 'Soumis au vote de l’Assemblée' : choice.cost;
-  const benefit = /modifie la trajectoire|dossiers suivants/i.test(choice.benefit) ? '' : choice.benefit;
+  const benefit = choice.benefit === choice.sacrifice || /modifie la trajectoire|dossiers suivants/i.test(choice.benefit) ? '' : choice.benefit;
   return `<button type="button" class="pr-command${compact ? " pr-command--compact" : ""}" data-action="presidency-order" data-presidency-order data-live-action="${e(choice.id)}" data-order="${e(choice.id)}"${choice.pressure?.crisisId ? ` data-crisis-response="${e(choice.pressure.crisisId)}"` : ""}${unavailable ? ` disabled aria-disabled="true"` : ""}>
     ${icon(symbol)}<span class="pr-command__body"><strong>${e(title)}</strong><span class="pr-command__price">${e(price)}</span>${!compact ? `<span class="pr-command__description">${e(choice.description)}</span><span class="pr-command__description">${e(choice.cost)}</span><span class="pr-command__description">${e(choice.benefit)}</span><small>${e(choice.sacrifice)}</small>` : ""}${compact && !choice.pressure?.crisisId && choice.cost !== price ? `<span class="pr-command__fiscal">${e(choice.cost)}</span>` : ""}${compact && choice.sacrifice ? `<small class="pr-command__sacrifice">${e(choice.sacrifice)}</small>` : ""}${unavailable ? `<small class="pr-command__unavailable">${e(unavailable)}</small>` : compact ? `<small>${e(benefit)}${choice.pressure?.duration ? ` · Effet pendant ${choice.pressure.duration * 2} mois.` : ""}</small>` : ""}</span>
   </button>`;
@@ -207,7 +207,7 @@ const eventNames = { reform:'Réforme', political:'Institutions', budget:'Budget
 export function presidencyEventPins(game: Game): string {
  return presidencyEvents(game).filter(event=>event.kind !== 'followup' || !presidencyCrises(game).some(c=>c.sector===event.sector && !c.id.startsWith('civil-') && c.status!=='resolved')).map((event,i)=>{
    const civil = event.id.startsWith('civil-');
-   const shortTitle = event.kind === 'government' ? 'Matignon' : event.kind === 'reform' ? NATIONAL_AGENDA.find(r=>r.id===event.id)?.dossier.category ?? event.title : event.title;
+   const shortTitle = event.kind === 'government' ? 'Matignon' : event.kind === 'reform' ? event.title : event.title;
    const x = civil ? 44 : event.kind === 'budget' ? 37 : event.kind === 'government' ? 48 : event.kind === 'political' || event.kind === 'reform' ? 44 : PRESIDENCY_PLACES[event.sector].x;
    const y = civil ? 34.7 : event.kind === 'budget' ? 57 : event.kind === 'government' ? 38 : event.kind === 'political' || event.kind === 'reform' ? 26 + i*3 : PRESIDENCY_PLACES[event.sector].y;
    const symbol = event.kind === 'budget' ? 'coins' : event.kind === 'reform' ? 'administration' : event.kind === 'followup' ? 'clock' : 'government';

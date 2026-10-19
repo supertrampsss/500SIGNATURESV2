@@ -471,6 +471,7 @@ export function startPresidency(seed = 0, ambition: Ambition = 'equilibre'): Gam
   if (!Number.isInteger(seed) || seed < 0 || seed > 9999 || !['equilibre', 'services', 'resilience'].includes(ambition)) throw new Error('Scénario de présidence invalide.');
   const g = startCampaign('national', seed, ambition, undefined, 15);
   g.version = 16;
+  g.pressure!.execution.capacity += ambition === 'services' ? 1 : ambition === 'resilience' ? -1 : 0;
   // The mission is not a cosmetic label: it changes the opening emergency,
   // the available intervention envelope and the executive's initial priority.
   const opening = ambition === 'services'

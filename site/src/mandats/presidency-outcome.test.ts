@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { startPresidency } from './presidency-engine.ts';
 import { presidencyCrises } from './presidency-crises.ts';
 import { presidencyOutcome } from './presidency-outcome.ts';
-import { presidencyShell, presidencyPanel } from './presidency-view.ts';
+import { presidencyShell, presidencyPanel, presidencyReadings } from './presidency-view.ts';
 import { encode, decode } from './storage.ts';
 
 test('mission changes the opening emergency and actual credit envelope', () => {
@@ -12,10 +12,13 @@ test('mission changes the opening emergency and actual credit envelope', () => {
   const grid = startPresidency(9, 'resilience');
   assert.equal(budget.presidency!.reserve, 6.4);
   assert.equal(hospital.presidency!.reserve, 7.2);
+  assert.equal(hospital.pressure!.execution.capacity, budget.pressure!.execution.capacity + 1);
   assert.equal(grid.presidency!.reserve, 5.4);
+  assert.equal(grid.pressure!.execution.capacity, budget.pressure!.execution.capacity - 1);
   assert.equal(presidencyCrises(hospital)[0].spec, 'cyber');
   assert.equal(presidencyCrises(grid)[0].spec, 'transformateur');
   assert.match(presidencyShell(hospital), /Objectif : Sauver les services/);
+  assert.match(presidencyReadings(hospital, null), /Incident actif/);
   assert.deepEqual(decode(encode(hospital)), hospital);
 });
 

@@ -5,11 +5,11 @@ import { presidencyCrises } from './presidency-crises.ts';
 export const PRESIDENCY_MISSIONS: Record<Ambition, { title: string; goal: string }> = {
   equilibre: {
     title: 'Tenir le budget',
-    goal: 'Finir avec au moins 0,5 Md€ de crédits et sans service en crise grave.',
+    goal: 'Finir avec au moins 0,5 Md€ de crédits, sans service en crise grave ni incident actif.',
   },
   services: {
     title: 'Sauver les services',
-    goal: 'Ramener la pression sanitaire sous 55/100 et éviter une crise grave ailleurs.',
+    goal: 'Ramener la pression sanitaire sous 55/100, sans service en crise grave ni incident actif.',
   },
   resilience: {
     title: 'Prévenir les ruptures',
@@ -30,10 +30,10 @@ export function presidencyOutcome(game: Game): {
     explanation: game.politics?.ending?.reason ?? 'Le pouvoir a été interrompu avant le terme.',
   };
   const ok = game.ambition === 'services'
-    ? (game.pressure?.sectors.health.pressure ?? Infinity) < 55 && severe.length === 0
+    ? (game.pressure?.sectors.health.pressure ?? Infinity) < 55 && severe.length === 0 && active.length === 0
     : game.ambition === 'resilience'
       ? (game.pressure?.sectors.energy.pressure ?? Infinity) < 55 && active.length === 0
-      : (game.presidency?.reserve ?? -1) >= .5 && severe.length === 0;
+      : (game.presidency?.reserve ?? -1) >= .5 && severe.length === 0 && active.length === 0;
   const explanation = [`${severe.length} service${severe.length>1?'s':''} en crise grave`,
     `${active.length} incident${active.length>1?'s':''} non résolu`,
     `${(game.presidency?.reserve ?? 0).toLocaleString('fr-FR', {maximumFractionDigits:1})} Md€ de crédits disponibles`].join(' · ');
