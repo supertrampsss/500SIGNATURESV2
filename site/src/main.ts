@@ -117,6 +117,7 @@ import "./styles/revue-civique.css";
 import "./styles/analyses-revue.css";
 import "./styles/shared-design.css";
 import "./styles/france-page.css";
+import "./styles/reclassement-bercy.css";
 import "./styles/france-aligned-pages.css";
 import "./styles/territoire-rework.css";
 import "./styles/site-shell-v2.css";

@@ -24,7 +24,7 @@ test('les retraites et le chômage sont séparés sans compter deux fois les pre
  const series:Record<string,Record<string,number>>=Object.fromEntries([...benefits.map(id=>'eurostat_apu_prestations_'+id),...other.map(id=>'eurostat_apu_'+id)].map(id=>[id,{'2024':1}]));
  series.eurostat_apu_prestations={'2024':8};series.eurostat_apu_depenses={'2024':20};
  const data=repartitionCollective(series)!;
- assert.equal(data.missions.find(m=>m.label==='Vieillesse (hors réversion)')!.share,.05);
+ assert.equal(data.missions.find(m=>m.label==='Retraites')!.share,.1);
  assert.equal(data.missions.find(m=>m.label==='Chômage')!.share,.05);
  assert.ok(Math.abs(data.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
  series.eurostat_apu_prestations['2024']=6;
@@ -41,4 +41,34 @@ test('l’historique ne mélange pas des exercices incomplets ou des bases diff�
  for(const h of history)assert.ok(Math.abs(h.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
  const html=renduSalaires(series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);assert.match(html,/id="salary-history"/);assert.match(html,/data-salary-history-share/);assert.match(html,/Les principaux postes de dépense/);
  assert.ok((html.match(/chart-key chart-key--/g)??[]).length>=4);
+});
+
+
+test('le regroupement des pensions conserve tous les montants et les exercices historiques', async()=>{
+ const {repartitionCollective,historiqueRepartition}=await import('./salaires.ts');
+ const benefits=['vieillesse','survivants','maladie_invalidite','chomage','famille','exclusion','logement'];
+ const other=['remunerations','transferts_nature','consommations','investissement','transferts_courants','interets','subventions','transferts_capital'];
+ const series:Record<string,Record<string,number>>=Object.fromEntries([...benefits.map(id=>'eurostat_apu_prestations_'+id),...other.map(id=>'eurostat_apu_'+id)].map(id=>[id,{'2023':1,'2024':2}]));
+ series.eurostat_apu_prestations={'2023':8,'2024':16};series.eurostat_apu_depenses={'2023':20,'2024':40};
+ for (const data of historiqueRepartition(series)) {
+  assert.equal(data.missions.filter(m=>m.label==='Retraites').length,1);
+  assert.equal(data.missions.find(m=>m.label==='Retraites')!.share,.1);
+  assert.equal(data.missions.find(m=>m.label==='Autres prestations')!.share,.05);
+  assert.equal(data.missions.find(m=>m.label==='Autres dépenses')!.share,.2);
+  assert.equal(data.missions.find(m=>m.label==='Rémunération des agents publics')!.share,.05);
+  assert.ok(Math.abs(data.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
+  assert.ok(data.missions.every(m=>!m.label.includes('réversion')));
+ }
+ const html=renduSalaires(series);
+ assert.match(html,/Vieillesse, minima vieillesse et pensions de réversion/);
+ delete series.eurostat_apu_prestations_survivants['2024'];
+ assert.equal(repartitionCollective(series)!.year,'2023');
+ assert.deepEqual(historiqueRepartition(series).map(h=>h.year),['2023']);
+});
+
+
+test("le pont budgétaire Bercy apparaît une fois sur Salaires",()=>{
+ const html=renduSalaires();
+ assert.equal((html.match(/id="reclassement-bercy"/g)??[]).length,1);
+ assert.match(html,/60,6/);assert.match(html,/23,8/);assert.match(html,/38,9/);
 });

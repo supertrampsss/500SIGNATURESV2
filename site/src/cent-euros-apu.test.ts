@@ -20,7 +20,7 @@ const Md = 1e9;
 // la redistribution avait déjà coûtée.
 const SERIES: Record<string, Record<string, number>> = {
   eurostat_apu_recettes: { "2024": 1503.59 * Md, "2025": 1561.6261 * Md },
-  eurostat_apu_depenses: { "2024": 1672.7108 * Md, "2025": 1714.1372 * Md },
+  eurostat_apu_depenses: { "2024": 1714.1372 * Md, "2025": 1714.1372 * Md },
   eurostat_apu_prestations: { "2025": 579.5423 * Md },
   eurostat_apu_remunerations: { "2025": 370.016 * Md },
   eurostat_apu_transferts_nature: { "2025": 191.4967 * Md },
@@ -46,6 +46,15 @@ const SERIES: Record<string, Record<string, number>> = {
   eurostat_apu_prestations_ventilees: { "2024": 561.8784 * Md },
 };
 
+// Compte 2024 synthétique pour contrôler le raccord de deux millésimes :
+// seules les prestations ventilées et les recettes ci-dessus sont les valeurs
+// publiées ; les transactions de cette fixture reprennent celles de 2025.
+for (const [id, values] of Object.entries(SERIES)) {
+  if (id.startsWith('eurostat_apu_') && values['2025'] !== undefined && values['2024'] === undefined) {
+    values['2024'] = values['2025'];
+  }
+}
+
 function territoire(series: Record<string, Record<string, number>>): Territoire {
   return { nom: "", parent: null, population: null, drapeaux: {}, series };
 }
@@ -62,7 +71,7 @@ test("le total encaissé s'écrit en toutes lettres, pas en sept rangs suivis d'
   // pour lire mille cinq cents milliards derrière deux lettres. C'est la règle
   // que `montantLisible` porte, et que ce bloc a d'abord enfreinte.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /1\s?562\s?milliards d'euros/);
+  assert.match(lu, /1\s?504\s?milliards d'euros/);
   assert.doesNotMatch(lu, /M€/);
 });
 
@@ -70,17 +79,17 @@ test("les parts se rapportent aux recettes, donc leur somme dépasse 100 €", (
   // Ramenées à cent, elles feraient disparaître la seule chose que ce tableau
   // existe pour montrer : le déficit.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /109,77\s?€ dépensés pour 100\s?€ reçus/);
-  assert.match(lu, /9,77\s?€ à financer/);
+  assert.match(lu, /114,00\s?€ dépensés pour 100\s?€ reçus/);
+  assert.match(lu, /14,00\s?€ à financer/);
 });
 
 test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
   // La demande explicite du lecteur : une recette entre (+), une dépense sort
   // (−) — et les sous-lignes des retraites sont des dépenses, pas des gains.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.match(html, /31,94\s?€/);
-  assert.match(html, /flux--moins">−24,09\s?€/);
-  assert.match(html, /flux--moins">−109,77\s?€/);
+  assert.match(html, /33,17\s?€/);
+  assert.match(html, /flux--moins">−26,76\s?€/);
+  assert.match(html, /flux--moins">−114,00\s?€/);
   // Et l'emprunt garde ses hachures — une texture, jamais une couleur.
   assert.match(html, /apu__piste--creux/);
 });
@@ -91,7 +100,7 @@ test("le reste non détaillé est une ligne, jamais un silence", () => {
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   assert.match(lu, /Autres dépenses/);
   // 1 714,1372 − la somme des neuf postes = 19,62 Md€, soit 1,26 € pour 100.
-  assert.match(lu, /Autres dépenses −1,26\s?€/);
+  assert.match(lu, /Autres dépenses −2,49\s?€/);
 });
 
 test("la source est une ligne courte sous le tableau, pas une légende au-dessus", () => {
@@ -101,7 +110,7 @@ test("la source est une ligne courte sous le tableau, pas une légende au-dessus
   // source, elle, se tient courte et sous le tableau, comme partout ailleurs
   // sur le site.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.doesNotMatch(html, /<caption>/);
+  assert.doesNotMatch(html.split('<section class="bercy-reclassement"')[0], /<caption>/);
   assert.match(html, /class="chart-source">[^<]+Eurostat<\/p>/);
   const lu = texte(html);
   assert.doesNotMatch(lu, /ne se soustrait ni des/);
@@ -114,21 +123,20 @@ test("les recettes se décomposent aussi, reste compris", () => {
   assert.match(lu, /Ventes de services et autres recettes/);
   // 498,7 + 470,4 + 389,9 = 1 359 sur 1 561,6, soit 12,97 € de reste — en
   // positif : une recette entre.
-  assert.match(rendu({ FR: territoire(SERIES) }), />12,97\s?€</);
+  assert.match(rendu({ FR: territoire(SERIES) }), />9,61\s?€</);
 });
 
 test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé suggère", () => {
   // « Retraites, chômage, allocations » mettait dans un seul nombre trois
   // choses qui n'ont ni le même montant, ni le même public. Séparées, la
-  // retraite pèse NEUF fois le chômage — dit dans l'introduction du chapitre,
+  // retraite pèse près de DIX fois le chômage — dit dans l'introduction du chapitre,
   // pas dans le dépliant — et chaque sous-ligne est une dépense : négative.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   // Exact values below convey the comparison without an extra prose assertion.
   for (const attendu of [
-    /Vieillesse \(hors réversion\) −24,09\s?€/,
+    /Retraites −26,76\s?€/,
     /Arrêts maladie et invalidité −3,34\s?€/,
     /Chômage −2,70\s?€/,
-    /Pensions de réversion −2,68\s?€/,
     /Famille et enfants −2,29\s?€/,
     /RSA et autres minima sociaux −1,79\s?€/,
   ]) {
@@ -139,10 +147,10 @@ test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé 
   assert.match(lu, /hors protection sociale.{0,60}−0,41\s?€/);
 });
 
-test("aucune ligne « Retraites, chômage, allocations » ne résume plus les sept fonctions", () => {
+test("aucune ligne « Retraites, chômage, allocations » ne résume plus les six groupes", () => {
   // Le repli forçait à cliquer pour voir sept lignes qui pèsent plus du tiers
   // de la dépense publique. Il est parti : ni le repli, ni un total à part
-  // pour le poste qu'il résumait, seulement les sept fonctions au même niveau
+  // pour le poste qu'il résumait, seulement les six groupes au même niveau
   // que les huit autres postes.
   const html = rendu({ FR: territoire(SERIES) });
   assert.doesNotMatch(html.slice(0, html.indexOf("Total dépensé")), /<details/);
@@ -158,13 +166,13 @@ test("la ventilation n'existe qu'une fois : le doublon est mort", () => {
   // deux fois — et le lecteur l'a refusé. Chaque valeur n'apparaît qu'une
   // fois, directement dans le flux des postes.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.equal(html.split("24,09").length - 1, 1, "24,09 € écrit plus d'une fois");
+  assert.equal(html.split("26,76").length - 1, 1, "26,76 € écrit plus d'une fois");
   assert.equal(html.split("2,70").length - 1, 1, "2,70 € écrit plus d'une fois");
   assert.doesNotMatch(html, /ce que recouvre le poste<\/h4>/);
 });
 
 test("le rapport des barres est celui des nombres, sur toute la liste triée", () => {
-  // « 24,09 » posé au-dessus de « 2,70 » ne dit pas NEUF FOIS : la barre le
+  // « 26,76 » posé au-dessus de « 2,70 » ne dit pas DIX FOIS : la barre le
   // dit. La liste « Où ils vont » est désormais triée du plus lourd au plus
   // léger et toutes les feuilles partagent une seule échelle — la plus grande
   // occupe la piste, et le rapport dessiné entre deux barres est celui des
@@ -175,21 +183,21 @@ test("le rapport des barres est celui des nombres, sur toute la liste triée", (
     const m = html.slice(i).match(/width:([0-9.]+)%/);
     return m ? Number(m[1]) : NaN;
   };
-  // La plus grande dépense (Retraites, 24,09) occupe toute la piste.
-  assert.equal(barre("Vieillesse (hors réversion)"), 100);
-  // Chômage (2,70) : sa barre est dans le rapport 2,70 / 24,09 de celle des
+  // La plus grande dépense (Retraites, 26,76) occupe toute la piste.
+  assert.equal(barre("Retraites"), 100);
+  // Chômage (2,70) : sa barre est dans le rapport 2,70 / 26,76 de celle des
   // retraites — le même dénominateur pour toute la liste.
   assert.ok(
-    Math.abs(barre("Chômage") / barre("Vieillesse (hors réversion)") - 2.7 / 24.09) < 0.01,
-    `rapport dessiné ${barre("Chômage") / barre("Vieillesse (hors réversion)")}, rapport des nombres ${2.7 / 24.09}`,
+    Math.abs(barre("Chômage") / barre("Retraites") - 2.7 / 26.76) < 0.01,
+    `rapport dessiné ${barre("Chômage") / barre("Retraites")}, rapport des nombres ${2.7 / 26.76}`,
   );
 });
 
 test("« Où ils vont » se lit du plus lourd au plus léger, fonctions et postes mêlés", () => {
-  // Demande du propriétaire : la liste était scindée — les sept fonctions du
+  // Demande du propriétaire : la liste était scindée — les six groupes du
   // premier poste d'abord, puis les huit autres postes — et zigzaguait
-  // (24,09 puis des petites, puis 23,69). Elle est désormais un seul tri
-  // décroissant. Retraites (24,09) puis Rémunération des agents publics
+  // (26,76 puis des petites, puis 23,69). Elle est désormais un seul tri
+  // décroissant. Retraites (26,76) puis Rémunération des agents publics
   // (23,69) se suivent, et aucune valeur de barre ne remonte.
   const html = rendu({ FR: territoire(SERIES) });
   const colonne = html.slice(html.indexOf("Où va l'argent"), html.indexOf("Total dépensé"));
@@ -201,8 +209,8 @@ test("« Où ils vont » se lit du plus lourd au plus léger, fonctions et poste
     assert.ok(montants[i] <= montants[i - 1], `ordre rompu à ${montants[i - 1]} → ${montants[i]}`);
   }
   // Les deux plus gros, dans le bon ordre.
-  assert.equal(montants[0], 24.09);
-  assert.equal(montants[1], 23.69);
+  assert.equal(montants[0], 26.76);
+  assert.equal(montants[1], 24.61);
 });
 
 test("la ventilation reste calculée sur son propre exercice, même si la mention n'est plus affichée", () => {
@@ -211,13 +219,13 @@ test("la ventilation reste calculée sur son propre exercice, même si la mentio
   // des clés de 2024 aurait donné un tableau qui tombe juste et qui ment — le
   // calcul reste correct même si la phrase qui le disait a été retirée.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  // 362,1784 / 1 503,59 = 24,09 €. Sur les recettes de 2025 il aurait affiché
-  // 23,19 € : c'est cette valeur-là que le tableau ne doit jamais porter.
-  assert.doesNotMatch(lu, /Retraites 23,19\s?€/);
-  assert.match(lu, /Vieillesse \(hors réversion\) −24,09\s?€/);
+  // (362,1784 + 40,2548) / 1 503,59 = 26,76 €. Sur les recettes de 2025 il aurait affiché
+  // 25,77 € : c'est cette valeur-là que le tableau ne doit jamais porter.
+  assert.doesNotMatch(lu, /Retraites −25,77\s?€/);
+  assert.match(lu, /Retraites −26,76\s?€/);
 });
 
-test("sans ses sept fonctions, la ventilation se tait plutôt que d'en montrer six", () => {
+test("sans toutes ses fonctions sources, la ventilation se tait", () => {
   const ampute = { ...SERIES } as Record<string, Record<string, number>>;
   delete ampute["eurostat_apu_prestations_chomage"];
   const lu = texte(rendu({ FR: territoire(ampute) }));
@@ -260,7 +268,7 @@ test("le bloc historique et son tableau sont retirés sans enlever la répartiti
     eurostat_apu_transferts_capital: { "2024": 40 * Md, "2025": 46 * Md },
   };
   const html = rendu({ FR: territoire(deuxAns) });
-  assert.doesNotMatch(html, /Données et historique des dépenses|<table|graphique__dessin/);
+  assert.doesNotMatch(html.split('<section class="bercy-reclassement"')[0], /Données et historique des dépenses|<table|graphique__dessin/);
   assert.match(html, /Où va l'argent/);
 });
 
@@ -269,4 +277,45 @@ test("l'historique se tait sur un seul exercice : une courbe d'un point n'en est
   const html = rendu({ FR: territoire(SERIES) });
   assert.doesNotMatch(html, /Comment la dépense se répartit/);
   assert.doesNotMatch(html, /class="graphique__dessin"/);
+});
+
+
+test("les réversions rejoignent une seule ligne Retraites sans changer le reste des prestations", () => {
+  const html = rendu({ FR: territoire(SERIES) });
+  assert.equal((html.match(/class="apu__nom">Retraites</g) ?? []).length, 1);
+  assert.doesNotMatch(html, /class="apu__nom">(?:Pensions de réversion|Vieillesse)/);
+  assert.match(texte(html), /Retraites −26,76\s?€/);
+  assert.match(texte(html), /hors protection sociale.{0,60}−0,41\s?€/);
+  const incomplete = structuredClone(SERIES);
+  incomplete.eurostat_apu_prestations_survivants = { "2023": 999 * Md };
+  const fallback = texte(rendu({ FR: territoire(incomplete) }));
+  assert.match(fallback, /Retraites, chômage, allocations/);
+  assert.doesNotMatch(fallback, /Retraites −/);
+});
+
+
+test("le pont Bercy est affiché une fois après les comptes nationaux", () => {
+ const html=rendu({FR:territoire(SERIES)});
+ assert.equal((html.match(/id="reclassement-bercy"/g)??[]).length,1);
+ assert.ok(html.indexOf('id="reclassement-bercy"')>html.indexOf('Total dépensé'));
+});
+
+
+test("toutes les feuilles partagent une année et leur somme conserve la dépense",()=>{
+ const html=rendu({FR:territoire(SERIES)});
+ assert.match(html,/2024 : 114,00/);
+ assert.match(texte(html),/Rémunération des agents publics −24,61/);
+ const figure=html.slice(html.indexOf('<figure class="spending-bars"'),html.indexOf('</figure>',html.indexOf('<figure class="spending-bars"')));
+ const values=[...figure.matchAll(/data-apu-valeur="([0-9.e+-]+)"/g)].map(m=>Number(m[1]));
+ const total=values.pop()!;
+ assert.ok(Math.abs(values.reduce((sum,v)=>sum+v,0)-total)<1e-10);
+ const later=structuredClone(SERIES);
+ later.eurostat_apu_prestations_vieillesse['2025']=999e9;
+ assert.match(texte(rendu({FR:territoire(later)})),/Retraites −26,76/);
+ // Sans compte 2024 complet, aucune feuille 2024 ne rejoint le total 2025.
+ delete later.eurostat_apu_remunerations['2024'];
+ const fallback=texte(rendu({FR:territoire(later)}));
+ assert.match(fallback,/2025 : 109,77/);
+ assert.match(fallback,/Retraites, chômage, allocations −37,11/);
+ assert.doesNotMatch(fallback,/Retraites −26,76/);
 });

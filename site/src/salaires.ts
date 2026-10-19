@@ -1,3 +1,4 @@
+import { renduReclassementBercy } from "./reclassement-bercy.ts";
 import { timeChart } from "./chart-studio.ts";
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
@@ -27,17 +28,17 @@ const MISSIONS = [
  ["environnement","Environnement","Déchets, eaux usées et protection de la nature"],
 ] as const;
 const PRESTATIONS = [
- ["vieillesse","Vieillesse (hors réversion)"],["survivants","Pensions de réversion"],["maladie_invalidite","Arrêts maladie et invalidité"],["chomage","Chômage"],["famille","Famille et enfants"],["exclusion","RSA et autres minima sociaux"],["logement","Aides au logement"],
+ [["vieillesse","survivants"],"Retraites"],[["maladie_invalidite"],"Arrêts maladie et invalidité"],[["chomage"],"Chômage"],[["famille"],"Famille et enfants"],[["exclusion"],"RSA et autres minima sociaux"],[["logement"],"Aides au logement"],
 ] as const;
 const TRANSACTIONS = [
  ["remunerations","Rémunération des agents publics"],["transferts_nature","Soins et services remboursés"],["consommations","Achats de biens et de services"],["investissement","Investissement public"],["transferts_courants","Transferts courants"],["interets","Intérêts de la dette"],["subventions","Subventions aux entreprises"],["transferts_capital","Transferts en capital"],
 ] as const;
 function repartitionDetaillee(series:Territoire["series"]) {
- const ids=[...PRESTATIONS.map(([id])=>"eurostat_apu_prestations_"+id),...TRANSACTIONS.map(([id])=>"eurostat_apu_"+id),"eurostat_apu_prestations","eurostat_apu_depenses"];
+ const ids=[...PRESTATIONS.flatMap(([ids])=>ids.map(id=>"eurostat_apu_prestations_"+id)),...TRANSACTIONS.map(([id])=>"eurostat_apu_"+id),"eurostat_apu_prestations","eurostat_apu_depenses"];
  const year=Object.keys(series.eurostat_apu_depenses??{}).sort().reverse().find(y=>ids.every(id=>Number.isFinite(series[id]?.[y])&&series[id][y]>=0));
  if(!year)return null;
  const total=series.eurostat_apu_depenses[year],parent=series.eurostat_apu_prestations[year];
- const benefits=PRESTATIONS.map(([id,label])=>({label,description:"Prestations versées",amount:series["eurostat_apu_prestations_"+id][year]}));
+ const benefits=PRESTATIONS.map(([ids,label])=>({label,description:label === "Retraites" ? "Vieillesse, minima vieillesse et pensions de réversion" : "Prestations versées",amount:ids.reduce((sum,id)=>sum+series["eurostat_apu_prestations_"+id][year],0)}));
  const transactions=TRANSACTIONS.map(([id,label])=>({label,description:"Dépenses des administrations publiques",amount:series["eurostat_apu_"+id][year]}));
  const benefitRest=parent-benefits.reduce((sum,m)=>sum+m.amount,0);
  const rest=total-parent-transactions.reduce((sum,m)=>sum+m.amount,0);
@@ -92,6 +93,7 @@ export function renduSalaires(series:Territoire['series']={}):string {
   </div>
   <section class="salaires__lecture"><h2>Lire les différents montants</h2><p>Le coût employeur comprend le brut et les cotisations patronales. Les cotisations salariales sont ensuite déduites du brut pour obtenir le net avant impôt. Le prélèvement d’impôt intervient pour passer au montant versé.</p><p><a href="/analyses/cout-travail-cent-euros-net-2025/">Lire le dossier et la comparaison européenne</a> · <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F559?lang=fr" rel="noreferrer">Lire les lignes d’un bulletin de paie</a></p></section>
   ${allocation(series)}
+  ${renduReclassementBercy()}
   ${evolutionAllocation(series)}
   <section class="salaires__detail"><h2>Deux bases de lecture</h2><p>La première décompose un coût employeur de 100 € pour le seul profil OCDE indiqué. La seconde répartit 100 € de dépenses publiques entre les postes observés dans les comptes. Elles décrivent des périmètres différents : aucune affectation personnelle de cotisations n’est calculée.</p></section>
  </section>`;

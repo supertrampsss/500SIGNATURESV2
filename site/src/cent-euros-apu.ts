@@ -1,3 +1,4 @@
+import { renduReclassementBercy } from "./reclassement-bercy.ts";
 /**
  * Pour 100 € encaissés par toutes les administrations publiques, ce qui ressort.
  *
@@ -38,8 +39,8 @@
  * ─────────────────────────────────────────────────────────────────────────
  * « Retraites, chômage, allocations » vivait sous un repli qu'il fallait
  * ouvrir pour voir sept lignes qui pèsent plus que la moitié de la dépense
- * publique. Le repli est parti : ses sept fonctions (retraites, chômage,
- * réversion, famille, RSA, arrêts maladie, aides au logement) s'affichent
+ * publique. Le repli est parti : ses six groupes (retraites avec réversion, chômage,
+ * famille, RSA, arrêts maladie, aides au logement) s'affichent
  * directement, au même niveau que les huit autres postes.
  *
  * ─────────────────────────────────────────────────────────────────────────
@@ -80,26 +81,16 @@ const RESSOURCES: [id: string, libelle: string][] = [
   ["eurostat_apu_impots_revenu", "Impôts sur le revenu et le patrimoine"],
 ];
 
-/**
- * Ce que recouvre « Retraites, chômage, allocations ».
- *
- * Le poste le plus lourd de la dépense publique était aussi le plus muet : un
- * seul nombre pour trois choses qui n'ont ni le même montant, ni le même
- * public, ni le même débat. **La retraite y pèse neuf fois le chômage**, et
- * l'ordre des mots du libellé suggérait le contraire.
- *
- * Deux fonctions manquaient au trio que le libellé nomme, et elles ne sont pas
- * petites : les pensions de réversion et les indemnités d'arrêt maladie valent
- * chacune plus que le chômage. Les nommer « allocations » les aurait perdues.
- */
-const FONCTIONS: [id: string, libelle: string][] = [
-  ["eurostat_apu_prestations_vieillesse", "Vieillesse (hors réversion)"],
-  ["eurostat_apu_prestations_maladie_invalidite", "Arrêts maladie et invalidité"],
-  ["eurostat_apu_prestations_chomage", "Chômage"],
-  ["eurostat_apu_prestations_survivants", "Pensions de réversion"],
-  ["eurostat_apu_prestations_famille", "Famille et enfants"],
-  ["eurostat_apu_prestations_exclusion", "RSA et autres minima sociaux"],
-  ["eurostat_apu_prestations_logement", "Aides au logement versées en espèces"],
+/** Les prestations sont affichées en six groupes. La ligne Retraites réunit
+ * vieillesse (minima inclus) et survivants, sans modifier le total publié. */
+// Regrouper vieillesse et survivants au même exercice conserve le total des prestations.
+const FONCTIONS: [ids: string[], libelle: string][] = [
+  [["eurostat_apu_prestations_vieillesse", "eurostat_apu_prestations_survivants"], "Retraites"],
+  [["eurostat_apu_prestations_maladie_invalidite"], "Arrêts maladie et invalidité"],
+  [["eurostat_apu_prestations_chomage"], "Chômage"],
+  [["eurostat_apu_prestations_famille"], "Famille et enfants"],
+  [["eurostat_apu_prestations_exclusion"], "RSA et autres minima sociaux"],
+  [["eurostat_apu_prestations_logement"], "Aides au logement versées en espèces"],
 ];
 
 /** Le total de la ventilation — le même compte que le poste du tableau
@@ -122,25 +113,9 @@ function pour100(part: number): string {
   }).format(part)} €`;
 }
 
-/**
- * La ventilation du premier poste, **sur son propre exercice**.
- *
- * Elle vient d'un autre jeu de la même source — celui qui croise la
- * transaction avec la fonction — et ce jeu ne dit pas la même année : il
- * s'arrête un exercice plus tôt, et son total diffère de 0,3 % de celui du
- * tableau principal sur les exercices récents. Deux millésimes d'un même
- * compte, publiés à deux dates.
- *
- * D'où le refus qui commande cette fonction : **les parts ne sont pas
- * calculées sur les recettes du tableau du dessus**, mais sur celles de
- * l'exercice ventilé, et le tableau porte son propre total. Redistribuer les
- * 37,11 € de 2025 sur des clés de 2024 aurait donné un tableau qui tombe juste
- * et qui ment — aucune de ses lignes n'aurait été un chiffre publié.
- *
- * La chaîne vide tant que les sept fonctions et leur total ne partagent pas un
- * exercice avec les recettes : une part dont le dénominateur vient d'ailleurs
- * ne mesure rien.
- */
+/** Chaque ventilation est lue sur l'exercice du compte affiché. Les fonctions,
+ * leur total, les transactions, les recettes et les dépenses doivent être
+ * disponibles ensemble ; sinon le dernier compte complet reste non ventilé. */
 type Feuille = { libelle: string; valeur: number; creux?: boolean };
 
 /**
@@ -149,30 +124,24 @@ type Feuille = { libelle: string; valeur: number; creux?: boolean };
  * triée avec les autres postes, et le tri se fait sur les valeurs, pas sur des
  * chaînes déjà rendues.
  *
- * `null` tant que les sept fonctions et leur total ne partagent pas un
+ * `null` tant que les six groupes de fonctions et leur total ne partagent pas un
  * exercice avec les recettes : une part dont le dénominateur vient d'ailleurs
  * ne mesure rien. Le dénominateur reste celui de l'exercice ventilé, jamais
  * les recettes du tableau du dessus — voir le refus documenté ci-dessus.
  */
-function ventilationLignes(france: Territoire): Feuille[] | null {
+function ventilationLignes(france: Territoire, exercice: string): Feuille[] | null {
   const serie = (id: string) => france.series[id];
   const total = serie(VENTILEES);
   const recettes = serie(RECETTES);
   if (!total || !recettes) return null;
-  const exercice = Object.keys(total)
-    .filter(
-      (an) =>
-        recettes[an] !== undefined && FONCTIONS.every(([id]) => serie(id)?.[an] !== undefined),
-    )
-    .sort()
-    .pop();
-  if (!exercice) return null;
+  if (total[exercice] === undefined || recettes[exercice] === undefined ||
+      !FONCTIONS.every(([ids]) => ids.every(id => serie(id)?.[exercice] !== undefined))) return null;
 
   const encaisse = recettes[exercice];
   const part = (montant: number) => (montant / encaisse) * 100;
-  const lignes: Feuille[] = FONCTIONS.map(([id, libelle]) => ({
+  const lignes: Feuille[] = FONCTIONS.map(([ids, libelle]) => ({
     libelle,
-    valeur: part(serie(id)![exercice]),
+    valeur: part(ids.reduce((somme, id) => somme + serie(id)![exercice], 0)),
   }));
   const ensemble = part(total[exercice]);
   const reste = ensemble - lignes.reduce((somme, l) => somme + l.valeur, 0);
@@ -199,9 +168,11 @@ export function rendu(pays: Record<string, Territoire>): string {
   const depenses = serie(DEPENSES);
   if (!recettes || !depenses) return "";
   const exercices = Object.keys(recettes)
-    .filter((an) => depenses[an] !== undefined)
+    .filter((an) => recettes[an] > 0 && depenses[an] !== undefined && POSTES.every(([id]) => serie(id)?.[an] !== undefined))
     .sort();
-  const exercice = exercices[exercices.length - 1];
+  // Toute la liste partage un millésime : priorité au dernier compte complet
+  // ventilable, puis repli sur le dernier compte complet sans ventilation.
+  const exercice = [...exercices].reverse().find(an => ventilationLignes(france, an) !== null) ?? exercices.at(-1);
   if (!exercice) return "";
 
   const total = recettes[exercice];
@@ -212,9 +183,7 @@ export function rendu(pays: Record<string, Territoire>): string {
   const postes = POSTES.map(([id, libelle]) => [libelle, part(id)] as const);
   if (postes.some(([, valeur]) => valeur === null)) return "";
 
-  const nommees = postes.reduce((somme, [, valeur]) => somme + (valeur ?? 0), 0);
   const depense = (depenses[exercice] / total) * 100;
-  const reste = depense - nommees;
   const solde = 100 - depense;
 
   const ressources = RESSOURCES.map(([id, libelle]) => [libelle, part(id)] as const).filter(
@@ -235,21 +204,24 @@ export function rendu(pays: Record<string, Territoire>): string {
   // au plus léger — demandé par le propriétaire. Le premier poste, quand sa
   // ventilation est publiée, est remplacé par ses fonctions ; sinon il reste
   // une ligne. Toutes les feuilles entrent dans le même tri et partagent une
-  // seule échelle de barre, pour que « Retraites » (24,09) et « Rémunération »
+  // seule échelle de barre, pour que « Retraites » (26,76) et « Rémunération »
   // (23,69) se comparent enfin d'un regard.
-  const ventilation = ventilationLignes(france);
+  const ventilation = ventilationLignes(france, exercice);
   const [premierPoste, ...autresPostes] = postes;
-  const feuilles: Feuille[] = [
+  const detail: Feuille[] = [
     ...(ventilation ?? [{ libelle: premierPoste[0], valeur: premierPoste[1] ?? 0 }]),
     ...autresPostes.map(([libelle, valeur]) => ({ libelle, valeur: valeur ?? 0 })),
-    { libelle: "Autres dépenses", valeur: reste },
-  ].sort((a, b) => b.valeur - a.valeur);
+  ];
+  // Le résidu réconcilie aussi les millésimes de publication des deux jeux
+  // Eurostat. Cet écart n'est jamais affecté arbitrairement aux retraites.
+  const reste = depense - detail.reduce((somme, ligne) => somme + ligne.valeur, 0);
+  const feuilles = [...detail, { libelle: "Autres dépenses", valeur: reste }].sort((a, b) => b.valeur - a.valeur);
 
   const maximum = Math.max(...feuilles.map((f) => f.valeur));
   // Le total n'a pas de barre : à trois fois le plus gros poste, elle serait
   // tronquée à 100 % et lirait comme un poste de plus.
   const rang = (libelle: string, valeur: number, options: { creux?: boolean; total?: boolean } = {}) => `
-    <div class="apu__rang${options.total ? " apu__total" : ""}">
+    <div class="apu__rang${options.total ? " apu__total" : ""}" data-apu-valeur="${valeur}">
       <span class="apu__nom">${echapper(libelle)}</span>
       ${
         options.total
@@ -273,8 +245,9 @@ export function rendu(pays: Record<string, Territoire>): string {
         ${rang("Total dépensé", depense, { total: true })}
       </figure>
     </div>
-    <p class="chart-context">La vieillesse inclut les minima vieillesse ; les pensions de réversion sont présentées séparément. Les rémunérations comprennent les cotisations sociales employeur, effectives et imputées. Les financements des retraites publiques ne s’ajoutent pas à ces dépenses. <a href="/analyses/financement-retraites-publiques/">Comprendre le financement des retraites publiques</a></p>
+    <p class="chart-context">Tous les postes utilisent le même exercice. Le solde « Autres dépenses » inclut les dépenses non détaillées et les écarts de publication entre comptes et ventilation des prestations. Les retraites regroupent les prestations de vieillesse, les minima vieillesse et les pensions de réversion. Les rémunérations comprennent les cotisations sociales employeur, effectives et imputées. Les financements des retraites publiques ne s’ajoutent pas à ces dépenses. <a href="/analyses/financement-retraites-publiques/">Comprendre le financement des retraites publiques</a></p>
     <p class="chart-source">Ensemble des administrations publiques · ${montantLisible(total)} de recettes · Eurostat</p>
+    ${renduReclassementBercy()}
 
   `;
 }

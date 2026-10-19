@@ -1,0 +1,19 @@
+{
+  "consulte_le": "2026-10-19",
+  "requests": [
+    {
+      "file": "eurostat-vieillesse-2024.json",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_exp?geo=FR&sector=S13&unit=MIO_EUR&na_item=D62&cofog99=GF1002&time=2024"
+    },
+    {
+      "file": "eurostat-survivants-2024.json",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_exp?geo=FR&sector=S13&unit=MIO_EUR&na_item=D62&cofog99=GF1003&time=2024"
+    }
+  ],
+  "published_check": {
+    "url": "https://pub-fc39d357004540a182a907aed4875ef5.r2.dev/data/2026-10-03T1006/territoires/pays/tous.json",
+    "FR_2024_vieillesse_EUR": 362178400000,
+    "FR_2024_survivants_EUR": 40254800000
+  },
+  "calculation": "362178400000 + 40254800000 = 402433200000 EUR ; / 1503590100000 * 100 = 26.76 % arrondi"
+}

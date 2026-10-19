@@ -17,7 +17,7 @@ function donnees():Record<string,Territoire> {
     eurostat_secu_depenses_pib:{'2024':26,'2025':27},
     eurostat_secu_solde_pib:{'2024':-1,'2025':-1},
   };
-  for(const id of ['prestations_vieillesse','remunerations','transferts_nature','consommations','investissement','interets','prestations_chomage','prestations_famille','prestations_exclusion']) {
+  for(const id of ['prestations_vieillesse','prestations_survivants','remunerations','transferts_nature','consommations','investissement','interets','prestations_chomage','prestations_famille','prestations_exclusion']) {
     series['eurostat_apu_'+id]={'2024':50e9};
   }
   for(let i=1;i<=9;i++) {
@@ -68,6 +68,17 @@ test('France : la répartition des dépenses utilise une seule année commune',(
   assert.match(html,/Répartition des 120 euros[^"<>]*en 2024/);
   assert.match(html,/Autres dépenses/);
   assert.doesNotMatch(html,/Répartition[^"<>]*en 2025/);
+});
+
+test('France : une seule ligne Retraites, réversion sortie du résidu et reclassement Bercy réconcilié',()=>{
+  const html=renduFrancePage(donnees(),[]);
+  const bloc=html.split('id="france-sorties"')[1].split('</section>')[0];
+  assert.match(bloc, /<span>Retraites<\/span><strong>−10 €/);
+  assert.match(bloc, /<span>Autres dépenses<\/span><strong>−70 €/);
+  assert.doesNotMatch(bloc, /Vieillesse \(hors réversion\)|réversion figurent dans les autres/);
+  assert.match(html, /Éducation nationale hors retraites<\/th><td>60,6/);
+  assert.match(html, /scope="row">Retraites<\/th><td>38,9/);
+  assert.match(html, /Total inchangé<\/th><td>123,3/);
 });
 
 test('France : la redistribution compare les deux situations d’une même année et neuf seuils',()=>{
