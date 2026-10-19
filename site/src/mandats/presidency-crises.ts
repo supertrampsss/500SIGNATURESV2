@@ -156,9 +156,12 @@ function spawn(g: Game, spec: CrisisSpec, parentId?: string, originReason?: stri
     startedPeriod: g.turn, sourceJournalIndex: g.choices.length, deadline: spec.deadline, status: 'active', ...(originReason ? { originReason } : {}), ...(parentId ? { parentId } : {}) });
   p.lastEvents.push(`${spec.title}. ${parentId ? `Conséquence de « ${crisisSpec(p.crises.find(c => c.id === parentId)!).title} ». ` : ''}${originReason ?? spec.cause}`);
 }
-export function initialCrises(g: Game): void {
+export function initialCrises(g: Game, openingSpecId?: string): void {
   const p = g.presidency!; p.crises = []; p.nextCrisisPeriod = 2;
-  spawn(g, PRESIDENCY_CRISES[g.seed % 6]);
+  // The seed controls replay and later incidents. A named mission keeps its
+  // promised starting incident rather than showing an unrelated emergency.
+  const first = openingSpecId ? PRESIDENCY_CRISES.find(spec => spec.id === openingSpecId) : undefined;
+  spawn(g, first ?? PRESIDENCY_CRISES[g.seed % 6]);
 }
 /** One call per clock transition. Children cannot propagate on their birth tick. */
 export function advanceCrises(g: Game, previous: Game): void {
