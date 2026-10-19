@@ -1,3 +1,4 @@
+import './styles/stacked-percent.css';
 /**
  * Carte des finances locales. L'état de l'écran vit dans l'URL : tout ce qui
  * est affiché est partageable tel quel (docs/04).

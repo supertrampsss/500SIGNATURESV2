@@ -1,3 +1,4 @@
+import { stackedPercent } from "./stacked-percent.ts";
 import type { DossierAnalyseValide, SerieAnalyse, VisualisationAnalyse } from "./analyse-contrat.ts";
 import { libelleUniteAnalyse, valeurEtUniteAnalyse } from "./echelle.ts";
 import { echapper } from "./texte.ts";
@@ -53,6 +54,9 @@ export function graphiqueAnalyse(v: VisualisationAnalyse, contrat: DossierAnalys
   const series = (v.seriesIds ?? []).map(id => contrat.serieParId.get(id)!);
   if (!series.length) {
     const preuves = (v.preuveIds ?? []).map(id => contrat.preuveParId.get(id)!);
+    if (v.type === "stacked_percent" && v.composition) {
+      return stackedPercent(preuves.map(p => ({ label: p.libelle, value: p.value })), v.composition);
+    }
     if (v.type !== "bar" || !preuves.length || !preuves[0]!.comparableGroup ||
       preuves.some(p => p.unit !== preuves[0]!.unit || p.comparableGroup !== preuves[0]!.comparableGroup || p.value < 0)) return "";
     const maximum = Math.max(...preuves.map(p => p.value)) || 1;

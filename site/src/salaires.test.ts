@@ -70,5 +70,5 @@ test('le regroupement des pensions conserve tous les montants et les exercices h
 test("le pont budgétaire Bercy apparaît une fois sur Salaires",()=>{
  const html=renduSalaires();
  assert.equal((html.match(/id="reclassement-bercy"/g)??[]).length,1);
- assert.match(html,/60,6/);assert.match(html,/23,8/);assert.match(html,/38,9/);
+ assert.match(html,/Défense · Armées et anciens combattants/); assert.equal((html.match(/class="stacked-percent__row"/g) ?? []).length,19);
 });

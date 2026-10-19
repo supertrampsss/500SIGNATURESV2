@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { reclassementBercy } from "./reclassement-bercy.ts";
+import { MINISTERES_BERCY } from "./bercy-ministeres-2027.ts";
 import { rendu, type Analyse } from "./analyse-rendu.ts";
 const lire = (slug: string): Analyse => JSON.parse(readFileSync(new URL(`../analyses/${slug}.json`, import.meta.url), "utf8"));
 test("le dossier distingue vieillesse, réversion, rémunération et financement", () => {
@@ -34,23 +34,13 @@ test("les crédits Défense incluent les contributions CAS, sans addition aux pe
 });
 
 
-test("le dossier reclasse les deux ministères avec les mêmes montants que le module", () => {
- const a = lire("financement-retraites-publiques");
- const r = reclassementBercy();
- const proofs = a.dossier!.preuves!;
- const value = (id:string) => proofs.find(p=>p.id===id)!.value! * 1e9;
- assert.equal(value('education-hors-retraites'),r.ministeres[0].horsRetraites);
- assert.equal(value('interieur-hors-retraites'),r.ministeres[1].horsRetraites);
- assert.equal(value('retraites-deux-ministeres'),r.retraites);
- assert.equal(value('total-deux-ministeres'),r.total);
- const chart=a.dossier!.visualisations!.find(v=>v.id==='ministeres-reclasses')!;
- assert.deepEqual(chart.preuveIds,['education-hors-retraites','interieur-hors-retraites','retraites-deux-ministeres']);
- assert.equal(chart.preuveIds!.reduce((sum,id)=>sum+value(id),0),r.total);
- for(const id of chart.preuveIds!) {
-  const proof=proofs.find(p=>p.id===id)!;
-  assert.equal(proof.period,'2027');assert.equal(proof.unit,'billion_EUR');assert.equal(proof.sourceId,'budget-pensions-2027');
- }
- assert.equal(a.dossier!.sections![0].id,'budgets-ministeriels');
- assert.match(rendu(a,[]),/deux ministères seulement|deux ministères et/);
- assert.ok(!a.dossier!.visualisations!.some(v=>v.id==='ministeres-cas'));
+test("le dossier reprend 19 ministères avec leur provenance",()=>{
+ const a=lire("financement-retraites-publiques");
+ const chart=a.dossier!.visualisations![0]!;
+ assert.equal(chart.type,"stacked_percent");assert.equal(chart.preuveIds!.length,19);
+ const proofs=chart.preuveIds!.map(id=>a.dossier!.preuves!.find(p=>p.id===id)!);
+ assert.equal(proofs[0]!.libelle,"Éducation nationale");assert.ok(proofs.some(p=>p.libelle.startsWith("Défense")));
+ for(const p of proofs){assert.equal(p.unit,"percent");assert.equal(p.sourceId,"budget-pensions-2027");assert.deepEqual(p.qualityFlags,["lecture-graphique"]);}
+ assert.deepEqual(proofs.map(p=>({nom:p.libelle,partRetraites:p.value})),MINISTERES_BERCY);
+ assert.equal((rendu(a,[]).match(/class="stacked-percent__row"/g)??[]).length,19);
 });

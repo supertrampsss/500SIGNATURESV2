@@ -49,7 +49,7 @@ export type AxeAnalyse = {
   seriesIds: string[];
 };
 
-export type TypeVisualisationAnalyse = "line" | "bar" | "timeline" | "snapshot_table";
+export type TypeVisualisationAnalyse = "line" | "bar" | "timeline" | "snapshot_table" | "stacked_percent";
 
 export type VisualisationAnalyse = {
   id: string;
@@ -61,6 +61,7 @@ export type VisualisationAnalyse = {
   preuveIds?: string[];
   /** Obligatoires dès qu'une figure mêle plusieurs unités. */
   axes?: AxeAnalyse[];
+  composition?: { partLabel: string; remainderLabel: string };
 };
 
 export type SectionAnalyse = {
@@ -100,6 +101,7 @@ const TYPES_VISUALISATION = new Set<TypeVisualisationAnalyse>([
   "bar",
   "timeline",
   "snapshot_table",
+  "stacked_percent",
 ]);
 
 function objet(value: unknown): value is Record<string, unknown> {
@@ -338,6 +340,14 @@ function verifierVisualisations(value: unknown, erreurs: string[], facultatif = 
     if (!seriesIds.length && !preuveIds.length) {
       erreurs.push(`${chemin} doit référencer au moins une série ou une preuve`);
     }
+    if (element.type === "stacked_percent") {
+      if (!objet(element.composition)) erreurs.push(`${chemin}.composition est obligatoire`);
+      else {
+        chaine(element.composition.partLabel, `${chemin}.composition.partLabel`, erreurs);
+        chaine(element.composition.remainderLabel, `${chemin}.composition.remainderLabel`, erreurs);
+      }
+      if (!preuveIds.length || seriesIds.length) erreurs.push(`${chemin} doit référencer uniquement des preuves`);
+    }
     if (element.axes !== undefined) {
       for (const [rang, axe] of listeNonVide(element.axes, `${chemin}.axes`, erreurs).entries()) {
         const cheminAxe = `${chemin}.axes[${rang}]`;
@@ -519,6 +529,14 @@ export function validerDossierAnalyse(
     (visualisation.preuveIds ?? []).forEach((id, rang) =>
       exigerReference(id, preuveParId, `visualisations[${index}].preuveIds[${rang}]`, erreurs)
     );
+    if (visualisation.type === "stacked_percent") {
+      for (const id of visualisation.preuveIds ?? []) {
+        const preuve = preuveParId.get(id);
+        if (preuve && (preuve.unit !== "percent" || preuve.value < 0 || preuve.value > 100)) {
+          erreurs.push(`visualisations[${index}] exige des preuves percent entre 0 et 100`);
+        }
+      }
+    }
     verifierAxes(visualisation, index, serieParId, erreurs);
   });
 
