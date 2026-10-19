@@ -5,6 +5,14 @@ const dossier = (slug: string) => `/analyses/${slug}/`;
 const question = (slug: string) => `/questions/${slug}/`;
 
 export const SEO_DOSSIERS: Readonly<Record<string, ProfilDossier>> = {
+  'financement-retraites-publiques': {
+    titreRecherche: 'Retraites des fonctionnaires : financement et budgets',
+    liens: [
+      {chemin: dossier('retraites-premier-poste-2024'), titre: 'Le poids des prestations de vieillesse', contexte: 'Distinguer les prestations versées du financement des régimes.'},
+      {chemin: dossier('defense-credits-votes-consommes-2025'), titre: 'Les pensions dans les crédits de la Défense', contexte: 'Lire les crédits votés et consommés avec leur périmètre.'},
+      {chemin: '/bilan/', titre: 'Les comptes publics de la France', contexte: 'Retrouver les dépenses et les ressources de l’ensemble des administrations.'},
+    ],
+  },
   'age-achat-residence-principale': {
     titreRecherche: 'Premier achat immobilier : quel âge en France ?',
     liens: [
@@ -29,6 +37,7 @@ export const SEO_DOSSIERS: Readonly<Record<string, ProfilDossier>> = {
   'defense-credits-votes-consommes-2025': {
     titreRecherche: 'Budget de la défense 2025 : voté et dépensé',
     liens: [
+      {chemin: dossier('financement-retraites-publiques'), titre: 'Qui finance les retraites des fonctionnaires ?', contexte: 'Comprendre les contributions aux pensions comprises dans les budgets ministériels.'},
       {chemin: dossier('defense-europe-depenses-2024'), titre: 'Les dépenses de défense en Europe', contexte: 'Comparer les comptes publics européens en gardant leurs périmètres.'},
       {chemin: dossier('ukraine-pret-europeen-90-milliards'), titre: 'Le financement européen de l’aide à l’Ukraine', contexte: 'Distinguer l’effort militaire national du prêt accordé par l’Union européenne.'},
     ],
@@ -79,6 +88,7 @@ export const SEO_DOSSIERS: Readonly<Record<string, ProfilDossier>> = {
   'retraites-premier-poste-2024': {
     titreRecherche: 'Retraites en France : dépenses et financement',
     liens: [
+      {chemin: dossier('financement-retraites-publiques'), titre: 'Qui finance les retraites des fonctionnaires ?', contexte: 'Une lecture du financement public et des conventions présentées par Bercy.'},
       {chemin: dossier('la-depense-publique-baisse-2024'), titre: 'La dépense publique en euros et en part du PIB', contexte: 'Situer les prestations de vieillesse dans un ensemble plus large.'},
       {chemin: dossier('cout-travail-cent-euros-net-2025'), titre: 'Les cotisations dans le coût du travail', contexte: 'Comprendre un canal de financement de la protection sociale à partir d’un profil OCDE.'},
     ],

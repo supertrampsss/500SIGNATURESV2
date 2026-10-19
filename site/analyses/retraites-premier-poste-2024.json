@@ -12,7 +12,7 @@
   ],
   "mise_en_avant": false,
   "affirmation": {
-    "texte": "Les retraites sont le premier poste de la dépense publique : près d'un quart de tout ce que l'État, la Sécurité sociale et les collectivités encaissent y passe.",
+    "texte": "En 2024, les prestations de vieillesse représentent l’équivalent de 24,1 % des recettes publiques. Ce champ, qui comprend des minima vieillesse, exclut les prestations de survie, notamment la réversion.",
     "auteur": null,
     "date": null,
     "source": {
@@ -23,7 +23,7 @@
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Le quart est le bon ordre de grandeur, et il est vérifiable. Le rang, lui, se joue à un cheveu : sur 2024, le seul exercice où les deux postes sont publiés ensemble, la rémunération des agents publics dépasse les pensions de vieillesse de deux dixièmes de pour cent. Selon l'exercice comparé et la nomenclature retenue, la première place change de main."
+    "phrase": "Le ratio de 24,1 % rapporte les prestations de vieillesse aux recettes publiques. Les rémunérations des agents comprennent aussi les cotisations sociales employeur ; leur comparaison avec les prestations ne classe pas des moyens opérationnels et ne mesure pas un déficit des retraites."
   },
   "chiffres": [
     {
@@ -36,7 +36,7 @@
         "valeur": 362178400000
       },
       "registre": "fait_comptable",
-      "lecture": "Les pensions de vieillesse valent 362 178,4 M€ en 2024."
+      "lecture": "Les prestations de vieillesse valent 362 178,4 M€ en 2024, minima compris, hors prestations de survie dont la réversion."
     },
     {
       "dit": "premier poste",
@@ -76,8 +76,8 @@
     }
   ],
   "hypotheses": [
-    "Les deux postes comparés ne recouvrent pas la même chose. Les pensions de vieillesse sont un transfert en espèces à des personnes ; la rémunération des agents publics est le prix d'un service produit — des soins, des cours, de la sécurité. Les mettre côte à côte classe des dépenses, cela ne les rend pas de même nature.",
-    "Le classement dépend de la nomenclature. Par nature, les pensions de vieillesse sont une ligne parmi d'autres transferts ; par finalité, elles se fondent dans la protection sociale, qui domine alors de très loin. Aucune des deux lectures n'est plus vraie que l'autre, et « premier poste » ne veut rien dire sans dire laquelle on emploie.",
+    "Les prestations de vieillesse comprennent des minima et excluent les prestations de survie, notamment la réversion. Les rémunérations des agents regroupent salaires et cotisations sociales employeur, y compris les cotisations sociales imputées : elles ne mesurent pas uniquement le travail payé ni les moyens opérationnels.",
+    "La dépense de pension, son financement et le solde d’un régime sont trois objets distincts. Les comparer exige le même exercice et le même champ. Un transfert public finançant une pension ne constitue pas une pension supplémentaire à additionner aux prestations.",
     "Les pensions de vieillesse ne sont publiées que jusqu'à 2024 quand le compte général va jusqu'à 2025. Comparer le poste de 2024 à celui de 2025 donnerait un classement qui ne mesure qu'un décalage de calendrier."
   ],
   "effets_indirects": [],
@@ -111,6 +111,12 @@
       "titre": "Institut Montaigne : Retraites, le conclave se referme, la jeunesse reste à la porte (juin 2025)",
       "url": "https://institutmontaigne.org/expressions/retraites-le-conclave-se-referme-la-jeunesse-reste-la-porte",
       "consulte_le": "2026-09-19"
+    },
+    {
+      "id": "budget-pensions-2027",
+      "titre": "Direction du Budget : pensions de retraite de la fonction publique, PLF 2027, pages 20–24 (financement et conventions)",
+      "url": "https://www.budget.gouv.fr/documentation/file-download/34465",
+      "consulte_le": "2026-10-19"
     }
   ],
   "simulateur": {
@@ -130,20 +136,24 @@
     {
       "date": "2026-10-04",
       "quoi": "Rapprochement des montants avec les API Eurostat ; référence de la ligne vieillesse corrigée vers gov_10a_exp et périmètre des pensions et minima explicité."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024, presque autant que les rémunérations des agents publics. Leur financement mobilise les cotisations, les impôts et les transferts publics. Avec le vieillissement de la population, l’équilibre des régimes se joue entre les revenus des actifs, le nombre de retraités et la durée pendant laquelle les pensions sont versées.",
+    "chapo": "Les prestations de vieillesse atteignent 362,2 milliards d’euros en 2024, minima compris et hors prestations de survie. Ce montant représente l’équivalent de 24,1 % des recettes publiques. Pour comprendre les retraites, nous distinguons les prestations versées, les ressources qui les financent et le solde de chaque régime.",
     "series": [],
     "preuves": [
       {
         "id": "chiffre-1",
-        "libelle": "Pensions de vieillesse",
+        "libelle": "Prestations de vieillesse, hors survie",
         "value": 362.1784,
         "unit": "billion_EUR",
         "period": "2024",
-        "definition": "Prestations sociales en espèces de la fonction vieillesse (D62, GF1002) : pensions de droit direct et minima vieillesse, toutes administrations publiques, 2024.",
+        "definition": "Les prestations de vieillesse valent 362 178,4 M€ en 2024, minima compris, hors prestations de survie dont la réversion.",
         "sourceId": "source-2",
         "comparableGroup": "depenses-2024"
       },
@@ -153,7 +163,7 @@
         "value": 363.038,
         "unit": "billion_EUR",
         "period": "2024",
-        "definition": "La rémunération des agents publics vaut 363 038,0 M€.",
+        "definition": "Rémunérations des agents : salaires et cotisations sociales employeur, effectives et imputées.",
         "sourceId": "source-1",
         "comparableGroup": "depenses-2024"
       },
@@ -193,7 +203,7 @@
         "id": "pensions-remunerations",
         "type": "bar",
         "titre": "Deux grandes dépenses publiques en 2024",
-        "resume": "France, milliards d’euros. Les pensions et les rémunérations financent des besoins différents.",
+        "resume": "France, milliards d’euros. Prestations de vieillesse hors survie ; rémunérations comprenant les cotisations employeur. Ces blocs ne sont pas des enveloppes opérationnelles indépendantes.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
@@ -225,8 +235,7 @@
         "id": "ce-que-mesure-la-ligne",
         "titre": "Des pensions de retraite aux dépenses liées à la vieillesse",
         "paragraphes": [
-          "La ligne « pensions de vieillesse » représente 362,2 milliards d’euros dans les comptes publics de 2024. Elle regroupe les pensions versées par les administrations publiques, au-delà du seul budget de l’État. Les autres dépenses liées à l’âge relèvent de catégories distinctes.",
-          "La ligne Eurostat utilisée correspond aux prestations sociales en espèces de la fonction vieillesse. Elle comprend les pensions de droit direct et les minima vieillesse. Les 362,2 milliards ne désignent donc pas exclusivement les pensions contributives ; les pensions de réversion relèvent de la fonction survie.",
+          "La ligne Eurostat utilisée ici correspond aux prestations sociales en espèces de la fonction vieillesse versées par les administrations publiques : pensions de droit direct et minima vieillesse. Les 362,2 milliards ne désignent donc pas exclusivement les pensions contributives. Les prestations de survie, notamment les pensions de réversion, relèvent d’une fonction distincte.",
           "La DREES chiffre les pensions à 353 milliards d’euros en 2022 et l’ensemble du risque « vieillesse-survie » à 400,3 milliards en 2023. Ce dernier ensemble couvre aussi la survie, notamment les pensions de réversion versées après le décès d’un conjoint. La protection liée à la retraite se prolonge ainsi dans le revenu du conjoint survivant."
         ]
       },
@@ -240,10 +249,10 @@
       },
       {
         "id": "classement",
-        "titre": "Les rémunérations publiques sont au même niveau",
+        "titre": "Salaires, cotisations et pensions : des objets comptables distincts",
         "paragraphes": [
-          "La rémunération des agents publics atteint 363,0 milliards d’euros en 2024, soit environ 860 millions de plus que les pensions de vieillesse. Les deux postes sont presque au même niveau, avec un écart d’environ 0,2 % du montant des pensions.",
-          "Les pensions assurent un revenu aux retraités, tandis que les rémunérations paient le travail des agents dans les hôpitaux, les écoles et les autres services publics. Dans les comptes classés par finalité, les retraites appartiennent à la protection sociale, qui représente 23,7 % du PIB ; les rémunérations se répartissent entre les différents services."
+          "Les rémunérations des agents publics atteignent 363,0 milliards d’euros en 2024. Elles comprennent les salaires et les cotisations sociales employeur, dont les cotisations sociales imputées qui traduisent certains engagements sociaux des employeurs publics.",
+          "Le voisinage avec les 362,2 milliards de prestations de vieillesse ne permet pas de classer les moyens des services publics face aux retraites. Ces catégories répondent à des règles différentes ; elles ne constituent pas deux enveloppes indépendantes à additionner pour mesurer le coût total des pensions."
         ]
       },
       {
@@ -251,7 +260,8 @@
         "titre": "Les recettes et la démographie déterminent l’équilibre",
         "paragraphes": [
           "Les régimes de retraite versent les pensions à partir des cotisations, des impôts affectés, des transferts et des éventuelles subventions. L’emploi et les rémunérations des actifs alimentent les recettes de cotisations.",
-          "Du côté des dépenses, le nombre de retraités, la durée de versement et les règles de calcul des droits déterminent les sommes à financer. Une augmentation du nombre de pensionnés accroît les besoins, même lorsque la pension moyenne reste stable."
+          "Du côté des dépenses, le nombre de retraités, la durée de versement et les règles de calcul des droits déterminent les sommes à financer. Une augmentation du nombre de pensionnés accroît les besoins, même lorsque la pension moyenne reste stable.",
+          "Le rapport sur les pensions publiques annexé au PLF 2027 éclaire le rôle de l’employeur public et la contribution d’équilibrage selon une convention de comparaison. Cette décomposition du financement ne révèle pas une dépense de pension à ajouter aux comptes existants, ni un nouveau déficit consolidé. Le dossier « Qui finance les retraites des fonctionnaires ? » développe cette lecture."
         ]
       },
       {
@@ -267,17 +277,17 @@
         "id": "conclusion",
         "titre": "Financer les pensions dans une population qui vieillit",
         "paragraphes": [
-          "En 2024, les pensions de vieillesse atteignent 362,2 milliards d’euros, l’équivalent de 24,1 % des recettes publiques. Elles sont presque au niveau des rémunérations des agents publics, mais remplissent une autre fonction : assurer un revenu après la vie active.",
+          "En 2024, les prestations de vieillesse atteignent 362,2 milliards d’euros, minima compris et hors survie, soit l’équivalent de 24,1 % des recettes publiques. Ce ratio ne mesure ni leur part dans la dépense publique ni le déficit des régimes.",
           "L’équilibre des retraites dépend de la progression des recettes face au nombre de pensionnés et à la durée des retraites. Les choix sur les cotisations, l’emploi, l’âge de départ et le niveau des pensions répartissent l’effort entre actifs, retraités et budgets publics."
         ]
       }
     ],
     "limitations": [
       "La ligne de 362,2 milliards inclut les minima vieillesse et exclut les prestations de survie, notamment les pensions de réversion.",
-      "Les pensions de vieillesse, la protection sociale et le seul budget de l'État ne recouvrent pas le même périmètre.",
-      "Le ratio de 24,1 % rapporte une dépense aux recettes publiques ; ce n'est pas sa part dans les dépenses.",
-      "Le classement entre pensions et rémunérations peut varier avec l'année et la nomenclature.",
-      "Les chiffres ne décrivent pas à eux seuls les niveaux de vie ni l'équilibre financier futur des régimes."
+      "Le ratio de 24,1 % rapporte une dépense aux recettes publiques ; ce n’est pas sa part dans les dépenses.",
+      "Les rémunérations comprennent des cotisations sociales employeur, effectives et imputées ; elles ne représentent pas uniquement les moyens des services.",
+      "Les dépenses, leur financement et les soldes des régimes se lisent séparément. La publication sur les pensions publiques ne révise pas automatiquement les séries Eurostat.",
+      "Les chiffres ne décrivent pas à eux seuls les niveaux de vie ni l’équilibre financier futur des régimes."
     ],
     "sommaire": [
       "ce-que-mesure-la-ligne",

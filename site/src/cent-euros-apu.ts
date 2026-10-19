@@ -93,7 +93,7 @@ const RESSOURCES: [id: string, libelle: string][] = [
  * chacune plus que le chômage. Les nommer « allocations » les aurait perdues.
  */
 const FONCTIONS: [id: string, libelle: string][] = [
-  ["eurostat_apu_prestations_vieillesse", "Retraites"],
+  ["eurostat_apu_prestations_vieillesse", "Vieillesse (hors réversion)"],
   ["eurostat_apu_prestations_maladie_invalidite", "Arrêts maladie et invalidité"],
   ["eurostat_apu_prestations_chomage", "Chômage"],
   ["eurostat_apu_prestations_survivants", "Pensions de réversion"],
@@ -273,6 +273,7 @@ export function rendu(pays: Record<string, Territoire>): string {
         ${rang("Total dépensé", depense, { total: true })}
       </figure>
     </div>
+    <p class="chart-context">La vieillesse inclut les minima vieillesse ; les pensions de réversion sont présentées séparément. Les rémunérations comprennent les cotisations sociales employeur, effectives et imputées. Les financements des retraites publiques ne s’ajoutent pas à ces dépenses. <a href="/analyses/financement-retraites-publiques/">Comprendre le financement des retraites publiques</a></p>
     <p class="chart-source">Ensemble des administrations publiques · ${montantLisible(total)} de recettes · Eurostat</p>
 
   `;

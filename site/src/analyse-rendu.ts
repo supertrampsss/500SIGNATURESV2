@@ -408,6 +408,7 @@ export function renduDossierVedette(analyses: readonly Analyse[]): string {
 }
 
 const IMAGES_INDEX: Record<string,string> = {
+  'financement-retraites-publiques': '/france/retraites.jpg',
   "cout-travail-cent-euros-net-2025": "/france/fiscalite.jpg",
   "groenland-accord-securite-europe": "/dossiers/groenland.jpg",
   "championne-du-monde-prelevements-2024": "/france/fiscalite.jpg",

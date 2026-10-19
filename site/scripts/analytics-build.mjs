@@ -1,5 +1,6 @@
 import {readFile,writeFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 // La balise distante est exclusivement chargée par le choix du visiteur.
 const dist=new URL('../dist/',import.meta.url);
@@ -9,7 +10,7 @@ async function walk(directory){
   const file=new URL(item.name+(item.isDirectory()?'/':''),directory);
   if(item.isDirectory())await walk(file);
   else if(item.name.endsWith('.html')){
-   const relative=path.relative(dist.pathname,file.pathname);
+   const relative=path.relative(fileURLToPath(dist),fileURLToPath(file)).split(path.sep).join('/');
    if(/^(?:mandats|salaires|simulateur)\//.test(relative))continue;
    const html=await readFile(file,'utf8');
    if(/content=["'][^"']*noindex/.test(html)||!html.includes('</body>'))continue;
