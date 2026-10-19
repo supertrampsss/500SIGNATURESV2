@@ -56,11 +56,10 @@ async function ready(page) {
   await page.evaluate(() => document.fonts.ready);
 }
 async function start(page) {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await stopBrowserClock(page);
-  await page.goto('/mandats/');
-  await page.getByRole('button', { name: /^Commencer/ }).click();
-  await ready(page);
+  // The current new-game entry is covered by mandats-strategy.test.mjs.
+  // This suite continues to exercise the explicit historical v16 clock/rules.
+  await load(page);
+  await resume(page);
   expect((await saved(page)).version).toBe(16);
 }
 async function load(page, inputs = BASE) {

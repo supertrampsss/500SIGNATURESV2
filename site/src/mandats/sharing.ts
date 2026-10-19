@@ -2,6 +2,7 @@ import { ambitionFor } from "./ambitions.ts";
 import { DOMAINS, domainFor, startingGame, score, start, isFinished } from "./engine.ts";
 import { decode, encode } from "./storage.ts";
 import type { Ambition, Game, Mode } from "./types.ts";
+import { strategyOutcome } from "./presidency-strategy-engine.ts";
 export const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 export function challengeURL(g: Game, origin: string): string {
   const url = new URL("/mandats/", origin);
@@ -29,12 +30,16 @@ export function challengeFromURL(url: URL): Game | null {
   // A direct France entry starts the current mandate. Old seeded challenges
   // retain their original rules when they predate explicit version tags.
   const directFrance = mode === "national" && !url.searchParams.has("seed") && !url.searchParams.has("ambition");
-  const version = url.searchParams.get("v") ?? (directFrance ? "16" : "1");
-  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9" && version !== "10" && version !== "11" && version !== "12" && version !== "13" && version !== "14" && version !== "15" && version !== "16") throw new Error("Version de défi inconnue.");
+  const version = url.searchParams.get("v") ?? (directFrance ? "17" : "1");
+  if (version !== "1" && version !== "2" && version !== "3" && version !== "4" && version !== "5" && version !== "6" && version !== "7" && version !== "8" && version !== "9" && version !== "10" && version !== "11" && version !== "12" && version !== "13" && version !== "14" && version !== "15" && version !== "16" && version !== "17") throw new Error("Version de défi inconnue.");
   const ambition = url.searchParams.get("ambition") ?? "equilibre";
-  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16);
+  return start(mode as Mode, Number(seed), ambition as Ambition, Number(version) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17);
 }
 export function shareText(g: Game): string {
+  if(g.version===17){
+    const outcome=strategyOutcome(g);
+    return `Mandats · France. ${g.turn*2} mois simulés. ${outcome.title}. ${outcome.objectives.filter(item=>item.met).length}/${outcome.objectives.length} objectifs actuellement atteints. ${outcome.summary} Scénario ${g.seed}, règles v17. Hypothèses de jeu, aucune prédiction.`;
+  }
   const s = score(g); const d = domainFor(g);
   if(g.version===16)return `Mandats · France. ${g.turn*2} mois de présidence, ${g.choices.filter(id=>id!=='live-tick').length} ordres. Services ${Math.round(g.metrics.services)}/100, confiance ${Math.round(g.metrics.trust)}/100. Gouvernement autonome et conséquences simulées. Scénario ${g.seed}, simulation v16, aucune prédiction.`;
   if(g.version>=9) return `Mandats · ${d.place}. ${g.politics?.ending && g.politics.ending.kind !== "term_complete" ? `Mandat interrompu après ${g.turn} décisions (${g.politics.ending.title}).` : `Cinq années, ${g.turn} décisions.`} Mission : ${ambitionFor(g).label}. Services ${Math.round(g.metrics.services)}/100, cohésion ${Math.round(g.metrics.cohesion)}/100, confiance ${Math.round(g.metrics.trust)}/100, résilience ${Math.round(g.metrics.resilience)}/100. Résultat de jeu, scénario ${g.seed}, simulation v${g.version}.`;
@@ -42,7 +47,13 @@ export function shareText(g: Game): string {
 }
 export const CARD_SIZES = { landscape: [1200, 630], square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920] } as const;
 export function socialSVG(g: Game | null, format: keyof typeof CARD_SIZES = "landscape"): string {
-  const [w, h] = CARD_SIZES[format]; const s = g ? score(g) : null;
+  const [w, h] = CARD_SIZES[format];
+  if(g?.version===17){
+    const outcome=strategyOutcome(g);
+    const line=(value:string,y:number,size:number)=>`<text x="70" y="${y}" fill="#f2ebdc" font-family="sans-serif" font-size="${size}">${escape(value)}</text>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>${escape(shareText(g))}</title><rect width="${w}" height="${h}" fill="#102e3d"/>${line("MANDATS · STRATÉGIE PRÉSIDENTIELLE",90,26)}${line(outcome.title,180,38)}${line(`${g.turn*2} mois simulés · scénario ${g.seed}`,245,24)}${line(`${outcome.objectives.filter(item=>item.met).length}/${outcome.objectives.length} objectifs actuellement atteints`,300,26)}${line("Pression 100 = danger maximal",355,23)}${line("500signatures.fr/mandats/ · Simulation v17",h-70,20)}</svg>`;
+  }
+  const s = g ? score(g) : null;
   const tall = h > 900; const y = tall ? h * .22 : 195;
   const title = g ? domainFor(g).place : "Choisissez votre mandat";
   const line = (text: string, x: number, yy: number, size: number, fill = "#eef5f2") => `<text x="${x}" y="${yy}" fill="${fill}" font-family="sans-serif" font-size="${size}">${escape(text)}</text>`;

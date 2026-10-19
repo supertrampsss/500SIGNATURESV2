@@ -131,10 +131,18 @@ function executionFor(previous: PressureState, afterChoice: Game): number {
   const administrationPenalty = Math.max(0, previous.sectors.administration.pressure - 65) / 35;
   return round(Math.max(1, 4 - cabinetPenalty - administrationPenalty));
 }
+/** V17 standing priorities reallocate the existing delivery pool, including
+ * after ministers have established all their permanent operational routines.
+ * Older rules and FIFO within each priority group remain unchanged. */
+function programmeOrder(game: Game, a: PressureProgramme, b: PressureProgramme): number {
+  const priority = game.version === 17 ? game.presidency?.priority : null;
+  const preferred = priority ? Number(b.sector === priority) - Number(a.sector === priority) : 0;
+  return preferred || a.sourceTurn - b.sourceTurn || a.id.localeCompare(b.id);
+}
 function workThisPeriod(before: Game, afterChoice: Game, state: PressureState, capacity: number): Map<string, number> {
   const allocation = new Map<string, number>();
   let available = capacity;
-  for (const programme of state.programmes.filter(item => item.status === 'preparing').sort((a, b) => a.sourceTurn - b.sourceTurn || a.id.localeCompare(b.id))) {
+  for (const programme of state.programmes.filter(item => item.status === 'preparing').sort((a, b) => programmeOrder(afterChoice, a, b))) {
     const project = programme.projectId ? afterChoice.narrative?.projects.find(item => item.id === programme.projectId) : undefined;
     if (project?.status === 'withdrawn' || (before.version >= 16 ? programme.sourceTurn > before.turn : programme.sourceTurn >= before.turn)) continue;
     const work = Math.max(0, Math.min(programme.remainingWork, programme.implementation ?? 1, available));
@@ -262,7 +270,7 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
   // The queue has its own finite workforce. A financing vote never creates staff.
   state.execution = { capacity: executionFor(previous, afterChoice), used: 0, waiting: 0 };
   const allocation = workThisPeriod(before, afterChoice, state, state.execution.capacity);
-  for (const programme of state.programmes.filter(item => item.status === 'preparing').sort((a, b) => a.sourceTurn - b.sourceTurn || a.id.localeCompare(b.id))) {
+  for (const programme of state.programmes.filter(item => item.status === 'preparing').sort((a, b) => programmeOrder(afterChoice, a, b))) {
     const project = programme.projectId ? afterChoice.narrative?.projects.find(item => item.id === programme.projectId) : undefined;
     const movement = programme.socialMovementId ? afterChoice.social?.movements.find(item => item.id === programme.socialMovementId) : undefined;
     if (project?.status === 'withdrawn' || movement?.commitment?.status === 'broken') {
@@ -317,8 +325,8 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     }
   }
 
-  const scenarioShocks = before.version === 16 && before.presidency?.crises ? [] : shocks(before.seed);
-  if (slot === 1 && year > 1) {
+  const scenarioShocks = before.version === 17 || (before.version === 16 && before.presidency?.crises) ? [] : shocks(before.seed);
+  if (before.version !== 17 && slot === 1 && year > 1) {
     for (const id of IDS) {
       const profile = PRESSURE_CHAPTER_NEEDS[id];
       const change = profile[Math.min(4, year - 1)] - profile[Math.min(4, year - 2)];
@@ -338,7 +346,8 @@ export function advancePressure(before: Game, afterChoice: Game, rawChoice: Choi
     const links = LINKS.filter(link => link.to === id).map(link => ({ ...link, loss: link.capacity * limit((previous.sectors[link.from].pressure - 60) / 40, 0, 1) })).filter(link => link.loss > .01);
     const external = scenarioShocks.filter(item => item.sector === id && turn >= item.at && turn < item.at + item.duration);
     const seasonalNeed = id === 'health' && (slot === 1 || slot === 6) ? 1.2 : id === 'energy' && (slot === 1 || slot === 6) ? 1 : id === 'education' && slot === 4 ? 1 : 0;
-    const chapterNeed = PRESSURE_CHAPTER_NEEDS[id][Math.min(4, year - 1)];
+    // V17 owns its declared, context-specific demand projections.
+    const chapterNeed = before.version === 17 ? 0 : PRESSURE_CHAPTER_NEEDS[id][Math.min(4, year - 1)];
     const crisis = before.version === 16 ? crisisImpact(before, id, state.programmes, turn) : { loss: 0, need: 0, labels: [] };
     const need = Math.max(0, front.need + crisis.need + chapterNeed + seasonalNeed + external.reduce((sum, item) => sum + (item.need ?? 0), 0));
     front.incomingNeed = round(need);

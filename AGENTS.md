@@ -9,7 +9,7 @@ Prefer the smallest coherent change with evidence; never claim zero regression r
 
 - French, plain language, concise visible choices, mobile first.
 - A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: v16 has thirty two-month clock periods over five years, with presidential orders and autonomous government initiatives independent of that clock. New national games use v16; explicit older links retain their rules. The owner waived old-save compatibility before public launch. Discuss municipal
+- France is the current game priority: v17 has thirty two-month clock periods over five years, with presidential orders and autonomous government initiatives independent of that clock. New national games use v17; explicit older links and saves retain their rules. The current approved strategy brief requires that compatibility. Discuss municipal
   expansion separately. Existing municipal data and journeys still need compatibility.
 - Show consequences after a decision; distinguish immediate and delayed effects.
 - Keep finance, observed data and simulation assumptions separate. Never invent sources.
@@ -51,6 +51,29 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: presidential strategy v17 (19 October 2026)
+
+The owner approved the complete strategy rework in the attached brief. New national
+games use v17 and preserve versioned v1–16 reconstruction. This takes precedence
+over older calendar-survival goals and earlier navigation prohibitions where they
+conflict with permanent reform access. Keep the current approved illustrated map.
+See [the contract and failure cases](docs/mandats-strategy-v17.md).
+
+`presidency-strategy-engine.ts` owns v17 rules; `presidency-strategy-content.ts` owns
+six sector chains and distinct durable routes; `presidency-api.ts` dispatches views
+without changing v16 rules. Ministers handle recurring operations in the same finite
+reserve and execution queue as player orders. Objectives measure actual services,
+backlog, finances and a working government. Completing thirty periods is not a win.
+After full-game observation, at x1 one v17 period lasts 30 seconds (15 active
+minutes over the mandate); v16 keeps 15 seconds. Preserve atomic saves,
+shared-preview adoption, pause, hidden tabs, offline use and journal-index replay.
+
+First inspect a three-minute playable opening, correct its observed defects, then
+play full mandates and both strategies over several seeds. Run the strategy browser
+suite and bounded audit alongside existing gates; retain the independent v16 numeric
+fixture, legal inputs, actual screenshots and clips. Distinguish technical checks,
+agent playthroughs and external human feedback. Do not claim fun from passing tests.
 
 ### Mandats: contextual mobile board and complete decision loops (17 October 2026)
 

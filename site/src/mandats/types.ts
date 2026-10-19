@@ -32,7 +32,7 @@ export type Ledger = { revenue: number; operating: number; interest: number; sav
 export type Pending = { due: number; label: string; effect: Effect };
 export type Turn = { year: number; closed?: boolean; choice: string; title: string; messages: string[]; event: string; ledger: Ledger; metrics: Metrics; areas: Area[]; vote?: VoteRecord; politicalConsequences?: string[]; dossier?: Dossier };
 export type Game = {
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17; society?: Society; city?: CityBaseline; ambition?: Ambition; mode: Mode; seed: number; turn: number; finance: Finance; metrics: Metrics;
   areas: Area[]; pending: Pending[]; history: Turn[]; choices: string[]; politics?: PoliticalState; narrative?: NarrativeState; social?: SocialState; pressure?: PressureState; presidency?: PresidencyState;
 };
 export type Domain = {

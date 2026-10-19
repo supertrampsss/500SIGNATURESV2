@@ -1,0 +1,351 @@
+[
+  {
+    "scenario": "19-equilibre-capacity",
+    "period": 30,
+    "outcome": "mixed",
+    "missed": [
+      {
+        "id": "backlog",
+        "title": "Réduire les retards hérités",
+        "current": "33,86 unités en attente contre 30,02 au départ.",
+        "target": "Un retard total inférieur ou égal au début du mandat.",
+        "met": false
+      }
+    ],
+    "reserve": 1.422,
+    "authorised": 38,
+    "spent": 36.578,
+    "orders": [
+      {
+        "period": 0,
+        "id": "s17-housing-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 0,
+        "id": "s17-administration-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 2,
+        "id": "s17-administration-network",
+        "kind": "network"
+      },
+      {
+        "period": 3,
+        "id": "s17-housing-network",
+        "kind": "network"
+      },
+      {
+        "period": 6,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 12,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 18,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 18,
+        "id": "s17-health-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 19,
+        "id": "s17-energy-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 24,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 24,
+        "id": "s17-health-network",
+        "kind": "network"
+      },
+      {
+        "period": 25,
+        "id": "s17-energy-network",
+        "kind": "network"
+      },
+      {
+        "period": 27,
+        "id": "s17-transport-capacity",
+        "kind": "capacity"
+      }
+    ],
+    "votes": [
+      {
+        "choice": "live-credits",
+        "year": 2,
+        "for": 266,
+        "against": 266,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 3,
+        "for": 253,
+        "against": 272,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 4,
+        "for": 266,
+        "against": 264,
+        "passed": true
+      },
+      {
+        "choice": "live-credits",
+        "year": 5,
+        "for": 287,
+        "against": 250,
+        "passed": true
+      }
+    ],
+    "redeployments": [],
+    "foundations": [
+      "health",
+      "housing",
+      "transport",
+      "energy",
+      "administration"
+    ]
+  },
+  {
+    "scenario": "143-equilibre-capacity",
+    "period": 30,
+    "outcome": "mixed",
+    "missed": [
+      {
+        "id": "services",
+        "title": "Des services accessibles",
+        "current": "2/6 secteurs avec au plus 45 de pression ; 2 en crise.",
+        "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+        "met": false
+      },
+      {
+        "id": "backlog",
+        "title": "Réduire les retards hérités",
+        "current": "153,85 unités en attente contre 31,11 au départ.",
+        "target": "Un retard total inférieur ou égal au début du mandat.",
+        "met": false
+      }
+    ],
+    "reserve": 1.652,
+    "authorised": 18,
+    "spent": 16.348,
+    "orders": [
+      {
+        "period": 0,
+        "id": "s17-health-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 0,
+        "id": "s17-education-capacity",
+        "kind": "capacity"
+      },
+      {
+        "period": 2,
+        "id": "s17-health-network",
+        "kind": "network"
+      },
+      {
+        "period": 3,
+        "id": "s17-education-network",
+        "kind": "network"
+      },
+      {
+        "period": 6,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 12,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 16,
+        "id": "s17-energy-agreement",
+        "kind": "agreement"
+      },
+      {
+        "period": 18,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 24,
+        "id": "live-credits",
+        "kind": "live-credits"
+      }
+    ],
+    "votes": [
+      {
+        "choice": "live-credits",
+        "year": 2,
+        "for": 257,
+        "against": 280,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 3,
+        "for": 259,
+        "against": 270,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 4,
+        "for": 251,
+        "against": 276,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 5,
+        "for": 250,
+        "against": 279,
+        "passed": false
+      }
+    ],
+    "redeployments": [],
+    "foundations": [
+      "health",
+      "education"
+    ]
+  },
+  {
+    "scenario": "143-equilibre-organisation",
+    "period": 30,
+    "outcome": "mixed",
+    "missed": [
+      {
+        "id": "backlog",
+        "title": "Réduire les retards hérités",
+        "current": "34,39 unités en attente contre 31,11 au départ.",
+        "target": "Un retard total inférieur ou égal au début du mandat.",
+        "met": false
+      }
+    ],
+    "reserve": 0.698,
+    "authorised": 18,
+    "spent": 17.302,
+    "orders": [
+      {
+        "period": 0,
+        "id": "s17-health-organisation",
+        "kind": "organisation"
+      },
+      {
+        "period": 0,
+        "id": "s17-education-organisation",
+        "kind": "organisation"
+      },
+      {
+        "period": 1,
+        "id": "s17-energy-organisation",
+        "kind": "organisation"
+      },
+      {
+        "period": 1,
+        "id": "s17-housing-organisation",
+        "kind": "organisation"
+      },
+      {
+        "period": 2,
+        "id": "s17-education-network",
+        "kind": "network"
+      },
+      {
+        "period": 3,
+        "id": "s17-health-network",
+        "kind": "network"
+      },
+      {
+        "period": 6,
+        "id": "s17-coalition-pact",
+        "kind": "coalition"
+      },
+      {
+        "period": 7,
+        "id": "s17-energy-network",
+        "kind": "network"
+      },
+      {
+        "period": 8,
+        "id": "s17-housing-network",
+        "kind": "network"
+      },
+      {
+        "period": 10,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 12,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 18,
+        "id": "live-credits",
+        "kind": "live-credits"
+      },
+      {
+        "period": 24,
+        "id": "live-credits",
+        "kind": "live-credits"
+      }
+    ],
+    "votes": [
+      {
+        "choice": "live-credits",
+        "year": 2,
+        "for": 222,
+        "against": 307,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 3,
+        "for": 244,
+        "against": 284,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 4,
+        "for": 237,
+        "against": 289,
+        "passed": false
+      },
+      {
+        "choice": "live-credits",
+        "year": 5,
+        "for": 238,
+        "against": 291,
+        "passed": false
+      }
+    ],
+    "redeployments": [],
+    "foundations": [
+      "health",
+      "housing",
+      "energy",
+      "education"
+    ]
+  }
+]

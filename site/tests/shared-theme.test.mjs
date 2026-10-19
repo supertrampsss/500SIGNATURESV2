@@ -1,14 +1,14 @@
 import {test,expect} from '@playwright/test';
 
-test('Mandats : carte vivante, lancement v16 et navigation accessibles',async({page},info)=>{
+test('Mandats : carte vivante, lancement v17 et navigation accessibles',async({page},info)=>{
  await page.goto('/mandats/');
  await expect(page.locator('.map-game--entry')).toBeVisible();
- await expect(page.getByRole('heading',{name:'Tenir cinq ans.',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Transformer le pays.',exact:true})).toBeVisible();
  const primary=page.getByRole('button',{name:'Commencer un mandat',exact:true});await expect(primary).toBeVisible();
  await page.screenshot({path:info.outputPath('mandats-selection.png'),fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  await primary.click();await expect(page.locator('section[data-presidency]')).toBeVisible();
- expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).version).toBe(16);
+ expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')))).version).toBe(17);
 });
 test('Mandats expose un accès au site et le lien revient à la page d’accueil',async({page})=>{
  await page.goto('/mandats/');
@@ -80,7 +80,7 @@ test('retired simulator URLs lead to Mandats while old browser data is preserved
  await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
  await page.goto('/simulateur/comparer?version=2&budget=france');
  await expect(page).toHaveURL(/\/mandats\/$/);
- await expect(page.getByRole('heading',{name:'Tenir cinq ans.',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Transformer le pays.',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>localStorage.getItem('simulator-legacy-preservation'))).toBe('old-save');
 });
 

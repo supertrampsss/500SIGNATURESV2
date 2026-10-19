@@ -1,0 +1,114 @@
+{
+  "kind": "comparative-agent-gameplay-observation",
+  "externalHumanPlayers": 0,
+  "status": "two-complete-ui-mandates",
+  "runs": [
+    {
+      "strategy": "capacity",
+      "viewport": {
+        "width": 1672,
+        "height": 941
+      },
+      "orders": 16,
+      "lastOrderPeriod": 16,
+      "lastAcceptedOrderPeriod": 16,
+      "lastTransformationOrderPeriod": 16,
+      "lastDeliveryPeriod": 19,
+      "periodsWithoutAnyOrderAtEnd": 14,
+      "sourceImmutable": true,
+      "observedAssets": [
+        "http://127.0.0.1:4180/assets/mandats-CXHsy8iH.js"
+      ],
+      "lastMinisterialDeliveryPeriod": 16,
+      "periodsAfterLastPresidentialDelivery": 11,
+      "tailNoOrderSecondsAt1": 560,
+      "tailNoOrderSecondsAt4": 140,
+      "firstAllObjectivesPeriod": 12,
+      "outcome": "success",
+      "finalDeficit": 136.0862349143947,
+      "finalSupport": 61.25660377358491,
+      "backlog": "11,95 unités en attente contre 30,9 au départ.",
+      "maxPressure": 31.688,
+      "errors": [],
+      "canonicalRoundTrip": true
+    },
+    {
+      "strategy": "organisation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "orders": 16,
+      "lastOrderPeriod": 24,
+      "lastAcceptedOrderPeriod": 24,
+      "lastTransformationOrderPeriod": 24,
+      "lastDeliveryPeriod": 26,
+      "periodsWithoutAnyOrderAtEnd": 6,
+      "sourceImmutable": true,
+      "observedAssets": [
+        "http://127.0.0.1:4180/assets/mandats-CXHsy8iH.js"
+      ],
+      "lastMinisterialDeliveryPeriod": 20,
+      "periodsAfterLastPresidentialDelivery": 4,
+      "tailNoOrderSecondsAt1": 240,
+      "tailNoOrderSecondsAt4": 60,
+      "firstAllObjectivesPeriod": 6,
+      "outcome": "success",
+      "finalDeficit": 137.85652509206489,
+      "finalSupport": 48.25660377358491,
+      "backlog": "8,09 unités en attente contre 30,9 au départ.",
+      "maxPressure": 15.905,
+      "errors": [],
+      "canonicalRoundTrip": true
+    }
+  ],
+  "observations": {
+    "scope": "Deux parties complètes jouées par un agent dans la vraie interface, même graine 47 ; aucun joueur humain externe. Trois premières périodes à ×1, puis ×4, horloge navigateur contrôlée.",
+    "periodConvention": "P0 à P30 = périodes réellement écoulées dans le journal. L’interface affiche Période P+1 avant la fin ; ainsi choix Transport P24 = Période 25/30 affichée.",
+    "capacityRoute": {
+      "label": "Capacité, avec Transports laissé au ministère",
+      "decisions": "Santé et Éducation au départ ; réseaux utiles dès livraison, Énergie puis Logement et Démarches selon charges annoncées. Crédit année 2 rejeté sans nouvel essai : réaffectation avec actifs −1. Année 3 : crédits adoptés, puis seconde réaffectation pour le réseau Admin, dont il manquait 0,09 Md€. Un compromis politique réellement livré.",
+      "sacrifice": "38,45 Md€ d’autorisations de transformations/compromis, deux réaffectations (actifs −2), 6,844 Md€/an de charges de programmes livrés incluant le ministère. Préserve 61,26 appuis, mais laisse 11,95 dossiers et Transports 31,688 en hausse.",
+      "pacing": "Dernier ordre utile P16, dernière livraison présidentielle P19. Aucun nouveau chantier après P19 ; Transports monte réellement de 0,4 à 31,688 pendant P19–P30. Ce maintien impose de surveiller une dérive mais offre peu d’arbitrages sans redemander des moyens. 14 périodes sans ordre : 9 min 20 à ×1 ou 2 min 20 à ×4. Après livraison : 11 périodes, 7 min 20 à ×1 ou 1 min 50 à ×4. Ce segment reste long."
+    },
+    "organisationHybridRoute": {
+      "label": "Organisation puis investissement Transport : parcours hybride",
+      "decisions": "Organisations initiales et réseaux immédiatement utiles ; deux compromis politiques livrés, donc plus de temps et de charges mais moins de dépense de capacité au départ. Crédit année 3 refusé : réaffectation, réseau Logement d’abord. Démarches attend les crédits année 4, réellement votés P18 ; les retards y étaient 2,38 et la pression 7.",
+      "lateChoice": "P24, Transports atteint pression 18,28, tendance +2,8 ; 13,4 unités de besoins pour 12,33 de capacité et 7,11 dossiers. Avec 7,1 Md€ disponibles, investir 4,6 Md€ (+1,3 capacité, 2 périodes minimum, 0,6 Md€/an, 3 appuis) est utile : le déficit courant de capacité est supérieur au gain d’organisation de 0,4, qui coûterait 9 appuis et prendrait 3 périodes. Investissement livré P26 ; pression diminue ensuite à 15,905. Cette intervention est préventive utile, pas obligatoire pour cocher les objectifs.",
+      "sacrifice": "25,70 Md€ d’autorisations de transformations/compromis, une réaffectation (actifs −1), deux compromis, 5,44 Md€/an de charges livrées incluant le ministère. Appuis finaux 48,26 ; retards 8,09, pression max 15,905. L’investissement Transport fait de cette route une route hybride.",
+      "pacing": "Dernier ordre utile P24, dernière livraison P26. Seulement 6 périodes sans nouvel ordre : 4 min à ×1 / 1 min à ×4 ; après livraison, 4 périodes : 2 min 40 / 40 s. Le passage P21–P24 est un diagnostic de dérive Transport suivi d’un vrai choix, pas un achat pour meubler."
+    },
+    "interface": {
+      "works": [
+        "Les deux approches et la coordination exposent coûts, charges annuelles, délai, équipes et appuis dans le panneau lisible sur 390×844.",
+        "Pas de clic obligatoire Continuer ni de renouvellement ministériel ; les livraisons, retards et refus existent indépendamment des clics.",
+        "Objectif financier daté lisible : capacité P16 prévision année 3 à 158,52 Md€, puis P18 prévision année 4 à 144,96. Aucune taxe appliquée pour effacer une clôture passée.",
+        "Bilan expose danger 100 = maximal, objectifs atteints, pression et retards résiduels. Réussite ne signifie pas six notes à 100."
+      ],
+      "limits": [
+        "Le parcours capacité garde une longue fin avec surveillance de Transports et peu de décisions financièrement accessibles ; ×4 la réduit, sans démontrer un rythme addictif.",
+        "La formule générale « services rétablis durablement » paraît plus forte que le constat capacité final : Transports 32 et encore en hausse. Les valeurs et le stade visibles nuancent ce titre, mais un intitulé « objectifs du mandat atteints » serait plus exact.",
+        "La pin Budget « décision à prendre » réapparaît côté capacité P24 malgré les quatre objectifs actuellement atteints : elle correspond à un déficit physique Transport, mais présente un investissement optionnel comme une décision attendue. Pas observé côté hybride avec assez de réserve.",
+        "Les notifications mobiles couvrent brièvement le haut du panneau ; la capture informée P24 sans notification reste entièrement lisible. Les menus n’ont provoqué aucune erreur JavaScript."
+      ]
+    },
+    "verdict": "Deux voies crédibles avec vrais coûts, refus, temporisation, ministres et résultats différents. Le second équilibrage crée une intervention tardive utile sans catastrophe artificielle. Il subsiste un maintien long sur la route capacité. Ces observations d’agent ne démontrent ni addiction ni validation de joueurs externes.",
+    "recommendedRealScreenshots": [
+      {
+        "path": "postbalance-capacity/05-dernier-choix-reseau-p16.png",
+        "viewport": "1672×941",
+        "purpose": "Coordination bureau : cause, coût, délai, charges et appuis visibles, chantier réel."
+      },
+      {
+        "path": "postbalance-organisation/08-mobile-arbitrage-transport-avant-p24.png",
+        "viewport": "390×844",
+        "purpose": "État juste avant le choix Transport utile P24 : 7,1 Md€ disponibles, 18 de pression, écart capacité/besoins, délai et coût des deux approches visibles. Le journal montre l’investissement de capacité décidé immédiatement après."
+      },
+      {
+        "path": "postbalance-organisation/12-bilan-complet-1672x2400.png",
+        "viewport": "1672×2400",
+        "purpose": "Bilan complet réel de la partie hybride, obtenu en redimensionnant le navigateur après la fin. Les captures natives mobile et bureau sont conservées à côté."
+      }
+    ]
+  }
+}
