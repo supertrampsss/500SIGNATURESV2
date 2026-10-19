@@ -12,6 +12,7 @@ import './styles/shared-design.css';
 import './styles/revue-civique.css';
 import './styles/site-shell-v2.css';
 import './styles/salaires.css';
+import './styles/reclassement-bercy.css';
 
 const contenu = document.getElementById('contenu');
 if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();

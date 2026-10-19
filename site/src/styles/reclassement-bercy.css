@@ -1,0 +1,14 @@
+.bercy-reclassement { color:inherit; margin-block:2rem; min-width:0; }
+.bercy-reclassement h2 { font-size:clamp(1.4rem,3vw,2rem); line-height:1.2; }
+.bercy-reclassement p { max-width:76ch; line-height:1.6; }
+.bercy-reclassement__bar { display:flex; width:100%; height:2.5rem; gap:2px; border-radius:4px; overflow:hidden; margin-block:1.5rem; }
+.bercy-reclassement__segment--0 { background:#5ea2c6; }
+.bercy-reclassement__segment--1 { background:#8aa794; }
+.bercy-reclassement__segment--2 { background:#c83d50; }
+.bercy-reclassement table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.bercy-reclassement caption { text-align:left; padding-block:.5rem; }
+.bercy-reclassement th,.bercy-reclassement td { padding:.75rem .4rem; border-bottom:1px solid #00386730; text-align:left; }
+.bercy-reclassement td,.bercy-reclassement thead th:last-child { text-align:right; white-space:nowrap; }
+.bercy-reclassement thead th { position:static; z-index:auto; background:none; }
+.bercy-reclassement tbody tr:last-child { font-weight:700; }
+@media(max-width:480px) { .bercy-reclassement th,.bercy-reclassement td { padding:.65rem .2rem; } }

@@ -8,38 +8,34 @@
     "fonctions"
   ],
   "budgets_concernes": [
-    "secu"
+    "etat",
+    "secu",
+    "collectivites"
   ],
   "mise_en_avant": false,
   "affirmation": {
-    "texte": "En 2024, les prestations de vieillesse représentent l’équivalent de 24,1 % des recettes publiques. Ce champ, qui comprend des minima vieillesse, exclut les prestations de survie, notamment la réversion.",
+    "texte": "En 2024, les retraites regroupent 402,4 milliards d’euros de prestations de vieillesse et de survie, minima vieillesse et réversion compris, soit l’équivalent de 26,76 % des recettes publiques.",
     "auteur": null,
     "date": null,
     "source": {
-      "titre": "Dépenses des administrations publiques par transaction (Eurostat, gov_10a_main)",
-      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
-      "consulte_le": "2026-08-22"
+      "titre": "Eurostat — prestations de vieillesse et de survie des administrations publiques, gov_10a_exp, 2024",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table",
+      "consulte_le": "2026-10-19"
     }
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Le ratio de 24,1 % rapporte les prestations de vieillesse aux recettes publiques. Les rémunérations des agents comprennent aussi les cotisations sociales employeur ; leur comparaison avec les prestations ne classe pas des moyens opérationnels et ne mesure pas un déficit des retraites."
+    "phrase": "La ligne Retraites réunit les prestations de vieillesse et de survie du même exercice : 402,4 milliards d’euros en 2024. Le ratio de 26,76 % les rapporte aux recettes publiques et ne mesure pas le déficit des régimes."
   },
   "chiffres": [
     {
-      "dit": "près d'un quart",
-      "observe": {
-        "indicateur": "eurostat_apu_prestations_vieillesse",
-        "niveau": "pays",
-        "code": "FR",
-        "periode": "2024",
-        "valeur": 362178400000
-      },
-      "registre": "fait_comptable",
-      "lecture": "Les prestations de vieillesse valent 362 178,4 M€ en 2024, minima compris, hors prestations de survie dont la réversion."
+      "dit": "Retraites, vieillesse et survie regroupées",
+      "valeur": 402433200000,
+      "registre": "interpretation",
+      "lecture": "Calcul sur les séries Eurostat 2024 : 362 178,4 M€ de vieillesse + 40 254,8 M€ de survie = 402 433,2 M€, minima vieillesse et réversion compris."
     },
     {
-      "dit": "premier poste",
+      "dit": "Rémunérations des agents publics",
       "observe": {
         "indicateur": "eurostat_apu_remunerations",
         "niveau": "pays",
@@ -73,9 +69,34 @@
       },
       "registre": "fait_comptable",
       "lecture": "Par finalité, la protection sociale pèse 23,7 % du PIB."
+    },
+    {
+      "dit": "Prestations de vieillesse, composante historique",
+      "observe": {
+        "indicateur": "eurostat_apu_prestations_vieillesse",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 362178400000
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les prestations de vieillesse valent 362 178,4 M€ en 2024, minima compris, hors prestations de survie dont la réversion."
+    },
+    {
+      "dit": "Prestations de survie, dont réversion",
+      "observe": {
+        "indicateur": "eurostat_apu_prestations_survivants",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 40254800000
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les prestations de survie versées par les administrations publiques valent 40 254,8 M€ en 2024, notamment les pensions de réversion."
     }
   ],
   "hypotheses": [
+    "La ligne Retraites réunit vieillesse et survie au même exercice 2024 ; les composantes de 362,1784 et 40,2548 milliards sont conservées séparément comme justificatifs du total de 402,4332 milliards.",
     "Les prestations de vieillesse comprennent des minima et excluent les prestations de survie, notamment la réversion. Les rémunérations des agents regroupent salaires et cotisations sociales employeur, y compris les cotisations sociales imputées : elles ne mesurent pas uniquement le travail payé ni les moyens opérationnels.",
     "La dépense de pension, son financement et le solde d’un régime sont trois objets distincts. Les comparer exige le même exercice et le même champ. Un transfert public finançant une pension ne constitue pas une pension supplémentaire à additionner aux prestations.",
     "Les pensions de vieillesse ne sont publiées que jusqu'à 2024 quand le compte général va jusqu'à 2025. Comparer le poste de 2024 à celui de 2025 donnerait un classement qui ne mesure qu'un décalage de calendrier."
@@ -117,6 +138,18 @@
       "titre": "Direction du Budget : pensions de retraite de la fonction publique, PLF 2027, pages 20–24 (financement et conventions)",
       "url": "https://www.budget.gouv.fr/documentation/file-download/34465",
       "consulte_le": "2026-10-19"
+    },
+    {
+      "id": "eurostat-vieillesse-2024-api",
+      "titre": "Eurostat, API gov_10a_exp — France, S13, D62, GF1002, 2024 (362 178,4 M€)",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_exp?geo=FR&sector=S13&unit=MIO_EUR&na_item=D62&cofog99=GF1002&time=2024",
+      "consulte_le": "2026-10-19"
+    },
+    {
+      "id": "eurostat-survie-2024-api",
+      "titre": "Eurostat, API gov_10a_exp — France, S13, D62, GF1003, 2024 (40 254,8 M€)",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10a_exp?geo=FR&sector=S13&unit=MIO_EUR&na_item=D62&cofog99=GF1003&time=2024",
+      "consulte_le": "2026-10-19"
     }
   ],
   "simulateur": {
@@ -140,22 +173,33 @@
     {
       "date": "2026-10-19",
       "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Présentation actuelle vieillesse et réversion regroupées explicitée ; preuve vieillesse 2024 conservée avec son périmètre."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Total Retraites 2024 regroupé à 402,4332 Md€ après vérification des deux composantes dans l’API Eurostat et les données publiées."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Les prestations de vieillesse atteignent 362,2 milliards d’euros en 2024, minima compris et hors prestations de survie. Ce montant représente l’équivalent de 24,1 % des recettes publiques. Pour comprendre les retraites, nous distinguons les prestations versées, les ressources qui les financent et le solde de chaque régime.",
+    "chapo": "Les retraites représentent 402,4 milliards d’euros en 2024 : 362,1784 milliards de prestations de vieillesse et 40,2548 milliards de prestations de survie, dont la réversion. Minima vieillesse compris, ce regroupement équivaut à 26,76 % des recettes publiques. Nous distinguons les prestations versées, leur financement et le solde des régimes.",
     "series": [],
     "preuves": [
       {
         "id": "chiffre-1",
-        "libelle": "Prestations de vieillesse, hors survie",
-        "value": 362.1784,
+        "libelle": "Retraites, vieillesse et survie regroupées",
+        "value": 402.4332,
         "unit": "billion_EUR",
         "period": "2024",
-        "definition": "Les prestations de vieillesse valent 362 178,4 M€ en 2024, minima compris, hors prestations de survie dont la réversion.",
+        "definition": "Calcul Eurostat gov_10a_exp, S13, D62, 2024 : GF1002 vieillesse 362,1784 + GF1003 survie 40,2548 = 402,4332 Md€. Minima vieillesse et réversion compris.",
         "sourceId": "source-2",
-        "comparableGroup": "depenses-2024"
+        "comparableGroup": "depenses-2024",
+        "qualityFlags": [
+          "calcul-par-regroupement"
+        ]
       },
       {
         "id": "chiffre-2",
@@ -196,6 +240,26 @@
         "qualityFlags": [
           "périmètre_différent"
         ]
+      },
+      {
+        "id": "vieillesse-composante",
+        "libelle": "Vieillesse, hors survie",
+        "value": 362.1784,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Eurostat gov_10a_exp, S13, D62, GF1002 : prestations de vieillesse, minima compris. Composante de la ligne Retraites.",
+        "sourceId": "eurostat-vieillesse-2024-api",
+        "comparableGroup": "composantes-retraites-2024"
+      },
+      {
+        "id": "survie-composante",
+        "libelle": "Survie, dont réversion",
+        "value": 40.2548,
+        "unit": "billion_EUR",
+        "period": "2024",
+        "definition": "Eurostat gov_10a_exp, S13, D62, GF1003 : prestations de survie. Composante de la ligne Retraites.",
+        "sourceId": "eurostat-survie-2024-api",
+        "comparableGroup": "composantes-retraites-2024"
       }
     ],
     "visualisations": [
@@ -203,17 +267,27 @@
         "id": "pensions-remunerations",
         "type": "bar",
         "titre": "Deux grandes dépenses publiques en 2024",
-        "resume": "France, milliards d’euros. Prestations de vieillesse hors survie ; rémunérations comprenant les cotisations employeur. Ces blocs ne sont pas des enveloppes opérationnelles indépendantes.",
+        "resume": "France, milliards d’euros. Une seule ligne Retraites réunit vieillesse et survie en 2024. Les rémunérations comprennent les cotisations employeur ; les financements publics des pensions ne sont pas ajoutés aux prestations.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-2"
         ]
       },
       {
+        "id": "composantes-retraites",
+        "type": "snapshot_table",
+        "titre": "Les deux composantes d’une seule ligne Retraites",
+        "resume": "France, 2024 : 362,1784 + 40,2548 = 402,4332 milliards d’euros. Les composantes expliquent le regroupement et ne s’ajoutent pas une seconde fois au total.",
+        "preuveIds": [
+          "vieillesse-composante",
+          "survie-composante"
+        ]
+      },
+      {
         "id": "pensions-recettes",
         "type": "snapshot_table",
-        "titre": "Des pensions équivalentes à 24,1 % des recettes publiques",
-        "resume": "France, 2024 : 362,2 milliards d’euros de pensions de vieillesse pour 1 503,6 milliards de recettes publiques.",
+        "titre": "Des retraites équivalentes à 26,76 % des recettes publiques",
+        "resume": "France, 2024 : 402,4332 milliards d’euros de vieillesse et survie regroupées pour 1 503,5901 milliards de recettes publiques.",
         "preuveIds": [
           "chiffre-1",
           "chiffre-3"
@@ -223,7 +297,7 @@
         "id": "pensions-et-vieillesse",
         "type": "snapshot_table",
         "titre": "Les pensions et le risque vieillesse-survie",
-        "resume": "Eurostat : pensions de vieillesse en 2024. DREES : ensemble du risque vieillesse-survie en 2023, incluant notamment les pensions de réversion.",
+        "resume": "Eurostat : vieillesse et survie regroupées en 2024. DREES : risque vieillesse-survie en 2023 ; les années et les périmètres restent distincts.",
         "preuveIds": [
           "chiffre-1",
           "vieillesse-survie-drees"
@@ -235,15 +309,19 @@
         "id": "ce-que-mesure-la-ligne",
         "titre": "Des pensions de retraite aux dépenses liées à la vieillesse",
         "paragraphes": [
-          "La ligne Eurostat utilisée ici correspond aux prestations sociales en espèces de la fonction vieillesse versées par les administrations publiques : pensions de droit direct et minima vieillesse. Les 362,2 milliards ne désignent donc pas exclusivement les pensions contributives. Les prestations de survie, notamment les pensions de réversion, relèvent d’une fonction distincte.",
+          "La ligne Retraites réunit désormais les deux fonctions Eurostat du même exercice : vieillesse, minima compris, et survie, notamment la réversion. En 2024, 362,1784 + 40,2548 = 402,4332 milliards d’euros. Les deux composantes restent documentées sans être comptées deux fois.",
+          "La composante vieillesse du regroupement correspond aux prestations sociales en espèces de la fonction vieillesse versées par les administrations publiques : pensions de droit direct et minima vieillesse. Les 362,2 milliards ne désignent donc pas exclusivement les pensions contributives. Les prestations de survie, notamment les pensions de réversion, relèvent d’une fonction distincte.",
           "La DREES chiffre les pensions à 353 milliards d’euros en 2022 et l’ensemble du risque « vieillesse-survie » à 400,3 milliards en 2023. Ce dernier ensemble couvre aussi la survie, notamment les pensions de réversion versées après le décès d’un conjoint. La protection liée à la retraite se prolonge ainsi dans le revenu du conjoint survivant."
+        ],
+        "visualisationIds": [
+          "composantes-retraites"
         ]
       },
       {
         "id": "poids",
-        "titre": "Environ un quart des recettes publiques",
+        "titre": "Plus d’un quart des recettes publiques",
         "paragraphes": [
-          "Les pensions de vieillesse représentent 362,2 milliards d’euros en 2024. Rapportées aux 1 503,6 milliards de recettes publiques, elles correspondent à environ 24,1 %.",
+          "Les retraites regroupées représentent 402,4332 milliards d’euros en 2024. Rapportées aux 1 503,5901 milliards de recettes publiques, elles correspondent à 26,76 %.",
           "Le financement des retraites occupe ainsi une place majeure dans les ressources collectives. Les régimes reçoivent des cotisations, des impôts affectés et des transferts ; les recettes publiques financent également les soins, l’éducation, les investissements et les autres prestations."
         ]
       },
@@ -252,7 +330,7 @@
         "titre": "Salaires, cotisations et pensions : des objets comptables distincts",
         "paragraphes": [
           "Les rémunérations des agents publics atteignent 363,0 milliards d’euros en 2024. Elles comprennent les salaires et les cotisations sociales employeur, dont les cotisations sociales imputées qui traduisent certains engagements sociaux des employeurs publics.",
-          "Le voisinage avec les 362,2 milliards de prestations de vieillesse ne permet pas de classer les moyens des services publics face aux retraites. Ces catégories répondent à des règles différentes ; elles ne constituent pas deux enveloppes indépendantes à additionner pour mesurer le coût total des pensions."
+          "Les 402,4 milliards de prestations de vieillesse et de survie dépassent ce montant de rémunérations. Ce classement comptable ne compare pas des moyens opérationnels : les cotisations employeur financent notamment des pensions, sans constituer des prestations supplémentaires à additionner."
         ]
       },
       {
@@ -277,14 +355,14 @@
         "id": "conclusion",
         "titre": "Financer les pensions dans une population qui vieillit",
         "paragraphes": [
-          "En 2024, les prestations de vieillesse atteignent 362,2 milliards d’euros, minima compris et hors survie, soit l’équivalent de 24,1 % des recettes publiques. Ce ratio ne mesure ni leur part dans la dépense publique ni le déficit des régimes.",
+          "En 2024, les retraites regroupées atteignent 402,4 milliards d’euros, minima vieillesse et réversion compris, soit l’équivalent de 26,76 % des recettes publiques. Ce ratio ne mesure ni leur part dans la dépense publique ni le déficit des régimes.",
           "L’équilibre des retraites dépend de la progression des recettes face au nombre de pensionnés et à la durée des retraites. Les choix sur les cotisations, l’emploi, l’âge de départ et le niveau des pensions répartissent l’effort entre actifs, retraités et budgets publics."
         ]
       }
     ],
     "limitations": [
-      "La ligne de 362,2 milliards inclut les minima vieillesse et exclut les prestations de survie, notamment les pensions de réversion.",
-      "Le ratio de 24,1 % rapporte une dépense aux recettes publiques ; ce n’est pas sa part dans les dépenses.",
+      "La composante vieillesse de 362,1784 milliards inclut les minima vieillesse ; le total Retraites de 402,4332 milliards comprend aussi 40,2548 milliards de survie, dont la réversion.",
+      "Le ratio de 26,76 % rapporte une dépense aux recettes publiques ; ce n’est pas sa part dans les dépenses.",
       "Les rémunérations comprennent des cotisations sociales employeur, effectives et imputées ; elles ne représentent pas uniquement les moyens des services.",
       "Les dépenses, leur financement et les soldes des régimes se lisent séparément. La publication sur les pensions publiques ne révise pas automatiquement les séries Eurostat.",
       "Les chiffres ne décrivent pas à eux seuls les niveaux de vie ni l’équilibre financier futur des régimes."

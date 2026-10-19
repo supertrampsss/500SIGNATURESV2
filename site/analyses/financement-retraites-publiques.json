@@ -3,11 +3,18 @@
   "titre": "Qui finance les retraites des fonctionnaires ?",
   "type": "decryptage",
   "publie_le": "2026-10-19",
-  "themes": ["retraites", "budget_etat"],
-  "budgets_concernes": ["etat", "secu", "collectivites"],
+  "themes": [
+    "retraites",
+    "budget_etat"
+  ],
+  "budgets_concernes": [
+    "etat",
+    "secu",
+    "collectivites"
+  ],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "Comment lire le financement des retraites publiques et son poids dans les budgets ministériels ?",
+    "texte": "Comment les budgets de l’Éducation nationale et de l’Intérieur se répartissent-ils après regroupement du financement des retraites ?",
     "auteur": null,
     "date": null,
     "source": {
@@ -18,50 +25,258 @@
   },
   "verdict": {
     "cran": "exact",
-    "phrase": "Le financement des pensions publiques mobilise les agents et les employeurs publics. Une autre présentation de ces financements ne constitue pas une économie."
+    "phrase": "Sur les 123,3 milliards d’euros prévus pour ces deux ministères en 2027, 38,9 milliards financent les retraites. Les regrouper conserve le total."
   },
   "chiffres": [
-    {"dit": "Recettes du système de retraite hors produits financiers", "valeur": 416600000000, "registre": "donnee_officielle", "lecture": "COR, juin 2026, page 85 : ensemble du système en 2025, hors produits financiers."},
-    {"dit": "Cotisations sociales hors contribution d’équilibre", "valeur": 277000000000, "registre": "donnee_officielle", "lecture": "COR, juin 2026, page 87 : total de cotisations comprenant les cotisations des opérateurs de l’État présentées en sous-rubrique."},
-    {"dit": "Autres ressources hors produits financiers", "valeur": 139600000000, "registre": "interpretation", "lecture": "416,6 moins 277 = 139,6 Md€ ; complément de financement, pas un déficit."},
-    {"dit": "Part des crédits de l’Éducation nationale versée au CAS Pensions", "valeur": 32, "registre": "donnee_officielle", "lecture": "Direction du Budget, PLF 2027, pages 7 et 24-25 : contributions employeur et cotisations salariales, en pourcentage des crédits totaux."},
-    {"dit": "Part des crédits de l’Intérieur versée au CAS Pensions", "valeur": 30, "registre": "donnee_officielle", "lecture": "Direction du Budget, PLF 2027, page 7 : même dénominateur ministériel, prévision budgétaire."}
+    {
+      "dit": "Recettes du système de retraite hors produits financiers",
+      "valeur": 416600000000,
+      "registre": "donnee_officielle",
+      "lecture": "COR, juin 2026, page 85 : ensemble du système en 2025, hors produits financiers."
+    },
+    {
+      "dit": "Cotisations sociales hors contribution d’équilibre",
+      "valeur": 277000000000,
+      "registre": "donnee_officielle",
+      "lecture": "COR, juin 2026, page 87 : total de cotisations comprenant les cotisations des opérateurs de l’État présentées en sous-rubrique."
+    },
+    {
+      "dit": "Autres ressources hors produits financiers",
+      "valeur": 139600000000,
+      "registre": "interpretation",
+      "lecture": "416,6 moins 277 = 139,6 Md€ ; complément de financement, pas un déficit."
+    },
+    {
+      "dit": "Éducation nationale hors financement des retraites identifié",
+      "valeur": 60600000000.0,
+      "registre": "interpretation",
+      "lecture": "89,1 − 25,1 − 3,4 = 60,6 Md€, PLF 2027, Bercy p. 11."
+    },
+    {
+      "dit": "Intérieur hors financement des retraites identifié",
+      "valeur": 23800000000.0,
+      "registre": "interpretation",
+      "lecture": "34,2 − 9,3 − 1,1 = 23,8 Md€, PLF 2027, Bercy p. 12."
+    },
+    {
+      "dit": "Retraites regroupées pour les deux ministères",
+      "valeur": 38900000000.0,
+      "registre": "interpretation",
+      "lecture": "28,5 + 10,4 = 38,9 Md€ ; financement identifié, pas pensions supplémentaires."
+    },
+    {
+      "dit": "Total des deux ministères avant et après reclassement",
+      "valeur": 123300000000,
+      "registre": "interpretation",
+      "lecture": "89,1 + 34,2 = 123,3 Md€ ; après reclassement 60,6 + 23,8 + 38,9 = 123,3. Montants arrondis de Bercy, pages 11 et 12 du PLF 2027."
+    }
   ],
   "hypotheses": [
+    "Le reclassement couvre seulement l’Éducation nationale et l’Intérieur au PLF 2027 : 60,6 + 23,8 + 38,9 = 123,3 Md€, à total constant. Aucun autre ministère ni poste COFOG n’est extrapolé.",
     "Les ressources du système entier en 2025 et les crédits ministériels du PLF 2027 sont deux champs distincts.",
     "Le complément de 139,6 Md€ inclut notamment des contributions publiques, impôts affectés et transferts ; il ne mesure pas un besoin de dette.",
     "Le montant d’équilibrage alternatif du CAS Pensions est exclu des indicateurs : le texte et la figure 3A de Bercy divergent."
   ],
   "effets_indirects": [],
   "sources": [
-    {"id": "budget-pensions-2027", "titre": "Direction du Budget — pensions de retraite de la fonction publique, PLF 2027, p. 7, 20-25", "url": "https://www.budget.gouv.fr/documentation/file-download/34465", "consulte_le": "2026-10-19"},
-    {"id": "cor-2026", "titre": "Conseil d’orientation des retraites — rapport annuel juin 2026, p. 65, 73, 85-87", "url": "https://www.cor-retraites.fr/sites/default/files/2026-06/RA_2026_def.pdf", "consulte_le": "2026-10-19"}
+    {
+      "id": "budget-pensions-2027",
+      "titre": "Direction du Budget — pensions de retraite de la fonction publique, PLF 2027, p. 11–12, 20–25",
+      "url": "https://www.budget.gouv.fr/documentation/file-download/34465",
+      "consulte_le": "2026-10-19"
+    },
+    {
+      "id": "cor-2026",
+      "titre": "Conseil d’orientation des retraites — rapport annuel juin 2026, p. 65, 73, 85-87",
+      "url": "https://www.cor-retraites.fr/sites/default/files/2026-06/RA_2026_def.pdf",
+      "consulte_le": "2026-10-19"
+    }
   ],
-  "simulateur": {"budget": "", "contrat": "", "lecture": "Les effets chiffrés de Mandats sont des hypothèses de scénario. Changer la présentation d’un financement ne procure pas une économie dans les comptes publics."},
-  "mises_a_jour": [{"date": "2026-10-19", "quoi": "Publication après rapprochement du rapport Bercy et du COR ; divergence texte/figure explicitée."}],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Les effets chiffrés de Mandats sont des hypothèses de scénario. Changer la présentation d’un financement ne procure pas une économie dans les comptes publics."
+  },
+  "mises_a_jour": [
+    {
+      "date": "2026-10-19",
+      "quoi": "Publication après rapprochement du rapport Bercy et du COR ; divergence texte/figure explicitée."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Reclassement à total constant de deux budgets ministériels à partir des montants nominaux Bercy, pages 11–12."
+    }
+  ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "Une pension est une dépense ; une cotisation ou une contribution publique contribue à la financer. Pour comprendre le coût des retraites, nous distinguons les sommes versées aux retraités, l’origine des ressources et le solde après financement. Cette lecture éclaire aussi ce que les budgets ministériels consacrent aux services d’aujourd’hui.",
+    "chapo": "Au PLF 2027, les 123,3 milliards d’euros de l’Éducation nationale et de l’Intérieur peuvent se lire en trois lignes : 60,6 milliards pour l’Éducation hors financement des retraites identifié, 23,8 milliards pour l’Intérieur au même périmètre et 38,9 milliards regroupés en Retraites. Nous retirons les mêmes montants des ministères avant de les réunir : le total reste inchangé. Ce tableau porte sur ces deux ministères seulement.",
     "series": [],
     "preuves": [
-      {"id": "total-systeme", "libelle": "Ressources hors produits financiers", "value": 416.6, "unit": "billion_EUR", "period": "2025", "definition": "Ensemble du système de retraite, total publié par le COR page 85, hors produits financiers.", "sourceId": "cor-2026"},
-      {"id": "cotisations-systeme", "libelle": "Cotisations hors contribution d’équilibre", "value": 277, "unit": "billion_EUR", "period": "2025", "definition": "Total du tableau 2.2 page 87 du COR, y compris la sous-rubrique des cotisations des opérateurs de l’État. La note 6 de la synthèse décrit un champ différent ; nous retenons ici explicitement celui du tableau.", "sourceId": "cor-2026", "comparableGroup": "ressources-systeme-2025-hors-financiers"},
-      {"id": "autres-systeme", "libelle": "Autres ressources hors produits financiers", "value": 139.6, "unit": "billion_EUR", "period": "2025", "definition": "Calcul : total de 416,6 Md€ hors produits financiers moins 277 Md€ de cotisations. Ce complément n’est pas un déficit.", "sourceId": "cor-2026", "comparableGroup": "ressources-systeme-2025-hors-financiers", "qualityFlags": ["calcul-par-difference"]},
-      {"id": "education-cas", "libelle": "Éducation nationale", "value": 32, "unit": "percent", "period": "2027", "definition": "PLF : part des crédits totaux du ministère versée au CAS Pensions, contributions employeur et cotisations salariales.", "sourceId": "budget-pensions-2027", "comparableGroup": "credits-ministeriels-plf-2027", "qualityFlags": ["prevision"]},
-      {"id": "interieur-cas", "libelle": "Intérieur", "value": 30, "unit": "percent", "period": "2027", "definition": "PLF : part des crédits totaux du ministère versée au CAS Pensions, contributions employeur et cotisations salariales.", "sourceId": "budget-pensions-2027", "comparableGroup": "credits-ministeriels-plf-2027", "qualityFlags": ["prevision"]}
+      {
+        "id": "total-systeme",
+        "libelle": "Ressources hors produits financiers",
+        "value": 416.6,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Ensemble du système de retraite, total publié par le COR page 85, hors produits financiers.",
+        "sourceId": "cor-2026"
+      },
+      {
+        "id": "cotisations-systeme",
+        "libelle": "Cotisations hors contribution d’équilibre",
+        "value": 277,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Total du tableau 2.2 page 87 du COR, y compris la sous-rubrique des cotisations des opérateurs de l’État. La note 6 de la synthèse décrit un champ différent ; nous retenons ici explicitement celui du tableau.",
+        "sourceId": "cor-2026",
+        "comparableGroup": "ressources-systeme-2025-hors-financiers"
+      },
+      {
+        "id": "autres-systeme",
+        "libelle": "Autres ressources hors produits financiers",
+        "value": 139.6,
+        "unit": "billion_EUR",
+        "period": "2025",
+        "definition": "Calcul : total de 416,6 Md€ hors produits financiers moins 277 Md€ de cotisations. Ce complément n’est pas un déficit.",
+        "sourceId": "cor-2026",
+        "comparableGroup": "ressources-systeme-2025-hors-financiers",
+        "qualityFlags": [
+          "calcul-par-difference"
+        ]
+      },
+      {
+        "id": "education-hors-retraites",
+        "libelle": "Éducation nationale hors financement des retraites identifié",
+        "value": 60.6,
+        "unit": "billion_EUR",
+        "period": "2027",
+        "definition": "Bercy p. 11 : crédits totaux 89,1 Md€, dont personnel 84,6 ; financement identifié des retraites = 25,1 de contributions employeur + 3,4 de cotisations salariales = 28,5. Calcul : 89,1 − 28,5 = 60,6.",
+        "sourceId": "budget-pensions-2027",
+        "comparableGroup": "deux-ministeres-plf-2027",
+        "qualityFlags": [
+          "prevision",
+          "calcul-sur-arrondis-publies"
+        ]
+      },
+      {
+        "id": "interieur-hors-retraites",
+        "libelle": "Intérieur hors financement des retraites identifié",
+        "value": 23.8,
+        "unit": "billion_EUR",
+        "period": "2027",
+        "definition": "Bercy p. 12 : crédits totaux 34,2 Md€, dont personnel 25,1 ; financement identifié des retraites = 9,3 de contributions employeur + 1,1 de cotisations salariales = 10,4. Calcul : 34,2 − 10,4 = 23,8.",
+        "sourceId": "budget-pensions-2027",
+        "comparableGroup": "deux-ministeres-plf-2027",
+        "qualityFlags": [
+          "prevision",
+          "calcul-sur-arrondis-publies"
+        ]
+      },
+      {
+        "id": "retraites-deux-ministeres",
+        "libelle": "Retraites",
+        "value": 38.9,
+        "unit": "billion_EUR",
+        "period": "2027",
+        "definition": "Financement identifié des retraites pour les deux ministères seulement : 28,5 + 10,4 = 38,9 Md€. Les mêmes montants sont retirés des crédits ministériels ; aucune pension supplémentaire n’est ajoutée.",
+        "sourceId": "budget-pensions-2027",
+        "comparableGroup": "deux-ministeres-plf-2027",
+        "qualityFlags": [
+          "prevision",
+          "calcul-sur-arrondis-publies"
+        ]
+      },
+      {
+        "id": "total-deux-ministeres",
+        "libelle": "Total des deux ministères",
+        "value": 123.3,
+        "unit": "billion_EUR",
+        "period": "2027",
+        "definition": "89,1 + 34,2 = 123,3 Md€ avant reclassement ; 60,6 + 23,8 + 38,9 = 123,3 après. Montants calculés à partir des arrondis publiés au dixième.",
+        "sourceId": "budget-pensions-2027",
+        "comparableGroup": "deux-ministeres-plf-2027",
+        "qualityFlags": [
+          "prevision",
+          "calcul-sur-arrondis-publies"
+        ]
+      }
     ],
     "visualisations": [
-      {"id": "ressources-systeme", "type": "bar", "titre": "Les ressources du système de retraite en 2025", "resume": "Ensemble des régimes, en milliards d’euros : 416,6 au total hors produits financiers. Le complément aux cotisations comprend plusieurs financements publics et transferts. Il ne représente pas un déficit.", "preuveIds": ["cotisations-systeme", "autres-systeme"]},
-      {"id": "ministeres-cas", "type": "bar", "titre": "La part des crédits ministériels versée au CAS Pensions", "resume": "Projet de budget 2027, en % des crédits totaux de chaque ministère. Contributions employeur et cotisations salariales sont réunies ; ces parts ne mesurent pas les pensions de leurs seuls anciens agents.", "preuveIds": ["education-cas", "interieur-cas"]}
+      {
+        "id": "ministeres-reclasses",
+        "type": "bar",
+        "titre": "Deux ministères, trois lignes après reclassement",
+        "resume": "PLF 2027, milliards d’euros. Éducation nationale et Intérieur seulement : 60,6 + 23,8 + 38,9 = 123,3. La ligne Retraites regroupe leur financement identifié, retiré des deux budgets ; elle ne mesure pas toutes les pensions de France.",
+        "preuveIds": [
+          "education-hors-retraites",
+          "interieur-hors-retraites",
+          "retraites-deux-ministeres"
+        ]
+      },
+      {
+        "id": "ressources-systeme",
+        "type": "bar",
+        "titre": "Les ressources du système de retraite en 2025",
+        "resume": "Ensemble des régimes, en milliards d’euros : 416,6 au total hors produits financiers. Le complément aux cotisations comprend plusieurs financements publics et transferts. Il ne représente pas un déficit.",
+        "preuveIds": [
+          "cotisations-systeme",
+          "autres-systeme"
+        ]
+      }
     ],
     "sections": [
-      {"id": "depense-et-financement", "titre": "Séparer les pensions versées des ressources qui les financent", "paragraphes": ["Le rapport du COR de juin 2026 recense 422,2 milliards d’euros de dépenses brutes en 2025 pour l’ensemble du système. Ses recettes hors produits financiers sont de 416,6 milliards, dont 277 milliards de cotisations selon sa ventilation. Les autres ressources ainsi calculées atteignent 139,6 milliards.", "Cette différence rassemble plusieurs canaux de financement, dont les contributions d’équilibre, les impôts affectés et les transferts. L’appeler « déficit » ferait disparaître des ressources effectivement mobilisées. Le solde publié par le COR hors charges et produits financiers est de −5,1 milliards ; il ne se reconstitue pas en soustrayant simplement ces deux totaux bruts.", "Les 362,2 milliards présentés dans notre dossier sur la vieillesse concernent une autre année et un autre champ : les prestations de vieillesse des administrations publiques en 2024, minima compris et réversion exclue. Nous conservons cette série avec sa définition."], "visualisationIds": ["ressources-systeme"]},
-      {"id": "budgets-ministeriels", "titre": "Ce que les crédits des ministères permettent de lire", "paragraphes": ["Dans le PLF 2027, Bercy réunit les contributions employeur et les cotisations salariales versées au CAS Pensions : 32 % des crédits de l’Éducation nationale et 30 % de ceux de l’Intérieur. À l’Éducation, les 32 % comprennent 28 % de contributions employeur et 4 % de cotisations salariales.", "Le dénominateur compte autant que le pourcentage : part des crédits totaux, part de la masse salariale et pensions effectivement servies ne sont pas interchangeables. Pour apprécier les moyens d’une politique, nous devons suivre aussi les postes, les achats, l’investissement et les services réalisés."], "visualisationIds": ["ministeres-cas"]},
-      {"id": "convention-equilibrage", "titre": "Une convention de financement ne crée pas une économie", "paragraphes": ["Bercy présente une ventilation alternative du financement du CAS. Le texte page 20 indique 41,5 Md€ ; la figure 3A page 21 affiche 43,9 Md€. Le calcul 54,9 − 11 donne 43,9. Cette divergence reste signalée : nous n’en tirons aucun indicateur unique.", "Une autre présentation ne change pas le solde public global. Les taux des régimes exigent aussi des précautions de comparaison d’assiette et de droits. Pour améliorer les comptes, il faut identifier une modification effective de dépense ou de ressource ; déplacer une ligne entre deux présentations ne suffit pas."]},
-      {"id": "demographie", "titre": "La démographie se lit au bon périmètre", "paragraphes": ["Le COR publie environ 1,8 cotisant par retraité de droit direct en 2025 pour l’ensemble du système, en rapprochant l’emploi total et les retraités vivant en France ou à l’étranger. Ce repère national ne doit pas être remplacé par un ratio propre à une caisse.", "Les différences de carrière, d’affiliation et de durée de retraite demandent des analyses par régime. Une pension moyenne ou un taux de cotisation isolé ne permet pas de répartir à lui seul la responsabilité du financement entre agents, employeurs et solidarité nationale."]},
-      {"id": "conclusion", "titre": "Rendre les arbitrages budgétaires compréhensibles", "paragraphes": ["Nous présentons les prestations, leurs ressources et les conventions de calcul dans des lectures distinctes. Le financement des pensions doit rester visible lorsque l’on compare les budgets des services publics.", "Les données de 2025 décrivent les comptes du système ; les crédits du PLF 2027 décrivent un projet de budget. Nos simulations gardent leurs hypothèses propres. Cette distinction permet de discuter les décisions possibles sans transformer une nouvelle présentation comptable en économie disponible."]}
+      {
+        "id": "budgets-ministeriels",
+        "titre": "Reclasser les budgets à total constant",
+        "paragraphes": [
+          "À l’Éducation nationale, Bercy publie 89,1 milliards d’euros de crédits totaux, dont 84,6 milliards de personnel. Les 25,1 milliards de contributions employeur et les 3,4 milliards de cotisations salariales financent les retraites : nous retirons ces 28,5 milliards pour afficher 60,6 milliards hors financement identifié des retraites.",
+          "À l’Intérieur, les crédits totaux sont de 34,2 milliards, dont 25,1 milliards de personnel. Le financement identifié réunit 9,3 milliards de contributions employeur et 1,1 milliard de cotisations salariales, soit 10,4 milliards : le budget ainsi reclassé est de 23,8 milliards.",
+          "La ligne Retraites réunit une seule fois les 28,5 et 10,4 milliards, soit 38,9 milliards. Les trois lignes totalisent toujours 123,3 milliards. Les montants nominaux des pages 11–12 servent au calcul ; les pourcentages arrondis de 32 % et 30 % ne sont pas appliqués aux budgets.",
+          "Ce tableau couvre exclusivement ces deux ministères et les financements identifiés par Bercy, aux arrondis publiés. Il ne classe pas tous les ministères, ne mesure pas toutes les pensions et ne modifie pas la ventilation nationale Eurostat ou COFOG. Les transferts des opérateurs au CAS sont exclus par Bercy ; leurs subventions restent dans les autres dépenses."
+        ],
+        "visualisationIds": [
+          "ministeres-reclasses"
+        ]
+      },
+      {
+        "id": "depense-et-financement",
+        "titre": "Séparer les pensions versées des ressources qui les financent",
+        "paragraphes": [
+          "Le rapport du COR de juin 2026 recense 422,2 milliards d’euros de dépenses brutes en 2025 pour l’ensemble du système. Ses recettes hors produits financiers sont de 416,6 milliards, dont 277 milliards de cotisations selon sa ventilation. Les autres ressources ainsi calculées atteignent 139,6 milliards.",
+          "Cette différence rassemble plusieurs canaux de financement, dont les contributions d’équilibre, les impôts affectés et les transferts. L’appeler « déficit » ferait disparaître des ressources effectivement mobilisées. Le solde publié par le COR hors charges et produits financiers est de −5,1 milliards ; il ne se reconstitue pas en soustrayant simplement ces deux totaux bruts.",
+          "Les 362,2 milliards présentés dans notre dossier sur la vieillesse concernent une autre année et un autre champ : les prestations de vieillesse des administrations publiques en 2024, minima compris et réversion exclue. Nous conservons cette série avec sa définition."
+        ],
+        "visualisationIds": [
+          "ressources-systeme"
+        ]
+      },
+      {
+        "id": "convention-equilibrage",
+        "titre": "Une convention de financement ne crée pas une économie",
+        "paragraphes": [
+          "Bercy présente une ventilation alternative du financement du CAS. Le texte page 20 indique 41,5 Md€ ; la figure 3A page 21 affiche 43,9 Md€. Le calcul 54,9 − 11 donne 43,9. Cette divergence reste signalée : nous n’en tirons aucun indicateur unique.",
+          "Une autre présentation ne change pas le solde public global. Les taux des régimes exigent aussi des précautions de comparaison d’assiette et de droits. Pour améliorer les comptes, il faut identifier une modification effective de dépense ou de ressource ; déplacer une ligne entre deux présentations ne suffit pas."
+        ]
+      },
+      {
+        "id": "demographie",
+        "titre": "La démographie se lit au bon périmètre",
+        "paragraphes": [
+          "Le COR publie environ 1,8 cotisant par retraité de droit direct en 2025 pour l’ensemble du système, en rapprochant l’emploi total et les retraités vivant en France ou à l’étranger. Ce repère national ne doit pas être remplacé par un ratio propre à une caisse.",
+          "Les différences de carrière, d’affiliation et de durée de retraite demandent des analyses par régime. Une pension moyenne ou un taux de cotisation isolé ne permet pas de répartir à lui seul la responsabilité du financement entre agents, employeurs et solidarité nationale."
+        ]
+      },
+      {
+        "id": "conclusion",
+        "titre": "Rendre les arbitrages budgétaires compréhensibles",
+        "paragraphes": [
+          "Nous présentons les prestations, leurs ressources et les conventions de calcul dans des lectures distinctes. Le financement des pensions doit rester visible lorsque l’on compare les budgets des services publics.",
+          "Les données de 2025 décrivent les comptes du système ; les crédits du PLF 2027 décrivent un projet de budget. Nos simulations gardent leurs hypothèses propres. Cette distinction permet de discuter les décisions possibles sans transformer une nouvelle présentation comptable en économie disponible."
+        ]
+      }
     ],
     "limitations": [
+      "Le reclassement en trois lignes couvre uniquement deux ministères et leur financement des retraites identifié aux pages 11–12. Le rapport seul ne permet pas d’étendre ce tableau en euros à tous les ministères ; aucune extrapolation aux autres ministères ou à COFOG n’est faite.",
       "Les crédits ministériels 2027 sont ceux du projet de loi de finances, pas des dépenses exécutées.",
       "La ventilation alternative du CAS comporte une divergence entre le texte (41,5 Md€) et le graphique (43,9 Md€) ; aucun montant unique n’alimente les indicateurs du site.",
       "Les 139,6 Md€ sont calculés par différence à partir des recettes hors produits financiers ; ils ne constituent pas une mesure du déficit.",

@@ -1,6 +1,6 @@
 /** Search snippets describe the page; published verdicts stay complete in its body. */
 export const SEARCH_DESCRIPTIONS: Readonly<Record<string, string>> = {
-  '/analyses/financement-retraites-publiques/': 'Cotisations, contributions publiques et crédits ministériels : comprendre le financement des retraites avec Bercy et le COR, sans double comptage.',
+  '/analyses/financement-retraites-publiques/': 'Éducation, Intérieur, retraites : les budgets retraités selon Bercy, avec les montants retirés des ministères et regroupés à total constant.',
   '/analyses/age-achat-residence-principale/': 'Accès à la propriété : les parcours des générations, le poids des revenus, de l’apport et des conditions de crédit dans le premier achat.',
   '/analyses/championne-du-monde-prelevements-2024/': 'Prélèvements en 2024, cotisations imputées comprises : 45,2 % du PIB en France, 45,4 % au Danemark et 40,2 % dans l’UE. Comparaison Eurostat.',
   '/analyses/defense-credits-votes-consommes-2025/': 'Budget de la défense 2025, pensions comprises : 59,9 milliards votés et 62,1 milliards dépensés. Comprendre les crédits ouverts et leur exécution.',
