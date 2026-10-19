@@ -12,6 +12,7 @@ test('Retraites : périmètres explicites et financement public accessible depui
  await expect(page.locator('#reclassement-bercy .budget-comparison__row')).toHaveCount(19);
  await expect(page.locator('#reclassement-bercy')).toContainText('Défense');
  await expect(page.locator('#reclassement-bercy')).toContainText('Md€');
+ await expect(page.locator('#reclassement-bercy thead th').first()).toHaveCSS('position','static');
  await expect(page.locator('#reclassement-bercy')).toContainText('60,6');
  for(const row of await page.locator('#reclassement-bercy [data-retirement-eur]').evaluateAll(es=>es.map(e=>e.dataset))) expect(Number(row.retirementEur)+Number(row.remainingEur)).toBe(Number(row.budgetEur));
  await page.locator('#reclassement-bercy').screenshot({path:info.outputPath('bercy-reclassement.png'),animations:'disabled',scale:'css'});
@@ -53,6 +54,7 @@ test('Les dossiers retraites et Défense conservent leurs sources en fin de lect
  await expect(page.locator('#reclassement-bercy .budget-comparison__row')).toHaveCount(19);
  await expect(page.locator('#reclassement-bercy')).toContainText('Défense');
  await expect(page.locator('#reclassement-bercy')).toContainText('Md€');
+ await expect(page.locator('#reclassement-bercy thead th').first()).toHaveCSS('position','static');
  await expect(page.locator('#reclassement-bercy')).toContainText('60,6');
  for(const row of await page.locator('#reclassement-bercy [data-retirement-eur]').evaluateAll(es=>es.map(e=>e.dataset))) expect(Number(row.retirementEur)+Number(row.remainingEur)).toBe(Number(row.budgetEur));
  await expect(page.locator('.salary-missions h3').filter({hasText:/^Retraites$/})).toHaveCount(1);

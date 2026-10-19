@@ -37,6 +37,9 @@
   overflow-wrap: anywhere;
 }
 .budget-comparison__table thead th {
+  position: static;
+  top: auto;
+  z-index: auto;
   padding-top: 10px;
   padding-bottom: 10px;
   background: #f0f1ed;
