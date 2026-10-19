@@ -410,12 +410,20 @@ export function startPresidency(seed = 0, ambition: Ambition = 'equilibre'): Gam
   if (!Number.isInteger(seed) || seed < 0 || seed > 9999 || !['equilibre', 'services', 'resilience'].includes(ambition)) throw new Error('Scénario de présidence invalide.');
   const g = startCampaign('national', seed, ambition, undefined, 15);
   g.version = 16;
-  g.presidency = { reserve: PRESIDENCY_INITIAL_RESERVE, authorised: PRESIDENCY_INITIAL_RESERVE, spent: 0, autonomy: true,
+  // The mission is not a cosmetic label: it changes the opening emergency,
+  // the available intervention envelope and the executive's initial priority.
+  const opening = ambition === 'services'
+    ? { crisis: 'cyber', reserve: 7.2, description: 'Hôpital paralysé : rétablir les admissions sans sacrifier les autres services.' }
+    : ambition === 'resilience'
+      ? { crisis: 'transformateur', reserve: 5.4, description: 'Réseau électrique coupé : restaurer l’alimentation et empêcher la propagation.' }
+      : { crisis: undefined, reserve: PRESIDENCY_INITIAL_RESERVE, description: 'Budget contraint : financer les urgences sans multiplier les engagements.' };
+  g.presidency = { reserve: opening.reserve, authorised: opening.reserve, spent: 0, autonomy: true,
     priority: ambition === 'services' ? 'health' : ambition === 'resilience' ? 'energy' : null,
     cabinet: { serial: 0, name: 'Gouvernement initial', appointedPeriod: 0, attempts: [] }, initiatives: [], reforms: [], creditsRequested: 0, creditYears: [], preparedYear: 1,
     budget: { year: 1, accruedOperating: 0, accruedRevenue: 0 },
     lastEvents: ['Le gouvernement est en fonction. Les ministères interviennent dans leurs crédits ; vous fixez le cap.'] };
-  initialCrises(g);
+  initialCrises(g, opening.crisis);
+  g.presidency.lastEvents.unshift(`Mission : ${opening.description} Crédits de départ : ${opening.reserve.toLocaleString('fr-FR')} Md€.`);
   advanceReformEvents(g);
   return g;
 }
