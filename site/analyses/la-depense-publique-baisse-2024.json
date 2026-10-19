@@ -94,6 +94,10 @@
     {
       "date": "2026-10-03",
       "quoi": "Correction du millésime : 57,3 % correspond à 2025, contre 57,0 % en 2024. Montant et croissance actualisés depuis la publication Insee ; comparaisons et graphiques repris, répétitions retirées."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
     }
   ],
   "verifie_contre": "Insee Première n° 2106, figures 1, 2 et 4 ; consultation du 3 octobre 2026",
@@ -229,7 +233,8 @@
         "titre": "Comparer l’ensemble des administrations publiques",
         "paragraphes": [
           "Le périmètre comprend les administrations publiques centrales, locales et de Sécurité sociale. Le budget de l’État ne représente qu’une partie de cet ensemble : le comparer directement au total ferait changer l’objet mesuré.",
-          "Les dépenses totales de l’Insee sont consolidées : les transferts entre les trois sous-secteurs sont neutralisés. Additionner leurs dépenses brutes sans cette correction risquerait de compter deux fois un même financement. La comparaison conserve ici le total consolidé de la publication."
+          "Les dépenses totales de l’Insee sont consolidées : les transferts entre les trois sous-secteurs sont neutralisés. Additionner leurs dépenses brutes sans cette correction risquerait de compter deux fois un même financement. La comparaison conserve ici le total consolidé de la publication.",
+          "Les transferts entre administrations sont consolidés selon les règles des comptes nationaux. Le financement public d’une pension et la pension versée ne sont donc pas deux dépenses à additionner au total. Une nouvelle ventilation des contributions retraites dans les budgets ministériels ne suffit pas à réviser cette série, ni le déficit public."
         ]
       },
       {

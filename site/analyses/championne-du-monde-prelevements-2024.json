@@ -124,6 +124,10 @@
     {
       "date": "2026-10-04",
       "quoi": "Valeurs rapprochées de l’API Eurostat : France 45,2 %, Danemark 45,4 %, Union européenne 40,2 %. Définition de l’agrégat et date de révision explicitées."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
     }
   ],
   "verifie_contre": "",
@@ -200,7 +204,8 @@
         "paragraphes": [
           "La santé, les retraites, le chômage et l’éducation peuvent être financés par des prélèvements publics ou par des dépenses privées dans des proportions différentes selon les pays. Une prise en charge collective plus large réduit certains paiements directs demandés aux ménages, tout en augmentant les besoins de recettes publiques.",
           "Le Conseil des prélèvements obligatoires insiste aussi sur la composition des recettes. Les cotisations, les impôts directs et les taxes sur la consommation touchent des revenus et des dépenses différents. Deux pays ayant le même taux global peuvent ainsi répartir l’effort différemment entre ménages et entreprises.",
-          "Dans son analyse des comptes de 2025, la fondation iFRAP critique un redressement du déficit reposant surtout sur les impôts supplémentaires et plaide pour une maîtrise des dépenses. Le choix entre recettes et économies déplace l’effort entre contribuables, bénéficiaires des prestations et usagers des services publics."
+          "Dans son analyse des comptes de 2025, la fondation iFRAP critique un redressement du déficit reposant surtout sur les impôts supplémentaires et plaide pour une maîtrise des dépenses. Le choix entre recettes et économies déplace l’effort entre contribuables, bénéficiaires des prestations et usagers des services publics.",
+          "Pour les pensions publiques, les contributions de l’employeur et les transferts d’équilibrage décrivent le financement des régimes. Nous les distinguons des prestations versées et des prélèvements mesurés ici : leur reclassement dans un budget ministériel ne crée pas automatiquement une recette publique supplémentaire."
         ]
       },
       {

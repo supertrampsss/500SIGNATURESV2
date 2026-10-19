@@ -136,10 +136,10 @@ function insightCotisants(series: Series): Insight | null {
   return {
     id: "cotisants-retraites",
     famille: "generation",
-    surtitre: "Retraites · l'équation démographique",
-    titre: `${ratio.format(evolution.arrivee)} cotisant pour un retraité`,
-    texte: `Le ratio était de ${ratio.format(evolution.depart)} en ${evolution.de}. Il y en a ${pourcentage(evolution.pourcentage)} ${direction} à la dernière observation publiée (${evolution.a}).`,
-    reserve: "Ce ratio démographique ne mesure ni le niveau des pensions ni le taux des cotisations.",
+    surtitre: "Retraites · repère démographique historique",
+    titre: `${ratio.format(evolution.arrivee)} cotisant pour un retraité en ${evolution.a}`,
+    texte: `Le ratio était de ${ratio.format(evolution.depart)} en ${evolution.de}. Il y en a ${pourcentage(evolution.pourcentage)} ${direction} entre ces deux observations de la série DREES présentée ici.`,
+    reserve: "Ce repère historique conserve son périmètre DREES ; il ne décrit pas la situation actuelle et ne se substitue pas à un ratio COR de champ différent. Il ne mesure ni le niveau des pensions ni leur financement.",
     preuves: [
       preuve("drees_cotisants_par_retraite", evolution.de, evolution.depart, "Point de départ"),
       preuve("drees_cotisants_par_retraite", evolution.a, evolution.arrivee, "Dernier point"),

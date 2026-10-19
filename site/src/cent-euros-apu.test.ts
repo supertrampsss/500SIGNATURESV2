@@ -125,7 +125,7 @@ test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé 
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   // Exact values below convey the comparison without an extra prose assertion.
   for (const attendu of [
-    /Retraites −24,09\s?€/,
+    /Vieillesse \(hors réversion\) −24,09\s?€/,
     /Arrêts maladie et invalidité −3,34\s?€/,
     /Chômage −2,70\s?€/,
     /Pensions de réversion −2,68\s?€/,
@@ -176,12 +176,12 @@ test("le rapport des barres est celui des nombres, sur toute la liste triée", (
     return m ? Number(m[1]) : NaN;
   };
   // La plus grande dépense (Retraites, 24,09) occupe toute la piste.
-  assert.equal(barre("Retraites"), 100);
+  assert.equal(barre("Vieillesse (hors réversion)"), 100);
   // Chômage (2,70) : sa barre est dans le rapport 2,70 / 24,09 de celle des
   // retraites — le même dénominateur pour toute la liste.
   assert.ok(
-    Math.abs(barre("Chômage") / barre("Retraites") - 2.7 / 24.09) < 0.01,
-    `rapport dessiné ${barre("Chômage") / barre("Retraites")}, rapport des nombres ${2.7 / 24.09}`,
+    Math.abs(barre("Chômage") / barre("Vieillesse (hors réversion)") - 2.7 / 24.09) < 0.01,
+    `rapport dessiné ${barre("Chômage") / barre("Vieillesse (hors réversion)")}, rapport des nombres ${2.7 / 24.09}`,
   );
 });
 
@@ -214,7 +214,7 @@ test("la ventilation reste calculée sur son propre exercice, même si la mentio
   // 362,1784 / 1 503,59 = 24,09 €. Sur les recettes de 2025 il aurait affiché
   // 23,19 € : c'est cette valeur-là que le tableau ne doit jamais porter.
   assert.doesNotMatch(lu, /Retraites 23,19\s?€/);
-  assert.match(lu, /Retraites −24,09\s?€/);
+  assert.match(lu, /Vieillesse \(hors réversion\) −24,09\s?€/);
 });
 
 test("sans ses sept fonctions, la ventilation se tait plutôt que d'en montrer six", () => {

@@ -24,7 +24,7 @@ test('les retraites et le chômage sont séparés sans compter deux fois les pre
  const series:Record<string,Record<string,number>>=Object.fromEntries([...benefits.map(id=>'eurostat_apu_prestations_'+id),...other.map(id=>'eurostat_apu_'+id)].map(id=>[id,{'2024':1}]));
  series.eurostat_apu_prestations={'2024':8};series.eurostat_apu_depenses={'2024':20};
  const data=repartitionCollective(series)!;
- assert.equal(data.missions.find(m=>m.label==='Retraites')!.share,.05);
+ assert.equal(data.missions.find(m=>m.label==='Vieillesse (hors réversion)')!.share,.05);
  assert.equal(data.missions.find(m=>m.label==='Chômage')!.share,.05);
  assert.ok(Math.abs(data.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
  series.eurostat_apu_prestations['2024']=6;

@@ -96,6 +96,10 @@
     {
       "date": "2026-09-19",
       "quoi": "Analyse directe dans les introductions, développements, légendes et conclusions ; lectures complémentaires intégrées, séries et chiffres des graphiques conservés."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
     }
   ],
   "verifie_contre": "Publications primaires consultées le 2026-09-19",
@@ -280,7 +284,8 @@
         "titre": "Salaires, achats et investissement",
         "paragraphes": [
           "En 2024, les rémunérations représentent 39 % des dépenses de défense, les achats de biens et services 28,2 % et l’investissement 23,4 %.",
-          "Le renforcement des armées mobilise ces trois postes ensemble : des personnels pour utiliser les matériels, des achats pour les faire fonctionner et les entretenir, et des investissements pour renouveler les équipements. Une nouvelle livraison crée aussi des besoins de formation et de maintenance dans les années suivantes."
+          "Le renforcement des armées mobilise ces trois postes ensemble : des personnels pour utiliser les matériels, des achats pour les faire fonctionner et les entretenir, et des investissements pour renouveler les équipements. Une nouvelle livraison crée aussi des besoins de formation et de maintenance dans les années suivantes.",
+          "Les rémunérations au sens des comptes nationaux comprennent les cotisations sociales employeur, effectives et imputées. Leur part ne mesure donc pas uniquement les salaires nets ni les personnels directement mobilisables. La classification COFOG et les crédits budgétaires nationaux répondent à des conventions différentes."
         ]
       },
       {
@@ -320,7 +325,8 @@
       "Les chiffres 2024 de l’UE et de la France sont provisoires dans la publication consultée.",
       "Ce dossier utilise les comptes COFOG 2024 ; il ne présente pas les annonces budgétaires ultérieures comme des dépenses exécutées.",
       "Une hausse en euros courants peut refléter les prix, les volumes ou les deux.",
-      "Les parts de rémunérations, d'achats et d'investissement décrivent des catégories comptables, pas directement des capacités militaires."
+      "Les parts de rémunérations, d'achats et d'investissement décrivent des catégories comptables, pas directement des capacités militaires.",
+      "La nouvelle présentation budgétaire française du financement des pensions ne justifie pas d’ajouter un montant aux séries COFOG ou de recalculer ces comparaisons."
     ],
     "sommaire": [
       "ce-que-mesure-cofog",

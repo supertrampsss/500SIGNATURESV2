@@ -353,8 +353,8 @@ test('Dossiers : qualité, lecture du coût du travail et actualité du Groenlan
  const refus=page.getByRole('button',{name:'Refuser',exact:true});
  if(await refus.isVisible()) await refus.click();
  const titre='Coût du travail : sur 100 € payés par l’employeur, que reste-t-il ?';
- await expect(page.locator('.dossiers-v2__vedette h2')).toHaveText(titre);
- await page.locator('.dossiers-v2__vedette h2 a').click();
+ await expect(page.locator('.dossiers-v2__vedette h2')).toHaveText('Qui finance les retraites des fonctionnaires ?');
+ await page.getByRole('link',{name:titre,exact:true}).click();
  await expect(page.locator('h1')).toHaveText(titre);
  await expect(page.locator('#figure-france-decomposition .analyse-bars strong')).toHaveText(['26,7 %','8,3 %','12,2 %','52,8 %']);
  await expect(page.locator('#figure-comparaison-net .analyse-bars strong')).toHaveText(['52,8 %','50,7 %','54,2 %','58,6 %']);
@@ -404,7 +404,7 @@ test('Confiance : méthode, éditeur et démonstration des dépenses sont access
  await expect(page.locator('#montant')).toContainText('2,5 %');
  await expect(page.locator('#ratio')).toContainText('0,3 point');
  await expect(page.locator('#ratio')).toContainText('2025');
- await expect(page.locator('#sources')).toContainText('3 octobre 2026');
+ await expect(page.locator('#sources')).toContainText('19 octobre 2026');
  await page.locator('.editorial-footer a[href="/a-propos/"]').click();
  await expect(page.locator('h1')).toHaveText('Le projet et ses corrections.');
  await expect(page.locator('#projet-contenu')).toContainText('Responsabilité éditoriale');

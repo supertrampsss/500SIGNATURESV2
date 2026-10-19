@@ -58,7 +58,7 @@
     }
   ],
   "hypotheses": [
-    "Les deux séries portent sur la mission Défense au sens de la nomenclature budgétaire, hors comptes spéciaux et hors budgets annexes."
+    "Mission Défense du budget général, hors dépenses des comptes spéciaux et des budgets annexes, mais contributions au CAS « Pensions » comprises dans les crédits de la mission. Le rapport du Sénat confirme ce périmètre pour le voté et le consommé de 2025."
   ],
   "effets_indirects": [],
   "sources": [
@@ -78,7 +78,7 @@
       "id": "senat-defense-2025",
       "titre": "Sénat : exécution 2025 de la mission Défense, rapport du 17 juin 2026",
       "url": "https://www.senat.fr/rap/l25-736-29/l25-736-29_mono.html",
-      "consulte_le": "2026-10-04"
+      "consulte_le": "2026-10-19"
     }
   ],
   "simulateur": {
@@ -98,11 +98,15 @@
     {
       "date": "2026-10-04",
       "quoi": "Périmètre des crédits explicité : contributions au compte d’affectation spéciale Pensions comprises, comme dans le rapport du Sénat."
+    },
+    {
+      "date": "2026-10-19",
+      "quoi": "Périmètres des pensions et de leur financement précisés ; séries historiques conservées."
     }
   ],
   "verifie_contre": "",
   "dossier": {
-    "chapo": "La mission Défense, pensions comprises, a consommé 62,1 milliards d’euros en 2025, contre 59,9 milliards inscrits au budget initial. Les ouvertures et reports ont porté les crédits disponibles à 62,6 milliards. Malgré ces moyens supplémentaires, les opérations et les commandes d’équipement font peser des charges sur les exercices suivants.",
+    "chapo": "La mission Défense a consommé 62,1 milliards d’euros en 2025, contre 59,9 milliards au budget initial, contributions au CAS « Pensions » comprises dans les deux montants. Les ouvertures et reports ont porté les crédits disponibles à 62,6 milliards. Les engagements pluriannuels pèsent sur les exercices suivants.",
     "chronologie": {
       "titre": "Du budget initial aux comptes de l’exercice",
       "sourceId": "source-1",
@@ -173,7 +177,8 @@
         "paragraphes": [
           "En 2025, le Parlement a ouvert 59,9 milliards d’euros pour la mission Défense. Les crédits de paiement autorisent les dépenses payables pendant l’exercice ; les engagements, notamment pour les équipements, peuvent courir sur plusieurs années.",
           "Cette enveloppe initiale organise le financement des armées et des services concernés. Les crédits effectivement disponibles évoluent ensuite avec les ouvertures, les annulations, les transferts et les reports autorisés pendant l’année.",
-          "Ces montants incluent les contributions au compte d’affectation spéciale Pensions. Ils se comparent entre eux sur ce même périmètre ; l’enveloppe de 50,5 milliards d’euros souvent citée pour 2025 exclut ces pensions."
+          "Ces montants incluent les contributions au compte d’affectation spéciale Pensions. Ils se comparent entre eux sur ce même périmètre ; l’enveloppe de 50,5 milliards d’euros souvent citée pour 2025 exclut ces pensions.",
+          "Le Sénat distingue 50,5 milliards d’euros de crédits initiaux hors contribution au CAS « Pensions » et 59,95 milliards contribution comprise. Les 59,9 milliards de notre graphique retiennent ce second périmètre. Exclure les dépenses des comptes spéciaux ne retire pas les contributions versées par la mission à ces comptes."
         ]
       },
       {
@@ -181,7 +186,8 @@
         "titre": "62,1 milliards d’euros consommés en 2025",
         "paragraphes": [
           "Les comptes d’exécution indiquent 62,1 milliards d’euros de crédits consommés en 2025. L’écart avec les 59,9 milliards initiaux est d’environ 2,2 milliards, soit près de 3,6 %.",
-          "Le Sénat recense 62,6 milliards d’euros de crédits de paiement effectivement ouverts après les mouvements de gestion. La consommation reste donc inférieure à cette enveloppe actualisée, malgré son écart avec le budget initial."
+          "Le Sénat recense 62,6 milliards d’euros de crédits de paiement effectivement ouverts après les mouvements de gestion. La consommation reste donc inférieure à cette enveloppe actualisée, malgré son écart avec le budget initial.",
+          "Les 62,1 milliards consommés comprennent aussi les contributions au CAS « Pensions ». Ces versements financent les pensions publiques : les additionner une seconde fois aux pensions versées créerait un double comptage. La présentation des pensions dans le PLF 2027 ne modifie pas cette exécution de 2025."
         ]
       },
       {
@@ -216,7 +222,8 @@
       "Le budget initial et les crédits consommés ne sont pas deux mesures de la même étape.",
       "Le dossier ne reconstitue pas ici tous les mouvements de crédits intervenus pendant 2025.",
       "La consommation budgétaire ne mesure pas à elle seule l'efficacité ni la disponibilité des forces.",
-      "Les montants sont arrondis dans le texte, tandis que les preuves conservent les valeurs publiées."
+      "Les montants sont arrondis dans le texte, tandis que les preuves conservent les valeurs publiées.",
+      "Le périmètre du graphique comprend les contributions au CAS « Pensions » ; il ne mesure pas seulement les crédits disponibles pour les capacités opérationnelles."
     ],
     "sommaire": [
       "budget-vote",
