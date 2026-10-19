@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { startPresidency, decidePresidency, presidencyEvents, presidencyPoliticalActions } from './presidency-engine.ts';
 import { encode, decode } from './storage.ts';
+import { presidencyPanel } from './presidency-view.ts';
 
 test('dissolution begins a campaign, then publishes an election exactly once', () => {
   let game = decidePresidency(startPresidency(2), 'live-autonomy');
@@ -20,6 +21,10 @@ test('dissolution begins a campaign, then publishes an election exactly once', (
   game = decidePresidency(game, 'live-tick');
   assert.equal(game.presidency!.pendingElection, undefined);
   assert.equal(game.politics!.lastVote?.kind, 'election');
+  const electionResult = presidencyPanel(game, 'government');
+  assert.match(electionResult, /Élections législatives · sièges/);
+  assert.match(electionResult, /sièges/);
+  assert.doesNotMatch(electionResult, /0 pour · 0 contre/);
   assert.equal(game.politics!.blocs.reduce((sum, bloc) => sum + bloc.seats, 0), 577);
   assert.equal(game.politics!.votes.filter(vote => vote.kind === 'election').length, 1);
   assert.deepEqual(decode(encode(game)), game);
