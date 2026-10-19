@@ -84,8 +84,11 @@ export function presidencyReadings(game: Game, selected: PressureSectorId | null
     const front = game.pressure?.sectors[id];
     if (!front) return "";
     const trend = front.pressureChange > .35 ? `+${n(front.pressureChange, 0)}` : front.pressureChange < -.35 ? n(front.pressureChange, 0) : "=";
-    return `<button type="button" class="pr-sector" data-live-sector="${id}" data-presidency-front="${id}" data-action="presidency-sector" data-sector="${id}" data-stage="${front.stage}" aria-pressed="${selected === id}" aria-label="${e(PRESIDENCY_PLACES[id].label)}, pression ${n(front.pressure, 0)} sur 100, ${e(stageNames[front.stage])}">
-      <span class="pr-sector__icon">${icon(id)}</span><span class="pr-sector__reading"><span>${e(PRESIDENCY_PLACES[id].label)}</span><strong>${e(stageNames[front.stage])}<small aria-hidden="true">${trend === "=" ? "" : trend}</small></strong><i style="--pr-value:${front.pressure}%" aria-hidden="true"></i></span>
+    const incident = presidencyCrises(game).find(crisis => crisis.sector === id && crisis.status !== 'resolved');
+    const localStatus = incident ? incident.status === 'active' ? 'Incident actif' : 'Secours temporaire' : stageNames[front.stage];
+    const visibleStage = incident?.status === 'active' ? 'crisis' : front.stage;
+    return `<button type="button" class="pr-sector" data-live-sector="${id}" data-presidency-front="${id}" data-action="presidency-sector" data-sector="${id}" data-stage="${visibleStage}" aria-pressed="${selected === id}" aria-label="${e(PRESIDENCY_PLACES[id].label)}, pression ${n(front.pressure, 0)} sur 100, plus bas signifie moins de tension, ${e(localStatus)}">
+      <span class="pr-sector__icon">${icon(id)}</span><span class="pr-sector__reading"><span>${e(PRESIDENCY_PLACES[id].label)}</span><strong>${e(localStatus)}<small aria-hidden="true">${trend === "=" ? "" : trend}</small></strong><i style="--pr-value:${front.pressure}%" aria-hidden="true"></i></span>
     </button>`;
   }).join("");
 }
