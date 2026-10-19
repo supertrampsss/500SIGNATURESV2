@@ -1,0 +1,689 @@
+{
+  "annee": 2027,
+  "unite": "euros",
+  "statut": "PLF : prévision, pas exécution",
+  "budgetSource": "https://www.assemblee-nationale.fr/dyn/17/textes/l17b3210_projet-loi",
+  "budgetTable": "Présentation des crédits par ministère / programme ; CP du budget général",
+  "pensionsReference": "https://www.budget.gouv.fr/documentation/file-download/34465",
+  "tauxSource": {
+    "url": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128300/file/PAP%202027%20-%20Pensions.pdf",
+    "pagesPdf": [
+      17,
+      18,
+      20
+    ],
+    "tauxSalarialPourcent": 11.1,
+    "tauxEmployeurCivilPourcent": 82.28,
+    "tauxEmployeurMilitairePourcent": 126.07,
+    "statut": "Taux explicitement retenus pour 2027 dans le PAP Pensions ; civil inchangé depuis 2026 et militaire stable depuis 2013."
+  },
+  "methode": [
+    "Budget : CP officiels du tableau ministériel du PLF 2027, nets des remboursements et dégrèvements pour Action et comptes publics.",
+    "Employeur T2 : addition des lignes Civils (y.c. ATI) et Militaires de la colonne PLF 2027 des PAP, par programme rattaché au ministère.",
+    "Retenues salariales estimées : CAS civils y.c. ATI × 11,10 / 82,28 + CAS militaires × 11,10 / 126,07. Taux explicites du PAP Pensions 2027, p. 17, 18 et 20. La présence de l’ATI et les assiettes particulières font de ce calcul une estimation, pas une somme comptable exacte.",
+    "Retraites : employeur T2 + retenues salariales estimées ; pas de conversion des pourcentages de la figure 3B en montants.",
+    "Après reclassement : budget moins retraites. C’est un reclassement analytique à dépense publique inchangée, pas une économie."
+  ],
+  "limites": [
+    "Le total de l’Enseignement supérieur est laissé nul (donnée absente), car le T3 des opérateurs compris dans la figure 3B n’est pas identifié dans les sources monétaires récupérées. Son T2 seul est conservé séparément.",
+    "Les cotisations salariales des opérateurs sont hors champ, comme dans la figure 3B. Le CAS n’est pas l’ensemble des régimes de retraite : ne pas lire zéro CAS comme zéro dépense de retraite tous régimes.",
+    "Les subventions au FSPOEIE et aux cultes, et les cotisations employeur FSPOEIE, ne sont pas assimilées aux contributions civils/militaires au CAS 741 ; cet agrégat ne prétend pas reproduire au centime le traitement interne de Bercy.",
+    "Les montants des budgets sont exacts dans le PLF. Les totaux retraites contenant une estimation salariale doivent être affichés avec ≈ et un arrondi adapté."
+  ],
+  "rows": [
+    {
+      "nom": "Action et comptes publics",
+      "budget": 18431627292,
+      "budgetBrutEuros": 162937465493,
+      "remboursementsDegrevementsExclusEuros": 144505838201,
+      "retraites": 3129574417,
+      "apresReclassement": 15302052875,
+      "estimation": true,
+      "casEmployeurT2Euros": 2757686444,
+      "cotisationsSalarialesEstimeesEuros": 371887973,
+      "retraitesT2EstimeesEuros": 3129574417,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "156",
+          "source": "https://www.budget.gouv.fr/documentation/file-download/34354",
+          "pagePdf": 51,
+          "pdfSha256": "c2125bd20369561d9cab8538df209e7a67d3e9c9fe1736409d0be6c8287f88e2",
+          "casCivilsAtiEuros": 2196151403,
+          "casMilitairesEuros": 782565
+        },
+        {
+          "programme": "218",
+          "source": "https://www.budget.gouv.fr/documentation/file-download/34354",
+          "pagePdf": 116,
+          "pdfSha256": "c2125bd20369561d9cab8538df209e7a67d3e9c9fe1736409d0be6c8287f88e2",
+          "casCivilsAtiEuros": 116391389,
+          "casMilitairesEuros": 1235130
+        },
+        {
+          "programme": "302",
+          "source": "https://www.budget.gouv.fr/documentation/file-download/34354",
+          "pagePdf": 166,
+          "pdfSha256": "c2125bd20369561d9cab8538df209e7a67d3e9c9fe1736409d0be6c8287f88e2",
+          "casCivilsAtiEuros": 440760827,
+          "casMilitairesEuros": 933149
+        },
+        {
+          "programme": "349",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128281/file/PAP%202027%20-%20Transformation%20et%20fonction%20publiques.pdf",
+          "pagePdf": 52,
+          "pdfSha256": "ce6481e4594e8a75995eece7dc3b83439c6203679a7fae78b023dc0038603261",
+          "casCivilsAtiEuros": 1431981,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "148",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128281/file/PAP%202027%20-%20Transformation%20et%20fonction%20publiques.pdf",
+          "pagePdf": 77,
+          "pdfSha256": "ce6481e4594e8a75995eece7dc3b83439c6203679a7fae78b023dc0038603261",
+          "casCivilsAtiEuros": 0,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Agriculture, agro-alimentaire et souveraineté alimentaire",
+      "budget": 5783539164,
+      "budgetBrutEuros": 5783539164,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 658045960,
+      "apresReclassement": 5125493204,
+      "estimation": true,
+      "casEmployeurT2Euros": 579824605,
+      "cotisationsSalarialesEstimeesEuros": 78221355,
+      "retraitesT2EstimeesEuros": 658045960,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "206",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128206/file/PAP%202027%20-%20Agriculture%20et%20alimentation.pdf",
+          "pagePdf": 96,
+          "pdfSha256": "91df7b817335cea403393553b0657bcb39f2a3fc16dbeaef3191099a8ca100f5",
+          "casCivilsAtiEuros": 96714758,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "215",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128206/file/PAP%202027%20-%20Agriculture%20et%20alimentation.pdf",
+          "pagePdf": 148,
+          "pdfSha256": "91df7b817335cea403393553b0657bcb39f2a3fc16dbeaef3191099a8ca100f5",
+          "casCivilsAtiEuros": 144597467,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "143",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 312,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 253858739,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "142",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128257/file/PAP%202027%20-%20Recherche%20et%20enseignement%20sup%C3%A9rieur.pdf",
+          "pagePdf": 367,
+          "pdfSha256": "0a2dd4f6e98d8c7d1bea740c2d3f43889ea328e108016665e5419f6ce1a3e5b9",
+          "casCivilsAtiEuros": 84653641,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Aménagement du territoire et de la décentralisation",
+      "budget": 5292410030,
+      "budgetBrutEuros": 5292410030,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 3526422,
+      "apresReclassement": 5288883608,
+      "estimation": true,
+      "casEmployeurT2Euros": 3107239,
+      "cotisationsSalarialesEstimeesEuros": 419183,
+      "retraitesT2EstimeesEuros": 3526422,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "112",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128212/file/PAP%202027%20-%20Coh%C3%A9sion%20des%20territoires.pdf",
+          "pagePdf": 159,
+          "pdfSha256": "703b2c7360e7b5a200163a8a1e25bf0b2bd7beb83a08c0a48f51d367c502fe95",
+          "casCivilsAtiEuros": 3107239,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Armées et anciens combattants",
+      "budget": 74681933142,
+      "budgetBrutEuros": 74681933142,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 9131384076,
+      "apresReclassement": 65550549066,
+      "estimation": true,
+      "casEmployeurT2Euros": 8352763713,
+      "cotisationsSalarialesEstimeesEuros": 778620363,
+      "retraitesT2EstimeesEuros": 9131384076,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "212",
+          "source": "https://www.budget.gouv.fr/documentation/file-download/33958",
+          "pagePdf": 38,
+          "pdfSha256": "e4e5379fb4f2f6f6f349552a2c5d63f08fa248bb7b3ea75ff3a695942b45f1c1",
+          "casCivilsAtiEuros": 921708516,
+          "casMilitairesEuros": 7431055197
+        }
+      ]
+    },
+    {
+      "nom": "Culture",
+      "budget": 4361722995,
+      "budgetBrutEuros": 4361722995,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 234451462,
+      "apresReclassement": 4127271533,
+      "estimation": true,
+      "casEmployeurT2Euros": 206582419,
+      "cotisationsSalarialesEstimeesEuros": 27869043,
+      "retraitesT2EstimeesEuros": 234451462,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "224",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128219/file/PAP%202027%20-%20Culture.pdf",
+          "pagePdf": 270,
+          "pdfSha256": "472d672edb602744d3ce92f3461ce8a90db67779bbfe7917122d37b299920484",
+          "casCivilsAtiEuros": 206582419,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Économie, finances et souveraineté industrielle, énergétique et numérique",
+      "budget": 92334640124,
+      "budgetBrutEuros": 92334640124,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 283710156,
+      "apresReclassement": 92050929968,
+      "estimation": true,
+      "casEmployeurT2Euros": 250010442,
+      "cotisationsSalarialesEstimeesEuros": 33699714,
+      "retraitesT2EstimeesEuros": 283710156,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "134",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128228/file/PAP%202027%20-%20Economie.pdf",
+          "pagePdf": 51,
+          "pdfSha256": "94b36068896c060dbb20686a468485949bf9479f6189a0fbbaaf09ea1609415e",
+          "casCivilsAtiEuros": 110557979,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "220",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128228/file/PAP%202027%20-%20Economie.pdf",
+          "pagePdf": 108,
+          "pdfSha256": "94b36068896c060dbb20686a468485949bf9479f6189a0fbbaaf09ea1609415e",
+          "casCivilsAtiEuros": 116539617,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "305",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128228/file/PAP%202027%20-%20Economie.pdf",
+          "pagePdf": 135,
+          "pdfSha256": "94b36068896c060dbb20686a468485949bf9479f6189a0fbbaaf09ea1609415e",
+          "casCivilsAtiEuros": 22315410,
+          "casMilitairesEuros": 597436
+        }
+      ]
+    },
+    {
+      "nom": "Éducation nationale",
+      "budget": 89088039664,
+      "budgetBrutEuros": 89088039664,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 28456493597,
+      "apresReclassement": 60631546067,
+      "estimation": true,
+      "casEmployeurT2Euros": 25073894765,
+      "cotisationsSalarialesEstimeesEuros": 3382598832,
+      "retraitesT2EstimeesEuros": 28456493597,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "140",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 51,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 10360718366,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "141",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 101,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 13346586339,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "230",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 137,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 699328067,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "139",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 190,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 52448340,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "214",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128234/file/PAP%202027%20-%20Enseignement%20scolaire.pdf",
+          "pagePdf": 243,
+          "pdfSha256": "614a15aa31d101a87b39eed618f3578d209503a43cb66ae507542eaa6d72cf8d",
+          "casCivilsAtiEuros": 614813653,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Enseignement supérieur, recherche et espace",
+      "budget": 29511682613,
+      "budgetBrutEuros": 29511682613,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": null,
+      "apresReclassement": null,
+      "estimation": true,
+      "casEmployeurT2Euros": 137131413,
+      "cotisationsSalarialesEstimeesEuros": 18499741,
+      "retraitesT2EstimeesEuros": 155631154,
+      "casOperateursT3Euros": null,
+      "limite": "T3 des opérateurs non obtenu en montant : le total retraites reste non renseigné.",
+      "programmes": [
+        {
+          "programme": "150",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128257/file/PAP%202027%20-%20Recherche%20et%20enseignement%20sup%C3%A9rieur.pdf",
+          "pagePdf": 74,
+          "pdfSha256": "0a2dd4f6e98d8c7d1bea740c2d3f43889ea328e108016665e5419f6ce1a3e5b9",
+          "casCivilsAtiEuros": 137131413,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Europe et affaires étrangères",
+      "budget": 5429246943,
+      "budgetBrutEuros": 5429246943,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 226192474,
+      "apresReclassement": 5203054469,
+      "estimation": true,
+      "casEmployeurT2Euros": 200589698,
+      "cotisationsSalarialesEstimeesEuros": 25602776,
+      "retraitesT2EstimeesEuros": 226192474,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "105",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128200/file/PAP%202027%20-%20Action%20ext%C3%A9rieure%20de%20l%27Etat.pdf",
+          "pagePdf": 43,
+          "pdfSha256": "061bc4e4ccc171135b4b6b027570edfe7ab43ae3b5b4a39eaa2a52a023224391",
+          "casCivilsAtiEuros": 169478877,
+          "casMilitairesEuros": 31110821
+        }
+      ]
+    },
+    {
+      "nom": "Intérieur",
+      "budget": 34239677862,
+      "budgetBrutEuros": 34239677862,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 10310239789,
+      "apresReclassement": 23929438073,
+      "estimation": true,
+      "casEmployeurT2Euros": 9254922822,
+      "cotisationsSalarialesEstimeesEuros": 1055316967,
+      "retraitesT2EstimeesEuros": 10310239789,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "354",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128203/file/PAP%202027%20-%20Administration%20g%C3%A9n%C3%A9rale%20et%20territoriale%20de%20l%27Etat.pdf",
+          "pagePdf": 46,
+          "pdfSha256": "73822560f41666ba682166c0eda34dfdbab04cb5e451d5a3e497c7be8f84398f",
+          "casCivilsAtiEuros": 589741725,
+          "casMilitairesEuros": 1911001
+        },
+        {
+          "programme": "232",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128203/file/PAP%202027%20-%20Administration%20g%C3%A9n%C3%A9rale%20et%20territoriale%20de%20l%27Etat.pdf",
+          "pagePdf": 81,
+          "pdfSha256": "73822560f41666ba682166c0eda34dfdbab04cb5e451d5a3e497c7be8f84398f",
+          "casCivilsAtiEuros": 552600,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "216",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128203/file/PAP%202027%20-%20Administration%20g%C3%A9n%C3%A9rale%20et%20territoriale%20de%20l%27Etat.pdf",
+          "pagePdf": 109,
+          "pdfSha256": "73822560f41666ba682166c0eda34dfdbab04cb5e451d5a3e497c7be8f84398f",
+          "casCivilsAtiEuros": 213599345,
+          "casMilitairesEuros": 9677856
+        },
+        {
+          "programme": "176",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128275/file/PAP%202027%20-%20S%C3%A9curit%C3%A9s.pdf",
+          "pagePdf": 58,
+          "pdfSha256": "e22f4600eaacef2afb593e0722803c7180de48419649be243cb133b6678bd213",
+          "casCivilsAtiEuros": 4213483894,
+          "casMilitairesEuros": 7967432
+        },
+        {
+          "programme": "152",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128275/file/PAP%202027%20-%20S%C3%A9curit%C3%A9s.pdf",
+          "pagePdf": 122,
+          "pdfSha256": "e22f4600eaacef2afb593e0722803c7180de48419649be243cb133b6678bd213",
+          "casCivilsAtiEuros": 98625225,
+          "casMilitairesEuros": 4039533696
+        },
+        {
+          "programme": "161",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128275/file/PAP%202027%20-%20S%C3%A9curit%C3%A9s.pdf",
+          "pagePdf": 182,
+          "pdfSha256": "e22f4600eaacef2afb593e0722803c7180de48419649be243cb133b6678bd213",
+          "casCivilsAtiEuros": 15469571,
+          "casMilitairesEuros": 64360477
+        }
+      ]
+    },
+    {
+      "nom": "Justice",
+      "budget": 13431798805,
+      "budgetBrutEuros": 13431798805,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 2800543196,
+      "apresReclassement": 10631255609,
+      "estimation": true,
+      "casEmployeurT2Euros": 2467668850,
+      "cotisationsSalarialesEstimeesEuros": 332874346,
+      "retraitesT2EstimeesEuros": 2800543196,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "166",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128243/file/PAP%202027%20-%20Justice.pdf",
+          "pagePdf": 59,
+          "pdfSha256": "470b7daccf43fb1db904c0a4a55f1c9ff9aa2037fe635f802eaef5b3952ec98b",
+          "casCivilsAtiEuros": 947136082,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "107",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128243/file/PAP%202027%20-%20Justice.pdf",
+          "pagePdf": 109,
+          "pdfSha256": "470b7daccf43fb1db904c0a4a55f1c9ff9aa2037fe635f802eaef5b3952ec98b",
+          "casCivilsAtiEuros": 1263689761,
+          "casMilitairesEuros": 229285
+        },
+        {
+          "programme": "182",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128243/file/PAP%202027%20-%20Justice.pdf",
+          "pagePdf": 159,
+          "pdfSha256": "470b7daccf43fb1db904c0a4a55f1c9ff9aa2037fe635f802eaef5b3952ec98b",
+          "casCivilsAtiEuros": 203087209,
+          "casMilitairesEuros": 52325
+        },
+        {
+          "programme": "310",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128243/file/PAP%202027%20-%20Justice.pdf",
+          "pagePdf": 223,
+          "pdfSha256": "470b7daccf43fb1db904c0a4a55f1c9ff9aa2037fe635f802eaef5b3952ec98b",
+          "casCivilsAtiEuros": 52438139,
+          "casMilitairesEuros": 294976
+        },
+        {
+          "programme": "335",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128243/file/PAP%202027%20-%20Justice.pdf",
+          "pagePdf": 290,
+          "pdfSha256": "470b7daccf43fb1db904c0a4a55f1c9ff9aa2037fe635f802eaef5b3952ec98b",
+          "casCivilsAtiEuros": 741073,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Outre-Mer",
+      "budget": 3739788972,
+      "budgetBrutEuros": 3739788972,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 69164083,
+      "apresReclassement": 3670624889,
+      "estimation": true,
+      "casEmployeurT2Euros": 63498430,
+      "cotisationsSalarialesEstimeesEuros": 5665653,
+      "retraitesT2EstimeesEuros": 69164083,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "138",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128249/file/PAP%202027%20-%20Outre-mer.pdf",
+          "pagePdf": 33,
+          "pdfSha256": "b5d76987566e06519e7d733cacaf935d5d977b63af2e4d84bb911b87b0a64594",
+          "casCivilsAtiEuros": 1597345,
+          "casMilitairesEuros": 61901085
+        }
+      ]
+    },
+    {
+      "nom": "Santé, familles, autonomie et personnes handicapées",
+      "budget": 19065035831,
+      "budgetBrutEuros": 19065035831,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 0,
+      "apresReclassement": 19065035831,
+      "estimation": false,
+      "casEmployeurT2Euros": 0,
+      "cotisationsSalarialesEstimeesEuros": 0,
+      "retraitesT2EstimeesEuros": 0,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": []
+    },
+    {
+      "nom": "Services du Premier ministre",
+      "budget": 6005211688,
+      "budgetBrutEuros": 6005211688,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 257360641,
+      "apresReclassement": 5747851047,
+      "estimation": true,
+      "casEmployeurT2Euros": 227015801,
+      "cotisationsSalarialesEstimeesEuros": 30344840,
+      "retraitesT2EstimeesEuros": 257360641,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "165",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128213/file/PAP%202027%20-%20Conseil%20et%20contr%C3%B4le%20de%20l%27Etat.pdf",
+          "pagePdf": 37,
+          "pdfSha256": "33a5d150d8c9a002e125dcf8bedf75d5b9f45d15fe916b294d4c39a232381bf0",
+          "casCivilsAtiEuros": 120788418,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "126",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128213/file/PAP%202027%20-%20Conseil%20et%20contr%C3%B4le%20de%20l%27Etat.pdf",
+          "pagePdf": 66,
+          "pdfSha256": "33a5d150d8c9a002e125dcf8bedf75d5b9f45d15fe916b294d4c39a232381bf0",
+          "casCivilsAtiEuros": 3140550,
+          "casMilitairesEuros": 0
+        },
+        {
+          "programme": "164",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128213/file/PAP%202027%20-%20Conseil%20et%20contr%C3%B4le%20de%20l%27Etat.pdf",
+          "pagePdf": 91,
+          "pdfSha256": "33a5d150d8c9a002e125dcf8bedf75d5b9f45d15fe916b294d4c39a232381bf0",
+          "casCivilsAtiEuros": 58993050,
+          "casMilitairesEuros": 158717
+        },
+        {
+          "programme": "129",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128222/file/PAP%202027%20-%20Direction%20de%20l%27action%20du%20Gouvernement.pdf",
+          "pagePdf": 55,
+          "pdfSha256": "f90a02fcb9c5fd5bb23925e7e5f7a46cac85889d12e2c6014c55e8edb7294b7c",
+          "casCivilsAtiEuros": 32493204,
+          "casMilitairesEuros": 5613152
+        },
+        {
+          "programme": "308",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128222/file/PAP%202027%20-%20Direction%20de%20l%27action%20du%20Gouvernement.pdf",
+          "pagePdf": 137,
+          "pdfSha256": "f90a02fcb9c5fd5bb23925e7e5f7a46cac85889d12e2c6014c55e8edb7294b7c",
+          "casCivilsAtiEuros": 5322466,
+          "casMilitairesEuros": 220000
+        },
+        {
+          "programme": "158",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128248/file/PAP%202027%20-%20Monde%20combattant%20m%C3%A9moire%20et%20liens%20avec%20la%20nation.pdf",
+          "pagePdf": 85,
+          "pdfSha256": "45fe656cd8ab9b072cff08d17c9e82f36ef7f442d20a6b75d5c129a5876c2499",
+          "casCivilsAtiEuros": 286244,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Sports, jeunesse et vie associative",
+      "budget": 1251045491,
+      "budgetBrutEuros": 1251045491,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 45333714,
+      "apresReclassement": 1205711777,
+      "estimation": true,
+      "casEmployeurT2Euros": 39946669,
+      "cotisationsSalarialesEstimeesEuros": 5387045,
+      "retraitesT2EstimeesEuros": 45333714,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "219",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128279/file/PAP%202027%20-%20Sport%20jeunesse%20et%20vie%20associative.pdf",
+          "pagePdf": 43,
+          "pdfSha256": "ef8021e35beb7a74da16ea7524839e14127e265287496e92d6748fb9b90fcdb9",
+          "casCivilsAtiEuros": 39904666,
+          "casMilitairesEuros": 42003
+        }
+      ]
+    },
+    {
+      "nom": "Transition écologique, biodiversité et négociations internationales sur le climat et la nature",
+      "budget": 7320693637,
+      "budgetBrutEuros": 7320693637,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 849377668,
+      "apresReclassement": 6471315969,
+      "estimation": true,
+      "casEmployeurT2Euros": 749467677,
+      "cotisationsSalarialesEstimeesEuros": 99909991,
+      "retraitesT2EstimeesEuros": 849377668,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "217",
+          "source": "https://www.budget.gouv.fr/documentation/file-download/33970",
+          "pagePdf": 20,
+          "pdfSha256": "4b7ee45e61b4a269540aac8af9b908eb95a64313cad62fb4143c3abc90455cc2",
+          "casCivilsAtiEuros": 723920816,
+          "casMilitairesEuros": 25546861
+        }
+      ]
+    },
+    {
+      "nom": "Transports",
+      "budget": 4835605550,
+      "budgetBrutEuros": 4835605550,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 0,
+      "apresReclassement": 4835605550,
+      "estimation": false,
+      "casEmployeurT2Euros": 0,
+      "cotisationsSalarialesEstimeesEuros": 0,
+      "retraitesT2EstimeesEuros": 0,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": []
+    },
+    {
+      "nom": "Travail et solidarités",
+      "budget": 33635369479,
+      "budgetBrutEuros": 33635369479,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 329960049,
+      "apresReclassement": 33305409430,
+      "estimation": true,
+      "casEmployeurT2Euros": 290737983,
+      "cotisationsSalarialesEstimeesEuros": 39222066,
+      "retraitesT2EstimeesEuros": 329960049,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "155",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128284/file/PAP%202027%20-%20Travail%20emploi%20et%20administration%20des%20minist%C3%A8res%20sociaux.pdf",
+          "pagePdf": 217,
+          "pdfSha256": "e3e695ae44e20689332bc9af2bdc599634cee5323254679949d23bd7e85f3b34",
+          "casCivilsAtiEuros": 290737983,
+          "casMilitairesEuros": 0
+        }
+      ]
+    },
+    {
+      "nom": "Ville et logement",
+      "budget": 22194967850,
+      "budgetBrutEuros": 22194967850,
+      "remboursementsDegrevementsExclusEuros": 0,
+      "retraites": 6058496,
+      "apresReclassement": 22188909354,
+      "estimation": true,
+      "casEmployeurT2Euros": 5338328,
+      "cotisationsSalarialesEstimeesEuros": 720168,
+      "retraitesT2EstimeesEuros": 6058496,
+      "casOperateursT3Euros": 0,
+      "limite": null,
+      "programmes": [
+        {
+          "programme": "147",
+          "source": "https://www.assemblee-nationale.fr/dyn/contenu/visualisation/1128212/file/PAP%202027%20-%20Coh%C3%A9sion%20des%20territoires.pdf",
+          "pagePdf": 197,
+          "pdfSha256": "703b2c7360e7b5a200163a8a1e25bf0b2bd7beb83a08c0a48f51d367c502fe95",
+          "casCivilsAtiEuros": 5338328,
+          "casMilitairesEuros": 0
+        }
+      ]
+    }
+  ]
+}

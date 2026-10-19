@@ -1,0 +1,83 @@
+{
+  "ministeres": 19,
+  "budgets_connus": 19,
+  "retraites_connues": 18,
+  "sommes_programmes_cp_egales_ministeres": true,
+  "soustractions_verifiees": true,
+  "comparaison_figure_informative_uniquement": true,
+  "ecarts_points_pourcentage": [
+    {
+      "nom": "Action et comptes publics",
+      "ecart": 0.0236263543031745
+    },
+    {
+      "nom": "Agriculture, agro-alimentaire et souveraineté alimentaire",
+      "ecart": -0.005308240808805931
+    },
+    {
+      "nom": "Aménagement du territoire et de la décentralisation",
+      "ecart": 0.01899301542154987
+    },
+    {
+      "nom": "Armées et anciens combattants",
+      "ecart": -0.013501694913185813
+    },
+    {
+      "nom": "Culture",
+      "ecart": -0.006828200075146423
+    },
+    {
+      "nom": "Économie, finances et souveraineté industrielle, énergétique et numérique",
+      "ecart": -0.026147158633048034
+    },
+    {
+      "nom": "Éducation nationale",
+      "ecart": 0.030889368796610528
+    },
+    {
+      "nom": "Europe et affaires étrangères",
+      "ecart": 0.022504971710454735
+    },
+    {
+      "nom": "Intérieur",
+      "ecart": 0.010745168937492666
+    },
+    {
+      "nom": "Justice",
+      "ecart": -0.011194267261935287
+    },
+    {
+      "nom": "Outre-Mer",
+      "ecart": -0.008109142156330351
+    },
+    {
+      "nom": "Santé, familles, autonomie et personnes handicapées",
+      "ecart": 0.0
+    },
+    {
+      "nom": "Services du Premier ministre",
+      "ecart": -0.0009503914406669423
+    },
+    {
+      "nom": "Sports, jeunesse et vie associative",
+      "ecart": 0.003890485868608684
+    },
+    {
+      "nom": "Transition écologique, biodiversité et négociations internationales sur le climat et la nature",
+      "ecart": 0.028694780911536766
+    },
+    {
+      "nom": "Transports",
+      "ecart": 0.0
+    },
+    {
+      "nom": "Travail et solidarités",
+      "ecart": -0.019214853601830575
+    },
+    {
+      "nom": "Ville et logement",
+      "ecart": -0.020341959993280357
+    }
+  ],
+  "ecart_absolu_max_points": 0.030889368796610528
+}

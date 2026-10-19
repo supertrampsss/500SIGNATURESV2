@@ -1,18 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { reclassementBercy, renduReclassementBercy } from './reclassement-bercy.ts';
-test('Bercy : tous les ministères, Défense comprise, conservent chacun 100 %', () => {
- const r = reclassementBercy();
- assert.equal(r.ministeres.length, 19);
- assert.equal(new Set(r.ministeres.map(m => m.nom)).size,19);
- assert.ok(r.ministeres.some(m => m.nom.includes('Défense')));
- for(const m of r.ministeres) {
-  assert.ok(m.partRetraites >= 0 && m.partRetraites <= 100);
-  assert.equal(m.partRetraites + (100-m.partRetraites),100);
+test('les budgets et retraites sont monétaires, sourcés et réconciliés',()=>{
+ const r=reclassementBercy();assert.equal(r.ministeres.length,19);
+ const source=JSON.parse(readFileSync(new URL('../../docs/sources/retraites-2026/ministeres-montants-2027.json',import.meta.url),'utf8'));
+ assert.equal(r.ministeres.filter(m=>m.retraites===null).length,1);
+ for(const m of r.ministeres){
+  assert.ok(source.rows.some((s:{budget:number;retraites:number|null})=>s.budget===m.budget && s.retraites===m.retraites));
+  assert.ok(m.budget>0);
+  if(m.retraites!==null){assert.ok(m.retraites>=0 && m.retraites<=m.budget);assert.equal(m.retraites+(m.budget-m.retraites),m.budget);}
  }
- const html = renduReclassementBercy();
- assert.equal((html.match(/class="stacked-percent__row"/g) ?? []).length,19);
- assert.equal((html.match(/--part">Retraites</g) ?? []).length,1);
- assert.match(html,/PLF 2027/);
- assert.doesNotMatch(html,/123,3|deux ministères|hors retraites|La ligne Retraites réunit/);
+ const html=renduReclassementBercy();assert.match(html,/Md€/);assert.match(html,/Défense/);
+ assert.match(html,/89,1/);assert.match(html,/28,5/);assert.match(html,/60,6/);
+ assert.equal((html.match(/class="budget-comparison__row"/g)??[]).length,19);
+ assert.doesNotMatch(html,/stacked-percent|123,3|hors retraites/);
 });

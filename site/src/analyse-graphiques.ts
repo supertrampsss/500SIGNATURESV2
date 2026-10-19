@@ -1,3 +1,4 @@
+import { budgetComparison } from "./budget-comparison.ts";
 import { stackedPercent } from "./stacked-percent.ts";
 import type { DossierAnalyseValide, SerieAnalyse, VisualisationAnalyse } from "./analyse-contrat.ts";
 import { libelleUniteAnalyse, valeurEtUniteAnalyse } from "./echelle.ts";
@@ -51,6 +52,11 @@ function traceSeries(v: VisualisationAnalyse, groupe: SerieAnalyse[], unit: stri
 
 /** Rendu statique. Une échelle par unité ; barres avec origine à zéro. */
 export function graphiqueAnalyse(v: VisualisationAnalyse, contrat: DossierAnalyseValide): string {
+  if (v.type === "budget_comparison") return budgetComparison((v.budgetRows ?? []).map(row => ({
+    label: row.label, budget: contrat.preuveParId.get(row.budgetId)!.value,
+    retirement: row.retirementId ? contrat.preuveParId.get(row.retirementId)!.value : null,
+    estimated: row.estimated,
+  })));
   const series = (v.seriesIds ?? []).map(id => contrat.serieParId.get(id)!);
   if (!series.length) {
     const preuves = (v.preuveIds ?? []).map(id => contrat.preuveParId.get(id)!);
