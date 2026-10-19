@@ -1,5 +1,6 @@
 import type { PresidencyCrisis } from './presidency-crises.ts';
 import type { PressureSectorId } from './pressure-types.ts';
+import type { PoliticalBloc, PoliticalState, PendingCrisis, VoteRecord } from './politics-types.ts';
 
 /** V16 deterministic scenario state. Credits authorise interventions; they are
  * neither the APU cash balance nor revenue. All amounts are fictional Md€. */
@@ -21,6 +22,7 @@ export type PresidencyState = {
   reformEvents?: Array<{ id: string; offeredPeriod: number; availablePeriod?: number; expiresPeriod?: number; reason?: string; deferred?: boolean }>;
   reformArchive?: Array<{ id: string; period: number; outcome: 'expired' | 'withdrawn' }>;
   cabinet?: { serial: number; name: string; appointedPeriod: number; agreement?: { name: string; period: number }; attempts: Array<{ choice: string; period: number }> };
+  pendingElection?: { announcedPeriod: number; ballotPeriod: number; blocs: PoliticalBloc[]; cabinet: PoliticalState['cabinet']; pendingCrisis?: PendingCrisis; vote: VoteRecord };
   lastFeedback?: { status: 'adopted' | 'rejected' | 'engaged' | 'delivered' | 'information'; title: string; detail: string };
   nextReformPeriod?: number;
   nextCrisisPeriod?: number;

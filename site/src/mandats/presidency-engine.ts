@@ -106,9 +106,12 @@ function orderCost(choice: Choice): number {
 }
 function orderMetadata(g: Game, choice: Choice): PresidencyOrder {
   const cost = orderCost(choice);
+  const lastDissolution = g.politics?.lastDissolutionTurn;
+  const cooldown = choice.political?.action === 'dissolve' && lastDissolution !== undefined && g.turn - lastDissolution < 6
+    ? 'Une nouvelle dissolution n’est pas possible avant un an.' : undefined;
   return { cost, delay: choice.pressure ? Math.max(1, choice.pressure.delay ?? 1) : (choice.delayed?.after ?? 0) * 6,
     implementation: choice.pressure ? choice.pressure.implementation ?? 1 : 0,
-    ...(cost > state(g).reserve + .00001 ? { unavailable: `Crédits disponibles : ${money(state(g).reserve)} ; engagement nécessaire : ${money(cost)}.` } : {}) };
+    ...(cooldown ? { unavailable: cooldown } : cost > state(g).reserve + .00001 ? { unavailable: `Crédits disponibles : ${money(state(g).reserve)} ; engagement nécessaire : ${money(cost)}.` } : {}) };
 }
 function withMetadata(g: Game, choice: Choice): Choice { return { ...choice, presidencyOrder: orderMetadata(g, choice) }; }
 function operationalChoice(g: Game, sector: PressureSectorId, kind: 'relief' | 'programme' | 'delegate' | 'recovery'): Choice {
@@ -213,6 +216,11 @@ export function presidencyEvents(g: Game): PresidencyEvent[] {
     return reform ? [{ ...reform, kind: 'reform' as const, sector: reform.choices.find(c => c.pressure)?.pressure?.sector ?? 'administration' as PressureSectorId,
       reason: event.reason, status: 'decision' as const, deadline: event.expiresPeriod ?? event.offeredPeriod + 5, choices: [...reform.choices, ...(!event.deferred ? [reformControl(event.id,'defer')] : []), reformControl(event.id,'withdraw')], detail: NATIONAL_AGENDA.find(item => item.id === reform.id)!.dossier.story }] : [];
   });
+  const election = g.presidency.pendingElection;
+  if (election) events.push({ id:'political-campaign',kind:'political',sector:'administration',
+    title:'Campagne législative en cours',reason:'Vous avez dissous l’Assemblée nationale.',
+    detail:'Le gouvernement est chargé des affaires courantes. Les 577 sièges seront redistribués au scrutin ; une majorité de gouvernement devra ensuite être constituée.',
+    deadline:election.ballotPeriod,status:'preparing',progress:0,choices:[] });
   const civil = g.presidency.civic?.crisis;
   if (civil && civil.status !== 'resolved') events.push({ id: civil.id, kind: 'political', title: crisisSpec(civil).title, sector: civil.sector,
     detail: crisisSpec(civil).cause, deadline: (civil.stageStartedPeriod ?? civil.startedPeriod) + civil.deadline,
@@ -230,13 +238,27 @@ export function presidencyEvents(g: Game): PresidencyEvent[] {
    const projects=g.pressure!.programmes.filter(p=>p.sector===sector&&(p.status==='preparing'||(p.deliveredTurn!==undefined&&g.turn-p.deliveredTurn<=1)));
    if(!projects.length)continue;
    const pending=projects.filter(p=>p.status==='preparing'), total=projects.reduce((sum,p)=>sum+Math.max(1,(p.delay??1)*(p.implementation??1)),0), remaining=pending.reduce((sum,p)=>sum+p.remainingWork,0);
-   events.push({id:`followup-${sector}`,kind:'followup',sector,title:pending.length?`${pending.length} intervention${pending.length>1?'s':''} en préparation`:'Moyens en service',reason:projects.map(p=>p.label).join(' · '),detail:projects.map(p=>p.status==='preparing'?`${p.label} : travail restant ${number(p.remainingWork)}, équipes partagées.`:`${p.label} : capacité en service ; les retards restent à rattraper.`).join(' '),choices:[],status:pending.length?'preparing':'delivered',progress:Math.max(0,Math.min(1,1-remaining/total))});
+   // Never replace a named intervention by a generic "Moyens en service".
+   // Its label, origin and earliest delivery survive every saved transition.
+   const first=projects[0];
+   const followupTitle=projects.length===1
+     ? `${first.label} · ${pending.length?'en cours':'livré'}`
+     : `${first.label} + ${projects.length-1} autre${projects.length>2?'s':''}`;
+   const followupDetail=projects.map(project=>{
+     const actor=[...g.presidency!.initiatives].reverse().find(item=>item.choice===project.sourceChoice&&item.period===project.sourceTurn)?.actor;
+     const source=actor==='government'?'Ministres':'Présidence';
+     return project.status==='preparing'
+       ? `${project.label} (${source}) : livraison au plus tôt période ${project.dueTurn+1}, selon les équipes partagées ; ${number(project.remainingWork)} unités de travail à réaliser.`
+       : `${project.label} (${source}) : en service depuis la période ${(project.deliveredTurn??g.turn)+1} ; les retards doivent encore être résorbés.`;
+   }).join(' ');
+   events.push({id:`followup-${sector}`,kind:'followup',sector,title:followupTitle,reason:projects.map(project=>project.label).join(' · '),detail:followupDetail,choices:[],status:pending.length?'preparing':'delivered',progress:Math.max(0,Math.min(1,1-remaining/total))});
   }
   return events;
 }
 export function presidencyPoliticalActions(g: Game): Choice[] {
   if (g.version !== 16 || !g.presidency || finished(g)) return [];
   const cabinet=g.presidency.cabinet;
+  if (g.presidency.pendingElection) return [];
   if(g.politics?.pendingCrisis==='cabinet' && cabinet?.agreement) return [{id:'live-cabinet-appoint',title:`Nommer le gouvernement ${cabinet.agreement.name}`,description:'L’accord parlementaire est adopté. La nomination remet les ministères en fonction.',cost:'Les concessions de l’accord sont déjà engagées.',benefit:'La capacité du gouvernement reprend à la prochaine période.',sacrifice:'Le programme négocié engage le gouvernement.',effect:{},political:{action:'administrative'},presidencyOrder:{cost:0,delay:0,implementation:0}}];
   const choices = (politicalDossier(g)?.choices ?? []).filter(choice=> !cabinet?.attempts.some(a=>a.choice===choice.id&&a.period===g.turn)).map(choice => withMetadata(g, choice.id==='pol-cabinet-cohabitation'?{...choice,title:'Soumettre un accord de cohabitation',description:'Consulter les groupes puis soumettre leur accord au vote. La nomination aura lieu seulement après adoption.'}:choice));
   if(g.politics?.pendingCrisis==='cabinet' && cabinet?.attempts.some(a=>a.period===g.turn) && !cabinet.attempts.some(a=>a.choice==='live-cabinet-compromise'&&a.period===g.turn)) {
@@ -320,13 +342,31 @@ function governmentInitiative(g: Game) {
   }
 }
 function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: string[]; vote?: VoteRecord } {
-  const resolution = resolvePoliticalChoice(g.politics!, choice, g.seed, g.turn, g.society?.workers ?? 50);
+  const beforePolitics = g.politics!;
+  const resolution = resolvePoliticalChoice(beforePolitics, choice, g.seed, g.turn, g.society?.workers ?? 50);
   const adopted = !resolution.vote || resolution.vote.passed;
   if (adopted && choice.id !== 'live-credits') spend(g, resolution.choice);
   const political = applyPoliticalResolution(g.politics!, g, choice, resolution, g.seed, g.turn);
   // Existing politics names its 30th decision the ending. V16 has no decision
   // calendar: only its 30th clock tick can complete the term.
   if (political.ending?.kind === 'term_complete' && g.turn < 30) delete political.ending;
+  if (choice.political?.action === 'dissolve' && resolution.vote?.kind === 'election') {
+    // The seat allocation is sampled once, then kept in the save until the
+    // ballot. Dissolution is not an instantaneous reshuffle of the Assembly.
+    state(g).pendingElection = {
+      announcedPeriod: g.turn, ballotPeriod: g.turn + 1,
+      blocs: structuredClone(political.blocs), cabinet: political.cabinet,
+      ...(political.pendingCrisis ? { pendingCrisis: political.pendingCrisis } : {}),
+      vote: structuredClone(resolution.vote),
+    };
+    political.blocs = structuredClone(beforePolitics.blocs);
+    political.cabinet = 'fallen';
+    delete political.pendingCrisis;
+    political.votes = structuredClone(beforePolitics.votes);
+    political.lastVote = beforePolitics.lastVote;
+    // The legal cooldown begins on dissolution, not at ballot publication.
+    political.lastDissolutionTurn = g.turn;
+  }
   g.politics = political;
   if(choice.political?.action==='coalition_government') {
    const cabinet=state(g).cabinet ??= {serial:0,name:'Gouvernement initial',appointedPeriod:0,attempts:[]};
@@ -334,6 +374,15 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
    if(adopted){cabinet.agreement={name:choice.id==='live-cabinet-compromise'?'de services publics':'de cohabitation',period:g.turn};political.cabinet='fallen';political.pendingCrisis='cabinet';}
   }
   state(g).lastFeedback={status:adopted?(resolution.vote?'adopted':choice.pressure?'engaged':'information'):'rejected',title:adopted?(resolution.vote?(choice.id==='live-credits'?'Crédits autorisés':reformId?'Réforme adoptée':'Accord adopté'):choice.pressure?'Intervention engagée':'Décision enregistrée'):'Proposition rejetée',detail:resolution.vote?`${resolution.vote.for} pour, ${resolution.vote.against} contre. ${adopted?(choice.id==='live-credits'?'10 Md€ autorisés pour financer des interventions.':choice.political?.action==='coalition_government'?'Le gouvernement peut maintenant être nommé.':choice.pressure?'La préparation peut commencer.':'Les effets votés sont enregistrés.'): 'Aucun coût ni effet de la proposition. Une autre orientation ou de nouvelles consultations sont nécessaires.'}`:choice.pressure?`${choice.title}. Les équipes préparent la mise en service ; le problème reste ouvert.`:choice.benefit};
+  if (state(g).pendingElection) state(g).lastFeedback = {
+    status: 'information', title: 'Assemblée dissoute · campagne ouverte',
+    detail: 'Les 577 sièges ne changent pas encore. La campagne commence ; le scrutin et la nouvelle Assemblée seront publiés à la prochaine période.',
+  };
+  else if (resolution.vote?.kind === 'censure') state(g).lastFeedback = {
+    status: resolution.vote.passed ? 'adopted' : 'rejected',
+    title: resolution.vote.passed ? 'Censure adoptée · gouvernement renversé' : 'Censure rejetée · gouvernement maintenu',
+    detail: `${resolution.vote.for} voix pour, ${resolution.vote.against} contre. ${resolution.vote.passed ? 'Le gouvernement doit être remplacé.' : 'La motion n’a pas renversé le gouvernement.'}`,
+  };
   if (state(g).civic && political.pendingCrisis !== 'cabinet') delete state(g).civic!.cabinetResignationPeriod;
   if (choice.id === 'live-credits') {
     const p = state(g); p.creditsRequested++; p.creditYears.push(yearFor(g));
@@ -347,7 +396,8 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
   if (choice.id === 'live-resign') g.politics!.ending = { kind: 'resignation', title: 'Vous démissionnez',
     reason: 'Vous présentez votre démission face à la crise révolutionnaire.', turn: g.turn, causes: ['Crise révolutionnaire ouverte', 'Démission présidentielle choisie'] };
   addInitiative(g, { actor: 'president', ...(choice.pressure ? { sector: choice.pressure.sector } : {}), title: choice.title,
-    detail: adopted ? choice.id === 'live-credits' ? 'Le Parlement autorise 10 Md€ supplémentaires ; aucun montant n’est ajouté aux recettes.'
+    detail: adopted ? choice.political?.action === 'dissolve' ? 'La dissolution est prononcée. Les sièges ne changeront qu’après la campagne et le scrutin.'
+      : choice.id === 'live-credits' ? 'Le Parlement autorise 10 Md€ supplémentaires ; aucun montant n’est ajouté aux recettes.'
       : `${choice.title} : ${money(orderCost(choice))} engagés. ${choice.pressure ? 'Les moyens attendent le calendrier et les équipes de mise en œuvre.' : choice.benefit}`
       : `${choice.title} : texte rejeté. Aucun coût ni effet de la proposition n’est engagé.`,
     cost: adopted ? orderCost(choice) : 0, choice: choice.id, status: adopted ? 'engaged' : 'rejected' });
@@ -372,11 +422,22 @@ function tick(g: Game): Game {
   g.politics!.legitimacy = clamp(g.politics!.legitimacy + pressure.legitimacy);
   g.politics!.blocs = g.politics!.blocs.map(bloc => ({ ...bloc, loyalty: clamp(bloc.loyalty + (bloc.inGovernment ? pressure.support : 0)) }));
   g.turn = nextPeriod;
+  if (p.pendingElection && g.turn >= p.pendingElection.ballotPeriod) {
+    const election = p.pendingElection;
+    g.politics!.blocs = structuredClone(election.blocs);
+    g.politics!.cabinet = election.cabinet;
+    if (election.pendingCrisis) g.politics!.pendingCrisis = election.pendingCrisis;
+    else delete g.politics!.pendingCrisis;
+    g.politics!.lastVote = structuredClone(election.vote);
+    g.politics!.votes.push(structuredClone(election.vote));
+    p.lastEvents.push('Scrutin législatif terminé : les 577 sièges sont redistribués. ' + (election.cabinet === 'fallen' ? 'Aucune majorité présidentielle : vous devez former un gouvernement.' : 'La majorité conserve la capacité de gouverner.'));
+    delete p.pendingElection;
+  }
   advanceCrises(g, previousCrisisState);
   for (const programme of g.pressure.programmes) {
     if (programme.deliveredTurn === g.turn && beforeProgrammes.get(programme.id) !== programme.status) {
       addInitiative(g, { actor: [...p.initiatives].reverse().find(item => item.choice === programme.sourceChoice && item.period === programme.sourceTurn && item.status === 'engaged')?.actor ?? 'president',
-        sector: programme.sector, title: 'Des moyens entrent en service', detail: `${programme.label} est opérationnel. Le retard évolue désormais avec cette capacité effective.`,
+        sector: programme.sector, title: `${programme.label} · livré`, detail: `${programme.label} est opérationnel. Le retard évolue désormais avec cette capacité effective.`,
         cost: 0, choice: programme.sourceChoice, status: 'delivered' });
     }
   }
@@ -410,12 +471,21 @@ export function startPresidency(seed = 0, ambition: Ambition = 'equilibre'): Gam
   if (!Number.isInteger(seed) || seed < 0 || seed > 9999 || !['equilibre', 'services', 'resilience'].includes(ambition)) throw new Error('Scénario de présidence invalide.');
   const g = startCampaign('national', seed, ambition, undefined, 15);
   g.version = 16;
-  g.presidency = { reserve: PRESIDENCY_INITIAL_RESERVE, authorised: PRESIDENCY_INITIAL_RESERVE, spent: 0, autonomy: true,
+  g.pressure!.execution.capacity += ambition === 'services' ? 1 : ambition === 'resilience' ? -1 : 0;
+  // The mission is not a cosmetic label: it changes the opening emergency,
+  // the available intervention envelope and the executive's initial priority.
+  const opening = ambition === 'services'
+    ? { crisis: 'cyber', reserve: 7.2, description: 'Hôpital paralysé : rétablir les admissions sans sacrifier les autres services.' }
+    : ambition === 'resilience'
+      ? { crisis: 'transformateur', reserve: 5.4, description: 'Réseau électrique coupé : restaurer l’alimentation et empêcher la propagation.' }
+      : { crisis: undefined, reserve: PRESIDENCY_INITIAL_RESERVE, description: 'Budget contraint : financer les urgences sans multiplier les engagements.' };
+  g.presidency = { reserve: opening.reserve, authorised: opening.reserve, spent: 0, autonomy: true,
     priority: ambition === 'services' ? 'health' : ambition === 'resilience' ? 'energy' : null,
     cabinet: { serial: 0, name: 'Gouvernement initial', appointedPeriod: 0, attempts: [] }, initiatives: [], reforms: [], creditsRequested: 0, creditYears: [], preparedYear: 1,
     budget: { year: 1, accruedOperating: 0, accruedRevenue: 0 },
     lastEvents: ['Le gouvernement est en fonction. Les ministères interviennent dans leurs crédits ; vous fixez le cap.'] };
-  initialCrises(g);
+  initialCrises(g, opening.crisis);
+  g.presidency.lastEvents.unshift(`Mission : ${opening.description} Crédits de départ : ${opening.reserve.toLocaleString('fr-FR')} Md€.`);
   advanceReformEvents(g);
   return g;
 }

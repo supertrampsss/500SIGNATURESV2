@@ -187,7 +187,10 @@
 .pr-event-pin--political .pr-pin__label { color:#a32822; }
 .pr-pin[data-live-pin=housing] .pr-pin__label { left:auto; right:41px; }
 .pr-ending-outcome { padding:10px 14px; margin-bottom:16px!important; background:#e9d6c5; border-left:4px solid #b53127; color:#7e231e; font:700 19px Georgia,serif; }
-.pr-ending-outcome[data-ending-kind=term_complete] { background:#e1e8da; border-color:#316e54; color:#2c5c47; }
+.pr-ending-outcome[data-ending-kind=victory] { background:#e1e8da; border-color:#316e54; color:#2c5c47; }
+.pr-ending-outcome[data-ending-kind=incomplete] { background:#fff0d3; border-color:#ad741b; color:#755018; }
+.pr-mission { display:block; font-size:10px; color:#f0d8aa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+@media(max-width:650px) { .pr-mission { max-width:125px; font-size:9px; } }
 @media(max-width:650px) {
  .pr-header { grid-template-columns:108px minmax(0,1fr) 44px; }
  .pr-brand { font-size:19px; letter-spacing:.005em; }
