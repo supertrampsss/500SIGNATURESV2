@@ -106,9 +106,12 @@ function orderCost(choice: Choice): number {
 }
 function orderMetadata(g: Game, choice: Choice): PresidencyOrder {
   const cost = orderCost(choice);
+  const lastDissolution = g.politics?.lastDissolutionTurn;
+  const cooldown = choice.political?.action === 'dissolve' && lastDissolution !== undefined && g.turn - lastDissolution < 6
+    ? 'Une nouvelle dissolution n’est pas possible avant un an.' : undefined;
   return { cost, delay: choice.pressure ? Math.max(1, choice.pressure.delay ?? 1) : (choice.delayed?.after ?? 0) * 6,
     implementation: choice.pressure ? choice.pressure.implementation ?? 1 : 0,
-    ...(cost > state(g).reserve + .00001 ? { unavailable: `Crédits disponibles : ${money(state(g).reserve)} ; engagement nécessaire : ${money(cost)}.` } : {}) };
+    ...(cooldown ? { unavailable: cooldown } : cost > state(g).reserve + .00001 ? { unavailable: `Crédits disponibles : ${money(state(g).reserve)} ; engagement nécessaire : ${money(cost)}.` } : {}) };
 }
 function withMetadata(g: Game, choice: Choice): Choice { return { ...choice, presidencyOrder: orderMetadata(g, choice) }; }
 function operationalChoice(g: Game, sector: PressureSectorId, kind: 'relief' | 'programme' | 'delegate' | 'recovery'): Choice {
@@ -393,7 +396,8 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
   if (choice.id === 'live-resign') g.politics!.ending = { kind: 'resignation', title: 'Vous démissionnez',
     reason: 'Vous présentez votre démission face à la crise révolutionnaire.', turn: g.turn, causes: ['Crise révolutionnaire ouverte', 'Démission présidentielle choisie'] };
   addInitiative(g, { actor: 'president', ...(choice.pressure ? { sector: choice.pressure.sector } : {}), title: choice.title,
-    detail: adopted ? choice.id === 'live-credits' ? 'Le Parlement autorise 10 Md€ supplémentaires ; aucun montant n’est ajouté aux recettes.'
+    detail: adopted ? choice.political?.action === 'dissolve' ? 'La dissolution est prononcée. Les sièges ne changeront qu’après la campagne et le scrutin.'
+      : choice.id === 'live-credits' ? 'Le Parlement autorise 10 Md€ supplémentaires ; aucun montant n’est ajouté aux recettes.'
       : `${choice.title} : ${money(orderCost(choice))} engagés. ${choice.pressure ? 'Les moyens attendent le calendrier et les équipes de mise en œuvre.' : choice.benefit}`
       : `${choice.title} : texte rejeté. Aucun coût ni effet de la proposition n’est engagé.`,
     cost: adopted ? orderCost(choice) : 0, choice: choice.id, status: adopted ? 'engaged' : 'rejected' });
