@@ -220,5 +220,12 @@ export function presidencyEventFan(game: Game,id: string): string {
 
 function lastVote(game: Game): string {
  const vote=game.politics?.lastVote;
- return vote ? `<section class="pr-vote pr-board-vote" data-live-vote data-vote-passed="${vote.passed}"><strong>${vote.passed ? 'Accord adopté' : 'Proposition rejetée'}</strong><p>${e(vote.title)}</p><span>${vote.for} pour · ${vote.against} contre · ${vote.abstain} abstentions</span></section>` : '';
+ if (!vote) return '';
+ const election = vote.kind === 'election';
+ const verdict = election ? 'Élections législatives · répartition des sièges'
+   : vote.kind === 'censure' ? vote.passed ? 'Censure adoptée · gouvernement renversé' : 'Censure rejetée · gouvernement maintenu'
+   : vote.passed ? 'Texte adopté' : 'Proposition rejetée';
+ const result = election ? vote.groups.map(group => `${e(group.label)} : ${group.seats ?? 0} sièges`).join(' · ')
+   : `${vote.for} pour · ${vote.against} contre · ${vote.abstain} abstentions`;
+ return `<section class="pr-vote pr-board-vote" data-live-vote data-vote-passed="${vote.passed}"><strong>${verdict}</strong><p>${e(vote.title)}</p><span>${result}</span></section>`;
 }
