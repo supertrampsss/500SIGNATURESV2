@@ -213,6 +213,11 @@ export function presidencyEvents(g: Game): PresidencyEvent[] {
     return reform ? [{ ...reform, kind: 'reform' as const, sector: reform.choices.find(c => c.pressure)?.pressure?.sector ?? 'administration' as PressureSectorId,
       reason: event.reason, status: 'decision' as const, deadline: event.expiresPeriod ?? event.offeredPeriod + 5, choices: [...reform.choices, ...(!event.deferred ? [reformControl(event.id,'defer')] : []), reformControl(event.id,'withdraw')], detail: NATIONAL_AGENDA.find(item => item.id === reform.id)!.dossier.story }] : [];
   });
+  const election = g.presidency.pendingElection;
+  if (election) events.push({ id:'political-campaign',kind:'political',sector:'administration',
+    title:'Campagne législative en cours',reason:'Vous avez dissous l’Assemblée nationale.',
+    detail:'Le gouvernement est chargé des affaires courantes. Les 577 sièges seront redistribués au scrutin ; une majorité de gouvernement devra ensuite être constituée.',
+    deadline:election.ballotPeriod,status:'preparing',progress:0,choices:[] });
   const civil = g.presidency.civic?.crisis;
   if (civil && civil.status !== 'resolved') events.push({ id: civil.id, kind: 'political', title: crisisSpec(civil).title, sector: civil.sector,
     detail: crisisSpec(civil).cause, deadline: (civil.stageStartedPeriod ?? civil.startedPeriod) + civil.deadline,
@@ -250,6 +255,7 @@ export function presidencyEvents(g: Game): PresidencyEvent[] {
 export function presidencyPoliticalActions(g: Game): Choice[] {
   if (g.version !== 16 || !g.presidency || finished(g)) return [];
   const cabinet=g.presidency.cabinet;
+  if (g.presidency.pendingElection) return [];
   if(g.politics?.pendingCrisis==='cabinet' && cabinet?.agreement) return [{id:'live-cabinet-appoint',title:`Nommer le gouvernement ${cabinet.agreement.name}`,description:'L’accord parlementaire est adopté. La nomination remet les ministères en fonction.',cost:'Les concessions de l’accord sont déjà engagées.',benefit:'La capacité du gouvernement reprend à la prochaine période.',sacrifice:'Le programme négocié engage le gouvernement.',effect:{},political:{action:'administrative'},presidencyOrder:{cost:0,delay:0,implementation:0}}];
   const choices = (politicalDossier(g)?.choices ?? []).filter(choice=> !cabinet?.attempts.some(a=>a.choice===choice.id&&a.period===g.turn)).map(choice => withMetadata(g, choice.id==='pol-cabinet-cohabitation'?{...choice,title:'Soumettre un accord de cohabitation',description:'Consulter les groupes puis soumettre leur accord au vote. La nomination aura lieu seulement après adoption.'}:choice));
   if(g.politics?.pendingCrisis==='cabinet' && cabinet?.attempts.some(a=>a.period===g.turn) && !cabinet.attempts.some(a=>a.choice==='live-cabinet-compromise'&&a.period===g.turn)) {
@@ -333,13 +339,31 @@ function governmentInitiative(g: Game) {
   }
 }
 function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: string[]; vote?: VoteRecord } {
-  const resolution = resolvePoliticalChoice(g.politics!, choice, g.seed, g.turn, g.society?.workers ?? 50);
+  const beforePolitics = g.politics!;
+  const resolution = resolvePoliticalChoice(beforePolitics, choice, g.seed, g.turn, g.society?.workers ?? 50);
   const adopted = !resolution.vote || resolution.vote.passed;
   if (adopted && choice.id !== 'live-credits') spend(g, resolution.choice);
   const political = applyPoliticalResolution(g.politics!, g, choice, resolution, g.seed, g.turn);
   // Existing politics names its 30th decision the ending. V16 has no decision
   // calendar: only its 30th clock tick can complete the term.
   if (political.ending?.kind === 'term_complete' && g.turn < 30) delete political.ending;
+  if (choice.political?.action === 'dissolve' && resolution.vote?.kind === 'election') {
+    // The seat allocation is sampled once, then kept in the save until the
+    // ballot. Dissolution is not an instantaneous reshuffle of the Assembly.
+    state(g).pendingElection = {
+      announcedPeriod: g.turn, ballotPeriod: g.turn + 1,
+      blocs: structuredClone(political.blocs), cabinet: political.cabinet,
+      ...(political.pendingCrisis ? { pendingCrisis: political.pendingCrisis } : {}),
+      vote: structuredClone(resolution.vote),
+    };
+    political.blocs = structuredClone(beforePolitics.blocs);
+    political.cabinet = 'fallen';
+    delete political.pendingCrisis;
+    political.votes = structuredClone(beforePolitics.votes);
+    political.lastVote = beforePolitics.lastVote;
+    // The legal cooldown begins on dissolution, not at ballot publication.
+    political.lastDissolutionTurn = g.turn;
+  }
   g.politics = political;
   if(choice.political?.action==='coalition_government') {
    const cabinet=state(g).cabinet ??= {serial:0,name:'Gouvernement initial',appointedPeriod:0,attempts:[]};
@@ -347,6 +371,15 @@ function resolveOrder(g: Game, choice: Choice, reformId?: string): { messages: s
    if(adopted){cabinet.agreement={name:choice.id==='live-cabinet-compromise'?'de services publics':'de cohabitation',period:g.turn};political.cabinet='fallen';political.pendingCrisis='cabinet';}
   }
   state(g).lastFeedback={status:adopted?(resolution.vote?'adopted':choice.pressure?'engaged':'information'):'rejected',title:adopted?(resolution.vote?(choice.id==='live-credits'?'Crédits autorisés':reformId?'Réforme adoptée':'Accord adopté'):choice.pressure?'Intervention engagée':'Décision enregistrée'):'Proposition rejetée',detail:resolution.vote?`${resolution.vote.for} pour, ${resolution.vote.against} contre. ${adopted?(choice.id==='live-credits'?'10 Md€ autorisés pour financer des interventions.':choice.political?.action==='coalition_government'?'Le gouvernement peut maintenant être nommé.':choice.pressure?'La préparation peut commencer.':'Les effets votés sont enregistrés.'): 'Aucun coût ni effet de la proposition. Une autre orientation ou de nouvelles consultations sont nécessaires.'}`:choice.pressure?`${choice.title}. Les équipes préparent la mise en service ; le problème reste ouvert.`:choice.benefit};
+  if (state(g).pendingElection) state(g).lastFeedback = {
+    status: 'information', title: 'Assemblée dissoute · campagne ouverte',
+    detail: 'Les 577 sièges ne changent pas encore. La campagne commence ; le scrutin et la nouvelle Assemblée seront publiés à la prochaine période.',
+  };
+  else if (resolution.vote?.kind === 'censure') state(g).lastFeedback = {
+    status: resolution.vote.passed ? 'adopted' : 'rejected',
+    title: resolution.vote.passed ? 'Censure adoptée · gouvernement renversé' : 'Censure rejetée · gouvernement maintenu',
+    detail: `${resolution.vote.for} voix pour, ${resolution.vote.against} contre. ${resolution.vote.passed ? 'Le gouvernement doit être remplacé.' : 'La motion n’a pas renversé le gouvernement.'}`,
+  };
   if (state(g).civic && political.pendingCrisis !== 'cabinet') delete state(g).civic!.cabinetResignationPeriod;
   if (choice.id === 'live-credits') {
     const p = state(g); p.creditsRequested++; p.creditYears.push(yearFor(g));
@@ -385,6 +418,17 @@ function tick(g: Game): Game {
   g.politics!.legitimacy = clamp(g.politics!.legitimacy + pressure.legitimacy);
   g.politics!.blocs = g.politics!.blocs.map(bloc => ({ ...bloc, loyalty: clamp(bloc.loyalty + (bloc.inGovernment ? pressure.support : 0)) }));
   g.turn = nextPeriod;
+  if (p.pendingElection && g.turn >= p.pendingElection.ballotPeriod) {
+    const election = p.pendingElection;
+    g.politics!.blocs = structuredClone(election.blocs);
+    g.politics!.cabinet = election.cabinet;
+    if (election.pendingCrisis) g.politics!.pendingCrisis = election.pendingCrisis;
+    else delete g.politics!.pendingCrisis;
+    g.politics!.lastVote = structuredClone(election.vote);
+    g.politics!.votes.push(structuredClone(election.vote));
+    p.lastEvents.push('Scrutin législatif terminé : les 577 sièges sont redistribués. ' + (election.cabinet === 'fallen' ? 'Aucune majorité présidentielle : vous devez former un gouvernement.' : 'La majorité conserve la capacité de gouverner.'));
+    delete p.pendingElection;
+  }
   advanceCrises(g, previousCrisisState);
   for (const programme of g.pressure.programmes) {
     if (programme.deliveredTurn === g.turn && beforeProgrammes.get(programme.id) !== programme.status) {
