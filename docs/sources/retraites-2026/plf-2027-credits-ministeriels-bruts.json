@@ -1,0 +1,765 @@
+[
+  {
+    "nom": "Action et comptes publics",
+    "ae": 163066746382,
+    "cp": 162937465493,
+    "programmes": [
+      {
+        "nom": "Gestion fiscale et financière de l’État et du secteur public local",
+        "ae": 8207808301,
+        "cp": 8203334692
+      },
+      {
+        "nom": "Conduite et pilotage des politiques économiques et financières",
+        "ae": 1021623875,
+        "cp": 1039794663
+      },
+      {
+        "nom": "Facilitation et sécurisation des échanges",
+        "ae": 1869168041,
+        "cp": 1841541081
+      },
+      {
+        "nom": "Régimes sociaux et de retraite des transports terrestres",
+        "ae": 3856323110,
+        "cp": 3856323110
+      },
+      {
+        "nom": "Régimes de retraite des mines, de la SEITA, et divers",
+        "ae": 998980968,
+        "cp": 998980968
+      },
+      {
+        "nom": "Remboursements et dégrèvements d’impôts d’État (crédits évaluatifs)",
+        "ae": 140193417535,
+        "cp": 140193417535
+      },
+      {
+        "nom": "Remboursements et dégrèvements d’impôts locaux (crédits évaluatifs)",
+        "ae": 4312420666,
+        "cp": 4312420666
+      },
+      {
+        "nom": "Présidence de la République",
+        "ae": 122563852,
+        "cp": 122563852
+      },
+      {
+        "nom": "Assemblée nationale",
+        "ae": 619800520,
+        "cp": 619800520
+      },
+      {
+        "nom": "Sénat",
+        "ae": 360540300,
+        "cp": 360540300
+      },
+      {
+        "nom": "La Chaîne parlementaire",
+        "ae": 35596900,
+        "cp": 35596900
+      },
+      {
+        "nom": "Conseil constitutionnel",
+        "ae": 20000000,
+        "cp": 20000000
+      },
+      {
+        "nom": "Cour de justice de la République",
+        "ae": 5480000,
+        "cp": 880000
+      },
+      {
+        "nom": "Provision relative aux rémunérations publiques",
+        "ae": 60000000,
+        "cp": 60000000
+      },
+      {
+        "nom": "Dépenses accidentelles et imprévisibles",
+        "ae": 425000000,
+        "cp": 125000000
+      },
+      {
+        "nom": "Compensation des exonérations relatives au taux de contribution employeur du CAS « Pensions »",
+        "ae": 630877815,
+        "cp": 630877815
+      },
+      {
+        "nom": "Performance et résilience des bâtiments de l’État et de ses opérateurs",
+        "ae": 57141756,
+        "cp": 237026648
+      },
+      {
+        "nom": "Accès, qualité et transformation des services publics",
+        "ae": 44856031,
+        "cp": 52519031
+      },
+      {
+        "nom": "Fonction publique",
+        "ae": 225146712,
+        "cp": 226847712
+      }
+    ]
+  },
+  {
+    "nom": "Agriculture, agro-alimentaire et souveraineté alimentaire",
+    "ae": 5733832377,
+    "cp": 5783539164,
+    "programmes": [
+      {
+        "nom": "Compétitivité et durabilité de l’agriculture et de l’agroalimentaire",
+        "ae": 2057056982,
+        "cp": 2111239345
+      },
+      {
+        "nom": "Sécurité et qualité sanitaires de l’alimentation",
+        "ae": 822700202,
+        "cp": 819608657
+      },
+      {
+        "nom": "Conduite et pilotage des politiques de l’agriculture",
+        "ae": 637989867,
+        "cp": 653940810
+      },
+      {
+        "nom": "Enseignement technique agricole",
+        "ae": 1772643788,
+        "cp": 1771859532
+      },
+      {
+        "nom": "Enseignement supérieur et recherche agricoles",
+        "ae": 443441538,
+        "cp": 426890820
+      }
+    ]
+  },
+  {
+    "nom": "Aménagement du territoire et de la décentralisation",
+    "ae": 5450447638,
+    "cp": 5292410030,
+    "programmes": [
+      {
+        "nom": "Concours financiers aux collectivités territoriales et à leurs groupements",
+        "ae": 3722284595,
+        "cp": 3602082392
+      },
+      {
+        "nom": "Concours spécifiques et administration",
+        "ae": 399591261,
+        "cp": 389159647
+      },
+      {
+        "nom": "Impulsion et coordination de la politique d’aménagement du territoire",
+        "ae": 343971782,
+        "cp": 319784139
+      },
+      {
+        "nom": "Fonds d’accélération de la transition écologique dans les territoires",
+        "ae": 984600000,
+        "cp": 981383852
+      }
+    ]
+  },
+  {
+    "nom": "Armées et anciens combattants",
+    "ae": 89949743926,
+    "cp": 74681933142,
+    "programmes": [
+      {
+        "nom": "Reconnaissance et réparation en faveur du monde combattant, mémoire et liens avec la Nation",
+        "ae": 1528492345,
+        "cp": 1528492345
+      },
+      {
+        "nom": "Environnement et prospective de la politique de défense",
+        "ae": 2812721242,
+        "cp": 2633211519
+      },
+      {
+        "nom": "Préparation et emploi des forces",
+        "ae": 18792071475,
+        "cp": 17407123018
+      },
+      {
+        "nom": "Soutien de la politique de la défense",
+        "ae": 27214237167,
+        "cp": 26158231408
+      },
+      {
+        "nom": "Équipement des forces",
+        "ae": 39602221697,
+        "cp": 26954874852
+      }
+    ]
+  },
+  {
+    "nom": "Culture",
+    "ae": 4391476566,
+    "cp": 4361722995,
+    "programmes": [
+      {
+        "nom": "Patrimoines",
+        "ae": 1089308081,
+        "cp": 1116268560
+      },
+      {
+        "nom": "Création",
+        "ae": 1019231644,
+        "cp": 962958529
+      },
+      {
+        "nom": "Transmission des savoirs et démocratisation de la culture",
+        "ae": 721933265,
+        "cp": 712039934
+      },
+      {
+        "nom": "Soutien aux politiques du ministère de la culture",
+        "ae": 859069696,
+        "cp": 857929871
+      },
+      {
+        "nom": "Presse et médias",
+        "ae": 363312610,
+        "cp": 362329698
+      },
+      {
+        "nom": "Livre et industries culturelles",
+        "ae": 338621270,
+        "cp": 350196403
+      }
+    ]
+  },
+  {
+    "nom": "Économie, finances et souveraineté industrielle, énergétique et numérique",
+    "ae": 92952970416,
+    "cp": 92334640124,
+    "programmes": [
+      {
+        "nom": "Aide économique et financière au développement",
+        "ae": 678408758,
+        "cp": 1090913775
+      },
+      {
+        "nom": "Renforcement des fonds propres de l’Agence française de développement",
+        "ae": 115000000,
+        "cp": 115000000
+      },
+      {
+        "nom": "Développement des entreprises et régulations",
+        "ae": 2321923611,
+        "cp": 2157968666
+      },
+      {
+        "nom": "Plan France Très haut débit",
+        "ae": 3135000,
+        "cp": 192013496
+      },
+      {
+        "nom": "Charge de la dette et trésorerie de l’État (crédits évaluatifs)",
+        "ae": 72373000000,
+        "cp": 72373000000
+      },
+      {
+        "nom": "Énergie, climat et après-mines",
+        "ae": 1251260465,
+        "cp": 1227419465
+      },
+      {
+        "nom": "Service public de l’énergie",
+        "ae": 10749607515,
+        "cp": 9491607515
+      },
+      {
+        "nom": "Statistiques et études économiques",
+        "ae": 494213338,
+        "cp": 491980558
+      },
+      {
+        "nom": "Stratégies économiques",
+        "ae": 654208580,
+        "cp": 656208759
+      },
+      {
+        "nom": "Recherche dans les domaines de l’énergie, du développement et de la mobilité durables",
+        "ae": 1490796157,
+        "cp": 1535011256
+      },
+      {
+        "nom": "Recherche et enseignement supérieur en matière économique et industrielle",
+        "ae": 580921736,
+        "cp": 580921736
+      },
+      {
+        "nom": "Charge de la dette de SNCF Réseau reprise par l’État (crédits évaluatifs)",
+        "ae": 561000000,
+        "cp": 561000000
+      },
+      {
+        "nom": "Appels en garantie de l’État (crédits évaluatifs)",
+        "ae": 1120547282,
+        "cp": 1120547282
+      },
+      {
+        "nom": "Sûreté nucléaire et radioprotection",
+        "ae": 337015633,
+        "cp": 343625159
+      },
+      {
+        "nom": "Épargne",
+        "ae": 84112341,
+        "cp": 84112341
+      },
+      {
+        "nom": "Fonds de soutien relatif aux prêts et contrats financiers structurés à risque",
+        "ae": 0,
+        "cp": 175490116
+      },
+      {
+        "nom": "Soutien financier au nouveau nucléaire français",
+        "ae": 137820000,
+        "cp": 137820000
+      },
+      {
+        "nom": "Dotation du Mécanisme européen de stabilité",
+        "ae": 0,
+        "cp": 0
+      }
+    ]
+  },
+  {
+    "nom": "Éducation nationale",
+    "ae": 88978032624,
+    "cp": 89088039664,
+    "programmes": [
+      {
+        "nom": "Enseignement scolaire public du premier degré",
+        "ae": 28524973930,
+        "cp": 28524973930
+      },
+      {
+        "nom": "Enseignement scolaire public du second degré",
+        "ae": 40283734388,
+        "cp": 40283677823
+      },
+      {
+        "nom": "Vie de l’élève",
+        "ae": 8245177340,
+        "cp": 8252517134
+      },
+      {
+        "nom": "Enseignement privé du premier et du second degrés",
+        "ae": 8939683705,
+        "cp": 8939648669
+      },
+      {
+        "nom": "Conduite et soutien des politiques de l’enseignement, de la recherche, de la jeunesse, de la vie associative et des sports",
+        "ae": 2984463261,
+        "cp": 3087222108
+      }
+    ]
+  },
+  {
+    "nom": "Enseignement supérieur, recherche et espace",
+    "ae": 29524422151,
+    "cp": 29511682613,
+    "programmes": [
+      {
+        "nom": "Formations supérieures et recherche universitaire",
+        "ae": 15643093575,
+        "cp": 15786054527
+      },
+      {
+        "nom": "Vie étudiante",
+        "ae": 3361217042,
+        "cp": 3330717209
+      },
+      {
+        "nom": "Recherches scientifiques et technologiques pluridisciplinaires",
+        "ae": 8556290955,
+        "cp": 8431090298
+      },
+      {
+        "nom": "Recherche spatiale",
+        "ae": 1963820579,
+        "cp": 1963820579
+      }
+    ]
+  },
+  {
+    "nom": "Europe et affaires étrangères",
+    "ae": 5132755473,
+    "cp": 5429246943,
+    "programmes": [
+      {
+        "nom": "Action de la France en Europe et dans le monde",
+        "ae": 2681809076,
+        "cp": 2691569457
+      },
+      {
+        "nom": "Diplomatie culturelle et d’influence",
+        "ae": 606126220,
+        "cp": 606126220
+      },
+      {
+        "nom": "Français à l’étranger et affaires consulaires",
+        "ae": 166473620,
+        "cp": 166684620
+      },
+      {
+        "nom": "Solidarité à l’égard des pays en développement",
+        "ae": 769194672,
+        "cp": 1226866646
+      },
+      {
+        "nom": "Restitution des « biens mal acquis »",
+        "ae": 22000000,
+        "cp": 0
+      },
+      {
+        "nom": "Fonds de solidarité pour le développement",
+        "ae": 887151885,
+        "cp": 738000000
+      }
+    ]
+  },
+  {
+    "nom": "Intérieur",
+    "ae": 36563291882,
+    "cp": 34239677862,
+    "programmes": [
+      {
+        "nom": "Administration territoriale de l’État",
+        "ae": 2867343824,
+        "cp": 2754602290
+      },
+      {
+        "nom": "Vie politique",
+        "ae": 587023619,
+        "cp": 587980174
+      },
+      {
+        "nom": "Conduite et pilotage des politiques de l’intérieur",
+        "ae": 1768767371,
+        "cp": 2174119829
+      },
+      {
+        "nom": "Immigration et asile",
+        "ae": 1897971865,
+        "cp": 1723707422
+      },
+      {
+        "nom": "Intégration et accès à la nationalité française",
+        "ae": 363974858,
+        "cp": 363889193
+      },
+      {
+        "nom": "Police nationale",
+        "ae": 14485360764,
+        "cp": 14145443750
+      },
+      {
+        "nom": "Gendarmerie nationale",
+        "ae": 12451940379,
+        "cp": 11314541261
+      },
+      {
+        "nom": "Sécurité et éducation routières",
+        "ae": 78622634,
+        "cp": 77115152
+      },
+      {
+        "nom": "Sécurité civile",
+        "ae": 2062286568,
+        "cp": 1098278791
+      }
+    ]
+  },
+  {
+    "nom": "Justice",
+    "ae": 12712337554,
+    "cp": 13431798805,
+    "programmes": [
+      {
+        "nom": "Justice judiciaire",
+        "ae": 4761866801,
+        "cp": 4813406204
+      },
+      {
+        "nom": "Administration pénitentiaire",
+        "ae": 5030867512,
+        "cp": 5790230570
+      },
+      {
+        "nom": "Protection judiciaire de la jeunesse",
+        "ae": 1195031764,
+        "cp": 1173355630
+      },
+      {
+        "nom": "Accès au droit et à la justice",
+        "ae": 832771821,
+        "cp": 832851612
+      },
+      {
+        "nom": "Conduite et pilotage de la politique de la justice",
+        "ae": 886358448,
+        "cp": 815572013
+      },
+      {
+        "nom": "Conseil supérieur de la magistrature",
+        "ae": 5441208,
+        "cp": 6382776
+      }
+    ]
+  },
+  {
+    "nom": "Outre-Mer",
+    "ae": 3622447012,
+    "cp": 3739788972,
+    "programmes": [
+      {
+        "nom": "Emploi outre-mer",
+        "ae": 2284077387,
+        "cp": 2264741612
+      },
+      {
+        "nom": "Conditions de vie outre-mer",
+        "ae": 1007697822,
+        "cp": 1191748579
+      },
+      {
+        "nom": "Interventions territoriales de l’État",
+        "ae": 330671803,
+        "cp": 283298781
+      }
+    ]
+  },
+  {
+    "nom": "Santé, familles, autonomie et personnes handicapées",
+    "ae": 19064895784,
+    "cp": 19065035831,
+    "programmes": [
+      {
+        "nom": "Prévention, sécurité sanitaire et offre de soins",
+        "ae": 309333278,
+        "cp": 310733258
+      },
+      {
+        "nom": "Handicap et dépendance",
+        "ae": 17297262506,
+        "cp": 17296002573
+      },
+      {
+        "nom": "Protection maladie",
+        "ae": 1216300000,
+        "cp": 1216300000
+      },
+      {
+        "nom": "Reversement à la sécurité sociale des recettes de la Facilité pour la Relance et la Résilience (FRR) européenne au titre du volet « Ségur investissement » du plan national de relance et de résilience (PNRR)",
+        "ae": 242000000,
+        "cp": 242000000
+      }
+    ]
+  },
+  {
+    "nom": "Services du Premier ministre",
+    "ae": 2001165185,
+    "cp": 6005211688,
+    "programmes": [
+      {
+        "nom": "Indemnisation des victimes des persécutions antisémites et des actes de barbarie pendant la seconde guerre mondiale",
+        "ae": 74044710,
+        "cp": 74044710
+      },
+      {
+        "nom": "Conseil d’État et autres juridictions administratives",
+        "ae": 567031730,
+        "cp": 560765599
+      },
+      {
+        "nom": "Conseil économique, social et environnemental",
+        "ae": 33956438,
+        "cp": 34002566
+      },
+      {
+        "nom": "Cour des comptes et autres juridictions financières",
+        "ae": 267149258,
+        "cp": 263804959
+      },
+      {
+        "nom": "Coordination du travail gouvernemental",
+        "ae": 814256761,
+        "cp": 826556672
+      },
+      {
+        "nom": "Égalité entre les femmes et les hommes",
+        "ae": 106279485,
+        "cp": 106279485
+      },
+      {
+        "nom": "Protection des droits et libertés",
+        "ae": 138446803,
+        "cp": 139887697
+      },
+      {
+        "nom": "Soutien des progrès de l’enseignement et de la recherche",
+        "ae": 0,
+        "cp": 81000000
+      },
+      {
+        "nom": "Valorisation de la recherche",
+        "ae": 0,
+        "cp": 25200000
+      },
+      {
+        "nom": "Accélération de la modernisation des entreprises",
+        "ae": 0,
+        "cp": 0
+      },
+      {
+        "nom": "Financement des investissements stratégiques",
+        "ae": 0,
+        "cp": 3238670000
+      },
+      {
+        "nom": "Financement structurel des écosystèmes d’innovation",
+        "ae": 0,
+        "cp": 655000000
+      }
+    ]
+  },
+  {
+    "nom": "Sports, jeunesse et vie associative",
+    "ae": 1183987268,
+    "cp": 1251045491,
+    "programmes": [
+      {
+        "nom": "Sport",
+        "ae": 484448932,
+        "cp": 500807155
+      },
+      {
+        "nom": "Jeunesse et vie associative",
+        "ae": 637938336,
+        "cp": 637938336
+      },
+      {
+        "nom": "Jeux olympiques et paralympiques d’hiver 2030",
+        "ae": 61600000,
+        "cp": 112300000
+      }
+    ]
+  },
+  {
+    "nom": "Transition écologique, biodiversité et négociations internationales sur le climat et la nature",
+    "ae": 7915303763,
+    "cp": 7320693637,
+    "programmes": [
+      {
+        "nom": "Mer, pêche et aquaculture",
+        "ae": 331699766,
+        "cp": 324780568
+      },
+      {
+        "nom": "Paysages, eau et biodiversité",
+        "ae": 369839583,
+        "cp": 388186306
+      },
+      {
+        "nom": "Expertise, information géographique et météorologie",
+        "ae": 641851542,
+        "cp": 641851542
+      },
+      {
+        "nom": "Prévention des risques",
+        "ae": 2225328812,
+        "cp": 1575599011
+      },
+      {
+        "nom": "Conduite et pilotage des politiques de l’écologie, du développement et de la mobilité durables",
+        "ae": 3142628296,
+        "cp": 3198232258
+      },
+      {
+        "nom": "Régimes de retraite et de sécurité sociale des marins",
+        "ae": 786911970,
+        "cp": 786911970
+      },
+      {
+        "nom": "Forêt",
+        "ae": 417043794,
+        "cp": 405131982
+      }
+    ]
+  },
+  {
+    "nom": "Transports",
+    "ae": 4525120211,
+    "cp": 4835605550,
+    "programmes": [
+      {
+        "nom": "Infrastructures et services de transports",
+        "ae": 4525120211,
+        "cp": 4835605550
+      }
+    ]
+  },
+  {
+    "nom": "Travail et solidarités",
+    "ae": 33869953857,
+    "cp": 33635369479,
+    "programmes": [
+      {
+        "nom": "Inclusion sociale et protection des personnes",
+        "ae": 14782780574,
+        "cp": 14783380574
+      },
+      {
+        "nom": "Accès et retour à l’emploi",
+        "ae": 6456723359,
+        "cp": 6479147409
+      },
+      {
+        "nom": "Accompagnement des mutations économiques et développement de l’emploi",
+        "ae": 10537359273,
+        "cp": 10234834400
+      },
+      {
+        "nom": "Amélioration de la qualité de l’emploi et des relations du travail",
+        "ae": 82663545,
+        "cp": 82140463
+      },
+      {
+        "nom": "Soutien des ministères sociaux",
+        "ae": 2010427106,
+        "cp": 2055866633
+      }
+    ]
+  },
+  {
+    "nom": "Ville et logement",
+    "ae": 26229891059,
+    "cp": 22194967850,
+    "programmes": [
+      {
+        "nom": "Hébergement, parcours vers le logement et insertion des personnes vulnérables",
+        "ae": 3255255007,
+        "cp": 3261443368
+      },
+      {
+        "nom": "Aide à l’accès au logement",
+        "ae": 16520517313,
+        "cp": 16520517313
+      },
+      {
+        "nom": "Urbanisme, territoires et amélioration de l’habitat",
+        "ae": 5835051779,
+        "cp": 1793940209
+      },
+      {
+        "nom": "Politique de la ville",
+        "ae": 619066960,
+        "cp": 619066960
+      }
+    ]
+  }
+]

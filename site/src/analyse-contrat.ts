@@ -49,7 +49,7 @@ export type AxeAnalyse = {
   seriesIds: string[];
 };
 
-export type TypeVisualisationAnalyse = "line" | "bar" | "timeline" | "snapshot_table" | "stacked_percent";
+export type TypeVisualisationAnalyse = "line" | "bar" | "timeline" | "snapshot_table" | "stacked_percent" | "budget_comparison";
 
 export type VisualisationAnalyse = {
   id: string;
@@ -62,6 +62,7 @@ export type VisualisationAnalyse = {
   /** Obligatoires dès qu'une figure mêle plusieurs unités. */
   axes?: AxeAnalyse[];
   composition?: { partLabel: string; remainderLabel: string };
+  budgetRows?: { label: string; budgetId: string; retirementId?: string; estimated?: boolean }[];
 };
 
 export type SectionAnalyse = {
@@ -102,6 +103,7 @@ const TYPES_VISUALISATION = new Set<TypeVisualisationAnalyse>([
   "timeline",
   "snapshot_table",
   "stacked_percent",
+  "budget_comparison",
 ]);
 
 function objet(value: unknown): value is Record<string, unknown> {
@@ -340,6 +342,16 @@ function verifierVisualisations(value: unknown, erreurs: string[], facultatif = 
     if (!seriesIds.length && !preuveIds.length) {
       erreurs.push(`${chemin} doit référencer au moins une série ou une preuve`);
     }
+    if (element.type === "budget_comparison") {
+      for (const [i, row] of listeNonVide(element.budgetRows, `${chemin}.budgetRows`, erreurs).entries()) {
+        if (!objet(row)) { erreurs.push(`${chemin}.budgetRows[${i}] doit être un objet`); continue; }
+        chaine(row.label, `${chemin}.budgetRows[${i}].label`, erreurs);
+        if (row.estimated !== undefined && typeof row.estimated !== "boolean") erreurs.push(`${chemin}.budgetRows[${i}].estimated doit être booléen`);
+        idStable(row.budgetId, `${chemin}.budgetRows[${i}].budgetId`, erreurs);
+        if (row.retirementId !== undefined) idStable(row.retirementId, `${chemin}.budgetRows[${i}].retirementId`, erreurs);
+      }
+      if (!preuveIds.length || seriesIds.length) erreurs.push(`${chemin} doit référencer uniquement des preuves`);
+    }
     if (element.type === "stacked_percent") {
       if (!objet(element.composition)) erreurs.push(`${chemin}.composition est obligatoire`);
       else {
@@ -529,6 +541,19 @@ export function validerDossierAnalyse(
     (visualisation.preuveIds ?? []).forEach((id, rang) =>
       exigerReference(id, preuveParId, `visualisations[${index}].preuveIds[${rang}]`, erreurs)
     );
+    if (visualisation.type === "budget_comparison") {
+      for (const row of visualisation.budgetRows ?? []) {
+        for (const id of [row.budgetId, row.retirementId].filter((id): id is string => !!id)) {
+          exigerReference(id, preuveParId, `visualisations[${index}].budgetRows`, erreurs);
+          const p = preuveParId.get(id);
+          if (p && (p.unit !== "EUR" || p.value < 0)) erreurs.push(`visualisations[${index}] exige des montants EUR positifs`);
+          if (!(visualisation.preuveIds ?? []).includes(id)) erreurs.push(`visualisations[${index}].preuveIds doit inclure ${id}`);
+        }
+        const budget = preuveParId.get(row.budgetId), retirement = row.retirementId ? preuveParId.get(row.retirementId) : undefined;
+        if (budget && retirement && budget.period !== retirement.period) erreurs.push(`visualisations[${index}] exige le même exercice`);
+        if (budget && retirement && retirement.value > budget.value) erreurs.push(`visualisations[${index}] retraites supérieures au budget`);
+      }
+    }
     if (visualisation.type === "stacked_percent") {
       for (const id of visualisation.preuveIds ?? []) {
         const preuve = preuveParId.get(id);

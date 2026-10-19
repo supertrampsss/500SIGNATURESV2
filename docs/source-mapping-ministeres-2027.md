@@ -1,4 +1,15 @@
-# Source du graphique ministériel Bercy 2027
+# Présentation monétaire des budgets ministériels — 19 octobre 2026
+
+La présentation publique utilise désormais `ministeres-montants-2027.json` dans `docs/sources/retraites-2026/` : crédits de paiement monétaires du PLF, contributions civiles/militaires des PAP et estimation des cotisations salariales aux taux publiés. Le script et le rapport de validation sont conservés à côté du JSON. Les champs `budget`, `retraites` et `apresReclassement` sont en euros ; le site affiche des Md€ avec une précision adaptée aux petits montants.
+
+Les montants après reclassement sont les budgets diminués des retraites ; aucune somme inter-ministères n'est présentée comme le coût de toutes les retraites françaises. Les remboursements et dégrèvements sont retirés des crédits Action et comptes publics. Les cotisations salariales étant estimées, la présentation signale ces montants et leurs résultats par ≈. Les contributions ATI et les différences d’assiette limitent la précision du calcul, comme décrit dans le fichier source.
+
+Limite : le montant T3 des opérateurs de l’Enseignement supérieur n’est pas chiffré dans les sources monétaires consultées ; ses deux cellules restent indisponibles, sans remplacer le total par son seul T2. Santé et Transports sont à zéro dans le champ CAS retenu par Bercy : cela ne signifie pas zéro retraite tous régimes. Aucune somme en euros n’est extrapolée depuis la géométrie de la figure.
+
+Le module `bercy-ministeres-montants.ts` et les preuves monétaires du dossier reprennent les mêmes valeurs. Les tests vérifient cette concordance, les soustractions, les unités et la conservation des données absentes. Le graphique original ci-dessous reste archivé pour provenance et contrôle de cohérence, sans servir au calcul des montants.
+
+## Graphique original archivé
+
 
 Livrable : `docs/sources/retraites-2026/bercy-figure3b-2027.json`.
 

@@ -9,11 +9,12 @@ test('Retraites : périmètres explicites et financement public accessible depui
  const refus=page.getByRole('button',{name:'Refuser',exact:true});
  if(await refus.isVisible())await refus.click();
  await expect(page.locator('#france-sorties')).toContainText('Retraites');
- await expect(page.locator('#reclassement-bercy .stacked-percent__row')).toHaveCount(19);
+ await expect(page.locator('#reclassement-bercy .budget-comparison__row')).toHaveCount(19);
  await expect(page.locator('#reclassement-bercy')).toContainText('Défense');
- await expect(page.locator('#reclassement-bercy .stacked-percent__key--part')).toHaveText('Retraites');
- await expect(page.locator('#reclassement-bercy .stacked-percent__bar').first()).toHaveCSS('display','flex');
- expect(await page.locator('#reclassement-bercy .stacked-percent__bar').first().evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(0);
+ await expect(page.locator('#reclassement-bercy')).toContainText('Md€');
+ await expect(page.locator('#reclassement-bercy thead th').first()).toHaveCSS('position','static');
+ await expect(page.locator('#reclassement-bercy')).toContainText('60,6');
+ for(const row of await page.locator('#reclassement-bercy [data-retirement-eur]').evaluateAll(es=>es.map(e=>e.dataset))) expect(Number(row.retirementEur)+Number(row.remainingEur)).toBe(Number(row.budgetEur));
  await page.locator('#reclassement-bercy').screenshot({path:info.outputPath('bercy-reclassement.png'),animations:'disabled',scale:'css'});
  await page.locator('#france-sorties').screenshot({path:info.outputPath('france-repartition.png'),animations:'disabled',scale:'css'});
  await expect(page.locator('#france-sorties')).not.toContainText('réversion figurent dans les autres dépenses');
@@ -25,7 +26,7 @@ test('Retraites : périmètres explicites et financement public accessible depui
  await page.screenshot({path:info.outputPath('france-retraites.png'),fullPage:true,animations:'disabled',scale:'css'});
  await theme.getByRole('link',{name:'Comprendre le financement des retraites publiques'}).click();
  await expect(page).toHaveURL(new RegExp(dossier));
- await expect(page.locator('#figure-ministeres-reclasses .stacked-percent__row')).toHaveCount(19);
+ await expect(page.locator('#figure-ministeres-reclasses .budget-comparison__row')).toHaveCount(19);
  await page.locator('#figure-ministeres-reclasses').screenshot({path:info.outputPath('dossier-reclassement.png'),animations:'disabled',scale:'css'});
  await expect(page.locator('main')).toContainText('41,5');
  await expect(page.locator('main')).toContainText('43,9');
@@ -50,13 +51,14 @@ test('Les dossiers retraites et Défense conservent leurs sources en fin de lect
 
  test('Salaires : une seule ligne Retraites et reclassement ministériel sans double compte', async ({page},info)=>{
  await page.goto('/salaires/');
- await expect(page.locator('#reclassement-bercy .stacked-percent__row')).toHaveCount(19);
+ await expect(page.locator('#reclassement-bercy .budget-comparison__row')).toHaveCount(19);
  await expect(page.locator('#reclassement-bercy')).toContainText('Défense');
- await expect(page.locator('#reclassement-bercy .stacked-percent__key--part')).toHaveText('Retraites');
+ await expect(page.locator('#reclassement-bercy')).toContainText('Md€');
+ await expect(page.locator('#reclassement-bercy thead th').first()).toHaveCSS('position','static');
+ await expect(page.locator('#reclassement-bercy')).toContainText('60,6');
+ for(const row of await page.locator('#reclassement-bercy [data-retirement-eur]').evaluateAll(es=>es.map(e=>e.dataset))) expect(Number(row.retirementEur)+Number(row.remainingEur)).toBe(Number(row.budgetEur));
  await expect(page.locator('.salary-missions h3').filter({hasText:/^Retraites$/})).toHaveCount(1);
  await expect(page.locator('.salary-missions h3').filter({hasText:/Pensions de réversion|Vieillesse/})).toHaveCount(0);
- await expect(page.locator('#reclassement-bercy .stacked-percent__bar').first()).toHaveCSS('display','flex');
- expect(await page.locator('#reclassement-bercy .stacked-percent__bar').first().evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(0);
  const shares=await page.locator('[data-allocation-share]').evaluateAll(els=>els.reduce((s,e)=>s+Number(e.dataset.allocationShare),0));
  expect(Math.abs(shares-1)).toBeLessThan(1e-10);
  await page.screenshot({path:info.outputPath('salaires-retraites.png'),fullPage:true,animations:'disabled',scale:'css'});

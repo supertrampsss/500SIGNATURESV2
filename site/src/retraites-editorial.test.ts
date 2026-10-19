@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { MINISTERES_BERCY } from "./bercy-ministeres-2027.ts";
+import { MINISTERES_BERCY_MONTANTS } from "./bercy-ministeres-montants.ts";
 import { rendu, type Analyse } from "./analyse-rendu.ts";
 const lire = (slug: string): Analyse => JSON.parse(readFileSync(new URL(`../analyses/${slug}.json`, import.meta.url), "utf8"));
 test("le dossier distingue vieillesse, réversion, rémunération et financement", () => {
@@ -34,13 +34,9 @@ test("les crédits Défense incluent les contributions CAS, sans addition aux pe
 });
 
 
-test("le dossier reprend 19 ministères avec leur provenance",()=>{
- const a=lire("financement-retraites-publiques");
- const chart=a.dossier!.visualisations![0]!;
- assert.equal(chart.type,"stacked_percent");assert.equal(chart.preuveIds!.length,19);
- const proofs=chart.preuveIds!.map(id=>a.dossier!.preuves!.find(p=>p.id===id)!);
- assert.equal(proofs[0]!.libelle,"Éducation nationale");assert.ok(proofs.some(p=>p.libelle.startsWith("Défense")));
- for(const p of proofs){assert.equal(p.unit,"percent");assert.equal(p.sourceId,"budget-pensions-2027");assert.deepEqual(p.qualityFlags,["lecture-graphique"]);}
- assert.deepEqual(proofs.map(p=>({nom:p.libelle,partRetraites:p.value})),MINISTERES_BERCY);
- assert.equal((rendu(a,[]).match(/class="stacked-percent__row"/g)??[]).length,19);
+test("le dossier reprend les mêmes montants que France et signale la donnée ESR absente",()=>{
+ const a=lire("financement-retraites-publiques");const chart=a.dossier!.visualisations![0]!;
+ assert.equal(chart.type,"budget_comparison");assert.equal(chart.budgetRows!.length,19);
+ assert.deepEqual(chart.budgetRows!.map(row=>({nom:row.label,budget:a.dossier!.preuves!.find(p=>p.id===row.budgetId)!.value,retraites:row.retirementId?a.dossier!.preuves!.find(p=>p.id===row.retirementId)!.value:null,estimation:row.estimated})),MINISTERES_BERCY_MONTANTS);
+ assert.equal((rendu(a,[]).match(/class="budget-comparison__row"/g)??[]).length,19);
 });

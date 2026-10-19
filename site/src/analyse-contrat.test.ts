@@ -309,3 +309,14 @@ test("une composition exige des preuves percent bornées et sa légende",()=>{
   delete d.visualisations[0]!.composition;assert.throws(()=>validerDossierAnalyse(d,SOURCES),/composition/);
  }
 });
+
+test("le budget monétaire exige des euros et des retraites comprises dans le total",()=>{
+ const d=dossier();
+ d.preuves=[{id:"total-test",libelle:"Budget",value:100,unit:"EUR",period:"2027",definition:"Crédits",sourceId:SOURCES[0]!.id},{id:"retraite-test",libelle:"Retraites",value:30,unit:"EUR",period:"2027",definition:"Crédits",sourceId:SOURCES[0]!.id}];
+ d.visualisations=[{id:"budgets",type:"budget_comparison",titre:"Budgets",resume:"Montants",preuveIds:["total-test","retraite-test"],budgetRows:[{label:"Éducation",budgetId:"total-test",retirementId:"retraite-test"}]}];
+ d.sections=[{id:"lecture",titre:"Lecture",paragraphes:["Lecture"],visualisationIds:["budgets"]}];delete d.sommaire;
+ assert.ok(validerDossierAnalyse(d,SOURCES));
+ d.preuves[1]!.value=101;assert.throws(()=>validerDossierAnalyse(d,SOURCES),/supérieures/);
+ d.preuves[1]!.value=30;d.preuves[1]!.unit="percent";assert.throws(()=>validerDossierAnalyse(d,SOURCES),/EUR/);
+ d.preuves[1]!.unit="EUR";d.visualisations[0]!.budgetRows![0]!.budgetId="inexistant";assert.throws(()=>validerDossierAnalyse(d,SOURCES));
+});

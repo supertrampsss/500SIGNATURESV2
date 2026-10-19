@@ -1,3 +1,4 @@
+import './styles/budget-comparison.css';
 import './styles/stacked-percent.css';
 /**
  * Carte des finances locales. L'état de l'écran vit dans l'URL : tout ce qui
