@@ -147,6 +147,9 @@ et les paramètres finaux seront consignés après les parties réellement exéc
 - La revue a trouvé des messages hérités de hausse de besoins par chapitre,
   alors que la v17 utilise son propre profil annoncé. Ces faux motifs sont exclus
   de son historique ; les anciennes versions conservent leurs causes et leurs stocks.
+- Une panne de stockage correctement conservée pouvait masquer Réformes et
+  Cabinet sur mobile. Les messages restent visibles sous la navigation et leurs
+  conteneurs non interactifs n'interceptent plus les commandes.
 
 Les captures, vidéos et journaux d'agent constituent des observations de travail,
 pas des retours de joueurs externes. Les tests ne prouvent pas que le jeu est amusant.
@@ -209,3 +212,13 @@ Capacité 143 reste mitigée après quatre refus parlementaires. Aucun seuil,
 paramètre ou premier résultat n'a été modifié pour annoncer un holdout vert.
 Ce diagnostic ne prouve ni l'impossibilité de gagner autrement, ni une réussite
 garantie sur chaque graine et chaque ambition.
+
+Les [huit reprises et contrôles de présentation finaux](mandats-strategy-v17/presentation-verification.json)
+passent sans erreur JavaScript sur `mandats-D3iOPgbZ.js` : reçus, refus conservés,
+alerte de quota et export de la sauvegarde durable, financement facultatif,
+périodes v17 de 30 s et v16 de 15 s, nouveau bilan et arbitrage mobile en année 5.
+Les deux captures mobile et bilan sont de vrais rendus finaux des mêmes journaux,
+pas deux nouveaux mandats joués. La conservation numérique des anciens parcours
+est vérifiée séparément. Les six ciblés de navigateur (quatre ouvertures,
+deux stratégies complètes et reprise tardive) passent ; la CI rejoue ensuite
+l'ensemble de la suite sur le commit exact avant fusion.

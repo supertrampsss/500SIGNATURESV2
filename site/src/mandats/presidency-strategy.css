@@ -33,6 +33,10 @@
 .presidency[data-version='17'] .pr-newswire>span { font:13px Arial,sans-serif; }
 .presidency[data-version='17'] .pr-sound { bottom:calc(var(--pr-strategy-bottom) + 8px); }
 .presidency[data-version='17'] .pr-feedback { top:calc(var(--pr-strategy-header) + var(--pr-strategy-brief) + 8px); bottom:auto; max-width:min(480px,calc(100% - 24px)); }
+/* Persistence errors remain readable without covering or intercepting the
+ * permanent navigation. Both messages contain information, no controls. */
+.presidency[data-version='17'] .pr-notice-slot { top:calc(var(--pr-strategy-header) + var(--pr-strategy-brief) + 8px); pointer-events:none; }
+.presidency[data-version='17'] .pr-feedback[data-failure='true'] { pointer-events:none; }
 .presidency[data-version='17'] .pr-fan { width:min(440px,calc(100vw - 16px)); max-height:calc(100dvh - var(--pr-strategy-header) - var(--pr-strategy-brief) - var(--pr-strategy-bottom) - 24px); overflow:auto; overscroll-behavior:contain; }
 .presidency[data-version='17'] .pr-fan>header { position:sticky; top:0; z-index:2; min-height:48px; background:#f8f2e5; }
 .presidency[data-version='17'] .pr-fan__actions { grid-template-columns:1fr; }

@@ -51,7 +51,7 @@ export function presidencyShell(game: Game): string {
       <div class="pr-clock" data-live-clock data-presidency-clock data-paused="true" data-turn="${game.turn}">
         <button type="button" class="pr-clock__toggle" data-action="presidency-pause" aria-label="Démarrer le temps" title="Démarrer ou mettre en pause">${icon("play")}</button>
         <div class="pr-speeds" aria-label="Vitesse du temps">${[1, 2, 4].map(speed => `<button type="button" data-action="presidency-speed" data-speed="${speed}" aria-pressed="${speed === 1}">×${speed}</button>`).join("")}</div>
-        <div class="pr-clock__track" aria-hidden="true"><span data-live-progress></span></div>${game.version === 17 ? `<span class="pr-clock__countdown" data-live-tick-countdown>40 s</span>` : ""}
+        <div class="pr-clock__track" aria-hidden="true"><span data-live-progress></span></div>${game.version === 17 ? `<span class="pr-clock__countdown" data-live-tick-countdown>30 s</span>` : ""}
       </div>
       <div class="pr-resources" data-live-resources>${resources(game)}</div>
       <button type="button" class="pr-sound" data-action="presidency-sound" aria-pressed="false" aria-label="Activer les sons">Son</button>
