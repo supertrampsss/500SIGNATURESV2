@@ -86,8 +86,17 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
   await expect(page.locator('section[data-presidency]')).toBeVisible();
   await expect(page.locator('[data-presidency-art]')).toBeVisible();
   await expect(page.locator('[data-live-date]')).toContainText('année 1');
-  await expect(page.getByRole('button',{name:'Cabinet',exact:true})).toBeInViewport();
-  await expect(page.getByRole('button',{name:'Réformes',exact:true})).toBeInViewport();
+  // Institutions now live on the country; compact layouts may group named targets.
+  for(const panel of ['government','reforms']) {
+   const pin=page.locator(`.pr-country [data-action="presidency-panel"][data-panel="${panel}"]`);
+   await expect(pin).toHaveCount(1);await expect(pin).toHaveAccessibleName(/\S/);
+   if(await pin.isVisible()) await expect(pin).toBeInViewport();
+   else {
+    const key=await pin.getAttribute('data-pin-key');
+    expect(await page.locator('[data-cluster-members]').evaluateAll((groups,key)=>groups.some(e=>JSON.parse(e.dataset.clusterMembers).includes(key)),key)).toBe(true);
+   }
+  }
+  expect(await page.locator('[data-action="presidency-panel"][data-panel="government"], [data-action="presidency-panel"][data-panel="reforms"]').evaluateAll(items=>items.filter(e=>!e.closest('.pr-country')).length)).toBe(0);
   await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
   if(await page.locator('section[data-presidency]').getAttribute('data-preview')==='true')
    await activate(page.getByRole('button',{name:'Jouer ce mandat',exact:true}),info);

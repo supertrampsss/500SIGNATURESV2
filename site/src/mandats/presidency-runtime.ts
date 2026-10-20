@@ -391,7 +391,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     drawPanel();
     clock();
     const returnTo = focusReturn?.isConnected ? focusReturn : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
-    returnTo?.focus({ preventScroll: true });
+    const visibleReturn = returnTo?.hidden
+      ? [...host.querySelectorAll<HTMLElement>('[data-cluster-members]')].find(el =>
+          (JSON.parse(el.dataset.clusterMembers!) as string[]).includes(returnTo.dataset.pinKey!))
+      : returnTo;
+    (visibleReturn ?? host.querySelector<HTMLElement>('.pr-board-pin:not([hidden])'))?.focus({ preventScroll: true });
   }
 
   function onClick(event: MouseEvent): void {
@@ -466,7 +470,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       const nextPanel = target.dataset.panel as PresidencyPanel;
       if (panel !== nextPanel) dismissContextReceipt();
       panel = nextPanel;
-      selected = null; selectedEvent=null;
+      selected = null; selectedEvent=null; selectedGroup=null;
       drawFan();
       drawPanel();
       stamp = performance.now();

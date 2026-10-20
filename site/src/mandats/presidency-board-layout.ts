@@ -18,6 +18,7 @@ export function layoutPresidencyPins(host: HTMLElement): void {
     pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);
     delete pin.dataset.clusterMembers;
     pin.querySelector('.pr-pin-count')?.remove();
+    pin.querySelector('.pr-cluster-names')?.remove();
     const ax = map.left - area.left + Number(pin.dataset.mapX) / 100 * map.width;
     const ay = map.top - area.top + Number(pin.dataset.mapY) / 100 * map.height;
     const side = mobile ? index % 2 : ax < area.width / 2 ? 0 : 1;
@@ -39,6 +40,11 @@ export function layoutPresidencyPins(host: HTMLElement): void {
       const primary=group[0].pin;
       primary.dataset.clusterMembers=JSON.stringify(group.map(p=>p.pin.dataset.pinKey));
       primary.setAttribute('aria-label',`${group.length} événements proches : ${group.map(p=>p.pin.dataset.pinAccessibleName).join(' ; ')}`);
+      if (strategy) {
+      const names=document.createElement('span');names.className='pr-cluster-names';
+      names.textContent=group.map(p=>p.pin.querySelector(p.pin.dataset.event ? '.pr-pin__label strong' : '.pr-pin__label b')?.textContent ?? p.pin.querySelector('.pr-pin__label strong')?.textContent ?? '').join(' · ');
+      primary.appendChild(names);
+      }
       const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=`+${group.length-1}`;
       badge.setAttribute('aria-label',`${group.length} événements regroupés, ouvrir la liste`);primary.appendChild(badge);
       for(const p of group.slice(1))p.pin.hidden=true;
