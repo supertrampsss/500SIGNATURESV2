@@ -390,7 +390,12 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
         // A new ballot replaces the clicked proposal. Show its recorded result
         // in the same reader, rather than preserving a now unrelated scroll.
         const context = panel ? slot<HTMLElement>('[data-live-panel]') : slot<HTMLElement>('[data-live-fan]');
-        context.querySelector<HTMLElement>('[data-live-vote]')?.scrollIntoView({block:'nearest',behavior:'instant'});
+        const receipt=context.querySelector<HTMLElement>('[data-live-vote]');
+        if(receipt && panel==='government') {
+          receipt.tabIndex=-1;
+          receipt.focus({preventScroll:true});
+          receipt.scrollIntoView({block:'start',behavior:'instant'});
+        } else receipt?.scrollIntoView({block:'nearest',behavior:'instant'});
       }
       const existingFeedback = slot<HTMLElement>("[data-live-feedback]");
       if (existingFeedback.dataset.failure === "true") existingFeedback.hidden = true;

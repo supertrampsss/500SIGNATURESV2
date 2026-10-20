@@ -339,3 +339,30 @@ test('trois objectifs visibles restent dans le bandeau sans masquer commandes et
   await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
  }
 });
+
+
+for(const [width,height] of [[1280,720],[390,844]])test(`Cabinet montre le nouveau vote apres lecture des soutiens ${width}`,async({page})=>{
+ await page.setViewportSize({width,height});
+ await load(page,[...Array(3).fill('live-tick'),'s17-housing-capacity','s17-administration-capacity',...Array(11).fill('live-tick')],1);
+ await page.locator('[data-panel="government"]').press('Enter');
+ const cabinet=page.locator('[data-presidency-panel="government"]');
+ await cabinet.locator('.pr-vote-help > summary').press('Enter');
+ await cabinet.locator('[data-order="live-credits"]').press('Enter');
+ await page.clock.runFor(1000);
+ const vote=cabinet.locator('[data-live-vote]');
+ await expect(vote).toContainText('268 pour');
+ await expect(vote).toBeFocused();
+ await expect(vote.locator(':scope > strong')).toBeInViewport({ratio:1});
+ await expect(vote.locator('summary')).toBeInViewport({ratio:1});
+ await vote.locator('summary').press('Enter');
+ await expect(vote.locator('details')).toHaveAttribute('open','');
+ // A different cabinet order must preserve its own reading/focus; an old vote
+ // is not a reason to jump back to the receipt on every refresh.
+ const autonomy=cabinet.locator('[data-order="live-autonomy"]');
+ await autonomy.focus();
+ const scroll=await cabinet.locator('.pr-panel__body').evaluate(el=>el.scrollTop);
+ await autonomy.press('Enter'); await page.clock.runFor(64);
+ await expect(cabinet.locator('[data-order="live-autonomy"]')).toBeFocused();
+ expect(await cabinet.locator('.pr-panel__body').evaluate(el=>el.scrollTop)).toBeCloseTo(scroll,0);
+ await expect(vote).not.toBeFocused();
+});
