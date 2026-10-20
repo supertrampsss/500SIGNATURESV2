@@ -6,3 +6,11 @@ Fichiers WOFF2 distribués sans modification, auto-hébergés, sans appel à Goo
 - Source Sans 3 variable upright : https://github.com/adobe-fonts/source-sans, commit 87b37a2daaed80fcb8e8ccb0085c4d72ddade12e, `WOFF2/VF/SourceSans3VF-Upright.ttf.woff2`, licence OFL jointe.
 
 Les deux fichiers représentent 234 628 octets. Le cache hors connexion les inclut. Les autres polices du site principal sont conservées pour ses pages existantes.
+
+Les fichiers `budget-flux-sans-400.woff2` et `budget-flux-sans-700.woff2` sont des
+instances statiques latines de Source Sans 3, réservées au graphique budgétaire.
+Elles évitent le rendu systématique en graisse 200 observé avec la police variable
+sous WebKit Windows. Leurs glyphes et leur licence OFL restent ceux de la source
+ci-dessus ; la famille dérivée est renommée « Budget Flux Sans » conformément au
+nom réservé. Régénération : `python docs/bercy-flux-reference/generate-fonts.py`
+depuis la racine, avec FontTools et Brotli. Aucun téléchargement à l'exécution.

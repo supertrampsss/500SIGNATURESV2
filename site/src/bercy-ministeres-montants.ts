@@ -115,3 +115,7 @@ export const MINISTERES_BERCY_MONTANTS = [
     "estimation": false
   }
 ] as const;
+
+/** Sélection éditoriale validée sur la maquette du 20 octobre 2026. */
+const NOMS_FLUX_BERCY = new Set<string>(['Éducation nationale', 'Intérieur', 'Défense · Armées et anciens combattants']);
+export const MINISTERES_BERCY_FLUX = MINISTERES_BERCY_MONTANTS.filter(m => NOMS_FLUX_BERCY.has(m.nom));
