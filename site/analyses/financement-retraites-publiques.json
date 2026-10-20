@@ -127,6 +127,10 @@
     {
       "date": "2026-10-20",
       "quoi": "Ajout du graphique de flux Éducation nationale, Intérieur et Défense, avec un total Retraites commun et maintien du tableau des 19 ministères."
+    },
+    {
+      "date": "2026-10-20",
+      "quoi": "Remplacement du flux et du tableau redondant par un tableau graphique compact des 19 ministères, partagé avec France et Salaires ; montants, estimations et sources conservés."
     }
   ],
   "verifie_contre": "",
@@ -628,14 +632,9 @@
     "visualisations": [
       {
         "id": "ministeres-reclasses",
-        "type": "budget_flow",
-        "titre": "Budgets des ministères : suivez les milliards.",
-        "resume": "PLF 2027 · Le flux suit les budgets de l’Éducation nationale, de l’Intérieur et de la Défense vers les retraites et les crédits après reclassement. La table complète des ministères figure en dessous. Les montants sont en milliards d’euros : crédits de paiement prévus et cotisations salariales estimées à partir des contributions monétaires publiées. Le montant complet des retraites de l’Enseignement supérieur n’est pas publié dans les sources consultées.",
-        "focusBudgetIds": [
-          "ministere-budget-1",
-          "ministere-budget-2",
-          "ministere-budget-6"
-        ],
+        "type": "budget_comparison",
+        "titre": "Les budgets des ministères",
+        "resume": "PLF 2027 · En milliards d’euros",
         "preuveIds": [
           "ministere-budget-1",
           "ministere-retraites-1",
@@ -707,7 +706,6 @@
           },
           {
             "label": "Défense · Armées et anciens combattants",
-            "flowLabel": "Défense",
             "budgetId": "ministere-budget-6",
             "estimated": true,
             "retirementId": "ministere-retraites-6"

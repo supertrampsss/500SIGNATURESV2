@@ -36,15 +36,20 @@ test("les crédits Défense incluent les contributions CAS, sans addition aux pe
 
 test("le dossier reprend les mêmes montants que France et signale la donnée ESR absente",()=>{
  const a=lire("financement-retraites-publiques");const chart=a.dossier!.visualisations![0]!;
- assert.equal(chart.type,"budget_flow");assert.equal(chart.budgetRows!.length,19);
- assert.equal(chart.titre,"Budgets des ministères : suivez les milliards.");
+ assert.equal(chart.type,"budget_comparison");assert.equal(chart.budgetRows!.length,19);
+ assert.equal(chart.titre,"Les budgets des ministères");
  assert.equal(chart.preuveIds!.length,37);
- assert.deepEqual(chart.focusBudgetIds,["ministere-budget-1","ministere-budget-2","ministere-budget-6"]);
- const focus=chart.focusBudgetIds!.map(id=>chart.budgetRows!.find(row=>row.budgetId===id)!);
- assert.deepEqual(focus.map(row=>row.label),["Éducation nationale","Intérieur","Défense · Armées et anciens combattants"]);
- assert.equal(focus.reduce((sum,row)=>sum+a.dossier!.preuves!.find(p=>p.id===row.retirementId)!.value,0),47898117462);
+ assert.equal(chart.focusBudgetIds,undefined);
+ for(const row of chart.budgetRows!){
+  const budget=a.dossier!.preuves!.find(p=>p.id===row.budgetId)!;
+  assert.equal(budget.unit,"EUR");assert.equal(budget.period,"2027");assert.ok(a.sources.some(s=>s.id===budget.sourceId));
+  if(row.retirementId){const retirement=a.dossier!.preuves!.find(p=>p.id===row.retirementId)!;assert.equal(retirement.unit,budget.unit);assert.equal(retirement.period,budget.period);assert.ok(a.sources.some(s=>s.id===retirement.sourceId));}
+ }
  assert.deepEqual(chart.budgetRows!.map(row=>({nom:row.label,budget:a.dossier!.preuves!.find(p=>p.id===row.budgetId)!.value,retraites:row.retirementId?a.dossier!.preuves!.find(p=>p.id===row.retirementId)!.value:null,estimation:row.estimated})),MINISTERES_BERCY_MONTANTS);
  const html=rendu(a,[]);
+ assert.equal((html.match(/class="budget-comparison"/g)??[]).length,1);
  assert.equal((html.match(/class="budget-comparison__row"/g)??[]).length,19);
- assert.ok(html.indexOf("Tous les budgets")<html.indexOf('class="budget-comparison__row"'));
+ assert.doesNotMatch(html,/budget-flow|≈|Tous les budgets|Les 19 ministères/);
+ assert.match(html,/Non disponible/);assert.match(html,/cotisations salariales/);assert.match(html,/CAS Pensions/);
+ assert.match(html,/Enseignement supérieur/);assert.match(html,/zéro indique l’absence de versement/);assert.match(html,/Sources/);
 });

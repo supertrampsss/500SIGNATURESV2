@@ -1,5 +1,8 @@
 # Budgets ministériels : flux vers les retraites
 
+Version historique, remplacée le 20 octobre 2026 après retour du propriétaire
+par le [tableau graphique compact](bercy-tableau-compact.md), maquette 3 approuvée.
+
 Maquette approuvée par le propriétaire le 20 octobre 2026 : [référence](bercy-flux-reference/reference.png).
 
 Le graphique traduit la maquette en éléments vectoriels et textes calculés. Les flux bleus restent propres à chaque ministère ; seules les branches rouges rejoignent la destination Retraites. L’Éducation nationale, l’Intérieur et la Défense forment la sélection validée. Le total affiché concerne ces trois ministères, avec les cotisations salariales estimées ; il ne représente pas toutes les retraites françaises. Les montants viennent des données monétaires archivées, sans conversion du dessin ImageGen.

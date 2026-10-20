@@ -1,5 +1,4 @@
-@font-face { font-family:'Budget Flux Sans'; src:url('/mandats/fonts/budget-flux-sans-400.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-@font-face { font-family:'Budget Flux Sans'; src:url('/mandats/fonts/budget-flux-sans-700.woff2') format('woff2'); font-style:normal; font-weight:700; font-display:swap; }
+@import './budget-fonts.css';
 /* Reference approved 20 October 2026: independent navy arrows and one red collector.
    The mobile layout keeps HTML text at reading size and uses the same euro scale. */
 .budget-flow {
