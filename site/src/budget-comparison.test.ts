@@ -7,13 +7,17 @@ test('La comparaison donne les trois montants en Md€, sans pourcentage', () =>
   assert.match(html, /<table/);
   assert.match(html, /scope="row">Éducation/);
   assert.match(html, /Budget/);
-  assert.match(html, /Retraites/);
-  assert.match(html, /Après reclassement/);
+  assert.match(html, /Budget affiché/);
+  assert.match(html, /Ponctionné pour financer les retraites/);
+  assert.match(html, /Budget restant/);
   assert.match(html, /89,4/);
   assert.match(html, /24,5/);
   assert.match(html, /64,9/);
   assert.equal((html.match(/class="budget-comparison__unit">Md€/g) ?? []).length, 3);
-  assert.doesNotMatch(html, /100 %|≈|Estimation/);
+  assert.doesNotMatch(html, /100 %|≈|budget-comparison__legend/);
+  const rounded = budgetComparison([{ label: 'Arrondis', budget: 89.44e9, retirement: 24.46e9 }]);
+  assert.match(rounded, /data-remaining-eur="64980000000"/);
+  assert.match(rounded, />65,0<\/span>/); // Subtract euros before rounding each displayed amount.
 });
 
 test('Les 19 lignes restent présentes et les barres partagent une échelle absolue', () => {
@@ -22,21 +26,26 @@ test('Les 19 lignes restent présentes et les barres partagent une échelle abso
   assert.match(html, /data-budget-eur="1000000000"/);
   assert.match(html, /data-budget-eur="19000000000"/);
   assert.equal((html.match(/class="budget-comparison__row"/g) ?? []).length, 19);
-  assert.match(html, /Même échelle/);
+  assert.equal((html.match(/class="budget-comparison__spark"/g) ?? []).length, 57);
+  assert.match(html, /data-scale-maximum-eur="19000000000"/);
   assert.doesNotMatch(html, /<details|overflow-x|data-tooltip/);
 });
 
 test('Une retraite inconnue laisse également le montant après reclassement inconnu', () => {
   const html = budgetComparison([{ label: 'Ministère', budget: 12e9, retirement: null }]);
-  assert.equal((html.match(/aria-label="Non disponible">—/g) ?? []).length, 2);
-  assert.doesNotMatch(html, /budget-comparison__segment/);
+  assert.equal((html.match(/aria-label="Non disponible"/g) ?? []).length, 2);
+  assert.equal((html.match(/class="budget-comparison__spark-fill /g) ?? []).length, 1);
   assert.match(html, /12,0/);
 });
 
-test('Les estimations sont signalées uniquement sur les deux montants concernés', () => {
+test('Les estimations restent accessibles sans signe ni légende ajoutée', () => {
   const html = budgetComparison([{ label: 'Défense', budget: 60e9, retirement: 8e9, estimated: true }]);
-  assert.equal((html.match(/class="budget-comparison__approx"/g) ?? []).length, 2);
-  assert.match(html, /≈ : estimation des retraites et du montant après reclassement/);
+  assert.equal((html.match(/data-estimated="true"/g) ?? []).length, 2);
+  assert.equal((html.match(/cotisations salariales estimées/g) ?? []).length, 2);
+  assert.match(html, /<td role="cell"[^>]*data-estimated="true"[^>]*aria-label=/);
+  assert.match(html, /budget restant après déduction des cotisations salariales estimées/);
+  assert.doesNotMatch(html, /<span[^>]*aria-label=/);
+  assert.doesNotMatch(html, /≈|budget-comparison__legend/);
 });
 
 test('Les petits montants restent lisibles et un montant positif ne devient jamais zéro', () => {
@@ -53,5 +62,7 @@ test('Les montants impossibles sont rejetés et les libellés échappés', () =>
     { budget: 1, retirement: -1 }, { budget: 1, retirement: 2 },
     { budget: 1, retirement: NaN },
   ]) assert.throws(() => budgetComparison([{ label: 'Test', ...row }]), RangeError);
-  assert.match(budgetComparison([{ label: '<Ministère & budget>', budget: 0, retirement: 0 }]), /&lt;Ministère &amp; budget&gt;/);
+  const empty = budgetComparison([{ label: '<Ministère & budget>', budget: 0, retirement: 0 }]);
+  assert.match(empty, /&lt;Ministère &amp; budget&gt;/);
+  assert.doesNotMatch(empty, /spark-fill|NaN|Infinity/);
 });
