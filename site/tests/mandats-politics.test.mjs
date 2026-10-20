@@ -31,12 +31,12 @@ async function castFirstVote(page,info){
  return record;
 }
 
-test('a fresh national game defaults to the living v16 presidency',async({page},info)=>{
+test('a fresh national game defaults to the strategic v17 presidency',async({page},info)=>{
  await page.goto('/mandats/');
  await activate(page.getByRole('button',{name:/Commencer un mandat/}),info);
  await expect(page.locator('section[data-presidency]')).toBeVisible();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
- expect(saved.version).toBe(16);
+ expect(saved.version).toBe(17);
  expect(saved.choices).toEqual([]);
 });
 

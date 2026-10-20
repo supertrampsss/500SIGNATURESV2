@@ -1,3 +1,4 @@
+import type { StrategyState } from './presidency-strategy-types.ts';
 import type { PresidencyCrisis } from './presidency-crises.ts';
 import type { PressureSectorId } from './pressure-types.ts';
 
@@ -15,6 +16,8 @@ export type PresidencyInitiative = {
   status: 'engaged' | 'rejected' | 'delivered' | 'information';
 };
 export type PresidencyState = {
+  /** V17 presidential strategy, rebuilt from its versioned journal. */
+  strategy?: StrategyState;
   crises?: PresidencyCrisis[];
   /** Civil escalation is clock-owned and separate from local incident slots. */
   civic?: { crisis?: PresidencyCrisis; nextPeriod: number; sustained: number; serial: number; cabinetResignationPeriod?: number };

@@ -1,0 +1,853 @@
+{
+  "sourceStart": {
+    "presidency-strategy-engine.ts": "57257b539d30da992aeeeadf4c740093ef9488c765f8b8378e84f9694a7acc90",
+    "presidency-strategy-content.ts": "8736742970d0e427346fd476c5ed6617029384b1f0a591cedb1445809c388291",
+    "pressure-engine.ts": "c4e4eb5d943a76ae59f30c6b5c2aab59dd06086880aef1c910e701afe36c3bfa"
+  },
+  "sourceEnd": {
+    "presidency-strategy-engine.ts": "57257b539d30da992aeeeadf4c740093ef9488c765f8b8378e84f9694a7acc90",
+    "presidency-strategy-content.ts": "8736742970d0e427346fd476c5ed6617029384b1f0a591cedb1445809c388291",
+    "pressure-engine.ts": "c4e4eb5d943a76ae59f30c6b5c2aab59dd06086880aef1c910e701afe36c3bfa"
+  },
+  "sourceChanged": false,
+  "results": [
+    {
+      "scenario": "19-equilibre-capacity",
+      "change": "After a refused annual request only, allow the existing 1.2 Md redeployment if it finances a useful blocked option. Same bounded policy otherwise; no parameters changed.",
+      "checkpoint": {
+        "period": 6,
+        "inputs": [
+          "s17-housing-capacity",
+          "s17-administration-capacity",
+          "live-tick",
+          "live-tick",
+          "s17-administration-network",
+          "live-tick",
+          "s17-housing-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits"
+        ],
+        "reserve": 3.152
+      },
+      "original": {
+        "status": "mixed",
+        "title": "Un mandat aux résultats partagés",
+        "summary": "Certaines améliorations sont acquises, mais des objectifs restent manqués.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": true
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "33,86 unités en attente contre 30,02 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": false
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 142,65 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [
+          "Réduire les retards hérités : 33,86 unités en attente contre 30,02 au départ."
+        ],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Former et installer des équipes de soins",
+            "choice": "s17-health-capacity",
+            "period": 20
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 27
+          },
+          {
+            "sector": "housing",
+            "title": "Réhabiliter les logements déjà disponibles",
+            "choice": "s17-housing-capacity",
+            "period": 3
+          },
+          {
+            "sector": "housing",
+            "title": "Partager le logement des agents essentiels",
+            "choice": "s17-housing-network",
+            "period": 6
+          },
+          {
+            "sector": "transport",
+            "title": "Renouveler les équipements et les équipes de maintenance",
+            "choice": "s17-transport-capacity",
+            "period": 29
+          },
+          {
+            "sector": "energy",
+            "title": "Renforcer les équipements et la maintenance du réseau",
+            "choice": "s17-energy-capacity",
+            "period": 22
+          },
+          {
+            "sector": "energy",
+            "title": "Sécuriser l’alimentation des services essentiels",
+            "choice": "s17-energy-network",
+            "period": 28
+          },
+          {
+            "sector": "administration",
+            "title": "Former et affecter des équipes d’instruction",
+            "choice": "s17-administration-capacity",
+            "period": 2
+          },
+          {
+            "sector": "administration",
+            "title": "Garantir l’instruction des projets entre ministères",
+            "choice": "s17-administration-network",
+            "period": 6
+          }
+        ],
+        "damages": [],
+        "ministries": {
+          "initiatives": 6,
+          "cost": 1.048,
+          "detail": "6 organisations courantes ont été engagées par les ministres ; leurs 1,05 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer l’autre voie : capacité nouvelle ou organisation et accords, avec un financement et des appuis différents."
+      },
+      "outcome": {
+        "status": "success",
+        "title": "Les services sont rétablis durablement",
+        "summary": "Les services, les retards, le financement et le gouvernement remplissent les objectifs.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": true
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "22,87 unités en attente contre 30,02 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": true
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 142,62 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Former et installer des équipes de soins",
+            "choice": "s17-health-capacity",
+            "period": 21
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 24
+          },
+          {
+            "sector": "housing",
+            "title": "Réhabiliter les logements déjà disponibles",
+            "choice": "s17-housing-capacity",
+            "period": 3
+          },
+          {
+            "sector": "housing",
+            "title": "Partager le logement des agents essentiels",
+            "choice": "s17-housing-network",
+            "period": 6
+          },
+          {
+            "sector": "transport",
+            "title": "Renouveler les équipements et les équipes de maintenance",
+            "choice": "s17-transport-capacity",
+            "period": 15
+          },
+          {
+            "sector": "transport",
+            "title": "Garantir les liaisons vers les services essentiels",
+            "choice": "s17-transport-network",
+            "period": 21
+          },
+          {
+            "sector": "energy",
+            "title": "Renforcer les équipements et la maintenance du réseau",
+            "choice": "s17-energy-capacity",
+            "period": 27
+          },
+          {
+            "sector": "education",
+            "title": "Former un vivier durable de remplacement",
+            "choice": "s17-education-capacity",
+            "period": 28
+          },
+          {
+            "sector": "administration",
+            "title": "Former et affecter des équipes d’instruction",
+            "choice": "s17-administration-capacity",
+            "period": 2
+          },
+          {
+            "sector": "administration",
+            "title": "Garantir l’instruction des projets entre ministères",
+            "choice": "s17-administration-network",
+            "period": 6
+          }
+        ],
+        "damages": [],
+        "ministries": {
+          "initiatives": 6,
+          "cost": 1.048,
+          "detail": "6 organisations courantes ont été engagées par les ministres ; leurs 1,05 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer l’autre voie : capacité nouvelle ou organisation et accords, avec un financement et des appuis différents."
+      },
+      "redeploymentYears": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "input": {
+        "version": 17,
+        "mode": "national",
+        "seed": 19,
+        "choices": [
+          "s17-housing-capacity",
+          "s17-administration-capacity",
+          "live-tick",
+          "live-tick",
+          "s17-administration-network",
+          "live-tick",
+          "s17-housing-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "s17-transport-capacity",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "s17-transport-network",
+          "live-tick",
+          "s17-health-capacity",
+          "live-tick",
+          "live-tick",
+          "live-budget-redeploy",
+          "s17-health-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "s17-energy-capacity",
+          "live-tick",
+          "s17-education-capacity",
+          "live-tick",
+          "live-tick",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      },
+      "spent": 41.018,
+      "reserve": 1.782
+    },
+    {
+      "scenario": "143-equilibre-capacity",
+      "change": "After a refused annual request only, allow the existing 1.2 Md redeployment if it finances a useful blocked option. Same bounded policy otherwise; no parameters changed.",
+      "checkpoint": {
+        "period": 6,
+        "inputs": [
+          "s17-health-capacity",
+          "s17-education-capacity",
+          "live-tick",
+          "live-tick",
+          "s17-health-network",
+          "live-tick",
+          "s17-education-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits"
+        ],
+        "reserve": 2.896
+      },
+      "original": {
+        "status": "mixed",
+        "title": "Un mandat aux résultats partagés",
+        "summary": "Certaines améliorations sont acquises, mais des objectifs restent manqués.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "2/6 secteurs avec au plus 45 de pression ; 2 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": false
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "153,85 unités en attente contre 31,11 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": false
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 133,93 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 57,29 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [
+          "Des services accessibles : 2/6 secteurs avec au plus 45 de pression ; 2 en crise.",
+          "Réduire les retards hérités : 153,85 unités en attente contre 31,11 au départ."
+        ],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Former et installer des équipes de soins",
+            "choice": "s17-health-capacity",
+            "period": 2
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 6
+          },
+          {
+            "sector": "energy",
+            "title": "Accorder les astreintes et les priorités de service",
+            "choice": "s17-energy-agreement",
+            "period": 18
+          },
+          {
+            "sector": "education",
+            "title": "Former un vivier durable de remplacement",
+            "choice": "s17-education-capacity",
+            "period": 3
+          },
+          {
+            "sector": "education",
+            "title": "Partager un réseau de formation des services publics",
+            "choice": "s17-education-network",
+            "period": 7
+          }
+        ],
+        "damages": [
+          "Accès au logement : pression 70,34/100, 26,64 unités en attente.",
+          "Fiabilité des transports : pression 90,27/100, 33,52 unités en attente.",
+          "Continuité énergétique : pression 100/100, 72,3 unités en attente."
+        ],
+        "ministries": {
+          "initiatives": 6,
+          "cost": 1.048,
+          "detail": "6 organisations courantes ont été engagées par les ministres ; leurs 1,05 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer une transformation plus précoce en continuité énergétique, puis coordonner les secteurs dont ce service dépend."
+      },
+      "outcome": {
+        "status": "mixed",
+        "title": "Un mandat aux résultats partagés",
+        "summary": "Certaines améliorations sont acquises, mais des objectifs restent manqués.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "3/6 secteurs avec au plus 45 de pression ; 1 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": false
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "134,31 unités en attente contre 31,11 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": false
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 135,12 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 54,38 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [
+          "Des services accessibles : 3/6 secteurs avec au plus 45 de pression ; 1 en crise.",
+          "Réduire les retards hérités : 134,31 unités en attente contre 31,11 au départ."
+        ],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Former et installer des équipes de soins",
+            "choice": "s17-health-capacity",
+            "period": 2
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 6
+          },
+          {
+            "sector": "energy",
+            "title": "Accorder les astreintes et les priorités de service",
+            "choice": "s17-energy-agreement",
+            "period": 18
+          },
+          {
+            "sector": "education",
+            "title": "Former un vivier durable de remplacement",
+            "choice": "s17-education-capacity",
+            "period": 3
+          },
+          {
+            "sector": "education",
+            "title": "Partager un réseau de formation des services publics",
+            "choice": "s17-education-network",
+            "period": 7
+          },
+          {
+            "sector": "administration",
+            "title": "Former et affecter des équipes d’instruction",
+            "choice": "s17-administration-capacity",
+            "period": 9
+          }
+        ],
+        "damages": [
+          "Accès au logement : pression 71,49/100, 27,1 unités en attente.",
+          "Continuité énergétique : pression 100/100, 72,3 unités en attente."
+        ],
+        "ministries": {
+          "initiatives": 6,
+          "cost": 1.048,
+          "detail": "6 organisations courantes ont été engagées par les ministres ; leurs 1,05 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer une transformation plus précoce en continuité énergétique, puis coordonner les secteurs dont ce service dépend."
+      },
+      "redeploymentYears": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "input": {
+        "version": 17,
+        "mode": "national",
+        "seed": 143,
+        "choices": [
+          "s17-health-capacity",
+          "s17-education-capacity",
+          "live-tick",
+          "live-tick",
+          "s17-health-network",
+          "live-tick",
+          "s17-education-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "s17-administration-capacity",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "s17-energy-agreement",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "s17-transport-recovery",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      },
+      "spent": 22.688,
+      "reserve": 0.112
+    },
+    {
+      "scenario": "143-equilibre-organisation",
+      "change": "After a refused annual request only, allow the existing 1.2 Md redeployment if it finances a useful blocked option. Same bounded policy otherwise; no parameters changed.",
+      "checkpoint": {
+        "period": 10,
+        "inputs": [
+          "s17-health-organisation",
+          "s17-education-organisation",
+          "live-tick",
+          "s17-energy-organisation",
+          "s17-housing-organisation",
+          "live-tick",
+          "s17-education-network",
+          "live-tick",
+          "s17-health-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "s17-coalition-pact",
+          "live-tick",
+          "s17-energy-network",
+          "live-tick",
+          "s17-housing-network",
+          "live-tick",
+          "live-tick",
+          "live-credits"
+        ],
+        "reserve": 1.086
+      },
+      "original": {
+        "status": "mixed",
+        "title": "Un mandat aux résultats partagés",
+        "summary": "Certaines améliorations sont acquises, mais des objectifs restent manqués.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": true
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "34,39 unités en attente contre 31,11 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": false
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 132,36 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 43,26 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [
+          "Réduire les retards hérités : 34,39 unités en attente contre 31,11 au départ."
+        ],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Organiser les parcours et les gardes",
+            "choice": "s17-health-organisation",
+            "period": 3
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 7
+          },
+          {
+            "sector": "housing",
+            "title": "Prévenir les ruptures de parcours locatif",
+            "choice": "s17-housing-organisation",
+            "period": 3
+          },
+          {
+            "sector": "housing",
+            "title": "Partager le logement des agents essentiels",
+            "choice": "s17-housing-network",
+            "period": 11
+          },
+          {
+            "sector": "energy",
+            "title": "Piloter les consommations et l’entretien",
+            "choice": "s17-energy-organisation",
+            "period": 3
+          },
+          {
+            "sector": "energy",
+            "title": "Sécuriser l’alimentation des services essentiels",
+            "choice": "s17-energy-network",
+            "period": 10
+          },
+          {
+            "sector": "education",
+            "title": "Partager les remplacements et les temps de préparation",
+            "choice": "s17-education-organisation",
+            "period": 2
+          },
+          {
+            "sector": "education",
+            "title": "Partager un réseau de formation des services publics",
+            "choice": "s17-education-network",
+            "period": 6
+          }
+        ],
+        "damages": [],
+        "ministries": {
+          "initiatives": 5,
+          "cost": 0.892,
+          "detail": "5 organisations courantes ont été engagées par les ministres ; leurs 0,89 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer l’autre voie : capacité nouvelle ou organisation et accords, avec un financement et des appuis différents."
+      },
+      "outcome": {
+        "status": "success",
+        "title": "Les services sont rétablis durablement",
+        "summary": "Les services, les retards, le financement et le gouvernement remplissent les objectifs.",
+        "objectives": [
+          {
+            "id": "services",
+            "title": "Des services accessibles",
+            "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+            "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+            "met": true
+          },
+          {
+            "id": "backlog",
+            "title": "Réduire les retards hérités",
+            "current": "20,15 unités en attente contre 31,11 au départ.",
+            "target": "Un retard total inférieur ou égal au début du mandat.",
+            "met": true
+          },
+          {
+            "id": "finances",
+            "title": "Financer les services dans la durée",
+            "current": "Déficit de l’année 5 clôturée : 131,78 Md€.",
+            "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+            "met": true
+          },
+          {
+            "id": "government",
+            "title": "Un gouvernement capable d’agir",
+            "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+            "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+            "met": true
+          }
+        ],
+        "causes": [],
+        "transforms": [
+          {
+            "sector": "health",
+            "title": "Organiser les parcours et les gardes",
+            "choice": "s17-health-organisation",
+            "period": 3
+          },
+          {
+            "sector": "health",
+            "title": "Garantir un réseau territorial de soins",
+            "choice": "s17-health-network",
+            "period": 7
+          },
+          {
+            "sector": "housing",
+            "title": "Prévenir les ruptures de parcours locatif",
+            "choice": "s17-housing-organisation",
+            "period": 3
+          },
+          {
+            "sector": "housing",
+            "title": "Partager le logement des agents essentiels",
+            "choice": "s17-housing-network",
+            "period": 11
+          },
+          {
+            "sector": "transport",
+            "title": "Coordonner les horaires et la maintenance",
+            "choice": "s17-transport-organisation",
+            "period": 14
+          },
+          {
+            "sector": "energy",
+            "title": "Piloter les consommations et l’entretien",
+            "choice": "s17-energy-organisation",
+            "period": 3
+          },
+          {
+            "sector": "energy",
+            "title": "Sécuriser l’alimentation des services essentiels",
+            "choice": "s17-energy-network",
+            "period": 10
+          },
+          {
+            "sector": "education",
+            "title": "Partager les remplacements et les temps de préparation",
+            "choice": "s17-education-organisation",
+            "period": 2
+          },
+          {
+            "sector": "education",
+            "title": "Partager un réseau de formation des services publics",
+            "choice": "s17-education-network",
+            "period": 6
+          },
+          {
+            "sector": "administration",
+            "title": "Unifier les dossiers avec un recours accessible",
+            "choice": "s17-administration-organisation",
+            "period": 17
+          }
+        ],
+        "damages": [],
+        "ministries": {
+          "initiatives": 5,
+          "cost": 0.892,
+          "detail": "5 organisations courantes ont été engagées par les ministres ; leurs 0,89 Md€/an restent dans les comptes et utilisent les mêmes équipes."
+        },
+        "hint": "Essayer l’autre voie : capacité nouvelle ou organisation et accords, avec un financement et des appuis différents."
+      },
+      "redeploymentYears": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "input": {
+        "version": 17,
+        "mode": "national",
+        "seed": 143,
+        "choices": [
+          "s17-health-organisation",
+          "s17-education-organisation",
+          "live-tick",
+          "s17-energy-organisation",
+          "s17-housing-organisation",
+          "live-tick",
+          "s17-education-network",
+          "live-tick",
+          "s17-health-network",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "s17-coalition-pact",
+          "live-tick",
+          "s17-energy-network",
+          "live-tick",
+          "s17-housing-network",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "s17-transport-organisation",
+          "s17-coalition-pact",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "s17-administration-organisation",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-credits",
+          "live-budget-redeploy",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick",
+          "live-tick"
+        ],
+        "ambition": "equilibre"
+      },
+      "spent": 20.562,
+      "reserve": 2.238
+    }
+  ]
+}

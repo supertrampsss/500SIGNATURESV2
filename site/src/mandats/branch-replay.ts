@@ -4,6 +4,7 @@ import { artForDossier } from "./cinema-art.ts";
 import { decode, encode, MAX_SAVE_BYTES } from "./storage.ts";
 import { focusForRecordedDecision, narrativeTurningPoints } from "./narrative-outcomes.ts";
 import { PRESIDENCY_JOURNAL_LIMIT } from "./presidency-engine.ts";
+import { STRATEGY_SECTORS } from "./presidency-strategy-content.ts";
 import type { Game } from "./types.ts";
 
 /** Kept apart from the active save, progression counters, and imported scenarios. */
@@ -19,7 +20,7 @@ function canonicalGame(value: unknown): Game | null {
     if (!value || typeof value !== "object") return null;
     const candidate = value as Game;
     if (!Number.isInteger(candidate.turn) || !Array.isArray(candidate.choices) ||
-      (candidate.version === 16 ? candidate.turn < 0 || candidate.turn > 30 || candidate.choices.length > PRESIDENCY_JOURNAL_LIMIT || candidate.turn !== candidate.choices.filter(id => id === "live-tick").length : candidate.turn !== candidate.choices.length) ||
+      (candidate.version >= 16 ? candidate.turn < 0 || candidate.turn > 30 || candidate.choices.length > PRESIDENCY_JOURNAL_LIMIT || candidate.turn !== candidate.choices.filter(id => id === "live-tick").length : candidate.turn !== candidate.choices.length) ||
       !Array.isArray(candidate.history) || candidate.choices.length !== candidate.history.length) return null;
     const encoded = encode(candidate);
     if (new TextEncoder().encode(encoded).length > MAX_SAVE_BYTES) return null;
@@ -36,14 +37,14 @@ function canonicalGame(value: unknown): Game | null {
   }
 }
 
-/** Legacy: decision index. V16: journal index before a President's order. */
+/** Legacy: decision index. V16–17: journal index before a President's order. */
 export function createBranch(game: Game, turn: number, storage?: StorageWriter): Game {
   const original = canonicalGame(game);
   if (!original || !Number.isInteger(turn) || turn < 0 || turn >= original.choices.length ||
-    (original.version === 16 ? original.choices[turn] === "live-tick" : original.choices.length !== original.turn)) {
+    (original.version >= 16 ? original.choices[turn] === "live-tick" : original.choices.length !== original.turn)) {
     throw new Error("Ce choix ne peut pas être rejoué depuis cette partie.");
   }
-  const branch = original.version === 16 ? replayGame(original, original.choices.slice(0, turn)) : focusForRecordedDecision(original, turn);
+  const branch = original.version >= 16 ? replayGame(original, original.choices.slice(0, turn)) : focusForRecordedDecision(original, turn);
   if (storage) saveBranchReference(storage, original);
   return branch;
 }
@@ -86,9 +87,26 @@ function stateAt(game: Game, turn: number) {
   return turn > 0 ? periodRecord(game, turn)?.metrics : startingGame(game).metrics;
 }
 
-/** V16 history also records orders; only clock snapshots compare elapsed time. */
+/** V16–17 history also records orders; only clock snapshots compare elapsed time. */
 function periodRecord(game: Game, period: number) {
-  return game.version === 16 ? game.history.filter((_, index) => game.choices[index] === "live-tick")[period - 1] : game.history[period - 1];
+  return game.version >= 16 ? game.history.filter((_, index) => game.choices[index] === "live-tick")[period - 1] : game.history[period - 1];
+}
+
+/** Reconstruct the last clock transition at this elapsed period, excluding any
+ * later orders. Sector stocks are derived state, not legacy metric snapshots. */
+function clockStateAt(game: Game, period: number): Game {
+  if (!period) return startingGame(game);
+  let elapsed = 0;
+  const index = game.choices.findIndex(id => id === "live-tick" && ++elapsed === period);
+  return replayGame(game, game.choices.slice(0, index + 1));
+}
+
+function sectorPressureRows(current: Game, original: Game, period: number): Array<readonly [string, number, number]> {
+  const next = clockStateAt(current, period), before = clockStateAt(original, period);
+  return Object.values(next.pressure?.sectors ?? {}).flatMap(front => {
+    const historic = before.pressure?.sectors[front.id];
+    return historic ? [[`Pression · ${STRATEGY_SECTORS[front.id].ministry}`, front.pressure, historic.pressure] as const] : [];
+  });
 }
 
 const point = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1, signDisplay: "always" });
@@ -102,12 +120,16 @@ export function comparisonMarkup(current: Game, reference: Game): string {
   const progress = Math.min(a.turn, b.turn);
   const left = stateAt(a, progress), right = stateAt(b, progress);
   if (!left || !right) return "";
-  const rows = ([
+  const metricRows: Array<readonly [string, number, number]> = a.version === 17 ? [
+    ["Services assurés", left.services, right.services],
+    ...sectorPressureRows(a, b, progress),
+  ] : [
     ["Services", left.services, right.services],
     ["Cohésion", left.cohesion, right.cohesion],
     ["Résilience", left.resilience, right.resilience],
     ["Confiance", left.trust, right.trust],
-  ] as const).map(([label, value, historic]) => {
+  ];
+  const rows = metricRows.map(([label, value, historic]) => {
     const delta = Math.round((value - historic) * 10) / 10;
     return `<li><span>${label}</span><strong>${escapeHtml(point.format(delta))} points</strong></li>`;
   }).join("");
@@ -117,15 +139,15 @@ export function comparisonMarkup(current: Game, reference: Game): string {
     : "";
   const title = isFinished(a) && isFinished(b) && a.turn === b.turn
     ? "Écart aux deux héritages simulés"
-    : `Écart au même point du mandat (${progress} ${a.version === 16 ? "périodes" : "décisions"})`;
-  return `<aside class="branch-comparison" aria-label="Comparaison avec la trajectoire d’origine"><h3>${escapeHtml(title)}</h3><p>Écarts au même stade de la trajectoire d’origine.</p><ul>${rows}${financialRow}</ul></aside>`;
+    : `Écart au même point du mandat (${progress} ${a.version >= 16 ? "périodes" : "décisions"})`;
+  return `<aside class="branch-comparison" aria-label="Comparaison avec la trajectoire d’origine"><h3>${escapeHtml(title)}</h3><p>Écarts au même stade de la trajectoire d’origine.${a.version === 17 ? " Une baisse de pression est une amélioration ; 100 signifie le danger maximal." : ""}</p><ul>${rows}${financialRow}</ul></aside>`;
 }
 
 /** Historical decisions remain selectable even when their old option is no longer actionable. */
 export function renderReplaySelection(game: Game): string {
   const g = canonicalGame(game);
   if (!g || g.mode !== "national" || g.version < 9) return "";
-  if (g.version === 16) return presidencyReplaySelection(g);
+  if (g.version >= 16) return presidencyReplaySelection(g);
   if (g.turn === 0) return "";
   const causal = g.version >= 11 ? narrativeTurningPoints(g, 3).map(point => point.index) : [];
   const selected = [...new Set(causal.length ? causal : [0, Math.floor((g.turn - 1) / 2), g.turn - 1])];
@@ -144,7 +166,7 @@ export function renderReplaySelection(game: Game): string {
   return `<section class="replay-selection" aria-labelledby="replay-selection-title"><header class="replay-selection__header"><span>${v11 ? 'DÉCISIONS MARQUANTES' : 'RELIRE VOTRE MANDAT'}</span><h1 id="replay-selection-title">${v11 ? 'Rejouer un tournant.' : 'Où tout aurait pu changer ?'}</h1><p>${v11 ? 'Ces décisions sont reliées aux événements qui ont réellement marqué votre partie.' : 'Reprenez avant une décision et explorez une autre trajectoire.'}</p><p class="replay-selection__archive">Votre mandat d’origine reste conservé.</p></header><div class="replay-selection__grid">${cards}</div><details class="replay-selection__all"><summary>Toutes mes décisions (${g.turn})</summary><div>${remaining}</div></details><button type="button" class="replay-selection__back" data-action="show-result">${isFinished(g) ? "Revenir à mon héritage" : "Revenir à mon mandat"}</button></section>`;
 }
 
-/** Orders and automatic periods are different entries in the v16 journal.
+/** Orders and automatic periods are different entries in the clock-driven journal.
  * Rebuild it once to retain authentic titles, including repeated priorities and
  * rejected laws, even after their initiatives leave the live government's feed. */
 function presidencyReplaySelection(game: Game): string {
@@ -174,7 +196,10 @@ export function renderTrajectoryComparison(current: Game, reference: Game): stri
   const progress = Math.min(a.turn, b.turn);
   const left = stateAt(b, progress), right = stateAt(a, progress);
   if (!left || !right) return "";
-  const metrics = [["Services publics", left.services, right.services], ["Confiance", left.trust, right.trust]] as const;
+  const metrics: Array<readonly [string, number, number]> = a.version === 17 ? [
+    ["Services assurés", left.services, right.services],
+    ...sectorPressureRows(a, b, progress).map(([label, next, original]) => [label, original, next] as const),
+  ] : [["Services publics", left.services, right.services], ["Confiance", left.trust, right.trust]];
   const row = (label: string, original: number, next: number, unit = "") => {
     const delta = Math.round((next - original) * 10) / 10;
     const min = unit === " Md€" ? Math.min(0, original, next) : 0;
@@ -185,7 +210,7 @@ export function renderTrajectoryComparison(current: Game, reference: Game): stri
   const newDeficit = progress ? periodRecord(a, progress)?.ledger.deficit ?? annualDeficit(a) : annualDeficit(startingGame(a));
   const cards = [...metrics.map(([label, x, y]) => row(label, x, y)), row("Déficit annuel", originalDeficit, newDeficit, " Md€")].join("");
   const closed = isFinished(a);
-  const progressLabel = a.version === 16 ? `Période ${progress} / ${domainFor(a).turns} · indicateurs enregistrés au même nombre de périodes écoulées.` : `Décision ${progress} / ${domainFor(a).turns} · indicateurs observés au même nombre de décisions.`;
-  const canReplay = a.version !== 16 || a.choices.some(id => id !== "live-tick");
-  return `<section class="trajectory-comparison" aria-labelledby="trajectory-comparison-title"><header><span>COMPARAISON À LA MÊME ÉTAPE</span><h1 id="trajectory-comparison-title">Un choix. Deux trajectoires.</h1><p>${progressLabel}${a.politics?.ending && a.politics.ending.kind !== "term_complete" ? ` Mandat interrompu : ${escapeHtml(a.politics.ending.title)}.` : ""}</p></header><div class="trajectory-comparison__columns"><section class="trajectory-panel trajectory-panel--origin"><h2>Mandat d’origine</h2><p>${escapeHtml(progress ? periodRecord(b, progress)?.title ?? "État initial" : "État initial")}</p></section><section class="trajectory-panel trajectory-panel--new"><h2>Nouvelle trajectoire</h2><p>${escapeHtml(progress ? periodRecord(a, progress)?.title ?? "État initial" : "État initial")}</p></section></div><div class="trajectory-comparison__metrics">${cards}</div><p class="trajectory-comparison__note">Écarts calculés à partir des indicateurs et comptes enregistrés dans la simulation.</p><div class="trajectory-comparison__actions">${!closed || canReplay ? `<button type="button" data-action="${closed ? "open-replay-selection" : "continue-branch"}">${closed ? a.version === 16 ? "Rejouer un autre ordre" : "Rejouer une autre décision" : "Continuer la simulation"}</button>` : ""}<button type="button" data-action="restore-origin">Retrouver mon mandat d’origine</button></div></section>`;
+  const progressLabel = a.version >= 16 ? `Période ${progress} / ${domainFor(a).turns} · indicateurs enregistrés au même nombre de périodes écoulées.` : `Décision ${progress} / ${domainFor(a).turns} · indicateurs observés au même nombre de décisions.`;
+  const canReplay = a.version < 16 || a.choices.some(id => id !== "live-tick");
+  return `<section class="trajectory-comparison" aria-labelledby="trajectory-comparison-title"><header><span>COMPARAISON À LA MÊME ÉTAPE</span><h1 id="trajectory-comparison-title">Un choix. Deux trajectoires.</h1><p>${progressLabel}${a.politics?.ending && a.politics.ending.kind !== "term_complete" ? ` Mandat interrompu : ${escapeHtml(a.politics.ending.title)}.` : ""}</p></header><div class="trajectory-comparison__columns"><section class="trajectory-panel trajectory-panel--origin"><h2>Mandat d’origine</h2><p>${escapeHtml(progress ? periodRecord(b, progress)?.title ?? "État initial" : "État initial")}</p></section><section class="trajectory-panel trajectory-panel--new"><h2>Nouvelle trajectoire</h2><p>${escapeHtml(progress ? periodRecord(a, progress)?.title ?? "État initial" : "État initial")}</p></section></div><div class="trajectory-comparison__metrics">${cards}</div><p class="trajectory-comparison__note">Écarts calculés à partir des indicateurs et comptes enregistrés dans la simulation.${a.version === 17 ? " Pour la pression, une baisse est une amélioration ; 100 signifie le danger maximal." : ""}</p><div class="trajectory-comparison__actions">${!closed || canReplay ? `<button type="button" data-action="${closed ? "open-replay-selection" : "continue-branch"}">${closed ? a.version >= 16 ? "Rejouer un autre ordre" : "Rejouer une autre décision" : "Continuer la simulation"}</button>` : ""}<button type="button" data-action="restore-origin">Retrouver mon mandat d’origine</button></div></section>`;
 }
