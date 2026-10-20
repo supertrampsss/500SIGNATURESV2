@@ -1,10 +1,85 @@
+type LabelRect = { x:number; y:number; width:number; height:number };
+/** Find the closest free rectangle, using measured label dimensions. Stable
+ * iteration order keeps placement deterministic across refreshes. */
+export function placePresidencyLabels(labels:LabelRect[],width:number,height:number): LabelRect[] {
+ const placed:LabelRect[]=[];
+ for(const label of labels) {
+  const x=Math.max(8,Math.min(width-label.width-8,label.x-label.width/2));
+  const y=Math.max(8,Math.min(height-label.height-8,label.y-label.height/2));
+  const xs=[x,8,Math.max(8,width-label.width-8)], ys=[y,8,Math.max(8,height-label.height-8)];
+  for(let n=8;n<=width-label.width-8;n+=8)xs.push(n);
+  for(let n=8;n<=height-label.height-8;n+=8)ys.push(n);
+  let best:LabelRect|undefined,distance=Infinity;
+  for(const px of xs)for(const py of ys) {
+   const cost=(px-x)**2+(py-y)**2;
+   if(cost>=distance)continue;
+   if(placed.some(p=>px<p.x+p.width+6&&px+label.width+6>p.x&&py<p.y+p.height+6&&py+label.height+6>p.y))continue;
+   best={...label,x:px,y:py};distance=cost;
+  }
+  placed.push(best ?? {...label,x,y});
+ }
+ return placed;
+}
+
+function layoutStrategyPins(host:HTMLElement,country:HTMLElement,world:HTMLElement):void {
+ const area=country.getBoundingClientRect(), map=world.getBoundingClientRect();
+ const mobile=area.width<=650;
+ const dock=host.querySelector<HTMLElement>('[data-live-fan]:not([hidden])');
+ const availableWidth=!mobile&&dock ? dock.getBoundingClientRect().left-area.left-8 : area.width;
+ const compact=mobile||availableWidth<650||area.height<250;
+ const gap=6, columns=area.height<250 && availableWidth>=650 ? 6 : 3;
+ const width=compact ? Math.min(160,(availableWidth-16-gap*(columns-1))/columns) : 160;
+ const sectors=[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
+ const anchor=(pin:HTMLElement)=>({x:map.left-area.left+Number(pin.dataset.mapX)/100*map.width,y:map.top-area.top+Number(pin.dataset.mapY)/100*map.height});
+ sectors.forEach(pin=>{pin.hidden=false;pin.dataset.pinLayout=compact?'compact':'map';pin.style.width=`${width}px`;});
+ const rowHeight=Math.max(44,...sectors.map(pin=>pin.getBoundingClientRect().height));
+ const labels=sectors.map((pin,i)=>{const rect=pin.getBoundingClientRect();return {...(compact?{x:8+i%columns*(width+gap)+width/2,y:8+Math.floor(i/columns)*(rowHeight+gap)+rect.height/2}:anchor(pin)),width:rect.width,height:rect.height};});
+ const events=[...country.querySelectorAll<HTMLElement>('.pr-board-pin')];
+ events.forEach(pin=>{pin.hidden=false;pin.dataset.pinAccessibleName??=pin.getAttribute('aria-label')??'';pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);delete pin.dataset.clusterMembers;delete pin.dataset.clusterSeverity;pin.querySelector('.pr-pin-count')?.remove();pin.style.height='';});
+ const rowsBottom=Math.max(8,...labels.map(p=>p.y+p.height/2))+6;
+ // Reserve a compact event row before the phone panel; every member remains
+ // available in the existing accessible cluster list.
+ const groupEvents=compact&&events.length>0;
+ const visibleEvents=groupEvents?events.slice(0,1):events;
+ if(groupEvents) {
+  const primary=events[0];primary.dataset.clusterMembers=JSON.stringify(events.map(p=>p.dataset.pinKey));
+  primary.setAttribute('aria-label',`${events.length} événement${events.length===1?'':'s'} : ${events.map(p=>p.dataset.pinAccessibleName).join(' ; ')}`);
+  if(events.some(p=>p.dataset.eventKind==='political'))primary.dataset.clusterSeverity='critical';
+  const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=String(events.length);primary.appendChild(badge);
+  events.slice(1).forEach(pin=>pin.hidden=true);
+ }
+ visibleEvents.forEach((pin,i)=>{pin.style.width=`${compact?Math.min(240,availableWidth-(mobile?160:16)):190}px`;pin.dataset.pinLayout=compact?'compact':'map';if(compact)pin.style.height='44px';const rect=pin.getBoundingClientRect();labels.push({...compact?{x:mobile?8+rect.width/2:availableWidth/2,y:rowsBottom+rect.height/2+i*(rect.height+8)}:anchor(pin),width:rect.width,height:rect.height});});
+ const boxes=placePresidencyLabels(labels,availableWidth,area.height);
+ const pins=[...sectors,...visibleEvents];
+ pins.forEach((pin,i)=>{pin.style.left=`${boxes[i].x}px`;pin.style.top=`${boxes[i].y}px`;});
+ if(mobile&&dock) dock.style.setProperty('--pr-mobile-fan-top',`${Math.max(8,...boxes.map(p=>p.y+p.height))+8}px`);
+ const leaders=pins.map((pin,i)=>{const a=anchor(pin),p=boxes[i];return `<path d="M${p.x+p.width/2} ${p.y+p.height/2} L${a.x} ${a.y}"/><circle cx="${a.x}" cy="${a.y}" r="3"/>`;});
+ const svg=host.querySelector<SVGElement>('[data-pin-leaders]')!;svg.setAttribute('viewBox',`0 0 ${area.width} ${area.height}`);svg.innerHTML=leaders.join('');
+ host.dataset.pinLayoutViewport=`${Math.round(area.width)}x${Math.round(area.height)}`;
+}
 /** Project real map anchors into the viewport, then separate readable labels.
  * Leader lines preserve location; off-screen places remain actionable. */
 export function layoutPresidencyPins(host: HTMLElement): void {
   const country = host.querySelector<HTMLElement>('.pr-country')!;
   const world = host.querySelector<HTMLElement>('.pr-world')!;
+  if(host.dataset.version==='17') {
+    const brief=host.querySelector<HTMLElement>('.pr-strategy-brief');
+    if(brief) {
+      const height=`${brief.getBoundingClientRect().height}px`;
+      if(host.style.getPropertyValue('--pr-strategy-brief-height')!==height)host.style.setProperty('--pr-strategy-brief-height',height);
+    }
+    const style=getComputedStyle(host), root=host.getBoundingClientRect();
+    const nominalBottom=parseFloat(style.getPropertyValue('--pr-strategy-sectors'))+parseFloat(style.getPropertyValue('--pr-strategy-news'));
+    // Compare against the nominal footer, independently of the current fallback.
+    // This avoids toggling it back on as soon as the extra room becomes available.
+    const available=root.bottom-country.getBoundingClientRect().top-nominalBottom;
+    const rows=root.width<=650?2:1;
+    const pinHeight=Math.max(44,...[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')].map(pin=>pin.getBoundingClientRect().height));
+    host.dataset.compactReadings=String(available<16+rows*(pinHeight+6)+50);
+  }
   const area = country.getBoundingClientRect(), map = world.getBoundingClientRect();
   if (!area.width || !area.height) return;
+  if(host.dataset.version==='17'){layoutStrategyPins(host,country,world);return;}
   const mobile = area.width <= 650;
   // Six compact sector controls always remain separate; only event cards cluster.
   const sectorPins = [...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
@@ -116,7 +191,8 @@ export function presidencyClusterMarkup(host:HTMLElement, keys:string[]): string
     if(countdown){const time=countdown.cloneNode(true) as HTMLElement;time.className='pr-cluster-time';button.appendChild(time);}
     wrapper.appendChild(button);
   }
-  return `<section class="pr-fan pr-cluster-fan" aria-label="Événements proches"><header><strong>Événements proches · ${wrapper.childElementCount}</strong><button type="button" data-action="presidency-deselect" aria-label="Fermer les événements">×</button></header>${wrapper.innerHTML}</section>`;
+  const title=wrapper.childElementCount===1 ? "Événement proche" : "Événements proches";
+  return `<section class="pr-fan pr-cluster-fan" aria-label="${title}"><header><strong>${title} · ${wrapper.childElementCount}</strong><button type="button" data-action="presidency-deselect" aria-label="Fermer les événements">×</button></header>${wrapper.innerHTML}</section>`;
 }
 
 /** Keep existing event elements so tick updates do not replay arrival animations. */

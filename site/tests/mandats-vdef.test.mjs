@@ -250,3 +250,119 @@ test('reprise distingue une période autonome et un ordre présidentiel',async({
   await load(page,['live-tick','s17-health-capacity']); await page.goto('/mandats/');
   await expect(page.locator('.map-entry__saved')).toContainText('1 période écoulée · 1 ordre · règles v17');
 });
+
+// Original human-selected journal, replayed only for reproducible regressions.
+async function playerInput(before, occurrence=0) {
+ const input=JSON.parse(await readFile(new URL('../../docs/mandats/essai-joueur-2026-10-20/partie-jouee-v17.json',import.meta.url),'utf8'));
+ let seen=0; const index=input.choices.findIndex(id=>id===before&&seen++===occurrence);
+ return input.choices.slice(0,index);
+}
+async function noBoardCollisions(page) {
+ const boxes=await page.locator('.pr-sector-pin:visible,.pr-board-pin:visible,[data-live-fan]:not([hidden])').evaluateAll(elements=>elements.map(el=>{const r=el.getBoundingClientRect();return {name:el.getAttribute('aria-label')||el.dataset.pinKey||'panneau',x:r.x,y:r.y,width:r.width,height:r.height};}));
+ for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++) { const a=boxes[i],b=boxes[j]; expect(a.x+a.width<=b.x+1||b.x+b.width<=a.x+1||a.y+a.height<=b.y+1||b.y+b.height<=a.y+1,`${page.viewportSize().width}×${page.viewportSize().height} : ${a.name} recouvre ${b.name}`).toBe(true); }
+ for(const pin of await page.locator('.pr-sector-pin:visible,.pr-board-pin:visible').all()) await hit(pin);
+}
+test('régression joueur612 rectangles réels séparés avec événements et panneau',async({page})=>{
+ await load(page,await playerInput('live-credits',1),612);
+ for(const [width,height] of [[1280,720],[1024,768],[844,390],[390,844],[320,568]]) {
+  await page.setViewportSize({width,height});
+  // WebKit can deliver the resize after the clock’s first queued frame. Wait
+  // for a measured layout of this viewport, then assert the actual rectangles.
+  await expect.poll(async()=>{await page.clock.runFor(32);return page.evaluate(()=>{const host=document.querySelector('[data-presidency]'),r=host.querySelector('.pr-country').getBoundingClientRect();return host.dataset.pinLayoutViewport===`${Math.round(r.width)}x${Math.round(r.height)}`;});}).toBe(true);
+  await expect(page.locator('.pr-sector-pin:visible')).toHaveCount(6); await noBoardCollisions(page);
+  await expect(page.locator('.pr-strategy-cap>strong')).toBeVisible(); await expect(page.locator('.pr-strategy-cap>strong')).toContainText('39,93');
+  await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64); await noBoardCollisions(page);
+  await page.locator('[data-live-pin="housing"]').click(); await page.clock.runFor(64); await expect(page.locator('[data-strategy-sector="housing"]')).toBeVisible(); await noBoardCollisions(page);
+  await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
+  await expect(page.locator('.pr-sectors')).toBeVisible(); await noBoardCollisions(page);
+ }
+});
+test('régression joueur612 risque objectif et vote dans leur contexte rendu',async({page})=>{
+ await load(page,await playerInput('s17-housing-network'),612);
+ await page.locator('[data-live-pin="housing"]').click();
+ await expect(page.locator('[data-strategy-sector="housing"]')).toContainText('limite opérationnelle');
+ await expect(page.locator('[data-strategy-sector="housing"]')).not.toContainText('dispose d’une marge');
+ await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click();
+});
+test('régression joueur612 vote immédiatement dans les réformes',async({page})=>{
+ await load(page,await playerInput('r21a'),612);
+ await page.locator('[data-panel="reforms"]').click();
+ await page.locator('[data-live-reform]').filter({has:page.locator('[data-order="r21a"]')}).locator(':scope > summary').click();
+ await page.locator('[data-order="r21a"]').click();
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('249 pour');
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('286 contre');
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toBeInViewport();
+});
+
+test('régression joueur612 autorisation P25 garde son résultat quand l’alerte budget disparaît',async({page})=>{
+ await load(page,await playerInput('live-credits',1),612);
+ await page.locator('[data-live-event-pin="s17-funding"]').click();
+ const clustered=page.locator('.pr-cluster-choice[data-event="s17-funding"]');
+ if(await clustered.count()) {
+  await expect(page.locator('.pr-cluster-fan')).toHaveAttribute('aria-label','Événement proche');
+  await expect(page.locator('.pr-cluster-fan header strong')).toHaveText('Événement proche · 1');
+  await clustered.click();
+ }
+ const origin=page.locator('[data-presidency-event="s17-funding"]');
+ await expect(origin).toBeVisible();
+ await origin.locator('[data-order="live-credits"] .pr-command__cta').click();
+ const result=page.locator('[data-live-fan] [data-live-vote]');
+ await expect(result).toContainText('308 pour'); await expect(result).toContainText('227 contre');
+ await expect(result).toBeInViewport();
+ await result.locator('summary').click(); await expect(result).toContainText('Majorité présidentielle');
+});
+
+test('repères320 gardent noms alerte et chantier dans leur rectangle',async({page})=>{
+ await page.setViewportSize({width:320,height:568});
+ await load(page,[...await playerInput('live-credits',1),'live-credits','s17-administration-network','s17-energy-network','live-budget-redeploy','s17-education-capacity'],612);
+ const contents=await page.locator('.pr-sector-pin').evaluateAll(pins=>pins.map(pin=>{const p=pin.getBoundingClientRect(),label=pin.querySelector('.pr-pin__label').getBoundingClientRect();return {name:pin.getAttribute('aria-label'),inside:label.top>=p.top&&label.bottom<=p.bottom&&label.left>=p.left&&label.right<=p.right};}));
+ for(const content of contents) expect(content.inside,content.name).toBe(true);
+ await noBoardCollisions(page);
+});
+
+const threeObjectiveOrders=['s17-health-organisation','s17-housing-organisation','s17-transport-organisation','s17-energy-organisation','s17-health-capacity','s17-housing-capacity','live-tick'];
+test('trois objectifs visibles restent dans le bandeau sans masquer commandes et carte',async({page},info)=>{
+ await page.setViewportSize({width:320,height:568}); await load(page,threeObjectiveOrders,612);
+ for(const [width,height] of [[320,568],[390,844],[844,390],[1024,768],[1280,720],[1672,941]]) {
+  await page.setViewportSize({width,height}); await page.clock.runFor(64);
+  const cap=page.locator('.pr-strategy-cap');
+  await expect(cap).toContainText('30,04'); await expect(cap).toContainText('28,4');
+  await expect(cap).toContainText('166,1'); await expect(cap).toContainText('153'); await expect(cap).toContainText('26,26');
+  const geometry=await cap.evaluate(el=>{const c=el.getBoundingClientRect(),title=el.querySelector('strong').getBoundingClientRect(),count=el.querySelector('.pr-strategy-cap__eyebrow').getBoundingClientRect(),controls=document.querySelector('.pr-strategy-controls').getBoundingClientRect(),brief=el.parentElement.getBoundingClientRect(),country=document.querySelector('.pr-country').getBoundingClientRect();return {titleInside:title.top>=c.top&&title.bottom<=c.bottom,countInside:count.top>=c.top&&count.bottom<=c.bottom,commandClear:controls.left>=c.right-1||controls.top>=c.bottom-1,countryClear:country.top>=brief.bottom-1};});
+  expect(geometry).toEqual({titleInside:true,countInside:true,commandClear:true,countryClear:true});
+  await hit(cap); for(const button of await page.locator('.pr-strategy-controls button').all())await hit(button);
+  await noBoardCollisions(page);
+  await page.screenshot({path:info.outputPath(`objectifs-${width}x${height}.png`)});
+  await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64);
+  await noBoardCollisions(page);
+  await page.screenshot({path:info.outputPath(`objectifs-panneau-${width}x${height}.png`)});
+  await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
+ }
+});
+
+
+for(const [width,height] of [[1280,720],[390,844]])test(`Cabinet montre le nouveau vote apres lecture des soutiens ${width}`,async({page})=>{
+ await page.setViewportSize({width,height});
+ await load(page,[...Array(3).fill('live-tick'),'s17-housing-capacity','s17-administration-capacity',...Array(11).fill('live-tick')],1);
+ await page.locator('[data-panel="government"]').press('Enter');
+ const cabinet=page.locator('[data-presidency-panel="government"]');
+ await cabinet.locator('.pr-vote-help > summary').press('Enter');
+ await cabinet.locator('[data-order="live-credits"]').press('Enter');
+ await page.clock.runFor(1000);
+ const vote=cabinet.locator('[data-live-vote]');
+ await expect(vote).toContainText('268 pour');
+ await expect(vote).toBeFocused();
+ await expect(vote.locator(':scope > strong')).toBeInViewport({ratio:1});
+ await expect(vote.locator('summary')).toBeInViewport({ratio:1});
+ await vote.locator('summary').press('Enter');
+ await expect(vote.locator('details')).toHaveAttribute('open','');
+ // A different cabinet order must preserve its own reading/focus; an old vote
+ // is not a reason to jump back to the receipt on every refresh.
+ const autonomy=cabinet.locator('[data-order="live-autonomy"]');
+ await autonomy.focus();
+ const scroll=await cabinet.locator('.pr-panel__body').evaluate(el=>el.scrollTop);
+ await autonomy.press('Enter'); await page.clock.runFor(64);
+ await expect(cabinet.locator('[data-order="live-autonomy"]')).toBeFocused();
+ expect(await cabinet.locator('.pr-panel__body').evaluate(el=>el.scrollTop)).toBeCloseTo(scroll,0);
+ await expect(vote).not.toBeFocused();
+});

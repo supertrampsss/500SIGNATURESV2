@@ -11,6 +11,7 @@ const SECTORS = ['health', 'housing', 'transport', 'energy', 'education', 'admin
 const PERIOD_MS = 15_000;
 const moduleURL = new URL('../src/mandats/storage.ts', import.meta.url).href;
 const cache = new Map();
+const clockPhases = new WeakMap();
 function reconstruct(value) {
   const raw = typeof value === 'string' ? value : JSON.stringify(value);
   if (!cache.has(raw)) cache.set(raw, JSON.parse(execFileSync(process.execPath,
@@ -46,9 +47,7 @@ async function saved(page) {
   const raw = await rawSave(page); expect(raw).toBeTruthy(); return reconstruct(raw);
 }
 async function stopBrowserClock(page) {
-  const initial = Date.now() + 1_000;
-  await page.clock.install({ time: initial - 1_000 });
-  await page.clock.pauseAt(initial);
+  await page.clock.pauseAt(Date.now());
 }
 async function ready(page) {
   await expect(page.locator('section[data-presidency]')).toBeVisible();
@@ -59,6 +58,10 @@ async function start(page) {
   // The current new-game entry is covered by mandats-strategy.test.mjs.
   // This suite continues to exercise the explicit historical v16 clock/rules.
   await load(page);
+  // Begin the exact one-minute measurement on the existing 100ms scheduler
+  // boundary, while the country is paused. No extra running-time allowance.
+  const remainder = (clockPhases.get(page) - (await page.evaluate(()=>performance.now())) % 100 + 100) % 100;
+  if (remainder) await page.clock.runFor(remainder);
   await resume(page);
   expect((await saved(page)).version).toBe(16);
 }
@@ -66,6 +69,9 @@ async function load(page, inputs = BASE) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await stopBrowserClock(page);
   await page.goto('/mandats/');
+  // Frozen time keeps this origin unchanged until the imported runtime creates
+  // its 100ms interval. WebKit's performance origin need not be zero.
+  clockPhases.set(page,await page.evaluate(()=>performance.now()%100));
   await importInputs(page, inputs);
 }
 async function importInputs(page, inputs) {
@@ -123,22 +129,10 @@ async function capture(page, info, label, game = undefined) {
   const state = game ?? await saved(page);
   const screenshot = info.outputPath(`${label}.png`);
   const inputs = info.outputPath(`${label}.json`);
-  // A frozen Playwright clock can leave Chromium's full-page capture waiting
-  // for rendering frames. Pause the country, release browser frames for the
-  // capture, then restore the controlled clock without changing saved inputs.
-  const clock = page.locator('[data-presidency-clock]');
-  const hasPresidency = await clock.count() > 0;
-  const wasRunning = hasPresidency && await clock.getAttribute('data-paused') === 'false';
   const durable = await rawSave(page);
-  // Explicit v15 imports render the legacy board, without a presidency clock.
-  if (hasPresidency) await pause(page);
-  await page.clock.resume();
-  try {
-    await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 });
-  } finally {
-    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
-    if (wasRunning) await resume(page);
-  }
+  // Keep the installed browser clock frozen; do not reset the country's stamp
+  // with pause/resume, even when the historical country is currently running.
+  await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 });
   expect(await rawSave(page)).toBe(durable);
   await writeFile(inputs, JSON.stringify({ url: page.url(), browser: info.project.name, viewport: page.viewportSize(), inputs: { version: state.version, mode: state.mode, seed: state.seed, ambition: state.ambition, choices: state.choices }, state }, null, 2));
   await info.attach(label, { path: screenshot, contentType: 'image/png' });
@@ -679,4 +673,17 @@ test('map decisions keep readable names and independent touch targets without th
   await expect(accounts).toHaveAttribute('open','');
   expect(Math.abs(await fan.evaluate(e=>e.scrollTop)-position)).toBeLessThan(3);
   await capture(page,info,'gouvernement-lecture-conservee-pendant-le-temps');
+});
+
+test('capture keeps the installed browser clock frozen and the durable country unchanged',async({page},info)=>{
+ await start(page);
+ const before=await page.evaluate(()=>({date:Date.now(),performance:performance.now()}));
+ const durable=await rawSave(page);
+ await page.evaluate(()=>{window.captureTimerFired=false;setTimeout(()=>window.captureTimerFired=true,1);});
+ await capture(page,info,'clock-capture-regression');
+ expect(await page.evaluate(()=>({date:Date.now(),performance:performance.now()}))).toEqual(before);
+ expect(await page.evaluate(()=>window.captureTimerFired)).toBe(false);
+ expect(await rawSave(page)).toBe(durable);
+ await page.clock.runFor(1);
+ expect(await page.evaluate(()=>window.captureTimerFired)).toBe(true);
 });
