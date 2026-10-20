@@ -25,7 +25,12 @@ async function verifieTableauCompact(scope) {
  await expect(rows.first().locator('td').nth(2)).toHaveAccessibleName(/budget restant après déduction des cotisations salariales estimées/);
  await expect(rows.locator('td')).toHaveCount(57);
  await expect(comparison).toContainText('Défense');
- await expect(comparison).toContainText('60,6');
+ await expect(rows.first().locator('.budget-comparison__value')).toHaveText(['89,09','28,46','60,63']);
+ const displayedAmounts=await rows.locator('.budget-comparison__value').allTextContents();
+ expect(displayedAmounts.every(text=>/^(?:—|< 0,01|\d+(?:,\d{1,2})?)$/.test(text.trim()))).toBe(true);
+ expect(displayedAmounts.some(text=>/,\d*0$/.test(text.trim()))).toBe(false);
+ const small=rows.filter({has:table.page().getByRole('rowheader',{name:'Aménagement et décentralisation',exact:true})});
+ await expect(small.locator('td').nth(1).locator('.budget-comparison__value')).toHaveText('< 0,01');
  for(const row of await rows.evaluateAll(es=>es.map(e=>e.dataset))) {
   if(row.retirementEur!==undefined) expect(Number(row.retirementEur)+Number(row.remainingEur)).toBe(Number(row.budgetEur));
  }

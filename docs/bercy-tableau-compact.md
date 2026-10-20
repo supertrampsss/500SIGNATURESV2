@@ -18,6 +18,10 @@ aucun remplissage ; une retraite inconnue laisse aussi le reste inconnu.
 
 Les montants ne changent pas : crédits de paiement prévus au PLF 2027,
 contributions employeur issues des PAP et cotisations salariales estimées.
+Depuis la correction demandée le 20 octobre, l’affichage comporte deux décimales
+maximum, sans zéros ajoutés. Un montant positif qui s’arrondirait à zéro est
+affiché « < 0,01 » Md€, pour le distinguer d’un vrai zéro. Les barres et les sommes
+restent calculées à partir des euros exacts.
 Le retrait des signes ≈ est un choix de présentation ; les drapeaux d’estimation,
 les libellés accessibles et les explications des sources restent disponibles.
 Le mot « ponctionné » est le libellé éditorial retenu pour cette ventilation de

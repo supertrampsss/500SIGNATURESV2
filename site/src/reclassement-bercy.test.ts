@@ -14,7 +14,7 @@ test('les budgets et retraites sont monétaires, sourcés et réconciliés',()=>
   if(m.retraites!==null){assert.ok(m.retraites>=0 && m.retraites<=m.budget);assert.equal(m.retraites+(m.budget-m.retraites),m.budget);}
  }
  const html=renduReclassementBercy();assert.match(html,/Md€/);assert.match(html,/Défense/);
- assert.match(html,/89,1/);assert.match(html,/28,5/);assert.match(html,/60,6/);
+ assert.match(html,/89,09/);assert.match(html,/28,46/);assert.match(html,/60,63/);
  assert.equal((html.match(/class="budget-comparison"/g)??[]).length,1);
  assert.equal((html.match(/class="budget-comparison__row"/g)??[]).length,19);
  assert.match(html,/Les budgets des ministères/);assert.match(html,/PLF 2027 · En milliards d’euros/);

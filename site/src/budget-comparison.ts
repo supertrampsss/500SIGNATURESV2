@@ -9,14 +9,14 @@ export type BudgetComparisonRow = {
 };
 
 function milliards(euros: number): string {
-  if (euros === 0) return '0';
   const value = euros / 1e9;
-  const digits = value >= 1 ? 1 : value >= .1 ? 2 : value >= .01 ? 3 : 4;
-  return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+  // A positive amount below the rounding threshold must not look like a true zero.
+  if (value > 0 && value < .005) return '< 0,01';
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
 }
 
 function amount(euros: number | null): string {
-  return `<span class="budget-comparison__value">${euros === null ? '—' : milliards(euros)}</span>`;
+  return `<span class="budget-comparison__value">${euros === null ? '—' : echapper(milliards(euros))}</span>`;
 }
 
 function cell(euros: number | null, maximum: number, kind: 'budget' | 'retirement' | 'remaining', estimated = false): string {
@@ -25,7 +25,7 @@ function cell(euros: number | null, maximum: number, kind: 'budget' | 'retiremen
     ? `<span class="budget-comparison__spark-fill budget-comparison__spark-fill--${kind}" style="width:${euros / maximum * 100}%"></span>`
     : '';
   const accessible = euros === null ? ' aria-label="Non disponible"' : estimated
-    ? ` data-estimated="true" aria-label="${milliards(euros)} milliards d’euros, ${kind === 'remaining' ? 'budget restant après déduction des cotisations salariales estimées' : 'financement des retraites comprenant des cotisations salariales estimées'}"` : '';
+    ? ` data-estimated="true" aria-label="${echapper(milliards(euros))} milliards d’euros, ${kind === 'remaining' ? 'budget restant après déduction des cotisations salariales estimées' : 'financement des retraites comprenant des cotisations salariales estimées'}"` : '';
   return `<td role="cell" class="budget-comparison__${kind}"${accessible}><span class="budget-comparison__cell">${amount(euros)}<span class="budget-comparison__spark" aria-hidden="true">${fill}</span></span></td>`;
 }
 
