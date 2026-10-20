@@ -773,7 +773,7 @@ test('map late label: funded preparation stays inside its mobile map target', as
   await load(page);
   const funded=await order(page,'health','capacity');
   expect(funded.presidency.strategy.commitments.find(c=>c.choice==='s17-health-capacity').status).toBe('preparing');
-  await closeSurface(page); await page.clock.runFor(40);
+  await closeSurface(page); await page.clock.runFor(8_501); // Dismiss the financing receipt while game time stays paused.
   const pin=page.locator('.pr-country [data-live-pin="health"]');
   await expect(pin).toBeVisible(); await hitTarget(pin);
   expect(await pin.evaluate(el=>{
