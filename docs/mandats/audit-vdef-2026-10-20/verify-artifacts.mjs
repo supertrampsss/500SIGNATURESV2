@@ -24,7 +24,7 @@ for(const [,path]of html.matchAll(/(?:href|src)="([^"#]+)"/g)){
  await stat(resolve(dir,path)); linkChecks++;
 }
 const images=[];
-for(const path of ['maquettes/01-plateau-desktop.png','maquettes/02-arbitrage-mobile.png','maquettes/03-bilan-causal.png']){
+for(const path of ['maquettes/01-plateau-desktop.png','maquettes/02-arbitrage-mobile-v2.png','maquettes/03-bilan-causal.png']){
  const bytes=await readFile(resolve(dir,path));
  assert.equal(bytes.subarray(1,4).toString(),'PNG');
  images.push({path,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20),bytes:bytes.length});
@@ -37,7 +37,7 @@ const verification={
  model:{command:'Depuis site, définir MANDATS_STRATEGY_OUTPUT=../docs/mandats/audit-vdef-2026-10-20/audit-model, puis node --experimental-strip-types scripts/mandats-strategy-audit.ts',exit_code:0,trajectories:report.trajectoryCount,branches:report.branchCount,invariants:report.invariantChecks,issues:report.issues.length,source_changed:report.sourceChangedDuringRun,summary:'audit-model/summary.json',raw_local_report:'audit-model/report.json',note:'Traces brutes conservées localement et ignorées dans Git; audit reproductible via le script existant.'},
  replays:{command:'node --experimental-strip-types docs/mandats/audit-vdef-2026-10-20/mechanics-replay.mjs',document:'preuves-game-design.json',canonical_routes:2,autonomous_seeds:[0,1,2,19,47,143,9999]},
  browser:{tool:'cua_repl',production:'Desktop 1440x1000 et mobile 390x844. Aperçu protégé, aucune adoption de partie en production.',current_local:'Graine47,390x844CSS mesurés, un ordre santé et14ticks, arrêt en pause P15/30.',export:'partie-agent-mobile-seed47.json',full_playthrough:false,human_external:0,e2e_suite_rerun:false,webkit_rerun:false,offline_rerun:false,physical_devices:false,note:'Quelques commandes sous un viewport mal cadré ont été exclues des constats produit; captures refaites à390x844 mesurés et commandes clavier utilisées.'},
- imagegen:{mode:'outil intégré',count:3,status:'propositions non intégrées',prompts:'imagegen-prompts.json',images},
+ imagegen:{mode:'outil intégré',count:3,generations:4,status:'trois propositions finales non intégrées; première variante mobile conservée',prompts:'imagegen-prompts.json',mobile_refinement:'imagegen-mobile-refinement.json',images},
  obsolete_local:{branch:'codex/dossiers-maquette',commit:'a2e94dcb',excluded:true,note:'Les1015tests de cette ancienne copie ne constituent aucune preuve sur v17.'},
  artifact_validation:{local_link_checks:linkChecks,png_signatures_and_dimensions:true,report_and_export_parsed:true},
  unverified:['Plaisir et compréhension par joueurs externes','Recette E2E complète','Appareils physiques et safe-area iPhone','Performances terrain','Tous les assets et caches de production']

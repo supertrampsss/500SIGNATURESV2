@@ -49,8 +49,10 @@
   "imagegen": {
     "mode": "outil intégré",
     "count": 3,
-    "status": "propositions non intégrées",
+    "generations": 4,
+    "status": "trois propositions finales non intégrées; première variante mobile conservée",
     "prompts": "imagegen-prompts.json",
+    "mobile_refinement": "imagegen-mobile-refinement.json",
     "images": [
       {
         "path": "maquettes/01-plateau-desktop.png",
@@ -59,10 +61,10 @@
         "bytes": 2784566
       },
       {
-        "path": "maquettes/02-arbitrage-mobile.png",
+        "path": "maquettes/02-arbitrage-mobile-v2.png",
         "width": 853,
         "height": 1844,
-        "bytes": 2161647
+        "bytes": 1874453
       },
       {
         "path": "maquettes/03-bilan-causal.png",

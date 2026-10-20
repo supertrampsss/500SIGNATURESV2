@@ -94,13 +94,13 @@ Verdict réel, quatre objectifs, comparaisons héritage/fin, deux ou trois déci
 **Ces images sont des propositions de direction, pas des captures de changements intégrés.** La carte sert de référence visuelle ; les textes, boutons et valeurs devront rester des vrais éléments HTML/SVG dans le produit.
 
 - [01 · Plateau ordinateur](maquettes/01-plateau-desktop.png) : carte dominante, danger et secteur nommé, comparaison des deux transformations.
-- [02 · Arbitrage mobile](maquettes/02-arbitrage-mobile.png) : deux cartes comparables et accès permanent aux moyens/secteurs.
+- [02 · Arbitrage mobile, version affinée](maquettes/02-arbitrage-mobile-v2.png) : deux cartes comparables, vignettes retirées, objectif qualifié et commande Reprendre explicite.
 - [03 · Bilan causal](maquettes/03-bilan-causal.png) : objectifs, compromis et accès direct au replay. Les valeurs proviennent du parcours hybride graine 47, pas d’une partie inventée.
-- [Galerie visuelle](index.html) · [prompts complets et références](imagegen-prompts.json).
+- [Galerie visuelle](index.html) · [prompts initiaux et références](imagegen-prompts.json) · [affinage mobile](imagegen-mobile-refinement.json). La première proposition mobile reste une variante de travail ; la galerie présente la v2.
 
 **Points à corriger avant intégration des images :**
 - Les maquettes utilisent parfois le bordeaux pour « à surveiller » : réserver une distinction ambre/critique claire dans les vrais états.
-- Les vignettes d’hôpital occupent trop de place sur petit écran ; elles sont facultatives et doivent céder aux prix, conséquences et cibles tactiles.
+- Les vignettes d’hôpital sont facultatives sur ordinateur ; la proposition mobile v2 les retire pour donner la place aux prix, conséquences et cibles tactiles.
 - Les 3/10 appuis, la charge annuelle et le sens des effets doivent tous rester visibles ; la maquette desktop n’expose pas tous ces détails.
 - Le cap 4/4 doit être qualifié « actuellement atteints » ; la pause doit annoncer l’action possible « Reprendre » avec un état distinct.
 - Le panneau mobile dessiné n’est pas une preuve de conformité à 390×844 ou 320×568. Une vraie intégration et une recette restent nécessaires.
