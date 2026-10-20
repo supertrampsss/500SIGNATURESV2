@@ -320,3 +320,59 @@ test("le budget monétaire exige des euros et des retraites comprises dans le to
  d.preuves[1]!.value=30;d.preuves[1]!.unit="percent";assert.throws(()=>validerDossierAnalyse(d,SOURCES),/EUR/);
  d.preuves[1]!.unit="EUR";d.visualisations[0]!.budgetRows![0]!.budgetId="inexistant";assert.throws(()=>validerDossierAnalyse(d,SOURCES));
 });
+
+function dossierFlux(): DossierAnalyse {
+  const montants = [
+    ["budget-alpha", 100], ["retraites-alpha", 30],
+    ["budget-beta", 50], ["retraites-beta", 10], ["budget-inconnu", 20],
+  ] as const;
+  return dossier({
+    sommaire: undefined,
+    preuves: montants.map(([id, value]) => ({ id, libelle: id, value, unit: "EUR", period: "2027", definition: "Crédits", sourceId: SOURCES[0]!.id })),
+    visualisations: [{
+      id: "flux", type: "budget_flow", titre: "Budgets", resume: "Montants",
+      preuveIds: montants.map(([id]) => id), focusBudgetIds: ["budget-beta", "budget-alpha"],
+      budgetRows: [
+        { label: "Alpha", budgetId: "budget-alpha", retirementId: "retraites-alpha" },
+        { label: "Beta", budgetId: "budget-beta", retirementId: "retraites-beta" },
+        { label: "Inconnu", budgetId: "budget-inconnu" },
+      ],
+    }],
+    sections: [{ id: "lecture", titre: "Lecture", paragraphes: ["Lecture"], visualisationIds: ["flux"] }],
+  });
+}
+
+test("le flux exige une sélection explicite, unique et issue de ses budgets", () => {
+  const d = dossierFlux();
+  assert.ok(validerDossierAnalyse(d, SOURCES));
+  for (const ids of [undefined, [], ["budget-alpha", "budget-alpha"], ["absent"], ["retraites-alpha"], ["budget-inconnu"]]) {
+    d.visualisations[0]!.focusBudgetIds = ids;
+    assert.throws(() => validerDossierAnalyse(d, SOURCES), /focusBudgetIds/);
+  }
+  d.visualisations[0]!.focusBudgetIds = ["budget-alpha"];
+  assert.ok(validerDossierAnalyse(d, SOURCES), "la sélection générique accepte aussi un seul budget");
+  d.preuves[1]!.value = 0;
+  assert.ok(validerDossierAnalyse(d, SOURCES), "un montant retraites nul reste une donnée connue");
+  d.visualisations[0]!.budgetRows!.push({ label: "Doublon", budgetId: "budget-alpha", retirementId: "retraites-alpha" });
+  assert.throws(() => validerDossierAnalyse(d, SOURCES), /duplique le budget/);
+});
+
+test("le flux conserve les contrôles des montants, sources, unités et exercices", () => {
+  const invalides: [string, (d: DossierAnalyse) => void, RegExp][] = [
+    ["devise du budget", d => { d.preuves[0]!.unit = "USD"; }, /EUR/],
+    ["libellé du flux vide", d => { d.visualisations[0]!.budgetRows![0]!.flowLabel = ""; }, /flowLabel/],
+    ["unité des retraites", d => { d.preuves[1]!.unit = "percent"; }, /EUR/],
+    ["retraites négatives", d => { d.preuves[1]!.value = -1; }, /EUR/],
+    ["retraites supérieures", d => { d.preuves[1]!.value = 101; }, /supérieures/],
+    ["preuve absente", d => { d.visualisations[0]!.budgetRows![0]!.retirementId = "absent"; }, /introuvable/],
+    ["preuve hors sélection", d => { d.visualisations[0]!.preuveIds!.pop(); }, /preuveIds doit inclure/],
+    ["source absente", d => { d.preuves[1]!.sourceId = "absent"; }, /sourceId.*introuvable/],
+    ["exercices de la paire", d => { d.preuves[1]!.period = "2026"; }, /même exercice/],
+    ["exercices des flux", d => { d.preuves[2]!.period = "2026"; d.preuves[3]!.period = "2026"; }, /focusBudgetIds.*même exercice/],
+  ];
+  for (const [label, invalider, attendu] of invalides) {
+    const d = dossierFlux();
+    invalider(d);
+    assert.throws(() => validerDossierAnalyse(d, SOURCES), attendu, label);
+  }
+});

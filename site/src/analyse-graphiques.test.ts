@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { contratDossierAnalyse, rendu, type Analyse } from "./analyse-rendu.ts";
 import { graphiqueAnalyse } from "./analyse-graphiques.ts";
+import { budgetComparison } from "./budget-comparison.ts";
+import { budgetFlow } from "./budget-flow.ts";
+import { validerDossierAnalyse, type DossierAnalyse } from "./analyse-contrat.ts";
 import { formaterValeurAnalyse, libelleUniteAnalyse, formater, valeurEtUniteAnalyse } from "./echelle.ts";
 
 const lire = (slug: string): Analyse => JSON.parse(readFileSync(new URL(`../analyses/${slug}.json`, import.meta.url), "utf8"));
@@ -61,5 +64,35 @@ test("les barres restent à droite des graduations sur ordinateur et mobile",()=
   const positions=[...svg.matchAll(/<rect x="([0-9.]+)"/g)].map(m=>Number(m[1]));
   assert.ok(positions.length>=4);
   assert.ok(positions.every(x=>x>=58),"aucune barre ne doit recouvrir les valeurs de l’axe");
+});
+
+test("le flux résout les budgets choisis dans leur ordre puis conserve toutes les lignes", () => {
+  const dossier: DossierAnalyse = {
+    chapo: "Une sélection de budgets", series: [], limitations: [],
+    preuves: [
+      ["budget-alpha", 100e6], ["retraites-alpha", 30e6],
+      ["budget-beta", 200e6], ["retraites-beta", 50e6], ["budget-gamma", 40e6],
+    ].map(([id, value]) => ({ id: String(id), libelle: String(id), value: Number(value), unit: "EUR", period: "2027", definition: "Crédits", sourceId: "source-test" })),
+    visualisations: [{
+      id: "selection", type: "budget_flow", titre: "Flux", resume: "Lecture",
+      preuveIds: ["budget-alpha", "retraites-alpha", "budget-beta", "retraites-beta", "budget-gamma"],
+      focusBudgetIds: ["budget-beta", "budget-alpha"],
+      budgetRows: [
+        { label: "Alpha", budgetId: "budget-alpha", retirementId: "retraites-alpha", estimated: true },
+        { label: "Beta", flowLabel: "Beta court", budgetId: "budget-beta", retirementId: "retraites-beta", estimated: false },
+        { label: "Gamma", budgetId: "budget-gamma" },
+      ],
+    }],
+    sections: [{ id: "lecture", titre: "Lecture", paragraphes: ["Lecture"], visualisationIds: ["selection"] }],
+  };
+  const contrat = validerDossierAnalyse(dossier, [{ id: "source-test", titre: "Source", url: "https://exemple.test", consulteLe: "2026-10-20" }])!;
+  const alpha = { label: "Alpha", budget: 100e6, retirement: 30e6, estimated: true };
+  const beta = { label: "Beta", budget: 200e6, retirement: 50e6, estimated: false };
+  const table = budgetComparison([alpha, beta, { label: "Gamma", budget: 40e6, retirement: null }]);
+  const html = graphiqueAnalyse(dossier.visualisations[0]!, contrat);
+  assert.equal(html, budgetFlow([{ ...beta, label: "Beta court" }, alpha]) + '<h3 class="analyse-budget-table-title">Tous les budgets</h3>' + table);
+  assert.equal((html.match(/class="budget-comparison__row"/g) ?? []).length, 3);
+  dossier.visualisations[0]!.type = "budget_comparison";
+  assert.equal(graphiqueAnalyse(dossier.visualisations[0]!, contrat), table);
 });
 
