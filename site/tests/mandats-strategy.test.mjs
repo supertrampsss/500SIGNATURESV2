@@ -15,7 +15,7 @@ const moduleURL = new URL('../src/mandats/storage.ts', import.meta.url).href;
 const decoded = new Map();
 const pageErrors = new WeakMap();
 const sourceFiles = ['presidency-strategy-engine.ts', 'presidency-strategy-content.ts', 'presidency-strategy-types.ts',
-  'engine.ts', 'pressure-engine.ts', 'storage.ts', 'presidency-api.ts', 'presidency-runtime.ts', 'presidency-view.ts'];
+  'engine.ts', 'pressure-engine.ts', 'storage.ts', 'presidency-api.ts', 'presidency-runtime.ts', 'presidency-view.ts', 'presidency-presentation-copy.ts', 'presidency-board-layout.ts'];
 let sourceManifest;
 async function sources() {
   if (!sourceManifest) sourceManifest = Promise.all(sourceFiles.map(async name => [name,
@@ -101,11 +101,36 @@ async function closeSurface(page) {
   if (await fan.isVisible()) await fan.click();
   else await page.getByRole('dialog').getByRole('button', { name: 'Fermer et revenir au pays', exact: true }).click();
 }
+// Open a genuine map target, including its named entry when mobile clustering groups it.
+async function openMapTarget(page, selector, keyboard = false) {
+  // Switching sectors uses the visible close control before targeting the country.
+  // openFront keeps an already-open matching sector, preserving order receipts.
+  if (await page.locator('[data-live-fan] .pr-fan').isVisible() || await page.getByRole('dialog').isVisible())
+    await closeSurface(page);
+  const pin = page.locator(`.pr-country ${selector}`).first();
+  await expect(pin).toHaveCount(1);
+  const key = await pin.getAttribute('data-pin-key');
+  const groupKey = await page.locator('[data-cluster-members]').evaluateAll((items, key) =>
+    items.find(e => JSON.parse(e.dataset.clusterMembers).includes(key))?.dataset.pinKey, key);
+  let target = pin;
+  if (groupKey) {
+    const group = page.locator(`[data-pin-key="${groupKey}"]`);
+    await hitTarget(group);
+    if (keyboard) { await group.focus(); await page.keyboard.press('Enter'); } else await group.click();
+    await page.clock.runFor(40);
+    const panel = await pin.getAttribute('data-panel'), sector = await pin.getAttribute('data-sector');
+    target = page.locator(panel ? `.pr-cluster-choice[data-panel="${panel}"]` : `.pr-cluster-choice[data-sector="${sector}"]`);
+  }
+  await expect(target).toHaveAccessibleName(/\S/);
+  await hitTarget(target);
+  if (keyboard) { await target.focus(); await page.keyboard.press('Enter'); } else await target.click();
+  await page.clock.runFor(40);
+}
 async function openFront(page, sector) {
   // V17 deliberately keeps a sector open after an order so its real delivery
   // remains readable. Reopening that same control would otherwise toggle it shut.
   if (await page.locator(`[data-presidency-commands] [data-strategy-sector="${sector}"]`).isVisible()) return;
-  await page.locator(`[data-presidency-front="${sector}"]`).click();
+  await openMapTarget(page, `[data-live-pin="${sector}"]`);
   await page.clock.runFor(32);
   await expect(page.locator('[data-presidency-commands]')).toBeVisible();
 }
@@ -136,7 +161,7 @@ async function order(page, sector, kind) {
 }
 function terminal(game) { return game.turn >= 30 || Boolean(game.politics?.ending); }
 async function cabinetAction(page, id) {
-  await page.locator('[data-action="presidency-panel"][data-panel="government"]').click();
+  await openMapTarget(page, '[data-action="presidency-panel"][data-panel="government"]');
   const command = page.locator(`[data-presidency-panel="government"] [data-presidency-order][data-order="${id}"]`).first();
   const available = await command.count() && await command.isEnabled();
   const game = available ? await activate(page, `[data-presidency-panel="government"] [data-presidency-order][data-order="${id}"]`) : null;
@@ -265,7 +290,8 @@ async function capture(page, info, label, game = undefined) {
   await page.clock.resume();
   try { await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 }); }
   finally {
-    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
+    // Leave transport latency room on WebKit when freezing the clock after a screenshot.
+    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
     if (running) await resume(page);
   }
   expect(await rawSave(page)).toBe(durable);
@@ -329,9 +355,9 @@ test('six fronts expose cost, delay and consequences before a two-gesture order 
   await load(page);
   const before = await saved(page);
   for (const sector of SECTORS) {
-    const front = page.locator(`[data-presidency-front="${sector}"]`);
+    const front = page.locator(`[data-live-pin="${sector}"]`);
     await expect(front).toHaveAccessibleName(/pression/i);
-    await hitTarget(front); await front.click(); await page.clock.runFor(32);
+    await openMapTarget(page, `[data-live-pin="${sector}"]`);
     const firstAvailable = page.locator('[data-presidency-commands] [data-presidency-order][data-order^="s17-"]:not([disabled]):visible').first();
     await hitTarget(firstAvailable); // A common action is reachable without an extra scroll/disclosure gesture.
     if (sector === 'health') await capture(page, info, 'sante-commandes-et-effets-avant-engagement');
@@ -352,8 +378,7 @@ test('six fronts expose cost, delay and consequences before a two-gesture order 
     await closeSurface(page);
     expect(await saved(page)).toEqual(before);
   }
-  await expect(page.locator('[data-action="presidency-panel"][data-panel="reforms"]')).toBeVisible();
-  await page.locator('[data-action="presidency-panel"][data-panel="reforms"]').click();
+  await openMapTarget(page, '[data-action="presidency-panel"][data-panel="reforms"]');
   await expect(page.locator('[data-live-reform]').first()).toBeVisible();
   await capture(page, info, 'reformes-accessibles-avec-conditions');
   await closeSurface(page);
@@ -624,4 +649,138 @@ test('a delayed presidential correction offers a real recovery window without re
   expect(corrected.choices.slice(0, delayed.choices.length)).toEqual(delayed.choices);
   expect(corrected.presidency.strategy.initialBacklog).toBe(delayed.presidency.strategy.initialBacklog);
   await capture(page, info, 'correction-tardive-couteuse-mais-utile', corrected);
+});
+
+
+test('map actions: six named sectors and institutions are available from the initial country', async ({ page }, info) => {
+  if (info.project.name === 'compact') await page.setViewportSize({ width: 320, height: 568 });
+  await load(page);
+  const outside = page.locator('[data-action="presidency-panel"][data-panel="reforms"], [data-action="presidency-panel"][data-panel="government"]');
+  expect(await outside.evaluateAll(items => items.filter(e => !e.closest('.pr-country')).length)).toBe(0);
+  for (const sector of SECTORS) {
+    const pin = page.locator(`.pr-country [data-live-pin="${sector}"]`);
+    await expect(pin).toHaveCount(1);
+    await expect(pin.locator('.pr-pin__label strong')).toHaveText(/\S/);
+    await openMapTarget(page, `[data-live-pin="${sector}"]`);
+    const available = page.locator('[data-presidency-commands] [data-presidency-order]:not([disabled]):visible').first();
+    await hitTarget(available);
+    for (const kind of ['capacity', 'organisation']) {
+      const structural = page.locator(`[data-presidency-commands] [data-order="s17-${sector}-${kind}"]`);
+      await expect(structural).toBeVisible();
+      await expect(structural).toBeEnabled();
+    }
+    await expect(page.locator('[data-presidency-commands]')).not.toContainText(/unités? (?:de besoins|par période)|capacité effective \/ période/i);
+    await closeSurface(page);
+  }
+  for (const panel of ['reforms', 'government']) {
+    await openMapTarget(page, `[data-action="presidency-panel"][data-panel="${panel}"]`, true);
+    await expect(page.locator(`[data-presidency-panel="${panel}"]`)).toBeVisible();
+    await closeSurface(page);
+  }
+  await openMapTarget(page, '[data-live-pin="health"]');
+  const before = await saved(page);
+  const after = await activate(page, '[data-presidency-order][data-order="s17-health-capacity"]');
+  expect(after.presidency.spent).toBeGreaterThan(before.presidency.spent);
+  await page.reload(); await page.getByRole('button', { name: 'Reprendre', exact: true }).click(); await ready(page);
+  expect((await saved(page)).choices).toEqual(after.choices);
+  await page.clock.runFor(40); // Reprendre mounted the country; let its real layout frame run.
+  await openMapTarget(page, '[data-live-pin="health"]');
+  await expect(page.locator('[data-presidency-commands]')).toContainText(/préparation|chantier|engagé/i);
+  await capture(page, info, 'map-actions-sante-sauvegardee');
+});
+
+for (const viewport of [{width:1919,height:1015},{width:1280,height:900},{width:390,height:844},{width:320,height:568}]) {
+  test(`map geometry: natural illustration and whole country at ${viewport.width}x${viewport.height}`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'The explicit four viewports are measured once each.');
+    await page.setViewportSize(viewport); await load(page);
+    const geometry = () => page.locator('[data-presidency-art]').evaluate(img => {
+      const box = img.getBoundingClientRect(), world = img.parentElement.getBoundingClientRect(), country = img.closest('.pr-country').getBoundingClientRect();
+      return { natural: img.naturalWidth/img.naturalHeight, image: {x:box.x,y:box.y,width:box.width,height:box.height}, world: {width:world.width,height:world.height}, country: {x:country.x,y:country.y,width:country.width,height:country.height} };
+    });
+    await expect(page.locator('[data-presidency-art]')).toHaveJSProperty('complete', true);
+    for (const whole of [false, true]) {
+      if (whole) { await page.locator('[data-action="presidency-mapview"]').click(); await page.clock.runFor(100); }
+      const g = await geometry();
+      expect(g.natural).toBeGreaterThan(0);
+      expect(Math.abs(g.image.height - g.image.width/g.natural)).toBeLessThanOrEqual(1);
+      expect(Math.abs(g.world.height - g.world.width/g.natural)).toBeLessThanOrEqual(1);
+      if (whole) {
+        expect(g.image.x).toBeGreaterThanOrEqual(g.country.x-1);
+        expect(g.image.y).toBeGreaterThanOrEqual(g.country.y-1);
+        expect(g.image.x+g.image.width).toBeLessThanOrEqual(g.country.x+g.country.width+1);
+        expect(g.image.y+g.image.height).toBeLessThanOrEqual(g.country.y+g.country.height+1);
+      }
+      await info.attach(whole ? 'whole-country-geometry' : 'normal-geometry', {body:JSON.stringify(g),contentType:'application/json'});
+    }
+    await capture(page, info, `map-whole-${viewport.width}x${viewport.height}`);
+  });
+}
+
+
+test('map review: current health diagnosis on healthy seed one', async ({page},info) => {
+  await load(page,{...BASE,seed:1});
+  const front=(await saved(page)).pressure.sectors.health;
+  expect(front.effectiveCapacity).toBeGreaterThanOrEqual(front.incomingNeed);
+  await openFront(page,'health');
+  await expect(page.locator('.pr-strategy-situation__cause')).toContainText('Le service peut suivre la demande actuelle');
+  await expect(page.locator('.pr-strategy-situation__cause')).not.toContainText('Les admissions arrivent plus vite');
+  await capture(page,info,'review-diagnostic-sain');
+  const funded=await activate(page,'[data-presidency-order][data-order="s17-health-capacity"]');
+  let delivered=funded;
+  for(let i=0;i<4;i++) delivered=await periods(page);
+  await pause(page); await openFront(page,'health');
+  expect(delivered.presidency.strategy.commitments.find(c=>c.choice==='s17-health-capacity').status).toBe('delivered');
+  expect(delivered.pressure.sectors.health.capacity).toBeGreaterThan(front.capacity);
+  const current=delivered.pressure.sectors.health;
+  await expect(page.locator('.pr-strategy-situation__cause')).toContainText(current.effectiveCapacity >= current.incomingNeed ? 'Le service peut suivre la demande actuelle' : 'La demande actuelle dépasse les moyens disponibles');
+  await expect(page.locator('.pr-strategy-situation__cause')).toContainText(current.backlog > 0 ? 'Des demandes antérieures restent en attente' : 'Aucun retard accumulé');
+  await capture(page,info,'review-diagnostic-livraison');
+
+});
+test('map review: current health diagnosis on tense seed zero', async ({page},info) => {
+  await load(page);
+  const front=(await saved(page)).pressure.sectors.health;
+  expect(front.effectiveCapacity).toBeLessThan(front.incomingNeed);
+  await openFront(page,'health');
+  await expect(page.locator('.pr-strategy-situation__cause')).toContainText('La demande actuelle dépasse les moyens disponibles');
+  await expect(page.locator('.pr-strategy-situation__cause')).toContainText('Des demandes antérieures restent en attente');
+  await capture(page,info,'review-diagnostic-tendu');
+});
+test('map review: grouped names and keyboard institution focus at 390x660', async ({page},info) => {
+  await page.setViewportSize({width:390,height:660}); await load(page);
+  const key=await page.locator('.pr-country [data-panel="government"]').getAttribute('data-pin-key');
+  const groupKey=await page.locator('[data-cluster-members]').evaluateAll((items,key)=>items.find(e=>JSON.parse(e.dataset.clusterMembers).includes(key))?.dataset.pinKey,key);
+  expect(groupKey).toBeTruthy();
+  const group=page.locator(`[data-pin-key="${groupKey}"]`);
+  await expect(group.locator('.pr-cluster-names')).toBeVisible();
+  await expect(group.locator('.pr-cluster-names')).toContainText('Gouvernement');
+  const names=await group.evaluate(e=>JSON.parse(e.dataset.clusterMembers).map(key=>[...document.querySelectorAll('.pr-board-pin')].find(p=>p.dataset.pinKey===key)?.querySelector('.pr-pin__label b')?.textContent));
+  for(const name of names) await expect(group.locator('.pr-cluster-names')).toContainText(name);
+  for(const mode of ['escape','button']) {
+    await hitTarget(group); await group.focus(); await page.keyboard.press('Enter'); await page.clock.runFor(40);
+    await page.locator('.pr-cluster-choice[data-panel="government"]').focus(); await page.keyboard.press('Enter'); await page.clock.runFor(40);
+    await expect(page.locator('[data-presidency-panel="government"]')).toBeVisible();
+    if(mode==='escape') await page.keyboard.press('Escape');
+    else {await page.getByRole('button',{name:'Fermer et revenir au pays',exact:true}).focus(); await page.keyboard.press('Enter');}
+    await expect(group).toBeFocused(); await expect(group).toBeVisible(); await hitTarget(group);
+  }
+  await capture(page,info,'review-groupe-clavier');
+});
+
+
+test('map late label: funded preparation stays inside its mobile map target', async ({page},info) => {
+  await page.setViewportSize({width:390,height:660});
+  await load(page);
+  const funded=await order(page,'health','capacity');
+  expect(funded.presidency.strategy.commitments.find(c=>c.choice==='s17-health-capacity').status).toBe('preparing');
+  await closeSurface(page); await page.clock.runFor(8_501); // Dismiss the financing receipt while game time stays paused.
+  const pin=page.locator('.pr-country [data-live-pin="health"]');
+  await expect(pin).toBeVisible(); await hitTarget(pin);
+  expect(await pin.evaluate(el=>{
+    const box=el.getBoundingClientRect(),label=el.querySelector('.pr-pin__label').getBoundingClientRect();
+    return label.top>=box.top && label.bottom<=box.bottom && label.left>=box.left && label.right<=box.right;
+  }), 'The complete preparation label must fit inside the visible map target').toBe(true);
+  await expect(pin.locator('strong')).toHaveText('En préparation');
+  await expect(pin.locator('small')).toHaveText('Suivre l’avancement');
+  await capture(page,info,'late-preparation-label-contained');
 });

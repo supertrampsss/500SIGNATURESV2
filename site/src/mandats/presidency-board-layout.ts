@@ -7,8 +7,10 @@ export function layoutPresidencyPins(host: HTMLElement): void {
   if (!area.width || !area.height) return;
   const mobile = area.width <= 650;
   const width = mobile ? Math.min(156, (area.width - 26) / 2) : 190;
-  const height = mobile ? 68 : 76;
-  const top = 14, bottom = area.height - 58;
+  const strategy = host.matches('[data-version="17"]');
+  const compact = strategy && mobile && window.matchMedia("(max-height:650px)").matches;
+  const height = compact ? 48 : mobile ? 68 : 76;
+  const top = compact ? 6 : 14, bottom = area.height - 58;
   const pins = [...country.querySelectorAll<HTMLElement>('.pr-board-pin')];
   const positions = pins.map((pin, index) => {
     pin.hidden=false;
@@ -16,13 +18,14 @@ export function layoutPresidencyPins(host: HTMLElement): void {
     pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);
     delete pin.dataset.clusterMembers;
     pin.querySelector('.pr-pin-count')?.remove();
+    pin.querySelector('.pr-cluster-names')?.remove();
     const ax = map.left - area.left + Number(pin.dataset.mapX) / 100 * map.width;
     const ay = map.top - area.top + Number(pin.dataset.mapY) / 100 * map.height;
     const side = mobile ? index % 2 : ax < area.width / 2 ? 0 : 1;
     return { pin, ax, ay, side, x: Math.max(8, Math.min(area.width-width-8, ax + (side ? 20 : -width-20))), y: Math.max(top, Math.min(bottom-height, ay-height/2)) };
   });
   if (mobile) {
-    const maxPins=Math.max(4,Math.min(8,Math.floor((bottom-top)/(height+8))*2));
+    const maxPins=Math.max(4,Math.min(8,Math.floor((bottom-top+(strategy ? 4 : 0))/(height+(strategy ? 4 : 8)))*2));
     const groups=positions.map(p=>[p]);
     while(groups.length>maxPins) {
       let first=0,second=1,nearest=Infinity;
@@ -37,6 +40,11 @@ export function layoutPresidencyPins(host: HTMLElement): void {
       const primary=group[0].pin;
       primary.dataset.clusterMembers=JSON.stringify(group.map(p=>p.pin.dataset.pinKey));
       primary.setAttribute('aria-label',`${group.length} événements proches : ${group.map(p=>p.pin.dataset.pinAccessibleName).join(' ; ')}`);
+      if (strategy) {
+      const names=document.createElement('span');names.className='pr-cluster-names';
+      names.textContent=group.map(p=>p.pin.querySelector(p.pin.dataset.event ? '.pr-pin__label strong' : '.pr-pin__label b')?.textContent ?? p.pin.querySelector('.pr-pin__label strong')?.textContent ?? '').join(' · ');
+      primary.appendChild(names);
+      }
       const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=`+${group.length-1}`;
       badge.setAttribute('aria-label',`${group.length} événements regroupés, ouvrir la liste`);primary.appendChild(badge);
       for(const p of group.slice(1))p.pin.hidden=true;
@@ -85,6 +93,7 @@ export function presidencyClusterMarkup(host:HTMLElement, keys:string[]): string
     button.dataset.action=pin.dataset.action;
     if(pin.dataset.sector)button.dataset.sector=pin.dataset.sector;
     if(pin.dataset.event)button.dataset.event=pin.dataset.event;
+    if(pin.dataset.panel)button.dataset.panel=pin.dataset.panel;
     button.dataset.mapX=pin.dataset.mapX;
     button.innerHTML=pin.querySelector('.pr-pin__label')?.innerHTML ?? '';
     const countdown=pin.querySelector<HTMLElement>('[data-crisis-due]');

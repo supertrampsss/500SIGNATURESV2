@@ -140,7 +140,10 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       const pin = (selectedEvent ? [...host.querySelectorAll<HTMLElement>("[data-live-event-pin]")].find(el=>el.dataset.liveEventPin===selectedEvent) : host.querySelector<HTMLElement>(`[data-live-pin="${selected}"]`))?.getBoundingClientRect();
       const fan = anchor.firstElementChild?.getBoundingClientRect();
       if ((!pin && !selectedGroup) || !fan) return;
-      if (game.version === 17 && country.width > 650 && window.innerHeight <= 550) {
+      // A short viewport needs the space above the map brief as well. The
+      // fixed anchor escapes the country's clipping without moving the artwork.
+      const shortStrategy = game.version === 17 && (country.width <= 650 ? window.innerHeight <= 650 : window.innerHeight <= 550);
+      if (shortStrategy) {
         anchor.style.left = "8px";
         anchor.style.top = `${slot<HTMLElement>(".pr-header").getBoundingClientRect().bottom + 8}px`;
         return;
@@ -391,7 +394,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     drawPanel();
     clock();
     const returnTo = focusReturn?.isConnected ? focusReturn : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
-    returnTo?.focus({ preventScroll: true });
+    const visibleReturn = returnTo?.hidden
+      ? [...host.querySelectorAll<HTMLElement>('[data-cluster-members]')].find(el =>
+          (JSON.parse(el.dataset.clusterMembers!) as string[]).includes(returnTo.dataset.pinKey!))
+      : returnTo;
+    (visibleReturn ?? host.querySelector<HTMLElement>('.pr-board-pin:not([hidden])'))?.focus({ preventScroll: true });
   }
 
   function onClick(event: MouseEvent): void {
@@ -466,7 +473,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       const nextPanel = target.dataset.panel as PresidencyPanel;
       if (panel !== nextPanel) dismissContextReceipt();
       panel = nextPanel;
-      selected = null; selectedEvent=null;
+      selected = null; selectedEvent=null; selectedGroup=null;
       drawFan();
       drawPanel();
       stamp = performance.now();
