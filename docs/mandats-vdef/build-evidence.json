@@ -3,23 +3,24 @@
   "builtOn": "2026-10-20",
   "bundles": [
     {
-      "name": "mandats-Cl45XtWb.css",
-      "bytes": 355199,
-      "gzipBytes": 63930,
-      "sha256": "2ada9be756a6cbaae56ff47cc46066f2da038135b4e1d922284d4431e3a7a8fe"
-    },
-    {
-      "name": "mandats-iJFykapp.js",
+      "name": "mandats-aiqFaO8j.js",
       "bytes": 955703,
       "gzipBytes": 278660,
       "sha256": "4cc000d341610d13cea2d642f14375344286354259f2c83ff2b48bd501bb220a"
+    },
+    {
+      "name": "mandats-DA20oz-q.css",
+      "bytes": 356675,
+      "gzipBytes": 64043,
+      "sha256": "1aaf0d660d83fb082707881986a3e56b971d7f49b43edce71edb9d1f0e6b92a6"
     }
   ],
   "unitTests": {
     "passed": 1142,
     "failed": 0,
-    "head": "f68fdaa4b9f81ee7892021adb4f741ab82502e78",
-    "note": "Les seuls changements runtime suivants sont le garde event.repeat ; types/build et 25 parcours ciblés vérifiés après ce correctif."
+    "head": "56918e5af87ffef3de79f913bbc304a50e70b5f8",
+    "command": "npm run check",
+    "note": "Recette complète répétée après le correctif CSS : tests, types, build, pages statiques et hors connexion réussis."
   },
   "heldKeys": {
     "passed": 25,
@@ -67,5 +68,69 @@
     "smokeFailed": 0,
     "phase": "vdef-ci-smoke",
     "note": "Workflow inchangé ; quatre projets historiques et cinq projets vDef dédiés."
+  },
+  "sourceFiles": {
+    "site/src/mandats/main.ts": "e9b63642a464156939c96a94e29995eca8c3f525ad6e5e5b71ecf09d5f1d8b8f",
+    "site/src/mandats/map-view.ts": "6615aafff221a0204ff87b9fe81a70b2990cf39703612a044f5a235d41935585",
+    "site/src/mandats/presidency-board-layout.ts": "9dde127155e2fc06d294c9f65261b65d1172c5b473b982207b44defdef8a1a56",
+    "site/src/mandats/presidency-projection.test.ts": "caffa5a892986b0528181b0e650cfbda6f8eab86271d28e5b9221160fbf4fa8f",
+    "site/src/mandats/presidency-projection.ts": "005b6e81dc3c4ef30d254d59e4d9b7468b396ca61e77dc11166fab6d15ab3c04",
+    "site/src/mandats/presidency-read-model.test.ts": "5ca234ee714c504779c2a0863df4faf4cb433cf89cd4679c283195188047a37b",
+    "site/src/mandats/presidency-read-model.ts": "f409a697c42ec90fa5afde59615989c7ef4449dcc0b8a71016ca5388fcab5e28",
+    "site/src/mandats/presidency-runtime.ts": "06d44a0251cba9fbde2ec741493288fc332d672c88c96f06d3eb4499687acbc5",
+    "site/src/mandats/presidency-strategy.css": "faa18d25c975fcf868e2bb858febed7135c0aebde94535f2ad715853a058e85b",
+    "site/src/mandats/presidency-view.ts": "59e27ab9fdc20d78dcb3068a0d899eb576960cbf171b63c540323bcaa78c318c"
+  },
+  "finalSourceHead": "56918e5af87ffef3de79f913bbc304a50e70b5f8",
+  "ciFirstRound": {
+    "head": "4f8c8837d08bebd4345127dcf16e9dcdba341a13",
+    "failedChecks": [
+      "site",
+      "strategy"
+    ],
+    "findings": [
+      "Deux attentes de titre et une date restaient antérieures à la copie approuvée.",
+      "Deux parcours320×740 prouvaient une carte coupée, y compris après scrollIntoView."
+    ],
+    "vdefCases": {
+      "passed": 115,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "localFullVdefBeforeLayoutFix": {
+    "passed": 115,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "phase": "final-verified",
+    "note": "Le correctif CSS final possède une recette ciblée ; la CI complète vérifie sa tête exacte."
+  },
+  "finalLayoutChecks": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "phase": "ci-css",
+    "existingRatiosUnchanged": true
+  },
+  "finalCopyChecks": {
+    "passed": 11,
+    "failed": 0,
+    "existingSkips": 4,
+    "phase": "final/mandats-report.json"
+  },
+  "postBuildChecks": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "phase": "vdef-final-ci-fix",
+    "formats": [
+      "compact320x740",
+      "webkit390x844"
+    ]
+  },
+  "offline": {
+    "resources": 37,
+    "version": "8cd08112064df706"
   }
 }

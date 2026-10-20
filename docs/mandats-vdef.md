@@ -11,7 +11,7 @@ Consolidation de la présidence v17 : trente périodes de deux mois, trente seco
 - Objectifs accessibles pendant les arbitrages, bulletin complet en pause et commande directe « Avancer » jusqu'au prochain changement enregistré par le moteur.
 - Projection enregistrée en une sauvegarde avant publication ; bilan avec vrais reçus et rejeu de l'ordre d'origine, archive et restauration sur échec.
 
-Le défilement conserve la lecture sur mobile. En paysage bas, l'en-tête du panneau défile aussi pour laisser toute la place aux commandes. Les six cibles restent séparées et mesurent au moins 44 px ; calendrier et légende utilisent au moins 12 px.
+Le défilement conserve la lecture sur mobile. En paysage bas, l'en-tête du panneau défile aussi pour laisser toute la place aux commandes. Les six cibles restent séparées et mesurent au moins 44 px ; calendrier et légende utilisent au moins 12 px. Sur mobile, l’en-tête du panneau défile avec les décisions : une carte complète reste accessible à 320×740 ; aux hauteurs les plus petites, titre, coûts, moyens, effets et commande se lisent successivement dans ce même défilement, sans texte masqué.
 
 ## Couverture de l'audit A01–A18
 
@@ -51,12 +51,14 @@ Les avertissements de taille Vite et d'exécution expérimentale TypeScript de N
 
 - [Avant](mandats-vdef/captures/avant-desktop.png) et [après sur ordinateur](mandats-vdef/captures/apres-desktop.png), [arbitrage](mandats-vdef/captures/apres-arbitrage-desktop.png), [bilan](mandats-vdef/captures/apres-bilan.png).
 - [Mobile 390 px](mandats-vdef/captures/apres-mobile.png), [compact 320 px](mandats-vdef/captures/apres-compact.png) et [paysage 844×390](mandats-vdef/captures/apres-paysage.png). Ces captures montrent le jeu implémenté ; les concepts ImageGen restent dans l’audit.
-- [Empreintes du build et provenance des contrôles](mandats-vdef/build-evidence.json). Les captures ordinateur proviennent de la recette finale ; celles des trois formats mobiles de la recette runtime approuvée, avant le seul garde clavier de sept lignes, sans changement de présentation.
+- [Empreintes du build et provenance des contrôles](mandats-vdef/build-evidence.json). Les captures ordinateur proviennent de la recette finale ; les captures mobile, compact et paysage ont été renouvelées après la correction CI de hauteur du panneau. [Compact 320×740, carte entière dès ouverture](mandats-vdef/captures/apres-compact-740.png). En 320×568 et paysage, la capture présente un état de lecture après défilement. Les valeurs des captures suivent leurs scénarios de recette et ne constituent pas une comparaison d’équilibrage.
 - Inspection manuelle du build final : reprise sauvegardée, coûts/délais Santé, temps ×1, bulletin daté, projection de deux périodes arrêtée sur nouvelle alerte et maintien en pause. Les premières minutes et trajectoires complètes sont aussi parcourues automatiquement ; aucune session de joueur externe n’est prétendue.
 
 La tentative locale de suites intégrales simultanées a saturé la mémoire disponible (moins de 0,6 Go) : des délais ont été dépassés et les runs interrompus. Ils ne sont pas comptés comme réussites. Les configurations intégrales, dont les cinq formats vDef, sont exécutées par les contrôles CI de la PR, sur des jobs séparés. Le harnais vDef fige l’horloge avant navigation ; aucun délai ni assertion n’est assoupli pour compenser la charge.
 
 Le jeton GitHub ne permet pas de modifier les workflows : le raccordement utilise leur configuration déjà exécutée. Aucun workflow ni droit n’est modifié ; les contrôles historiques sont conservés. Le correctif du harnais passe 10 cas sur cinq formats ; le raccordement CI passe 10 cas supplémentaires avec les noms de projets de la CI.
+
+La première CI a aussi révélé deux attentes de titre et une date antérieures à la copie approuvée, ainsi qu’une carte coupée dans deux parcours320×740. Les attentes exactes ont été actualisées, sans modifier la vérification des guides, redirections ni anciennes données. Le correctif CSS conserve toutes les assertions historiques de visibilité intégrale et de cible au centre et passe huit cas ciblés ; onze parcours de copie passent, avec quatre exclusions préexistantes du test de redirection, réservé au poste de bureau. Après reconstruction complète, les deux parcours320×740 et les deux parcours WebKit passent encore. Les 1 142 tests unitaires, types, pages statiques et 37 ressources hors connexion sont revérifiés sur ces sources. Les contrôles CI sont relancés sur la tête de livraison exacte.
 
 ## Publication et limites
 
