@@ -1,0 +1,16 @@
+{
+  "codeCommit": "4d7b69b95b4d8e6184379f7316ce042350588d76",
+  "recordedAt": "2026-10-20T17:59:41.747Z",
+  "bundles": [
+    {
+      "name": "mandats-DmGVFSHv.js",
+      "bytes": 964788,
+      "sha256": "1531f4aa7494bfe3cd69d791ef66e4604b09accd1f1d21ccf8f8264ea9900e1a"
+    },
+    {
+      "name": "mandats-B2irk5JW.css",
+      "bytes": 358954,
+      "sha256": "62c0a88989e78ce62a87d427e652ad99ffa63ab79c478c1158723d544bb5b39b"
+    }
+  ]
+}
