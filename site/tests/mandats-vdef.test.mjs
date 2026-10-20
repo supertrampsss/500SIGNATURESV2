@@ -69,7 +69,12 @@ test('arbitrage nommé affiche engagement charges délai effet et valide une foi
   await expect(card.locator('[data-order-delay]')).toContainText('minimum');
   await expect(card.locator('[data-order-effect]')).not.toBeEmpty();
   await expect(card.locator('.pr-command__cta')).toBeVisible();
-  await card.scrollIntoViewIfNeeded();await card.click({position:{x:18,y:18}});
+  await card.scrollIntoViewIfNeeded();
+  if(page.viewportSize().height>=740) await hit(card);
+  else for(const part of await card.locator('strong, [data-order-cost], [data-order-annual], [data-order-delay], .pr-command__terms, [data-order-effect], .pr-command__cta').all()){await part.scrollIntoViewIfNeeded();await hit(part);}
+  for(const text of await card.locator('strong, small, [data-order-cost], [data-order-delay], [data-order-effect]').all()) expect(await text.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(12);
+  await page.screenshot({path:info.outputPath('full-order-readable.png')});
+  if(page.viewportSize().height>=740) await card.click({position:{x:18,y:18}}); else await card.locator('.pr-command__cta').click();
   await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)).choices,KEY)).toEqual(['s17-health-capacity']);
   await expect(page.locator('[data-presidency]')).toHaveAttribute('data-turn','0');
   await page.screenshot({path:info.outputPath('order-recorded.png')});
