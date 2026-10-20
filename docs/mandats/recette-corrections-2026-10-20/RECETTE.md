@@ -74,11 +74,31 @@ Le contrôle à trois objectifs et les captures16,17 et22 à25 utilisent le rend
 
 ## Validation et livraison
 
-Révision applicative finale de cette recette : `79bba5e3d147a869811eb58ddfec1cdf6ba18f23`.
+Révision applicative finale de cette recette : `2d65550ccda694b30798d3a633c780fd3fa878c8`.
 
-- `npm run check` exécuté par le parent sur cette révision : **1 158 / 1 158 tests unitaires**, zéro échec ; types, build, pré-rendu et génération hors connexion réussis. Bundle offline :37 ressources, version `4eccbcafcaeb784c`.
+- `npm run check` exécuté par le parent sur cette révision : **1 158 / 1 158 tests unitaires**, zéro échec ; types, build, pré-rendu et génération hors connexion réussis. Bundle offline :37 ressources, version `b4e9f43400393264`.
 - Régressions ciblées de l’implémenteur : 22 / 22 ; ouvertures et captures 6 / 6 dans chacune des deux suites ; parcours budget/contenu finaux 4 / 4 dans Chromium et WebKit. Ces contrôles ciblés ne sont pas présentés comme les suites navigateur complètes.
-- Après correction du bandeau :8 / 8 tests ciblés dans Chromium/WebKit, couvrant les six dimensions, ouvertures/fermetures, contenu des repères, collisions et budget adopté. La suite vDef complète est aussi lancée par le parent sur le build final. Pour éviter la saturation locale, les autres suites générales sont exécutées par les gates CI de la même tête ; leurs résultats sont consignés dans la PR.
+- Après correction du bandeau :8 / 8 tests ciblés dans Chromium/WebKit, couvrant les six dimensions, ouvertures/fermetures, contenu des repères, collisions et budget adopté. La suite vDef complète du parent sur `79bba5e3` termine avec **145 / 145**, en 15,2 minutes. Elle précède les trois derniers changements de copie et de focus. Le parent vérifie ensuite **8 / 8** régressions Cabinet/Réformes/budget adopté sur le dist final `2d65550c`, Chromium et WebKit. Pour éviter la saturation locale, les autres suites générales et la nouvelle suite vDef complète sont exécutées par les gates CI de la même tête ; leurs résultats sont consignés dans la PR.
 - Les premières suites globales interrompues après erreur du harnais sont conservées comme échecs. Les suites globales corrigées, la revue indépendante, les gates CI, la fusion et le contrôle du domaine publié sont consignés dans le compte rendu de livraison de la PR associée à cette révision.
 
 Le [manifeste des bundles](build-evidence.json) est produit après le contrôle complet, avec empreintes SHA-256 et commit. La publication doit servir ces mêmes fichiers et être essayée dans le navigateur. Un build réussi ne vaut ni essai joueur ni publication réussie.
+
+## Mandat supplémentaire entièrement au temps réel
+
+Un départ neuf « Des services à préserver » (ancien libellé « Un hôpital à sauver »), origine réservée `4183`, bureau CSS1280×720, est joué jusqu'au bilan à **×1 exclusivement** : aucun Avancer, import, journal préfabriqué ou temps injecté. Les trente passages autonomes représentent quinze minutes actives au rythme du jeu, avec des pauses de lecture supplémentaires. Le [journal exporté](partie-bureau-reel-x1.json) confirme la graine1, les **30 passages et 11 ordres**. La partie entière utilise `mandats-_eZnpf9-.js` ; seul le contrôle de reprise après la fin utilise le nouveau `mandats-TSeUnPH4.js`. Ces preuves ne sont pas présentées comme une partie entièrement jouée sur le dernier build.
+
+Deux capacités logement/démarches sont financées P4, puis les organisations santé P16, éducation P18 et énergie P19, le réseau de soins P20. Le financement est rejeté P15 (**268/268/41**, seuil269), rejeté P22 (**224/305/48**, seuil265), puis adopté P26 (**279/249/49**, seuil265), avec exactement10 Md€ d'autorisation supplémentaire et aucune recette créée. Le réseau énergétique et le rattrapage administratif sont engagés P26 et livrés avant le bilan. Aucun seuil ni résultat n'a été modifié pour cette trajectoire.
+
+Bilan réellement obtenu : **3 / 4**, retards **73,76 / cible29,39**, déficit annuel **136,5 Md€** (référence132,42), appuis **38,26** ; pressions0/43/43/36/53/8. Export puis rechargement/Reprendre : mêmes valeurs et même bilan ; aucune erreur/warning console relevée dans cet essai.
+
+![Bilan du mandat réellement joué à ×1](29-bilan-bureau-reel-x1.png)
+
+## Focus du nouveau vote Cabinet et contrôle des captures
+
+Le nouveau vote Cabinet déplace désormais le focus clavier sur son reçu et aligne son début ; un ancien vote ne recentre pas la lecture lors d'un autre ordre. Régression rouge sur le focus avant correction, puis verte sur le dist final. Le préfixe P15 de la partie réellement jouée est réimporté séparément pour vérifier ce parcours sur bureau et mobile : résultat, seuil, absence d'effet du rejet et détail par groupe restent accessibles.
+
+Le déplacement supplémentaire du panneau observé pendant cette recette a été isolé dans notre outil de capture : sous le zoom0,5 du navigateur intégré, `captureBeyondViewport:true` modifie le défilement du panneau. Avant capture, le reçu est visible ; une capture sans agrandissement de surface (`false`, cadrage identique) conserve exactement sa position et son focus. Aucun correctif spéculatif du moteur ou du défilement du jeu n'a été ajouté pour masquer cet effet de l'outil. Le contrôle mobile au zoom1 reste également stable avant et après capture.
+
+![Reçu Cabinet bureau, capture sans redimensionnement](28-vote-cabinet-bureau.png)
+
+![Reçu Cabinet mobile et détail accessibles](27-vote-cabinet-mobile.png)
