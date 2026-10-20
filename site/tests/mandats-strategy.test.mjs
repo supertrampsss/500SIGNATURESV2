@@ -766,3 +766,21 @@ test('map review: grouped names and keyboard institution focus at 390x660', asyn
   }
   await capture(page,info,'review-groupe-clavier');
 });
+
+
+test('map late label: funded preparation stays inside its mobile map target', async ({page},info) => {
+  await page.setViewportSize({width:390,height:660});
+  await load(page);
+  const funded=await order(page,'health','capacity');
+  expect(funded.presidency.strategy.commitments.find(c=>c.choice==='s17-health-capacity').status).toBe('preparing');
+  await closeSurface(page); await page.clock.runFor(40);
+  const pin=page.locator('.pr-country [data-live-pin="health"]');
+  await expect(pin).toBeVisible(); await hitTarget(pin);
+  expect(await pin.evaluate(el=>{
+    const box=el.getBoundingClientRect(),label=el.querySelector('.pr-pin__label').getBoundingClientRect();
+    return label.top>=box.top && label.bottom<=box.bottom && label.left>=box.left && label.right<=box.right;
+  }), 'The complete preparation label must fit inside the visible map target').toBe(true);
+  await expect(pin.locator('strong')).toHaveText('En préparation');
+  await expect(pin.locator('small')).toHaveText('Suivre l’avancement');
+  await capture(page,info,'late-preparation-label-contained');
+});
