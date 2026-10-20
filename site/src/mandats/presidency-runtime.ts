@@ -630,6 +630,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   document.addEventListener("visibilitychange", visibility);
   const resize = new ResizeObserver(positionFan);
   resize.observe(slot(".pr-country"));
+  if(game.version===17)resize.observe(slot(".pr-strategy-brief"));
   const art = slot<HTMLImageElement>("[data-presidency-art]");
   art.addEventListener("error", () => { host.dataset.artFailed = "true"; }, { once: true });
   art.addEventListener("load", () => { host.dataset.artReady = "true"; }, { once: true });

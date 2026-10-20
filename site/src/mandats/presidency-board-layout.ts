@@ -62,6 +62,21 @@ function layoutStrategyPins(host:HTMLElement,country:HTMLElement,world:HTMLEleme
 export function layoutPresidencyPins(host: HTMLElement): void {
   const country = host.querySelector<HTMLElement>('.pr-country')!;
   const world = host.querySelector<HTMLElement>('.pr-world')!;
+  if(host.dataset.version==='17') {
+    const brief=host.querySelector<HTMLElement>('.pr-strategy-brief');
+    if(brief) {
+      const height=`${brief.getBoundingClientRect().height}px`;
+      if(host.style.getPropertyValue('--pr-strategy-brief-height')!==height)host.style.setProperty('--pr-strategy-brief-height',height);
+    }
+    const style=getComputedStyle(host), root=host.getBoundingClientRect();
+    const nominalBottom=parseFloat(style.getPropertyValue('--pr-strategy-sectors'))+parseFloat(style.getPropertyValue('--pr-strategy-news'));
+    // Compare against the nominal footer, independently of the current fallback.
+    // This avoids toggling it back on as soon as the extra room becomes available.
+    const available=root.bottom-country.getBoundingClientRect().top-nominalBottom;
+    const rows=root.width<=650?2:1;
+    const pinHeight=Math.max(44,...[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')].map(pin=>pin.getBoundingClientRect().height));
+    host.dataset.compactReadings=String(available<16+rows*(pinHeight+6)+50);
+  }
   const area = country.getBoundingClientRect(), map = world.getBoundingClientRect();
   if (!area.width || !area.height) return;
   if(host.dataset.version==='17'){layoutStrategyPins(host,country,world);return;}

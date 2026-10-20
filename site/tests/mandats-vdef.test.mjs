@@ -319,3 +319,23 @@ test('repères320 gardent noms alerte et chantier dans leur rectangle',async({pa
  for(const content of contents) expect(content.inside,content.name).toBe(true);
  await noBoardCollisions(page);
 });
+
+const threeObjectiveOrders=['s17-health-organisation','s17-housing-organisation','s17-transport-organisation','s17-energy-organisation','s17-health-capacity','s17-housing-capacity','live-tick'];
+test('trois objectifs visibles restent dans le bandeau sans masquer commandes et carte',async({page},info)=>{
+ await page.setViewportSize({width:320,height:568}); await load(page,threeObjectiveOrders,612);
+ for(const [width,height] of [[320,568],[390,844],[844,390],[1024,768],[1280,720],[1672,941]]) {
+  await page.setViewportSize({width,height}); await page.clock.runFor(64);
+  const cap=page.locator('.pr-strategy-cap');
+  await expect(cap).toContainText('30,04'); await expect(cap).toContainText('28,4');
+  await expect(cap).toContainText('166,1'); await expect(cap).toContainText('153'); await expect(cap).toContainText('26,26');
+  const geometry=await cap.evaluate(el=>{const c=el.getBoundingClientRect(),title=el.querySelector('strong').getBoundingClientRect(),count=el.querySelector('.pr-strategy-cap__eyebrow').getBoundingClientRect(),controls=document.querySelector('.pr-strategy-controls').getBoundingClientRect(),brief=el.parentElement.getBoundingClientRect(),country=document.querySelector('.pr-country').getBoundingClientRect();return {titleInside:title.top>=c.top&&title.bottom<=c.bottom,countInside:count.top>=c.top&&count.bottom<=c.bottom,commandClear:controls.left>=c.right-1||controls.top>=c.bottom-1,countryClear:country.top>=brief.bottom-1};});
+  expect(geometry).toEqual({titleInside:true,countInside:true,commandClear:true,countryClear:true});
+  await hit(cap); for(const button of await page.locator('.pr-strategy-controls button').all())await hit(button);
+  await noBoardCollisions(page);
+  await page.screenshot({path:info.outputPath(`objectifs-${width}x${height}.png`)});
+  await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64);
+  await noBoardCollisions(page);
+  await page.screenshot({path:info.outputPath(`objectifs-panneau-${width}x${height}.png`)});
+  await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
+ }
+});
