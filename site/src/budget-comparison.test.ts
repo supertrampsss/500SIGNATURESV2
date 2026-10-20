@@ -17,7 +17,7 @@ test('La comparaison donne les trois montants en Md€, sans pourcentage', () =>
   assert.doesNotMatch(html, /100 %|≈|budget-comparison__legend/);
   const rounded = budgetComparison([{ label: 'Arrondis', budget: 89.44e9, retirement: 24.46e9 }]);
   assert.match(rounded, /data-remaining-eur="64980000000"/);
-  assert.match(rounded, />65,0<\/span>/); // Subtract euros before rounding each displayed amount.
+  assert.match(rounded, />64,98<\/span>/); // Subtract euros before rounding each displayed amount.
 });
 
 test('Les 19 lignes restent présentes et les barres partagent une échelle absolue', () => {
@@ -35,7 +35,7 @@ test('Une retraite inconnue laisse également le montant après reclassement inc
   const html = budgetComparison([{ label: 'Ministère', budget: 12e9, retirement: null }]);
   assert.equal((html.match(/aria-label="Non disponible"/g) ?? []).length, 2);
   assert.equal((html.match(/class="budget-comparison__spark-fill /g) ?? []).length, 1);
-  assert.match(html, /12,0/);
+  assert.match(html, />12<\/span>/);
 });
 
 test('Les estimations restent accessibles sans signe ni légende ajoutée', () => {
@@ -48,12 +48,13 @@ test('Les estimations restent accessibles sans signe ni légende ajoutée', () =
   assert.doesNotMatch(html, /≈|budget-comparison__legend/);
 });
 
-test('Les petits montants restent lisibles et un montant positif ne devient jamais zéro', () => {
+test('Deux décimales maximum sans zéros ajoutés, sans confondre petit montant et zéro', () => {
   const html = budgetComparison([{ label: 'Petit ministère', budget: 20e6, retirement: 1e6 }, { label: 'Sans retraite', budget: 1e9, retirement: 0 }]);
-  assert.match(html, /0,020/);
-  assert.match(html, /0,0010/);
+  assert.match(html, />0,02<\/span>/);
+  assert.match(html, />&lt; 0,01<\/span>/);
   assert.match(html, /class="budget-comparison__value">0<\/span>/);
   assert.doesNotMatch(html, />0,00</);
+  assert.doesNotMatch(html, /\d,\d{3}/);
 });
 
 test('Les montants impossibles sont rejetés et les libellés échappés', () => {
