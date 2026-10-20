@@ -174,13 +174,16 @@ async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = tr
   // Observe the transient receipt before the potentially expensive save replay.
   await waitForDecisionSurface(page);
   const verdict = page.locator('[data-decision-verdict]');
-  // Pause the transient receipt through the real keyboard interaction while inspecting it.
-  // The dedicated auto-close journey below verifies the unpaused timer independently.
-  await page.keyboard.press('Tab');
+  // Read the transient receipt before a slow keyboard round trip can outlast it.
   const verdictText = await verdict.innerText();
   if (dismiss) {
-    await page.locator('[data-action="dismiss-verdict"]').click();
+    // Escape also completes safely if the real auto-close timer has already fired.
+    await page.keyboard.press('Escape');
     await expect(verdict).toBeHidden();
+  } else {
+    // Keep the receipt open through the real keyboard interaction for further inspection.
+    // The dedicated auto-close journey below verifies the unpaused timer independently.
+    await page.keyboard.press('Tab');
   }
   const after = await stored(page);
   expect(after.version).toBe(11);
@@ -824,4 +827,30 @@ test('the decision verdict auto-closes, advances immediately and never leaves st
   await expect(verdict).toContainText(/Texte adopté|Texte rejeté|Gouvernement|Procédure|Nouvelle répartition/);
   await page.locator('[data-action="dismiss-verdict"]').click();
   await expect(verdict).toBeHidden();
+});
+
+test('a delayed keyboard round trip preserves the observed v11 receipt and saved decision', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop-chromium', 'The client round-trip race is checked once on desktop.');
+  await openSeed(page, fixture.journeys.interaction.seed);
+  await pickFront(page, 0);
+  const press = page.keyboard.press.bind(page.keyboard);
+  let delayed = false;
+  let savedBeforeRoundTrip;
+  page.keyboard.press = async (key, options) => {
+    if (!delayed && (key === 'Tab' || key === 'Escape')) {
+      delayed = true;
+      savedBeforeRoundTrip = await rawSave(page);
+      // Reproduce a client round trip longer than the receipt's real 1.8s lifetime.
+      await new Promise(resolve => setTimeout(resolve, 2200));
+    }
+    return press(key, options);
+  };
+  try {
+    const { after } = await decide(page, 0);
+    expect(delayed).toBe(true);
+    expect(after.turn).toBe(1);
+    expect(await rawSave(page)).toBe(savedBeforeRoundTrip);
+  } finally {
+    page.keyboard.press = press;
+  }
 });
