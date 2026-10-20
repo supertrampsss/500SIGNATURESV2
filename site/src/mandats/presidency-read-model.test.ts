@@ -88,3 +88,22 @@ test('non-programme fiscal laws have a separate authentic receipt without an inv
   assert.equal(receipt.annualRevenue,g.history[0].vote!.passed?30:0);
   assert.ok(!('sector' in receipt)); assert.equal(receipt.replayable,true);
 });
+
+function playerPrefix(beforeChoice: string, occurrence = 0): Game {
+  const input=JSON.parse(readFileSync(new URL('../../../docs/mandats/essai-joueur-2026-10-20/partie-jouee-v17.json',import.meta.url),'utf8'));
+  let seen=0; const stop=input.choices.findIndex((id:string)=>id===beforeChoice && seen++===occurrence);
+  assert.ok(stop>=0);
+  return input.choices.slice(0,stop).reduce((g:Game,id:string)=>decide(g,id),start(input.mode,input.seed,input.ambition,input.version));
+}
+
+test('player 612 limited ministries warn immediately before housing P18 and administration P19 orders', () => {
+  for(const [choice,sector] of [['s17-housing-network','housing'],['s17-administration-organisation','administration']] as const) {
+    const g=playerPrefix(choice), before=structuredClone(g);
+    assert.equal(g.presidency!.strategy!.sectors[sector].routine.status,'limited');
+    const reading=model.strategySectorReading(g,sector);
+    assert.equal(reading.severity,'warning');
+    assert.match(reading.reason,/limite opérationnelle/i);
+    assert.doesNotMatch(reading.reason,/dispose d’une marge/);
+    assert.deepEqual(g,before);
+  }
+});

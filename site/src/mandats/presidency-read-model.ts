@@ -1,24 +1,28 @@
-import type { Game } from './types.ts';
+import { SOCIETY_LABELS } from './national-society.ts';
+import type { Society, Choice, Game } from './types.ts';
 import type { PressureSectorId, PressureProgramme } from './pressure-types.ts';
 import { start, decide, isFinished } from './engine.ts';
-import { strategyState, strategyLedger } from './presidency-strategy-engine.ts';
+import { strategyState, strategyLedger, strategyOutcome, strategySupport } from './presidency-strategy-engine.ts';
 import { STRATEGY_SECTORS } from './presidency-strategy-content.ts';
 import { NATIONAL_AGENDA } from './national-agenda.ts';
 import { policyPressureEffects } from './pressure-content.ts';
 
 /** Read-only v17 projections. Pressure is danger, never service quality. Work
  * and trend do not downgrade danger: conflict/national (or >=72 pressure) is
- * critical; any other non-normal phase (or >=22 pressure) is warning.
+ * critical; a current ministry limit, any other non-normal phase (or >=22
+ * pressure) is warning.
  * Clock periods are completed two-month intervals, journal indices include
  * every order and tick. They are never interchangeable. */
 export function strategySectorReading(game: Game, sector: PressureSectorId): {
   severity: 'stable' | 'warning' | 'critical'; trend: 'improving' | 'steady' | 'worsening';
-  working: boolean; phase: string; label: string; pressure: number;
+  working: boolean; phase: string; label: string; pressure: number; reason: string; limited: boolean;
 } {
   const state = strategyState(game).sectors[sector], front = game.pressure!.sectors[sector];
   return {
     severity: state.phase === 'conflict' || state.phase === 'national' || front.pressure >= 72 ? 'critical'
-      : state.phase !== 'normal' || front.pressure >= 22 ? 'warning' : 'stable',
+      : state.routine.status === 'limited' || state.phase !== 'normal' || front.pressure >= 22 ? 'warning' : 'stable',
+    reason: state.routine.status === 'limited' ? 'Le ministère atteint sa limite opérationnelle. Une transformation doit prendre le relais.' : state.warning,
+    limited: state.routine.status === 'limited',
     trend: front.trend,
     working: game.pressure!.programmes.some(p => p.sector === sector && p.status === 'preparing'),
     phase: state.phase, label: STRATEGY_SECTORS[sector].label, pressure: front.pressure,
@@ -46,7 +50,7 @@ function programmeEffect(programme: PressureProgramme): string {
   const need = delivered ? programme.appliedNeed : programme.need;
   const effects = [capacity ? `Capacité ${signed(capacity)} par période.` : '',
     need ? `Besoins ${signed(need)} par période.` : '',
-    programme.fatigue ? `Fatigue ${signed(programme.fatigue)} à la livraison.` : ''].filter(Boolean);
+    !delivered && programme.fatigue ? `Fatigue prévue ${signed(programme.fatigue)} à la livraison.` : ''].filter(Boolean);
   if (!effects.length) effects.push('Mise en service de l’engagement enregistré.');
   if (programme.status === 'completed' && programme.duration) effects.push('Effet temporaire terminé ; les charges acquises restent dans les comptes.');
   else if (!delivered) effects.unshift('Effet attendu après la livraison.');
@@ -149,4 +153,45 @@ export function strategyFinancialComparison(game: Game): StrategyFinancialCompar
   return { actual, reference: comparable ? reference.deficit : null,
     delta: comparable ? actual - reference.deficit : null, periods: game.turn,
     comparable, referenceEndedEarly: reference.endedEarly };
+}
+
+/** Current goals, kept separate from terminal victory. Values are the engine’s
+ * own recorded objective wording; no new threshold is introduced here. */
+export function strategyObjectiveReading(game: Game): { title: string; detail: string } {
+  const result = strategyOutcome(game), missed = result.objectives.filter(goal => !goal.met);
+  if (!missed.length) return { title: game.turn < 30 ? 'Objectifs à maintenir jusqu’au bilan' : result.title,
+    detail: game.turn < 30 ? 'Anticiper les besoins annoncés dans les six secteurs.' : result.summary };
+  const state = strategyState(game), fronts = Object.values(game.pressure!.sectors);
+  const format = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
+  const descriptions = missed.map(goal => {
+    if (goal.id === 'backlog') return `Retards : ${format(fronts.reduce((sum,f)=>sum+f.backlog,0))} / cible ${format(state.initialBacklog)}`;
+    if (goal.id === 'finances') return `Déficit : ${format(strategyLedger(game).deficit)} / cible ${format(state.initialDeficit)} Md€`;
+    if (goal.id === 'services') return `Services : ${fronts.filter(f=>f.pressure<=45).length}/6 sous 45 ; maximum ${format(Math.max(...fronts.map(f=>f.pressure)))}/65`;
+    return `Gouvernement ${game.politics!.cabinet === 'fallen' ? 'à reconstituer' : 'en fonction'} · appuis ${format(strategySupport(game))}/30 requis`;
+  });
+  return { title: descriptions.join(' · '),
+    detail: missed.map(goal => `${goal.current} Cible : ${goal.target}`).join(' ') };
+}
+
+/** Explain inputs to politics.ts, without predicting a seeded ballot or
+ * confusing the action resource with coalition membership and cast votes. */
+export function strategyPoliticalReading(game: Game, choice?: Choice): string {
+  const blocs = game.politics!.blocs;
+  const seats = blocs.filter(b => b.inGovernment).reduce((sum,b) => sum+b.seats,0);
+  const social = choice?.effect.society;
+  const effects = choice ? [choice.effect.services !== undefined ? `services ${signed(choice.effect.services)}` : '',
+    choice.effect.cohesion !== undefined ? `cohésion ${signed(choice.effect.cohesion)}` : '',
+    choice.effect.trust !== undefined ? `confiance ${signed(choice.effect.trust)}` : '',
+    social ? `effets sur les groupes sociaux : ${Object.entries(social).map(([id,value]) => `${SOCIETY_LABELS[id as keyof Society]} ${signed(value!)}`).join(', ')}` : ''].filter(Boolean) : [];
+  return `Appuis d’action : ${number(strategySupport(game))}/100 ; coalition : ${seats} sièges sur ${blocs.reduce((sum,b)=>sum+b.seats,0)}. Ce ne sont pas des voix acquises. `
+    + `Le vote utilise l’appartenance à la coalition, la fidélité de chaque groupe et les effets sociaux, de services, de cohésion et de confiance du texte. La discipline, la participation et les abstentions varient selon le texte et la période. `
+    + `Un compromis augmente les appuis d’action après livraison ; ce compteur n’entre pas directement dans le calcul des voix. `
+    + (effects.length ? `Effets de ce texte utilisés : ${effects.join(' ; ')}. ` : '')
+    + blocs.map(b=>`${b.label} : ${b.seats} sièges, fidélité ${number(b.loyalty)}/100${b.inGovernment ? ', coalition' : ', opposition'}`).join(' ; ') + '.';
+}
+export function strategyWorkReading(game: Game): { used: number; capacity: number; planned: number; remaining: number } {
+  const work=game.pressure!.programmes.filter(p=>p.status==='preparing');
+  return { used: game.pressure!.execution.used, capacity: game.pressure!.execution.capacity,
+    planned: work.reduce((sum,p)=>sum+Math.min(p.implementation ?? 1,p.remainingWork),0),
+    remaining: work.reduce((sum,p)=>sum+p.remainingWork,0) };
 }

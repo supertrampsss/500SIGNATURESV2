@@ -376,6 +376,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     if (preview) { feedback("Touchez « Jouer ce mandat » pour adopter cette partie."); return; }
     committing = true;
     const oldInitiative = game.presidency?.initiatives.at(-1)?.id;
+    const oldVote = game.politics?.lastVote?.id;
     const originEvent=selectedEvent, originSector=selected;
     try {
       const next = options.commit(id);
@@ -385,6 +386,12 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
         return;
       }
       refresh(next);
+      if (next.version === 17 && next.politics?.lastVote && next.politics.lastVote.id !== oldVote) {
+        // A new ballot replaces the clicked proposal. Show its recorded result
+        // in the same reader, rather than preserving a now unrelated scroll.
+        const context = panel ? slot<HTMLElement>('[data-live-panel]') : slot<HTMLElement>('[data-live-fan]');
+        context.querySelector<HTMLElement>('[data-live-vote]')?.scrollIntoView({block:'nearest',behavior:'instant'});
+      }
       const existingFeedback = slot<HTMLElement>("[data-live-feedback]");
       if (existingFeedback.dataset.failure === "true") existingFeedback.hidden = true;
       const latest = next.presidency?.initiatives.at(-1);

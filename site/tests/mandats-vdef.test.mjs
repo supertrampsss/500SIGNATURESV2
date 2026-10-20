@@ -250,3 +250,46 @@ test('reprise distingue une période autonome et un ordre présidentiel',async({
   await load(page,['live-tick','s17-health-capacity']); await page.goto('/mandats/');
   await expect(page.locator('.map-entry__saved')).toContainText('1 période écoulée · 1 ordre · règles v17');
 });
+
+// Original human-selected journal, replayed only for reproducible regressions.
+async function playerInput(before, occurrence=0) {
+ const input=JSON.parse(await readFile(new URL('../../docs/mandats/essai-joueur-2026-10-20/partie-jouee-v17.json',import.meta.url),'utf8'));
+ let seen=0; const index=input.choices.findIndex(id=>id===before&&seen++===occurrence);
+ return input.choices.slice(0,index);
+}
+async function noBoardCollisions(page) {
+ const boxes=await page.locator('.pr-sector-pin:visible,.pr-board-pin:visible,[data-live-fan]:not([hidden])').evaluateAll(elements=>elements.map(el=>{const r=el.getBoundingClientRect();return {name:el.getAttribute('aria-label')||el.dataset.pinKey||'panneau',x:r.x,y:r.y,width:r.width,height:r.height};}));
+ for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++) { const a=boxes[i],b=boxes[j]; expect(a.x+a.width<=b.x+1||b.x+b.width<=a.x+1||a.y+a.height<=b.y+1||b.y+b.height<=a.y+1,`${page.viewportSize().width}×${page.viewportSize().height} : ${a.name} recouvre ${b.name}`).toBe(true); }
+ for(const pin of await page.locator('.pr-sector-pin:visible,.pr-board-pin:visible').all()) await hit(pin);
+}
+test('régression joueur612 rectangles réels séparés avec événements et panneau',async({page})=>{
+ await load(page,await playerInput('live-credits',1),612);
+ for(const [width,height] of [[1280,720],[1024,768],[844,390],[390,844],[320,568]]) {
+  await page.setViewportSize({width,height});
+  // WebKit can deliver the resize after the clock’s first queued frame. Wait
+  // for a measured layout of this viewport, then assert the actual rectangles.
+  await expect.poll(async()=>{await page.clock.runFor(32);return page.evaluate(()=>{const host=document.querySelector('[data-presidency]'),r=host.querySelector('.pr-country').getBoundingClientRect();return host.dataset.pinLayoutViewport===`${Math.round(r.width)}x${Math.round(r.height)}`;});}).toBe(true);
+  await expect(page.locator('.pr-sector-pin:visible')).toHaveCount(6); await noBoardCollisions(page);
+  await expect(page.locator('.pr-strategy-cap>strong')).toBeVisible(); await expect(page.locator('.pr-strategy-cap>strong')).toContainText('39,93');
+  await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64); await noBoardCollisions(page);
+  await page.locator('[data-live-pin="housing"]').click(); await page.clock.runFor(64); await expect(page.locator('[data-strategy-sector="housing"]')).toBeVisible(); await noBoardCollisions(page);
+  await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
+  await expect(page.locator('.pr-sectors')).toBeVisible(); await noBoardCollisions(page);
+ }
+});
+test('régression joueur612 risque objectif et vote dans leur contexte rendu',async({page})=>{
+ await load(page,await playerInput('s17-housing-network'),612);
+ await page.locator('[data-live-pin="housing"]').click();
+ await expect(page.locator('[data-strategy-sector="housing"]')).toContainText('limite opérationnelle');
+ await expect(page.locator('[data-strategy-sector="housing"]')).not.toContainText('dispose d’une marge');
+ await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click();
+});
+test('régression joueur612 vote immédiatement dans les réformes',async({page})=>{
+ await load(page,await playerInput('r21a'),612);
+ await page.locator('[data-panel="reforms"]').click();
+ await page.locator('[data-live-reform]').filter({has:page.locator('[data-order="r21a"]')}).locator(':scope > summary').click();
+ await page.locator('[data-order="r21a"]').click();
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('249 pour');
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('286 contre');
+ await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toBeInViewport();
+});

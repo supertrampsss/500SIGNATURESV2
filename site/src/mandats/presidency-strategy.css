@@ -346,3 +346,28 @@
  .presidency[data-version='17'] .pr-command__body strong { font-size:15px; }
  .presidency[data-version='17'] .pr-command__body small,.presidency[data-version='17'] .pr-command__price,.presidency[data-version='17'] .pr-command__fiscal,.presidency[data-version='17'] .pr-command__effect,.presidency[data-version='17'] .pr-command__terms { line-height:1.2; }
 }
+
+/* A compact current goal stays visible, including short landscape screens. */
+.presidency[data-version='17'] .pr-strategy-cap>strong { font-size:15px; }
+.presidency[data-version='17'] .pr-strategy-cap__detail { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:650px) {
+ .presidency[data-version='17'] .pr-strategy-cap { display:flex; visibility:visible; }
+ .presidency[data-version='17'] .pr-strategy-cap>strong { display:block; font-size:13px; line-height:1.15; }
+ .presidency[data-version='17'] .pr-strategy-cap__eyebrow>span { font-size:11px; }
+ .presidency[data-version='17'] .pr-sector-pin[data-pin-layout=compact] .pr-pin__label strong { font-size:12px; }
+ .presidency[data-version='17'] .pr-sector-pin[data-pin-layout=compact] .pr-pin__label small { font-size:12px; }
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-country { bottom:0; }
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-sectors,
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-newswire,
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-mapview,
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-map-caption { display:none; }
+ .presidency[data-version='17'] .pr-fan-anchor[data-fan-docked] { top:var(--pr-mobile-fan-top,112px); bottom:8px; }
+ .presidency[data-version='17'] .pr-board-pin:has(.pr-pin-count) .pr-pin__label small,
+ .presidency[data-version='17'] .pr-board-pin:has(.pr-pin-count) .pr-pin__label b { display:none; }
+}
+
+.presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin__label small,
+.presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin__label b { display:none; }
+.presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin__label strong { font-size:12px; }
+
+.presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin-count { position:static; margin-left:auto; flex-shrink:0; }
