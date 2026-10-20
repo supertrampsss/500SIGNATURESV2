@@ -5,7 +5,9 @@ const chromiumLaunchOptions={...(localChromium?{executablePath:localChromium}:{}
 export default defineConfig({
  testDir:'./tests',testMatch:['analytics-consent.test.mjs','mandats-mobile.test.mjs','mandats-politics.test.mjs','mandats-story.test.mjs','editorial-tabs.test.mjs','france-living.test.mjs','national-agenda.test.mjs','shared-theme.test.mjs','seo-public.test.mjs','retraites-public.test.mjs'],timeout:60000,expect:{timeout:10000},fullyParallel:true,workers:2,retries:process.env.CI?1:0,
  reporter:[['list'],['html',{outputFolder:'playwright-report-mandats',open:'never'}]],
- use:{baseURL:'http://127.0.0.1:4180',trace:'retain-on-failure',screenshot:'only-on-failure'},
+ // Recording every long campaign also instruments successful runs. Keep the
+ // first CI retry trace; use --trace on for a focused local investigation.
+ use:{baseURL:'http://127.0.0.1:4180',trace:'on-first-retry',screenshot:'only-on-failure'},
  projects:[
   {name:'android-chromium',use:{launchOptions:chromiumLaunchOptions,...devices['Pixel 5'],viewport:{width:390,height:844}}},
   {name:'iphone-webkit',use:{...devices['iPhone 13'],launchOptions:webkitLaunchOptions}},

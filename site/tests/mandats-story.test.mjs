@@ -161,7 +161,17 @@ async function chooseById(page, id) {
 }
 
 async function waitForDecisionSurface(page) {
-  await expect(page.locator('[data-decision-verdict]')).toBeVisible();
+  let observedText = '';
+  // Capture visibility and text in one browser read: the real receipt can
+  // disappear before a second locator command reaches the page.
+  await expect.poll(async () => {
+    observedText = await page.locator('[data-decision-verdict]').evaluateAll(elements => {
+      const visible = elements.find(element => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden');
+      return visible?.innerText.trim() ?? '';
+    });
+    return observedText;
+  }).not.toBe('');
+  return observedText;
 }
 
 async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = true } = {}) {
@@ -172,10 +182,8 @@ async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = tr
   if (doubleClick) await choices.nth(choiceIndex % await choices.count()).dblclick();
   else await choices.nth(choiceIndex % await choices.count()).click();
   // Observe the transient receipt before the potentially expensive save replay.
-  await waitForDecisionSurface(page);
+  const verdictText = await waitForDecisionSurface(page);
   const verdict = page.locator('[data-decision-verdict]');
-  // Read the transient receipt before a slow keyboard round trip can outlast it.
-  const verdictText = await verdict.innerText();
   if (dismiss) {
     // Escape also completes safely if the real auto-close timer has already fired.
     await page.keyboard.press('Escape');
@@ -805,28 +813,28 @@ test('the decision verdict auto-closes, advances immediately and never leaves st
   const firstChoice = frontChoices(page).first();
   const firstId = await firstChoice.getAttribute('data-choice');
   await firstChoice.click();
-  const committed = await stored(page);
-  expect(committed.choices).toEqual([...before.choices, firstId]);
   const verdict = page.locator('[data-decision-verdict]');
-  await expect(verdict).toBeVisible();
+  await waitForDecisionSurface(page);
   await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
   await expect(verdict).toBeHidden({ timeout: 3000 });
   await expect(page.locator('.story-result')).toHaveCount(0);
   await expect(agenda(page)).toBeVisible();
+  const committed = await stored(page);
+  expect(committed.choices).toEqual([...before.choices, firstId]);
 
   const secondBefore = await stored(page);
   await pickFront(page, 0);
   const secondChoice = frontChoices(page).first();
   const secondId = await secondChoice.getAttribute('data-choice');
   await secondChoice.click();
-  const secondAfter = await stored(page);
-  expect(secondAfter.choices).toEqual([...secondBefore.choices, secondId]);
-  await expect(verdict).toBeVisible();
+  const secondVerdictText = await waitForDecisionSurface(page);
   await expect(page.locator('.story-agenda')).toBeVisible();
   await expect(page.locator('.story-agenda')).not.toContainText('Le mandat avance entre plusieurs fronts');
-  await expect(verdict).toContainText(/Texte adopté|Texte rejeté|Gouvernement|Procédure|Nouvelle répartition/);
+  expect(secondVerdictText).toMatch(/Texte adopté|Texte rejeté|Gouvernement|Procédure|Nouvelle répartition/);
   await page.locator('[data-action="dismiss-verdict"]').click();
   await expect(verdict).toBeHidden();
+  const secondAfter = await stored(page);
+  expect(secondAfter.choices).toEqual([...secondBefore.choices, secondId]);
 });
 
 test('a delayed keyboard round trip preserves the observed v11 receipt and saved decision', async ({ page }, info) => {

@@ -50,3 +50,30 @@ Source applicative : `a703d864412e89f07c2ce429557a590df6c25aee`. Le [manifeste d
 - Les rouges précèdent les corrections : focus automatique, détails fermés, récupération de focus et origines Escape inutilisables. Sans API, Réformes reproduit le rouge ; Escape v16 reproduit un TypeError sur un journal légal terminé à P27. Une première fixture v16 invalide échouait avant montage et n’est pas comptée comme preuve Escape.
 
 Les logs détaillés locaux restent dans `.superpowers/sdd/modal-safari-*.log` et `site/vdef-artifacts/player-modal-check.log`. Le retrait de l’API sur les moteurs récents exerce le repli ; il ne constitue pas un essai de Safari 16 physique. La suite vDef, les contrôles distants et la publication restent à terminer à ce stade de recette.
+
+## Mandat neuf entier, build corrigé local
+
+La source a703 est ensuite jouée sur une origine neuve, au vrai ×1 avec pauses de lecture : aucun import, commande Avancer ou temps injecté. Le [journal normal exporté](partie-neuve-locale-x1.json) confirme v17, graine0,30 périodes autonomes et14ordres ; reconstruction indépendante des45préfixes valide. **4/4objectifs** : sixsecteurs sous45, aucun encrise ; retards7,7/cible27,98 ; déficit annuel clôturé134,06Md€/plafond153 ; gouvernement enfonction,37,26appuis. La référence autonome est131,22Md€, écart global+2,84 dans la simulation.
+
+[Au vrai clavier](clavier-partie-neuve-locale.json), le titre garde le focus à la fin automatique avant tout ciblage. Tab et Shift+Tab restent dans le bilan ; Escape revient au railSanté. [Après préparation horsconnexion par le menu](offline-partie-neuve-locale.json), le réseau est coupé pour cet onglet, la page rechargée et Reprendre activé : même texte de bilan, même bundle ; le second export est identique octet pour octet. Réseau rétabli et reprise mobile inspectée ; console avertissement/erreur vide.
+
+![Partie neuve locale, bureau](partie-neuve-bureau.png)
+![Même partie reprise sur format mobile](partie-neuve-mobile.png)
+
+La suite vDef termine **155/155 sans retry**, cinq formats,16,4min. Cette partie valide le build local identifié, et ne constitue pas une preuve de sa publication.
+
+## Diagnostic des contrôles généraux
+
+Le premier run local général termine257passes,10échecs,73exclusions prévues ; sa CI f329 termine265passes,1échec final et1succès après retry. Les artefacts sont conservés. Parmi les constats : courses de lecture d'un reçu éphémère, budgets globaux dépassés et latences de création/fermeture de contexte dont la cause interne reste inconnue.
+
+Un recontrôle de9parcours desktop, mêmes budgets, unworker et traces actives, donne6passes/3échecs. France13 passe toutes ses assertions, puis dépasse60s à la fermeture du contexte ; la campagnev9 dépasse120s malgré une continuation produisant sonPNG en0,26s. Les étapes après borne ne sont pas comptées comme succès.
+
+Le contraste suivant conserve exactement les deux tests France13 et campagnev9, unworker, zéroretry, mêmes budgets/assertions ; seule la trace est désactivée. Il termine **2/2 en1,9min**, fermetures comprises. Il étaye le coût possible de l'instrumentation sur ces parcours, sans établir la cause générale des latences. Le mode de trace de la suite générale devient on-first-retry : rapport et captures restent disponibles, premier retryCI tracé, diagnostic local avec --trace on. Les budgets, retries, workers, exclusions et assertions sont conservés. Ce choix suit les [conseils officiels Playwright](https://playwright.dev/docs/best-practices).
+
+Le contrôle des reçus doit observer leur visibilité et leur texte dans une seule lecture navigateur, avant le décodage coûteux de la sauvegarde. Sa validation ciblée et la nouvelle suite complète restent à terminer ; aucun succès anticipé ni contournement de protection de branche.
+
+### Vérification ciblée du harnais
+
+Deux copies diagnostiques du même fichier sont exécutées avec une latence publique côté client de2 200ms, sans modifier le jeu : l'ancien ordre échoue deux fois aux attentes attendues (visibilité après lecture de sauvegarde, puis texte relu après expiration) ; le nouvel ordre passe **2/2 en18,6s**. Le texte de reçu observé est conservé et le journal exact reste vérifié. Les fichiers, logs rouges et verts sont conservés dans .superpowers/sdd/modal-story-race-* ; ils constituent des diagnostics, pas des cas supplémentaires revendiqués dans la suite standard.
+
+Les deux parcours standards ciblés (autoclose et délai de retour clavier existant), sur les fichiers définitifs et budgets d'origine, terminent **2/2 en18,0s**, sans retry. Les revues statiques de conformité et de qualité n'identifient aucun finding bloquant. Nouvelle suite complète et CI requises avant fusion.
