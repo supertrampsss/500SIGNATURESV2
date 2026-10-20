@@ -1,5 +1,5 @@
 /* V17 strategic board; every override is version scoped to preserve historical play. */
-.presidency[data-version='17'] { --pr-strategy-header:76px; --pr-strategy-brief:64px; --pr-strategy-bottom:118px; }
+.presidency[data-version='17'] { --pr-strategy-header:76px; --pr-strategy-brief:56px; --pr-strategy-bottom:118px; }
 .presidency[data-version='17'] .pr-header { height:var(--pr-strategy-header); }
 .presidency[data-version='17'] .pr-resource--teams { display:flex; }
 .presidency[data-version='17'] .pr-resource small { font-size:11px; }
@@ -7,8 +7,19 @@
 .presidency[data-version='17'] .pr-clock__track { bottom:5px; }
 .presidency[data-version='17'] .pr-clock__countdown { position:absolute; bottom:-6px; right:0; font-size:10px; color:#d5e1e7; font-variant-numeric:tabular-nums; }
 .presidency[data-version='17'] .pr-country { inset:calc(var(--pr-strategy-header) + var(--pr-strategy-brief)) 0 var(--pr-strategy-bottom); }
-.presidency[data-version='17'] .pr-world { width:max(100%,calc((100dvh - var(--pr-strategy-header) - var(--pr-strategy-brief) - var(--pr-strategy-bottom))*1.777778)); }
-.presidency[data-version='17'][data-whole-map=true] .pr-world { width:100%; }
+/* The artwork is 1672 x 941. Fit its height on wide screens; retain horizontal
+ * exploration on phones, and make Vue France a true contain view everywhere. */
+.presidency[data-version='17'] .pr-world { width:min(100%,calc((100dvh - var(--pr-strategy-header) - var(--pr-strategy-brief) - var(--pr-strategy-bottom))*1672/941)); height:auto; aspect-ratio:1672/941; }
+.presidency[data-version='17'] .pr-art { object-fit:contain; }
+.presidency[data-version='17'][data-whole-map=true] .pr-world { width:min(100%,calc((100dvh - var(--pr-strategy-header) - var(--pr-strategy-brief) - var(--pr-strategy-bottom))*1672/941)); }
+.presidency[data-version='17'] .pr-board-pin .pr-pin__label { display:block; flex:1; min-width:0; white-space:normal; }
+.presidency[data-version='17'] .pr-board-pin .pr-pin__label b { font-size:11px; letter-spacing:0; text-transform:none; }
+.presidency[data-version='17'] .pr-board-pin .pr-pin__label strong { display:block; overflow:visible; font-size:13px; }
+.presidency[data-version='17'] .pr-board-pin--institution .pr-pin__label small { display:none; }
+.presidency[data-version='17'] .pr-board-pin .pr-pin__label small { font-size:10px; }
+.presidency[data-version='17'] .pr-board-pin[hidden] { display:none; }
+.presidency[data-version='17'] .pr-board-pin:focus-visible { outline:3px solid #173f51; outline-offset:2px; }
+
 .presidency[data-version='17'] .pr-strategy-brief { position:absolute; z-index:9; top:var(--pr-strategy-header); left:0; right:0; height:var(--pr-strategy-brief); display:flex; align-items:stretch; gap:16px; padding:5px 16px; background:#f6f0e2; border-bottom:1px solid #bcb39e; }
 .presidency[data-version='17'] .pr-strategy-cap { display:flex; flex:1; flex-direction:column; justify-content:center; min-width:0; text-align:left; color:#14333e; }
 .presidency[data-version='17'] .pr-strategy-cap>strong { font:700 17px/1.15 Georgia,serif; }
@@ -137,7 +148,7 @@
  .presidency[data-version='17'] .pr-sector__reading>span { font-size:10px; }
 }
 @media(max-width:650px) {
- .presidency[data-version='17'] { --pr-strategy-header:136px; --pr-strategy-brief:98px; --pr-strategy-bottom:138px; }
+ .presidency[data-version='17'] { --pr-strategy-header:136px; --pr-strategy-brief:56px; --pr-strategy-bottom:138px; }
  .presidency[data-version='17'] .pr-header { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px; grid-template-rows:36px 44px 44px; gap:3px 5px; padding:3px 8px; }
  .presidency[data-version='17'] .pr-brand { grid-column:1; grid-row:1; font-size:21px; border:0; }
  .presidency[data-version='17'] .pr-calendar { grid-column:2; grid-row:1; min-width:0; }
@@ -155,7 +166,9 @@
  .presidency[data-version='17'] .pr-resource small { font:10px Arial,sans-serif; }
  .presidency[data-version='17'] .pr-resource strong { font-size:18px; }
  .presidency[data-version='17'] .pr-resource em { font-size:.65em; }
- .presidency[data-version='17'] .pr-strategy-brief { padding:4px 8px; flex-wrap:wrap; gap:3px; }
+ .presidency[data-version='17'] .pr-world { width:calc((100dvh - var(--pr-strategy-header) - var(--pr-strategy-brief) - var(--pr-strategy-bottom))*1672/941); }
+ .presidency[data-version='17'] .pr-strategy-brief { padding:4px 8px; gap:3px; }
+ .presidency[data-version='17'] .pr-board-pin .pr-pin__label strong { font-size:12px; }
  .presidency[data-version='17'] .pr-strategy-cap { flex:1 1 100%; min-height:44px; }
  .presidency[data-version='17'] .pr-strategy-cap>strong { font-size:14px; }
  .presidency[data-version='17'] .pr-strategy-cap__eyebrow { font-size:9px; letter-spacing:0; }
@@ -214,11 +227,6 @@
  .presidency[data-version='17'] .pr-strategy-map-state * { animation:none!important; }
 }
 .presidency[data-version='17'] .pr-strategy-fan>.pr-strategy-explanation { margin:0; padding:8px 14px; border-top:1px solid #c4b89f; font-size:12px; }
-@media(max-width:650px) {
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) { --pr-strategy-brief:50px; }
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-strategy-cap { display:none; }
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-strategy-controls { height:44px; }
-}
 .presidency[data-version='17'] .pr-strategy-action-details { padding:0 14px; border-bottom:1px solid #c5baa4; background:#efe9da; font-size:12px; }
 .presidency[data-version='17'] .pr-strategy-action-details>summary { display:flex; align-items:center; min-height:44px; color:#4a5e57; text-decoration:underline; text-underline-offset:3px; }
 .presidency[data-version='17'] .pr-strategy-action-details p { padding-bottom:10px; line-height:1.4; }
@@ -246,7 +254,14 @@
  .presidency[data-version='17'] .pr-strategy-forecasts { grid-template-columns:1fr; }
 }
 @media(max-width:650px) and (max-height:650px) {
- .presidency[data-version='17'] { --pr-strategy-header:98px; }
+ .presidency[data-version='17'] { --pr-strategy-header:98px; --pr-strategy-brief:48px; }
+ .presidency[data-version='17'] .pr-strategy-cap { min-height:0; }
+ .presidency[data-version='17'] .pr-strategy-cap>strong { line-height:1.1; }
+ .presidency[data-version='17'] .pr-strategy-cap>small { display:none; }
+ .presidency[data-version='17'] .pr-board-pin { height:48px; padding:3px; gap:3px; }
+ .presidency[data-version='17'] .pr-board-pin .pr-pin__label>b { font-size:9px; margin-bottom:2px; }
+ .presidency[data-version='17'] .pr-board-pin .pr-pin__label strong { font-size:11px; }
+ .presidency[data-version='17'] .pr-board-pin .pr-pin__label small { display:none; }
  .presidency[data-version='17'] .pr-header { grid-template-columns:66px minmax(0,1fr) 44px; grid-template-rows:44px 44px; padding:3px 6px; gap:3px 2px; }
  .presidency[data-version='17'] .pr-brand { display:none; }
  .presidency[data-version='17'] .pr-calendar { grid-column:1; grid-row:1; }
