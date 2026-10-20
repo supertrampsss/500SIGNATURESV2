@@ -3,6 +3,7 @@ import { presidencyFeedback } from "./presidency-api.ts";
 import "./presidency-strategy.css";
 import { crisisEffects } from "./presidency-crisis-view.ts";
 import { crisisSeverity, crisisSpec, presidencyCrises } from "./presidency-crises.ts";
+import type { ProjectionResult } from "./presidency-projection.ts";
 import type { Game } from "./types.ts";
 import type { PressureSectorId } from "./pressure-types.ts";
 import { presidencyEventPins, presidencyEventFan, presidencyDate, presidencyFan, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, presidencyObjective, presidencyStrategyEffects, presidencyHeadline, type PresidencyPanel } from "./presidency-view.ts";
@@ -14,6 +15,8 @@ export const presidencyPeriodMs = (game: Game): number => game.version === 17 ? 
 export type PresidencyOptions = {
   commit: (id: string) => Game | null;
   openMenu: () => void;
+  project?: () => ProjectionResult | null;
+  openReplay?: (sourceJournalIndex?: number) => void;
   autoplay?: boolean;
   preview?: boolean;
   onAdopt?: () => Game | null;
@@ -40,6 +43,8 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let wholeMap = false;
   let disposed = false;
   let committing = false;
+  let projectionHoldUntil = 0;
+  let projectionHoldTimer: ReturnType<typeof setTimeout> | undefined;
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
   let focusReturn: HTMLElement | null = null;
   let fanFrame = 0;
@@ -99,7 +104,15 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     toggle.innerHTML = presidencyIcon(paused ? "play" : "pause");
     toggle.setAttribute("aria-label", ended() ? "Mandat terminé" : paused ? "Démarrer le temps" : "Mettre le temps en pause");
     toggle.setAttribute("aria-pressed", String(!paused));
-    toggle.disabled = ended();
+    toggle.disabled = ended() || committing;
+    host.querySelectorAll<HTMLButtonElement>('[data-action="presidency-project"]').forEach(button => {
+      button.hidden = preview || game.version !== 17 || ended() || !options.project;
+      // Keep the renewed control focusable across a keyboard repeat. Native
+      // disable is only needed while committing/hidden; the gesture hold is
+      // enforced by project() and announced with aria-disabled.
+      button.disabled = committing || document.hidden;
+      button.setAttribute("aria-disabled", String(button.disabled || performance.now() < projectionHoldUntil));
+    });
     host.dataset.running = String(!paused);
     host.style.setProperty("--pr-motion-speed", String(speed));
     if (sound && audio) { if (paused) void audio.suspend(); else void audio.resume(); }
@@ -111,13 +124,25 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     host.querySelectorAll<HTMLButtonElement>('[data-action="presidency-speed"]').forEach(button => button.setAttribute("aria-pressed", String(Number(button.dataset.speed) === speed)));
   }
 
-  function feedback(message: string, failure = false): void {
+  function feedback(message: string, failure = false, projection = false): void {
     clearTimeout(feedbackTimer);
     const element = slot<HTMLElement>("[data-live-feedback]");
     element.textContent = message;
     delete element.dataset.result;
     element.hidden = false;
     element.dataset.failure = String(failure);
+    if (panel === "bulletin" || projection && panel === "ending") {
+      const body = slot<HTMLElement>("[data-live-panel] .pr-panel__body");
+      body.querySelector("[data-projection-feedback]")?.remove();
+      const receipt = document.createElement("p");
+      receipt.className = "pr-projection-receipt";
+      receipt.dataset.projectionFeedback = "";
+      receipt.dataset.failure = String(failure);
+      receipt.setAttribute("role", "status");
+      receipt.textContent = message;
+      body.prepend(receipt);
+      body.scrollTop = 0;
+    }
     if (!failure) feedbackTimer = setTimeout(() => { element.hidden = true; }, 8_000);
   }
 
@@ -134,17 +159,16 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     fanFrame = requestAnimationFrame(() => {
       if (disposed) return;
       layoutPresidencyPins(host);
-      if (!selected && !selectedEvent && !selectedGroup) return;
       const anchor = slot<HTMLElement>("[data-live-fan]");
+      if (game.version === 17) {
+        anchor.style.removeProperty("left"); anchor.style.removeProperty("top");
+        return;
+      }
+      if (!selected && !selectedEvent && !selectedGroup) return;
       const country = slot<HTMLElement>(".pr-country").getBoundingClientRect();
       const pin = (selectedEvent ? [...host.querySelectorAll<HTMLElement>("[data-live-event-pin]")].find(el=>el.dataset.liveEventPin===selectedEvent) : host.querySelector<HTMLElement>(`[data-live-pin="${selected}"]`))?.getBoundingClientRect();
       const fan = anchor.firstElementChild?.getBoundingClientRect();
       if ((!pin && !selectedGroup) || !fan) return;
-      if (game.version === 17 && country.width > 650 && window.innerHeight <= 550) {
-        anchor.style.left = "8px";
-        anchor.style.top = `${slot<HTMLElement>(".pr-header").getBoundingClientRect().bottom + 8}px`;
-        return;
-      }
       const mobile = country.width <= 650;
       const preferredX = mobile ? (country.width - fan.width) / 2 : 20;
       const x = Math.max(8, Math.min(country.width - fan.width - 8, preferredX));
@@ -257,6 +281,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     if (panel) {
       element.querySelector<HTMLElement>(".pr-panel__body")!.scrollTop = scroll;
       element.querySelectorAll<HTMLDetailsElement>("details[data-live-reform], details[data-live-disclosure]").forEach(detail => { detail.open = open.includes(detail.dataset.liveReform ?? detail.dataset.liveDisclosure); });
+      if (preview) element.querySelectorAll<HTMLElement>('[data-action="presidency-project"]').forEach(button => button.remove());
       if (!keepPosition) element.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
     }
   }
@@ -314,6 +339,38 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     clock();
   }
 
+  /** One user gesture observes a whole canonical candidate. Failed storage leaves
+   * both the country and the partial clock period intact. The hold spans physical
+   * double-clicks and repeated keyboard activation after synchronous persistence. */
+  function project(): void {
+    if (disposed || committing || preview || game.version !== 17 || ended() || document.hidden || !options.project || performance.now() < projectionHoldUntil) return;
+    pause();
+    committing = true;
+    projectionHoldUntil = performance.now() + 600;
+    clock();
+    try {
+      const result = options.project();
+      if (!result) {
+        feedback("Sauvegarde impossible. Le temps est suspendu ; votre dernière partie enregistrée est conservée.", true, true);
+        return;
+      }
+      progress = 0;
+      refresh(result.game);
+      const reasons = { delivery: "livraison ou effet enregistré", alert: "nouvelle alerte", decision: "nouvel arbitrage", "annual-close": "clôture annuelle", ending: "fin du mandat" };
+      feedback(`${result.periods} période${result.periods > 1 ? "s" : ""} simulée${result.periods > 1 ? "s" : ""} · ${reasons[result.stop]}. Aucun ordre donné. Le temps reste en pause.`, false, true);
+      if (panel === "bulletin") slot<HTMLElement>('[data-live-panel] h2').focus({ preventScroll: true });
+    } catch {
+      feedback("La projection n’a pas pu être enregistrée. Votre dernière partie et la progression du temps sont conservées.", true, true);
+    } finally {
+      committing = false;
+      stamp = performance.now();
+      clock();
+      clearTimeout(projectionHoldTimer);
+      projectionHoldTimer = setTimeout(() => { if (!disposed) clock(); }, Math.max(0, projectionHoldUntil - performance.now()));
+      if (!panel && !ended()) host.querySelector<HTMLElement>('.pr-strategy-controls [data-action="presidency-project"]')?.focus({ preventScroll: true });
+    }
+  }
+
   function commit(id: string): void {
     if (disposed || committing || ended()) return;
     if (preview) { feedback("Touchez « Jouer ce mandat » pour adopter cette partie."); return; }
@@ -357,7 +414,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     } catch (error) {
       pause();
       feedback(error instanceof Error ? error.message : "L’action n’a pas pu être enregistrée. Le temps est suspendu.", true);
-    } finally { committing = false; }
+    } finally { committing = false; clock(); }
   }
 
   function restoreBoardFocus(eventId: string | null, sector: string | null): void {
@@ -390,7 +447,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     stamp = performance.now();
     drawPanel();
     clock();
-    const returnTo = focusReturn?.isConnected ? focusReturn : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
+    const returnTo = focusReturn?.isConnected ? focusReturn : closedPanel === "bulletin" ? host.querySelector<HTMLElement>('[data-action="presidency-bulletin"]') : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
     returnTo?.focus({ preventScroll: true });
   }
 
@@ -408,7 +465,16 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     }
     if(['presidency-event','presidency-sector','presidency-deselect','presidency-panel','presidency-menu'].includes(action ?? '')) clearOrderHold();
     if(['presidency-event','presidency-sector','presidency-deselect'].includes(action ?? '')) selectedGroup=null;
-    if (action === "presidency-pause") {
+    if (action === "presidency-project") {
+      if (event.detail > 1) { event.preventDefault(); return; }
+      project();
+    } else if (action === "presidency-bulletin" && game.version === 17) {
+      pause(); focusReturn = target; panel = "bulletin";
+      drawPanel(); clock();
+    } else if (action === "branch-replay" && options.openReplay) {
+      event.stopPropagation(); pause();
+      options.openReplay(Number(target.dataset.turn));
+    } else if (action === "presidency-pause") {
       if (preview) { slot<HTMLButtonElement>('[data-action="presidency-adopt"]')?.focus(); return; }
       running ? pause() : resume();
     } else if (action === "presidency-sound") {
@@ -490,6 +556,13 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   }
 
   function onKey(event: KeyboardEvent): void {
+    // Native Enter repeats can outlast the gesture hold, including after the
+    // saved view recreates its focused button. One held key is one activation.
+    if (event.repeat && (event.key === "Enter" || event.key === " ")
+      && event.target instanceof Element && event.target.closest('[data-action="presidency-project"]')) {
+      event.preventDefault();
+      return;
+    }
     if (event.key === "Escape") {
       if (panel) { event.preventDefault(); closePanel(); }
       else if (selected || selectedEvent || selectedGroup) {
@@ -512,7 +585,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     }
   }
 
-  function visibility(): void { if (document.hidden) pause(); stamp = performance.now(); }
+  function visibility(): void { if (document.hidden) pause(); stamp = performance.now(); clock(); }
   const timer = setInterval(() => {
     const now = performance.now();
     const elapsed = Math.max(0, game.version === 17 ? now - stamp : Math.min(500, now - stamp));
@@ -570,6 +643,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       clearInterval(timer);
       if (audio) void audio.close();
       clearTimeout(feedbackTimer);
+      clearTimeout(projectionHoldTimer);
       clearOrderHold();
       cancelAnimationFrame(fanFrame);
       cancelAnimationFrame(layoutFrame);

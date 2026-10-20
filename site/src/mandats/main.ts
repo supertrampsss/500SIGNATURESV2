@@ -46,6 +46,7 @@ import './map-panels.css';
 import './map-situation.css';
 import './map-strategy.css';
 import { mountPresidency } from './presidency-runtime.ts';
+import { projectToNextStop, type ProjectionResult } from './presidency-projection.ts';
 import './presidency.css';
 import './presidency-crises.css';
 import './presidency-reference.css';
@@ -230,6 +231,13 @@ function render(focus = true, restoreScroll?: number) {
       preview: ephemeralChallenge,
       onAdopt: adoptPresidencyPreview,
       commit: commitPresidency,
+      project: projectPresidency,
+      openReplay: sourceJournalIndex => {
+        const trigger = document.createElement('button');
+        trigger.dataset.action = sourceJournalIndex === undefined ? 'open-plan' : 'branch-replay';
+        if (sourceJournalIndex !== undefined) trigger.dataset.turn = String(sourceJournalIndex);
+        void action(trigger).catch(error => announce(error instanceof Error ? error.message : 'Ce mandat ne peut pas être rejoué.', false, 'error'));
+      },
       comparison: game => branchReference ? `<div class="pr-branch-review">${comparisonMarkup(game, branchReference)}<button data-action="restore-origin">Revenir au mandat d’origine</button></div>` : '',
       openMenu: () => {
         const trigger = document.createElement('button'); trigger.dataset.action = 'tools';
@@ -461,6 +469,24 @@ function commitPresidency(id: string): Game | null {
   } catch (error) {
     presidencyController?.pause();
     announce(error instanceof Error ? error.message : 'Cet ordre n’a pas pu être enregistré. Le temps est suspendu.', false, 'error');
+    return null;
+  }
+}
+/** Save the complete ordinary-tick projection exactly once before publishing. */
+function projectPresidency(): ProjectionResult | null {
+  if (!g || g.version !== 17 || shared || ephemeralChallenge || isFinished(g) || document.hidden) return null;
+  try {
+    const result = projectToNextStop(g);
+    if (!save(result.game, localStorage)) throw new Error('Sauvegarde indisponible.');
+    g = result.game; saved = g; presidencyControllerGame = g;
+    screen = isFinished(g) ? 'result' : 'play';
+    root.dataset.turn = String(g.turn); root.dataset.screen = screen;
+    if (isFinished(g)) { try { progression = recordCompletedMandate(localStorage, g); } catch {} }
+    announce('');
+    return result;
+  } catch {
+    presidencyController?.pause();
+    announce('La projection ne peut pas être enregistrée. Votre dernière partie est conservée ; le temps reste en pause.', false, 'error');
     return null;
   }
 }
@@ -769,8 +795,8 @@ async function action(target: HTMLElement) {
       clearEntryLink(history);
     } catch (error) { announce(error instanceof Error ? error.message : "Ce parcours ne peut pas être rejoué."); return; }
   }
-  else if (a === "helper") { sheet("Votre mandat", "<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. Le parcours peut compter jusqu’à 30 décisions sur cinq années, et une issue politique peut l’interrompre plus tôt.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>"); return; }
-  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>Une partie comporte jusqu’à 30 décisions sur cinq années. Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>${(g && g.version >= 11)?"Le contexte choisi au départ donne une situation initiale au mandat; les décisions et leurs effets restent calculés par le moteur de simulation.":"La mission choisie au départ change la lecture du bilan."} Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
+  else if (a === "helper") { sheet("Votre mandat", `<p><strong>La France</strong> : fiscalité, services publics, énergie et dette, avec des effets à l’échelle de profils territoriaux. ${(g?.version ?? 17) === 17 ? "Le mandat comporte 30 périodes de deux mois sur cinq ans : 30 secondes actives par période à ×1, avec des ordres indépendants du temps." : "Le parcours peut compter jusqu’à 30 décisions sur cinq années."} Une issue politique peut l’interrompre plus tôt.</p><p>Le parcours est entièrement jouable sur téléphone, sans compte.</p>`); return; }
+  else if (a === "method") { sheet("Comprendre les conséquences", `<p>Le mandat national part des comptes publics français. Les coûts des mesures, les effets sociaux et les trajectoires budgétaires sont des hypothèses de simulation documentées dans la méthode.</p><p>${(g?.version ?? 17) === 17 ? "Une partie comporte 30 périodes de deux mois sur cinq années. À ×1, une période dure 30 secondes actives ; les ordres présidentiels sont indépendants du temps." : "Une partie comporte jusqu’à 30 décisions sur cinq années."} Une issue politique peut interrompre le mandat plus tôt. Intérêts, dette et déficit sont comptabilisés une seule fois à chaque clôture annuelle. Les conséquences continuent d’exister même lorsqu’elles ne créent pas de nouvelle carte.</p><p>${(g && g.version >= 11)?"Le contexte choisi au départ donne une situation initiale au mandat; les décisions et leurs effets restent calculés par le moteur de simulation.":"La mission choisie au départ change la lecture du bilan."} Le résultat final reste multidimensionnel et n’attribue pas de note globale au gouvernement simulé.</p><a class="button" href="/mandats/methode/">Lire les règles et les sources</a>`); return; }
   else if (a === "tools") { sheet("Votre partie", `<p>La sauvegarde reste dans ce navigateur. Pour changer d'appareil, exportez puis importez le fichier.</p>${g && screen !== "mandate" ? `${!ephemeralChallenge && (g.version < 11 || g.turn > 0) ? `<button class="button" data-action="open-plan">Comparer une autre stratégie</button>` : ""}<button class="button" data-action="export">Exporter la sauvegarde</button>` : ""}<label class="button file-input">Importer une sauvegarde<input id="save-file" type="file" accept="application/json,.json"></label><button class="button" data-action="light-mode" aria-pressed="${light}">${light ? "Activer les animations" : "Réduire les animations"}</button><details><summary>Participer à la validation du jeu</summary><p>Enregistrez uniquement les étapes et leur date sur cet appareil, sans les décisions, scores, nom ou identifiant. Rien n’est envoyé. Export limité aux 30 derniers jours et à 500 événements. Désactiver efface ce journal.</p><button class="button" data-action="pilot-consent" aria-pressed="${pilotOn()}">Enregistrer les étapes de test</button><button class="button" data-action="pilot-export">Exporter mon journal de test</button></details><section class="tool-section"><h3>Installer et jouer hors connexion</h3><p>Sur iPhone : Partager puis Sur l’écran d’accueil. Sur Android : menu du navigateur puis Installer l’application. Le jeu fonctionne aussi dans votre navigateur.</p><button class="button" data-action="offline-prepare">Préparer le jeu hors connexion</button><button class="button" data-action="offline-update">Mettre à jour le jeu</button><button class="text-button" data-action="offline-remove">Supprimer la copie hors connexion</button><p>Le jeu et ses règles sont téléchargés. Les règles et les données du mandat sont conservées dans votre sauvegarde.</p></section><button class="text-button" data-action="new">Choisir un autre mandat</button><a class="button" href="/">Retour au site</a>`); return; }
   else if (a === "export" && g) { download(new Blob([encode(g)], { type: "application/json" }), `mandats-sauvegarde-v${g.version}.json`); return; }
   else if (a === "share" && g) { cardKind = "result"; sharingSheet(); return; }

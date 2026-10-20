@@ -1,0 +1,1896 @@
+{
+  "generatedAt": "2026-10-20T12:59:05.194Z",
+  "method": "Reconstruction moteur des deux journaux archivés ; chaque ordre est vérifié légal, les refus sont conservés et le temps ordinaire termine le mandat. Aucune partie humaine.",
+  "hashes": {
+    "engine.ts": "9fe7898cd523601237e98ca1eff1fd89c479de06310c5c22388f52b7a2836489",
+    "presidency-strategy-engine.ts": "b94a8d96c4436a070c7d75662f881da86d99b2c36c50ffc735233b62f29484b4",
+    "presidency-strategy-content.ts": "92bba77d817728fcd56e9c9b18335b6f631fd18277c87fc22c4ba9717cafa1dd",
+    "presidency-read-model.ts": "f409a697c42ec90fa5afde59615989c7ef4449dcc0b8a71016ca5388fcab5e28"
+  },
+  "results": [
+    {
+      "route": "capacity",
+      "seed": 0,
+      "periods": 30,
+      "orders": 14,
+      "status": "mixed",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "4/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": false
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "33,88 unités en attente contre 27,98 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": false
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 134,54 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 67,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [
+        {
+          "period": 3,
+          "id": "s17-energy-capacity",
+          "reason": "5,36 Md€ disponibles ; 5,72 Md€ nécessaires."
+        },
+        {
+          "period": 6,
+          "id": "s17-energy-network",
+          "reason": "Une première transformation de capacité ou d’organisation doit être livrée."
+        }
+      ],
+      "votes": [
+        {
+          "sourceJournalIndex": 5,
+          "choice": "live-credits",
+          "id": "law-3-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 257,
+          "against": 279,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 110,
+              "against": 33,
+              "abstain": 8
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 58,
+              "against": 45,
+              "abstain": 11
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 22,
+              "against": 78,
+              "abstain": 5
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 32,
+              "against": 66,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 35,
+              "against": 57,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 14,
+          "choice": "live-credits",
+          "id": "law-9-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 309,
+          "against": 226,
+          "abstain": 42,
+          "threshold": 268,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 115,
+              "against": 28,
+              "abstain": 8
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 79,
+              "against": 27,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 30,
+              "against": 66,
+              "abstain": 9
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 50,
+              "against": 47,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 35,
+              "against": 58,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 20,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 277,
+          "against": 253,
+          "abstain": 47,
+          "threshold": 266,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 88,
+              "against": 49,
+              "abstain": 14
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 73,
+              "against": 32,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 40,
+              "against": 56,
+              "abstain": 9
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 39,
+              "against": 61,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 55,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 134.53742657428666,
+        "reference": 131.22285044687987,
+        "delta": 3.314576127406781,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "capacity",
+      "seed": 1,
+      "periods": 30,
+      "orders": 12,
+      "status": "mixed",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "4/6 secteurs avec au plus 45 de pression ; 1 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": false
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "115,91 unités en attente contre 29,39 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": false
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 134,4 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 71,72 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [
+        {
+          "period": 3,
+          "id": "s17-energy-capacity",
+          "reason": "5,42 Md€ disponibles ; 5,72 Md€ nécessaires."
+        },
+        {
+          "period": 6,
+          "id": "s17-energy-network",
+          "reason": "Une première transformation de capacité ou d’organisation doit être livrée."
+        },
+        {
+          "period": 9,
+          "id": "s17-housing-capacity",
+          "reason": "4,1 Md€ disponibles ; 5,22 Md€ nécessaires."
+        },
+        {
+          "period": 12,
+          "id": "s17-housing-network",
+          "reason": "Une première transformation de capacité ou d’organisation doit être livrée."
+        }
+      ],
+      "votes": [
+        {
+          "sourceJournalIndex": 5,
+          "choice": "live-credits",
+          "id": "law-3-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 266,
+          "against": 270,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 83,
+              "against": 57,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 79,
+              "against": 27,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 32,
+              "against": 64,
+              "abstain": 9
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 26,
+              "against": 75,
+              "abstain": 6
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 46,
+              "against": 47,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 14,
+          "choice": "live-credits",
+          "id": "law-9-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 255,
+          "against": 279,
+          "abstain": 43,
+          "threshold": 268,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 82,
+              "against": 55,
+              "abstain": 14
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 75,
+              "against": 32,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 24,
+              "against": 75,
+              "abstain": 6
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 29,
+              "against": 70,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 45,
+              "against": 47,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 19,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 300,
+          "against": 239,
+          "abstain": 38,
+          "threshold": 270,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 122,
+              "against": 22,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 72,
+              "against": 32,
+              "abstain": 10
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 23,
+              "against": 75,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 53,
+              "against": 47,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 30,
+              "against": 63,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 134.39981374385798,
+        "reference": 132.41945785754274,
+        "delta": 1.9803558863152375,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "capacity",
+      "seed": 2,
+      "periods": 30,
+      "orders": 14,
+      "status": "mixed",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "4/6 secteurs avec au plus 45 de pression ; 1 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": false
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "129,85 unités en attente contre 30,9 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": false
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 136,09 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 65,3 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [
+        {
+          "period": 3,
+          "id": "s17-energy-capacity",
+          "reason": "5,19 Md€ disponibles ; 5,72 Md€ nécessaires."
+        },
+        {
+          "period": 6,
+          "id": "s17-energy-network",
+          "reason": "Une première transformation de capacité ou d’organisation doit être livrée."
+        }
+      ],
+      "votes": [
+        {
+          "sourceJournalIndex": 5,
+          "choice": "live-credits",
+          "id": "law-3-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 239,
+          "against": 289,
+          "abstain": 49,
+          "threshold": 265,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 83,
+              "against": 57,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 86,
+              "against": 21,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 22,
+              "against": 72,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 18,
+              "against": 79,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 30,
+              "against": 60,
+              "abstain": 10
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 14,
+          "choice": "live-credits",
+          "id": "law-9-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 297,
+          "against": 236,
+          "abstain": 44,
+          "threshold": 267,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 97,
+              "against": 44,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 80,
+              "against": 27,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 26,
+              "against": 72,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 54,
+              "against": 44,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 40,
+              "against": 49,
+              "abstain": 11
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 20,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 273,
+          "against": 250,
+          "abstain": 54,
+          "threshold": 262,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 96,
+              "against": 44,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 61,
+              "against": 43,
+              "abstain": 10
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 54,
+              "against": 41,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 37,
+              "against": 58,
+              "abstain": 12
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 25,
+              "against": 64,
+              "abstain": 11
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 136.0879800366772,
+        "reference": 133.46125573981408,
+        "delta": 2.626724296863131,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "capacity",
+      "seed": 47,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "11,95 unités en attente contre 30,9 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 136,09 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 61,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 5,
+          "choice": "live-credits",
+          "id": "law-3-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 318,
+          "against": 218,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 126,
+              "against": 18,
+              "abstain": 7
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 59,
+              "against": 46,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 54,
+              "against": 41,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 47,
+              "against": 52,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 32,
+              "against": 61,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 16,
+          "choice": "live-credits",
+          "id": "law-9-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 261,
+          "against": 275,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 95,
+              "against": 44,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 57,
+              "against": 49,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 50,
+              "against": 47,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 37,
+              "against": 63,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 22,
+              "against": 72,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 22,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 273,
+          "against": 257,
+          "abstain": 47,
+          "threshold": 266,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 78,
+              "against": 61,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 77,
+              "against": 29,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 40,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 41,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 54,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 136.0862349143947,
+        "reference": 133.52642483714908,
+        "delta": 2.559810077245629,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "capacity",
+      "seed": 73,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "3,69 unités en attente contre 29,81 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 135,69 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 61,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 5,
+          "choice": "live-credits",
+          "id": "law-3-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 276,
+          "against": 262,
+          "abstain": 39,
+          "threshold": 270,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 94,
+              "against": 46,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 80,
+              "against": 27,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 22,
+              "against": 77,
+              "abstain": 6
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 44,
+              "against": 54,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 36,
+              "against": 58,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 16,
+          "choice": "live-credits",
+          "id": "law-9-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 258,
+          "against": 277,
+          "abstain": 42,
+          "threshold": 268,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 88,
+              "against": 51,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 64,
+              "against": 42,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 54,
+              "against": 43,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 31,
+              "against": 69,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 21,
+              "against": 72,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 22,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 292,
+          "against": 245,
+          "abstain": 40,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 105,
+              "against": 37,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 85,
+              "against": 23,
+              "abstain": 6
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 53,
+              "against": 44,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 27,
+              "against": 72,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 22,
+              "against": 69,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 135.68747172339658,
+        "reference": 132.6214848673585,
+        "delta": 3.06598685603808,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "hybrid",
+      "seed": 0,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "2,24 unités en attente contre 27,98 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 137,49 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 21,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 261,
+          "against": 267,
+          "abstain": 49,
+          "threshold": 265,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 79,
+              "against": 57,
+              "abstain": 15
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 66,
+              "against": 38,
+              "abstain": 10
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 40,
+              "against": 56,
+              "abstain": 9
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 39,
+              "against": 61,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 55,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 31,
+          "choice": "live-credits",
+          "id": "law-18-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 273,
+          "against": 256,
+          "abstain": 48,
+          "threshold": 265,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 111,
+              "against": 31,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 59,
+              "against": 47,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 34,
+              "against": 60,
+              "abstain": 11
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 32,
+              "against": 64,
+              "abstain": 11
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 54,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 137.48997586008,
+        "reference": 131.22285044687987,
+        "delta": 6.2671254132001195,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "hybrid",
+      "seed": 1,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "0,25 unités en attente contre 29,39 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 137,51 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 21,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 283,
+          "against": 253,
+          "abstain": 41,
+          "threshold": 269,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 112,
+              "against": 30,
+              "abstain": 9
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 65,
+              "against": 38,
+              "abstain": 11
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 23,
+              "against": 75,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 53,
+              "against": 47,
+              "abstain": 7
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 30,
+              "against": 63,
+              "abstain": 7
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 31,
+          "choice": "live-credits",
+          "id": "law-18-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 284,
+          "against": 254,
+          "abstain": 39,
+          "threshold": 270,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 84,
+              "against": 57,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 84,
+              "against": 23,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 20,
+              "against": 78,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 52,
+              "against": 46,
+              "abstain": 9
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 44,
+              "against": 50,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 137.50819787961223,
+        "reference": 132.41945785754274,
+        "delta": 5.088740022069487,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "hybrid",
+      "seed": 2,
+      "periods": 30,
+      "orders": 14,
+      "status": "mixed",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "4/6 secteurs avec au plus 45 de pression ; 1 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": false
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "64,45 unités en attente contre 30,9 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": false
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 133,08 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 53,95 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [
+        {
+          "period": 18,
+          "id": "s17-administration-network",
+          "reason": "0,04 Md€ disponibles ; 2,68 Md€ nécessaires."
+        },
+        {
+          "period": 24,
+          "id": "s17-transport-capacity",
+          "reason": "0,04 Md€ disponibles ; 4,6 Md€ nécessaires."
+        }
+      ],
+      "votes": [
+        {
+          "sourceJournalIndex": 21,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 258,
+          "against": 264,
+          "abstain": 55,
+          "threshold": 262,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 87,
+              "against": 52,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 55,
+              "against": 49,
+              "abstain": 10
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 54,
+              "against": 41,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 37,
+              "against": 58,
+              "abstain": 12
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 25,
+              "against": 64,
+              "abstain": 11
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 31,
+          "choice": "live-credits",
+          "id": "law-18-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 247,
+          "against": 283,
+          "abstain": 47,
+          "threshold": 266,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 95,
+              "against": 46,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 60,
+              "against": 45,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 45,
+              "against": 50,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 18,
+              "against": 79,
+              "abstain": 10
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 29,
+              "against": 63,
+              "abstain": 8
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 133.0786501771604,
+        "reference": 133.46125573981408,
+        "delta": -0.38260556265367995,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "hybrid",
+      "seed": 47,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "8,09 unités en attente contre 30,9 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 137,86 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 21,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 262,
+          "against": 267,
+          "abstain": 48,
+          "threshold": 265,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 72,
+              "against": 67,
+              "abstain": 12
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 72,
+              "against": 33,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 40,
+              "against": 55,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 41,
+              "against": 58,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 54,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        },
+        {
+          "sourceJournalIndex": 31,
+          "choice": "live-credits",
+          "id": "law-18-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 277,
+          "against": 252,
+          "abstain": 48,
+          "threshold": 265,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 97,
+              "against": 43,
+              "abstain": 11
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 63,
+              "against": 42,
+              "abstain": 9
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 48,
+              "against": 50,
+              "abstain": 7
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 32,
+              "against": 63,
+              "abstain": 12
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 37,
+              "against": 54,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 137.85652509206489,
+        "reference": 133.52642483714908,
+        "delta": 4.330100254915806,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    },
+    {
+      "route": "hybrid",
+      "seed": 73,
+      "periods": 30,
+      "orders": 16,
+      "status": "success",
+      "objectives": [
+        {
+          "id": "services",
+          "title": "Des services accessibles",
+          "current": "6/6 secteurs avec au plus 45 de pression ; 0 en crise.",
+          "target": "Au moins cinq secteurs avec au plus 45 de pression ; tous strictement sous 65.",
+          "met": true
+        },
+        {
+          "id": "backlog",
+          "title": "Réduire les retards hérités",
+          "current": "3,73 unités en attente contre 29,81 au départ.",
+          "target": "Un retard total inférieur ou égal au début du mandat.",
+          "met": true
+        },
+        {
+          "id": "finances",
+          "title": "Financer les services dans la durée",
+          "current": "Déficit de l’année 5 clôturée : 137,51 Md€.",
+          "target": "Ne pas dépasser le déficit hérité de 153 Md€.",
+          "met": true
+        },
+        {
+          "id": "government",
+          "title": "Un gouvernement capable d’agir",
+          "current": "Gouvernement en fonction ; 48,26 points d’appui.",
+          "target": "Gouvernement en fonction et au moins 30 points d’appui.",
+          "met": true
+        }
+      ],
+      "refused": [],
+      "votes": [
+        {
+          "sourceJournalIndex": 21,
+          "choice": "live-credits",
+          "id": "law-12-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 281,
+          "against": 254,
+          "abstain": 42,
+          "threshold": 268,
+          "passed": true,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 99,
+              "against": 42,
+              "abstain": 10
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 80,
+              "against": 27,
+              "abstain": 7
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 53,
+              "against": 44,
+              "abstain": 8
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 27,
+              "against": 72,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 22,
+              "against": 69,
+              "abstain": 9
+            }
+          ],
+          "consequences": [
+            "Texte adopté : ses effets sont appliqués et financés."
+          ]
+        },
+        {
+          "sourceJournalIndex": 31,
+          "choice": "live-credits",
+          "id": "law-18-live-credits",
+          "kind": "law",
+          "title": "Soumettre 10 Md€ d’autorisation au Parlement",
+          "chamber": "Assemblée nationale",
+          "total": 577,
+          "for": 214,
+          "against": 318,
+          "abstain": 45,
+          "threshold": 267,
+          "passed": false,
+          "groups": [
+            {
+              "id": "presidential",
+              "label": "Majorité présidentielle",
+              "for": 80,
+              "against": 58,
+              "abstain": 13
+            },
+            {
+              "id": "reformist",
+              "label": "Réformistes",
+              "for": 72,
+              "against": 34,
+              "abstain": 8
+            },
+            {
+              "id": "social",
+              "label": "Gauche sociale",
+              "for": 21,
+              "against": 74,
+              "abstain": 10
+            },
+            {
+              "id": "conservative",
+              "label": "Conservateurs",
+              "for": 20,
+              "against": 79,
+              "abstain": 8
+            },
+            {
+              "id": "regional",
+              "label": "Territoires",
+              "for": 21,
+              "against": 73,
+              "abstain": 6
+            }
+          ],
+          "consequences": [
+            "Texte rejeté : aucune recette, dépense, mesure sociale ni livraison prévue n’est appliquée."
+          ]
+        }
+      ],
+      "financial": {
+        "actual": 137.51430183555385,
+        "reference": 132.6214848673585,
+        "delta": 4.892816968195348,
+        "periods": 30,
+        "comparable": true,
+        "referenceEndedEarly": false
+      }
+    }
+  ]
+}

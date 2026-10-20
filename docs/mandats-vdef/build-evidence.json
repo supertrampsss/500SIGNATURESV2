@@ -1,0 +1,71 @@
+{
+  "runtimeCommit": "f2afe88c266c440b878586306fc755204e15ec94",
+  "builtOn": "2026-10-20",
+  "bundles": [
+    {
+      "name": "mandats-Cl45XtWb.css",
+      "bytes": 355199,
+      "gzipBytes": 63930,
+      "sha256": "2ada9be756a6cbaae56ff47cc46066f2da038135b4e1d922284d4431e3a7a8fe"
+    },
+    {
+      "name": "mandats-iJFykapp.js",
+      "bytes": 955703,
+      "gzipBytes": 278660,
+      "sha256": "4cc000d341610d13cea2d642f14375344286354259f2c83ff2b48bd501bb220a"
+    }
+  ],
+  "unitTests": {
+    "passed": 1142,
+    "failed": 0,
+    "head": "f68fdaa4b9f81ee7892021adb4f741ab82502e78",
+    "note": "Les seuls changements runtime suivants sont le garde event.repeat ; types/build et 25 parcours ciblés vérifiés après ce correctif."
+  },
+  "heldKeys": {
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0
+  },
+  "globalBrowsers": "Les suites intégrales sont exécutées dans les contrôles de la PR. Les essais locaux simultanés ont été interrompus après saturation mémoire ; leurs délais dépassés ne sont pas comptés comme réussites.",
+  "screenshots": [
+    "site/vdef-artifacts/final/results/.playwright-artifacts-2/2ed6424bea9226fbbf7c8ace2be7b57a.png",
+    "site/vdef-artifacts/final/results/.playwright-artifacts-2/8c6a9217e05c4ff3ff8581b3301918c4.png",
+    "site/vdef-artifacts/final/results/.playwright-artifacts-2/c5860b4b9fa86ee40612cb2ddb5398ba.png",
+    "site/vdef-artifacts/final/results/.playwright-artifacts-2/dd8ffd18dc139a5d6da37915a65a82e5.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-arbitrage-nom-aef55-ai-effet-et-valide-une-fois-desktop/order-recorded.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-bilan-causal--d1b24-al-et-les-charges-annuelles-desktop/causal-ending.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-bilan-causal--d1b24-al-et-les-charges-annuelles-desktop/causal-receipts.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-bilan-causal--d1b24-al-et-les-charges-annuelles-desktop/ending-actions.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-bulletin-comp-c2906-nd-le-focus-sans-rattrapage-desktop/bulletin.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-desktop/bulletin-details.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-commande-Avan-f2b8f-clavier-et-un-onglet-masqué-desktop/observation-directe.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-projection-at-1f617-s-et-ne-double-pas-un-geste-desktop/projection-durable.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-six-pins-réel-ec74c-sibles-pendant-un-arbitrage-desktop/board.png",
+    "site/vdef-artifacts/final/results/mandats-vdef-six-pins-réel-ec74c-sibles-pendant-un-arbitrage-desktop/health-panel.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-compact/bulletin-details.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-desktop/bulletin-details.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-landscape/bulletin-details.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-mobile/bulletin-details.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-bulletin-cons-dafa8-enregistrés-sur-petit-écran-webkit/bulletin-details.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-projection-fi-a0854-eçu-puis-retire-la-commande-compact/projection-ending.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-projection-fi-a0854-eçu-puis-retire-la-commande-desktop/projection-ending.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-projection-fi-a0854-eçu-puis-retire-la-commande-landscape/projection-ending.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-projection-fi-a0854-eçu-puis-retire-la-commande-mobile/projection-ending.png",
+    "site/vdef-artifacts/runtime-final/results/mandats-vdef-projection-fi-a0854-eçu-puis-retire-la-commande-webkit/projection-ending.png"
+  ],
+  "clockSetup": {
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "phase": "clock-setup-final"
+  },
+  "ciConfiguration": {
+    "historicalCases": 48,
+    "vdefCases": 115,
+    "projects": 9,
+    "smokePassed": 10,
+    "smokeFailed": 0,
+    "phase": "vdef-ci-smoke",
+    "note": "Workflow inchangé ; quatre projets historiques et cinq projets vDef dédiés."
+  }
+}
