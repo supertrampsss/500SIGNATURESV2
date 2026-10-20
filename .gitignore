@@ -26,6 +26,8 @@ site/header-artifacts/
 site/social-artifacts/
 site/rework-artifacts/
 site/pressure-artifacts/
+site/vdef-artifacts/
+.superpowers/
 
 # Réponses HTTP du runtime Cloudflare local.
 site/edge-artifacts/

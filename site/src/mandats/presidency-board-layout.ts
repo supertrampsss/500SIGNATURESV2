@@ -6,6 +6,29 @@ export function layoutPresidencyPins(host: HTMLElement): void {
   const area = country.getBoundingClientRect(), map = world.getBoundingClientRect();
   if (!area.width || !area.height) return;
   const mobile = area.width <= 650;
+  // Six compact sector controls always remain separate; only event cards cluster.
+  const sectorPins = [...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
+  const dock = host.querySelector<HTMLElement>('[data-live-fan][data-fan-docked]:not([hidden])');
+  // Measure the space before the dock, rather than a nominal minimum width that
+  // can put controls behind it on landscape phones.
+  const usableWidth = !mobile && dock ? Math.max(0, dock.getBoundingClientRect().left - area.left - 8) : area.width;
+  const compactGrid = !mobile && (area.height < 250 || usableWidth < 650);
+  const columns = compactGrid ? 3 : 2;
+  const pinWidth = compactGrid ? Math.min(160, (usableWidth - 32) / columns)
+    : mobile ? Math.min(150, (area.width - 24) / 2) : 160;
+  sectorPins.forEach((pin, index) => {
+    pin.hidden = false;
+    pin.dataset.pinLayout = compactGrid ? 'compact' : 'map';
+    const ax = map.left - area.left + Number(pin.dataset.mapX) / 100 * map.width;
+    const ay = map.top - area.top + Number(pin.dataset.mapY) / 100 * map.height;
+    const x = compactGrid ? 8 + index % columns * (usableWidth - 16 - pinWidth) / (columns - 1)
+      : mobile ? 8 + index % columns * (area.width - 16) / columns
+      : Math.max(8, Math.min(usableWidth - pinWidth - 8, ax - pinWidth / 2));
+    const y = compactGrid ? 8 + Math.floor(index / columns) * 52
+      : mobile ? 12 + Math.floor(index / columns) * 52
+      : Math.max(12, Math.min(area.height - 100, ay - 24));
+    pin.style.left = `${x}px`; pin.style.top = `${y}px`; pin.style.width = `${pinWidth}px`;
+  });
   const width = mobile ? Math.min(156, (area.width - 26) / 2) : 190;
   const height = mobile ? 68 : 76;
   const top = 14, bottom = area.height - 58;
@@ -15,6 +38,7 @@ export function layoutPresidencyPins(host: HTMLElement): void {
     pin.dataset.pinAccessibleName ??= pin.getAttribute('aria-label') ?? '';
     pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);
     delete pin.dataset.clusterMembers;
+    delete pin.dataset.clusterSeverity;
     pin.querySelector('.pr-pin-count')?.remove();
     const ax = map.left - area.left + Number(pin.dataset.mapX) / 100 * map.width;
     const ay = map.top - area.top + Number(pin.dataset.mapY) / 100 * map.height;
@@ -36,6 +60,7 @@ export function layoutPresidencyPins(host: HTMLElement): void {
     for(const group of groups) if(group.length>1) {
       const primary=group[0].pin;
       primary.dataset.clusterMembers=JSON.stringify(group.map(p=>p.pin.dataset.pinKey));
+      if(group.some(p=>p.pin.dataset.severity==='critical'||p.pin.dataset.stage==='crisis'||p.pin.dataset.eventKind==='political'))primary.dataset.clusterSeverity='critical';
       primary.setAttribute('aria-label',`${group.length} événements proches : ${group.map(p=>p.pin.dataset.pinAccessibleName).join(' ; ')}`);
       const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=`+${group.length-1}`;
       badge.setAttribute('aria-label',`${group.length} événements regroupés, ouvrir la liste`);primary.appendChild(badge);
