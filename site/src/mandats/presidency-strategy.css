@@ -276,7 +276,9 @@
  .presidency[data-version='17'] .pr-strategy-situation__cause { display:none; }
  .presidency[data-version='17'] .pr-strategy-situation__stage { font-size:11px; flex-wrap:nowrap; gap:5px; }
  .presidency[data-version='17'] .pr-strategy-situation__stage strong { font-size:11px; }
- .presidency[data-version='17'] .pr-strategy-primary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .presidency[data-version='17'] .pr-fan { max-height:calc(100dvh - var(--pr-strategy-header) - var(--pr-strategy-bottom) - 16px); }
+ .presidency[data-version='17'] .pr-fan-anchor { position:fixed; z-index:16; }
+ .presidency[data-version='17'] .pr-strategy-primary { grid-template-columns:1fr; }
  .presidency[data-version='17'] .pr-strategy-command--primary { padding:8px; min-height:0; }
  .presidency[data-version='17'] .pr-strategy-command--primary .pr-command__body { gap:4px; }
  .presidency[data-version='17'] .pr-strategy-command--primary .pr-command__body strong { font-size:14px; line-height:1.15; }

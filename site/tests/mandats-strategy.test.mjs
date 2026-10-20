@@ -290,7 +290,8 @@ async function capture(page, info, label, game = undefined) {
   await page.clock.resume();
   try { await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 }); }
   finally {
-    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
+    // Leave transport latency room on WebKit when freezing the clock after a screenshot.
+    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
     if (running) await resume(page);
   }
   expect(await rawSave(page)).toBe(durable);
@@ -682,6 +683,7 @@ test('map actions: six named sectors and institutions are available from the ini
   expect(after.presidency.spent).toBeGreaterThan(before.presidency.spent);
   await page.reload(); await page.getByRole('button', { name: 'Reprendre', exact: true }).click(); await ready(page);
   expect((await saved(page)).choices).toEqual(after.choices);
+  await page.clock.runFor(40); // Reprendre mounted the country; let its real layout frame run.
   await openMapTarget(page, '[data-live-pin="health"]');
   await expect(page.locator('[data-presidency-commands]')).toContainText(/préparation|chantier|engagé/i);
   await capture(page, info, 'map-actions-sante-sauvegardee');

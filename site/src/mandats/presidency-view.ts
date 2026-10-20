@@ -247,7 +247,7 @@ export function presidencyObjective(game: Game): string {
   if (game.version !== 17) return "";
   const state = strategyState(game), result = strategyOutcome(game);
   const priority = game.presidency?.priority;
-  return `<button type="button" class="pr-strategy-cap" data-action="presidency-panel" data-panel="priorities" aria-label="Objectifs du mandat et consignes persistantes"><span class="pr-strategy-cap__eyebrow" data-strategy-phase="${state.phase}">${e(strategyPhaseNames[state.phase])} <span>${result.objectives.filter(goal => goal.met).length} / ${result.objectives.length} objectifs atteints · à maintenir 5 ans</span></span><strong>Rétablir les services, garder les moyens d’agir</strong><small>${priority ? `Priorité : ${e(PRESIDENCY_PLACES[priority].label)}` : "Les ministres gèrent le quotidien · choisissez votre cap"}</small></button>`;
+  return `<button type="button" class="pr-strategy-cap" data-action="presidency-panel" data-panel="priorities" aria-label="Objectifs du mandat et consignes persistantes"><span class="pr-strategy-cap__eyebrow" data-strategy-phase="${state.phase}">${e(strategyPhaseNames[state.phase])} <span>${result.objectives.filter(goal => goal.met).length} / ${result.objectives.length} objectifs atteints · à maintenir 5 ans</span></span><strong>Rétablir les services, garder les moyens d’agir</strong><small>${priority ? `Priorité : ${e(PRESIDENCY_PLACES[priority].label)}` : "Choisissez un secteur sur la carte pour agir."}</small></button>`;
 }
 
 function strategyReading(game: Game, id: PressureSectorId, selected: PressureSectorId | null): string {

@@ -140,7 +140,10 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       const pin = (selectedEvent ? [...host.querySelectorAll<HTMLElement>("[data-live-event-pin]")].find(el=>el.dataset.liveEventPin===selectedEvent) : host.querySelector<HTMLElement>(`[data-live-pin="${selected}"]`))?.getBoundingClientRect();
       const fan = anchor.firstElementChild?.getBoundingClientRect();
       if ((!pin && !selectedGroup) || !fan) return;
-      if (game.version === 17 && country.width > 650 && window.innerHeight <= 550) {
+      // A short viewport needs the space above the map brief as well. The
+      // fixed anchor escapes the country's clipping without moving the artwork.
+      const shortStrategy = game.version === 17 && (country.width <= 650 ? window.innerHeight <= 650 : window.innerHeight <= 550);
+      if (shortStrategy) {
         anchor.style.left = "8px";
         anchor.style.top = `${slot<HTMLElement>(".pr-header").getBoundingClientRect().bottom + 8}px`;
         return;

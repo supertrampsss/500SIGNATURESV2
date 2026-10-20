@@ -14,7 +14,7 @@ export function presentationEffect(choice: Choice): string {
     administration: { capacity: "Des équipes formées et des outils renforcent le traitement des dossiers.", organisation: "Moins de démarches en double, avec accueil humain et recours maintenus." },
   };
   const specific = kind === "capacity" || kind === "organisation" ? foundations[sector]?.[kind] : undefined;
-  if (specific) return `À la mise en service : ${specific} Une coordination territoriale devient ensuite accessible.`;
+  if (specific) return `À la mise en service : ${specific} Vous pourrez ensuite lancer un projet commun avec les autres services.`;
   return `Après préparation : ${choice.description}`;
 }
 
