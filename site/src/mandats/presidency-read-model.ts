@@ -7,6 +7,8 @@ import { STRATEGY_SECTORS } from './presidency-strategy-content.ts';
 import { NATIONAL_AGENDA } from './national-agenda.ts';
 import { policyPressureEffects } from './pressure-content.ts';
 
+const strategyStageNames = { normal: "Service assuré", warning: "Première alerte", accumulation: "Retards accumulés", organisation: "Organisation sous tension", conflict: "Conflit ouvert", national: "Arbitrage national" };
+
 /** Read-only v17 projections. Pressure is danger, never service quality. Work
  * and trend do not downgrade danger: conflict/national (or >=72 pressure) is
  * critical; a current ministry limit, any other non-normal phase (or >=22
@@ -15,7 +17,7 @@ import { policyPressureEffects } from './pressure-content.ts';
  * every order and tick. They are never interchangeable. */
 export function strategySectorReading(game: Game, sector: PressureSectorId): {
   severity: 'stable' | 'warning' | 'critical'; trend: 'improving' | 'steady' | 'worsening';
-  working: boolean; phase: string; label: string; pressure: number; reason: string; limited: boolean;
+  working: boolean; phase: string; label: string; pressure: number; reason: string; limited: boolean; status: string;
 } {
   const state = strategyState(game).sectors[sector], front = game.pressure!.sectors[sector];
   return {
@@ -23,6 +25,7 @@ export function strategySectorReading(game: Game, sector: PressureSectorId): {
       : state.routine.status === 'limited' || state.phase !== 'normal' || front.pressure >= 22 ? 'warning' : 'stable',
     reason: state.routine.status === 'limited' ? 'Le ministère atteint sa limite opérationnelle. Une transformation doit prendre le relais.' : state.warning,
     limited: state.routine.status === 'limited',
+    status: state.routine.status === 'limited' ? 'Limite opérationnelle' : strategyStageNames[state.phase],
     trend: front.trend,
     working: game.pressure!.programmes.some(p => p.sector === sector && p.status === 'preparing'),
     phase: state.phase, label: STRATEGY_SECTORS[sector].label, pressure: front.pressure,
@@ -165,7 +168,9 @@ export function strategyObjectiveReading(game: Game): { title: string; detail: s
   const format = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
   const descriptions = missed.map(goal => {
     if (goal.id === 'backlog') return `Retards : ${format(fronts.reduce((sum,f)=>sum+f.backlog,0))} / cible ${format(state.initialBacklog)}`;
-    if (goal.id === 'finances') return `Déficit : ${format(strategyLedger(game).deficit)} / cible ${format(state.initialDeficit)} Md€`;
+    // The outcome owns the objective’s accounting year, including its next-year
+    // forecast at an annual boundary. The ordinary ledger may still be closed.
+    if (goal.id === 'finances') return `${goal.current} Cible : ${format(state.initialDeficit)} Md€`;
     if (goal.id === 'services') return `Services : ${fronts.filter(f=>f.pressure<=45).length}/6 sous 45 ; maximum ${format(Math.max(...fronts.map(f=>f.pressure)))}/65`;
     return `Gouvernement ${game.politics!.cabinet === 'fallen' ? 'à reconstituer' : 'en fonction'} · appuis ${format(strategySupport(game))}/30 requis`;
   });

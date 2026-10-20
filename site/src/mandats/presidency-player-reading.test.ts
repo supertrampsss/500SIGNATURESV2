@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { start, decide } from './engine.ts';
 import type { Game } from './types.ts';
-import { presidencyObjective, presidencyPanel, presidencyFan, presidencyPins } from './presidency-view.ts';
+import { presidencyObjective, presidencyPanel, presidencyFan, presidencyPins, presidencyEventFan, presidencyReadings } from './presidency-view.ts';
+import { presidencyReforms, presidencyEvents } from './presidency-api.ts';
+import { strategyOutcome } from './presidency-strategy-engine.ts';
 const input=JSON.parse(readFileSync(new URL('../../../docs/mandats/essai-joueur-2026-10-20/partie-jouee-v17.json',import.meta.url),'utf8'));
 function prefix(choice: string, occurrence=0) { let seen=0; const index=input.choices.findIndex((id:string)=>id===choice&&seen++===occurrence); return input.choices.slice(0,index).reduce((g:Game,id:string)=>decide(g,id),start('national',612,'equilibre',17)) as Game; }
 test('P25 names missed backlog with its value in the main objective and links responsible sectors',()=>{
@@ -58,4 +60,36 @@ test('delivered responses clear the current housing P21 and administration P28 l
   assert.equal(g.presidency!.strategy!.sectors[sector].routine.status,'operational');
   assert.doesNotMatch(presidencyFan(g,sector),/limite opérationnelle/);
  }}
+});
+
+test('real legacy v16 reforms remain readable without a v17 strategy',()=>{
+ const g=start('national',612,'equilibre',16); assert.doesNotThrow(()=>presidencyPanel(g,'reforms'));
+ assert.match(presidencyPanel(g,'reforms'),/Engagez un dossier/);
+});
+test('P25 credit adoption preserves its contextual result after funding event disappears',()=>{
+ const before=prefix('live-credits',1); assert.ok(presidencyEvents(before).some(event=>event.id==='s17-funding'));
+ const next=decide(before,'live-credits'); assert.ok(!presidencyEvents(next).some(event=>event.id==='s17-funding'));
+ const html=presidencyEventFan(next,'s17-funding'); assert.match(html,/308 pour/); assert.match(html,/227 contre/); assert.match(html,/Résultat par groupe/);
+});
+test('finished legislative consultation preserves the actual r01c cost delay and team requirement',()=>{
+ const original=presidencyReforms(start('national',612,'equilibre',17)).flatMap(entry=>entry.choices).find(choice=>choice.id==='r01c')!;
+ assert.equal(original.presidencyOrder!.cost,2); assert.equal(original.presidencyOrder!.delay,2); assert.equal(original.presidencyOrder!.implementation,1);
+ const ended=input.choices.reduce((g:Game,id:string)=>decide(g,id),start('national',612,'equilibre',17));
+ const html=presidencyPanel(ended,'reforms').split('data-order="r01c"')[1].split('</button>')[0];
+ assert.match(html,/2 Md€ engagés/); assert.match(html,/4 mois minimum/); assert.match(html,/1 unité d’équipes/); assert.match(html,/disabled/);
+});
+test('annual boundary headline uses the same year two deficit as the outcome goal',()=>{
+ let g=start('national',612,'equilibre',17);
+ for(const id of ['live-credits','s17-health-capacity','s17-housing-capacity','s17-transport-capacity','s17-education-capacity',...Array(6).fill('live-tick')]) g=decide(g,id);
+ const goal=strategyOutcome(g).objectives.find(goal=>goal.id==='finances')!; assert.match(goal.current,/153,53/);
+ const html=presidencyObjective(g); assert.match(html,/153,53/); assert.doesNotMatch(html,/171,2/);
+});
+
+test('completed original mandate keeps the same ministry limit in footer and final sector reading',()=>{
+ const ended=input.choices.reduce((g:Game,id:string)=>decide(g,id),start('national',612,'equilibre',17));
+ assert.equal(ended.presidency!.strategy!.sectors.education.routine.status,'limited');
+ assert.equal(strategyOutcome(ended).objectives.find(goal=>goal.id==='services')!.met,true);
+ const footer=presidencyReadings(ended,null); assert.match(footer,/Limite opérationnelle/);
+ const education=presidencyPanel(ended,'ending').split('data-strategy-pressure="education"')[1].split('</div>')[0];
+ assert.match(education,/Limite opérationnelle/); assert.doesNotMatch(education,/Organisation sous tension/);
 });

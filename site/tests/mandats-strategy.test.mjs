@@ -49,9 +49,7 @@ async function saved(page) {
 }
 async function setup(page) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const now = Date.now() + 1_000;
-  await page.clock.install({ time: now - 1_000 });
-  await page.clock.pauseAt(now);
+  await page.clock.pauseAt(Date.now());
 }
 async function ready(page, version = 17) {
   await expect(page.locator('section[data-presidency]')).toBeVisible();
@@ -257,17 +255,10 @@ async function playMandate(page, info, policy, label) {
 async function capture(page, info, label, game = undefined) {
   const state = game ?? await saved(page);
   const screenshot = info.outputPath(`${label}.png`), file = info.outputPath(`${label}.json`);
-  const clock = page.locator('[data-presidency-clock]');
-  const hasClock = await clock.count() > 0;
-  const running = hasClock && await clock.getAttribute('data-paused') === 'false';
   const durable = await rawSave(page);
-  if (hasClock) await pause(page);
-  await page.clock.resume();
-  try { await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 }); }
-  finally {
-    await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 100);
-    if (running) await resume(page);
-  }
+  // The browser clock is already frozen. Leave the country's running state and
+  // stamp untouched, preserving even the remainder between scheduled ticks.
+  await page.screenshot({ path: screenshot, fullPage: true, animations: 'allow', timeout: 45_000 });
   expect(await rawSave(page)).toBe(durable);
   await writeFile(file, JSON.stringify({ url: page.url(), project: info.project.name, viewport: page.viewportSize(),
     evidence: 'Agent browser journey, not an external human playtest', sources: await sources(), inputs: {
@@ -624,4 +615,17 @@ test('a delayed presidential correction offers a real recovery window without re
   expect(corrected.choices.slice(0, delayed.choices.length)).toEqual(delayed.choices);
   expect(corrected.presidency.strategy.initialBacklog).toBe(delayed.presidency.strategy.initialBacklog);
   await capture(page, info, 'correction-tardive-couteuse-mais-utile', corrected);
+});
+
+test('capture keeps the installed browser clock frozen and the durable country unchanged',async({page},info)=>{
+ await start(page);
+ const before=await page.evaluate(()=>({date:Date.now(),performance:performance.now()}));
+ const durable=await rawSave(page);
+ await page.evaluate(()=>{window.captureTimerFired=false;setTimeout(()=>window.captureTimerFired=true,1);});
+ await capture(page,info,'clock-capture-regression');
+ expect(await page.evaluate(()=>({date:Date.now(),performance:performance.now()}))).toEqual(before);
+ expect(await page.evaluate(()=>window.captureTimerFired)).toBe(false);
+ expect(await rawSave(page)).toBe(durable);
+ await page.clock.runFor(1);
+ expect(await page.evaluate(()=>window.captureTimerFired)).toBe(true);
 });

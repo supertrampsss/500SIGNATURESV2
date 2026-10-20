@@ -27,12 +27,13 @@ function layoutStrategyPins(host:HTMLElement,country:HTMLElement,world:HTMLEleme
  const dock=host.querySelector<HTMLElement>('[data-live-fan]:not([hidden])');
  const availableWidth=!mobile&&dock ? dock.getBoundingClientRect().left-area.left-8 : area.width;
  const compact=mobile||availableWidth<650||area.height<250;
- const columns=3, gap=6;
- const width=compact ? Math.min(160,(availableWidth-28)/columns) : 160;
+ const gap=6, columns=area.height<250 && availableWidth>=650 ? 6 : 3;
+ const width=compact ? Math.min(160,(availableWidth-16-gap*(columns-1))/columns) : 160;
  const sectors=[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
  const anchor=(pin:HTMLElement)=>({x:map.left-area.left+Number(pin.dataset.mapX)/100*map.width,y:map.top-area.top+Number(pin.dataset.mapY)/100*map.height});
  sectors.forEach(pin=>{pin.hidden=false;pin.dataset.pinLayout=compact?'compact':'map';pin.style.width=`${width}px`;});
- const labels=sectors.map((pin,i)=>{const rect=pin.getBoundingClientRect();return {...(compact?{x:8+i%columns*(width+gap)+width/2,y:8+Math.floor(i/columns)*(rect.height+gap)+rect.height/2}:anchor(pin)),width:rect.width,height:rect.height};});
+ const rowHeight=Math.max(44,...sectors.map(pin=>pin.getBoundingClientRect().height));
+ const labels=sectors.map((pin,i)=>{const rect=pin.getBoundingClientRect();return {...(compact?{x:8+i%columns*(width+gap)+width/2,y:8+Math.floor(i/columns)*(rowHeight+gap)+rect.height/2}:anchor(pin)),width:rect.width,height:rect.height};});
  const events=[...country.querySelectorAll<HTMLElement>('.pr-board-pin')];
  events.forEach(pin=>{pin.hidden=false;pin.dataset.pinAccessibleName??=pin.getAttribute('aria-label')??'';pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);delete pin.dataset.clusterMembers;delete pin.dataset.clusterSeverity;pin.querySelector('.pr-pin-count')?.remove();pin.style.height='';});
  const rowsBottom=Math.max(8,...labels.map(p=>p.y+p.height/2))+6;
@@ -42,12 +43,12 @@ function layoutStrategyPins(host:HTMLElement,country:HTMLElement,world:HTMLEleme
  const visibleEvents=groupEvents?events.slice(0,1):events;
  if(groupEvents) {
   const primary=events[0];primary.dataset.clusterMembers=JSON.stringify(events.map(p=>p.dataset.pinKey));
-  primary.setAttribute('aria-label',`${events.length} événements : ${events.map(p=>p.dataset.pinAccessibleName).join(' ; ')}`);
+  primary.setAttribute('aria-label',`${events.length} événement${events.length===1?'':'s'} : ${events.map(p=>p.dataset.pinAccessibleName).join(' ; ')}`);
   if(events.some(p=>p.dataset.eventKind==='political'))primary.dataset.clusterSeverity='critical';
   const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=String(events.length);primary.appendChild(badge);
   events.slice(1).forEach(pin=>pin.hidden=true);
  }
- visibleEvents.forEach((pin,i)=>{pin.style.width=`${compact?Math.min(240,availableWidth-16):190}px`;pin.dataset.pinLayout=compact?'compact':'map';if(compact)pin.style.height='44px';const rect=pin.getBoundingClientRect();labels.push({...compact?{x:availableWidth/2,y:rowsBottom+rect.height/2+i*(rect.height+8)}:anchor(pin),width:rect.width,height:rect.height});});
+ visibleEvents.forEach((pin,i)=>{pin.style.width=`${compact?Math.min(240,availableWidth-(mobile?160:16)):190}px`;pin.dataset.pinLayout=compact?'compact':'map';if(compact)pin.style.height='44px';const rect=pin.getBoundingClientRect();labels.push({...compact?{x:mobile?8+rect.width/2:availableWidth/2,y:rowsBottom+rect.height/2+i*(rect.height+8)}:anchor(pin),width:rect.width,height:rect.height});});
  const boxes=placePresidencyLabels(labels,availableWidth,area.height);
  const pins=[...sectors,...visibleEvents];
  pins.forEach((pin,i)=>{pin.style.left=`${boxes[i].x}px`;pin.style.top=`${boxes[i].y}px`;});
@@ -175,7 +176,8 @@ export function presidencyClusterMarkup(host:HTMLElement, keys:string[]): string
     if(countdown){const time=countdown.cloneNode(true) as HTMLElement;time.className='pr-cluster-time';button.appendChild(time);}
     wrapper.appendChild(button);
   }
-  return `<section class="pr-fan pr-cluster-fan" aria-label="Événements proches"><header><strong>Événements proches · ${wrapper.childElementCount}</strong><button type="button" data-action="presidency-deselect" aria-label="Fermer les événements">×</button></header>${wrapper.innerHTML}</section>`;
+  const title=wrapper.childElementCount===1 ? "Événement proche" : "Événements proches";
+  return `<section class="pr-fan pr-cluster-fan" aria-label="${title}"><header><strong>${title} · ${wrapper.childElementCount}</strong><button type="button" data-action="presidency-deselect" aria-label="Fermer les événements">×</button></header>${wrapper.innerHTML}</section>`;
 }
 
 /** Keep existing event elements so tick updates do not replay arrival animations. */

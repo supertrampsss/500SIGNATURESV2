@@ -293,3 +293,29 @@ test('régression joueur612 vote immédiatement dans les réformes',async({page}
  await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('286 contre');
  await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toBeInViewport();
 });
+
+test('régression joueur612 autorisation P25 garde son résultat quand l’alerte budget disparaît',async({page})=>{
+ await load(page,await playerInput('live-credits',1),612);
+ await page.locator('[data-live-event-pin="s17-funding"]').click();
+ const clustered=page.locator('.pr-cluster-choice[data-event="s17-funding"]');
+ if(await clustered.count()) {
+  await expect(page.locator('.pr-cluster-fan')).toHaveAttribute('aria-label','Événement proche');
+  await expect(page.locator('.pr-cluster-fan header strong')).toHaveText('Événement proche · 1');
+  await clustered.click();
+ }
+ const origin=page.locator('[data-presidency-event="s17-funding"]');
+ await expect(origin).toBeVisible();
+ await origin.locator('[data-order="live-credits"] .pr-command__cta').click();
+ const result=page.locator('[data-live-fan] [data-live-vote]');
+ await expect(result).toContainText('308 pour'); await expect(result).toContainText('227 contre');
+ await expect(result).toBeInViewport();
+ await result.locator('summary').click(); await expect(result).toContainText('Majorité présidentielle');
+});
+
+test('repères320 gardent noms alerte et chantier dans leur rectangle',async({page})=>{
+ await page.setViewportSize({width:320,height:568});
+ await load(page,[...await playerInput('live-credits',1),'live-credits','s17-administration-network','s17-energy-network','live-budget-redeploy','s17-education-capacity'],612);
+ const contents=await page.locator('.pr-sector-pin').evaluateAll(pins=>pins.map(pin=>{const p=pin.getBoundingClientRect(),label=pin.querySelector('.pr-pin__label').getBoundingClientRect();return {name:pin.getAttribute('aria-label'),inside:label.top>=p.top&&label.bottom<=p.bottom&&label.left>=p.left&&label.right<=p.right};}));
+ for(const content of contents) expect(content.inside,content.name).toBe(true);
+ await noBoardCollisions(page);
+});

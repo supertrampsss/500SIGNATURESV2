@@ -371,3 +371,14 @@
 .presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin__label strong { font-size:12px; }
 
 .presidency[data-version='17'] .pr-board-pin[data-pin-layout=compact] .pr-pin-count { position:static; margin-left:auto; flex-shrink:0; }
+
+/* Let the measured rectangle contain its title, warning and preparation text. */
+.presidency[data-version='17'] .pr-sector-pin { height:auto; min-height:44px; }
+@media(max-width:650px) {
+ .presidency[data-version='17'] .pr-mapview { left:auto; right:56px; width:88px; }
+}
+@media(min-width:651px) and (max-height:550px) {
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-country { bottom:0; }
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-sectors,
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-newswire { display:none; }
+}
