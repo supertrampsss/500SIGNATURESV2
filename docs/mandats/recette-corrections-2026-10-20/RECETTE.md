@@ -52,8 +52,9 @@ Les chiffres décrivent cette simulation. Le bilan distingue les services access
 | Ministère limité présenté comme rassurant | Préfixes du journal original 612 ; nouveau logement P18, énergie P19 et démarches P21. Retour au service opérationnel observé après transformation suffisante. |
 | Libellé du bilan différent de la carte | Même modèle de lecture v17 pour les secteurs de la carte, du panneau et du bilan ; vérification réelle sur transports et démarches après rechargement de la partie terminée. |
 | Objectif manquant caché derrière un compteur | Deux objectifs simultanés visibles à 320 et 390 pixels ; nature, valeur et cible ; liens directs vers les secteurs responsables des retards. |
+| Trois objectifs qui débordent du bandeau | Cas légal graine612 : quatre organisations, capacités de soins et de logement puis un passage. Retards30,04/28,4 ; déficit166,1/153 ; appuis26,26/30. Hauteur naturelle du bandeau et zones de carte mesurées ; les trois valeurs restent visibles à320,390,844,1024,1280 et1672 pixels. Tab puis Enter permettent réellement d’activer la priorité Énergie à320. |
 | Secteurs qui se recouvrent ou texte rogné | Rectangles mesurés et hauteur adaptée au contenu ; contrôle de cinq dimensions, panneau ouvert et fermé, événements groupés. Les captures `controle-*` conservent les défauts intermédiaires, les images numérotées montrent le rendu corrigé. |
-| Résultat de vote éloigné de la décision | Nouveau vote informatique adopté dans Réformes, deux crédits rejetés depuis la carte ; cas du budget adopté qui résout l’événement couvert séparément par le journal original et son parcours navigateur. |
+| Résultat de vote éloigné de la décision | Nouveau vote informatique adopté dans Réformes, deux crédits rejetés depuis la carte ; budget adopté qui résout l’événement reproduit séparément par le parent depuis le préfixe du journal original :308/227/42, crédits0,94→10,94, reçu conservé et groupes ouverts. Ce cas reconstruit ne compte pas comme une nouvelle partie complète. |
 | Régression des anciennes parties v16 | Régression de rendu du panneau Réformes et parcours navigateur dédiés. |
 | Coûts nuls inventés dans le catalogue terminé | Pension/aide à domicile en consultation : **2 Md€, quatre mois, une équipe**, boutons désactivés. |
 | Mauvais exercice financier dans le cap | Cas de frontière annuelle comparé à l’objectif autoritatif ; aucune valeur du moteur modifiée. |
@@ -65,12 +66,19 @@ Les chiffres décrivent cette simulation. Le bilan distingue les services access
 
 ![Lecture cohérente des services dans le bilan](13-bilan-coherent.png)
 
+![Trois objectifs complets sur petit écran après correction](16-trois-objectifs-320-apres.png)
+
+![Action effectivement atteinte au clavier](22-action-priorite-320-clavier.png)
+
+Le contrôle à trois objectifs et les captures16,17 et22 à25 utilisent le rendu `mandats-_eZnpf9-.js`, postérieur à la partie complète. Aucun état légal à quatre objectifs simultanément manqués n’a été obtenu pour cette recette ; aucune donnée n’a été inventée pour le simuler. La hauteur ne dépend pas d’un nombre prédéfini d’objectifs.
+
 ## Validation et livraison
 
-Révision applicative : `4d7b69b95b4d8e6184379f7316ce042350588d76`.
+Révision applicative finale de cette recette : `79bba5e3d147a869811eb58ddfec1cdf6ba18f23`.
 
-- `npm run check` exécuté par le parent sur cette révision : **1 158 / 1 158 tests unitaires**, zéro échec ; types, build, pré-rendu et génération hors connexion réussis. Bundle offline : 37 ressources, version `85b7e15b7fefdff0`.
+- `npm run check` exécuté par le parent sur cette révision : **1 158 / 1 158 tests unitaires**, zéro échec ; types, build, pré-rendu et génération hors connexion réussis. Bundle offline :37 ressources, version `4eccbcafcaeb784c`.
 - Régressions ciblées de l’implémenteur : 22 / 22 ; ouvertures et captures 6 / 6 dans chacune des deux suites ; parcours budget/contenu finaux 4 / 4 dans Chromium et WebKit. Ces contrôles ciblés ne sont pas présentés comme les suites navigateur complètes.
+- Après correction du bandeau :8 / 8 tests ciblés dans Chromium/WebKit, couvrant les six dimensions, ouvertures/fermetures, contenu des repères, collisions et budget adopté. La suite vDef complète est aussi lancée par le parent sur le build final. Pour éviter la saturation locale, les autres suites générales sont exécutées par les gates CI de la même tête ; leurs résultats sont consignés dans la PR.
 - Les premières suites globales interrompues après erreur du harnais sont conservées comme échecs. Les suites globales corrigées, la revue indépendante, les gates CI, la fusion et le contrôle du domaine publié sont consignés dans le compte rendu de livraison de la PR associée à cette révision.
 
 Le [manifeste des bundles](build-evidence.json) est produit après le contrôle complet, avec empreintes SHA-256 et commit. La publication doit servir ces mêmes fichiers et être essayée dans le navigateur. Un build réussi ne vaut ni essai joueur ni publication réussie.

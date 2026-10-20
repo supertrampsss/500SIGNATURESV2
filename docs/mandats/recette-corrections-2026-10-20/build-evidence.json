@@ -1,16 +1,16 @@
 {
-  "codeCommit": "4d7b69b95b4d8e6184379f7316ce042350588d76",
-  "recordedAt": "2026-10-20T17:59:41.747Z",
+  "codeCommit": "79bba5e3d147a869811eb58ddfec1cdf6ba18f23",
+  "recordedAt": "2026-10-20T18:18:53.703Z",
   "bundles": [
     {
-      "name": "mandats-DmGVFSHv.js",
-      "bytes": 964788,
-      "sha256": "1531f4aa7494bfe3cd69d791ef66e4604b09accd1f1d21ccf8f8264ea9900e1a"
+      "name": "mandats-_eZnpf9-.js",
+      "bytes": 965467,
+      "sha256": "7e3d997868ae1c9c6878eefd16a0f3a561e15880e5aafb1267b1b81c845b7c8c"
     },
     {
-      "name": "mandats-B2irk5JW.css",
-      "bytes": 358954,
-      "sha256": "62c0a88989e78ce62a87d427e652ad99ffa63ab79c478c1158723d544bb5b39b"
+      "name": "mandats-HazkIm3P.css",
+      "bytes": 359417,
+      "sha256": "7ba48e8f60de3f4238f2eca86f817fdbb68501138e4cfdba54e297ee371cf93d"
     }
   ]
 }
