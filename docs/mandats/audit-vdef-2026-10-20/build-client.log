@@ -1,0 +1,38 @@
+
+> build:client
+> npm run check:types && vite build
+
+
+> check:types
+> tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 247 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/mandats/france/hiver/index.html         0.53 kB │ gzip:     0.33 kB
+dist/salaires/index.html                     2.59 kB │ gzip:     1.26 kB
+dist/mandats/index.html                      5.45 kB │ gzip:     2.08 kB
+dist/confidentialite/index.html              6.40 kB │ gzip:     2.62 kB
+dist/index.html                             15.28 kB │ gzip:     5.22 kB
+dist/mandats/methode/index.html             37.90 kB │ gzip:    13.60 kB
+dist/assets/reference-map-B9Mf7JdQ.svg   7,575.17 kB │ gzip: 5,613.01 kB
+dist/assets/shared-design-D17Vxp_n.css      30.54 kB │ gzip:     6.40 kB
+dist/assets/site-shell-v2-DKHbEmDf.css      45.67 kB │ gzip:     6.80 kB
+dist/assets/game-B_-L39w0.css               81.76 kB │ gzip:    16.68 kB
+dist/assets/chart-controls-DQiuOonC.css     99.66 kB │ gzip:    17.94 kB
+dist/assets/style-Dn4VjWro.css             117.38 kB │ gzip:    19.72 kB
+dist/assets/principal-Ib6R2xvc.css         307.15 kB │ gzip:    39.63 kB
+dist/assets/mandats-B-93sX_I.css           351.41 kB │ gzip:    63.08 kB
+dist/assets/shared-design-BR6wKexh.js        0.71 kB │ gzip:     0.40 kB
+dist/assets/salaires-GDDYT0kn.js             1.54 kB │ gzip:     0.81 kB
+dist/assets/chart-controls-CheLZuSn.js      26.87 kB │ gzip:    10.16 kB
+dist/assets/mandats-D3iOPgbZ.js            941.20 kB │ gzip:   274.19 kB
+dist/assets/principal-ZI68rdLe.js        1,559.61 kB │ gzip:   435.73 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.62s
