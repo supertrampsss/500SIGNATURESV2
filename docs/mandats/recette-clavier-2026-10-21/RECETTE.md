@@ -1,6 +1,6 @@
 # MANDATS — recette clavier du 21 octobre 2026
 
-**Validation en cours : le mandat publié a révélé un défaut de focus au bilan. La correction n’est pas encore livrée.**
+**Ce dossier conserve les preuves de reproduction et les validations avant publication.** Les statuts intermédiaires ci-dessous datent de leur collecte ; la [PR218](https://github.com/supertrampsss/500SIGNATURESV2/pull/218) consigne l’état de la livraison et des vérifications publiques.
 
 ## Partie qui a révélé le défaut
 
@@ -77,3 +77,19 @@ Le contrôle des reçus doit observer leur visibilité et leur texte dans une se
 Deux copies diagnostiques du même fichier sont exécutées avec une latence publique côté client de2 200ms, sans modifier le jeu : l'ancien ordre échoue deux fois aux attentes attendues (visibilité après lecture de sauvegarde, puis texte relu après expiration) ; le nouvel ordre passe **2/2 en18,6s**. Le texte de reçu observé est conservé et le journal exact reste vérifié. Les fichiers, logs rouges et verts sont conservés dans .superpowers/sdd/modal-story-race-* ; ils constituent des diagnostics, pas des cas supplémentaires revendiqués dans la suite standard.
 
 Les deux parcours standards ciblés (autoclose et délai de retour clavier existant), sur les fichiers définitifs et budgets d'origine, terminent **2/2 en18,0s**, sans retry. Les revues statiques de conformité et de qualité n'identifient aucun finding bloquant. Nouvelle suite complète et CI requises avant fusion.
+
+## Fiabilisation complémentaire des contrôles
+
+La tête34cbc conserve son propre résultat : générale locale265passes,2échecs,73exclusions prévues ; CI générale verte avec266passes et1succès après retry sur la navigation éditoriale. Les deux échecs locaux sont l'import (timeoutglobal60s non localisé) et un test du votev10 qui attend Continueenabled.
+
+Le helperv10 cherchait l'ancienne action skip alors que le runtime rend show-result. Une régression dédiée gèle l'horloge, avance seulement de111ms pour la transition de décision et reproduit l'attente échouée. Le helper corrigé utilise le vrai raccourci ; les horloges des parcours originaux restent réelles. Il vérifie les577sièges, chaque total affiché, le vote restauré et l'identité brute de la sauvegarde avant/après révélation, poursuite et rechargement. Le premier contrôle avec tracesactives/deuxworkers donne1passe et2échecs (corps de la régression entièrement réussi puis teardown60s ; autre corps dépassant60s avant reload), conservés sans les appeler verts. Les mêmes trois cas terminent ensuite **3/3 en23,3s**, unworker, trace désactivée, budgets identiques.
+
+Le timeout d'import est instrumenté sans modification applicative : même scénario, mauvaises puis bonne sauvegarde, reprise, chaque phase et fermeture repérées. Deux cas séquentiels passent en14,2/16,2s (total33,7s) ; deux cas parallèles passent en26,3/25,6s (total28,7s), sans erreur relevée. Le timeout initial n'est pas reproduit ni attribué à une étape. Ce contraste ne reproduit pas toute la charge de la générale.
+
+La suite générale est désormais limitée à **unworker**, plusieurs parcours ouvrant déjà un second contexte isolé. Ce choix de capacité privilégie les durées individuelles et la reproductibilité ; il n'établit pas une cause unique aux latences inconnues. Les budgets, assertions, projets, retries et exclusions restent conservés ; traces au premier retryCI. Il suit les [recommandations CI officielles Playwright](https://playwright.dev/docs/ci). Une nouvelle suite complète sur ce réglage reste nécessaire.
+
+La course éditoriale concerne un lien encore absent du header lors de son hydratation : avant de décider si le menu mobile doit être ouvert, le test attend maintenant l'attachement du lien. La reproduction retardant seulement le chargement du module principal est détaillée ci-dessous.
+
+La reproduction éditoriale retardant seulement le module principal confirme le défaut du test : ancienne condition, attente du menu desktop caché et échec60s ; nouvelle attente d'attachement, **1/1 en6,0s**. Ce mécanisme reproduit isolément une course possible, sans établir la chronologie exacte du primaireCI non tracé. Le parcours original complet de métadonnées passe ensuite **5/5 formats en15,5s**, unworker, zéroretry et trace désactivée. Les deux préflights sans test (résolution d'import, filtre de titre trop strict) sont conservés et ne sont pas des rouges fonctionnels.
+
+Les nouvelles validations globales sur le dernier commit restent distinctes de ces contrôles ciblés. Le statut exact, les liens deCI, la fusion protégée et la recette publiée sont consignés dans la PR de livraison.

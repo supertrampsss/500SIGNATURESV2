@@ -9,25 +9,42 @@ async function start(page, reducedMotion=false){
  await expect(page.locator('.mandate-board [data-action="choose"]:not([disabled])').first()).toBeVisible();
 }
 
-async function castFirstVote(page,info){
+async function castFirstVote(page,info,{clockPaused=false}={}){
  await activate(page.locator('.mandate-board [data-action="choose"]:not([disabled])').first(),info);
+ if(clockPaused) await page.clock.runFor(111);
  const vote=page.locator('[data-political-vote]');
  await expect(vote).toBeVisible();
- const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
+ const storedRaw=await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'));
+ const stored=JSON.parse(storedRaw);
  expect(stored.version).toBe(10);
  expect(stored.choices).toHaveLength(1);
  const record={id:await vote.getAttribute('data-vote-id'),title:await vote.locator('h2').innerText()};
  expect(await vote.locator('.vote-seat').count()).toBe(577);
- const reveal=vote.locator('[data-political-action="skip"]');
- if(await reveal.isVisible()) await activate(reveal,info);
- await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
- const tally=await Promise.all(['for','against','abstain'].map(async key=>await vote.locator(`[data-tally="${key}"]`).innerText()));
+ if(clockPaused){
+  await expect(vote.locator('[data-political-action="continue"]')).toBeDisabled();
+  expect(await vote.locator('.vote-seat[data-revealed="true"]').count()).toBeLessThan(577);
+ }
+ const reveal=vote.locator('[data-political-action="show-result"]');
+ const proceed=vote.locator('[data-political-action="continue"]');
+ // A real-time vote may already have finished while its saved record is read.
+ await expect.poll(async()=>await proceed.isEnabled()||await reveal.isVisible()).toBe(true);
+ if(!await proceed.isEnabled()) await activate(reveal,info);
+ await expect(proceed).toBeEnabled();
+ await expect(reveal).toBeHidden();
+ await expect(vote).toHaveAttribute('data-vote-id',record.id);
+ await expect(vote.locator('.vote-seat[data-revealed="true"]')).toHaveCount(577);
+ const statuses=['for','against','abstain'];
+ const tally=await Promise.all(statuses.map(async key=>await vote.locator(`[data-tally="${key}"]`).innerText()));
+ const seats=await Promise.all(statuses.map(async key=>await vote.locator(`.vote-seat[data-vote="${key}"]`).count()));
+ expect(tally.map(value=>Number(value.replaceAll(/\D/g,'')))).toEqual(seats);
  expect(tally.reduce((total,value)=>total+Number(value.replaceAll(/\D/g,'')),0)).toBe(577);
+ expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(storedRaw);
  record.verdict=await vote.locator('[data-vote-verdict]').innerText();
  record.tally=tally;
  await expect(vote.locator('[data-political-action="continue"]')).toBeEnabled();
  await activate(vote.locator('[data-political-action="continue"]'),info);
  await expect(page.locator('.mandate-board')).toBeVisible();
+ expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(storedRaw);
  return record;
 }
 
@@ -43,6 +60,7 @@ test('a fresh national game defaults to the strategic v17 presidency',async({pag
 test('v10 saves the actual 577-seat tally before animation and reload never counts it twice',async({page},info)=>{
  await start(page);
  const savedVote=await castFirstVote(page,info);
+ const beforeRaw=await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'));
  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
  await page.reload();
  await page.getByRole('button',{name:'Reprendre',exact:true}).click();
@@ -51,10 +69,23 @@ test('v10 saves the actual 577-seat tally before animation and reload never coun
  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')));
  expect(after.choices).toEqual(before.choices);
  expect(after.choices).toHaveLength(1);
+ expect(await page.evaluate(()=>localStorage.getItem('500signatures.mandats.v1'))).toBe(beforeRaw);
  await page.locator('.political-hud__details > summary').click();
  await expect(page.locator('.political-hud__last-vote')).toBeVisible();
  expect(await page.locator('.political-hud__last-vote').innerText()).toContain('Adopté');
+ await expect(page.locator('.political-hud__last-vote')).toContainText(savedVote.title);
+ for(const [index,label] of ['pour','contre','abstentions'].entries()){
+  await expect(page.locator('.political-hud__last-vote')).toContainText(`${savedVote.tally[index]} ${label}`);
+ }
  expect(savedVote.id).toBeTruthy();
+});
+
+test('v10 reveals the saved vote before the natural animation finishes',async({page},info)=>{
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ // One public call installs and pauses the clock before any application timer.
+ await page.clock.pauseAt(Date.now());
+ await start(page);
+ await castFirstVote(page,info,{clockPaused:true});
 });
 
 test('reduced motion presents the same saved vote outcome and changes no game state',async({page,browser},info)=>{
