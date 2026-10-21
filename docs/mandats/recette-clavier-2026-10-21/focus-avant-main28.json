@@ -1,0 +1,25 @@
+{
+  "countryScroll": 8,
+  "dialog": [
+    {
+      "focusInside": false,
+      "label": "pr-panel-title",
+      "modal": "true"
+    }
+  ],
+  "focus": {
+    "class": "pr-sector",
+    "label": "Santé, pression 1 sur 100, Service assuré. 100 signifie danger maximal.",
+    "tag": "BUTTON"
+  },
+  "scripts": [
+    "https://c5e54344.plateforme-9sz.pages.dev/assets/mandats-TSeUnPH4.js"
+  ],
+  "styles": [
+    "https://c5e54344.plateforme-9sz.pages.dev/assets/mandats-HazkIm3P.css",
+    "https://c5e54344.plateforme-9sz.pages.dev/assets/game-B_-L39w0.css",
+    "https://c5e54344.plateforme-9sz.pages.dev/assets/site-shell-v2-DKHbEmDf.css",
+    "https://c5e54344.plateforme-9sz.pages.dev/assets/shared-design-D17Vxp_n.css"
+  ],
+  "url": "https://c5e54344.plateforme-9sz.pages.dev/mandats/"
+}

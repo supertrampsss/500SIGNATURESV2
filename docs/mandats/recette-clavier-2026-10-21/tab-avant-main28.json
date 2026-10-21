@@ -1,0 +1,8 @@
+{
+  "focus": {
+    "label": "Logement, pression 5 sur 100, Service assuré. 100 signifie danger maximal.",
+    "tag": "BUTTON",
+    "text": "Logement5/100 +1,6Service assuré"
+  },
+  "inside": false
+}

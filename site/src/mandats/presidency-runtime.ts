@@ -23,6 +23,24 @@ export type PresidencyOptions = {
   comparison?: (game: Game) => string;
 };
 
+/** Visibility for modal tab stops and focus return, including Safari 16. */
+function visibleModalControl(element: HTMLElement): boolean {
+  if (!element.isConnected || !element.getClientRects().length) return false;
+  const visibility = getComputedStyle(element).visibility;
+  if (visibility === 'hidden' || visibility === 'collapse') return false;
+  if (typeof element.checkVisibility === 'function') return element.checkVisibility({ visibilityProperty: true });
+  // Older engines can retain layout boxes inside closed details. Only the
+  // direct summary (and its descendants) belongs to their visible content.
+  for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+    if (parent instanceof HTMLDetailsElement && !parent.open) {
+      const summary = [...parent.children].find(child => child.tagName === 'SUMMARY');
+      if (!summary?.contains(element)) return false;
+    }
+    if (getComputedStyle(parent).contentVisibility === 'hidden') return false;
+  }
+  return true;
+}
+
 /** The illustration is mounted once. Only saved transitions replace state readings. */
 export function mountPresidency(root: HTMLElement, initial: Game, options: PresidencyOptions): {
   dispose(): void; update(game: Game): void; pause(): void; resume(): void; isRunning(): boolean;
@@ -316,18 +334,29 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     drawFan();
     positionFan();
     host.dataset.ended = String(ended());
-    if (ended() && panel !== "ending") {
+    const openingEnding = ended() && panel !== "ending";
+    if (openingEnding) {
       running = false;
       selected = null; selectedEvent = null;selectedGroup=null;
       drawFan();
       panel = "ending";
+      if (game.version === 17) {
+        // The country readings were replaced above. Remember their current
+        // counterpart for Escape, not the disconnected pre-refresh button.
+        focusReturn = focusSector ? host.querySelector<HTMLElement>(`[data-presidency-front="${focusSector}"]`)
+          : activeElement?.isConnected ? activeElement : host.querySelector<HTMLElement>('[data-action="presidency-menu"]');
+      }
       drawPanel();
     } else if (panel) drawPanel(true);
     const nextOrder = focusOrder ? [...host.querySelectorAll<HTMLElement>("[data-order]")].find(element => element.dataset.order === focusOrder && !element.matches(":disabled")) : undefined;
-    if (nextOrder) nextOrder.focus({ preventScroll: true });
-    else if (game.version === 17 && panel && hadPanelFocus) slot<HTMLElement>("[data-live-panel] h2").focus({ preventScroll: true });
-    else if (game.version === 17 && focusOrder && selected) restoreBoardFocus(null, selected);
-    else if (focusSector) [...host.querySelectorAll<HTMLElement>("[data-presidency-front]")].find(element => element.dataset.sector === focusSector)?.focus({ preventScroll: true });
+    // A newly opened modal owns focus. Do not restore the country control
+    // captured before the final autonomous period over its initial heading.
+    if (!(game.version === 17 && openingEnding)) {
+      if (nextOrder) nextOrder.focus({ preventScroll: true });
+      else if (game.version === 17 && panel && hadPanelFocus) slot<HTMLElement>("[data-live-panel] h2").focus({ preventScroll: true });
+      else if (game.version === 17 && focusOrder && selected) restoreBoardFocus(null, selected);
+      else if (focusSector) [...host.querySelectorAll<HTMLElement>("[data-presidency-front]")].find(element => element.dataset.sector === focusSector)?.focus({ preventScroll: true });
+    }
     clock();
   }
 
@@ -459,7 +488,12 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     stamp = performance.now();
     drawPanel();
     clock();
-    const returnTo = focusReturn?.isConnected ? focusReturn : closedPanel === "bulletin" ? host.querySelector<HTMLElement>('[data-action="presidency-bulletin"]') : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
+    const opener = closedPanel === "bulletin" ? host.querySelector<HTMLElement>('[data-action="presidency-bulletin"]')
+      : host.querySelector<HTMLElement>(`[data-action="presidency-panel"][data-panel="${closedPanel}"]`);
+    // The clock can become disabled at the end, and a map click can leave BODY
+    // active. Return to a usable control, falling back to the permanent menu.
+    const returnTo = [focusReturn, opener, host.querySelector<HTMLElement>('[data-action="presidency-menu"]')]
+      .find(element => element?.isConnected && element.tabIndex >= 0 && !element.matches(':disabled') && visibleModalControl(element));
     returnTo?.focus({ preventScroll: true });
   }
 
@@ -589,10 +623,14 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       }
     }
     if (panel && event.key === "Tab") {
-      const controls = [...slot("[data-live-panel]").querySelectorAll<HTMLElement>('button:not(:disabled), a[href], summary, [tabindex="0"]')].filter(element => element.getClientRects().length > 0);
+      const modal = slot<HTMLElement>("[data-live-panel]");
+      // Closed details can retain layout rectangles while their content is not
+      // visible or focusable. Geometry alone is not a tab-stop visibility test.
+      const controls = [...modal.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], summary, [tabindex="0"]')].filter(element => visibleModalControl(element));
       const first = controls[0], last = controls.at(-1);
       if (!first || !last) return;
-      if (event.shiftKey && (document.activeElement === first || document.activeElement === slot("[data-live-panel]").querySelector("h2"))) { event.preventDefault(); last.focus(); }
+      if (!modal.contains(document.activeElement)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === modal.querySelector("h2"))) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
   }

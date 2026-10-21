@@ -1,0 +1,16 @@
+{
+  "codeCommit": "a703d864412e89f07c2ce429557a590df6c25aee",
+  "recordedAt": "2026-10-20T22:39:40.024Z",
+  "bundles": [
+    {
+      "name": "mandats-_ZrXR1o6.js",
+      "bytes": 966512,
+      "sha256": "03dc95ca600c27b12efc7e12048d9e5dc7688cda88fe5caf59af4566812abf64"
+    },
+    {
+      "name": "mandats-HazkIm3P.css",
+      "bytes": 359417,
+      "sha256": "7ba48e8f60de3f4238f2eca86f817fdbb68501138e4cfdba54e297ee371cf93d"
+    }
+  ]
+}

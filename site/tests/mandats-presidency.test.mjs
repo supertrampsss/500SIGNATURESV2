@@ -687,3 +687,107 @@ test('capture keeps the installed browser clock frozen and the durable country u
  await page.clock.runFor(1);
  expect(await page.evaluate(()=>window.captureTimerFired)).toBe(true);
 });
+
+
+// WebKit can expose non-empty boxes (and Playwright :visible matches) inside
+// closed details. Their content is not a keyboard destination; the summary is.
+const modalKeyboardControls=dialog=>dialog.locator(':is(button:not(:disabled), a[href], summary, [tabindex="0"]):visible:not(:is(details:not([open]) > :not(summary), details:not([open]) > :not(summary) *))');
+test('v17 automatic ending keeps real keyboard focus inside the modal through the final autonomous tick',async({page})=>{
+ const inputs={...BASE,version:17,seed:1,choices:Array(29).fill('live-tick')};
+ await load(page,inputs);await resume(page);
+ // Reach the rail with actual keyboard navigation, not injected focus.
+ for(let tabs=0;tabs<80;tabs++){
+  if(await page.evaluate(()=>document.activeElement?.dataset.presidencyFront==='health'))break;
+  await page.keyboard.press('Tab');
+ }
+ expect(await page.evaluate(()=>document.activeElement?.dataset.presidencyFront)).toBe('health');
+ await page.clock.runFor(30_100);
+ await expect(page.locator('[data-presidency]')).toHaveAttribute('data-turn','30');
+ const dialog=page.getByRole('dialog',{name:'Bilan du mandat',exact:true});await expect(dialog).toBeVisible();
+ expect(JSON.parse(await rawSave(page)).choices).toEqual(Array(30).fill('live-tick'));
+ await expect(dialog.locator('h2')).toBeFocused();
+ const controls=modalKeyboardControls(dialog);
+ await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ const endedSave=await rawSave(page);
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
+ await expect(page.locator('[data-presidency-front="health"]')).toBeFocused();
+ expect(await rawSave(page)).toBe(endedSave);
+});
+
+for(const panel of ['priorities','reforms','government'])test(`v17 manual modal keyboard reading and return stay intact: ${panel}`,async({page})=>{
+ await load(page,{...BASE,version:17,seed:1});
+ const opener=page.locator(`.pr-strategy-brief [data-panel="${panel}"]`);await opener.click();
+ const dialog=page.locator(`[data-presidency-panel="${panel}"]`);await expect(dialog.locator('h2')).toBeFocused();
+ const controls=modalKeyboardControls(dialog),before=await rawSave(page);
+ await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ // Recover keyboard navigation if an earlier country focus survived outside
+ // the modal, as observed when the last autonomous period opens the ending.
+ const background=page.locator('[data-presidency-front="health"]');
+ await background.focus();await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ await background.focus();await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(opener).toBeFocused();
+ expect(await rawSave(page)).toBe(before);
+});
+
+
+for(const origin of ['clock','country'])test(`v17 ending Escape has a usable destination after ${origin} focus`,async({page})=>{
+ await load(page,{...BASE,version:17,seed:1,choices:Array(29).fill('live-tick')});await resume(page);
+ if(origin==='country'){
+  const country=await page.locator('.pr-country').boundingBox();
+  // A real pointer on empty map artwork removes button focus, without injecting
+  // BODY.focus or changing the game's state.
+  await page.mouse.click(country.x+3,country.y+country.height-3);
+  expect(await page.evaluate(()=>document.activeElement.tagName)).toBe('BODY');
+ } else {
+  for(let tabs=0;tabs<80;tabs++){
+   if(await page.evaluate(()=>document.activeElement?.dataset.action==='presidency-pause'))break;
+   await page.keyboard.press('Tab');
+  }
+  await expect(page.locator('[data-action="presidency-pause"]')).toBeFocused();
+ }
+ await page.clock.runFor(30_100);
+ const dialog=page.getByRole('dialog',{name:'Bilan du mandat',exact:true});await expect(dialog.locator('h2')).toBeFocused();
+ if(origin==='clock')await expect(page.locator('[data-action="presidency-pause"]')).toBeDisabled();
+ const endedSave=await rawSave(page);expect(JSON.parse(endedSave).choices).toEqual(Array(30).fill('live-tick'));
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
+ await expect(page.locator('[data-action="presidency-menu"]')).toBeFocused();
+ expect(await rawSave(page)).toBe(endedSave);
+});
+
+
+test('v17 modal keyboard works without checkVisibility and skips closed or CSS-hidden controls',async({page})=>{
+ await page.addInitScript(()=>Object.defineProperty(Element.prototype,'checkVisibility',{configurable:true,value:undefined}));
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await load(page,{...BASE,version:17,seed:1});
+ expect(await page.evaluate(()=>typeof Element.prototype.checkVisibility)).toBe('undefined');
+ const opener=page.locator('.pr-strategy-brief [data-panel="reforms"]');await opener.click();
+ const dialog=page.locator('[data-presidency-panel="reforms"]'),controls=modalKeyboardControls(dialog),before=await rawSave(page);
+ await expect(dialog.locator('h2')).toBeFocused();
+ await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ // Presentation-only probe: a CSS-hidden summary is not a keyboard stop even
+ // though its layout box and the closed dossier's DOM content still exist.
+ await page.addStyleTag({content:'[data-presidency-panel="reforms"] [data-live-reform]:last-child > summary { visibility:hidden; }'});
+ await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
+ await page.keyboard.press('Tab');await expect(controls.first()).toBeFocused();
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(opener).toBeFocused();
+ expect(errors).toEqual([]);expect(await rawSave(page)).toBe(before);
+});
+
+test('v16 ending Escape returns to a usable menu when checkVisibility is unavailable',async({page})=>{
+ await page.addInitScript(()=>Object.defineProperty(Element.prototype,'checkVisibility',{configurable:true,value:undefined}));
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ // This passive v16 journal ends legally in a rupture at period 27. Inputs
+ // after that ending are invalid and must not be appended to reach turn 30.
+ await load(page,{...BASE,choices:Array(27).fill('live-tick')});
+ const dialog=page.locator('[data-presidency-panel="ending"]'),before=await rawSave(page);
+ await expect(dialog).toHaveAttribute('role','dialog');
+ await expect(dialog.locator('h2')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
+ await expect(page.locator('.pr-header [data-action="presidency-menu"]')).toBeFocused();
+ expect(errors).toEqual([]);expect(await rawSave(page)).toBe(before);
+});

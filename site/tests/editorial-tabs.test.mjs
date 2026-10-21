@@ -89,10 +89,12 @@ test('Lancement : métadonnées propres à chaque vue et aucune publicité autom
  page.on('request', request => {if(/googlesyndication|doubleclick/.test(request.url())) advertising.push(request.url());});
  await page.goto('/');
  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/');
+ await expect(page.locator('#navigation-principale a[href="/bilan/"]')).toBeAttached();
  if(!await page.locator('#navigation-principale a[href="/bilan/"]').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
  await page.locator('#navigation-principale a[href="/bilan/"]').click();
  await expect(page).toHaveTitle('Budget et dette publique en France | 500 signatures');
  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://500signatures.fr/bilan/');
+ await expect(page.locator('#navigation-principale a[href="/territoire/"]')).toBeAttached();
  if(!await page.locator('#navigation-principale a[href="/territoire/"]').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu'}).click();
  await page.locator('#navigation-principale a[href="/territoire/"]').click();
  await expect(page).toHaveTitle('Les comptes de votre ville | 500 Signatures');
