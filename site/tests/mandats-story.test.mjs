@@ -174,15 +174,21 @@ async function waitForDecisionSurface(page) {
   return observedText;
 }
 
+async function observeDecision(page, action) {
+  // An earlier receipt must never satisfy the observation for this action.
+  await expect(page.locator('[data-decision-verdict]')).toHaveCount(0);
+  // Observe while the real action is running: its response may arrive after TTL.
+  const [text] = await Promise.all([waitForDecisionSurface(page), action()]);
+  return text;
+}
+
 async function decide(page, choiceIndex = 0, { doubleClick = false, dismiss = true } = {}) {
   const before = await stored(page);
   const choices = frontChoices(page);
   await expect(choices.first()).toBeVisible();
-  const choiceId = await choices.nth(choiceIndex % await choices.count()).getAttribute('data-choice');
-  if (doubleClick) await choices.nth(choiceIndex % await choices.count()).dblclick();
-  else await choices.nth(choiceIndex % await choices.count()).click();
-  // Observe the transient receipt before the potentially expensive save replay.
-  const verdictText = await waitForDecisionSurface(page);
+  const choice = choices.nth(choiceIndex % await choices.count());
+  const choiceId = await choice.getAttribute('data-choice');
+  const verdictText = await observeDecision(page, () => doubleClick ? choice.dblclick() : choice.click());
   const verdict = page.locator('[data-decision-verdict]');
   if (dismiss) {
     // Escape also completes safely if the real auto-close timer has already fired.
@@ -423,8 +429,7 @@ test('a blocked project can be repaired through its real follow-up, while a reje
   await pickFrontId(abandonPage, await abandonment.getAttribute('data-story-id'));
   const abandonChoice = await frontChoices(abandonPage).evaluateAll((items) => items.map((item) => item.dataset.choice).find((id) => /abandonner/.test(id)));
   expect(abandonChoice).toBeTruthy();
-  await chooseById(abandonPage, abandonChoice);
-  await waitForDecisionSurface(abandonPage);
+  await observeDecision(abandonPage, () => chooseById(abandonPage, abandonChoice));
   const abandonAfter = await stored(abandonPage);
   expect(abandonAfter.turn).toBe(abandonBefore.turn + 1);
   expect(abandonAfter.politics.votes.at(-1)).toMatchObject({ kind: 'law', passed: false });
@@ -543,8 +548,7 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   const dilemmaAlternative = dilemmaChoices.find((id) => id !== firstDecision.choiceId);
   expect(dilemmaAlternative).toBeTruthy();
   const dilemmaChoice = dilemmaRecipient.locator(`[data-action="choose"][data-choice="${dilemmaAlternative}"]:not([disabled])`);
-  await dilemmaChoice.click();
-  await waitForDecisionSurface(dilemmaRecipient);
+  await observeDecision(dilemmaRecipient, () => dilemmaChoice.click());
   const adoptedDilemma = decodeExport(await rawSave(dilemmaRecipient));
   expect(adoptedDilemma.version).toBe(11);
   expect(adoptedDilemma.seed).toBe(start.seed);
@@ -613,9 +617,7 @@ test('one complete v11 mandate retains causal outcomes, exports, replays and rea
   await recipient.locator('.story-agenda [data-action="story-select"]').first().click();
   await expect(recipient.locator('.story-scene[data-stage="decision"]')).toBeVisible();
   expect(await rawSave(recipient)).toBe(originalRaw);
-  await recipient.locator('[data-action="choose"][data-choice]:not([disabled])').first().click();
-  await waitForDecisionSurface(recipient);
-  await expect(recipient.locator('[data-decision-verdict]')).toBeVisible();
+  await observeDecision(recipient, () => recipient.locator('[data-action="choose"][data-choice]:not([disabled])').first().click());
   await recipient.keyboard.press('Escape');
   await expect(recipient.locator('[data-decision-verdict]')).toBeHidden();
   await expect(recipient.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
@@ -711,8 +713,7 @@ test('a shared decision restores exact focus and protects the local save until a
   const candidates = await frontChoices(recipient).evaluateAll((items) => items.map((item) => item.dataset.choice));
   const alternative = candidates.find((id) => id !== senderDecision.choiceId);
   expect(alternative).toBeTruthy();
-  await recipient.locator(`[data-action="choose"][data-choice="${alternative}"]:not([disabled])`).click();
-  await waitForDecisionSurface(recipient);
+  await observeDecision(recipient, () => recipient.locator(`[data-action="choose"][data-choice="${alternative}"]:not([disabled])`).click());
   const adopted = decodeExport(await rawSave(recipient));
   expect(adopted.version).toBe(11);
   expect(adopted.seed).toBe(seed);
@@ -785,8 +786,7 @@ test('reduced-motion 320, 390 and desktop layouts keep all decision controls ins
   const keyboardChoice = frontChoices(page).first();
   await keyboardChoice.focus();
   await expect(keyboardChoice).toBeFocused();
-  await page.keyboard.press('Enter');
-  await waitForDecisionSurface(page);
+  await observeDecision(page, () => page.keyboard.press('Enter'));
   await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
   await capture(page, info, `v11-verdict-${info.project.name}`);
   const afterKeyboard = await stored(page);
@@ -812,9 +812,8 @@ test('the decision verdict auto-closes, advances immediately and never leaves st
   const before = await stored(page);
   const firstChoice = frontChoices(page).first();
   const firstId = await firstChoice.getAttribute('data-choice');
-  await firstChoice.click();
+  await observeDecision(page, () => firstChoice.click());
   const verdict = page.locator('[data-decision-verdict]');
-  await waitForDecisionSurface(page);
   await expect(page.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
   await expect(verdict).toBeHidden({ timeout: 3000 });
   await expect(page.locator('.story-result')).toHaveCount(0);
@@ -826,8 +825,7 @@ test('the decision verdict auto-closes, advances immediately and never leaves st
   await pickFront(page, 0);
   const secondChoice = frontChoices(page).first();
   const secondId = await secondChoice.getAttribute('data-choice');
-  await secondChoice.click();
-  const secondVerdictText = await waitForDecisionSurface(page);
+  const secondVerdictText = await observeDecision(page, () => secondChoice.click());
   await expect(page.locator('.story-agenda')).toBeVisible();
   await expect(page.locator('.story-agenda')).not.toContainText('Le mandat avance entre plusieurs fronts');
   expect(secondVerdictText).toMatch(/Texte adopté|Texte rejeté|Gouvernement|Procédure|Nouvelle répartition/);
@@ -861,4 +859,65 @@ test('a delayed keyboard round trip preserves the observed v11 receipt and saved
   } finally {
     page.keyboard.press = press;
   }
+});
+
+test('a delayed shared adoption return retains its own receipt and exact journal', async ({ page, browser }, info) => {
+  await interceptClipboard(page);
+  const seed = fixture.journeys.protectedChallenge.seed;
+  await openSeed(page, seed);
+  await pickFront(page, 0);
+  await decide(page, 0);
+  await continueStory(page);
+  const selected = await pickFront(page, 0);
+  const senderDecision = await decide(page, 0);
+  const senderSave = await rawSave(page);
+  const senderState = decodeExport(senderSave);
+  expect(senderState.choices).toHaveLength(2);
+
+  await openDecisionJournal(page);
+  await page.locator('[data-action="share-decision"]').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Le lien restitue les décisions antérieures');
+  await dialog.getByRole('button', { name: 'Copier le lien', exact: true }).click();
+  const copied = await page.evaluate(() => window.__mandatsCopiedText);
+  const shareUrl = new URL(copied);
+  expect(shareUrl.hash).toMatch(/^#dilemma=/);
+  const localShareUrl = localizeSharedUrl(copied, page.url());
+  const replayPrefix = decodeExport(decodeURIComponent(shareUrl.hash.slice('#dilemma='.length)));
+  expect(replayPrefix.choices).toEqual(senderState.choices.slice(0, -1));
+  expect(replayPrefix.narrative.focus).toBe(selected.chosen);
+  await dialog.getByRole('button', { name: 'Fermer' }).click();
+
+  const recipientContext = await browser.newContext({ viewport: info.project.use.viewport, baseURL: new URL(page.url()).origin });
+  await recipientContext.addInitScript(([key, value]) => localStorage.setItem(key, value), [SAVE_KEY, senderSave]);
+  const recipient = await recipientContext.newPage();
+  await recipient.goto(localShareUrl);
+  await expect(recipient.locator('.story-flow__challenge-note')).toBeVisible();
+  await expect(recipient.locator('.story-scene[data-stage="decision"]')).toBeVisible();
+  await expect(recipient.locator('.dossier h1')).toContainText(selected.title);
+  expect((await stored(recipient)).choices).toEqual(senderState.choices);
+  expect(await rawSave(recipient)).toBe(senderSave);
+  const candidates = await frontChoices(recipient).evaluateAll((items) => items.map((item) => item.dataset.choice));
+  const alternative = candidates.find((id) => id !== senderDecision.choiceId);
+  expect(alternative).toBeTruthy();
+  const adoption = recipient.locator(`[data-action="choose"][data-choice="${alternative}"]:not([disabled])`);
+  let committedBeforeReturn;
+  const receiptText = await observeDecision(recipient, async () => {
+    await adoption.click();
+    committedBeforeReturn = await rawSave(recipient);
+    // Delay only Node's delivery of the completed public click, beyond the real TTL.
+    await new Promise(resolve => setTimeout(resolve, 2200));
+  });
+  expect(receiptText.trim().length).toBeGreaterThan(0);
+  await expect(recipient.locator('[data-decision-verdict]')).toHaveCount(0);
+  expect(await rawSave(recipient)).toBe(committedBeforeReturn);
+  const adopted = decodeExport(await rawSave(recipient));
+  expect(adopted.version).toBe(11);
+  expect(adopted.seed).toBe(seed);
+  expect(adopted.choices).toEqual([...replayPrefix.choices, alternative]);
+  expect(adopted.turn).toBe(replayPrefix.turn + 1);
+  await expect(recipient.locator('.story-agenda, .year-recap, .living-result')).toBeVisible();
+  await capture(recipient, info, `v11-shared-decision-${info.project.name}`);
+  await persistEvidence(recipient, info, `v11-shared-decision-${info.project.name}`, { focus: replayPrefix.narrative.focus, adoptedChoice: alternative });
+  await recipientContext.close();
 });
