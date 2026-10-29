@@ -52,6 +52,7 @@ import './presidency-crises.css';
 import './presidency-reference.css';
 import './presidency-board.css';
 import './presidency-session.css';
+import './presidency-desk.css';
 
 const root = document.querySelector<HTMLElement>("#mandats")!;
 const dialog = document.querySelector<HTMLDialogElement>("#details")!;

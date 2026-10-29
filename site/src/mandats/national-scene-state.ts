@@ -1,8 +1,19 @@
 import { calendarFor, domainFor, startingGame } from './engine.ts';
 import { projects } from './world.ts';
 import type { Game } from './types.ts';
-import type { VisualState } from './winter/scene.ts';
 export type NationalArea = 'metropoles' | 'industrie' | 'rural' | 'littoraux';
+/** Visual values are normalized from zero to one by the simulation. */
+interface VisualState {
+  season: 'winter' | 'spring' | 'winter-return';
+  warmth: number;
+  activity: number;
+  construction: boolean;
+  renovated: boolean;
+  focus: NationalArea | 'national';
+  tone: 'neutral' | 'warm' | 'cool' | 'mixed';
+  turn: number;
+  caption: string;
+}
 export type NationalSceneState = {
   turn: number; year: number; inherited: boolean; focus: NationalArea | 'national';
   areas: { id: string; services: number; resilience: number }[];

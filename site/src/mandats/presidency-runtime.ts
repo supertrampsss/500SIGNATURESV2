@@ -6,7 +6,7 @@ import { crisisSeverity, crisisSpec, presidencyCrises } from "./presidency-crise
 import type { ProjectionResult } from "./presidency-projection.ts";
 import type { Game } from "./types.ts";
 import type { PressureSectorId } from "./pressure-types.ts";
-import { presidencyEventPins, presidencyEventFan, presidencyDate, presidencyFan, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, presidencyObjective, presidencyStrategyEffects, presidencyHeadline, type PresidencyPanel } from "./presidency-view.ts";
+import { presidencyEventPins, presidencyEventFan, presidencyDate, presidencyFan, presidencyPanel, presidencyPins, presidencyReadings, presidencyResources, presidencyRoutes, presidencyShell, presidencyObjective, presidencyStrategyEffects, presidencyHeadline, presidencyDeskBriefing, presidencyDeskContext, presidencyDeskDate, presidencyDeskMetrics, presidencyDeskTerm, presidencyDeskTermTrack, type PresidencyPanel } from "./presidency-view.ts";
 import { presidencyIcon } from "./presidency-icons.ts";
 
 export const PRESIDENCY_PERIOD_MS = 15_000;
@@ -54,8 +54,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   let speed = 1;
   let progress = 0;
   let stamp = performance.now();
-  let selected: PressureSectorId | null = null;
-  let selectedEvent: string | null = null;
+  // The wide desk can show the country's suggested response immediately beside
+  // the map. Phones retain their overview rather than opening a covering reader.
+  const initialDossier = initial.version === 17 && host.clientWidth > 650 && !ended() ? presidencyDeskContext(initial) : null;
+  let selected: PressureSectorId | null = initialDossier?.event ? null : initialDossier?.sector ?? null;
+  let selectedEvent: string | null = initialDossier?.event?.id ?? null;
   let selectedGroup: string[] | null = null;
   let panel: PresidencyPanel | null = null;
   let wholeMap = false;
@@ -119,7 +122,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     element.dataset.paused = String(paused);
     element.dataset.turn = String(game.turn);
     const toggle = slot<HTMLButtonElement>('[data-action="presidency-pause"]');
-    toggle.innerHTML = presidencyIcon(paused ? "play" : "pause");
+    toggle.innerHTML = game.version === 17 ? paused ? "Démarrer" : "Pause" : presidencyIcon(paused ? "play" : "pause");
     toggle.setAttribute("aria-label", ended() ? "Mandat terminé" : paused ? "Démarrer le temps" : "Mettre le temps en pause");
     toggle.setAttribute("aria-pressed", String(!paused));
     toggle.disabled = ended() || committing;
@@ -230,11 +233,15 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     orderHold = { sector: selected, containers };
     orderHoldTimer = setTimeout(() => {
       const context = orderHold?.sector;
-      const focusedOrder = document.activeElement instanceof HTMLElement ? document.activeElement.dataset.order : undefined;
+      const focusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const focusedOrder = focusedElement?.dataset.order;
+      const hadReaderFocus = Boolean(focusedElement && anchor.contains(focusedElement));
       clearOrderHold();
       if (disposed || selected !== context) return;
       drawFan();
-      if (focusedOrder) [...anchor.querySelectorAll<HTMLElement>("[data-order]:not(:disabled)")].find(button => button.dataset.order === focusedOrder)?.focus({ preventScroll: true });
+      const nextOrder = focusedOrder ? [...anchor.querySelectorAll<HTMLElement>("[data-order]:not(:disabled)")].find(button => button.dataset.order === focusedOrder) : undefined;
+      if (nextOrder) nextOrder.focus({ preventScroll: true });
+      else if (hadReaderFocus) restoreBoardFocus(null, selected);
     }, 350);
   }
 
@@ -273,6 +280,9 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const anchor = slot<HTMLElement>("[data-live-fan]");
     const groupKey=selectedGroup?.join("|") ?? null;
     const sameSector = (selected !== null && renderedSector === selected) || (selectedEvent !== null && renderedEvent === selectedEvent) || (groupKey !== null && renderedGroup === groupKey);
+    const deskBody = host.querySelector<HTMLElement>(".pr-desk-dossier__body");
+    const sameContext = sameSector || !selected && !selectedEvent && !selectedGroup && !renderedSector && !renderedEvent && !renderedGroup;
+    const deskScroll = sameContext ? deskBody?.scrollTop ?? 0 : 0;
     const oldFan = anchor.querySelector<HTMLElement>(".pr-fan");
     const scroll = sameSector ? oldFan?.scrollTop ?? 0 : 0;
     const disclosureKey=(detail:HTMLDetailsElement)=>detail.dataset.liveDisclosure ?? detail.querySelector('summary')?.textContent ?? '';
@@ -285,6 +295,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     anchor.querySelectorAll<HTMLDetailsElement>('details').forEach(detail=>{detail.open=openDetails.includes(disclosureKey(detail));});
     const nextFan = anchor.querySelector<HTMLElement>(".pr-fan");
     if (nextFan) nextFan.scrollTop = scroll;
+    if (deskBody) {
+      host.dataset.dossierOpen = String(!anchor.hidden);
+      slot<HTMLElement>("[data-live-briefing]").hidden = !anchor.hidden;
+      deskBody.scrollTop = deskScroll;
+    }
     if (selected || selectedEvent || selectedGroup) positionFan();
     if (game.version === 17) clock();
   }
@@ -298,7 +313,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     element.innerHTML = panel ? presidencyPanel(game, panel, options.comparison?.(game) ?? "") : "";
     if (panel) {
       element.querySelector<HTMLElement>(".pr-panel__body")!.scrollTop = scroll;
-      element.querySelectorAll<HTMLDetailsElement>("details[data-live-reform], details[data-live-disclosure]").forEach(detail => { detail.open = open.includes(detail.dataset.liveReform ?? detail.dataset.liveDisclosure); });
+      if (keepPosition) element.querySelectorAll<HTMLDetailsElement>("details[data-live-reform], details[data-live-disclosure]").forEach(detail => { detail.open = open.includes(detail.dataset.liveReform ?? detail.dataset.liveDisclosure); });
       if (preview) element.querySelectorAll<HTMLElement>('[data-action="presidency-project"]').forEach(button => button.remove());
       if (!keepPosition) element.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
     }
@@ -310,6 +325,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const focusOrder = activeElement?.dataset.order;
     const focusSector = activeElement?.dataset.sector;
     const hadPanelFocus = Boolean(panel && activeElement && slot("[data-live-panel]").contains(activeElement));
+    const hadFanFocus = Boolean(activeElement && slot("[data-live-fan]").contains(activeElement));
     const previous = game;
     game = next;
     const news = presidencyCrises(next).filter(c => !presidencyCrises(previous).some(old => old.id === c.id));
@@ -320,8 +336,14 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     }
     host.dataset.turn = String(game.turn);
     if (game.version === 17) slot("[data-live-objective]").innerHTML = presidencyObjective(game);
-    slot<HTMLElement>("[data-live-date]").textContent = presidencyDate(game);
+    slot<HTMLElement>("[data-live-date]").textContent = game.version === 17 ? presidencyDeskDate(game) : presidencyDate(game);
     slot<HTMLElement>("[data-live-period]").textContent = `Période ${Math.min(30, game.turn + 1)} / 30`;
+    if (game.version === 17) {
+      slot<HTMLElement>("[data-live-term]").textContent = presidencyDeskTerm(game);
+      slot("[data-live-desk-metrics]").innerHTML = presidencyDeskMetrics(game);
+      slot("[data-live-term-track]").innerHTML = presidencyDeskTermTrack(game);
+      slot("[data-live-briefing]").innerHTML = presidencyDeskBriefing(game);
+    }
     slot("[data-live-resources]").innerHTML = presidencyResources(game);
     slot("[data-live-sectors]").innerHTML = presidencyReadings(game, selected);
     updatePresidencyPins(slot("[data-live-pins]"), presidencyPins(game, selected));
@@ -354,7 +376,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     if (!(game.version === 17 && openingEnding)) {
       if (nextOrder) nextOrder.focus({ preventScroll: true });
       else if (game.version === 17 && panel && hadPanelFocus) slot<HTMLElement>("[data-live-panel] h2").focus({ preventScroll: true });
-      else if (game.version === 17 && focusOrder && selected) restoreBoardFocus(null, selected);
+      else if (game.version === 17 && focusOrder && hadFanFocus) restoreBoardFocus(selectedEvent, selected);
       else if (focusSector) [...host.querySelectorAll<HTMLElement>("[data-presidency-front]")].find(element => element.dataset.sector === focusSector)?.focus({ preventScroll: true });
     }
     clock();
@@ -459,6 +481,14 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   }
 
   function restoreBoardFocus(eventId: string | null, sector: string | null): void {
+    // On phones the open dossier hides the map from both pointer and keyboard.
+    // A consumed order must leave focus in that reader, never on a hidden stamp
+    // or on another spending action. Closing the dossier restores its map target.
+    const closeDossier = host.querySelector<HTMLElement>('[data-live-fan]:not([hidden]) [data-action="presidency-deselect"]');
+    if (host.classList.contains('presidency--desk') && closeDossier && getComputedStyle(slot('.pr-country')).visibility === 'hidden') {
+      closeDossier.focus({ preventScroll: true });
+      return;
+    }
     if (game.version === 17 && sector) {
       const reading = host.querySelector<HTMLElement>(`[data-presidency-front="${sector}"]`);
       if (reading) { reading.focus({ preventScroll: true }); return; }
@@ -475,7 +505,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   }
 
   function focusMap(x:number): void {
-    if(wholeMap || slot<HTMLElement>('.pr-country').clientWidth>650)return;
+    if(host.classList.contains('presidency--desk') || wholeMap || slot<HTMLElement>('.pr-country').clientWidth>650)return;
     const country=slot<HTMLElement>('.pr-country'),world=slot<HTMLElement>('.pr-world');
     const limit=Math.max(0,(world.offsetWidth-country.clientWidth)/2);
     mapPan=Math.max(-limit,Math.min(limit,world.offsetWidth*(.5-x/100)));
@@ -539,7 +569,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       clock();
     } else if (action === "presidency-event") {
       const previousEvent = selectedEvent;
-      selected=null; selectedEvent=selectedEvent===target.dataset.event ? null : target.dataset.event!;
+      selected=null; selectedEvent=game.version !== 17 && selectedEvent===target.dataset.event ? null : target.dataset.event!;
       if (selectedEvent && selectedEvent !== previousEvent) dismissContextReceipt();
       if(selectedEvent) focusMap(Number([...host.querySelectorAll<HTMLElement>("[data-live-event-pin]")].find(p=>p.dataset.liveEventPin===selectedEvent)?.dataset.mapX ?? 50));
       drawFan();positionFan();
@@ -548,7 +578,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
       if (game.version === 17 && panel) { panel = null; drawPanel(); stamp = performance.now(); clock(); }
       const previousSector = selected;
       selectedEvent=null;
-      selected = selected === target.dataset.sector ? null : target.dataset.sector as PressureSectorId;
+      selected = game.version !== 17 && selected === target.dataset.sector ? null : target.dataset.sector as PressureSectorId;
       if (selected && selected !== previousSector) dismissContextReceipt();
       slot("[data-live-sectors]").innerHTML = presidencyReadings(game, selected);
       updatePresidencyPins(slot("[data-live-pins]"), presidencyPins(game, selected));
@@ -652,7 +682,7 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
   const country=slot<HTMLElement>('.pr-country');
   let drag: {id:number;x:number;pan:number} | null=null;
   function dragStart(event:PointerEvent): void {
-    if(wholeMap || event.target instanceof Element && event.target.closest('button,.pr-fan'))return;
+    if(host.classList.contains('presidency--desk') || wholeMap || event.target instanceof Element && event.target.closest('button,.pr-fan'))return;
     drag={id:event.pointerId,x:event.clientX,pan:mapPan};country.setPointerCapture(event.pointerId);
   }
   function dragMove(event:PointerEvent): void {
@@ -682,7 +712,11 @@ export function mountPresidency(root: HTMLElement, initial: Game, options: Presi
     const previewElement = document.createElement("aside");
     previewElement.className = "pr-preview";
     previewElement.innerHTML = '<span>Aperçu partagé · votre partie est conservée</span><button type="button" data-action="presidency-adopt">Jouer ce mandat</button>';
-    host.append(previewElement);
+    // Shared-game adoption belongs in the reader's flow. A floating banner can
+    // cover the bulletin or decisions on a short landscape screen.
+    const deskReader = host.querySelector('.pr-desk-dossier__body');
+    if (deskReader) deskReader.prepend(previewElement);
+    else host.append(previewElement);
   }
   refresh(initial);
   focusMap(Number(host.querySelector<HTMLElement>("[data-crisis-id]")?.dataset.mapX ?? 50));

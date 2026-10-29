@@ -1,0 +1,9 @@
+{
+  "version": 17,
+  "mode": "national",
+  "seed": 0,
+  "choices": [
+    "s17-health-capacity"
+  ],
+  "ambition": "equilibre"
+}

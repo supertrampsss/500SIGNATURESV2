@@ -358,7 +358,6 @@
  .presidency[data-version='17'] .pr-sector-pin[data-pin-layout=compact] .pr-pin__label small { font-size:12px; }
  .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-country { bottom:0; }
  .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-sectors,
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-newswire,
  .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-mapview,
  .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-map-caption { display:none; }
  .presidency[data-version='17'] .pr-fan-anchor[data-fan-docked] { top:var(--pr-mobile-fan-top,112px); bottom:8px; }
@@ -379,8 +378,7 @@
 }
 @media(min-width:651px) and (max-height:550px) {
  .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-country { bottom:0; }
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-sectors,
- .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-newswire { display:none; }
+ .presidency[data-version='17']:has([data-live-fan]:not([hidden])) .pr-sectors { display:none; }
 }
 
 /* Keep the primary map controls when a taller objective summary needs room. */

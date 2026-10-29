@@ -43,7 +43,9 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `site/src/mandats/living-recaps.ts`: annual milestones and end-of-mandate replay.
 - `site/src/mandats/national-command.ts`: concise national status and decision effects.
 - `site/src/mandats/national-scene-state.ts`: game state to scene state.
-- `site/src/mandats/winter/`: scene rendering; historical folder name, not product scope.
+- `site/src/mandats/presidency-runtime.ts`: current presidency clock, reader and saved commands.
+- `site/src/mandats/presidency-view.ts` and `presidency-desk.css`: the approved presidential desk.
+- `site/src/mandats/map-runtime.ts`: illustrated map interactions for earlier campaigns.
 - `site/src/`: other product tabs and data presentation.
 - `site/scripts/`: static rendering, social assets and offline bundle generation.
 - `site/tests/`: Playwright journeys, including mobile, reduced motion and offline.
@@ -51,6 +53,31 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 - `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
 
 ## Work and verify
+
+### Mandats: approved presidential desk (29 October 2026)
+
+The owner selected **Le bureau du pouvoir**, direction 5, in
+`docs/mandats-desk/reference.png`. This supersedes earlier visual compositions
+for v17: walnut table, physical relief map, ivory dossier, persistent folders for
+major reforms, government and the balance sheet. Keep the v17 rules and real
+state, versioned v1–16 behavior, keyboard navigation and saved trajectories.
+`presidency-desk.css` scopes this presentation to `.presidency--desk`.
+`desk-france.webp` and `desk-walnut.webp` contain only artwork; all labels,
+counters, choices and dates must remain live HTML. Keep their offline assets.
+Compare actual desktop and phone screenshots to the selected reference. Verify
+small phones, last choices, reform access, pause, focus, offline saves and the
+causal balance sheet. See `docs/mandats-desk.md` for failure cases and evidence.
+
+The owner also requires direct decisions and a clean codebase. Wide screens open
+the suggested dossier immediately; phones start with the map. Re-selecting the
+active subject keeps it open. The national reform folder opens its first available
+law and links to the six sectors without duplicating their decision cards.
+
+The unreachable Babylon reconstruction, unused city/SVG renderers and their
+exclusive asset recipes were removed after tracing runtime, build and CI consumers.
+Their history remains in Git; historical game versions still use their maintained
+illustrated interfaces and versioned rules. Do not restore obsolete renderers from
+older instructions below. Keep MapLibre and PMTiles for the site's active maps.
 
 ### Mandats: presidential strategy v17 (19 October 2026)
 

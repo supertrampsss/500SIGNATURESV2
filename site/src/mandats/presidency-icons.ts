@@ -18,6 +18,7 @@ const paths: Record<string, string> = {
   link: '<path d="m9 15 6-6M8 17l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m0 10a4 4 0 0 0 6 0l5-5a4 4 0 0 0-6-6l-1 1" transform="translate(1 0) scale(.92)"/>',
   check: '<path d="m5 12 4 4L20 5"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
+  chart: '<path d="M4 21V13h4v8zm6 0V8h4v13zm6 0V3h4v18z" fill="currentColor" stroke="none"/>',
   'trend-up': '<path d="m4 18 15-12m-8 0h8v8"/>',
   'trend-down': '<path d="m4 6 15 12m-8 0h8v-8"/>',
   'trend-steady': '<path d="M3 12h17m-6-6 6 6-6 6"/>',

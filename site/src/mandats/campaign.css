@@ -24,8 +24,6 @@
 .city-world-heading h2{font-family:"Barlow Semi Condensed",Arial,sans-serif;font-size:clamp(1.75rem,3vw,2.5rem);margin:.4rem 0;overflow-wrap:anywhere}
 .city-world-heading>p:last-child{font-size:.85rem;color:var(--muted,#b8c5c9);margin:.5rem 0 1rem}
 .city-world-map{min-height:350px;min-width:0;position:relative}
-.city-world-map .mandat-city-map{border-top-color:var(--line,#78949c40)}
-.city-world-map .mandat-city-map h3{display:none}
 .city-project-progress{padding-top:1rem;border-top:1px solid var(--line,#78949c40)}
 .city-project-progress label{display:block;font-size:.9rem}
 .city-project-progress strong{float:right}
