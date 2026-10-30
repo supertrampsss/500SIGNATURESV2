@@ -15,7 +15,7 @@ export function brancherRecitAccueil(): void {
   const controleur = new AbortController();
   const { signal } = controleur;
   let attente = 0;
-  let ouverture: HTMLElement | null = null;
+  let ouverture = racine.querySelector<HTMLElement>("[data-recit-source]");
 
   const mesurer = () => {
     attente = 0;
@@ -50,7 +50,17 @@ export function brancherRecitAccueil(): void {
       sources.showModal();
     }, { signal });
     sources.querySelector("[data-recit-close]")?.addEventListener("click", () => sources.close(), { signal });
-    sources.addEventListener("close", () => ouverture?.focus({ preventScroll: true }), { signal });
+    sources.addEventListener("close", () => {
+      // La fermeture du lien profond doit rester acquise si une publication
+      // arrivée pendant la lecture remplace ensuite le document.
+      if (sources.open) return;
+      if (location.hash === "#recit-sources") {
+        const adresse = new URL(location.href);
+        adresse.hash = "";
+        history.replaceState(history.state, "", adresse);
+      }
+      ouverture?.focus({ preventScroll: true });
+    }, { signal });
   }
   racine.dataset.enhanced = "true";
   suivreAncre();

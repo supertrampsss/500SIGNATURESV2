@@ -145,7 +145,7 @@ test('les trois étapes racontent les comptes publiés, avec leurs vraies fracti
   expect(errors).toEqual([]);
 });
 
-test('les sources se consultent au clavier et au toucher sans perdre la lecture', async ({ page }, info) => {
+test('les sources se consultent au clavier et au toucher sans perdre la lecture', async ({ page, browserName }, info) => {
   await servePublication(page);
   await openHome(page);
   await chooseStep(page, 2, info);
@@ -158,9 +158,15 @@ test('les sources se consultent au clavier et au toucher sans perdre la lecture'
   const dialog = page.locator('#recit-sources');
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate(element => element.matches(':modal'))).toBe(true);
-  await page.mouse.move(2, page.viewportSize().height / 2);
-  await page.mouse.wheel(0, 700);
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  if (browserName !== 'webkit' || !info.project.use.isMobile) {
+    await page.mouse.move(2, page.viewportSize().height / 2);
+    await page.mouse.wheel(0, 700);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  } else {
+    // Playwright cannot dispatch mouse wheels in mobile WebKit. Its source
+    // journey still verifies modal focus/touch and the real root scroll lock.
+    await expect(page.locator('html')).toHaveCSS('overflow-y', 'hidden');
+  }
   expect(await page.evaluate(() => scrollY), 'le fond ne défile pas derrière les sources').toBeCloseTo(before.scroll, 0);
   await expect(dialog).toContainText(annual.year);
   const totals = compactText(await dialog.locator('.recit-source-accounts').innerText());
@@ -291,14 +297,16 @@ test('la première visite conserve un choix de mesure d’audience accessible', 
 test('un lien direct vers les sources ouvre le même document consultable', async ({ page }, info) => {
   await servePublication(page);
   await page.goto('/#recit-sources');
-  await expect(page.locator('#vue-accueil')).toHaveAttribute('data-publication', expectedVersions.get(page));
+  await expect(page.locator('[data-recit]')).toHaveAttribute('data-enhanced', 'true');
   const dialog = page.locator('#recit-sources');
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate(element => element.matches(':modal'))).toBe(true);
   await expect(dialog).toContainText(annual.year);
   await entirelyVisible(dialog.locator('[data-recit-close]'));
   await activate(dialog.locator('[data-recit-close]'), info);
+  await expect(page.locator('#vue-accueil')).toHaveAttribute('data-publication', expectedVersions.get(page));
   await expect(dialog).not.toBeVisible();
+  await expect(page).not.toHaveURL(/#recit-sources$/);
   await chooseStep(page, 0, info);
   await evidence(page, info, 'recit-lien-direct-sources');
 });
@@ -390,7 +398,9 @@ test('sans JavaScript les trois explications et les sources se lisent en continu
       const geometry = await panel.evaluate(element => {
         const style = getComputedStyle(element);
         const height = element.getBoundingClientRect().height;
-        const contentHeight = [...element.children].reduce((sum, child) => sum + child.getBoundingClientRect().height, 0);
+        const layoutChildren = parent => [...parent.children].flatMap(child =>
+          getComputedStyle(child).display === 'contents' ? layoutChildren(child) : [child]);
+        const contentHeight = layoutChildren(element).reduce((sum, child) => sum + child.getBoundingClientRect().height, 0);
         return { height, position: style.position,
           emptySpace: height - contentHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) };
       });

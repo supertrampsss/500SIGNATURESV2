@@ -2396,23 +2396,11 @@ const ANALYSES: Analyse[] = Object.values(
   import.meta.glob<Analyse>("../analyses/*.json", { eager: true, import: "default" }),
 );
 
-/** Peint une seule fois : l'accueil ne dépend d'aucune sélection. Le tirage de
- *  l'exemple se refait donc au chargement, pas à chaque retour sur la page —
- *  un exemple qui change sous les yeux au premier Précédent se lit comme un
- *  défaut d'affichage, pas comme une découverte. */
+/** Une publication adoptée reste stable au fil des retours sur l'accueil. */
 let accueilPeint = false;
 
 let resoudrePubliee: () => void;
-/**
- * Résolue quand le manifeste ET le catalogue sont chargés, dans `demarrer`.
- *
- * `prete` ne suffit pas : elle ne promet que `donnees.racine`, et l'accueil a
- * besoin de deux choses écrites après elle — le nombre d'indicateurs publiés,
- * qu'il compte sur le catalogue, et les producteurs, qu'il lit sur les jeux du
- * manifeste. Peint plus tôt, il annoncerait « 0 indicateurs publiés » et une
- * liste de producteurs vide : deux affirmations fausses à l'endroit le plus lu
- * du site.
- */
+/** Le démarrage confirme la publication avant de lire ses comptes nationaux. */
 const publiee = new Promise<void>((resolve) => {
   resoudrePubliee = resolve;
 });
@@ -2481,18 +2469,8 @@ function basculerVue(): void {
   // `#carte` reste un alias de la vue territoire ; la carte adopte alors son
   // état initial adapté au viewport.
   const cible = demandee ?? "";
-  // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
-  // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
-  // vue inconnue renvoyait le lecteur sur TERRITOIRE au moment précis où il
-  // demandait à descendre dans celle qu'il lisait. Tant qu'une vue est déjà
-  // affichée, un hash qui n'en désigne aucune la laisse en place, et le
-  // navigateur fait ce qu'il sait faire : défiler jusqu'à l'ancre.
-  // `location.hash` distingue ce cas d'un Back vers `/` : `vueDepuisAdresse`
-  // renvoie `null` sur la racine sans fragment, PAR DESIGN (routes.test.ts),
-  // exactement comme pour une ancre. Sans ce filtre, ce garde-fou avalait
-  // aussi le retour à la racine — la première navigation Précédent de toute
-  // session partie de `/` restait inerte, l'adresse changeait sans que la
-  // page suive. Une ancre en porte toujours un ; un Back vers `/`, jamais.
+  // Une ancre de la vue courante laisse le navigateur défiler normalement.
+  // Le retour vers une ancre d'accueil doit aussi restaurer cette vue.
   if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash
     && !estAccueil(location.pathname, location.hash)) return;
   // La racine rend l'accueil, jamais la carte : `estAccueil` sépare la racine
