@@ -54,6 +54,36 @@ must not change scores or observed data. Do not restore paid-workshop priorities
 
 ## Work and verify
 
+### Identité v2 et Mandats nouvelle formule (30 October 2026)
+
+The owner approved a single visual identity and a fundamental redesign of the game.
+This supersedes earlier palette and Mandats interface directions where they conflict.
+
+- Identity: night `#0b1422` opens pages (home story, France, Villes, Salaires heroes,
+  Mandats), ivory `#f4efe3` / `#fbfaf6` is for reading data. Gold `#d9b45f` marks money
+  in and actions; clay `#e07a55` marks deficit, pressure and crisis. Spectral Light
+  (300, 300 italic) for large numbers and titles, IBM Plex Mono for amounts, years and
+  sources, Public Sans for text. All fonts are self-hosted in `public/polices/` (OFL).
+- Reference year for the site narrative is 2025. Where a breakdown is only published
+  for another year, label that year explicitly; never mix bases silently.
+- `src/apparition.ts` reveals blocks below the fold and draws chart strokes once.
+  Nothing is hidden without it; reduced motion disables every effect.
+  `src/styles/identite-v2.css` holds the hero overrides for France, Villes and Salaires.
+- Mandats nouvelle formule lives at `/mandats/jouer/` (`mandats/jouer/index.html`,
+  `src/jeu/`). It is turn-based: twenty quarters, two dossiers per quarter that close
+  the quarter automatically, an autumn budget voted by the Assembly or passed with
+  49.3 (censure risk), permanent "Grandes réformes" with large savings and a vote,
+  and a five-level street escalation (manifestations, blocages, émeutes, insurrection)
+  that can end the mandate. Options with random outcomes show their risk before the
+  choice. `src/jeu/contenu.js` holds every dossier and reform; all effects are game
+  assumptions, only the 2025 accounts are published figures.
+- The site navigation and the home call to action point to `/mandats/jouer/`. The
+  previous game stays at `/mandats/` for existing saves, explicit version links and
+  its browser suites until the owner decides to retire it.
+- Dossiers must be cornelian and politically balanced: each option carries a real cost,
+  no option is presented as the right answer, and no real politician is named.
+
+
 ### Mandats: approved presidential desk (29 October 2026)
 
 The owner selected **Le bureau du pouvoir**, direction 5, in

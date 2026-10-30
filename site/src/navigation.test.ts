@@ -4,8 +4,8 @@ import { test } from "node:test";
 import { DESTINATIONS, intercepterNavigation, renduNavigation } from "./navigation.ts";
 
 test("Mandats est une entrée native indépendante du chargement des données", () => {
-  assert.match(renduNavigation("/bilan", false), /<a href="\/mandats\/">Mandats<\/a>/);
-  assert.doesNotMatch(renduNavigation("/bilan", false), /href="\/mandats\/"[^>]*data-vue/);
+  assert.match(renduNavigation("/bilan", false), /<a href="\/mandats\/jouer\/">Mandats<\/a>/);
+  assert.doesNotMatch(renduNavigation("/bilan", false), /href="\/mandats\/jouer\/"[^>]*data-vue/);
 });
 
 test("la navigation expose l’accueil et les cinq destinations utiles", () => {
@@ -34,8 +34,8 @@ test("France est la destination courante sur le chemin historique du bilan", () 
 });
 
 test("Mandats est la destination courante avec ou sans barre finale", () => {
-  assert.match(renduNavigation("/mandats", true), /href="\/mandats\/"[^>]*aria-current="page"/);
-  assert.match(renduNavigation("/mandats/", true), /href="\/mandats\/"[^>]*aria-current="page"/);
+  assert.match(renduNavigation("/mandats", true), /href="\/mandats\/jouer\/"[^>]*aria-current="page"/);
+  assert.match(renduNavigation("/mandats/", true), /href="\/mandats\/jouer\/"[^>]*aria-current="page"/);
 });
 
 test("Analyses est une destination native active sur l’index et ses dossiers", () => {
@@ -56,7 +56,7 @@ test("le menu partagé contient les six destinations principales", () => {
     const html = renduNavigation("/bilan", disponible);
     assert.equal((html.match(/<a /g) ?? []).length, 6);
     assert.doesNotMatch(html, /href="\/simulateur"/);
-    assert.match(html, /href="\/mandats\/"/);
+    assert.match(html, /href="\/mandats\/jouer\/"/);
   }
 });
 

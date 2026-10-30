@@ -1,3 +1,5 @@
+import { brancherApparitions } from "./apparition.ts";
+
 /** Le document est lisible seul. Ce contrôleur ajoute le graphique partagé et
  * les sources sur place, sans prendre la main sur le défilement du navigateur. */
 let montage: { racine: HTMLElement; detacher: () => void } | undefined;
@@ -26,6 +28,13 @@ export function brancherRecitAccueil(): void {
       if (panneau.getBoundingClientRect().top <= seuil) etape = Number(panneau.dataset.recitPanel);
     }
     racine.dataset.step = String(etape);
+    // Une étape vue le reste : ses titres se lèvent une fois, sans revenir.
+    for (const panneau of panneaux) {
+      if (panneau.getBoundingClientRect().top <= innerHeight * .85) panneau.dataset.vu = "";
+    }
+    const boite = racine.getBoundingClientRect();
+    const parcours = Math.max(1, boite.height - innerHeight);
+    racine.style.setProperty("--recit-progression", String(Math.min(1, Math.max(0, -boite.top / parcours))));
     liens.forEach((lien, index) => {
       if (index === etape) lien.setAttribute("aria-current", "step");
       else lien.removeAttribute("aria-current");
@@ -65,10 +74,12 @@ export function brancherRecitAccueil(): void {
   racine.dataset.enhanced = "true";
   suivreAncre();
   mesurer();
+  brancherApparitions(document.getElementById("vue-accueil") ?? document);
   montage = { racine, detacher: () => {
     controleur.abort();
     cancelAnimationFrame(attente);
     if (sources?.open) sources.close();
     delete racine.dataset.enhanced;
+    for (const panneau of panneaux) delete panneau.dataset.vu;
   } };
 }

@@ -16,6 +16,8 @@ import './styles/revue-civique.css';
 import './styles/site-shell-v2.css';
 import './styles/salaires.css';
 import './styles/reclassement-bercy.css';
+import './styles/identite-v2.css';
+import { brancherApparitions } from './apparition.ts';
 
 const contenu = document.getElementById('contenu');
 if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();
@@ -29,3 +31,4 @@ brancherMenuNavigation();
 suivreHauteurEntete();
 
 bindChartControls(document);
+requestAnimationFrame(() => brancherApparitions());
