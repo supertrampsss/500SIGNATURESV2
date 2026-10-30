@@ -13,7 +13,13 @@ async function sansDebordement(page) {
 async function avancer(page) {
   if (await page.locator('#e-fin.ouvert').count()) return 'fin';
   if (await page.locator('#e-budget.ouvert').count()) { await page.locator('#b-voter').click(); return 'budget'; }
-  if (await page.locator('#e-evt.ouvert').count()) { await page.locator('#evt-actions button').last().click(); return 'evenement'; }
+  if (await page.locator('#e-evt.ouvert').count()) {
+    // Clavier : l'écran plein cadre défile seul sur les petits téléphones.
+    const action = page.locator('#evt-actions button').last();
+    await action.focus();
+    await page.keyboard.press('Enter');
+    return 'evenement';
+  }
   const dossier = page.locator('.dossier:not(.signe)').first();
   if (await dossier.count()) {
     await dossier.click();
@@ -45,7 +51,7 @@ test('une première année se joue sans bouton de clôture, avec un budget voté
     const etat = await avancer(page);
     vus.add(etat);
     if (etat === 'fin') break;
-    if ((await page.locator('#date').innerText()) === 'Année 2 · Hiver' && vus.has('budget')) break;
+    if ((await page.locator('#date').textContent()) === 'Année 2 · Hiver' && vus.has('budget')) break;
   }
   expect(vus.has('budget')).toBe(true);
   await expect(page.locator('#date')).toHaveText('Année 2 · Hiver');
@@ -67,4 +73,19 @@ test('une grande réforme passe devant l’Assemblée et laisse sa trace', async
   await expect(page.locator('#evt-sur')).toHaveText('Assemblée nationale');
   await page.locator('#evt-actions button').last().click();
   await expect(page.getByRole('button', { name: 'Réforme présentée ce trimestre' })).toBeDisabled();
+});
+
+test('une partie en cours se reprend après rechargement', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(HOME);
+  await page.getByRole('button', { name: /Majorité relative/ }).click();
+  const titre = await page.locator('.dossier .t').first().innerText();
+  await avancer(page);
+  await expect(page.locator('.dossier.signe')).toHaveCount(1);
+  await page.reload();
+  await page.getByRole('button', { name: /Reprendre mon mandat/ }).click();
+  await expect(page.locator('#e-intro')).not.toHaveClass(/ouvert/);
+  await expect(page.locator('.dossier.signe')).toHaveCount(1);
+  await expect(page.locator('.dossier.signe .t')).toHaveText(titre);
+  await expect(page.locator('#date')).toHaveText('Année 1 · Hiver');
 });

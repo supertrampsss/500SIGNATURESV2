@@ -13,13 +13,25 @@ const SAISONS = ['Hiver', 'Printemps', 'Été', 'Automne'];
 let S, rng;
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-function nouvellePartie(p) {
+/* Sauvegarde locale : l'état complet après chaque transition, plus le nombre de
+   tirages aléatoires pour reprendre exactement la même suite. */
+const CLE = '500signatures.mandats.jouer.v1';
+function armerHasard(graine, deja) { const base = mulberry(graine); for (let i = 0; i < deja; i++) base(); rng = () => { S.nRng = (S.nRng || 0) + 1; return base(); }; }
+function sauver() { if (S && S.brouillon) return; try { if (S && !S.fini) localStorage.setItem(CLE, JSON.stringify(S)); else localStorage.removeItem(CLE); } catch { /* stockage indisponible : la partie continue */ } }
+function lireSauvegarde() { try { const s = JSON.parse(localStorage.getItem(CLE) || 'null'); return s && s.v === 1 && Array.isArray(s.main) && !s.fini ? s : null; } catch { return null; } }
+function reprendre(s) {
+  S = s; armerHasard(S.graine, S.nRng || 0);
+  ferme('#e-intro'); S.donne = true; rendre(true);
+  setTimeout(verifierFin, reduit ? 0 : 600);
+}
+function nouvellePartie(p, brouillon = false) {
   const graine = Math.floor(Math.random() * 1e6);
-  rng = mulberry(graine);
-  S = { graine, tour: 0, def: 152.51, op: p.op, maj: p.maj, ten: p.ten, taux: 3.3,
+  S = { v: 1, nRng: 0 };
+  armerHasard(graine, 0);
+  S = { v: 1, nRng: 0, graine, tour: 0, def: 152.51, op: p.op, maj: p.maj, ten: p.ten, taux: 3.3,
     sante: 38, educ: 52, secu: 50, loge: 36, trans: 55, ener: 60,
     budget: { sante: 0, educ: 0, secu: 0, loge: 0, trans: 0, ener: 0, impots: 0 },
-    f: {}, vus: {}, chantiers: [], journal: [], titres: [], decisions: [], main: [], n493: 0, censures: 0, rue: 0, insurrection: 0, fil: [], reformes: {}, reformeTour: -1, an493: -1, profil: p.t, fini: false };
+    f: {}, vus: {}, chantiers: [], journal: [], titres: [], decisions: [], main: [], n493: 0, censures: 0, rue: 0, insurrection: 0, fil: [], reformes: {}, reformeTour: -1, an493: -1, profil: p.t, fini: false, brouillon };
   tirer(); rendre(true);
 }
 
@@ -90,6 +102,7 @@ function flotter(deltas) {
   }
 }
 function rendre(premier) {
+  sauver();
   const an = Math.floor(S.tour / 4) + 1;
   $('#date').textContent = `Année ${an} · ${SAISONS[S.tour % 4]}`;
   $('#temps').innerHTML = Array.from({ length: 20 }, (_, i) => `<i class="${i < S.tour ? 'fait' : i === S.tour ? 'ici' : ''}${i && i % 4 === 0 ? ' an' : ''}"></i>`).join('');
@@ -425,7 +438,7 @@ function evenement(sur, titre, texte, v, fond, actions) {
 
 /* ---------- Fins ---------- */
 function fin(type) {
-  S.fini = true;
+  S.fini = true; sauver();
   const ms = moyenneServices();
   const score = Math.round(clamp(50 + (S.op - 40) * .8 + (ms - 50) * .5 - (S.ten - 40) * .3 - (S.def - 152.51) * .35, 2, 98));
   const T = {
@@ -467,7 +480,7 @@ function ecran(sel) { document.querySelectorAll('.ecran.ouvert').forEach(e => e.
 function ferme(sel) { $(sel).classList.remove('ouvert'); }
 $('#profils').innerHTML = PROFILS.map((p, i) => `<button type="button" class="profil" data-i="${i}"><span class="mono">${p.maj} sièges · opinion ${p.op} %</span><b>${p.t}</b><span>${p.d}</span></button>`).join('');
 $('#profils').querySelectorAll('.profil').forEach(b => b.addEventListener('click', () => { ferme('#e-intro'); nouvellePartie(PROFILS[+b.dataset.i]); const c = document.querySelector('.dossier'); if (c) c.focus(); }));
-$('#b-regles').addEventListener('click', () => evenement('Règles', 'Comment jouer', 'Chaque trimestre, tranchez deux dossiers : un choix, un geste. Les effets s’affichent avant de signer ; les pointillés arrivent plus tard. Chaque automne, faites passer le budget. Surveillez la tension sociale (au-delà de 75, grève générale) et le déficit (au-delà de 175 Md€, les marchés réagissent). Le mandat dure vingt trimestres.', null, '/mandats/art/council.webp', [['Retour au jeu', () => {}]]));
+$('#b-regles').addEventListener('click', () => evenement('Règles', 'Comment jouer', 'Chaque trimestre, tranchez deux dossiers : un choix, un geste. Les effets s’affichent avant de signer ; les pointillés arrivent plus tard. Chaque automne, faites passer le budget. Surveillez la tension sociale (au-delà de 75, grève générale) et le déficit (au-delà de 175 Md€, les marchés réagissent). Le mandat dure vingt trimestres.', null, '/mandats/art/council.webp', [['Retour au jeu', verifierFin]]));
 /* Carte vivante : villes qui scintillent, braises quand la tension monte, étincelles sur décision */
 (function ciel() {
   if (reduit) return;
@@ -489,4 +502,21 @@ $('#b-regles').addEventListener('click', () => evenement('Règles', 'Comment jou
     requestAnimationFrame(f);
   })(0);
 })();
-nouvellePartie(PROFILS[0]);
+const sauvegarde = lireSauvegarde();
+nouvellePartie(PROFILS[0], true);
+if (sauvegarde) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'profil reprise';
+  b.innerHTML = `<span class="mono">Partie en cours</span><b>Reprendre mon mandat</b><span>Année ${Math.floor(sauvegarde.tour / 4) + 1} · ${SAISONS[sauvegarde.tour % 4]} · ${sauvegarde.profil}</span>`;
+  b.addEventListener('click', () => reprendre(sauvegarde));
+  $('#profils').prepend(b);
+}
+/* Hors connexion, sur demande : le même service que l'ancien jeu, qui précharge aussi cette page. */
+const horsLigne = $('#b-hors-ligne');
+if (horsLigne) {
+  if (!('serviceWorker' in navigator) || !window.isSecureContext) horsLigne.hidden = true;
+  horsLigne.addEventListener('click', async () => {
+    horsLigne.disabled = true; horsLigne.textContent = 'Préparation…';
+    try { const r = await navigator.serviceWorker.register('/mandats/sw.js', { scope: '/mandats/', updateViaCache: 'none' }); await navigator.serviceWorker.ready; horsLigne.textContent = r ? 'Prêt à jouer hors connexion' : 'Indisponible'; }
+    catch { horsLigne.textContent = 'Hors connexion indisponible'; horsLigne.disabled = false; }
+  });
+}

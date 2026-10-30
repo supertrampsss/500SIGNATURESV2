@@ -24,14 +24,14 @@ export const D = [
    { t: 'Bouclier tarifaire pour tous', d: 'L’État absorbe la hausse.', e: { def: 5, op: 5, ten: -6 }, f: 'bouclier', h: 'Électricité : l’État gèle les tarifs' },
    { t: 'Chèque énergie ciblé', d: 'Aide réservée aux ménages modestes.', e: { def: 1.5, op: 1, ten: -2 }, h: 'Électricité : un chèque pour les ménages modestes' },
    { t: 'Laisser passer la hausse', d: 'Pas de dépense, colère assurée.', e: { op: -5, ten: 8 }, h: 'Électricité : la hausse de 15 % s’applique' } ] },
- { id: 'bouclierFin', suite: 1, quand: s => s.f.bouclier && s.tour - s.f.bouclier >= 4, dom: 'Énergie', ville: 'Paris', titre: 'Sortir du bouclier tarifaire ?', texte: 'Le gel des tarifs coûte cher chaque année. La Cour des comptes demande un calendrier de sortie.', options: [
+ { id: 'bouclierFin', suite: 1, quand: s => s.f.bouclier !== undefined && s.tour - s.f.bouclier >= 4, dom: 'Énergie', ville: 'Paris', titre: 'Sortir du bouclier tarifaire ?', texte: 'Le gel des tarifs coûte cher chaque année. La Cour des comptes demande un calendrier de sortie.', options: [
    { t: 'Sortie progressive sur un an', d: 'La facture remonte par paliers.', e: { def: -3, op: -3, ten: 4 }, h: 'Bouclier tarifaire : la sortie est programmée' },
    { t: 'Maintenir le bouclier', d: 'Le coût se prolonge.', e: { def: 1, op: 2 }, h: 'Le bouclier tarifaire prolongé' } ] },
  { id: 'epr', dom: 'Énergie', ville: 'Caen', titre: 'Le programme nucléaire', texte: 'EDF demande un feu vert pour de nouveaux réacteurs. Dix ans de chantier au minimum.', options: [
    { t: 'Lancer de nouveaux réacteurs', d: 'Investissement massif, effet très tardif.', e: { def: 2, maj: 5 }, ch: { n: 8, t: 'Premiers chantiers de réacteurs', e: { ener: 14 } }, f: 'epr', h: 'Nucléaire : feu vert à de nouveaux réacteurs' },
    { t: 'Prolonger le parc existant', d: 'Moins cher, gain limité.', e: { def: .8, ener: 5 }, h: 'Nucléaire : les centrales prolongées' },
    { t: 'Accélérer le renouvelable', d: 'Effet plus rapide, oppositions locales.', e: { def: 1.5, op: 2, maj: -4 }, ch: { n: 4, t: 'Parcs solaires et éoliens', e: { ener: 8 } }, h: 'Énergie : coup d’accélérateur sur le renouvelable' } ] },
- { id: 'eprSurcout', suite: 1, quand: s => s.f.epr && s.tour - s.f.epr >= 5, dom: 'Énergie', ville: 'Caen', titre: 'Surcoût sur le chantier nucléaire', texte: 'Le chantier annonce trois ans de retard et 4 Md€ de surcoût.', options: [
+ { id: 'eprSurcout', suite: 1, quand: s => s.f.epr !== undefined && s.tour - s.f.epr >= 5, dom: 'Énergie', ville: 'Caen', titre: 'Surcoût sur le chantier nucléaire', texte: 'Le chantier annonce trois ans de retard et 4 Md€ de surcoût.', options: [
    { t: 'Recapitaliser EDF', d: 'Le chantier continue au même rythme.', e: { def: 2, op: -2 }, h: 'Nucléaire : l’État remet 4 milliards' },
    { t: 'Revoir le calendrier', d: 'Moins de dépenses, livraison repoussée.', e: { def: .5, ener: -3, maj: -3 }, h: 'Nucléaire : le calendrier glisse' } ] },
  { id: 'etudiants', dom: 'Logement', ville: 'Rennes', titre: 'Pas de logement pour les étudiants', texte: 'À la rentrée, des étudiants dorment dans leur voiture. Les loyers ont bondi de 9 %.', options: [
@@ -104,7 +104,7 @@ export const D = [
  { id: 'scandale', dom: 'Gouvernement', ville: 'Paris', titre: 'Un ministre mis en cause', texte: 'Une enquête vise un ministre pour des frais de campagne.', options: [
    { t: 'Exiger sa démission', d: '', e: { op: 2, maj: -2 }, h: 'Le ministre démissionne' },
    { t: 'Le maintenir', d: '', e: { op: -5 }, h: 'L’Élysée maintient sa confiance au ministre' } ] },
- { id: 'mobilisation', suite: 1, quand: s => s.f.reformeRetraites && s.tour - s.f.reformeRetraites >= 1 && s.tour - s.f.reformeRetraites <= 3, dom: 'Social', ville: 'Paris', titre: 'La rue contre la réforme des retraites', texte: 'Un million de manifestants selon les syndicats. Les raffineries sont bloquées.', options: [
+ { id: 'mobilisation', suite: 1, quand: s => s.f.reformeRetraites !== undefined && s.tour - s.f.reformeRetraites >= 1 && s.tour - s.f.reformeRetraites <= 3, dom: 'Social', ville: 'Paris', titre: 'La rue contre la réforme des retraites', texte: 'Un million de manifestants selon les syndicats. Les raffineries sont bloquées.', options: [
    { t: 'Maintenir la réforme', d: 'La mobilisation peut durer.', e: { ten: 8, op: -3 }, h: 'Retraites : l’exécutif ne cède pas' },
    { t: 'Amender la réforme', d: 'Moins d’économies.', e: { def: 2, ten: -10, op: 2 }, h: 'Retraites : des concessions sur les carrières longues' } ] },
  { id: 'marches', crise: 1, quand: s => s.def >= 175 || s.taux >= 4.2, dom: 'Crise', ville: 'Paris', titre: 'Les marchés s’inquiètent', texte: 'Le taux d’emprunt de la France décroche de celui de l’Allemagne. Une agence menace de dégrader la note.', options: [

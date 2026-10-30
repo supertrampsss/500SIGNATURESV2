@@ -59,7 +59,7 @@ html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche h1 {
 html[lang][data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche h1 { font-size: clamp(36px, 4.4vw, 60px); }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche :is(.territoire-recherche__intro, .territoire-recherche__introduction > p:last-child, .territoire-recherche__champ-titre) { color: #f4efe3c8; font-size: 1.1rem; }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ.recherche input[type="search"] {
-  min-height: 64px; padding-inline: 24px; border-radius: 999px; border: 1px solid #f4efe33d; background: #13223a; color: #f4efe3; font-size: 1.15rem;
+  min-height: 64px; padding-inline: 24px; border-radius: 6px; border: 1px solid #f4efe33d; background: #13223a; color: #f4efe3; font-size: 1.15rem;
   transition: border-color .25s, box-shadow .25s;
 }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ.recherche input[type="search"]::placeholder { color: #f4efe38c; }
@@ -99,7 +99,7 @@ html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche #territ
 html[lang][data-theme] body[data-vue="territoire"][data-territoire-selection="oui"] .territoire-recherche #territoire-recherche-titre { font-size: clamp(34px, 4vw, 56px) !important; }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche :is(.territoire-recherche__intro, .territoire-recherche__surtitre) { color: #f4efe3c8 !important; }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche .territoire-recherche__surtitre { color: #d9b45f !important; font-family: "IBM Plex Mono", ui-monospace, monospace !important; letter-spacing: .14em !important; }
-html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ #recherche { background: #13223a !important; color: #f4efe3 !important; border: 1px solid #f4efe33d !important; border-radius: 999px !important; min-height: 64px; padding-inline: 24px !important; }
+html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ #recherche { background: #13223a !important; color: #f4efe3 !important; border: 1px solid #f4efe33d !important; border-radius: 6px !important; min-height: 64px; padding-inline: 24px !important; }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ #recherche::placeholder { color: #f4efe38c !important; }
 html[lang][data-theme] body[data-vue="territoire"] .territoire-recherche__champ #recherche:focus { border-color: #d9b45f !important; box-shadow: 0 0 0 4px #d9b45f33 !important; }
 @media (max-width: 700px) {

@@ -288,3 +288,6 @@ button{font:inherit;color:inherit}
 }
 a.btn-ic{color:var(--ivoire);text-decoration:none;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 @media (max-width:900px){.btn-site{display:none}}
+.retour-site{align-self:flex-start;display:inline-flex;align-items:center;min-height:44px;color:var(--iv2);text-decoration:none}
+.retour-site:hover{color:var(--or)}
+.profil.reprise{border-color:var(--or);background:rgba(217,180,95,.12)}
