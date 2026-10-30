@@ -217,3 +217,87 @@ html[data-theme] body[data-vue="accueil"] .audience-settings { background:#0b142
   .recit-mobile-visual { padding:0; }
   .recit-grid { margin:25px auto 35px; }
 }
+
+/* ---------- Suite du récit : France, Ville, Salaire ----------
+   Lisible en continu sans contrôleur ; sur grand écran, chaque scène s'épingle
+   et son étape suit le défilement. Mouvement réduit : rien ne s'épingle. */
+.recit-nav-chapitres { display:flex; gap:22px; margin-left:auto; }
+.recit-nav-chapitres a { color:#b3bccbb3!important; }
+.recit-nav-chapitres a[data-actif] { color:var(--recit-copper)!important; }
+.recit-nav-chapitres span { color:var(--recit-copper); padding-right:8px; }
+.recit-parrainages { font:400 13px/1 "IBM Plex Mono",ui-monospace,monospace; color:var(--recit-muted); white-space:nowrap; }
+.recit-parrainages b { color:var(--recit-paper); font-weight:500; }
+.recit[data-suite] .recit-nav-steps a[aria-current] { color:var(--recit-muted); }
+.recit-chap { padding:110px 6%; border-top:1px solid #ffffff1c; scroll-margin-top:calc(var(--decalage-entete,80px) + var(--recit-nav-height) + 20px); }
+.recit-scene { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:6%; align-items:center; }
+.recit-chap-copy { display:flex; flex-direction:column; gap:20px; min-width:0; }
+.recit-chap-titre { font:300 clamp(46px,5.6vw,92px)/.95 "Spectral",Georgia,serif; letter-spacing:-.045em; color:var(--recit-paper); text-wrap:balance; }
+.recit-chap-titre em { font-style:italic; color:var(--recit-copper); }
+.recit-chap-texte { max-width:36ch; color:#c9d0db; font-size:19px; line-height:1.6; }
+.recit-chap-note { max-width:46ch; color:var(--recit-muted); font:400 13px/1.65 "IBM Plex Mono",ui-monospace,monospace; }
+.recit-lien { align-self:flex-start; display:inline-flex; align-items:center; gap:10px; min-height:44px; color:var(--recit-copper)!important; font-weight:600; text-decoration:none; }
+.recit-lien::after { content:"→"; transition:transform .3s cubic-bezier(.2,.8,.2,1); }
+.recit-lien:hover::after { transform:translateX(6px); }
+/* 04 : où partent-ils */
+.recit-focus { display:flex; flex-direction:column; gap:4px; min-height:104px; }
+.recit-focus strong { font:300 clamp(56px,6vw,96px)/1 "Spectral",Georgia,serif; letter-spacing:-.04em; color:var(--recit-copper); font-variant-numeric:tabular-nums; }
+.recit-focus span { color:var(--recit-paper); font-size:19px; }
+.recit-postes { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; }
+.recit-postes li { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid #ffffff1c; color:#c9d0db; font-size:15px; transition:color .35s; }
+.recit-postes b { font:400 13px/1.6 "IBM Plex Mono",ui-monospace,monospace; color:var(--recit-muted); font-variant-numeric:tabular-nums; }
+.recit-postes li.est-actif { color:var(--recit-paper); }
+.recit-postes li.est-actif b { color:var(--recit-copper); }
+.recit-cases { display:grid; grid-template-columns:repeat(14,minmax(0,1fr)); gap:clamp(3px,.5vw,7px); }
+.recit-case { aspect-ratio:1; border-radius:2px; background:linear-gradient(90deg,#f4efe32e calc(var(--part,1) * 100%),transparent 0); transition:background .5s, transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s; }
+.recit-case[data-poste="0"] { background:linear-gradient(90deg,#d9b45f8c calc(var(--part,1) * 100%),transparent 0); }
+.recit[data-enhanced] .recit-case { background:linear-gradient(90deg,#f4efe31f calc(var(--part,1) * 100%),transparent 0); }
+.recit[data-enhanced] .recit-case.est-actif { background:linear-gradient(135deg,#f0d897,#d9b45f 55%,#a8832f); transform:scale(1.08); box-shadow:0 0 18px #d9b45f66; }
+/* 05 : votre ville */
+.recit-ville { background:radial-gradient(ellipse 60% 70% at 70% 50%,#1c315299,transparent 70%); }
+.recit-carte { position:relative; margin:0; border-radius:16px; overflow:hidden; box-shadow:0 30px 80px #0008; aspect-ratio:3/2; }
+.recit-carte img { display:block; width:100%; height:100%; object-fit:cover; }
+.recit-lumiere { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:var(--recit-copper); box-shadow:0 0 0 4px #d9b45f40,0 0 18px #d9b45fe6; }
+.recit-lumiere span { position:absolute; left:18px; top:-4px; font:400 11px/1.4 "IBM Plex Mono",ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--recit-paper); background:#0b1422cc; padding:2px 6px; border-radius:3px; white-space:nowrap; opacity:0; transition:opacity .4s; }
+.recit-carte:hover .recit-lumiere span { opacity:1; }
+.recit-button--ville { align-self:flex-start; margin:8px 0 0; }
+/* 06 : votre salaire */
+.recit-paie-etapes { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.recit-paie-etapes li { display:grid; grid-template-columns:118px minmax(0,1fr); gap:16px; align-items:baseline; padding:12px 0; border-top:1px solid #ffffff1c; color:#c9d0db; font-size:16px; transition:color .35s, opacity .35s; }
+.recit-paie-etapes b { font:400 15px/1.4 "IBM Plex Mono",ui-monospace,monospace; color:var(--recit-paper); font-variant-numeric:tabular-nums; }
+.recit[data-enhanced] .recit-paie-etapes li { opacity:.45; }
+.recit[data-enhanced] .recit-paie-etapes li.est-actif { opacity:1; color:var(--recit-paper); }
+.recit[data-enhanced] .recit-paie-etapes li.est-actif b { color:var(--recit-copper); }
+.recit-paie { display:flex; flex-direction:column; gap:22px; }
+.recit-paie-chiffre { font:300 clamp(72px,9vw,150px)/.9 "Spectral",Georgia,serif; letter-spacing:-.05em; color:var(--recit-paper); font-variant-numeric:tabular-nums; }
+.recit-paie-barre { display:flex; height:84px; border-radius:6px; overflow:hidden; background:#ffffff0f; }
+.recit-seg { display:block; height:100%; transition:flex-basis .8s cubic-bezier(.2,.8,.2,1), opacity .5s; }
+.recit-seg--reste { background:linear-gradient(135deg,#f0d897,#d9b45f 55%,#a8832f); }
+.recit-seg--impot { background:#5b6f8f; }
+.recit-seg--salariales { background:#e07a55; }
+.recit-seg--patronales { background:#a24f33; }
+.recit-seg.est-parti { flex-basis:0!important; opacity:0; }
+.recit-paie-legende { display:flex; flex-wrap:wrap; gap:8px 18px; margin:0; color:var(--recit-muted); font-size:13px; }
+.recit-paie-legende span { display:inline-flex; align-items:center; gap:8px; }
+.recit-paie-legende i { width:12px; height:12px; border-radius:2px; display:inline-block; }
+.recit-mandats-compteur { margin-top:18px!important; font:400 14px/1.5 "IBM Plex Mono",ui-monospace,monospace!important; color:var(--recit-muted)!important; }
+.recit-mandats-compteur b { color:var(--recit-copper); font-weight:500; font-variant-numeric:tabular-nums; }
+@media (prefers-reduced-motion:no-preference) {
+  .recit-lumiere { animation:recit-pulse 2.6s ease-out var(--d,0s) infinite; }
+  .recit-carte img { animation:recit-respire 30s ease-in-out infinite alternate; }
+  .recit[data-enhanced] .recit-chap:not([data-scene]) .recit-chap-titre,
+  .recit[data-enhanced] .recit-chap .recit-kicker { transition:opacity .8s, transform .8s cubic-bezier(.2,.8,.2,1); }
+}
+@keyframes recit-pulse { 0% { box-shadow:0 0 0 0 #d9b45f99,0 0 18px #d9b45fe6; } 70% { box-shadow:0 0 0 18px #d9b45f00,0 0 18px #d9b45fe6; } 100% { box-shadow:0 0 0 0 #d9b45f00,0 0 18px #d9b45fe6; } }
+@keyframes recit-respire { from { transform:scale(1); } to { transform:scale(1.06); } }
+@media (min-width:900px) and (min-height:700px) and (prefers-reduced-motion:no-preference) {
+  .recit[data-enhanced] .recit-chap[data-scene] { height:calc(100svh + var(--etapes,4) * 34svh); padding-block:0; }
+  .recit[data-enhanced] .recit-chap[data-scene] .recit-scene { position:sticky; top:calc(var(--decalage-entete,80px) + var(--recit-nav-height)); min-height:calc(100svh - var(--decalage-entete,80px) - var(--recit-nav-height)); padding-block:40px; }
+}
+@media (max-width:1100px) { .recit-nav-chapitres, .recit-parrainages { display:none; } }
+@media (max-width:900px) {
+  .recit-scene { grid-template-columns:minmax(0,1fr); gap:36px; }
+  .recit-chap { padding:72px 24px; }
+  .recit-postes { grid-template-columns:minmax(0,1fr); }
+  .recit-paie-etapes li { grid-template-columns:96px minmax(0,1fr); }
+  .recit-paie-barre { height:64px; }
+}

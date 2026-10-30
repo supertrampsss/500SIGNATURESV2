@@ -2,6 +2,7 @@
 import type { Territoire } from "./donnees.ts";
 import { comptesRecit, formaterRecit, SOURCE_RECIT, type ComptesRecit } from "./recit-comptes.ts";
 import { echapper } from "./texte.ts";
+import { renduChapitresRecit } from "./recit-chapitres.ts";
 
 const IDS = ["recit-recettes", "recit-depenses", "recit-ecart"] as const;
 const NOMS = ["Recettes", "Dépenses", "Écart"] as const;
@@ -103,6 +104,8 @@ export function renduRecitComptes(france?: Territoire): string {
   return `<section class="recit" data-recit data-nature="${nature}" data-step="0" aria-label="Comprendre les comptes publics">
     <nav class="recit-nav" aria-label="Les étapes du récit">
       <div class="recit-nav-steps">${NOMS.map((nom, index) => `<a href="#${IDS[index]}" data-recit-step="${index}"${index === 0 ? ' aria-current="step"' : ""}><span aria-hidden="true">0${index + 1}</span>${nom}</a>`).join("")}</div>
+      <div class="recit-nav-chapitres" aria-label="Suite du récit"><a href="#recit-repartir" data-recit-chapitre="recit-repartir"><span aria-hidden="true">04</span>France</a><a href="#recit-ville" data-recit-chapitre="recit-ville"><span aria-hidden="true">05</span>Ville</a><a href="#recit-salaire" data-recit-chapitre="recit-salaire"><span aria-hidden="true">06</span>Salaire</a><a href="#recit-mandats-title" data-recit-chapitre="recit-mandats"><span aria-hidden="true">07</span>Mandats</a></div>
+      <span class="recit-parrainages" aria-hidden="true"><b data-parrainages>0</b> / 500</span>
       <a class="recit-source-link" href="#recit-sources" data-recit-source><span class="recit-source-context">France · ${echapper(comptes.annee)} · </span>Sources</a>
     </nav>
     <div class="recit-story">
@@ -115,6 +118,7 @@ export function renduRecitComptes(france?: Territoire): string {
       }).join("")}</div>
       <figure class="recit-visual" data-recit-visual role="img" aria-label="${echapper(description)}">${grille}<figcaption class="recit-legend">${legende}</figcaption></figure>
     </div>
+    ${renduChapitresRecit(france)}
     ${sources(comptes)}
   </section>`;
 }

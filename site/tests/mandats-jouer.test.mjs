@@ -20,7 +20,7 @@ async function avancer(page) {
     await page.keyboard.press('Enter');
     return 'evenement';
   }
-  const dossier = page.locator('.dossier:not(.signe)').first();
+  const dossier = page.locator('.dossier:not(.signe):not(.reforme)').first();
   if (await dossier.count()) {
     await dossier.click();
     await expect(page.locator('#decision')).toHaveClass(/ouvert/);
@@ -43,7 +43,8 @@ test('une première année se joue sans bouton de clôture, avec un budget voté
   await sansDebordement(page);
   await page.getByRole('button', { name: /Majorité relative/ }).click();
   await expect(page.locator('#date')).toHaveText('Année 1 · Hiver');
-  await expect(page.locator('.dossier')).toHaveCount(2);
+  await expect(page.locator('.dossier:not(.reforme)')).toHaveCount(2);
+  await expect(page.locator('.dossier.reforme')).toHaveCount(1);
   await expect(page.getByRole('button', { name: /Clore/ })).toHaveCount(0);
 
   const vus = new Set();
@@ -69,6 +70,10 @@ test('une grande réforme passe devant l’Assemblée et laisse sa trace', async
   await expect(reforme).toContainText('Md€/an');
   await expect(reforme).toContainText('Pointage');
   await reforme.click();
+  await expect(page.locator('#pointage')).toContainText('pour');
+  await page.getByRole('button', { name: /Négocier avec les centristes/ }).click();
+  await expect(page.getByRole('button', { name: /Négocier avec les centristes/ })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Présenter au vote' }).click();
   await expect(page.locator('#e-evt')).toHaveClass(/ouvert/);
   await expect(page.locator('#evt-sur')).toHaveText('Assemblée nationale');
   await page.locator('#evt-actions button').last().click();

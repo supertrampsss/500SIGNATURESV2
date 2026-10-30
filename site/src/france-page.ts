@@ -10,6 +10,7 @@ import { chiffres } from './ouverture.ts';
 import { lignes as recettesEtat } from './recettes-etat.ts';
 import { PROJECTION_DETTE, SOURCE_PROJECTION } from './tenable.ts';
 import { insightsFrance } from './insights-france.ts';
+import { distributionDepenses as distribution } from './recit-chapitres.ts';
 import { cartesAvecSuite } from './insights-rendu.ts';
 import { echapper as esc } from './texte.ts';
 import { lienSource, type IndexSources } from './registre-sources.ts';
@@ -61,17 +62,6 @@ function courbes(titre: string, series: Courbe[], options: {max?:number; unite?:
     return `<path d="${d}" stroke="${s.couleur}" stroke-width="2.4" fill="none"${s.pointilles?' stroke-dasharray="5 4"':''}/>${pts.map(([a,v])=>`<circle cx="${x(a)}" cy="${y(v)}" r="2.6" fill="${s.couleur}"><title>${esc(s.nom)} · ${a} : ${nombre(v,2)}${options.unite??''}</title></circle>`).join('')}`;
   }).join('');
   return `<figure class="fr-chart"><figcaption class="fr-legend">${series.map(s=>`<span><i style="--series:${s.couleur}"${s.pointilles?' class="fr-dashed"':''}></i>${esc(s.nom)}</span>`).join('')}</figcaption><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(titre)}"><g class="fr-chart-grid">${grille}${axes}</g>${traces}</svg></figure>`;
-}
-
-function distribution(france: Territoire): {annee:string; total:number; lignes:{nom:string;part:number}[]} | undefined {
-  const s=france.series;
-  const postes=[['eurostat_apu_prestations_vieillesse','Retraites'],['eurostat_apu_remunerations','Rémunérations des agents publics'],['eurostat_apu_transferts_nature','Soins et services remboursés'],['eurostat_apu_consommations','Achats de biens et services'],['eurostat_apu_investissement','Investissement'],['eurostat_apu_interets','Intérêts de la dette'],['eurostat_apu_prestations_chomage','Chômage'],['eurostat_apu_prestations_famille','Famille et enfants'],['eurostat_apu_prestations_exclusion','RSA et minima sociaux']];
-  const annee=commun(['eurostat_apu_recettes','eurostat_apu_depenses','eurostat_apu_prestations_survivants',...postes.map(([id])=>id)].map(id=>s[id]??{}));
-  if(!annee || !(s.eurostat_apu_recettes[annee]>0)) return;
-  const recettes=s.eurostat_apu_recettes[annee], total=s.eurostat_apu_depenses[annee]/recettes*100;
-  const lignes=postes.map(([id,nom])=>({nom,part:(s[id][annee]+(id==='eurostat_apu_prestations_vieillesse'?s.eurostat_apu_prestations_survivants[annee]:0))/recettes*100}));
-  lignes.push({nom:'Autres dépenses',part:total-lignes.reduce((a,l)=>a+l.part,0)});
-  return {annee,total,lignes};
 }
 
 function redistribution(france:Territoire, indexSources?:IndexSources): string {

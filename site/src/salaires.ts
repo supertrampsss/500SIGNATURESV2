@@ -3,15 +3,7 @@ import { timeChart } from "./chart-studio.ts";
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 
-// OCDE, Taxing Wages 2026, tableau 1.2 : France, données 2025.
-// Célibataire sans enfant au salaire moyen, composantes en % du coût employeur.
-// Base de lecture fixe : aucun montant personnel n'est extrapolé.
-const PROFIL_TRAVAIL = [
-  ['Revenu après prélèvements',52.8],
-  ['Cotisations salariales',8.3],
-  ['Impôt sur le revenu',12.2],
-  ['Cotisations patronales',26.7],
-] as const;
+import { PROFIL_TRAVAIL } from './recit-chapitres.ts';
 const eurosProfil = new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
 function formaterProfil(valeur:number):string {return `${eurosProfil.format(valeur)} €`;}
 

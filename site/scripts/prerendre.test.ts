@@ -1049,7 +1049,8 @@ test("12 ter. les trois étapes sourcées sont servies sur le même exercice que
   for (const id of ["recit-recettes", "recit-depenses", "recit-ecart", "recit-sources"]) {
     assert.ok(corps.includes(`id="${id}"`), `${id} absent du HTML servi`);
   }
-  assert.doesNotMatch(corps, /2025/);
+  // Le profil salarial de l'OCDE porte sa propre année ; seuls les comptes nationaux sont contrôlés ici.
+  assert.doesNotMatch(corps.slice(0, corps.indexOf('id="recit-salaire"')), /2025/);
   const html = injecterAccueil(GABARIT_REEL, corps, "v-comptes");
   assert.ok(texteDuMain(html).includes("2024"));
   assert.equal(corps, corpsAccueil(FRANCE_ACCUEIL));
