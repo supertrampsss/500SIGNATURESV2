@@ -39,7 +39,7 @@
  const save=value=>{
   const wasStarted=started;choice=value;disabled();
   try{localStorage.setItem(KEY,JSON.stringify({choice,expires:Date.now()+DURATION}));}catch{/* Le choix vaut pour cette page si le stockage est indisponible. */}
-  banner?.remove();banner=null;settings.focus();
+  banner?.remove();banner=null;settings.focus({preventScroll:true});
   if(value==='accepted')start();
   else{clearCookies();if(wasStarted)location.reload();}
  };

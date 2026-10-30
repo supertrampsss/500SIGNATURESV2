@@ -94,8 +94,6 @@ import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { adresseSimulateurCanonique, adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import {
   rendu as renduAccueil,
-  exemplesTerritoires,
-  MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, renduDossierVedette, type Analyse } from "./analyse-rendu.ts";
 import { brancherMenuNavigation, intercepterNavigation, renduNavigation, suivreHauteurEntete } from "./navigation.ts";
@@ -126,11 +124,15 @@ import "./styles/territoire-rework.css";
 import "./styles/site-shell-v2.css";
 import "./styles/territoire-france.css";
 import "./styles/territoire-dossier.css";
+import "./styles/accueil-recit.css";
+import { brancherRecitAccueil } from "./accueil-recit-runtime.ts";
+import { comptesRecit } from "./recit-comptes.ts";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
 import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
 brancherFrancePage();
+brancherRecitAccueil();
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -2394,63 +2396,45 @@ const ANALYSES: Analyse[] = Object.values(
   import.meta.glob<Analyse>("../analyses/*.json", { eager: true, import: "default" }),
 );
 
-/** Peint une seule fois : l'accueil ne dépend d'aucune sélection. Le tirage de
- *  l'exemple se refait donc au chargement, pas à chaque retour sur la page —
- *  un exemple qui change sous les yeux au premier Précédent se lit comme un
- *  défaut d'affichage, pas comme une découverte. */
+/** Une publication adoptée reste stable au fil des retours sur l'accueil. */
 let accueilPeint = false;
 
 let resoudrePubliee: () => void;
-/**
- * Résolue quand le manifeste ET le catalogue sont chargés, dans `demarrer`.
- *
- * `prete` ne suffit pas : elle ne promet que `donnees.racine`, et l'accueil a
- * besoin de deux choses écrites après elle — le nombre d'indicateurs publiés,
- * qu'il compte sur le catalogue, et les producteurs, qu'il lit sur les jeux du
- * manifeste. Peint plus tôt, il annoncerait « 0 indicateurs publiés » et une
- * liste de producteurs vide : deux affirmations fausses à l'endroit le plus lu
- * du site.
- */
+/** Le démarrage confirme la publication avant de lire ses comptes nationaux. */
 const publiee = new Promise<void>((resolve) => {
   resoudrePubliee = resolve;
 });
 
+let accueilEnCours = false;
 async function peindreAccueil(): Promise<void> {
-  if (accueilPeint) return;
-  await publiee;
-  // L'accueil est servi écrit : le build l'a composé sur les fichiers publiés,
-  // et c'est ce que le lecteur a déjà sous les yeux. Le repeindre à l'identique
-  // ne changerait rien ; le repeindre avec un autre tirage ferait changer
-  // l'exemple sous ses yeux, une seconde après l'ouverture — un défaut
-  // d'affichage, pas une découverte. Il n'est donc repeint que si la
-  // publication a bougé depuis le build : alors le nombre d'indicateurs, les
-  // producteurs et les chiffres de l'exemple ont une raison d'avoir changé, et
-  // ne pas les rafraîchir servirait des comptes périmés.
-  //
-  // `data-publication` est posé par le pré-rendu, jamais par le gabarit source :
-  // en développement il est absent, et l'accueil se peint alors comme avant.
-  const cadre = $("vue-accueil");
-  if (cadre.dataset.publication === donnees.version()) {
+  if (accueilPeint || accueilEnCours) return;
+  accueilEnCours = true;
+  try {
+    await publiee;
+    const cadre = $("vue-accueil");
+    // Une publication identique conserve le document, ses ancres et la lecture.
+    if (cadre.dataset.publication === donnees.version()) {
+      brancherRecitAccueil();
+      accueilPeint = true;
+      return;
+    }
+    const paysAccueil = await donnees.territoires("pays", "tous").catch((): Record<string, Territoire> => ({}));
+    // Une panne ne doit pas effacer les comptes déjà servis dans le HTML.
+    if (!comptesRecit(paysAccueil.FR) && cadre.querySelector("[data-recit]")) {
+      brancherRecitAccueil();
+      return;
+    }
+    const sourcesOuvertes = cadre.querySelector<HTMLDialogElement>(".recit-sources:modal");
+    if (sourcesOuvertes) {
+      await new Promise<void>(resolve => sourcesOuvertes.addEventListener("close", () => resolve(), { once: true }));
+    }
+    const restituerSource = document.activeElement?.matches("[data-recit-source]");
+    cadre.innerHTML = renduAccueil({ france: paysAccueil.FR });
+    cadre.dataset.publication = donnees.version();
+    brancherRecitAccueil();
+    if (restituerSource) cadre.querySelector<HTMLElement>("[data-recit-source]")?.focus({ preventScroll: true });
     accueilPeint = true;
-    return;
-  }
-  const regions = await donnees
-    .territoires(MAILLE_EXEMPLE, "tous")
-    .catch((): Record<string, Territoire> => ({}));
-  const paysAccueil = await donnees.territoires("pays", "tous").catch((): Record<string, Territoire> => ({}));
-  cadre.innerHTML = renduAccueil({
-    france: paysAccueil.FR,
-    analyses: ANALYSES,
-    catalogue,
-    territoires: exemplesTerritoires(regions, catalogue),
-    // Le tirage se fait ici, jamais dans `accueil.ts` : une fonction qui tire
-    // elle-même ne s'éprouve pas sur chaque tirage possible, et c'est
-    // précisément la garantie « jamais un territoire incomplet » qu'il faut
-    // pouvoir éprouver.
-    alea: Math.random(),
-    producteurs: jeux.map((jeu) => jeu.producteur),
-  });
-  accueilPeint = true;
+  } finally { accueilEnCours = false; }
 }
 
 function basculerVue(): void {
@@ -2485,19 +2469,10 @@ function basculerVue(): void {
   // `#carte` reste un alias de la vue territoire ; la carte adopte alors son
   // état initial adapté au viewport.
   const cible = demandee ?? "";
-  // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
-  // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
-  // vue inconnue renvoyait le lecteur sur TERRITOIRE au moment précis où il
-  // demandait à descendre dans celle qu'il lisait. Tant qu'une vue est déjà
-  // affichée, un hash qui n'en désigne aucune la laisse en place, et le
-  // navigateur fait ce qu'il sait faire : défiler jusqu'à l'ancre.
-  // `location.hash` distingue ce cas d'un Back vers `/` : `vueDepuisAdresse`
-  // renvoie `null` sur la racine sans fragment, PAR DESIGN (routes.test.ts),
-  // exactement comme pour une ancre. Sans ce filtre, ce garde-fou avalait
-  // aussi le retour à la racine — la première navigation Précédent de toute
-  // session partie de `/` restait inerte, l'adresse changeait sans que la
-  // page suive. Une ancre en porte toujours un ; un Back vers `/`, jamais.
-  if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash) return;
+  // Une ancre de la vue courante laisse le navigateur défiler normalement.
+  // Le retour vers une ancre d'accueil doit aussi restaurer cette vue.
+  if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash
+    && !estAccueil(location.pathname, location.hash)) return;
   // La racine rend l'accueil, jamais la carte : `estAccueil` sépare la racine
   // — où `vueDepuisAdresse` répond `null` par design — d'une adresse inconnue,
   // qui continue de retomber sur la vue territoire. Aucune vue ne bouge :
@@ -2514,6 +2489,7 @@ function basculerVue(): void {
   // cadre n'aurait rien à cadrer.
   appliquerModeCarte(false);
   $("vue-accueil").hidden = vue !== "accueil";
+  brancherRecitAccueil();
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
   // **Le classement suit la carte, plus le bilan.** Il range la couche
@@ -2532,7 +2508,12 @@ function basculerVue(): void {
   // affichée, un `hashchange` vise une ancre interne — le sommaire des Repères
   // vise `#bloc-etat` — et remonter annulerait le défilement du navigateur
   // vers elle, qui est précisément ce que le lecteur demandait.
-  if (vue !== precedente) window.scrollTo({ top: 0 });
+  if (vue !== precedente) {
+    let ancre: HTMLElement | null = null;
+    try { ancre = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch { /* Fragment non décodable : retour en haut. */ }
+    if (ancre && !ancre.closest("[hidden]")) ancre.scrollIntoView();
+    else window.scrollTo({ top: 0 });
+  }
 }
 
 /**
@@ -3599,6 +3580,14 @@ demarrer().catch((erreur: Error) => {
   // elle n'a ni `#fiche` ni `#vue-accueil` où écrire, et `$` y renverrait
   // `null` — la panne se doublait d'une levée dans son propre rattrapage.
   if (document.body.dataset.page === "editorial") return;
+  const sourcesPubliees = document.querySelector("#vue-accueil [data-recit] .recit-sources");
+  if (document.body.dataset.vue === "accueil" && sourcesPubliees) {
+    const note = document.createElement("p");
+    note.className = "recit-publication-note";
+    note.textContent = "La mise à jour est indisponible. Les comptes de la publication affichée restent consultables avec leurs sources.";
+    sourcesPubliees.append(note);
+    return;
+  }
   const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
   // Un `div`, pas un `p` : `<details>` est du contenu de flux, et un paragraphe
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le

@@ -10,6 +10,7 @@
     "test:board": "playwright test --config playwright.board.config.ts",
     "test:story": "playwright test --config playwright.story.config.ts",
     "test:mandats": "playwright test --config playwright.mandats.config.ts",
+    "test:recit": "playwright test --config playwright.recit.config.ts",
     "test:mandats:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort",
     "check": "npm test && npm run build",
     "check:types": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json",

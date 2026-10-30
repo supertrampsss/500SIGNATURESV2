@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 
 test('SEO : le lien de confiance de l’accueil ouvre directement la méthode', async ({ page }, info) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'Données vérifiées Une méthode transparente.', exact: true }).click();
+  await page.getByRole('link', { name: 'Nos sources et notre méthode', exact: true }).click();
   await expect(page).toHaveURL(/\/sources\/#methode$/);
   const method = page.getByRole('heading', { level: 2, name: 'La méthode', exact: true });
   // Native anchor scrolling rounds fractional font coordinates to whole pixels.
@@ -95,7 +95,7 @@ test('SEO : les aides d’usage restent accessibles sans JavaScript sur accueil 
       const image = info.outputPath((path === '/' ? 'accueil' : 'ville') + '-aide-sans-js.png');
       await help.screenshot({ path: image });
       await info.attach(path === '/' ? 'accueil-aide' : 'ville-aide', { path: image, contentType: 'image/png' });
-      if (path === '/') await expect(page.locator('.story-door[href="/territoire/"]')).toBeVisible();
+      if (path === '/') await expect(page.locator('.accueil-story a[href="/territoire/"]').first()).toBeVisible();
       else await expect(page.getByRole('combobox', { name: 'Rechercher une ville' })).toBeVisible();
     }
   } finally { await context.close(); }

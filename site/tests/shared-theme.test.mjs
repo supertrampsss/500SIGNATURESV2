@@ -15,7 +15,7 @@ test('Mandats expose un accès au site et le lien revient à la page d’accueil
  await page.getByRole('button',{name:'Ma partie',exact:true}).click();
  await page.getByRole('link',{name:'Retour au site',exact:true}).click();
  await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
- await expect(page.locator('#story-titre')).toHaveText('Comprendre aujourd’hui pour mieux agir demain.',{useInnerText:true});
+ await expect(page.locator('#recit-recettes .recit-title')).toHaveText(/^100\s*€\s*entrent\.$/);
  for(const path of ['/mandats/methode/','/mandats/comprendre/','/bilan/']){
   await page.goto(path);
   const accueil=page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Accueil',exact:true});
@@ -26,17 +26,17 @@ test('Mandats expose un accès au site et le lien revient à la page d’accueil
  }
 });
 
-test('Accueil : les données, villes et dossiers précèdent le jeu',async({page},info)=>{
+test('Accueil : le récit et les accès aux données précèdent le jeu',async({page},info)=>{
  await page.goto('/accueil/');
  if(!await page.locator('#navigation-principale').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
  const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
- await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Dossiers','Mandats']);
- await expect(page.locator('#story-titre')).toHaveText('Comprendre aujourd’hui pour mieux agir demain.',{useInnerText:true});
- await expect(page.locator('.story-door')).toHaveCount(3);
+ await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Salaires','Dossiers','Mandats']);
+ await expect(page.locator('#recit-recettes .recit-title')).toHaveText(/^100\s*€\s*entrent\.$/);
+ await expect(page.locator('[data-recit-panel]')).toHaveCount(3);
  const content=page.locator('.accueil-story');
- const geometry=await content.evaluate(root=>({doors:root.querySelector('.story-door').getBoundingClientRect().top,game:root.querySelector('.story-mandats').getBoundingClientRect().top}));
- expect(geometry.doors).toBeLessThan(geometry.game);
- for(const link of ['/bilan/','/territoire/','/analyses/']) await expect(content.locator('.story-door[href="'+link+'"]')).toBeVisible();
+ const geometry=await content.evaluate(root=>({recit:root.querySelector('[data-recit]').getBoundingClientRect().top,game:root.querySelector('.recit-mandats').getBoundingClientRect().top}));
+ expect(geometry.recit).toBeLessThan(geometry.game);
+ for(const link of ['/bilan/#france-sorties','/territoire/','/salaires/','/analyses/']) await expect(content.locator('a[href="'+link+'"]:visible').first()).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });
@@ -44,10 +44,12 @@ test('Accueil : les données, villes et dossiers précèdent le jeu',async({page
 test('Accueil garde son contenu publié et sa géométrie quand les données sont indisponibles',async({page})=>{
  await page.route('**/data/derniere.json',route=>route.abort());
  await page.goto('/accueil/');
- await expect(page.getByRole('alert')).toContainText('Les chiffres déjà affichés restent consultables.');
- await expect(page.locator('.story-hero')).toBeVisible();
+ await expect(page.locator('[data-recit]')).toBeVisible();
+ await page.locator('[data-recit-source]').click();
+ await expect(page.locator('.recit-publication-note')).toContainText('Les comptes de la publication affichée restent consultables');
+ await page.keyboard.press('Escape');
  await expect(page.locator('.story-questions')).toHaveCount(0);
- await expect(page.locator('.story-door')).toHaveCount(3);
+ await expect(page.locator('[data-recit-panel]')).toHaveCount(3);
  const geometry=await page.evaluate(()=>{
   const header=document.querySelector('.entete').getBoundingClientRect();
   const home=document.querySelector('.accueil-story').getBoundingClientRect();
@@ -71,7 +73,7 @@ test('the shared header is identical across primary destinations',async({page})=
     await expect(page.locator('#theme-bascule')).toHaveCount(0);
     if(!await page.locator('#navigation-principale').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
     const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
-    await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Dossiers','Mandats']);
+    await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Salaires','Dossiers','Mandats']);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
   }
 });

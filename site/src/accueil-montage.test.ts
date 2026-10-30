@@ -1,71 +1,17 @@
-/**
- * Le montage de l'accueil à la racine et sur `/accueil/`.
- *
- * `accueil.ts` est éprouvé chez lui : ses cinq blocs sont des fonctions pures,
- * et `accueil.test.ts` les prend une par une. Ce fichier-ci éprouve ce que la
- * pureté ne peut pas dire — **où** la page s'accroche et **ce que ses liens
- * ouvrent** :
- *
- * 1. `/` et `/accueil/` rendent l'accueil ;
- * 2. `/territoire` rend toujours la carte, et aucun lien déjà partagé ne change
- *    de destination ;
- * 3. le champ de recherche du bloc 3 est celui du site, jamais un second ;
- * 4. le lien de l'exemple vivant ouvre réellement la fiche du territoire.
- *
- * `main.ts` importe MapLibre : il ne s'importe pas dans un test sans navigateur,
- * et c'est sa source qui est lue — le motif de `vues.test.ts` et
- * `interface.test.ts`. Ce qui peut être éprouvé pour de vrai l'est : `routes.ts`
- * et `accueil.ts` sont importés et exécutés, et la source de `main.ts` ne sert
- * qu'à vérifier que le montage se branche bien sur eux.
- */
-
+/** Contrats du montage : routes, recherche unique et conservation du HTML pré-rendu.
+ * MapLibre exige un navigateur ; le montage de main.ts est donc vérifié à la
+ * lecture du source, tandis que les routes et le rendu sont exécutés. */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-
-import {
-  CHIFFRES_EXEMPLE,
-  MAILLE_EXEMPLE,
-  exemplesTerritoires,
-  renduChezVous,
-  type ExempleTerritoire,
-} from "./accueil.ts";
-import type { Indicateur, Territoire } from "./donnees.ts";
-import { COUCHES } from "./carte-style.ts";
+import { rendu } from "./accueil.ts";
 import { CHEMINS, estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
-const ACCUEIL = readFileSync(new URL("./accueil.ts", import.meta.url), "utf8");
-const PARCOURS = readFileSync(new URL("./styles/accueil-parcours.css", import.meta.url), "utf8");
+const PRERENDU = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
+const DONNEES = readFileSync(new URL("./donnees.ts", import.meta.url), "utf8");
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const BALISES = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-
-/** Le catalogue des trois séries de l'exemple, tel que l'entrepôt les déclare :
- *  des agrégats en euros. */
-const CATALOGUE_EXEMPLE = CHIFFRES_EXEMPLE.map(
-  (id) => ({ id, libelle: `Série ${id}`, unite: "EUR" }) as Indicateur,
-);
-
-/** Un lot de régions de la forme que l'entrepôt publie — deux exercices par
- *  série, pour que la variation ait de quoi se dire. */
-const LOT_EXEMPLE: Record<string, Territoire> = {
-  "75": {
-    nom: "Nouvelle-Aquitaine",
-    parent: null,
-    population: 6_000_000,
-    drapeaux: {},
-    series: Object.fromEntries(
-      CHIFFRES_EXEMPLE.map((id, rang) => [
-        id,
-        { "2024": 3_600_000_000 + rang, "2025": 3_800_000_000 + rang },
-      ]),
-    ),
-  },
-};
-
-/* --------------------------------------------------------------------------
- * 1. `/` rend l'accueil
- * ----------------------------------------------------------------------- */
 
 test("la racine rend l'accueil, et l'accueil n'est pas une vue de l'application", () => {
   assert.equal(estAccueil("/", ""), true);
@@ -105,42 +51,6 @@ test("le cadre de l'accueil est servi déplié, celui de la carte replié", () =
   assert.match(BALISES, /<div class="vue vue--territoire" id="vue-territoire" hidden>/);
 });
 
-test("l'accueil ne peint qu'une fois le catalogue et les producteurs connus", () => {
-  // Peint plus tôt, il annoncerait « 0 indicateurs publiés » et une liste de
-  // producteurs vide : deux affirmations fausses à l'endroit le plus lu du site.
-  const corps = MAIN.slice(
-    MAIN.indexOf("async function peindreAccueil"),
-    MAIN.indexOf("function brancherAppelRecherche"),
-  );
-  assert.ok(corps.length > 200, "corps de peindreAccueil introuvable");
-  assert.match(corps, /await publiee;/);
-  assert.match(corps, /producteurs: jeux\.map\(\(jeu\) => jeu\.producteur\)/);
-  // Et la promesse ne se résout qu'une fois le catalogue complet, dérivés
-  // compris.
-  assert.match(
-    MAIN,
-    /catalogue = \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\];[\s\S]{0,300}?resoudrePubliee\(\);/,
-  );
-});
-
-test("le tirage de l'exemple se fait au montage, jamais dans le rendu", () => {
-  // `accueil.ts` reçoit son aléa (accueil.test.ts, n° 30) : c'est ici qu'il est
-  // tiré, et nulle part ailleurs.
-  assert.match(MAIN, /alea: Math\.random\(\)/);
-});
-
-test("le montage pose France avant les autres parcours", () => {
-  assert.match(MAIN, /import "\.\/styles\/accueil-parcours\.css";/);
-  assert.match(PARCOURS, /\.accueil__france\s*\{/);
-  assert.match(PARCOURS, /grid-template-columns:\s*minmax\(0, 1fr\)/);
-  assert.match(PARCOURS, /@media \(max-width: 60rem\)/);
-  assert.doesNotMatch(PARCOURS, /accueil-porte--simuler/);
-});
-
-/* --------------------------------------------------------------------------
- * 2. `/territoire` rend toujours la carte
- * ----------------------------------------------------------------------- */
-
 test("aucune vue existante ne bouge : la carte reste à /territoire", () => {
   assert.equal(CHEMINS.territoire, "/territoire");
   assert.equal(vueDepuisAdresse("/territoire", ""), "territoire");
@@ -177,10 +87,6 @@ test("un lien déjà partagé ne change pas de destination", () => {
   assert.equal(estAccueil("/inconnue", ""), false);
 });
 
-/* --------------------------------------------------------------------------
- * 3. Le champ de recherche du bloc 3 est celui du site
- * ----------------------------------------------------------------------- */
-
 test("il n'y a qu'un champ de recherche, et l'accueil vise celui-là", () => {
   // Un seul `input` de recherche dans la page, celui de Territoires.
   assert.equal(BALISES.match(/id="recherche"/g)?.length, 1);
@@ -193,80 +99,7 @@ test("il n'y a qu'un champ de recherche, et l'accueil vise celui-là", () => {
   );
 });
 
-test("« Chercher ma commune » ouvre le champ de la page Territoires", () => {
-  assert.match(BALISES, /id="vue-territoire"[\s\S]*id="recherche"/);
-  assert.match(ACCUEIL, /const ANCRE_RECHERCHE = "\/territoire#recherche"/);
-  assert.doesNotMatch(MAIN, /function brancherAppelRecherche/);
-});
-
-/* --------------------------------------------------------------------------
- * 4. Le lien de l'exemple vivant ouvre la fiche
- * ----------------------------------------------------------------------- */
-
-/** Un exemple de la forme exacte que `exemplesTerritoires` (main.ts) produit :
- *  la maille est celle des régions, le code celui de la Nouvelle-Aquitaine. */
-const EXEMPLE: ExempleTerritoire = {
-  nom: "Nouvelle-Aquitaine",
-  code: "75",
-  niveau: "region",
-  chiffres: [
-    {
-      libelle: "Recettes de fonctionnement",
-      unite: "EUR",
-      id: "ofgl_recettes_fonctionnement",
-      exercice: "2025",
-      valeur: 3_800_000_000,
-      precedent: { exercice: "2024", valeur: 3_600_000_000 },
-    },
-  ],
-};
-
-/** Le lien que le bloc 3 écrit pour son exemple. */
-function lienDeLExemple(): URL {
-  const html = renduChezVous(EXEMPLE);
-  const href = html.match(/href="(\/territoire[^"]*)"/)?.[1];
-  assert.ok(href, "le lien de l'exemple est introuvable dans le bloc rendu");
-  // Une origine quelconque : seuls le chemin et les paramètres sont en cause.
-  return new URL(href, "https://exemple.test");
-}
-
-test("le lien de l'exemple mène au chemin de la carte, pas à une adresse composée à la main", () => {
-  const lien = lienDeLExemple();
-  assert.equal(lien.pathname, CHEMINS.territoire);
-  // Et ce chemin ouvre bien la vue territoire — pas l'accueil, pas un repli.
-  assert.equal(vueDepuisAdresse(lien.pathname, ""), "territoire");
-  assert.equal(estAccueil(lien.pathname, ""), false);
-});
-
-test("le lien de l'exemple porte les deux paramètres que lireUrl lit, sous leurs noms", () => {
-  const lien = lienDeLExemple();
-  assert.equal(lien.searchParams.get("niveau"), "region");
-  assert.equal(lien.searchParams.get("territoire"), "75");
-  // Ce sont ces deux noms-là que `lireUrl` lit — le second devient la sélection.
-  assert.match(MAIN, /niveau: niveauConnu\(p\.get\("niveau"\)\),/);
-  assert.match(MAIN, /selection: p\.get\("territoire"\),/);
-  // Un paramètre de plus serait un paramètre que personne ne lit.
-  assert.deepEqual([...lien.searchParams.keys()].sort(), ["niveau", "territoire"]);
-});
-
-test("la maille de l'exemple est une couche de la carte : niveauConnu la garde", () => {
-  const lien = lienDeLExemple();
-  // `niveauConnu` ne garde que les mailles de `COUCHES` ; toute autre est
-  // ramenée à « region » sans un mot, et l'exemple ouvrirait la fiche d'un
-  // territoire que le lien ne nommait pas.
-  assert.match(MAIN, /function niveauConnu[^}]*demande in COUCHES/s);
-  assert.ok(lien.searchParams.get("niveau")! in COUCHES);
-  // Et c'est bien cette maille-là que l'exemple porte, et celle dont le
-  // montage demande le lot.
-  assert.equal(MAILLE_EXEMPLE, "region");
-  assert.equal(exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE)[0]?.niveau, MAILLE_EXEMPLE);
-  assert.match(MAIN, /donnees\s*\.territoires\(MAILLE_EXEMPLE, "tous"\)/);
-  // Une maille hors carte demanderait `maille=` en plus, que l'exemple n'écrit
-  // pas : la fiche resterait muette au rechargement.
-  assert.equal(lien.searchParams.get("maille"), null);
-});
-
-test("arrivé sur ce lien, la sélection ouvre la fiche", () => {
+test("un lien territorial conserve sa sélection et ouvre sa fiche", () => {
   // Le dernier maillon : la sélection lue dans l'adresse est ce que `peindre`
   // ouvre, et `montrerFiche` charge le lot du territoire avant de peindre.
   assert.match(MAIN, /if \(etat\.selection\) \{\s*await montrerFiche\(etat\.selection\);/);
@@ -276,60 +109,18 @@ test("arrivé sur ce lien, la sélection ouvre la fiche", () => {
   assert.match(MAIN, /niveauAuto: !p\.get\("niveau"\),/);
 });
 
-/* --------------------------------------------------------------------------
- * Ce que le montage n'écrit pas
- * ----------------------------------------------------------------------- */
-
-test("les trois séries de l'exemple sont des agrégats en euros, jamais un par-habitant", () => {
-  assert.deepEqual(
-    [...CHIFFRES_EXEMPLE],
-    ["ofgl_recettes_fonctionnement", "ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
-  );
-  // La construction ne fabrique aucun ratio : elle passe la valeur publiée et
-  // son unité déclarée, et `formater` fait le reste — sans dénominateur. Le lot
-  // publié porte pourtant `population` à portée de main, et c'est là que la
-  // tentation se présente.
-  const construction = ACCUEIL.slice(
-    ACCUEIL.indexOf("export function exemplesTerritoires"),
-    ACCUEIL.indexOf("function complet("),
-  );
-  assert.ok(construction.length > 200, "corps d'exemplesTerritoires introuvable");
-  assert.ok(construction.length < ACCUEIL.length, "la borne ne suit pas le point de départ");
-  assert.doesNotMatch(construction, /population|parHabitant/);
-  // L'unité vient du catalogue, jamais d'un repli : sans elle, aucun exemple
-  // n'est montrable, et le premier écran du site ne peint pas un montant sans
-  // unité.
-  const exemples = exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE);
-  assert.equal(exemples[0]?.chiffres[0]?.unite, "EUR");
-  assert.deepEqual(exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE.slice(1)), []);
-});
-
-/* --------------------------------------------------------------------------
- * 5. Le client ne repeint pas autre chose que ce que le serveur a écrit
- *
- * L'accueil part désormais écrit dans `dist/index.html` (`injecterAccueil`,
- * scripts/prerendre.ts). Si le navigateur le réécrivait au chargement, il
- * retirerait au sort un autre territoire : l'exemple changerait sous les yeux
- * du lecteur, une seconde après l'ouverture.
- * ----------------------------------------------------------------------- */
-
-const PRERENDU = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
-const DONNEES = readFileSync(new URL("./donnees.ts", import.meta.url), "utf8");
-
 test("l'accueil déjà écrit n'est pas repeint tant que la publication n'a pas bougé", () => {
   const corps = MAIN.slice(
     MAIN.indexOf("async function peindreAccueil"),
-    MAIN.indexOf("function brancherAppelRecherche"),
+    MAIN.indexOf("function basculerVue"),
   );
   assert.ok(corps.length > 200, "corps de peindreAccueil introuvable");
   assert.ok(corps.length < MAIN.length, "la borne ne suit pas le point de départ");
   // La comparaison, et l'abandon de la peinture qui la suit.
   assert.match(corps, /cadre\.dataset\.publication === donnees\.version\(\)/);
   assert.match(corps, /accueilPeint = true;\s*return;/);
-  // Le tirage reste reçu, jamais appelé dans `accueil.ts` : c'est ici qu'il se
-  // fait, et seulement quand la publication a bougé depuis le build — alors les
-  // chiffres de l'exemple ont une raison d'avoir changé.
-  assert.match(corps, /alea: Math\.random\(\)/);
+  // Les comptes d'une nouvelle publication viennent du lot national.
+  assert.match(corps, /donnees\.territoires\("pays", "tous"\)/);
 });
 
 test("les deux côtés nomment le même attribut, et la même version", () => {
@@ -349,11 +140,16 @@ test("les deux côtés nomment le même attribut, et la même version", () => {
   assert.match(DONNEES, /export const version = \(\) => versionLue;/);
 });
 
-test("les deux côtés comptent le même catalogue", () => {
-  // La bande de confiance compte le catalogue qu'elle reçoit. Le navigateur y
-  // ajoute les indicateurs calculés avant de peindre ; un pré-rendu qui ne les
-  // ajouterait pas ferait sauter le nombre d'un chiffre à l'autre le jour où le
-  // navigateur repeint — la même phrase, deux comptes.
-  assert.match(MAIN, /catalogue = \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\];/);
-  assert.match(PRERENDU, /const complet = \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\];/);
+test("la porte Ville rejoint la recherche existante sans créer un autre champ", () => {
+  const accueil = rendu({});
+  assert.match(accueil, /href="\/territoire\/"/);
+  assert.doesNotMatch(accueil, /<input\b/);
+  assert.match(BALISES, /id="vue-territoire"[\s\S]*id="recherche"/);
+});
+
+test("le montage attend la publication avant de lire les comptes nationaux", () => {
+  const montage = MAIN.slice(MAIN.indexOf("async function peindreAccueil"), MAIN.indexOf("function basculerVue"));
+  const attente = montage.indexOf("await publiee;");
+  const comptes = montage.indexOf('donnees.territoires("pays", "tous")');
+  assert.ok(attente >= 0 && comptes > attente);
 });
