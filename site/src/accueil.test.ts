@@ -50,7 +50,7 @@ test("Mandats est explicitement une simulation présidentielle de cinq ans", () 
   const html = page();
   assert.match(html, /présidentiel/);
   assert.match(html, /[Cc]inq ans/);
-  assert.ok(html.includes('href="/mandats/?mode=national"'));
+  assert.ok(html.includes('href="/mandats/jouer/"'));
   assert.ok(html.includes("Commencer mon mandat"));
   assert.doesNotMatch(html, /story-mandats__dashboard|story-mandats__metrics/);
 });

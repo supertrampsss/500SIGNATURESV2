@@ -17,7 +17,7 @@ const NAVIGATION = [
   ['Ville', '/territoire/'],
   ['Salaires', '/salaires/'],
   ['Dossiers', '/analyses/'],
-  ['Mandats', '/mandats/'],
+  ['Mandats', '/mandats/jouer/'],
 ];
 
 test.beforeEach(async ({ page }) => {

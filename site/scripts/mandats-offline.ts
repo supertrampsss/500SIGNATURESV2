@@ -2,15 +2,15 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 const dist = fileURLToPath(new URL('../dist/',import.meta.url));
-const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8');
+const html = await readFile(dist+'mandats/index.html','utf8') + await readFile(dist+'mandats/france/hiver/index.html','utf8') + await readFile(dist+'mandats/jouer/index.html','utf8');
 const entryAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+)"/g)].map(m=>m[1]);
 const brandAssets = [...html.matchAll(/src="(\/brand\/[^" ]+)"/g)].map(m=>m[1]);
 // These editorial images appear in the national game and its replay journey.
 // Keep the full-resolution illustration set opt-in with the game cache; the
 // generated service worker is only installed when the player requests offline use.
-const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture', 'presidency-france', 'presidency-france-v2', 'desk-france', 'desk-walnut']
+const cinemaArt = ['office', 'school', 'hospital', 'nation', 'chapter', 'legacy', 'energy', 'parliament', 'council', 'rupture', 'presidency-france', 'presidency-france-v2', 'desk-france', 'desk-walnut', 'national-relief-1536']
   .map(name => `/mandats/art/${name}.webp`);
-const core = [...brandAssets, '/mandats/', '/mandats/france/hiver/', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
+const core = [...brandAssets, '/mandats/', '/mandats/jouer/', '/mandats/france/hiver/', ...cinemaArt, '/mandats/methode/', '/mandats/manifest.webmanifest', '/mandats/icon-192.png', '/mandats/icon-512.png', ...entryAssets];
 // Follow the game's dependencies, including the approved illustrated map.
 const visited = new Set<string>();
 for (let i=0; i<entryAssets.length; i++) {
@@ -46,8 +46,9 @@ self.addEventListener('fetch',event=>{
  const gamePage=url.pathname==='/mandats/'||url.pathname==='/mandats/index.html';
  const methodPage=url.pathname==='/mandats/methode/'||url.pathname==='/mandats/methode/index.html';
  const winterPage=url.pathname==='/mandats/france/hiver/'||url.pathname==='/mandats/france/hiver/index.html';
- const key=winterPage?'/mandats/france/hiver/':gamePage?'/mandats/':methodPage?'/mandats/methode/':url.href;
- if(gamePage||methodPage||winterPage){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(key);return cached||new Response('Le jeu doit être préparé avec une connexion avant de jouer hors ligne.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;}
+ const newGamePage=url.pathname==='/mandats/jouer/'||url.pathname==='/mandats/jouer/index.html';
+ const key=winterPage?'/mandats/france/hiver/':newGamePage?'/mandats/jouer/':gamePage?'/mandats/':methodPage?'/mandats/methode/':url.href;
+ if(gamePage||methodPage||winterPage||newGamePage){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(key);return cached||new Response('Le jeu doit être préparé avec une connexion avant de jouer hors ligne.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;}
  const lightArt=url.pathname.replace('-1536.webp','-768.webp');
  if(lightArt!==url.pathname&&URLS.has(new URL(lightArt,self.location.origin).href)){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(lightArt);return cached||Response.error();}));return;}
  if(!URLS.has(url.href))return;

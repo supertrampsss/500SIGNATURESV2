@@ -125,7 +125,9 @@ import "./styles/site-shell-v2.css";
 import "./styles/territoire-france.css";
 import "./styles/territoire-dossier.css";
 import "./styles/accueil-recit.css";
+import "./styles/identite-v2.css";
 import { brancherRecitAccueil } from "./accueil-recit-runtime.ts";
+import { brancherApparitions } from "./apparition.ts";
 import { comptesRecit } from "./recit-comptes.ts";
 // La vue Territoires reste lisible sans fond cartographique : recherche,
 // fiches et comparaisons sont rendues directement dans le document.
@@ -2492,6 +2494,7 @@ function basculerVue(): void {
   brancherRecitAccueil();
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
+  requestAnimationFrame(() => brancherApparitions());
   // **Le classement suit la carte, plus le bilan.** Il range la couche
   // affichée — l'échelon, le millésime, l'indicateur réglés sur la carte —, et
   // il n'avait rien à voir avec les cinq chapitres du bilan, qui racontent la
@@ -3407,6 +3410,7 @@ async function demarrer(): Promise<void> {
       $("national").innerHTML = pageFrance;
       $("national").hidden = false;
       brancherPartageAnalysesFrance();
+      requestAnimationFrame(() => brancherApparitions($("national")));
       const cible = document.getElementById(decodeURIComponent(location.hash.slice(1)));
       if (cible && (location.hash.startsWith('#insight-') || location.hash.startsWith('#arbitrages-'))) {
         const famille = cible.closest('details');

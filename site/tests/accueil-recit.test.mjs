@@ -224,7 +224,7 @@ test('les destinations restent accessibles directement depuis le menu partagé',
     { name: 'Ville', path: '/territoire/', visible: '#vue-territoire' },
     { name: 'Accueil', path: '/', visible: '[data-recit]' },
     { name: 'Salaires', path: '/salaires/', visible: '.salaires' },
-    { name: 'Mandats', path: '/mandats/', visible: '.map-game--entry' },
+    { name: 'Mandats', path: '/mandats/jouer/', visible: '#e-intro' },
   ]) {
     const link = navigation.getByRole('link', { name: destination.name, exact: true });
     if (!await link.isVisible()) {
@@ -247,7 +247,6 @@ test('les destinations restent accessibles directement depuis le menu partagé',
     }
     await noOverflow(page);
   }
-  await activate(page.getByRole('button', { name: 'Ma partie', exact: true }), info);
   await activate(page.getByRole('link', { name: 'Retour au site', exact: true }), info);
   await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
   await expect(page.locator('[data-recit]')).toBeVisible();

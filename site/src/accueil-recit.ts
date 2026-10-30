@@ -32,7 +32,9 @@ function graphique(comptes: ComptesRecit): { grille: string; legende: string } {
     const commun = Math.min(recette, depense);
     const difference = Math.abs(depense - recette);
     const changement = depense > recette ? "gap" : recette > depense ? "retained" : "common";
-    return `<span class="recit-unit" data-change="${changement}" style="--receipt:${recette};--expense:${depense};--common:${commun};--difference:${difference}"><span class="recit-unit__fill"></span></span>`;
+    // --i échelonne le remplissage ; --j fait tomber les blocs en plus un à un.
+    const rangEcart = changement === "gap" ? index - Math.floor(100 / unite) : 0;
+    return `<span class="recit-unit" data-change="${changement}" style="--receipt:${recette};--expense:${depense};--common:${commun};--difference:${difference};--i:${index};--j:${Math.max(0, rangEcart)}"><span class="recit-unit__fill"></span></span>`;
   }).join("");
   return {
     grille: `<div class="recit-grid" data-unit="${unite}">${blocs}</div>`,

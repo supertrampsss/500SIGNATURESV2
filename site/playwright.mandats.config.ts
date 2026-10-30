@@ -5,7 +5,7 @@ const chromiumLaunchOptions={...(localChromium?{executablePath:localChromium}:{}
 export default defineConfig({
  // Several journeys already open a second isolated browser context. Run one
  // journey at a time to limit peak browser load without relaxing its budget.
- testDir:'./tests',testMatch:['analytics-consent.test.mjs','mandats-mobile.test.mjs','mandats-politics.test.mjs','mandats-story.test.mjs','editorial-tabs.test.mjs','france-living.test.mjs','national-agenda.test.mjs','shared-theme.test.mjs','seo-public.test.mjs','retraites-public.test.mjs'],timeout:60000,expect:{timeout:10000},fullyParallel:true,workers:1,retries:process.env.CI?1:0,
+ testDir:'./tests',testMatch:['mandats-jouer.test.mjs','analytics-consent.test.mjs','mandats-mobile.test.mjs','mandats-politics.test.mjs','mandats-story.test.mjs','editorial-tabs.test.mjs','france-living.test.mjs','national-agenda.test.mjs','shared-theme.test.mjs','seo-public.test.mjs','retraites-public.test.mjs'],timeout:60000,expect:{timeout:10000},fullyParallel:true,workers:1,retries:process.env.CI?1:0,
  reporter:[['list'],['html',{outputFolder:'playwright-report-mandats',open:'never'}]],
  // Recording every long campaign also instruments successful runs. Keep the
  // first CI retry trace; use --trace on for a focused local investigation.

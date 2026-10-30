@@ -755,7 +755,7 @@ test("8 quinquies. les documents éditoriaux déclarent l'état qui laisse Simul
     // Le nav est monté par le paquet après lecture de data-page : la sortie
     // reflète le lien clavier/souris réellement attendu pour chaque document.
     const navigation = renduNavigation(chemin, true);
-    assert.match(navigation, /<a href="\/mandats\/">Mandats<\/a>/);
+    assert.match(navigation, /<a href="\/mandats\/jouer\/">Mandats<\/a>/);
     assert.doesNotMatch(navigation, /href="\/simulateur"[^>]*aria-disabled/);
   }
 });
@@ -1037,7 +1037,7 @@ test("12 bis. le pré-rendu sert les outils avant la simulation", () => {
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
   assert.doesNotMatch(corps, /story-questions|Quelques questions pour commencer/);
   assert.ok(debutPortes >= 0 && finPortes > debutPortes);
-  assert.ok(corps.includes('href="/mandats/?mode=national"'));
+  assert.ok(corps.includes('href="/mandats/jouer/"'));
   assert.doesNotMatch(corps, /story-mandats__dashboard|story-mandats__metrics/);
   assert.ok(corps.indexOf('class="recit-method"') > corps.indexOf("Commencer mon mandat"));
 });
@@ -1404,7 +1404,7 @@ test("15 bis. le pré-rendu ne réintroduit aucun doublon du verdict", () => {
   assert.doesNotMatch(html, /id="bilan-synthese"|id="bilan-reperes"/);
   assert.equal((html.match(/class="fr-hero"/g) ?? []).length,1);
   assert.equal((html.match(/class="fr-keyfigures"/g) ?? []).length,1);
-  assert.match(html, /href="\/mandats\/"/);
+  assert.match(html, /href="\/mandats\/jouer\/"/);
   assert.doesNotMatch(html,/mandats-invitation/);
 });
 

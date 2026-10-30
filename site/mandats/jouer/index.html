@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mandats : cinq ans pour gouverner la France | 500 Signatures</title>
+<meta name="description" content="Jeu de simulation présidentielle gratuit : deux dossiers par trimestre, un budget chaque automne, des grandes réformes et une rue qui peut vous renverser. Comptes publics 2025 en point de départ.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0b1422">
+<link rel="canonical" href="https://500signatures.fr/mandats/jouer/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mandats : cinq ans pour gouverner la France">
+<meta property="og:description" content="Vingt trimestres, des choix cornéliens, un budget à faire voter. Serez-vous réélu, ou renversé par la rue ?">
+<meta property="og:url" content="https://500signatures.fr/mandats/jouer/">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="preload" href="/polices/spectral-300-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/src/jeu/jeu.css">
+</head>
+<body>
+<div class="jeu" id="jeu">
+  <header class="hud">
+    <div class="marque">
+      <b>MANDATS</b>
+      <span id="date">Année 1 · Hiver</span>
+      <div class="temps" id="temps" aria-hidden="true"></div>
+    </div>
+    <div class="jauges" role="group" aria-label="État du pays">
+      <div class="jauge" id="j-def"><div class="jauge__l"><span>Déficit annuel</span></div><div class="jauge__v tab"><span data-v></span><small>Md€</small></div><div class="barre"><b></b><i class="repere" style="left:61%" title="Départ"></i></div></div>
+      <div class="jauge" id="j-op"><div class="jauge__l"><span>Opinion</span></div><div class="jauge__v tab"><span data-v></span><small>%</small></div><div class="barre"><b></b></div></div>
+      <div class="jauge" id="j-maj"><div class="jauge__l"><span>Majorité</span></div><div class="jauge__v tab"><span data-v></span><small>/ 577</small></div><div class="barre"><b></b><i class="repere" style="left:50.1%" title="289 sièges"></i></div></div>
+      <div class="jauge" id="j-ten"><div class="jauge__l"><span>Tension</span><span id="rue-niv" style="color:var(--or)"></span></div><div class="jauge__v tab"><span data-v></span><small>/ 100</small></div><div class="barre"><b></b></div></div>
+    </div>
+    <div class="outils">
+      <a class="btn-ic btn-site" href="/" aria-label="Retour au site 500 Signatures">500 Signatures</a>
+      <button class="btn-ic" type="button" id="b-regles" aria-label="Règles">?</button>
+    </div>
+  </header>
+
+  <div class="plateau">
+    <aside class="cote" aria-label="Tableau de bord">
+      <section class="bloc"><h2>Services publics</h2><div class="services" id="services"></div></section>
+      <section class="bloc"><h2>Chantiers en cours</h2><ul class="chantiers" id="chantiers"></ul></section>
+      <section class="bloc"><h2>Fil d’actualité</h2><ol class="journal" id="journal"></ol></section>
+    </aside>
+    <div class="scene">
+      <div class="carte" id="carte">
+        <img src="/mandats/art/national-relief-1536.webp" alt="Carte de la France en relief, de nuit">
+        <div class="feu" id="feu"></div>
+        <div class="voile"></div>
+        <div id="points"></div>
+        <div class="legende-carte" aria-hidden="true"><em style="--c:var(--or)">Dossier</em><em style="--c:var(--argile)">Crise</em><em style="--c:var(--bleu)">Chantier</em></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="main" aria-labelledby="t-main">
+    <div class="main__tete">
+      <h2 id="t-main">Conseil des ministres · <em id="reste">2 dossiers</em></h2>
+      <button class="cta second" type="button" id="b-reformes">Grandes réformes</button>
+    </div>
+    <div class="cartes" id="cartes"></div>
+  </section>
+</div>
+
+<div class="ticker" id="ticker" role="status" aria-live="polite" hidden><p class="mono" id="ticker-sur"></p><ul id="ticker-l"></ul></div>
+<div class="voile-dec" id="voile-dec"></div>
+<aside class="decision" id="decision" role="dialog" aria-modal="true" aria-labelledby="d-titre" hidden>
+  <div class="decision__tete">
+    <div class="sur"><span id="d-sur"></span><button class="fermer" type="button" id="d-fermer" aria-label="Fermer le dossier"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg></button></div>
+    <h2 id="d-titre"></h2>
+    <p id="d-texte"></p>
+  </div>
+  <div class="options" id="d-options"></div>
+</aside>
+
+<!-- Écran d'ouverture -->
+<section class="ecran ouvert" id="e-intro" aria-labelledby="t-intro">
+  <div class="ecran__fond" style="background-image:url(/mandats/art/office.webp)"></div>
+  <div class="ecran__in">
+    <a class="retour-site mono" href="/" aria-label="Retour au site">← 500 Signatures</a>
+    <p class="mono sur-titre">Mandats · simulation présidentielle</p>
+    <h1 class="grand" id="t-intro">Cinq ans.<br>Vingt trimestres.<br><em>Votre signature.</em></h1>
+    <p class="chapo">Vous héritez des comptes de 2025. Chaque trimestre, deux dossiers arrivent sur votre bureau. Chaque automne, le budget passe devant l’Assemblée. Vos choix ont des suites.</p>
+    <div class="depart">
+      <div><b class="tab">1&nbsp;561,63</b><span>Md€ de recettes en 2025</span></div>
+      <div><b class="tab">1&nbsp;714,14</b><span>Md€ de dépenses en 2025</span></div>
+      <div><b class="tab" style="color:var(--argile)">152,51</b><span>Md€ de déficit en 2025</span></div>
+    </div>
+    <h2 class="mono" style="margin:12px 0 0;color:var(--iv3)">Choisissez votre situation de départ</h2>
+    <div class="profils" id="profils"></div>
+    <div class="actions"><button class="cta second" type="button" id="b-hors-ligne">Préparer le jeu hors connexion</button></div>
+    <p class="chapo" style="font-size:14px">Comptes 2025 : chiffres publiés. Effets des décisions, sièges, opinion et tension : hypothèses de jeu, sans prévision sur la France.</p>
+  </div>
+</section>
+
+<!-- Budget -->
+<section class="ecran" id="e-budget" aria-labelledby="t-budget">
+  <div class="ecran__fond" style="background-image:url(/mandats/art/parliament.webp)"></div>
+  <div class="ecran__in">
+    <p class="mono sur-titre" id="budget-sur">Automne · loi de finances</p>
+    <h2 class="grand" id="t-budget" style="font-size:clamp(40px,6vw,80px)">Le budget de <em>l’année 2</em></h2>
+    <p class="chapo">Ajustez les crédits et les impôts. Chaque cran vaut 2 Md€ de dépense ou 5 Md€ d’impôts. Puis présentez le texte aux députés, ou engagez le 49.3.</p>
+    <div class="budget">
+      <div class="lignes-b" id="lignes-b"></div>
+      <div class="cent">
+        <p class="mono" style="margin:0;color:var(--iv3)">Pour 100 € de recettes</p>
+        <p style="margin:0;font-family:var(--f-titre);font-size:44px;line-height:1;letter-spacing:-.02em"><span class="tab" id="b-depense">109,77</span>&nbsp;€ <em style="font-size:24px;color:var(--iv2)">dépensés</em></p>
+        <div class="cent__barre" id="b-barre" aria-hidden="true"></div>
+        <p style="margin:0;font-size:14px;color:var(--iv2)">Déficit prévu : <b class="tab" id="b-deficit">—</b></p>
+        <p class="mono" style="margin:6px 0 0;color:var(--iv3)">Pointage des voix</p>
+        <div class="vote"><div><b class="tab" id="v-pour">0</b><span>Pour</span></div><div><b class="tab" id="v-abs">0</b><span>Abstention</span></div><div><b class="tab" id="v-contre">0</b><span>Contre</span></div></div>
+        <p style="margin:0;font-size:14px" id="v-pronostic"></p>
+        <div class="actions"><button class="cta" type="button" id="b-voter">Soumettre au vote</button><button class="cta second" type="button" id="b-493">Engager le 49.3</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Événement (vote, censure) -->
+<section class="ecran" id="e-evt" aria-labelledby="t-evt">
+  <div class="ecran__fond" id="evt-fond"></div>
+  <div class="ecran__in">
+    <p class="mono sur-titre" id="evt-sur"></p>
+    <h2 class="grand" id="t-evt" style="font-size:clamp(42px,7vw,92px)"></h2>
+    <p class="chapo" id="evt-texte"></p>
+    <div id="evt-hemi"></div>
+    <div class="actions" id="evt-actions"></div>
+  </div>
+</section>
+
+<!-- Fin -->
+<section class="ecran" id="e-fin" aria-labelledby="t-fin">
+  <div class="ecran__fond" id="fin-fond" style="background-image:url(/mandats/art/legacy.webp)"></div>
+  <div class="ecran__in">
+    <p class="mono sur-titre" id="fin-sur">Fin du mandat</p>
+    <h2 class="grand" id="t-fin"></h2>
+    <p class="chapo" id="fin-texte"></p>
+    <div class="bilan-chiffres" id="fin-chiffres"></div>
+    <h3 class="mono" style="margin:8px 0 0;color:var(--iv3)">Les décisions qui ont compté</h3>
+    <ul class="titres" id="fin-decisions"></ul>
+    <div class="actions"><button class="cta" type="button" id="b-rejouer">Rejouer un mandat</button></div>
+  </div>
+</section>
+<noscript><p style="padding:24px">Mandats nécessite JavaScript. Les <a href="/mandats/methode/" style="color:#d9b45f">règles</a> restent lisibles sans.</p></noscript>
+<script type="module" src="/src/jeu/mandats.js"></script>
+</body>
+</html>
