@@ -36,7 +36,7 @@ test('Accueil : le récit et les accès aux données précèdent le jeu',async({
  const content=page.locator('.accueil-story');
  const geometry=await content.evaluate(root=>({recit:root.querySelector('[data-recit]').getBoundingClientRect().top,game:root.querySelector('.recit-mandats').getBoundingClientRect().top}));
  expect(geometry.recit).toBeLessThan(geometry.game);
- for(const link of ['/bilan/','/territoire/','/salaires/','/analyses/']) await expect(content.locator('a[href="'+link+'"]:visible').first()).toBeVisible();
+ for(const link of ['/bilan/#france-sorties','/territoire/','/salaires/','/analyses/']) await expect(content.locator('a[href="'+link+'"]:visible').first()).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
  await page.screenshot({path:info.outputPath('accueil-editorial-path.png'),fullPage:true});
 });

@@ -39,7 +39,7 @@ export function rendu(donnees: DonneesAccueil): string {
       <div class="recit-mandats-copy"><p class="recit-kicker">Mandats · Simulation présidentielle</p><h2 id="recit-mandats-title">Un pays.<br>Cinq ans.<br>Vos choix.</h2><p>Réformer, financer, faire face aux crises. Entrez dans le bureau du pouvoir et vivez les conséquences de vos décisions.</p><a class="recit-button" href="/mandats/?mode=national">Commencer mon mandat</a><p class="recit-mandats-note">Gratuit, sans compte. Les résultats de la partie sont simulés.</p></div>
       <figure><img src="/mandats/art/desk-france.webp" alt="Carte en relief de la France sur le bureau du pouvoir" width="1536" height="1024" loading="lazy"><figcaption>MANDATS <span>Le bureau du pouvoir</span></figcaption></figure>
     </section>
-    <div class="recit-method"><p>Des chiffres que vous pouvez vérifier.</p><a href="/sources/">Nos sources et notre méthode</a></div>
+    <div class="recit-method"><p>Des chiffres que vous pouvez vérifier.</p><a href="/sources/#methode">Nos sources et notre méthode</a></div>
     ${renduQuestionsAccueil()}
     <footer class="recit-footer"><a class="recit-footer-brand" href="/">500 Signatures</a><p>Les comptes publics, à portée de main.</p><nav aria-label="Navigation de fin de page"><a href="/sources/">Sources et méthode</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" target="_blank" rel="noreferrer noopener">500 Signatures sur X</a></nav></footer>
   </div>`;

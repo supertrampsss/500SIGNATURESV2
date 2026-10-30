@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 
 test('SEO : le lien de confiance de l’accueil ouvre directement la méthode', async ({ page }, info) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'Données vérifiées Une méthode transparente.', exact: true }).click();
+  await page.getByRole('link', { name: 'Nos sources et notre méthode', exact: true }).click();
   await expect(page).toHaveURL(/\/sources\/#methode$/);
   const method = page.getByRole('heading', { level: 2, name: 'La méthode', exact: true });
   // Native anchor scrolling rounds fractional font coordinates to whole pixels.
