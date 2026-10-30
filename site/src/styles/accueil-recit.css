@@ -39,7 +39,7 @@ html[data-theme] body[data-vue="accueil"] .accueil-recit {
 .accueil-recit :is(a,button,summary):focus-visible { outline:3px solid var(--recit-copper); outline-offset:5px; }
 .accueil-recit :is(.recit-sources,.recit-explorer,.recit-method) :is(a,button):focus-visible { outline-color:#795128; }
 .recit { --recit-nav-height:66px; position:relative; background:radial-gradient(ellipse 60% 50% at 78% 38%,#1c3152a6,transparent 70%),radial-gradient(ellipse 50% 40% at 20% 80%,#d9b45f14,transparent 70%),var(--recit-ink); }
-.recit-nav { position:sticky; top:var(--decalage-entete,80px); z-index:20; background:#0b1422f2; display:flex; justify-content:space-between; align-items:center; gap:16px; margin:0 4.5%; min-height:var(--recit-nav-height); border-bottom:1px solid #ffffff26; }
+.recit-nav { position:sticky; top:var(--decalage-entete,80px); z-index:20; background:#0b1422; box-shadow:0 0 0 100vmax #0b1422; clip-path:inset(0 -100vmax -3px); display:flex; justify-content:space-between; align-items:center; gap:16px; margin:0 4.5%; min-height:var(--recit-nav-height); border-bottom:1px solid #ffffff26; }
 .recit-nav-steps { display:flex; gap:28px; }
 .recit-nav a { display:inline-flex; align-items:center; min-height:44px; font-size:14px; text-decoration:none; color:var(--recit-muted); }
 .recit-nav a[aria-current] { color:var(--recit-paper); }
