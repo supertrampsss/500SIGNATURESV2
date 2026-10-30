@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 const PAGES = [
-  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Comprendre aujourd’hui' },
+  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: '100 €' },
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
   { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Les comptes de votre ville, en clair.' },
   { slug: 'ville-bordeaux', path: '/territoire?niveau=commune&territoire=33063', vue: 'territoire', heading: 'Bordeaux' },
@@ -15,6 +15,7 @@ const NAVIGATION = [
   ['Accueil', '/'],
   ['France', '/bilan/'],
   ['Ville', '/territoire/'],
+  ['Salaires', '/salaires/'],
   ['Dossiers', '/analyses/'],
   ['Mandats', '/mandats/'],
 ];
@@ -199,12 +200,12 @@ for (const pageCible of PAGES) {
           home: home ? { left: home.left, right: home.right, width: home.width } : null,
           brandIcons: document.querySelectorAll('.brand-e').length,
           duplicateQuestions: document.querySelectorAll('.story-questions').length,
-          doors: document.querySelectorAll('.story-door').length,
+          steps: document.querySelectorAll('[data-recit-panel]').length,
         };
       });
       expect.soft(accueil.brandIcons, 'le header Accueil doit rester texte seul').toBe(0);
       expect.soft(accueil.duplicateQuestions, 'le second jeu de cartes doit rester supprimé').toBe(0);
-      expect.soft(accueil.doors, 'les trois portes principales doivent rester visibles').toBe(3);
+      expect.soft(accueil.steps, 'les trois étapes du récit sont présentes').toBe(3);
       expect.soft(accueil.header).not.toBeNull();
       expect.soft(accueil.home).not.toBeNull();
       if (accueil.header && accueil.home) {

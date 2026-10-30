@@ -26,7 +26,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
+import { MESSAGE_PRINCIPAL, rendu as renduAccueil } from "../src/accueil.ts";
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
@@ -48,7 +48,6 @@ import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
   ADRESSE_PUBLIEE,
-  ALEA_PRERENDU,
   HOTE,
   adresseSite,
   adressesPubliees,
@@ -991,39 +990,16 @@ function texteDuMain(html: string): string {
     .trim();
 }
 
-/** Le catalogue des trois séries de l'exemple vivant, en euros — ce que
- *  l'entrepôt en déclare. */
-const CATALOGUE_EXEMPLE = CHIFFRES_EXEMPLE.map(
-  (id) => ({ id, libelle: `Série ${id}`, unite: "EUR" }) as Indicateur,
-);
-
-/** Une région du lot publié, complète ou trouée selon `series`. */
-function region(nom: string, series: Record<string, Record<string, number>>): Territoire {
-  return { nom, parent: null, population: 1_000_000, drapeaux: {}, series };
-}
-
-const TROIS_SERIES = Object.fromEntries(
-  CHIFFRES_EXEMPLE.map((id, rang) => [id, { "2024": 3_600_000_000 + rang, "2025": 3_800_000_000 + rang }]),
-);
-
-/**
- * Un lot dont la région au plus petit code est trouée, et dont les clés
- * arrivent dans le désordre.
- *
- * Les deux pièges dans un seul lot : « le premier » ne veut pas dire le premier
- * complet si l'on ne trie pas les éligibles, et il ne veut pas dire le premier
- * code si l'on s'en remet à l'ordre des clés — « 11 » passe devant « 01 » dans
- * tout objet JavaScript.
- */
-const LOT_ESSAI: Record<string, Territoire> = {
-  "11": region("Code plus grand, complet", TROIS_SERIES),
-  "01": region("Plus petit code, troué", { [CHIFFRES_EXEMPLE[0]]: { "2025": 1_000_000_000 } }),
-  "02": region("Plus petit code complet", TROIS_SERIES),
+const FRANCE_ACCUEIL: Territoire = {
+  nom: "France", parent: null, population: null, drapeaux: {},
+  series: {
+    eurostat_apu_recettes: { "2024": 1500000, "2025": 1600000 },
+    eurostat_apu_depenses: { "2024": 1650000 },
+  },
 };
 
-test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async () => {
-  const analyses = await analysesPubliees();
-  const corps = corpsAccueil(analyses, CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
+test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", () => {
+  const corps = corpsAccueil();
   const html = injecterAccueil(GABARIT_REEL, corps, "v-essai");
 
   // Les autres vues vivent dans le même gabarit mais sont masquées : ce test
@@ -1034,25 +1010,24 @@ test("12. le gabarit sert l'accueil narratif sans exécuter une ligne", async ()
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  assert.ok(texte.includes("Comprendre aujourd’hui"), "l'accroche n'est pas servie");
-  assert.ok(texte.includes("pour mieux agir demain."), "la promesse n'est pas complète");
-  for (const appel of ["Voir les comptes de la France", "Commencer mon mandat"]) {
+  assert.ok(texte.includes("Les comptes publics, à portée de main."), "le repli éditorial n'est pas servi sans comptes");
+  for (const appel of ["Lire le dossier France", "Commencer mon mandat"]) {
     assert.ok(texte.includes(appel), appel);
   }
-  assert.doesNotMatch(texte, /Explorez|Explorer|Voir tous les dossiers/);
   assert.ok(texte.length > 500, `<main> ne porte que ${texte.length} signes de texte`);
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
 });
 
-test("12 bis. le pré-rendu sert les trois portes avant la simulation", async () => {
-  const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
-  const debutPortes = corps.indexOf('class="story-section story-doors"');
-  const finPortes = corps.indexOf('class="story-mandats"', debutPortes);
+test("12 bis. le pré-rendu sert les outils avant la simulation", () => {
+  const corps = corpsAccueil();
+  const debutPortes = corps.indexOf('class="recit-explorer"');
+  const finPortes = corps.indexOf('class="recit-mandats"', debutPortes);
   const portes = corps.slice(debutPortes, finPortes);
   const parcours = [
-    ["Voir les comptes de la France", "/bilan/"],
-    ["Comprendre<br>votre ville", "/territoire/"],
-    ["Approfondir<br>un sujet", "/analyses/"],
+    ["Que finance-t-on, au juste ?", "/bilan/#france-sorties"],
+    ["Du coût employeur au net.", "/salaires/"],
+    ["Et près de chez vous ?", "/territoire/"],
+    ["Prendre le temps de comprendre.", "/analyses/"],
   ] as const;
   const positions = parcours.map(([libelle, href]) => {
     const position = portes.indexOf(`href="${href}"`);
@@ -1061,19 +1036,23 @@ test("12 bis. le pré-rendu sert les trois portes avant la simulation", async ()
   });
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
   assert.doesNotMatch(corps, /story-questions|Quelques questions pour commencer/);
-  assert.ok(corps.indexOf("Prenez les rênes du pays.") >= finPortes);
+  assert.ok(debutPortes >= 0 && finPortes > debutPortes);
   assert.ok(corps.includes('href="/mandats/?mode=national"'));
-  assert.ok(corps.includes('class="story-mandats__dashboard"'));
-  assert.ok(corps.indexOf('class="story-trust"') > corps.indexOf("Commencer mon mandat"));
+  assert.doesNotMatch(corps, /story-mandats__dashboard|story-mandats__metrics/);
+  assert.ok(corps.indexOf('class="recit-method"') > corps.indexOf("Commencer mon mandat"));
 });
 
-test("12 ter. le pré-rendu de l'accueil ne dépend plus d'un territoire tiré au sort", () => {
-  assert.equal(ALEA_PRERENDU, 0);
-  const corps = corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]);
-  assert.ok(!corps.includes("Plus petit code complet"));
-  assert.ok(!corps.includes("Plus petit code, troué"));
-  assert.ok(!corps.includes("Code plus grand, complet"));
-  assert.equal(corps, corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]));
+test("12 ter. les trois étapes sourcées sont servies sur le même exercice que le navigateur", () => {
+  const corps = corpsAccueil(FRANCE_ACCUEIL);
+  assert.equal(corps, renduAccueil({ france: FRANCE_ACCUEIL }));
+  assert.match(corps, /France · 2024/);
+  for (const id of ["recit-recettes", "recit-depenses", "recit-ecart", "recit-sources"]) {
+    assert.ok(corps.includes(`id="${id}"`), `${id} absent du HTML servi`);
+  }
+  assert.doesNotMatch(corps, /2025/);
+  const html = injecterAccueil(GABARIT_REEL, corps, "v-comptes");
+  assert.ok(texteDuMain(html).includes("2024"));
+  assert.equal(corps, corpsAccueil(FRANCE_ACCUEIL));
 });
 
 test("12 ter. le pré-rendu rougit si le cadre disparaît ou repart replié", () => {
@@ -1103,7 +1082,7 @@ test("12 quater. le build écrit l'accueil dans le gabarit, et le gabarit seulem
   assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
   assert.match(
     corps,
-    /injecterAccueil\(shell, corpsAccueil\(analyses, catalogue, regions, producteurs, pays\.FR\), version\)/,
+    /injecterAccueil\(shell, corpsAccueil\(pays\.FR\), version\)/,
     "main() n'écrit plus l'accueil : la racine repartirait vide pour qui n'exécute pas JavaScript.",
   );
   // Le corps des cinq autres vues n'est pas touché : l'application se monte

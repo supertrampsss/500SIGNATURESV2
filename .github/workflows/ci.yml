@@ -41,6 +41,10 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Game and editorial mobile and desktop browser tests
         run: npm run test:mandats
+      - name: Interactive home story across desktop, touch and WebKit
+        run: npm run test:recit
+        env:
+          MANDATS_RECIT_PHASE: ci
       - name: Browser validation artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -49,6 +53,7 @@ jobs:
           path: |
             site/playwright-report-mandats/
             site/test-results/
+            site/recit-artifacts/
           retention-days: 7
 
   database:

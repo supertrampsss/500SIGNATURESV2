@@ -95,7 +95,7 @@ test('SEO : les aides d’usage restent accessibles sans JavaScript sur accueil 
       const image = info.outputPath((path === '/' ? 'accueil' : 'ville') + '-aide-sans-js.png');
       await help.screenshot({ path: image });
       await info.attach(path === '/' ? 'accueil-aide' : 'ville-aide', { path: image, contentType: 'image/png' });
-      if (path === '/') await expect(page.locator('.story-door[href="/territoire/"]')).toBeVisible();
+      if (path === '/') await expect(page.locator('.accueil-story a[href="/territoire/"]').first()).toBeVisible();
       else await expect(page.getByRole('combobox', { name: 'Rechercher une ville' })).toBeVisible();
     }
   } finally { await context.close(); }

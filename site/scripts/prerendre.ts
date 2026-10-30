@@ -27,15 +27,9 @@ import { SEARCH_DESCRIPTIONS } from "./search-descriptions.ts";
 import { SEO_DOSSIERS, TITRES_QUESTIONS, validerMaillageEditorial } from "../src/seo-editorial.ts";
 import { libelleTheme } from "../src/themes.ts";
 
-// Le message principal du site vit désormais dans `src/accueil.ts`, la page qui
-// le pose à l'écran (spec §8). Il était ici, où la carte de partage du
-// simulateur le peint : l'import inverse — l'accueil lisant un script de build
-// — aurait fait entrer `node:fs` dans le module graphe du navigateur. Une seule
-// rédaction, lue des deux côtés.
+// Le rendu de l’accueil et la description des cartes de partage sont partagés.
 import {
   rendu as renduAccueil,
-  exemplesTerritoires,
-  MAILLE_EXEMPLE,
   MESSAGE_PRINCIPAL,
 } from "../src/accueil.ts";
 import { rendu, renduDossierVedette, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
@@ -591,9 +585,7 @@ export function sections(shell: string): { chemin: string; nature: string; titre
     // Le simulateur ne déclare aucune phrase qui ne dépende des fichiers
     // publiés : le seul titre qu'il écrit à l'écran compte les budgets qu'il a
     // montés. Celle-ci n'est pas une accroche écrite pour remplir l'image,
-    // c'est le message principal du site, arrêté à la conception (spec §8) et
-    // que l'accueil pose en tête de page — le simulateur est ce que son dernier
-    // mot désigne.
+    // c'est la description commune au site et à sa carte de partage.
     //
     // Le gabarit porte désormais ce même message en description, et cette carte
     // ne se distingue donc de celle du site que par son chapeau. C'est bien : ce
@@ -822,62 +814,9 @@ function injecterPartage(html: string, page: Partageable, site: string): string 
  * L'accueil, écrit dans le gabarit.
  * ----------------------------------------------------------------------- */
 
-/**
- * Le tirage de l'exemple vivant, au build : le premier de la liste publiée.
- *
- * `tirerTerritoire` (accueil.ts) **reçoit** sa source d'aléa, elle ne l'appelle
- * pas — c'est ce qui rend le bloc éprouvable sur chaque tirage possible. Un
- * pré-rendu doit donc choisir, et ce choix vaut pour tout lecteur qui reçoit la
- * page avant que le paquet n'arrive.
- *
- * Zéro, donc le premier territoire **complet** de la liste, et cette liste sort
- * triée par code (`exemplesTerritoires`, accueil.ts) : le premier code de la
- * maille publiée. Ce n'est pas un choix éditorial — aucun classement, le projet
- * n'en fait aucun, aucune préférence pour une région plutôt qu'une autre, et
- * rien qui dépende de la taille des montants. C'est une règle qu'on peut
- * vérifier sur le fichier publié, ce qu'aucune préférence n'aurait été.
- *
- * Surtout, ce n'est pas un aléa refait à chaque build : deux constructions du
- * même dépôt donneraient alors deux pages, et le diff du site deviendrait
- * illisible — on ne saurait plus lire ce qu'un commit a changé.
- */
-export const ALEA_PRERENDU = 0;
-
-/**
- * L'accueil, composé sur la publication que ce build a lue.
- *
- * Le même appel que le navigateur fait (`peindreAccueil`, main.ts), avec les
- * mêmes données et la même fonction : `rendu()` est pure, et c'est tout ce que
- * le pré-rendu ajoute ici — l'avoir déjà appelée quand la page part.
- *
- * Y compris les indicateurs calculés, que le navigateur ajoute au catalogue
- * avant de peindre (`indicateursDerives`, derives.ts) : la bande de confiance
- * compte le catalogue qu'elle reçoit, et un pré-rendu qui en compterait un autre
- * ferait sauter le nombre d'un chiffre à l'autre le jour où le navigateur
- * repeint — la même phrase, deux comptes. Faut-il compter comme « publié » un
- * indicateur que le site calcule ? C'est une question éditoriale, et elle ne se
- * tranche pas en passant, dans un script de build : elle se tranche à un seul
- * endroit, pour les deux côtés.
- *
- * Ce catalogue-là ne sert qu'ici : les pages d'analyse reçoivent le catalogue
- * publié, tel qu'elles le recevaient.
- */
-export function corpsAccueil(
-  analyses: readonly Analyse[],
-  catalogue: Indicateur[],
-  regions: Record<string, Territoire>,
-  producteurs: readonly string[],
-  france?: Territoire,
-): string {
-  const complet = [...catalogue, ...indicateursDerives(catalogue)];
-  return renduAccueil({
-    france,
-    analyses,
-    catalogue: complet,
-    territoires: exemplesTerritoires(regions, complet),
-    alea: ALEA_PRERENDU,
-    producteurs,
-  });
+/** Le serveur et le navigateur rendent les mêmes comptes nationaux publiés. */
+export function corpsAccueil(france?: Territoire): string {
+  return renduAccueil({ france });
 }
 
 /** Le cadre de l'accueil dans le gabarit, tel qu'`index.html` le pose. */
@@ -898,8 +837,8 @@ const CADRE_ACCUEIL = /<div class="vue vue--accueil" id="vue-accueil"([^>]*)><\/
  * `data-publication` est ce qui accorde le serveur et le navigateur :
  * `peindreAccueil` (main.ts) compare cette valeur à la version qu'il lit dans
  * `derniere.json` et **ne repeint pas** tant qu'elles sont les mêmes. Sans elle,
- * le client réécrirait l'accueil une seconde après l'ouverture, avec un autre
- * tirage — l'exemple changerait sous les yeux du lecteur.
+ * le client réécrirait l'accueil au chargement et ferait perdre au lecteur
+ * l'étape ou la source qu'il venait d'ouvrir.
  */
 export function injecterAccueil(shell: string, corps: string, version: string): string {
   const cadre = shell.match(CADRE_ACCUEIL);
@@ -1020,13 +959,8 @@ function replierCadre(html: string, id: string): string {
  * même manifeste et les mêmes fonctions — c'est tout ce que le pré-rendu ajoute
  * ici : les avoir déjà appelées quand la page part.
  *
- * Pas de `data-publication`, contrairement à l'accueil, et pour une raison
- * précise : l'accueil TIRE un exemple, et un second tirage côté navigateur
- * ferait changer le territoire sous les yeux du lecteur. Ici rien n'est tiré.
- * `renduMethode()` et `renduGrille()` sont constantes, et `renduSources()` rend
- * le manifeste — celui du build au départ, celui du serveur quand le paquet
- * arrive. Repeindre ne déplace donc rien, et quand les deux manifestes diffèrent
- * c'est le plus frais qui doit gagner.
+ * Le document de bilan ne porte pas le marqueur de publication de l’accueil.
+ * Les deux pages conservent chacune leur contenu et leur état de lecture.
  *
  * L'accueil, lui, est replié : le gabarit le sert déplié pour la racine, et un
  * document de `/bilan` qui le porterait déplié montrerait l'accueil au-dessus
@@ -1300,8 +1234,6 @@ async function chargerPublication(): Promise<{
   version: string;
   racineDonnees: string;
   jeux: Jeu[];
-  producteurs: string[];
-  regions: Record<string, Territoire>;
   pays: Record<string, Territoire>;
   niches: DepensesFiscales;
   budget: BudgetEtat;
@@ -1309,20 +1241,8 @@ async function chargerPublication(): Promise<{
   const { version } = await lireJson<{ version: string }>(`${BASE}/data/derniere.json`);
   const racineDonnees = `${BASE}/data/${version}`;
   const catalogue = await lireJson<Indicateur[]>(`${racineDonnees}/indicateurs.json`);
-  // Ce que l'accueil demande en plus du catalogue : les producteurs, qu'il
-  // nomme dans sa bande de confiance, et le lot des régions, où il prend son
-  // exemple vivant. Ce sont les deux mêmes fichiers que le navigateur charge
-  // (`donnees.initialiser` et `donnees.territoires`), aux mêmes adresses — et
-  // non un tirage plus court composé pour le build.
-  //
-  // Le manifeste sert aussi la page MÉTHODE, qui liste les jeux entiers —
-  // producteur, titre, licence, date de lecture — et non leurs seuls
-  // producteurs. Un seul chargement pour les deux pages : deux lectures du même
-  // fichier auraient pu partir sur deux publications.
+  // Le registre des sources et la méthode utilisent les jeux du manifeste.
   const manifeste = await lireJson<Manifeste>(`${racineDonnees}/manifeste.json`);
-  const regions = await lireJson<Record<string, Territoire>>(
-    `${racineDonnees}/territoires/${MAILLE_EXEMPLE}/tous.json`,
-  );
   // Les trois fichiers de la page REPÈRES, aux adresses que `donnees.ts` lit
   // (`territoires`, `depensesFiscales`, `budgetEtat`). `demarrer()` les charge
   // dans deux `try` séparés, pour qu'une publication amputée n'emporte pas la
@@ -1339,8 +1259,6 @@ async function chargerPublication(): Promise<{
     version,
     racineDonnees,
     jeux: manifeste.jeux,
-    producteurs: manifeste.jeux.map((jeu) => jeu.producteur),
-    regions,
     pays,
     niches,
     budget,
@@ -1651,7 +1569,7 @@ async function main(): Promise<void> {
   );
   const adsenseId = identifiantAdsense(process.env.ADSENSE_PUBLISHER_ID);
   const analyses = await chargerAnalyses();
-  const { catalogue, version, racineDonnees, jeux, producteurs, regions, pays, niches, budget } =
+  const { catalogue, version, racineDonnees, jeux, pays, niches, budget } =
     await chargerPublication();
 
   await validerCadresPublies(racineDonnees);
@@ -1782,7 +1700,7 @@ async function main(): Promise<void> {
   // y remplace le titre, la description et l'image par ceux du scénario
   // demandé (`poserApercu`, src/apercu-scenario.ts).
   const htmlSite = injecterPartage(
-    injecterAccueil(shell, corpsAccueil(analyses, catalogue, regions, producteurs, pays.FR), version),
+    injecterAccueil(shell, corpsAccueil(pays.FR), version),
     {
       titre: titreDuGabarit(shell),
       description: descriptionDuGabarit(shell),
