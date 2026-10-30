@@ -37,6 +37,7 @@ html[data-theme] body[data-vue="accueil"] .accueil-recit {
 .accueil-recit :is(h1,h2,h3,p,figure) { margin:0; }
 .accueil-recit a { color:inherit; text-underline-offset:5px; }
 .accueil-recit :is(a,button,summary):focus-visible { outline:3px solid var(--recit-copper); outline-offset:5px; }
+.accueil-recit :is(.recit-sources,.recit-explorer,.recit-method) :is(a,button):focus-visible { outline-color:#795128; }
 .recit { --recit-nav-height:66px; background:radial-gradient(ellipse at 78% 35%,#20343280,transparent 48%),var(--recit-ink); }
 .recit-nav { position:sticky; top:var(--decalage-entete,80px); z-index:20; background:#101a1cf7; display:flex; justify-content:space-between; align-items:center; gap:16px; margin:0 4.5%; min-height:var(--recit-nav-height); border-bottom:1px solid #ffffff26; }
 .recit-nav-steps { display:flex; gap:28px; }
