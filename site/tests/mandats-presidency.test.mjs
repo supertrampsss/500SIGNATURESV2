@@ -718,7 +718,7 @@ test('v17 automatic ending keeps real keyboard focus inside the modal through th
 
 for(const panel of ['priorities','reforms','government'])test(`v17 manual modal keyboard reading and return stay intact: ${panel}`,async({page})=>{
  await load(page,{...BASE,version:17,seed:1});
- const opener=page.locator(`.pr-strategy-brief [data-panel="${panel}"]`);await opener.click();
+ const opener=page.locator(`${panel==='priorities'?'.pr-strategy-brief':'.pr-navigation'} [data-panel="${panel}"]`);await opener.click();
  const dialog=page.locator(`[data-presidency-panel="${panel}"]`);await expect(dialog.locator('h2')).toBeFocused();
  const controls=modalKeyboardControls(dialog),before=await rawSave(page);
  await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();
@@ -764,7 +764,7 @@ test('v17 modal keyboard works without checkVisibility and skips closed or CSS-h
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await load(page,{...BASE,version:17,seed:1});
  expect(await page.evaluate(()=>typeof Element.prototype.checkVisibility)).toBe('undefined');
- const opener=page.locator('.pr-strategy-brief [data-panel="reforms"]');await opener.click();
+ const opener=page.locator('.pr-navigation [data-panel="reforms"]');await opener.click();
  const dialog=page.locator('[data-presidency-panel="reforms"]'),controls=modalKeyboardControls(dialog),before=await rawSave(page);
  await expect(dialog.locator('h2')).toBeFocused();
  await page.keyboard.press('Shift+Tab');await expect(controls.last()).toBeFocused();

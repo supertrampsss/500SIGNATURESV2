@@ -85,9 +85,10 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
   await activate(play,info);
   await expect(page.locator('section[data-presidency]')).toBeVisible();
   await expect(page.locator('[data-presidency-art]')).toBeVisible();
-  await expect(page.locator('[data-live-date]')).toHaveText('Année 1');
-  await expect(page.getByRole('button',{name:'Cabinet',exact:true})).toBeInViewport();
-  await expect(page.getByRole('button',{name:'Réformes',exact:true})).toBeInViewport();
+  await expect(page.locator('[data-live-term]')).toHaveText('Année 1 / 5');
+  await expect(page.locator('[data-live-date]')).toHaveText('Janvier et février');
+  await expect(page.getByRole('button',{name:'Gouvernement',exact:true})).toBeInViewport();
+  await expect(page.getByRole('button',{name:'Grandes réformes',exact:true})).toBeInViewport();
   await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
   if(await page.locator('section[data-presidency]').getAttribute('data-preview')==='true')
    await activate(page.getByRole('button',{name:'Jouer ce mandat',exact:true}),info);
