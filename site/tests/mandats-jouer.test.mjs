@@ -71,10 +71,17 @@ test('une grande réforme passe devant l’Assemblée et laisse sa trace', async
   await expect(reforme).toContainText('Pointage');
   await reforme.click();
   await expect(page.locator('#pointage')).toContainText('pour');
+  // Coûts et effets différés visibles avant le vote, comme dans le catalogue.
+  await expect(page.locator('.consequences-reforme .puce').first()).toBeVisible();
+  const avant = await page.locator('#pointage b').first().textContent();
   await page.getByRole('button', { name: /Négocier avec les centristes/ }).click();
   await expect(page.getByRole('button', { name: /Négocier avec les centristes/ })).toHaveAttribute('aria-pressed', 'true');
+  const annonce = await page.locator('#pointage b').first().textContent();
+  expect(Number(annonce)).toBeGreaterThan(Number(avant));
   await page.getByRole('button', { name: 'Présenter au vote' }).click();
   await expect(page.locator('#e-evt')).toHaveClass(/ouvert/);
+  // Le résultat reprend exactement le pointage annoncé.
+  await expect(page.locator('#e-evt')).toContainText(`${annonce} voix pour`);
   await expect(page.locator('#evt-sur')).toHaveText('Assemblée nationale');
   await page.locator('#evt-actions button').last().click();
   await expect(page.getByRole('button', { name: 'Réforme présentée ce trimestre' })).toBeDisabled();

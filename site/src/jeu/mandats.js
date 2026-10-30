@@ -385,12 +385,14 @@ function ouvrirReformes() {
   $('#d-options').classList.remove('verrou');
   $('#d-options').innerHTML = reformesDisponibles().map(r => {
     const v = voteReforme(r);
-    return `<button type="button" class="option" data-r="${r.id}"><span class="reforme-eco tab">−${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€/an</span><b>${r.t}</b>${r.d ? `<span>${r.d}</span>` : ''}<span class="puces">${puces(r.e)}${r.risque ? `<span class="puce risque">⚠ Risque ${Math.round(r.risque.p * 100)} % : ${r.risque.titre.toLowerCase()}</span>` : ''}${r.ch ? puces(r.ch.e, true).replace(/<span class="puce plus-tard"/g, `<span class="puce plus-tard" data-pt`).replace(/data-pt([^>]*)>/g, `$1>Dans ${r.ch.n} trim. · `) : ''}<span class="puce ${v.passe ? 'bon' : 'mal'}">Pointage : ${v.pour} pour, ${v.contre} contre</span></span></button>`;
+    return `<button type="button" class="option" data-r="${r.id}"><span class="reforme-eco tab">−${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€/an</span><b>${r.t}</b>${r.d ? `<span>${r.d}</span>` : ''}<span class="puces">${pucesReforme(r)}<span class="puce ${v.passe ? 'bon' : 'mal'}">Pointage : ${v.pour} pour, ${v.contre} contre</span></span></button>`;
   }).join('') + '<p class="note-hyp">Montants : ordres de grandeur, hypothèses de jeu. Le pointage dépend de votre majorité et de votre popularité.</p>';
   $('#d-options').querySelectorAll('.option').forEach(b => b.addEventListener('click', () => { const r = REFORMES.find(x => x.id === b.dataset.r); fermer(); setTimeout(() => ouvrirNegociation(r), reduit ? 0 : 360); }));
   const p = $('#decision'); p.hidden = false; requestAnimationFrame(() => { p.classList.add('ouvert'); $('#voile-dec').classList.add('ouvert'); });
   setTimeout(() => { const o = $('#d-options .option'); if (o) o.focus(); }, reduit ? 0 : 250);
 }
+/* Coûts immédiats, effets différés et risque : affichés avant tout vote. */
+function pucesReforme(r) { return `${puces(r.e)}${r.risque ? `<span class="puce risque">⚠ Risque ${Math.round(r.risque.p * 100)} % : ${r.risque.titre.toLowerCase()}</span>` : ''}${r.ch ? puces(r.ch.e, true).replace(/<span class="puce plus-tard"/g, `<span class="puce plus-tard" data-pt`).replace(/data-pt([^>]*)>/g, `$1>Dans ${r.ch.n} trim. · `) : ''}`; }
 function reformesDisponibles() { return REFORMES.filter(r => !S.reformes[r.id] || S.reformes[r.id] === 'rejet' && S.tour - (S.reformes[r.id + '_t'] || 0) >= 4); }
 function carteReforme() {
   if (S.reformeTour === S.tour || !S.offre) return '';
@@ -421,7 +423,8 @@ function ouvrirNegociation(r) {
   $('#d-titre').textContent = r.t;
   $('#d-texte').textContent = `${r.d ? r.d + ' ' : ''}Économie visée : ${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€ par an. Comptez vos voix, négociez, puis présentez le texte.`;
   $('#d-options').classList.remove('verrou');
-  $('#d-options').innerHTML = `<div class="pointage" id="pointage" aria-live="polite"></div>
+  $('#d-options').innerHTML = `<p class="mono" style="margin:0;color:var(--encre-2)">Si le texte est adopté</p><p class="puces consequences-reforme">${pucesReforme(r)}</p>
+    <div class="pointage" id="pointage" aria-live="polite"></div>
     <p class="mono" style="margin:6px 0 0;color:var(--encre-2)">Soutiens à négocier</p>
     ${SOUTIENS.map(a => `<button type="button" class="option nego" data-a="${a.id}" aria-pressed="false"><b>${a.t}</b><span>${a.d}</span><span class="puces"><span class="puce bon">▲ +${a.voix} voix</span>${a.eco ? `<span class="puce mal">▼ Économie −${Math.round(-a.eco * 100)} %</span>` : ''}${puces(a.e)}</span></button>`).join('')}
     <div class="actions-nego"><button type="button" class="cta" id="b-presenter">Présenter au vote</button><button type="button" class="cta second-clair" id="b-retirer">Pas maintenant</button></div>
@@ -452,8 +455,9 @@ function presenter(r) {
   const soutiens = SOUTIENS.filter(a => negociation && negociation.has(a.id));
   const facteur = facteurNegociation(), bonus = bonusNegociation();
   S.reformeTour = S.tour; fermer(); mode = 'dossier'; negociation = null;
-  soutiens.forEach(a => { appliquer(a.e, true); S.maj = clamp(S.maj + 3, 120, 420); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Accord : ${a.t.toLowerCase()}` }); });
+  // Le vote se compte sur l'état affiché au pointage ; les accords prennent effet ensuite.
   const v = voteReforme(r, bonus);
+  soutiens.forEach(a => { appliquer(a.e, true); S.maj = clamp(S.maj + 3, 120, 420); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Accord : ${a.t.toLowerCase()}` }); });
   setTimeout(() => {
     enCours = false;
     if (v.passe) { adopterReforme(r, facteur); evenement('Assemblée nationale', 'Réforme adoptée', `${r.t}. ${v.pour} voix pour, ${v.contre} contre.`, v, '/mandats/art/parliament.webp', [['Continuer', apresReforme]]); }
