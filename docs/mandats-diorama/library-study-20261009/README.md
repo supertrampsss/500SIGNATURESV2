@@ -1,5 +1,7 @@
 # Atelier de modèles existants du 9 octobre 2026
 
+> Archive technique : cette étude concerne un rendu abandonné. Son moteur et ses recettes ont été retirés du code actif le 29 octobre 2026. Les [sources de cette étude](https://github.com/supertrampsss/500SIGNATURESV2/tree/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools) restent consultables dans l’historique Git. Le rendu actuel est décrit dans [le bureau du pouvoir](../../mandats-desk.md).
+
 La [maquette confirmée](../reference-ordinateur.png) reste la cible. Le rendu
 complet reste **NONCONFORM**. Cet atelier prépare des modèles CC0 et les importe
 expérimentalement dans le jeu. Aucun nouveau modèle n'est intégré à la source 37
@@ -12,7 +14,7 @@ source ou un build 38.
 Le rocher Poly Haven de Rico Cilliers est adapté à partir de son vrai maillage et
 de ses textures. La maison assemble les façades, fenêtres, porte, menuiseries,
 toiture et cheminée du kit Quaternius 2025. Les
-[recettes reproductibles](../../../tools/mandats-library-assets/README.md)
+[recettes reproductibles](https://github.com/supertrampsss/500SIGNATURESV2/blob/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools/mandats-library-assets/README.md)
 conservent ces composants ; elles ne dessinent pas une imitation de leur aperçu.
 
 | Candidat | Export réellement inspecté | État |

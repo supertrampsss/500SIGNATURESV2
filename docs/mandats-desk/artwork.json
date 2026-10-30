@@ -1,0 +1,34 @@
+{
+  "reference": "reference.png",
+  "referenceSha256": "72f4cecff82af8bab380d445d5af6c84f74f8246cb650d7d649408082b3b7d0e",
+  "assets": [
+    {
+      "id": "desk-france",
+      "source": "ImageGen original production artwork, 29 October 2026",
+      "originalFile": "exec-2eb99615-e194-4f30-afc8-9fe8106cc740.png",
+      "originalSha256": "a36a6585b4c1debce06154b6584412a6a92c4d86569c0d22a70f043e8e571abe",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "asset": "site/public/mandats/art/desk-france.webp",
+      "assetSha256": "d4de007ac52ad11be7a0b1a6970c068185b8d65681bc764d6be94631891d48c0",
+      "webpQuality": 88,
+      "containsInterface": false
+    },
+    {
+      "id": "desk-walnut",
+      "source": "ImageGen original production artwork, 29 October 2026",
+      "originalFile": "exec-14d8c295-4180-44cf-9498-d5215b647d76.png",
+      "originalSha256": "3cbdd1328d366eb798f11f2d37102627f21f24c9a8c71ff4af553b4d680a9ab4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "asset": "site/public/mandats/art/desk-walnut.webp",
+      "assetSha256": "87531301bd02afec6d27da09efe96656036922542031d5e0d38db9d5b2651d49",
+      "webpQuality": 84,
+      "containsInterface": false
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 const KEY = '500signatures.mandats.v1';
 const sectors = ['health','housing','transport','energy','education','administration'];
+const sectorNames={health:'Santé',housing:'Logement',transport:'Transports',energy:'Énergie',education:'Éducation',administration:'Démarches'};
 async function setup(page) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   // pauseAt installs the clock itself: one call avoids a running-clock gap
@@ -23,6 +24,55 @@ async function hit(locator) {
   await expect(locator).toBeInViewport({ratio:1});
   expect(await locator.evaluate(el => { const r=el.getBoundingClientRect(), h=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return h===el||el.contains(h); })).toBe(true);
 }
+async function openCurrentBalance(page) {
+  const button=page.locator('.pr-navigation [data-panel="balance"]');
+  await hit(button); await button.click();
+  const panel=page.locator('[data-presidency-panel="balance"]');
+  await expect(panel).toBeVisible();
+  const storage=new URL('../src/mandats/storage.ts',import.meta.url).href;
+  const strategy=new URL('../src/mandats/presidency-strategy-engine.ts',import.meta.url).href;
+  const raw=await page.evaluate(key=>localStorage.getItem(key),KEY);
+  const goals=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','--input-type=module','-e',`import{decode}from${JSON.stringify(storage)};import{strategyOutcome}from${JSON.stringify(strategy)};let raw='';for await(const part of process.stdin)raw+=part;process.stdout.write(JSON.stringify(strategyOutcome(decode(raw)).objectives));`],{input:raw,encoding:'utf8'}));
+  await expect(panel.locator('[data-strategy-objective]')).toHaveCount(goals.length);
+  for(const goal of goals){const actual=panel.locator(`[data-strategy-objective="${goal.id}"]`);await expect(actual).toHaveAttribute('data-objective-state',goal.met?'met':'unmet');await expect(actual).toContainText(goal.title);await expect(actual).toContainText(goal.current);await expect(actual).toContainText(goal.target);}
+  return panel;
+}
+async function closeCurrentBalance(page) {
+  await page.locator('[data-presidency-panel="balance"]').getByRole('button',{name:'Fermer et revenir au pays',exact:true}).click();
+  await expect(page.locator('.pr-navigation [data-panel="balance"]')).toBeFocused();
+}
+async function namedMapTarget(page,id) {
+  // Opening/closing a reader schedules pin projection on the next frame.
+  // The browser clock is frozen in this fixture, so explicitly render that frame.
+  await page.clock.runFor(32);
+  const pin=page.locator(`[data-live-pin="${id}"]`),stamp=page.locator(`[data-presidency-front="${id}"]`);
+  await hit(pin); const box=await pin.boundingBox();
+  expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+  await expect(pin).toHaveAccessibleName(new RegExp(sectorNames[id]));
+  await expect(stamp).toHaveAccessibleName(new RegExp(`${sectorNames[id]}.*pression`, 'i'));
+  await expect(stamp).toHaveAttribute('data-severity',await pin.getAttribute('data-severity'));
+  await expect(stamp).toHaveAttribute('data-working',await pin.getAttribute('data-working'));
+  const label=await pin.getAttribute('data-pin-layout')==='compact'?stamp.locator('.pr-sector__reading>span'):pin.locator('.pr-pin__label');
+  await expect(label).toBeVisible(); await expect(label).toContainText(sectorNames[id]);
+  return pin;
+}
+async function isolatedPhoneDossier(page) {
+  if(page.viewportSize().width>650)return;
+  await expect(page.locator('.pr-country')).toBeHidden();
+  await expect(page.locator('.pr-sectors')).toBeHidden();
+  const close=page.getByRole('button',{name:'Fermer les commandes',exact:true});
+  await close.focus();
+  for(let i=0;i<10;i++){
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(()=>Boolean(document.activeElement?.closest('.pr-country,.pr-sectors')))).toBe(false);
+  }
+  await close.focus();
+}
+async function restoredMap(page) {
+  await expect(page.locator('.pr-country')).toBeVisible();await expect(page.locator('.pr-sectors')).toBeVisible();
+  await expect(page.locator('.pr-sector-pin:visible')).toHaveCount(6);
+  for(const id of sectors){await namedMapTarget(page,id);await hit(page.locator(`[data-presidency-front="${id}"]`));}
+}
 test('setup fige l’horloge avant navigation et avance seulement sur commande',async({page})=>{
   await setup(page);
   const before=await page.evaluate(()=>({date:Date.now(),ticks:performance.now()}));
@@ -41,10 +91,10 @@ test('entrée v17 explique périodes autonomes et durée active',async({page})=>
 });
 test('six pins réels et objectifs restent accessibles pendant un arbitrage',async({page},info)=>{
   await start(page); await expect(page.locator('[data-live-pin]')).toHaveCount(6); await page.screenshot({path:info.outputPath('board.png')});
-  for(const id of sectors){await page.clock.runFor(32);const pin=page.locator(`[data-live-pin="${id}"]`);await expect(pin.locator(".pr-pin__label")).toBeVisible();await hit(pin);await pin.click();await expect(page.locator(`[data-strategy-sector="${id}"]`)).toBeVisible();await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click();}
+  for(const id of sectors){await page.clock.runFor(32);const pin=await namedMapTarget(page,id);await pin.click();await expect(page.locator(`[data-strategy-sector="${id}"]`)).toBeVisible();await isolatedPhoneDossier(page);await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click();await restoredMap(page);}
   await page.locator('[data-presidency-front="health"]').click(); await page.clock.runFor(32);
-  await hit(page.locator('.pr-strategy-cap'));
-  for (const selector of ['.pr-pressure-legend','.pr-calendar strong','.pr-calendar>span']) {
+  await hit(page.locator('.pr-navigation [data-panel="balance"]'));
+  for (const selector of ['.pr-pressure-legend','.pr-calendar strong','.pr-calendar>[data-live-date]']) {
     expect(await page.locator(selector).evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(12);
   }
   if (page.viewportSize().width > 650) {
@@ -52,7 +102,8 @@ test('six pins réels et objectifs restent accessibles pendant un arbitrage',asy
     for (const id of sectors) { const pin=page.locator(`[data-live-pin="${id}"]`); await hit(pin); const box=await pin.boundingBox();expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);boxes.push(box); }
     for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const a=boxes[i],b=boxes[j];expect(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y).toBe(true);}
   }
-  await expect(page.locator('.pr-strategy-cap')).toContainText('objectifs actuellement atteints');
+  await openCurrentBalance(page); await closeCurrentBalance(page);
+  await page.locator('[data-presidency-front="health"]').click(); await page.clock.runFor(32);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   const cards=page.locator('[data-strategy-primary] button');
   const a=await cards.nth(0).boundingBox(),b=await cards.nth(1).boundingBox();expect(b.y).toBeGreaterThanOrEqual(a.y+a.height-1);
@@ -116,7 +167,7 @@ async function failCanonical(page){await page.evaluate(key=>{const original=Stor
 
 test('bulletin complet date les nouvelles, garde la pause et rend le focus sans rattrapage',async({page},info)=>{
   await start(page);await page.clock.runFor(5001);const before=await rawSave(page);
-  await bulletin(page);await expect(page.getByRole('dialog')).toContainText('Janvier–février');
+  await bulletin(page);await expect(page.getByRole('dialog')).toContainText('Janvier et février');
   await expect(page.getByRole('dialog')).toContainText('simule les périodes, ne donne aucun ordre');
   await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
   await page.clock.runFor(120001);expect(await rawSave(page)).toBe(before);
@@ -149,7 +200,10 @@ test('projection atomique équivaut aux périodes ordinaires et ne double pas un
 });
 test('commande Avancer directe arrête une horloge active et ignore la répétition clavier et un onglet masqué',async({page},info)=>{
   await start(page);await page.clock.runFor(10001);const before=await rawSave(page),expected=state(before,true);
-  const button=page.locator('.pr-strategy-controls [data-action="presidency-project"]');await hit(button);
+  const button=page.locator('.pr-strategy-controls [data-action="presidency-project"]');
+  // The desk keeps this optional projection in its dossier. Short screens
+  // scroll that reader; the ordinary clock and reform folders stay fixed.
+  await button.scrollIntoViewIfNeeded();await hit(button);
   expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
   await button.focus();await page.keyboard.press('Enter');await page.keyboard.press('Enter');
   expect(state(await rawSave(page))).toEqual(expected.game);await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
@@ -270,11 +324,13 @@ test('régression joueur612 rectangles réels séparés avec événements et pan
   // for a measured layout of this viewport, then assert the actual rectangles.
   await expect.poll(async()=>{await page.clock.runFor(32);return page.evaluate(()=>{const host=document.querySelector('[data-presidency]'),r=host.querySelector('.pr-country').getBoundingClientRect();return host.dataset.pinLayoutViewport===`${Math.round(r.width)}x${Math.round(r.height)}`;});}).toBe(true);
   await expect(page.locator('.pr-sector-pin:visible')).toHaveCount(6); await noBoardCollisions(page);
-  await expect(page.locator('.pr-strategy-cap>strong')).toBeVisible(); await expect(page.locator('.pr-strategy-cap>strong')).toContainText('39,93');
+  await expect(await openCurrentBalance(page)).toContainText('39,93'); await closeCurrentBalance(page);
   await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64); await noBoardCollisions(page);
+  if(width<=650){await isolatedPhoneDossier(page);await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click();await page.clock.runFor(64);await restoredMap(page);}
   await page.locator('[data-live-pin="housing"]').click(); await page.clock.runFor(64); await expect(page.locator('[data-strategy-sector="housing"]')).toBeVisible(); await noBoardCollisions(page);
+  await isolatedPhoneDossier(page);
   await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
-  await expect(page.locator('.pr-sectors')).toBeVisible(); await noBoardCollisions(page);
+  await restoredMap(page); await noBoardCollisions(page);
  }
 });
 test('régression joueur612 risque objectif et vote dans leur contexte rendu',async({page})=>{
@@ -287,7 +343,8 @@ test('régression joueur612 risque objectif et vote dans leur contexte rendu',as
 test('régression joueur612 vote immédiatement dans les réformes',async({page})=>{
  await load(page,await playerInput('r21a'),612);
  await page.locator('[data-panel="reforms"]').click();
- await page.locator('[data-live-reform]').filter({has:page.locator('[data-order="r21a"]')}).locator(':scope > summary').click();
+ const reform=page.locator('[data-live-reform]').filter({has:page.locator('[data-order="r21a"]')});
+ if(await reform.getAttribute('open')===null)await reform.locator(':scope > summary').click();
  await page.locator('[data-order="r21a"]').click();
  await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('249 pour');
  await expect(page.locator('[data-presidency-panel="reforms"] [data-live-vote]')).toContainText('286 contre');
@@ -305,38 +362,44 @@ test('régression joueur612 autorisation P25 garde son résultat quand l’alert
  }
  const origin=page.locator('[data-presidency-event="s17-funding"]');
  await expect(origin).toBeVisible();
- await origin.locator('[data-order="live-credits"] .pr-command__cta').click();
+ await origin.locator('[data-order="live-credits"]').focus();
+ await page.keyboard.press('Enter');
+ await page.clock.runFor(601);
+ if(page.viewportSize().width<=650)await expect(page.getByRole('button',{name:'Fermer les commandes',exact:true})).toBeFocused();
  const result=page.locator('[data-live-fan] [data-live-vote]');
  await expect(result).toContainText('308 pour'); await expect(result).toContainText('227 contre');
  await expect(result).toBeInViewport();
  await result.locator('summary').click(); await expect(result).toContainText('Majorité présidentielle');
 });
 
-test('repères320 gardent noms alerte et chantier dans leur rectangle',async({page})=>{
+test('repères320 gardent noms risques et chantiers accessibles dans les jetons et raccourcis',async({page})=>{
  await page.setViewportSize({width:320,height:568});
  await load(page,[...await playerInput('live-credits',1),'live-credits','s17-administration-network','s17-energy-network','live-budget-redeploy','s17-education-capacity'],612);
- const contents=await page.locator('.pr-sector-pin').evaluateAll(pins=>pins.map(pin=>{const p=pin.getBoundingClientRect(),label=pin.querySelector('.pr-pin__label').getBoundingClientRect();return {name:pin.getAttribute('aria-label'),inside:label.top>=p.top&&label.bottom<=p.bottom&&label.left>=p.left&&label.right<=p.right};}));
+ for(const id of sectors)await namedMapTarget(page,id);
+ const contents=await page.locator('[data-presidency-front]').evaluateAll(stamps=>stamps.map(stamp=>{const p=stamp.getBoundingClientRect(),label=stamp.querySelector('.pr-sector__reading>span').getBoundingClientRect();return {name:stamp.getAttribute('aria-label'),inside:label.top>=p.top&&label.bottom<=p.bottom&&label.left>=p.left&&label.right<=p.right};}));
  for(const content of contents) expect(content.inside,content.name).toBe(true);
  await noBoardCollisions(page);
 });
 
 const threeObjectiveOrders=['s17-health-organisation','s17-housing-organisation','s17-transport-organisation','s17-energy-organisation','s17-health-capacity','s17-housing-capacity','live-tick'];
-test('trois objectifs visibles restent dans le bandeau sans masquer commandes et carte',async({page},info)=>{
+test('les objectifs réels restent accessibles au Bilan depuis la carte et un dossier',async({page},info)=>{
  await page.setViewportSize({width:320,height:568}); await load(page,threeObjectiveOrders,612);
  for(const [width,height] of [[320,568],[390,844],[844,390],[1024,768],[1280,720],[1672,941]]) {
   await page.setViewportSize({width,height}); await page.clock.runFor(64);
-  const cap=page.locator('.pr-strategy-cap');
-  await expect(cap).toContainText('30,04'); await expect(cap).toContainText('28,4');
-  await expect(cap).toContainText('166,1'); await expect(cap).toContainText('153'); await expect(cap).toContainText('26,26');
-  const geometry=await cap.evaluate(el=>{const c=el.getBoundingClientRect(),title=el.querySelector('strong').getBoundingClientRect(),count=el.querySelector('.pr-strategy-cap__eyebrow').getBoundingClientRect(),controls=document.querySelector('.pr-strategy-controls').getBoundingClientRect(),brief=el.parentElement.getBoundingClientRect(),country=document.querySelector('.pr-country').getBoundingClientRect();return {titleInside:title.top>=c.top&&title.bottom<=c.bottom,countInside:count.top>=c.top&&count.bottom<=c.bottom,commandClear:controls.left>=c.right-1||controls.top>=c.bottom-1,countryClear:country.top>=brief.bottom-1};});
-  expect(geometry).toEqual({titleInside:true,countInside:true,commandClear:true,countryClear:true});
-  await hit(cap); for(const button of await page.locator('.pr-strategy-controls button').all())await hit(button);
+  const raw=await page.evaluate(key=>localStorage.getItem(key),KEY);
+  const balance=await openCurrentBalance(page);
+  await expect(balance).toContainText('30,04'); await expect(balance).toContainText('28,4');
+  await expect(balance).toContainText('166,1'); await expect(balance).toContainText('153'); await expect(balance).toContainText('26,26');
+  await page.screenshot({path:info.outputPath(`objectifs-bilan-${width}x${height}.png`)});
+  await closeCurrentBalance(page);
+  expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(raw);
+  await expect(page.locator('.pr-country')).toBeVisible();
   await noBoardCollisions(page);
   await page.screenshot({path:info.outputPath(`objectifs-${width}x${height}.png`)});
   await page.locator('[data-live-pin="health"]').click(); await page.clock.runFor(64);
   await noBoardCollisions(page);
   await page.screenshot({path:info.outputPath(`objectifs-panneau-${width}x${height}.png`)});
-  await page.getByRole('button',{name:'Fermer les commandes',exact:true}).click(); await page.clock.runFor(64);
+  await openCurrentBalance(page); await closeCurrentBalance(page); await page.clock.runFor(64);
  }
 });
 

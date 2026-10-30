@@ -21,65 +21,103 @@ export function placePresidencyLabels(labels:LabelRect[],width:number,height:num
  return placed;
 }
 
-function layoutStrategyPins(host:HTMLElement,country:HTMLElement,world:HTMLElement):void {
- const area=country.getBoundingClientRect(), map=world.getBoundingClientRect();
- const mobile=area.width<=650;
- const dock=host.querySelector<HTMLElement>('[data-live-fan]:not([hidden])');
- const availableWidth=!mobile&&dock ? dock.getBoundingClientRect().left-area.left-8 : area.width;
- const compact=mobile||availableWidth<650||area.height<250;
- const gap=6, columns=area.height<250 && availableWidth>=650 ? 6 : 3;
- const width=compact ? Math.min(160,(availableWidth-16-gap*(columns-1))/columns) : 160;
- const sectors=[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
- const anchor=(pin:HTMLElement)=>({x:map.left-area.left+Number(pin.dataset.mapX)/100*map.width,y:map.top-area.top+Number(pin.dataset.mapY)/100*map.height});
- sectors.forEach(pin=>{pin.hidden=false;pin.dataset.pinLayout=compact?'compact':'map';pin.style.width=`${width}px`;});
- const rowHeight=Math.max(44,...sectors.map(pin=>pin.getBoundingClientRect().height));
- const labels=sectors.map((pin,i)=>{const rect=pin.getBoundingClientRect();return {...(compact?{x:8+i%columns*(width+gap)+width/2,y:8+Math.floor(i/columns)*(rowHeight+gap)+rect.height/2}:anchor(pin)),width:rect.width,height:rect.height};});
- const events=[...country.querySelectorAll<HTMLElement>('.pr-board-pin')];
- events.forEach(pin=>{pin.hidden=false;pin.dataset.pinAccessibleName??=pin.getAttribute('aria-label')??'';pin.setAttribute('aria-label',pin.dataset.pinAccessibleName);delete pin.dataset.clusterMembers;delete pin.dataset.clusterSeverity;pin.querySelector('.pr-pin-count')?.remove();pin.style.height='';});
- const rowsBottom=Math.max(8,...labels.map(p=>p.y+p.height/2))+6;
- // Reserve a compact event row before the phone panel; every member remains
- // available in the existing accessible cluster list.
- const groupEvents=compact&&events.length>0;
- const visibleEvents=groupEvents?events.slice(0,1):events;
- if(groupEvents) {
-  const primary=events[0];primary.dataset.clusterMembers=JSON.stringify(events.map(p=>p.dataset.pinKey));
-  primary.setAttribute('aria-label',`${events.length} événement${events.length===1?'':'s'} : ${events.map(p=>p.dataset.pinAccessibleName).join(' ; ')}`);
-  if(events.some(p=>p.dataset.eventKind==='political'))primary.dataset.clusterSeverity='critical';
-  const badge=document.createElement('span');badge.className='pr-pin-count';badge.textContent=String(events.length);primary.appendChild(badge);
-  events.slice(1).forEach(pin=>pin.hidden=true);
+/** The desk already reserves its dossier beside the map. Project into the
+ * remaining map rectangle and measure whole labels, including their paper tabs. */
+function layoutDeskPins(host: HTMLElement, country: HTMLElement, world: HTMLElement): void {
+ const area = country.getBoundingClientRect(), map = world.getBoundingClientRect();
+ const compact = area.width < 650 || area.height < 250;
+ const allSectors = [...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];
+ // Short landscape/compact maps cannot hold a second copy of the six controls.
+ // Their persistent service stamps remain visible and fully actionable below.
+ let sectors = area.height < 170 ? [] : allSectors;
+ const events = [...country.querySelectorAll<HTMLElement>('.pr-board-pin')];
+ events.forEach(pin => {
+  pin.hidden = false;
+  pin.dataset.pinAccessibleName ??= pin.getAttribute('aria-label') ?? '';
+  pin.setAttribute('aria-label', pin.dataset.pinAccessibleName);
+  delete pin.dataset.clusterMembers;
+  delete pin.dataset.clusterSeverity;
+  pin.querySelector('.pr-pin-count')?.remove();
+ });
+ const visibleEvents = compact && events.length > 1 ? events.slice(0, 1) : events;
+ if (visibleEvents.length < events.length) {
+  const primary = visibleEvents[0];
+  primary.dataset.clusterMembers = JSON.stringify(events.map(pin => pin.dataset.pinKey));
+  primary.setAttribute('aria-label', `${events.length} événements : ${events.map(pin => pin.dataset.pinAccessibleName).join(' ; ')}`);
+  if (events.some(pin => pin.dataset.eventKind === 'political')) primary.dataset.clusterSeverity = 'critical';
+  const badge = document.createElement('span');
+  badge.className = 'pr-pin-count'; badge.textContent = String(events.length);
+  primary.appendChild(badge);
+  events.slice(1).forEach(pin => { pin.hidden = true; });
  }
- visibleEvents.forEach((pin,i)=>{pin.style.width=`${compact?Math.min(240,availableWidth-(mobile?160:16)):190}px`;pin.dataset.pinLayout=compact?'compact':'map';if(compact)pin.style.height='44px';const rect=pin.getBoundingClientRect();labels.push({...compact?{x:mobile?8+rect.width/2:availableWidth/2,y:rowsBottom+rect.height/2+i*(rect.height+8)}:anchor(pin),width:rect.width,height:rect.height});});
- const boxes=placePresidencyLabels(labels,availableWidth,area.height);
- const pins=[...sectors,...visibleEvents];
- pins.forEach((pin,i)=>{pin.style.left=`${boxes[i].x}px`;pin.style.top=`${boxes[i].y}px`;});
- if(mobile&&dock) dock.style.setProperty('--pr-mobile-fan-top',`${Math.max(8,...boxes.map(p=>p.y+p.height))+8}px`);
- const leaders=pins.map((pin,i)=>{const a=anchor(pin),p=boxes[i];return `<path d="M${p.x+p.width/2} ${p.y+p.height/2} L${a.x} ${a.y}"/><circle cx="${a.x}" cy="${a.y}" r="3"/>`;});
- const svg=host.querySelector<SVGElement>('[data-pin-leaders]')!;svg.setAttribute('viewBox',`0 0 ${area.width} ${area.height}`);svg.innerHTML=leaders.join('');
- host.dataset.pinLayoutViewport=`${Math.round(area.width)}x${Math.round(area.height)}`;
+ [...visibleEvents, ...allSectors].forEach(pin => {
+  pin.hidden = false;
+  pin.dataset.pinLayout = compact ? 'compact' : 'map';
+  pin.style.width = `${pin.classList.contains('pr-sector-pin') ? compact ? 44 : 160 : Math.min(180, area.width - 16)}px`;
+  const minHeight = pin.classList.contains('pr-sector-pin') ? compact ? 44 : 52 : 64;
+  const label = pin.querySelector<HTMLElement>('.pr-pin__label');
+  pin.style.height = `${Math.max(minHeight, label ? label.offsetTop + label.getBoundingClientRect().height : 0)}px`;
+ });
+ const eventRow = visibleEvents.length ? visibleEvents[0].getBoundingClientRect().height + 6 : 0;
+ const compactRows = Math.ceil(allSectors.length / Math.max(1, Math.floor((area.width - 10) / 50)));
+ const compactHeight = 8 + eventRow + compactRows * 50 - 6 + 8;
+ if (compact && area.height < compactHeight) sectors = [];
+ allSectors.forEach(pin => { pin.hidden = !sectors.includes(pin); });
+ // Reserve the larger event cards before distributing the smaller sector
+ // tokens. Otherwise six individually valid tokens can leave no usable slot
+ // for an urgent subject on a short phone map.
+ const pins = [...visibleEvents, ...sectors];
+ const anchors = pins.map(pin => ({
+  x: map.left - area.left + Number(pin.dataset.mapX) / 100 * map.width,
+  y: map.top - area.top + Number(pin.dataset.mapY) / 100 * map.height,
+ }));
+ const labels = pins.map((pin, index) => {
+  const rect = pin.getBoundingClientRect(), anchor = anchors[index];
+  return { x: anchor.x + rect.width / 2 - 22, y: anchor.y, width: rect.width, height: rect.height };
+ });
+ let boxes = placePresidencyLabels(labels, area.width, area.height);
+ const overlaps = boxes.some((box, index) => boxes.slice(index + 1).some(other =>
+  box.x < other.x + other.width && box.x + box.width > other.x &&
+  box.y < other.y + other.height && box.y + box.height > other.y));
+ if (compact && overlaps) {
+  // A small free rectangle can still defeat nearest-first placement. Reserve
+  // one event row and evenly distribute the sector tokens below it; leaders
+  // keep their geographic anchors and no subject loses its clickable target.
+  const columns = Math.ceil(sectors.length / compactRows);
+  boxes = labels.map((label, index) => {
+   if (index < visibleEvents.length) return { ...label, x: 8, y: 8 };
+   const sector = index - visibleEvents.length;
+   return { ...label,
+    x: columns > 1 ? 8 + sector % columns * (area.width - 16 - label.width) / (columns - 1) : 8,
+    y: 8 + eventRow + Math.floor(sector / columns) * 50,
+   };
+  });
+ }
+ pins.forEach((pin, index) => {
+  pin.style.left = `${boxes[index].x}px`;
+  pin.style.top = `${boxes[index].y}px`;
+ });
+ const svg = host.querySelector<SVGElement>('[data-pin-leaders]')!;
+ svg.setAttribute('viewBox', `0 0 ${area.width} ${area.height}`);
+ svg.innerHTML = boxes.map((box, index) => {
+  const a = anchors[index];
+  return `<path d="M${box.x + 22} ${box.y + box.height / 2} L${a.x} ${a.y}"/><circle cx="${a.x}" cy="${a.y}" r="2"/>`;
+ }).join('');
+ host.dataset.compactReadings = 'false';
+ host.dataset.pinLayoutViewport = `${Math.round(area.width)}x${Math.round(area.height)}`;
 }
+
 /** Project real map anchors into the viewport, then separate readable labels.
  * Leader lines preserve location; off-screen places remain actionable. */
 export function layoutPresidencyPins(host: HTMLElement): void {
   const country = host.querySelector<HTMLElement>('.pr-country')!;
   const world = host.querySelector<HTMLElement>('.pr-world')!;
-  if(host.dataset.version==='17') {
-    const brief=host.querySelector<HTMLElement>('.pr-strategy-brief');
-    if(brief) {
-      const height=`${brief.getBoundingClientRect().height}px`;
-      if(host.style.getPropertyValue('--pr-strategy-brief-height')!==height)host.style.setProperty('--pr-strategy-brief-height',height);
-    }
-    const style=getComputedStyle(host), root=host.getBoundingClientRect();
-    const nominalBottom=parseFloat(style.getPropertyValue('--pr-strategy-sectors'))+parseFloat(style.getPropertyValue('--pr-strategy-news'));
-    // Compare against the nominal footer, independently of the current fallback.
-    // This avoids toggling it back on as soon as the extra room becomes available.
-    const available=root.bottom-country.getBoundingClientRect().top-nominalBottom;
-    const rows=root.width<=650?2:1;
-    const pinHeight=Math.max(44,...[...country.querySelectorAll<HTMLElement>('.pr-sector-pin')].map(pin=>pin.getBoundingClientRect().height));
-    host.dataset.compactReadings=String(available<16+rows*(pinHeight+6)+50);
+  if (host.classList.contains('presidency--desk')) {
+    if (country.clientWidth && country.clientHeight) layoutDeskPins(host, country, world);
+    return;
   }
   const area = country.getBoundingClientRect(), map = world.getBoundingClientRect();
   if (!area.width || !area.height) return;
-  if(host.dataset.version==='17'){layoutStrategyPins(host,country,world);return;}
   const mobile = area.width <= 650;
   // Six compact sector controls always remain separate; only event cards cluster.
   const sectorPins = [...country.querySelectorAll<HTMLElement>('.pr-sector-pin')];

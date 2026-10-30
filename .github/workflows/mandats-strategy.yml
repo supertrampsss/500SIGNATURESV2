@@ -29,10 +29,14 @@ jobs:
         run: node --experimental-strip-types scripts/mandats-strategy-audit.ts
       - name: Play opening autonomy, strategy, transformation and honest endings
         run: npx playwright test --config playwright.strategy.config.ts
+      - name: Verify the presidential desk on desktop and phones
+        run: npx playwright test --config playwright.desk.config.ts
       - name: Retain reproducible inputs, screenshots, video and failure traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mandats-strategy-${{ github.sha }}
-          path: site/strategy-artifacts/
+          path: |
+            site/strategy-artifacts/
+            site/desk-artifacts/
           retention-days: 14

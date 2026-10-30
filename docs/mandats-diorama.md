@@ -1,5 +1,7 @@
 # MANDATS : référence du diorama 3D
 
+> Archive technique : cette étude concerne un rendu abandonné. Son moteur et ses recettes ont été retirés du code actif le 29 octobre 2026. Les [sources de cette étude](https://github.com/supertrampsss/500SIGNATURESV2/tree/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools) restent consultables dans l’historique Git. Le rendu actuel est décrit dans [le bureau du pouvoir](mandats-desk.md).
+
 **15 octobre 2026 : changement de direction validé.** Le propriétaire demande
 l’illustration de la maquette elle-même et abandonne sa modélisation 3D.
 Le [contrat de la carte illustrée](mandats-illustrated.md) remplace les exigences
@@ -58,7 +60,7 @@ terrain précalculé réellement chargé. Les grandes faces alpines, la finesse
 des villages et la richesse du littoral restent en deçà de la maquette.
 **La conformité artistique reste non atteinte ; la PR demeure en brouillon.**
 
-Le générateur canonique exporte désormais [17 maillages de terrain](../tools/mandats-assets/TERRAIN.md)
+Le générateur canonique exporte désormais [17 maillages de terrain](https://github.com/supertrampsss/500SIGNATURESV2/blob/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools/mandats-assets/TERRAIN.md)
 pour éviter de refaire leur construction dans le navigateur. Les 300 057
 triangles sont conservés ; 112 273 sommets sans indice sont retirés. La
 recoloration liée aux arbres et aux cultures demeure dans la scène. Le build
@@ -87,7 +89,7 @@ de compatibilité restent à lancer sur le rendu finalement retenu.
 
 La [comparaison native 38](mandats-diorama/comparaison-38.html) reprend cet atelier et intègre la maison CC0 finie dans le kit de la branche, aux deux adresses existantes à Besançon. La géométrie détaillée conserve 1 481 triangles. Le niveau distant est reconstruit à 695 triangles : la planche Babylon a révélé des trous dans les façades du candidat précédent à 287 triangles. Chaque niveau possède désormais une primitive et son atlas, de 512 ou 128 pixels. Le chargeur raccorde ces deux surfaces malgré leurs matières différentes. Les 70 autres racines actives du kit restent identiques.
 
-La [recette Blender](../tools/mandats-library-assets/HOUSE-ATLAS.md), le modèle éditable et les exports sont conservés. Une seconde génération et une composition depuis le kit original produisent les mêmes GLB et métadonnées, octet par octet. Le [contrôle physique ciblé](mandats-diorama/screens-38/placement-and-lod.json), distinct du jeu, vérifie les deux pieds et le changement réel de niveau avec la caméra, avec les constructeurs et modèles distribués. Quatre vues natives du build final, sans substitution réseau ni injection d'état, documentent la carte et ses matières.
+La [recette Blender](https://github.com/supertrampsss/500SIGNATURESV2/blob/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools/mandats-library-assets/HOUSE-ATLAS.md), le modèle éditable et les exports sont conservés. Une seconde génération et une composition depuis le kit original produisent les mêmes GLB et métadonnées, octet par octet. Le [contrôle physique ciblé](mandats-diorama/screens-38/placement-and-lod.json), distinct du jeu, vérifie les deux pieds et le changement réel de niveau avec la caméra, avec les constructeurs et modèles distribués. Quatre vues natives du build final, sans substitution réseau ni injection d'état, documentent la carte et ses matières.
 
 **La carte complète reste non conforme à la maquette.** Cette intégration ne corrige pas la cathédrale trop massive, les reliefs anguleux, la campagne ou le contexte répétitif. Les petits raccords de toiture et le modèle distant demandent encore de la finesse. Les [résultats des parcours et leurs limites](mandats-diorama/screens-38/validation.md) distinguent la vérification technique de cette étape du travail artistique restant. La PR reste en brouillon.
 
@@ -237,7 +239,7 @@ Les captures et résultats de cette passe sont conservés dans `mandats-diorama/
 
 La demande actuelle est de reproduire l'image confirmée, avec ses proportions, son cadrage et sa composition. La [comparaison de la passe 12b](mandats-diorama/comparaison-12.html) rassemble la référence et cinq vues réelles du build, leurs entrées de partie et leurs conditions de capture. Sept vues natives ont été exécutées dans Chromium151 à1672×941, sans erreur de navigateur ni décision dépensée. Elles restent artistiquement non conformes : perspective insuffisante, tissus urbains espacés, forêts disjointes, reliefs lisses et matières parisiennes sombres. Les chiffres ci-dessous décrivent exclusivement ce build12b capturé.
 
-Quatre kits GLB locaux fournissent les maisons régionales, les petits immeubles parisiens, la cathédrale et la végétation. Les [sources de fabrication](../tools/mandats-assets/README.md) conservent les géométries, textures, licences et commandes. L'éclairage utilise une version rééquilibrée d'un environnement HDR documenté, sans modifier les atlas pour compenser sa dominante froide.
+Quatre kits GLB locaux fournissent les maisons régionales, les petits immeubles parisiens, la cathédrale et la végétation. Les [sources de fabrication](https://github.com/supertrampsss/500SIGNATURESV2/blob/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools/mandats-assets/README.md) conservent les géométries, textures, licences et commandes. L'éclairage utilise une version rééquilibrée d'un environnement HDR documenté, sans modifier les atlas pour compenser sa dominante froide.
 
 Le quartier parisien compose quarante volumes autour d'une cathédrale diagonale, avec des façades plus fines, des cours, des rues et des quais. Son relevé de construction accepte les quarante emprises. Les cinquante autres localités présentent 293 maisons acceptées sur les 297 prévues ; quatre emprises sont omises à cause d'une voie ou d'une pente. Ces relevés contrôlent l'ancrage des objets, pas leur ressemblance à la référence.
 
@@ -259,7 +261,7 @@ Le contrôle complet des types, les 1 082 tests existants, le build, le pré-ren
 
 La [comparaison historique](mandats-diorama/comparaison-20261008.html) présente la maquette et le jeu exécuté au même viewport de 1 672 × 941 pixels. Les [conditions de capture](mandats-diorama/screens-modeles/ordinateur.json) conservent les ressources servies, le framebuffer et les actions natives. Version 12, scénario 0, ambition `equilibre`, zéro décision avant et après les inspections. La [vue Paris](mandats-diorama/screens-modeles/paris.png) et la [vue Alpes](mandats-diorama/screens-modeles/alpes.png) montrent la géométrie sous un autre cadrage, sans pose de caméra injectée.
 
-La scène charge deux kits GLB locaux créés pour ce dépôt : dix-huit modèles domestiques et trois monuments, puis six essences végétales et une roche. Les maisons ont des façades, fenêtres, toitures et cheminées ; leur atlas UV conserve une occlusion précalculée, une carte normale et une rugosité. Les arbres utilisent une couleur par sommet avec variation et ombre locale. Les [sources Blender et scripts de reproduction](../tools/mandats-assets/README.md) sont conservés. Les versions éloignées partagent les matériaux et conservent leurs silhouettes ; Babylon choisit leur géométrie selon leur taille à l'écran.
+La scène charge deux kits GLB locaux créés pour ce dépôt : dix-huit modèles domestiques et trois monuments, puis six essences végétales et une roche. Les maisons ont des façades, fenêtres, toitures et cheminées ; leur atlas UV conserve une occlusion précalculée, une carte normale et une rugosité. Les arbres utilisent une couleur par sommet avec variation et ombre locale. Les [sources Blender et scripts de reproduction](https://github.com/supertrampsss/500SIGNATURESV2/blob/e4dd50afdd6876baf51723bf8981668a541bb3cc/tools/mandats-assets/README.md) sont conservés. Les versions éloignées partagent les matériaux et conservent leurs silhouettes ; Babylon choisit leur géométrie selon leur taille à l'écran.
 
 Les quartiers régionaux suivent un relief continu et des rues composées. La capture initiale montre 525 maisons réellement placées après les exclusions des rivières, voies, monuments et pentes. Les Alpes forment des crêtes reliées avec des épaules et cols différenciés ; les Pyrénées comportent des vallées. Fleuves, cultures, végétation, bâtiments, foules et chantiers utilisent la même hauteur du sol. Les gares sont différenciées, les ports ont des bateaux et des sillages ; le contexte voisin possède des arbres et des faces minérales en volume. Les modèles partagent leur géométrie et leurs matériaux entre les instances.
 
