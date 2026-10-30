@@ -96,6 +96,7 @@ test("le récit utilise le dernier exercice national commun sans inventer les do
   assert.match(html, /id="recit-depenses"/);
   assert.match(html, /id="recit-ecart"/);
   assert.match(html, /data-nature="deficit"/);
-  assert.doesNotMatch(html, /2025/);
+  // Le profil salarial de l'OCDE porte sa propre année ; seuls les comptes nationaux sont contrôlés ici.
+  assert.doesNotMatch(html.slice(0, html.indexOf('id="recit-salaire"')), /2025/);
   assert.doesNotMatch(rendu({}), /class="recit-number"/);
 });

@@ -53,6 +53,8 @@ function tirer() {
   suites.forEach(d => { if (main.length < 2) main.push(d); });
   while (main.length < 2 && autres.length) main.push(autres.splice(Math.floor(rng() * autres.length), 1)[0]);
   S.main = main.map(d => ({ id: d.id, choix: null }));
+  const offertes = reformesDisponibles();
+  S.offre = offertes.length ? offertes[(S.tour * 7 + Math.floor(rng() * offertes.length)) % offertes.length].id : null;
   S.donne = true;
   main.forEach(d => S.vus[d.id] = S.tour);
 }
@@ -136,14 +138,15 @@ function rendre(premier) {
       <span class="t">${d.titre}</span>
       ${o ? `<span class="x choix-fait">${o.t}</span><span class="tampon">Signé</span>` : `<span class="x">${d.texte}</span>`}
     </button>`;
-  }).join('');
+  }).join('') + carteReforme();
   if (S.donne) {
     S.donne = false;
     document.querySelectorAll('.dossier').forEach((c, i) => { c.classList.add('donne'); c.style.animationDelay = (reduit ? 0 : 150 + i * 160) + 'ms'; c.style.setProperty('--r', (i % 2 ? 6 : -6) + 'deg'); });
     if (S.main.some(m => dossier(m.id).crise) && !premier) setTimeout(alerte, reduit ? 0 : 300);
     if (S.flash) { S.flash.forEach((v, i) => setTimeout(() => onde(v, 'var(--bleu)'), 500 + i * 300)); S.flash = null; }
   }
-  document.querySelectorAll('.dossier:not(.signe)').forEach(b => {
+  document.querySelectorAll('.dossier[data-reforme]').forEach(b => b.addEventListener('click', () => ouvrirNegociation(REFORMES.find(r => r.id === b.dataset.reforme))));
+  document.querySelectorAll('.dossier:not(.signe):not([data-reforme])').forEach(b => {
     b.addEventListener('click', () => ouvrir(b.dataset.id));
     b.addEventListener('mouseenter', () => surligner(b.dataset.id, true));
     b.addEventListener('mouseleave', () => surligner(b.dataset.id, false));
@@ -171,7 +174,7 @@ function fermer() {
   const p = $('#decision'); p.classList.remove('ouvert'); $('#voile-dec').classList.remove('ouvert');
   setTimeout(() => { p.hidden = true; }, reduit ? 0 : 350);
   const etaitReforme = ouvert === '__reformes';
-  if (ouvert && !etaitReforme) surligner(ouvert, false); ouvert = null; mode = 'dossier';
+  if (ouvert && !etaitReforme) surligner(ouvert, false); ouvert = null; mode = 'dossier'; negociation = null;
   if (etaitReforme) setTimeout(verifierFin, reduit ? 0 : 900);
   if (retourFocus && document.contains(retourFocus)) retourFocus.focus();
 }
@@ -291,8 +294,11 @@ function passer() {
   if (innerWidth <= 900) scrollTo({ top: 0, behavior: reduit ? 'auto' : 'smooth' });
 }
 let minuteur;
+const telephone = matchMedia('(max-width: 900px)');
+function placerBandeau() { const tk = $('#ticker'); const cible = telephone.matches ? $('.main') : $('.cote'); if (tk.parentElement !== cible) cible.prepend(tk); }
+telephone.addEventListener('change', placerBandeau);
 function bandeau(titres) {
-  const tk = $('#ticker'); clearTimeout(minuteur);
+  const tk = $('#ticker'); clearTimeout(minuteur); placerBandeau();
   const duree = reduit ? 7000 : 4200 + titres.length * 500;
   $('#ticker-sur').textContent = `${S.tour % 4 === 0 ? 'Nouvelle année · ' : 'Trois mois plus tard · '}Année ${Math.floor(S.tour / 4) + 1} · ${SAISONS[S.tour % 4]}`;
   $('#ticker-l').innerHTML = (titres.length ? titres.slice(-5) : [{ k: '', l: 'Calme', t: 'Un trimestre sans remous' }]).map((t, i) => `<li style="animation-delay:${reduit ? 0 : 150 + i * 140}ms"><span class="${t.k}">${t.l}</span>${t.t}</li>`).join('') + `<li class="barre-t" style="display:block;opacity:1;animation:none"><b style="animation-duration:${duree}ms"></b></li>`;
@@ -377,38 +383,96 @@ function ouvrirReformes() {
   $('#d-titre').textContent = 'Les réformes qui pèsent';
   $('#d-texte').textContent = 'Des économies de plusieurs milliards par an, au prix de votre majorité et de la rue. Chaque texte passe devant l’Assemblée.';
   $('#d-options').classList.remove('verrou');
-  $('#d-options').innerHTML = REFORMES.filter(r => !S.reformes[r.id] || S.reformes[r.id] === 'rejet' && S.tour - (S.reformes[r.id + '_t'] || 0) >= 4).map(r => {
+  $('#d-options').innerHTML = reformesDisponibles().map(r => {
     const v = voteReforme(r);
-    return `<button type="button" class="option" data-r="${r.id}"><span class="reforme-eco tab">−${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€/an</span><b>${r.t}</b>${r.d ? `<span>${r.d}</span>` : ''}<span class="puces">${puces(r.e)}${r.risque ? `<span class="puce risque">⚠ Risque ${Math.round(r.risque.p * 100)} % : ${r.risque.titre.toLowerCase()}</span>` : ''}${r.ch ? puces(r.ch.e, true).replace(/<span class="puce plus-tard"/g, `<span class="puce plus-tard" data-pt`).replace(/data-pt([^>]*)>/g, `$1>Dans ${r.ch.n} trim. · `) : ''}<span class="puce ${v.passe ? 'bon' : 'mal'}">Pointage : ${v.pour} pour, ${v.contre} contre</span></span></button>`;
+    return `<button type="button" class="option" data-r="${r.id}"><span class="reforme-eco tab">−${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€/an</span><b>${r.t}</b>${r.d ? `<span>${r.d}</span>` : ''}<span class="puces">${pucesReforme(r)}<span class="puce ${v.passe ? 'bon' : 'mal'}">Pointage : ${v.pour} pour, ${v.contre} contre</span></span></button>`;
   }).join('') + '<p class="note-hyp">Montants : ordres de grandeur, hypothèses de jeu. Le pointage dépend de votre majorité et de votre popularité.</p>';
-  $('#d-options').querySelectorAll('.option').forEach(b => b.addEventListener('click', () => presenter(REFORMES.find(r => r.id === b.dataset.r))));
+  $('#d-options').querySelectorAll('.option').forEach(b => b.addEventListener('click', () => { const r = REFORMES.find(x => x.id === b.dataset.r); fermer(); setTimeout(() => ouvrirNegociation(r), reduit ? 0 : 360); }));
   const p = $('#decision'); p.hidden = false; requestAnimationFrame(() => { p.classList.add('ouvert'); $('#voile-dec').classList.add('ouvert'); });
   setTimeout(() => { const o = $('#d-options .option'); if (o) o.focus(); }, reduit ? 0 : 250);
 }
-function voteReforme(r) {
+/* Coûts immédiats, effets différés et risque : affichés avant tout vote. */
+function pucesReforme(r) { return `${puces(r.e)}${r.risque ? `<span class="puce risque">⚠ Risque ${Math.round(r.risque.p * 100)} % : ${r.risque.titre.toLowerCase()}</span>` : ''}${r.ch ? puces(r.ch.e, true).replace(/<span class="puce plus-tard"/g, `<span class="puce plus-tard" data-pt`).replace(/data-pt([^>]*)>/g, `$1>Dans ${r.ch.n} trim. · `) : ''}`; }
+function reformesDisponibles() { return REFORMES.filter(r => !S.reformes[r.id] || S.reformes[r.id] === 'rejet' && S.tour - (S.reformes[r.id + '_t'] || 0) >= 4); }
+function carteReforme() {
+  if (S.reformeTour === S.tour || !S.offre) return '';
+  const r = REFORMES.find(x => x.id === S.offre); if (!r) return '';
+  const v = voteReforme(r);
+  return `<button type="button" class="dossier reforme" data-reforme="${r.id}">
+      <span class="sur"><span>Grande réforme · facultatif</span></span>
+      <span class="t">${r.t}</span>
+      <span class="x"><b class="tab">−${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€/an</b> · pointage ${v.pour} pour, ${v.contre} contre. À présenter avant le dernier dossier du trimestre.</span>
+    </button>`;
+}
+/* Soutiens : chaque groupe négocié apporte des voix pour ce texte, contre une contrepartie,
+   et rapproche durablement votre camp (quelques sièges). Hypothèses de jeu. */
+const SOUTIENS = [
+  { id: 'centre', t: 'Négocier avec les centristes', d: 'Ils votent si la réforme est adoucie.', voix: 30, eco: -.2, e: {} },
+  { id: 'droite', t: 'Accord avec la droite', d: 'En échange, des baisses de charges ailleurs.', voix: 40, eco: 0, e: { def: 1.5, op: -2 } },
+  { id: 'gauche', t: 'Accord avec la gauche', d: 'Des contreparties sociales pour les plus modestes.', voix: 35, eco: -.3, e: { ten: -4 } },
+  { id: 'territoires', t: 'Rallier le Sénat et les élus locaux', d: 'Contre des dotations préservées.', voix: 15, eco: 0, e: { def: 1 } }
+];
+let negociation = null;
+function bonusNegociation() { return negociation ? SOUTIENS.filter(a => negociation.has(a.id)).reduce((t, a) => t + a.voix, 0) : 0; }
+function facteurNegociation() { return negociation ? Math.max(.3, 1 + SOUTIENS.filter(a => negociation.has(a.id)).reduce((t, a) => t + a.eco, 0)) : 1; }
+function ouvrirNegociation(r) {
+  if (enCours || S.reformeTour === S.tour || !r) return;
+  negociation = new Set();
+  mode = 'reforme'; ouvert = '__reformes'; retourFocus = document.activeElement;
+  $('#d-sur').textContent = 'Grande réforme · construire une majorité';
+  $('#d-titre').textContent = r.t;
+  $('#d-texte').textContent = `${r.d ? r.d + ' ' : ''}Économie visée : ${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€ par an. Comptez vos voix, négociez, puis présentez le texte.`;
+  $('#d-options').classList.remove('verrou');
+  $('#d-options').innerHTML = `<p class="mono" style="margin:0;color:var(--encre-2)">Si le texte est adopté</p><p class="puces consequences-reforme">${pucesReforme(r)}</p>
+    <div class="pointage" id="pointage" aria-live="polite"></div>
+    <p class="mono" style="margin:6px 0 0;color:var(--encre-2)">Soutiens à négocier</p>
+    ${SOUTIENS.map(a => `<button type="button" class="option nego" data-a="${a.id}" aria-pressed="false"><b>${a.t}</b><span>${a.d}</span><span class="puces"><span class="puce bon">▲ +${a.voix} voix</span>${a.eco ? `<span class="puce mal">▼ Économie −${Math.round(-a.eco * 100)} %</span>` : ''}${puces(a.e)}</span></button>`).join('')}
+    <div class="actions-nego"><button type="button" class="cta" id="b-presenter">Présenter au vote</button><button type="button" class="cta second-clair" id="b-retirer">Pas maintenant</button></div>
+    <p class="note-hyp">Chaque accord rapproche aussi durablement un groupe de votre camp. Voix, contreparties et économies : hypothèses de jeu.</p>`;
+  const majPointage = () => {
+    const v = voteReforme(r, bonusNegociation());
+    const ecart = v.contre - v.pour + 1;
+    $('#pointage').innerHTML = `<div class="pointage__chiffres"><span><b class="tab">${v.pour}</b> pour</span><span><b class="tab">${v.abst}</b> abst.</span><span><b class="tab">${v.contre}</b> contre</span></div><p class="${v.passe ? 'ok' : 'ko'}">${v.passe ? 'Majorité acquise' : `Il vous manque ${ecart} voix`} · économie retenue : ${fr(r.eco * facteurNegociation(), 1)} Md€/an</p>`;
+  };
+  $('#d-options').querySelectorAll('.nego').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.a; if (negociation.has(id)) negociation.delete(id); else negociation.add(id);
+    b.setAttribute('aria-pressed', String(negociation.has(id))); majPointage();
+  }));
+  $('#b-presenter').addEventListener('click', () => presenter(r));
+  $('#b-retirer').addEventListener('click', fermer);
+  majPointage();
+  const p = $('#decision'); p.hidden = false; requestAnimationFrame(() => { p.classList.add('ouvert'); $('#voile-dec').classList.add('ouvert'); });
+  setTimeout(() => { const o = $('#b-presenter'); if (o) o.focus(); }, reduit ? 0 : 250);
+}
+function voteReforme(r, bonus = 0) {
   const abst = clamp(Math.round(80 + (S.op - 40) * 2), 10, 170);
-  const pour = clamp(S.maj + r.vote, 0, 577 - abst);
+  const pour = clamp(S.maj + r.vote + bonus, 0, 577 - abst);
   const contre = 577 - pour - abst;
   return { pour, abst, contre, passe: pour > contre };
 }
 function presenter(r) {
   if (enCours) return; enCours = true;
-  S.reformeTour = S.tour; fermer(); mode = 'dossier';
-  const v = voteReforme(r);
+  const soutiens = SOUTIENS.filter(a => negociation && negociation.has(a.id));
+  const facteur = facteurNegociation(), bonus = bonusNegociation();
+  S.reformeTour = S.tour; fermer(); mode = 'dossier'; negociation = null;
+  // Le vote se compte sur l'état affiché au pointage ; les accords prennent effet ensuite.
+  const v = voteReforme(r, bonus);
+  soutiens.forEach(a => { appliquer(a.e, true); S.maj = clamp(S.maj + 3, 120, 420); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Accord : ${a.t.toLowerCase()}` }); });
   setTimeout(() => {
     enCours = false;
-    if (v.passe) { adopterReforme(r); evenement('Assemblée nationale', 'Réforme adoptée', `${r.t}. ${v.pour} voix pour, ${v.contre} contre.`, v, '/mandats/art/parliament.webp', [['Continuer', apresReforme]]); }
+    if (v.passe) { adopterReforme(r, facteur); evenement('Assemblée nationale', 'Réforme adoptée', `${r.t}. ${v.pour} voix pour, ${v.contre} contre.`, v, '/mandats/art/parliament.webp', [['Continuer', apresReforme]]); }
     else {
       const actions = [['Renoncer', () => { S.reformes[r.id] = 'rejet'; S.reformes[r.id + '_t'] = S.tour; S.op = clamp(S.op - 3, 0, 100); S.titres.push({ k: 'c', l: 'Assemblée', t: `Réforme rejetée : ${r.t.toLowerCase()}` }); apresReforme(); }]];
-      if (S.an493 !== Math.floor(S.tour / 4)) actions.unshift(['Passer en force avec le 49.3', () => { S.an493 = Math.floor(S.tour / 4); adopterReforme(r); S.titres.push({ k: 'c', l: '49.3', t: `49.3 sur la réforme : ${r.t.toLowerCase()}` }); motionCensure(apresReforme); }]);
+      if (S.an493 !== Math.floor(S.tour / 4)) actions.unshift(['Passer en force avec le 49.3', () => { S.an493 = Math.floor(S.tour / 4); adopterReforme(r, facteur); S.titres.push({ k: 'c', l: '49.3', t: `49.3 sur la réforme : ${r.t.toLowerCase()}` }); motionCensure(apresReforme); }]);
       evenement('Assemblée nationale', 'Réforme rejetée', `${v.pour} voix pour, ${v.contre} contre. Vous pouvez engager la responsabilité du gouvernement, une fois par an hors budget.`, v, '/mandats/art/parliament.webp', actions);
     }
   }, reduit ? 0 : 400);
 }
-function adopterReforme(r) {
+function adopterReforme(r, facteur = 1) {
   S.reformes[r.id] = 'adoptee';
-  pulser(appliquer(r.e, true));
-  if (r.ch) S.chantiers.push({ t: r.ch.t, n: r.ch.n, fait: 0, e: r.ch.e, ville: 'Paris' });
+  const adoucir = e => Object.fromEntries(Object.entries(e || {}).map(([k, v]) => [k, k === 'def' ? v * facteur : v]));
+  pulser(appliquer(adoucir(r.e), true));
+  if (r.ch) S.chantiers.push({ t: r.ch.t, n: r.ch.n, fait: 0, e: adoucir(r.ch.e), ville: 'Paris' });
   S.titres.push({ k: '', l: 'Réforme', t: `${r.t} : adoptée` });
   S.decisions.push({ tour: S.tour, dossier: 'Grande réforme', choix: r.t, poids: r.eco + 10 });
   S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Réforme adoptée : ${r.t}` });

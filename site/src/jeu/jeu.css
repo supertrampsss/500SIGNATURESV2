@@ -146,13 +146,13 @@ button{font:inherit;color:inherit}
 .puce{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:#e8e2d3;color:var(--encre)}
 .puce.bon{background:#dde8fa;color:#1d4a8c}
 .puce.mal{background:#f7ddd2;color:#8c3417}
-.ticker{position:fixed;z-index:45;left:50%;top:calc(env(safe-area-inset-top,0px) + 92px);width:min(760px,calc(100vw - 32px));transform:translateX(-50%);background:rgba(11,20,34,.94);border:1px solid var(--trait);border-radius:14px;padding:18px 22px;box-shadow:0 24px 60px rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;animation:tickIn .5s cubic-bezier(.2,.9,.3,1.1)}
+.ticker{position:relative;width:100%;background:rgba(11,20,34,.94);border:1px solid var(--trait);border-radius:14px;padding:18px 22px;box-shadow:0 24px 60px rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;animation:tickIn .5s cubic-bezier(.2,.9,.3,1.1)}
 .ticker.sort{animation:tickOut .45s forwards}
-@keyframes tickIn{from{opacity:0;transform:translate(-50%,-24px)}to{opacity:1;transform:translateX(-50%)}}
-@keyframes tickOut{to{opacity:0;transform:translate(-50%,-24px)}}
+@keyframes tickIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes tickOut{to{opacity:0;transform:translateY(-12px)}}
 .ticker p{margin:0 0 8px;color:var(--or)}
 .ticker ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.ticker li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;font-family:var(--f-titre);font-size:19px;line-height:1.2;opacity:0;animation:entre .4s forwards}
+.ticker li{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;font-family:var(--f-titre);font-size:17px;line-height:1.2;opacity:0;animation:entre .4s forwards}
 .ticker li span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--or);padding-top:4px}
 .ticker li span.c{color:var(--argile)}.ticker li span.b{color:var(--bleu)}
 .ticker .barre-t{height:2px;background:var(--trait);margin-top:12px;overflow:hidden;border-radius:1px}
@@ -160,7 +160,7 @@ button{font:inherit;color:inherit}
 @keyframes vide{from{width:100%}to{width:0}}
 .reforme-eco{font-family:var(--f-titre);font-size:26px;line-height:1;color:var(--encre)}
 .option.bloquee{opacity:.45;cursor:not-allowed}
-@media (max-width:900px){.ticker{top:calc(env(safe-area-inset-top,0px) + 12px)}.ticker li{grid-template-columns:minmax(0,1fr);gap:2px;font-size:17px}}
+
 .puce.risque{background:#2a1a14;color:#ffb796}
 .puce.plus-tard{background:transparent;border:1px dashed #9a927f;color:var(--encre-2);font-weight:500}
 .note-hyp{margin:0;font-size:12.5px;color:var(--encre-2);border-top:1px solid var(--trait-p);padding-top:12px}
@@ -291,3 +291,17 @@ a.btn-ic{color:var(--ivoire);text-decoration:none;font-family:var(--f-mono);font
 .retour-site{align-self:flex-start;display:inline-flex;align-items:center;min-height:44px;color:var(--iv2);text-decoration:none}
 .retour-site:hover{color:var(--or)}
 .profil.reprise{border-color:var(--or);background:rgba(217,180,95,.12)}
+
+.ticker{padding:14px 16px;box-shadow:none;border-color:rgba(217,180,95,.45)}
+.dossier.reforme{background:linear-gradient(180deg,#f7ecd0,#f4efe3 70%);box-shadow:0 0 0 1.5px var(--or-fonce),0 10px 30px rgba(0,0,0,.35)}
+.dossier.reforme .sur{color:var(--or-fonce)}
+.dossier.reforme .x b{color:var(--encre)}
+.pointage{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:12px;background:#0f1b2e;color:var(--ivoire)}
+.pointage__chiffres{display:flex;gap:18px;font-size:14px}
+.pointage__chiffres b{font-family:var(--f-titre);font-size:28px;font-weight:400;margin-right:4px}
+.pointage p{margin:0;font-size:14px}
+.pointage p.ok{color:var(--bleu)}.pointage p.ko{color:#ffb796}
+.option.nego[aria-pressed="true"]{border-color:var(--encre);background:#fff}
+.option.nego[aria-pressed="true"] b::before{content:"✓ ";color:var(--or-fonce)}
+.actions-nego{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.cta.second-clair{background:transparent;color:var(--encre);border:1px solid var(--encre)}
