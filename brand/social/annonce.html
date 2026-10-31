@@ -1,0 +1,36 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>500 Signatures · annonce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;600;800&family=Spectral:ital,wght@0,300;0,600;1,300&display=swap">
+<style>
+/* Modèle de publication 500 Signatures. Cliquez sur un texte pour le modifier, puis faites une capture du cadre. */
+:root{--nuit:#060b17;--nuit-2:#0b1422;--iv:#f4efe3;--iv-2:#fbfaf6;--or:#d9b45f;--or-2:#f2d58a;--argile:#e07a55;--gris:#b9b2a3;--encre:#0b1422;
+--serif:"Spectral",Georgia,serif;--sans:"Public Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}html,body{margin:0;background:#2a2f38}body{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px;font-family:var(--sans)}
+.aide{color:#cfd4dc;font:400 13px var(--sans)}
+.cadre{position:relative;width:1200px;height:675px;overflow:hidden;flex:none;background:var(--nuit);color:var(--iv)}
+[contenteditable]{outline:none}[contenteditable]:focus{box-shadow:0 0 0 2px #d9b45f80}
+.marque{display:block;color:var(--iv)}
+.etiquette{font:500 22px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--gris)}
+.source{font:400 20px var(--mono);color:var(--gris)}
+.signe{display:flex;align-items:center;gap:18px;font:500 22px var(--mono);letter-spacing:.12em;color:var(--gris)}
+.signe .marque{width:96px}
+em{font-style:italic;color:var(--or)}
+@media print{.aide{display:none}body{padding:0;background:none}}
+
+.cadre{display:grid;grid-template-columns:1.1fr .9fr;background:var(--nuit)}
+.texte{padding:72px 0 64px 84px;display:flex;flex-direction:column;justify-content:space-between}
+.nouveau{align-self:flex-start;font:600 22px var(--sans);color:var(--nuit);background:var(--or);padding:10px 20px;border-radius:999px}
+h1{margin:0;font:300 70px/1.04 var(--serif);letter-spacing:-.025em;text-wrap:balance}
+p.chapo{margin:18px 0 0;font:400 26px/1.4 var(--sans);color:#f4efe3cc;max-width:560px}
+.visuel{position:relative;background:var(--iv-2);color:var(--encre);padding:60px 56px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.barre{display:grid;grid-template-columns:1fr auto;gap:8px;font:500 20px var(--sans)}
+.barre i{grid-column:1/-1;height:16px;border-radius:4px;background:#2d4479;width:var(--w)}
+.barre.or i{background:var(--or)}.barre b{font:800 22px var(--sans)}
+</style></head><body><p class="aide">Cliquez sur un texte pour le modifier. Capture du cadre : 1200 × 675 px.</p>
+<main class="cadre" aria-label="500 Signatures · annonce">
+<div class="texte"><span class="nouveau" contenteditable>Nouveau</span><div><h1 contenteditable>Votre ville, <em>poste par poste</em>.</h1><p class="chapo" contenteditable>Budget, associations, taxe foncière, sécurité : les chiffres de votre commune, face à la France.</p></div><div class="signe"><svg class="marque" viewBox="0 0 250 132" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M60 12 H25 L20 50 C28 44 37 42 45 42.5 C61 44 72 55 72 69 C72 85 59 96 43 96 C31 96 22 91 16 83"/><ellipse cx="118" cy="54" rx="27" ry="42"/><ellipse cx="186" cy="54" rx="27" ry="42"/><path d="M2 118 C60 108 140 104 200 110 C220 112 234 106 244 94" stroke="#d9b45f" stroke-width="7"/></g></svg><span>500SIGNATURES.FR</span></div></div>
+<div class="visuel" aria-hidden="true">
+<p class="etiquette" style="color:#5c6b80" contenteditable>Exemple · Bordeaux 2025</p>
+<div class="barre or" style="--w:100%"><span contenteditable>Impôts locaux</span><b contenteditable>254,0 M€</b><i></i></div>
+<div class="barre" style="--w:19%"><span contenteditable>Cantines, crèches, piscines</span><b contenteditable>47,8 M€</b><i></i></div>
+<div class="barre" style="--w:18%"><span contenteditable>Dotations de l’État</span><b contenteditable>44,8 M€</b><i></i></div>
+</div></main></body></html>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 170" width="640" height="340" role="img" aria-label="500 Signatures, concept Les pièces">
+  <title>500 Signatures — concept B, Les pièces</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap');</style>
+  <rect width="320" height="170" fill="#060b17"/>
+  <g transform="translate(46 18)">
+    <path d="M60 12 H25 L20 50 C28 44 37 42 45 42.5 C61 44 72 55 72 69 C72 85 59 96 43 96 C31 96 22 91 16 83" fill="none" stroke="#f4efe3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="124" cy="56" r="40" fill="#d9b45f"/>
+    <circle cx="124" cy="56" r="29" fill="none" stroke="#060b17" stroke-width="3"/>
+    <circle cx="186" cy="56" r="40" fill="#e07a55" stroke="#060b17" stroke-width="6"/>
+    <circle cx="186" cy="56" r="29" fill="none" stroke="#060b17" stroke-width="3"/>
+  </g>
+  <text x="160" y="152" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, Menlo, monospace" font-weight="500" font-size="13" letter-spacing="7" fill="#b9b2a3">SIGNATURES</text>
+</svg>
