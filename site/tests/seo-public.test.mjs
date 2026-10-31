@@ -104,12 +104,11 @@ test('SEO : les aides d’usage restent accessibles sans JavaScript sur accueil 
 test('SEO : le guide Mandats explique la campagne actuelle et ouvre le vrai jeu', async ({ page }, info) => {
   await page.goto('/mandats/comprendre/');
   await expect(page.getByRole('heading', { level: 1, name: 'Comment jouer à Mandats ?' })).toBeVisible();
-  await expect(page.locator('.lead')).toContainText('priorités au gouvernement');
+  await expect(page.locator('.lead')).toContainText('pendant cinq ans');
   await expect(page.locator('#mandats-questions')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ path: info.outputPath('guide-mandats.png'), fullPage: true });
   await page.getByRole('link', { name: 'Commencer un mandat', exact: true }).click();
-  await expect(page.locator('[data-mandate-map][data-renderer="illustrated"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Commencer un mandat', exact: true })).toBeVisible();
-  await expect(page.locator('[data-map-canvas]')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/mandats\/jouer\/$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Cinq ans.');
 });

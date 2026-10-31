@@ -81,19 +81,10 @@ test('source-backed guides are readable and lead to the matching mode',async({pa
   await card.locator('a').click();await expect(page.getByRole('heading',{name:'Sources et périmètre',exact:true})).toBeVisible();await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','index,follow');await noOverflow(page);
   if(municipal)await expect(page.locator('.method-content')).toContainText('Le mandat communal est actuellement indisponible.');
   const play=page.getByRole('link',{name:'Jouer un mandat national',exact:true});
-  await expect(play).toHaveAttribute('href','/mandats/?mode=national');
+  await expect(play).toHaveAttribute('href','/mandats/jouer/');
   await activate(play,info);
-  await expect(page.locator('section[data-presidency]')).toBeVisible();
-  await expect(page.locator('[data-presidency-art]')).toBeVisible();
-  await expect(page.locator('[data-live-term]')).toHaveText('Année 1 / 5');
-  await expect(page.locator('[data-live-date]')).toHaveText('Janvier et février');
-  await expect(page.getByRole('button',{name:'Gouvernement',exact:true})).toBeInViewport();
-  await expect(page.getByRole('button',{name:'Grandes réformes',exact:true})).toBeInViewport();
-  await expect(page.locator('[data-presidency-clock]')).toHaveAttribute('data-paused','true');
-  if(await page.locator('section[data-presidency]').getAttribute('data-preview')==='true')
-   await activate(page.getByRole('button',{name:'Jouer ce mandat',exact:true}),info);
-  await expect(page.locator('section[data-presidency]')).toHaveAttribute('data-preview','false');
-  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('500signatures.mandats.v1')).version)).toBe(17);
+  await expect(page.getByRole('heading',{level:1})).toContainText('Cinq ans.');
+  await expect(page.getByRole('button',{name:/Majorité relative/})).toBeVisible();
  }
 });
 
