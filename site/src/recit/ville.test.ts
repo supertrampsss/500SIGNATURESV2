@@ -15,7 +15,7 @@ const bordeaux = {
     fonction_commune_enseignement: an(68.4e6), fonction_commune_securite: an(11.9e6), fonction_commune_retraitements_ofgl: an(-35.9e6),
     dgfip_taux_tfb_commune: an(48.48), dgfip_taux_tfb_global: an(49.54), dgfip_produit_foncier_bati: an(248.4e6),
     ssmsi_violences_hors_famille_nombre: an(1364), ssmsi_cambriolages_nombre: an(1159), ssmsi_degradations_nombre: an(3946),
-    insee_taux_pauvrete: { "2023": 18.9 }, insee_actifs: { "2023": 142651 }, insee_chomeurs_rp: { "2023": 16878 },
+    insee_taux_pauvrete: { "2023": 18.9 }, rpls_logements_sociaux: { "2025": 24014 }, insee_residences_principales: { "2023": 148377 }, insee_actifs: { "2023": 142651 }, insee_chomeurs_rp: { "2023": 16878 },
   },
 };
 
@@ -30,6 +30,7 @@ test("une commune se lit poste par poste, au total publié, et face à la France
   assert.equal(v.delits!.lignes[0][0], "violences_hors_famille");
   assert.ok(Math.abs(v.delits!.lignes[0][3] - 1364 / 267991 * 1000) < 1e-9);
   assert.ok(Math.abs(v.portrait!.chomage![1] - 16878 / 142651 * 100) < 1e-9);
+  assert.deepEqual([v.portrait!.logementsSociaux![0], v.portrait!.logementsSociaux![2]], ["2025", "2023"], "les deux années sont gardées");
 
   const france = repereFrance({ nom: "France", parent: null, population: null, drapeaux: {}, series: { ssmsi_violences_hors_famille_nombre: an(215728), eurostat_population: an(68.6e6), insee_taux_pauvrete_60: { "2024": 15.4 } } });
   const etapes = etapesVille(v, france);
@@ -38,6 +39,8 @@ test("une commune se lit poste par poste, au total publié, et face à la France
   assert.ok(etapes.every(e => !("source" in e)), "les sources sont en pied de page");
   assert.match(etapes.find(e => e.attributs?.["data-sujet"] === "securite")!.sous!, /France : 3,1/);
   assert.match(etapes.at(-1)!.contenu!, /Choisir une autre ville/);
+  assert.ok(etapes.every(e => /class="sr-only"/.test(e.contenu ?? "")), "chaque visuel a sa version texte");
+  assert.match(etapes.find(e => e.attributs?.["data-sujet"] === "securite")!.contenu!, /Violences physiques hors famille : 5,1 \(France : 3,1\)/);
   assert.doesNotMatch(JSON.stringify(etapes), /fonctionnement/i, "aucun jargon comptable");
 });
 

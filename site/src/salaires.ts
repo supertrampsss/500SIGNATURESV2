@@ -8,7 +8,7 @@ import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 import { SOURCES } from "./recit/calculs.ts";
 import { etapesPaie, fmt, rail, renduEtape, sources, vuePaie, type Etape } from "./recit/rendu.ts";
-import type { LigneBarre } from "./recit/ville.ts";
+import { valeursAccessibles, type LigneBarre } from "./recit/ville.ts";
 
 /** OCDE, Taxing Wages 2026, France 2025 : célibataire sans enfant au salaire moyen, en % du coût employeur. */
 export const PROFIL_TRAVAIL = [
@@ -112,7 +112,7 @@ export function renduSalaires(series: Territoire["series"] = {}): string {
     const spec = (cle?: number) => ({ "data-barres": JSON.stringify({ lignes, legende: `Sur 100 € de dépense publique · ${dep.year}` }), ...(cle === undefined ? {} : { "data-cle": String(cle) }) });
     const t = "Sur 100 € de dépense publique, <em>où va l’argent&nbsp;?</em>";
     lignes.slice(0, 4).forEach((l, i) => e.push({ chapitre: "depense", tableau: "barres", k: i, titre: i ? t : "Ces cotisations et ces impôts, <em>où vont-ils&nbsp;?</em>", lib: `${l.n} · ${dep.year}`, valeur: l.v, decimales: 2, unite: "€", sous: "sur 100 € de dépense publique", ton: i ? undefined : "argile", desc: i ? undefined : "Ils rejoignent toutes les autres recettes publiques. Voici comment l’ensemble est dépensé.", attributs: spec(i) }));
-    e.push({ chapitre: "depense", tableau: "barres", k: 9, titre: "Du plus lourd <em>au plus léger</em>.", desc: "Les prestations sont versées aux ménages ; les autres postes paient les services publics et leur financement.", attributs: spec() });
+    e.push({ chapitre: "depense", tableau: "barres", k: 9, titre: "Du plus lourd <em>au plus léger</em>.", desc: "Les prestations sont versées aux ménages ; les autres postes paient les services publics et leur financement.", attributs: spec(), contenu: valeursAccessibles({ mode: "barres", lignes, legende: `Sur 100 € de dépense publique · ${dep.year}` }) });
   }
 
   const { ministeres } = reclassementBercy();
@@ -122,7 +122,7 @@ export function renduSalaires(series: Territoire["series"] = {}): string {
   const educ = ministeres.find(m => m.nom === "Éducation nationale");
   const specMin = (cle?: number) => ({ "data-barres": JSON.stringify({ lignes: lignesMin, legende: "Budget 2027, en milliards d’euros", repere: "Part qui paie des retraites", partie: true }), ...(cle === undefined ? {} : { "data-cle": String(cle) }) });
   if (educ?.retraites) e.push({ chapitre: "ministeres", tableau: "barres", k: 0, titre: "Dans chaque ministère, <em>une part paie des retraites</em>.", lib: "Éducation nationale · budget 2027", valeur: educ.retraites / 1e9, decimales: 1, unite: "Md€", sous: `sur ${md(educ.budget)} Md€, soit ${fmt(educ.retraites / educ.budget * 100)} €  sur 100 €`, ton: "argile", desc: "Les retraites des anciens agents sont payées par le budget de leur ministère.", attributs: specMin(lignesMin.findIndex(l => l.n === "Éducation nationale")) });
-  e.push({ chapitre: "ministeres", tableau: "barres", k: 1, titre: "Intérieur, Défense, Justice : <em>même mécanique</em>.", desc: "La part hachurée est estimée à partir des documents budgétaires. Elle fait déjà partie des retraites de la dépense publique.", attributs: specMin() });
+  e.push({ chapitre: "ministeres", tableau: "barres", k: 1, titre: "Intérieur, Défense, Justice : <em>même mécanique</em>.", desc: "La part hachurée est estimée à partir des documents budgétaires. Elle fait déjà partie des retraites de la dépense publique.", attributs: specMin(), contenu: valeursAccessibles({ mode: "barres", lignes: lignesMin, legende: "Budget 2027 des ministères" }) });
 
   const c = courbes(series);
   if (c) c.postes.slice(0, 3).forEach((p, i) => {

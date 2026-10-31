@@ -17,6 +17,15 @@ export type VueVille =
   | { mode: "barres"; lignes: LigneBarre[]; legende?: string; repere?: string }
   | { mode: "tuiles"; tuiles: [string, string, string?][] };
 
+/** La version texte d'un visuel, lue par les lecteurs d'écran seulement. */
+export function valeursAccessibles(v: VueVille): string {
+  const items = v.mode === "barres" ? v.lignes.map(l => `${l.n} : ${l.t}${l.s ? `, ${l.s}` : ""}${l.rt ? ` (${v.repere ?? "repère"} : ${l.rt})` : ""}`)
+    : v.mode === "tuiles" ? v.tuiles.map(([lib, val, rep]) => `${lib} : ${val}${rep ? `, ${rep}` : ""}`)
+    : [`Recettes : ${texteMontant(v.rec)}`, `Dépenses : ${texteMontant(v.dep)}`];
+  const tete = v.mode === "barres" && v.legende ? `<p>${echapper(v.legende)}</p>` : "";
+  return `<div class="sr-only">${tete}<ul>${items.map(t => `<li>${echapper(t)}</li>`).join("")}</ul></div>`;
+}
+
 export function etapesVille(v: Ville, france: RepereFrance = {}): Etape[] {
   const nom = echapper(v.nom);
   const e: Etape[] = [];
@@ -124,7 +133,7 @@ export function etapesVille(v: Ville, france: RepereFrance = {}): Etape[] {
     if (p?.niveauVie) tuiles.push([`Niveau de vie médian, par an · ${p.niveauVie[0]}`, `${fmt(p.niveauVie[1])} €`, france.niveauVie ? `France ${fmt(france.niveauVie[1])} € (${france.niveauVie[0]})` : undefined]);
     if (p?.salaire) tuiles.push([`Salaire net moyen, par mois · ${p.salaire[0]}`, `${fmt(p.salaire[1])} €`, france.salaire ? `France ${fmt(france.salaire[1])} € (${france.salaire[0]})` : undefined]);
     if (p?.chomage) tuiles.push([`Chômage (recensement) · ${p.chomage[0]}`, `${fmt(p.chomage[1], 1)} %`]);
-    if (p?.logementsSociaux) tuiles.push([`Logements sociaux · ${p.logementsSociaux[0]}`, `${fmt(p.logementsSociaux[1], 1)} %`, "des résidences principales"]);
+    if (p?.logementsSociaux) tuiles.push([`Logements sociaux · ${p.logementsSociaux[0]}`, `${fmt(p.logementsSociaux[1], 1)} %`, p.logementsSociaux[2] === p.logementsSociaux[0] ? "des résidences principales" : `des résidences principales (recensement ${p.logementsSociaux[2]})`]);
     if (p?.ecoles) tuiles.push([`Écoles · ${p.ecoles[0]}`, fmt(p.ecoles[1]), p.colleges ? `${fmt(p.colleges[1])} collèges et lycées` : undefined]);
     if (tuiles.length >= 2) e.push({
       chapitre: "ville", tableau: "ville", k: 10, titre: `Qui vit à <em>${nom}</em>&nbsp;?`, lib: p?.pauvrete ? `Taux de pauvreté · ${p.pauvrete[0]}` : "Habitants", valeur: p?.pauvrete ? p.pauvrete[1] : v.population!, decimales: p?.pauvrete ? 1 : 0, unite: p?.pauvrete ? "%" : "",
@@ -132,7 +141,9 @@ export function etapesVille(v: Ville, france: RepereFrance = {}): Etape[] {
       attributs: vue("portrait", { mode: "tuiles", tuiles }),
     });
   }
-  if (e.length) e[e.length - 1].contenu = `<a class="etape__lien" href="#ville" data-autre-ville>Choisir une autre ville</a>`;
+  // Le visuel est décoratif pour les lecteurs d'écran : chaque carte porte ses valeurs en texte.
+  for (const x of e) { const v: VueVille | undefined = x.attributs?.["data-ville"] ? JSON.parse(x.attributs["data-ville"]) : undefined; if (v) x.contenu = valeursAccessibles(v); }
+  if (e.length) e[e.length - 1].contenu += `<a class="etape__lien" href="#ville" data-autre-ville>Choisir une autre ville</a>`;
   return e;
 }
 

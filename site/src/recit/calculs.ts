@@ -160,7 +160,7 @@ export type Ville = {
   associations?: { annee: string; montant: number; etat?: { annee: string; montant: number; nombre?: number } };
   foncier?: { annee: string; taux: number; tauxGlobal?: number; lignes: Ligne[] };
   delits?: { annee: string; lignes: [string, string, number, number][] };
-  portrait?: { pauvrete?: [string, number]; niveauVie?: [string, number]; salaire?: [string, number]; chomage?: [string, number]; logementsSociaux?: [string, number]; ecoles?: [string, number]; colleges?: [string, number] };
+  portrait?: { pauvrete?: [string, number]; niveauVie?: [string, number]; salaire?: [string, number]; chomage?: [string, number]; logementsSociaux?: [string, number, string]; ecoles?: [string, number]; colleges?: [string, number] };
 };
 
 /** Postes non nuls d'une même année, complétés d'une ligne « Autres » quand le total publié l'exige. */
@@ -212,11 +212,14 @@ export function ville(t: Territoire, code: string): Ville | undefined {
   const delits = anDelits && population ? { annee: anDelits, lignes: DELITS.flatMap(([id, nom]) => { const n = s[`ssmsi_${id}_nombre`]?.[anDelits]; return fini(n) ? [[id, nom, n, n / population * 1000] as [string, string, number, number]] : []; }) } : undefined;
 
   const actifs = dernier(s.insee_actifs), chomeurs = actifs ? s.insee_chomeurs_rp?.[actifs[0]] : undefined;
-  const sociaux = dernier(s.rpls_logements_sociaux), menages = derniere(s.insee_residences_principales);
+  // Parc social (RPLS) et résidences principales (recensement) : même année si possible, sinon les deux années sont dites.
+  const anSociaux = anneeCommune([s.rpls_logements_sociaux, s.insee_residences_principales]);
+  const sociaux = anSociaux ? [anSociaux, s.rpls_logements_sociaux[anSociaux]] as [string, number] : dernier(s.rpls_logements_sociaux);
+  const menages = anSociaux ? [anSociaux, s.insee_residences_principales[anSociaux]] as [string, number] : dernier(s.insee_residences_principales);
   const portrait = {
     pauvrete: dernier(s.insee_taux_pauvrete), niveauVie: dernier(s.insee_niveau_vie_median), salaire: dernier(s.insee_salaire_net_eqtp_mensuel),
     chomage: actifs && fini(chomeurs) && actifs[1] > 0 ? [actifs[0], chomeurs / actifs[1] * 100] as [string, number] : undefined,
-    logementsSociaux: sociaux && menages && menages[1] > 0 ? [sociaux[0], sociaux[1] / menages[1] * 100] as [string, number] : undefined,
+    logementsSociaux: sociaux && menages && menages[1] > 0 ? [sociaux[0], sociaux[1] / menages[1] * 100, menages[0]] as [string, number, string] : undefined,
     ecoles: dernier(s.menj_ecoles), colleges: dernier(s.menj_colleges_lycees),
   };
 
