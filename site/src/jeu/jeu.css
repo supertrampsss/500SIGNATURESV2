@@ -367,7 +367,7 @@ a.btn-ic{color:var(--ivoire);text-decoration:none;font-family:var(--f-mono);font
 #e-evt .chapo{max-width:44em;margin:0 auto}
 #e-evt #evt-hemi{width:100%;display:flex;justify-content:center}
 #e-evt #evt-hemi:empty{display:none}
-#e-evt .evt-hemi{width:min(100%,920px)}
+#e-evt .evt-hemi{width:min(100%,920px,max(320px,calc((100svh - 380px) * 1.9)))}
 #e-evt .actions{justify-content:center}
 @media (max-width:900px){#e-evt .ecran__in{min-height:auto;justify-content:flex-start;gap:20px}#e-evt .evt-hemi{width:100%}}
-@media (max-height:620px) and (min-width:600px){#e-evt .ecran__in{min-height:auto;padding-top:28px;gap:14px}#e-evt .evt-hemi{width:min(100%,520px)}}
+@media (max-height:620px) and (min-width:600px){#e-evt .ecran__in{min-height:auto;padding-top:28px;gap:14px}#e-evt .evt-hemi{width:min(100%,400px)}}
