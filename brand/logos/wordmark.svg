@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="960" height="240" role="img" aria-label="500 Signatures">
   <title>500 Signatures — logotype</title>
-  <style>@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@600&amp;display=swap');</style>
+  <style>@import url('../polices.css');</style>
   <rect width="480" height="120" fill="#fbfaf6"/>
   <g transform="translate(30 26) scale(.5)" fill="none" stroke="#0b1422" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
     <path d="M60 12 H25 L20 50 C28 44 37 42 45 42.5 C61 44 72 55 72 69 C72 85 59 96 43 96 C31 96 22 91 16 83"/><ellipse cx="118" cy="54" rx="27" ry="42"/><ellipse cx="186" cy="54" rx="27" ry="42"/>
