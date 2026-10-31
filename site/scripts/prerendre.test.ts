@@ -822,7 +822,7 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
     "/sources/",
     "/salaires/",
     "/questions/",
-    "/mandats/",
+    "/mandats/jouer/",
     "/mandats/methode/",
     "/confidentialite/",
     "/a-propos/",

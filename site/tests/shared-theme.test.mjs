@@ -81,8 +81,8 @@ test('retired simulator URLs lead to Mandats while old browser data is preserved
  test.skip(info.project.name!=='desktop-chromium','One redirect compatibility check.');
  await page.addInitScript(()=>localStorage.setItem('simulator-legacy-preservation','old-save'));
  await page.goto('/simulateur/comparer?version=2&budget=france');
- await expect(page).toHaveURL(/\/mandats\/$/);
- await expect(page.getByRole('heading',{name:'Cinq ans pour transformer le pays.',exact:true})).toBeVisible();
+ await expect(page).toHaveURL(/\/mandats\/jouer\/$/);
+ await expect(page.getByRole('heading',{level:1})).toContainText('Cinq ans.');
  expect(await page.evaluate(()=>localStorage.getItem('simulator-legacy-preservation'))).toBe('old-save');
 });
 

@@ -1368,7 +1368,7 @@ export function adressesPubliees(analyses: readonly Analyse[]): string[] {
     "/sources/",
     "/salaires/",
     "/questions/",
-    "/mandats/",
+    "/mandats/jouer/",
     "/mandats/methode/",
     "/confidentialite/",
     "/a-propos/",

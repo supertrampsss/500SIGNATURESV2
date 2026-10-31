@@ -58,7 +58,7 @@ export function modeSimulateur(pathname: string, search: string): ModeSimulateur
  * la campagne actuelle, sans afficher une seconde interface concurrente.
  */
 export function adresseSimulateurCanonique(pathname: string, _search: string): string | null {
-  return /^\/simulateur(?:\/|$)/.test(pathname) ? "/mandats/" : null;
+  return /^\/simulateur(?:\/|$)/.test(pathname) ? "/mandats/jouer/" : null;
 }
 
 /**
