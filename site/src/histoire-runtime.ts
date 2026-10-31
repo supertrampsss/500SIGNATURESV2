@@ -129,7 +129,7 @@ export function brancherHistoire(): void {
   // Molette : un geste = une étape, tant que la scène remplit l'écran ; aux bouts, la page défile.
   let accu = 0, verrou = 0;
   ecoute(window, "wheel", (e: WheelEvent) => {
-    const b = racine.getBoundingClientRect(); if (!index.hidden) return;
+    const b = racine.getBoundingClientRect(); if (!index.hidden || document.querySelector("dialog[open]")) return;
     const haut = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--decalage-entete")) || 0;
     const pleine = b.top <= haut + 2 && b.top >= -2 && b.bottom >= innerHeight - 2;
     const vers = e.deltaY > 0 ? 1 : -1;
