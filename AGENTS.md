@@ -81,6 +81,7 @@ This supersedes earlier palette and Mandats interface directions where they conf
   previous game stays at `/mandats/` for existing saves, explicit version links and
   its browser suites until the owner decides to retire it.
 - Debt has consequences (31 October 2026): spreads widen above 165 Md€, ratings are downgraded at 175 and 195 Md€ (opinion, tension, rate) and restored below 160 Md€, and the final score penalises each Md€ above 165 more heavily. Measured with full-mandate bots: unchecked spending ends under creditor tutelle, one reform a year with balanced choices is re-elected, and maximal austerity still loses. Re-measure all strategies after changing any economic rule.
+- Mandats v3 (31 October 2026, owner feedback): desktop is three real columns (dashboard | map fitted to its cell with a container query | Conseil des ministres). A Danger banner names the distance to each defeat threshold; the end screen states the verdict, the threshold crossed and the three decisions that pushed the culprit metric. Reform negotiation: each group's stance depends on the reform, each demands its own concession, and deals cost political capital (3 tokens, +2 per year, 5 max; hostile = 2). Budget: spending steps of 3 Md€ on ±5, four tax levers (TVA, IR, IS, CSG) with their own yield and political cost. Re-measure strategies after changing any of these.
 - Dossiers must be cornelian and politically balanced: each option carries a real cost,
   no option is presented as the right answer, and no real politician is named.
 

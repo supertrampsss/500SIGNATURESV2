@@ -30,7 +30,7 @@ function nouvellePartie(p, brouillon = false) {
   armerHasard(graine, 0);
   S = { v: 1, nRng: 0, graine, tour: 0, def: 152.51, op: p.op, maj: p.maj, ten: p.ten, taux: 3.3,
     sante: 38, educ: 52, secu: 50, loge: 36, trans: 55, ener: 60,
-    budget: { sante: 0, educ: 0, secu: 0, loge: 0, trans: 0, ener: 0, impots: 0 },
+    budget: { sante: 0, educ: 0, secu: 0, loge: 0, trans: 0, ener: 0, tva: 0, ir: 0, is: 0, csg: 0 }, capital: 3,
     f: {}, vus: {}, chantiers: [], journal: [], titres: [], decisions: [], main: [], n493: 0, censures: 0, rue: 0, insurrection: 0, fil: [], reformes: {}, reformeTour: -1, an493: -1, profil: p.t, fini: false, brouillon };
   tirer(); rendre(true);
 }
@@ -103,8 +103,19 @@ function flotter(deltas) {
     $(sel).appendChild(s); setTimeout(() => s.remove(), 1700);
   }
 }
+/* Ce qui peut faire tomber le mandat, et à quelle distance on en est. Mêmes seuils que finSiPerdu. */
+function dangers() {
+  const d = [];
+  if (S.def >= 195) d.push(`Déficit ${fr(S.def, 1)} Md€ : mise sous tutelle à 215`);
+  if (S.op <= 15 && S.ten >= 78) d.push(`Opinion ${fr(S.op)} %, tension ${fr(S.ten)} : démission forcée à 8 % et 88`);
+  if (S.rue >= 4) d.push(S.insurrection >= 1 ? 'Insurrection : encore un trimestre et vous tombez' : 'Insurrection dans la rue : deux trimestres et vous tombez');
+  else if (S.rue >= 3) d.push('Émeutes : un cran de plus et c’est l’insurrection');
+  if ((S.censures || 0) >= 2) d.push('Deux gouvernements censurés : une troisième censure met fin au mandat');
+  return d;
+}
 function rendre(premier) {
   sauver();
+  { const d = dangers(), el = $('#alerte-fin'); el.hidden = !d.length; el.innerHTML = d.length ? `<b>Danger</b> ${d.join(' · ')}` : ''; }
   const an = Math.floor(S.tour / 4) + 1;
   $('#date').textContent = `Année ${an} · ${SAISONS[S.tour % 4]}`;
   $('#temps').innerHTML = Array.from({ length: 20 }, (_, i) => `<i class="${i < S.tour ? 'fait' : i === S.tour ? 'ici' : ''}${i && i % 4 === 0 ? ' an' : ''}"></i>`).join('');
@@ -127,7 +138,9 @@ function rendre(premier) {
   const pts = [];
   S.main.forEach(m => { const d = dossier(m.id); if (m.choix === null) pts.push({ v: d.ville, c: d.crise ? 'crise' : '', l: d.titre, id: d.id }); });
   S.chantiers.forEach(c => c.ville && pts.push({ v: c.ville, c: 'chantier', l: c.t }));
-  $('#points').innerHTML = pts.map(p => { const [x, y] = VILLES[p.v] || [50, 50]; return `<div class="point ${p.c}" data-id="${p.id || ''}" style="left:${x}%;top:${y}%"><i></i><span>${p.v}</span></div>`; }).join('');
+  // Deux villes proches (Le Havre et Caen…) : la seconde étiquette passe de l'autre côté, la même ville n'est écrite qu'une fois.
+  const places = [], vues = new Set();
+  $('#points').innerHTML = pts.map(p => { const [x, y] = VILLES[p.v] || [50, 50]; const proche = places.some(([a, b]) => Math.abs(a - x) < 12 && Math.abs(b - y) < 6); places.push([x, y]); const nom = vues.has(p.v) ? '' : p.v; vues.add(p.v); return `<div class="point ${p.c}${proche ? ' gauche' : ''}" data-id="${p.id || ''}" style="left:${x}%;top:${y}%"><i></i>${nom ? `<span>${nom}</span>` : ''}</div>`; }).join('');
   // main
   const restants = S.main.filter(m => m.choix === null).length;
   $('#reste').textContent = restants ? `${restants} dossier${restants > 1 ? 's' : ''} à trancher` : 'tout est signé';
@@ -218,6 +231,11 @@ function alerte() {
   const b = document.createElement('div'); b.className = 'bandeau'; b.textContent = 'Alerte · crise en cours'; document.body.appendChild(b);
   setTimeout(() => { a.remove(); b.remove(); }, 2100);
 }
+function cumuler(...effets) {
+  const total = {};
+  for (const e of effets) for (const [k, v] of Object.entries(e || {})) total[k] = (total[k] || 0) + v;
+  return total;
+}
 function appliquerDecision(d, o, i) {
   const m = S.main.find(x => x.id === d.id); m.choix = i;
   const deltas = appliquer(o.e, true); pulser(deltas);
@@ -228,11 +246,13 @@ function appliquerDecision(d, o, i) {
   const suite = () => { if (!S.fini && S.main.every(x => x.choix !== null)) setTimeout(verifierFin, reduit ? 300 : 1100); };
   if (o.special === 'demission') S.fini = true;
   if (derapage) { alerte(); evenement('Dérapage', derapage.titre, derapage.texte, null, '/mandats/art/rupture.webp', [['Faire face', suite]]); } else suite();
-  if (o.ch) S.chantiers.push({ t: o.ch.t, n: o.ch.n, fait: 0, e: o.ch.e, ville: d.ville });
+  // Le chantier rattache ses effets à cette décision le jour où il est livré.
+  if (o.ch) S.chantiers.push({ t: o.ch.t, n: o.ch.n, fait: 0, e: o.ch.e, ville: d.ville, dec: S.decisions.length });
   if (o.f) S.f[o.f] = S.tour;
   S.titres.push({ k: d.crise ? 'c' : '', l: d.dom, t: o.h });
 
-  S.decisions.push({ tour: S.tour, dossier: d.titre, choix: o.t, poids: Object.values(o.e).reduce((a, v) => a + Math.abs(v), 0) + (o.ch ? 6 : 0) });
+  // Effets réellement survenus : le choix, plus le dérapage s'il a eu lieu.
+  S.decisions.push({ tour: S.tour, dossier: d.titre, choix: o.t, e: cumuler(o.e, derapage?.e), poids: Object.values(o.e).reduce((a, v) => a + Math.abs(v), 0) + (o.ch ? 6 : 0) + (derapage ? 6 : 0) });
   rendre();
   const suivant = document.querySelector('.dossier:not(.signe)'); if (suivant) suivant.focus();
 }
@@ -246,12 +266,12 @@ function evoluer() {
   const avant = { op: S.op, ten: S.ten, def: S.def };
   // chantiers
   const livres = [];
-  S.chantiers.forEach(c => { c.fait++; if (c.fait >= c.n) { appliquer(c.e); livres.push(c); } });
+  S.chantiers.forEach(c => { c.fait++; if (c.fait >= c.n) { appliquer(c.e); livres.push(c); const dec = S.decisions[c.dec]; if (dec) dec.e = cumuler(dec.e, c.e); } });
   S.chantiers = S.chantiers.filter(c => c.fait < c.n);
   livres.forEach(c => S.titres.push({ k: 'b', l: 'Livré', t: c.t }));
   S.flash = livres.map(c => c.ville);
   // budget voté : effets permanents par trimestre
-  for (const k of Object.keys(DOMAINES)) S[k] = clamp(S[k] - .7 + S.budget[k] * .9 + (rng() - .5) * 1.4, 0, 100);
+  for (const k of Object.keys(DOMAINES)) S[k] = clamp(S[k] - .7 + (S.budget[k] || 0) * .6 + (rng() - .5) * 1.4, 0, 100);
   // dynamiques
   const ms = moyenneServices();
   S.ten = clamp(S.ten + (50 - ms) * .09 + (40 - S.op) * .05 - (S.ten - 40) * .06 + (rng() - .5) * 3, 0, 100);
@@ -294,6 +314,7 @@ function passer() {
   if (S.tour === 19) return fin('terme');
   const titres = S.titres.slice(); S.titres = [];
   S.tour++;
+  if (S.tour % 4 === 0) S.capital = Math.min(5, capital() + 2);
   const q = `A${Math.floor(S.tour / 4) + 1}`;
   titres.forEach(t => S.fil.push({ q, t: t.t }));
   tirer(); rendre(); bandeau(titres);
@@ -317,44 +338,69 @@ $('#ticker').addEventListener('click', cacherBandeau);
 
 /* ---------- Budget ---------- */
 const POSTES = [['sante', 'Santé', 'Hôpitaux, soins'], ['educ', 'Éducation', 'Écoles, universités'], ['secu', 'Sécurité', 'Police, justice'], ['loge', 'Logement', 'Construction, aides'], ['trans', 'Transports', 'Rail, routes'], ['ener', 'Énergie', 'Réseaux, transition']];
+/* Leviers fiscaux : rendement par cran et coût politique propre (hypothèses de jeu, ordres de grandeur).
+   TVA : large mais impopulaire ; IR : touche les classes moyennes et la majorité ; IS : pèse sur l'emploi ;
+   CSG : rendement fort, retraités en colère. */
+const LEVIERS = [
+  ['tva', 'TVA', 'Un cran = 1 point de taux normal', 10, { op: -2.5, ten: 1.5 }, [-1, 2]],
+  ['ir', 'Impôt sur le revenu', 'Un cran = 4 Md€, barème', 4, { op: -1.5, maj: -2 }, [-2, 3]],
+  ['is', 'Impôt sur les sociétés', 'Un cran = 4 Md€', 4, { op: -.5, ten: .5, ener: -.5 }, [-2, 3]],
+  ['csg', 'CSG', 'Un cran = 0,5 point', 6, { op: -2, ten: 1.5 }, [-1, 3]]
+];
+const CRAN = 3; // Md€ par cran de dépense
 let projet;
+function normBudget() {
+  const b = S.budget;
+  if (b.impots !== undefined) { b.ir = (b.ir || 0) + b.impots; delete b.impots; }
+  for (const [k] of LEVIERS) if (b[k] === undefined) b[k] = 0;
+}
+const recettesLeviers = (b, base) => LEVIERS.reduce((a, [k, , , v]) => a + ((b[k] || 0) - (base ? base[k] || 0 : 0)) * v, 0);
 function ouvrirBudget() {
-  projet = { ...S.budget };
+  normBudget(); projet = { ...S.budget };
   const an = Math.floor(S.tour / 4) + 2;
   $('#t-budget').innerHTML = `Le budget de <em>l’année ${an}</em>`;
-  $('#lignes-b').innerHTML = POSTES.map(([k, n, s]) => `<div class="ligne-b"><div><b>${n}</b><small>${s}</small></div><div class="pas"><button type="button" data-k="${k}" data-s="-1" aria-label="Baisser ${n}">−</button><output id="o-${k}" class="tab"></output><button type="button" data-k="${k}" data-s="1" aria-label="Augmenter ${n}">+</button></div></div>`).join('') +
-    `<div class="ligne-b"><div><b>Impôts</b><small>Un cran = 5 Md€ de recettes</small></div><div class="pas"><button type="button" data-k="impots" data-s="-1" aria-label="Baisser les impôts">−</button><output id="o-impots" class="tab"></output><button type="button" data-k="impots" data-s="1" aria-label="Augmenter les impôts">+</button></div></div>`;
-  $('#lignes-b').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; projet[k] = clamp(projet[k] + +b.dataset.s, k === 'impots' ? -2 : -3, 3); majBudget(); }));
+  const ligne = (k, n, sous, aria) => `<div class="ligne-b"><div><b>${n}</b><small>${sous}</small></div><div class="pas"><button type="button" data-k="${k}" data-s="-1" aria-label="Baisser ${aria}">−</button><output id="o-${k}" class="tab"></output><button type="button" data-k="${k}" data-s="1" aria-label="Augmenter ${aria}">+</button></div></div>`;
+  $('#lignes-b').innerHTML = `<p class="mono lignes-b__t">Dépenses · un cran = ${CRAN} Md€</p>` + POSTES.map(([k, n, s]) => ligne(k, n, s, n)).join('') +
+    `<p class="mono lignes-b__t">Recettes</p>` + LEVIERS.map(([k, n, s]) => ligne(k, n, s, n)).join('');
+  $('#lignes-b').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k, lev = LEVIERS.find(l => l[0] === k); const [mn, mx] = lev ? lev[5] : [-5, 5]; projet[k] = clamp(projet[k] + +b.dataset.s, mn, mx); majBudget(); }));
   majBudget(); ecran('#e-budget');
 }
 function calculBudget() {
-  const dep = POSTES.reduce((a, [k]) => a + projet[k] - S.budget[k], 0) * 2;
-  const rec = (projet.impots - S.budget.impots) * 5;
+  const dep = POSTES.reduce((a, [k]) => a + projet[k] - S.budget[k], 0) * CRAN;
+  const rec = recettesLeviers(projet, S.budget);
   const def = S.def + dep - rec;
-  const recettes = 1561.63 + projet.impots * 5;
+  const recettes = 1561.63 + recettesLeviers(projet);
   const pour100 = (recettes + def) / recettes * 100;
   const coupes = POSTES.reduce((a, [k]) => a + Math.min(0, projet[k]), 0);
-  const abst = clamp(Math.round(95 + (S.op - 40) * 2 - Math.max(0, projet.impots) * 18 + coupes * 6 - S.n493 * 8), 10, 180);
-  const pour = clamp(Math.round(S.maj + Math.max(0, POSTES.reduce((a, [k]) => a + Math.max(0, projet[k]), 0)) * 3), 0, 577 - abst);
+  const hausses = LEVIERS.reduce((a, [k]) => a + Math.max(0, projet[k] - S.budget[k]), 0);
+  const abst = clamp(Math.round(95 + (S.op - 40) * 2 - hausses * 10 + coupes * 4 - S.n493 * 8), 10, 180);
+  const pour = clamp(Math.round(S.maj + Math.max(0, POSTES.reduce((a, [k]) => a + Math.max(0, projet[k]), 0)) * 2 - Math.max(0, projet.ir - S.budget.ir) * 6), 0, 577 - abst);
   const contre = 577 - pour - abst;
   return { def, pour100, pour, abst, contre, passe: pour > contre, dep, rec };
 }
 function majBudget() {
-  POSTES.forEach(([k]) => { const v = projet[k]; $('#o-' + k).textContent = (v > 0 ? '+' : v < 0 ? '−' : '') + fr(Math.abs(v) * 2) + ' Md€'; });
-  $('#o-impots').textContent = (projet.impots > 0 ? '+' : projet.impots < 0 ? '−' : '') + fr(Math.abs(projet.impots) * 5) + ' Md€';
+  const signe = v => (v > 0 ? '+' : v < 0 ? '−' : '');
+  POSTES.forEach(([k]) => { const v = projet[k]; $('#o-' + k).textContent = signe(v) + fr(Math.abs(v) * CRAN) + ' Md€'; });
+  LEVIERS.forEach(([k, , , val]) => { const v = projet[k]; $('#o-' + k).textContent = signe(v) + fr(Math.abs(v) * val) + ' Md€'; });
   const b = calculBudget();
   $('#b-depense').textContent = fr(b.pour100, 2); $('#b-deficit').textContent = fr(b.def, 1) + ' Md€';
-  $('#b-barre').innerHTML = `<i style="flex-basis:${100 / b.pour100 * 100}%;background:var(--or)"></i><i style="flex-basis:${(b.pour100 - 100) / b.pour100 * 100}%;background:var(--argile)"></i>`;
+  $('#b-barre').innerHTML = `<i style="flex-basis:${100 / b.pour100 * 100}%;background:var(--or)"></i><i style="flex-basis:${Math.max(0, b.pour100 - 100) / b.pour100 * 100}%;background:var(--argile)"></i>`;
   $('#v-pour').textContent = b.pour; $('#v-abs').textContent = b.abst; $('#v-contre').textContent = b.contre;
   $('#v-pronostic').textContent = b.passe ? 'Pronostic : le texte passerait.' : 'Pronostic : le texte serait rejeté.';
   $('#v-pronostic').style.color = b.passe ? 'var(--bleu)' : 'var(--argile)';
 }
 function adopter(b) {
-  const dImp = projet.impots - S.budget.impots;
+  // Le budget adopté entre dans l'historique causal avec ses effets mesurés.
+  const suivis = ['op', 'ten', 'def', 'maj', ...Object.keys(DOMAINES)], avant = Object.fromEntries(suivis.map(k => [k, S[k]]));
+  const leviers = POSTES.concat(LEVIERS).filter(([k]) => projet[k] !== S.budget[k]).length;
+  for (const [k, , , , e] of LEVIERS) { const d = projet[k] - S.budget[k]; if (!d) continue; for (const [m, v] of Object.entries(e)) S[m] = clamp(S[m] + v * (d > 0 ? d : d * -.5) * (d > 0 ? 1 : -1), ...(BORNES[m] || [0, 100])); }
   S.def = clamp(b.def, 40, 320);
-  S.op = clamp(S.op - Math.max(0, dImp) * 3 + Math.max(0, -dImp) * 2, 0, 100);
-  S.ten = clamp(S.ten + Math.max(0, dImp) * 3 - POSTES.reduce((a, [k]) => a + Math.min(0, projet[k] - S.budget[k]), 0) * 1.5, 0, 100);
+  S.ten = clamp(S.ten - POSTES.reduce((a, [k]) => a + Math.min(0, projet[k] - S.budget[k]), 0) * 1.2, 0, 100);
   S.budget = { ...projet };
+  if (leviers) {
+    const e = Object.fromEntries(suivis.map(k => [k, S[k] - avant[k]]).filter(([, v]) => Math.abs(v) > .01));
+    S.decisions.push({ tour: S.tour, dossier: 'Budget', choix: `Budget de l’année ${Math.floor(S.tour / 4) + 1}`, e, poids: Object.values(e).reduce((a, v) => a + Math.abs(v), 0) });
+  }
 }
 $('#b-voter').addEventListener('click', () => {
   const b = calculBudget(); ferme('#e-budget');
@@ -412,33 +458,63 @@ function carteReforme() {
 }
 /* Soutiens : chaque groupe négocié apporte des voix pour ce texte, contre une contrepartie,
    et rapproche durablement votre camp (quelques sièges). Hypothèses de jeu. */
-const SOUTIENS = [
-  { id: 'centre', t: 'Négocier avec les centristes', d: 'Ils votent si la réforme est adoucie.', voix: 30, eco: -.2, e: {} },
-  { id: 'droite', t: 'Accord avec la droite', d: 'En échange, des baisses de charges ailleurs.', voix: 40, eco: 0, e: { def: 1.5, op: -2 } },
-  { id: 'gauche', t: 'Accord avec la gauche', d: 'Des contreparties sociales pour les plus modestes.', voix: 35, eco: -.3, e: { ten: -4 } },
-  { id: 'territoires', t: 'Rallier le Sénat et les élus locaux', d: 'Contre des dotations préservées.', voix: 15, eco: 0, e: { def: 1 } }
+/* Négociation : chaque groupe prend position sur CETTE réforme, réclame une contrepartie qui lui
+   est propre et coûte du capital politique (jetons). Le capital se reconstitue chaque année : on ne
+   peut pas acheter tous les votes, il faut choisir ses alliés. Hypothèses de jeu. */
+const GROUPES = [
+  { id: 'centre', n: 'Centristes', voix: 30 },
+  { id: 'droite', n: 'Droite', voix: 42 },
+  { id: 'gauche', n: 'Gauche', voix: 38 },
+  { id: 'territoires', n: 'Sénat et élus locaux', voix: 18 }
 ];
-let negociation = null;
-function bonusNegociation() { return negociation ? SOUTIENS.filter(a => negociation.has(a.id)).reduce((t, a) => t + a.voix, 0) : 0; }
-function facteurNegociation() { return negociation ? Math.max(.3, 1 + SOUTIENS.filter(a => negociation.has(a.id)).reduce((t, a) => t + a.eco, 0)) : 1; }
+const DOULOUREUSE = r => ['age', 'desindex', 'franchises', 'chomage', 'alloc', 'fonction', 'temps', 'ameR'].includes(r.id);
+const FISCALE = r => ['csg', 'tva', 'patrimoine', 'niches', 'aides'].includes(r.id);
+function position(g, r) {
+  if (g === 'droite') return ['patrimoine', 'niches', 'aides', 'csg'].includes(r.id) ? -1 : DOULOUREUSE(r) ? 1 : 0;
+  if (g === 'gauche') return ['patrimoine', 'niches', 'aides'].includes(r.id) ? 1 : DOULOUREUSE(r) || r.id === 'tva' ? -1 : 0;
+  if (g === 'territoires') return r.id === 'departements' ? -1 : r.id === 'fonction' ? -1 : 0;
+  return FISCALE(r) && r.id !== 'patrimoine' ? 0 : DOULOUREUSE(r) ? 0 : 1;
+}
+const DEMANDES = {
+  centre: [{ t: 'Une clause de revoyure dans deux ans', eco: -.1, e: {} }, { t: 'Une entrée en vigueur étalée', eco: -.2, e: {} }, { t: 'Une conférence sociale avant le vote', eco: -.05, e: { ten: -2 } }],
+  droite: [{ t: 'Une baisse de charges sur les PME', eco: 0, e: { def: 2, op: -1 } }, { t: 'Le gel des recrutements publics en contrepartie', eco: 0, e: { ten: 3, def: -1 } }, { t: 'Un durcissement de la politique migratoire', eco: 0, e: { ten: 3, op: 1 } }],
+  gauche: [{ t: 'Une exonération pour les plus modestes', eco: -.3, e: { ten: -4 } }, { t: 'Une hausse du minimum vieillesse', eco: 0, e: { def: 2, ten: -3 } }, { t: 'Une taxe exceptionnelle sur les superprofits', eco: 0, e: { def: -1, maj: -3 } }],
+  territoires: [{ t: 'Des dotations aux communes préservées', eco: 0, e: { def: 1 } }, { t: 'Un fonds pour la ruralité', eco: 0, e: { def: 1.5, op: 1 } }, { t: 'Le report de la réforme en outre-mer', eco: -.1, e: {} }]
+};
+const STANCE = { '1': ['Allié', 'bon'], '0': ['Ouvert', ''], '-1': ['Hostile', 'mal'] };
+let negociation = null, offres = [];
+function capital() { return S.capital === undefined ? 3 : S.capital; }
+function offresPour(r) {
+  const idx = REFORMES.findIndex(x => x.id === r.id);
+  return GROUPES.map((g, j) => {
+    const pos = position(g.id, r), dem = DEMANDES[g.id][(idx + j) % DEMANDES[g.id].length];
+    return { id: g.id, n: g.n, pos, voix: Math.round(g.voix * (pos > 0 ? 1.25 : pos < 0 ? .6 : 1)), prix: pos < 0 ? 2 : 1, ...dem };
+  });
+}
+function choisies() { return offres.filter(a => negociation && negociation.has(a.id)); }
+function bonusNegociation() { return choisies().reduce((t, a) => t + a.voix, 0); }
+function facteurNegociation() { return Math.max(.3, 1 + choisies().reduce((t, a) => t + a.eco, 0)); }
+function coutNegociation() { return choisies().reduce((t, a) => t + a.prix, 0); }
 function ouvrirNegociation(r) {
   if (enCours || S.reformeTour === S.tour || !r) return;
-  negociation = new Set();
+  negociation = new Set(); offres = offresPour(r);
   mode = 'reforme'; ouvert = '__reformes'; retourFocus = document.activeElement;
   $('#d-sur').textContent = 'Grande réforme · construire une majorité';
   $('#d-titre').textContent = r.t;
-  $('#d-texte').textContent = `${r.d ? r.d + ' ' : ''}Économie visée : ${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€ par an. Comptez vos voix, négociez, puis présentez le texte.`;
+  $('#d-texte').textContent = `${r.d ? r.d + ' ' : ''}Économie visée : ${fr(r.eco, r.eco % 1 ? 1 : 0)} Md€ par an.`;
   $('#d-options').classList.remove('verrou');
   $('#d-options').innerHTML = `<p class="mono" style="margin:0;color:var(--encre-2)">Si le texte est adopté</p><p class="puces consequences-reforme">${pucesReforme(r)}</p>
     <div class="pointage" id="pointage" aria-live="polite"></div>
-    <p class="mono" style="margin:6px 0 0;color:var(--encre-2)">Soutiens à négocier</p>
-    ${SOUTIENS.map(a => `<button type="button" class="option nego" data-a="${a.id}" aria-pressed="false"><b>${a.t}</b><span>${a.d}</span><span class="puces"><span class="puce bon">▲ +${a.voix} voix</span>${a.eco ? `<span class="puce mal">▼ Économie −${Math.round(-a.eco * 100)} %</span>` : ''}${puces(a.e)}</span></button>`).join('')}
+    <div class="capital"><span class="mono">Capital politique</span><span id="jetons" aria-live="polite"></span><small>Il se reconstitue chaque nouvelle année.</small></div>
+    ${offres.map(a => `<button type="button" class="option nego" data-a="${a.id}" aria-pressed="false"><span class="nego__tete"><b>${a.n}</b><span class="stance ${STANCE[a.pos][1]}">${STANCE[a.pos][0]}</span><span class="prix">${'●'.repeat(a.prix)}</span></span><span>Exige : ${a.t.charAt(0).toLowerCase() + a.t.slice(1)}.</span><span class="puces"><span class="puce bon">▲ +${a.voix} voix</span>${a.eco ? `<span class="puce mal">▼ Économie −${Math.round(-a.eco * 100)} %</span>` : ''}${puces(a.e)}</span></button>`).join('')}
     <div class="actions-nego"><button type="button" class="cta" id="b-presenter">Présenter au vote</button><button type="button" class="cta second-clair" id="b-retirer">Pas maintenant</button></div>
-    <p class="note-hyp">Chaque accord rapproche aussi durablement un groupe de votre camp. Voix, contreparties et économies : hypothèses de jeu.</p>`;
+    <p class="note-hyp">Un groupe hostile coûte deux jetons et apporte moins de voix. Voix, contreparties et économies : hypothèses de jeu.</p>`;
   const majPointage = () => {
-    const v = voteReforme(r, bonusNegociation());
+    const v = voteReforme(r, bonusNegociation()), reste = capital() - coutNegociation();
     const ecart = v.contre - v.pour + 1;
-    $('#pointage').innerHTML = `<div class="pointage__chiffres"><span><b class="tab">${v.pour}</b> pour</span><span><b class="tab">${v.abst}</b> abst.</span><span><b class="tab">${v.contre}</b> contre</span></div><p class="${v.passe ? 'ok' : 'ko'}">${v.passe ? 'Majorité acquise' : `Il vous manque ${ecart} voix`} · économie retenue : ${fr(r.eco * facteurNegociation(), 1)} Md€/an</p>`;
+    $('#pointage').innerHTML = `<div class="pointage__hemi">${hemicycle(v.pour, v.abst, v.contre, ['Pour', 'Abstention', 'Contre'], true)}</div><div class="pointage__chiffres"><span><b class="tab">${v.pour}</b> pour</span><span><b class="tab">${v.abst}</b> abst.</span><span><b class="tab">${v.contre}</b> contre</span></div><p class="${v.passe ? 'ok' : 'ko'}">${v.passe ? 'Majorité acquise' : `Il vous manque ${ecart} voix`} · économie retenue : ${fr(r.eco * facteurNegociation(), 1)} Md€/an</p>`;
+    $('#jetons').innerHTML = Array.from({ length: Math.max(capital(), 0) }, (_, i) => `<i class="${i < reste ? 'plein' : ''}"></i>`).join('') + `<b class="tab">${reste} / ${capital()}</b>`;
+    $('#d-options').querySelectorAll('.nego').forEach(b => { const a = offres.find(x => x.id === b.dataset.a); b.disabled = !negociation.has(a.id) && a.prix > reste; });
   };
   $('#d-options').querySelectorAll('.nego').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.a; if (negociation.has(id)) negociation.delete(id); else negociation.add(id);
@@ -458,12 +534,13 @@ function voteReforme(r, bonus = 0) {
 }
 function presenter(r) {
   if (enCours) return; enCours = true;
-  const soutiens = SOUTIENS.filter(a => negociation && negociation.has(a.id));
+  const soutiens = choisies();
   const facteur = facteurNegociation(), bonus = bonusNegociation();
+  S.capital = capital() - coutNegociation();
   S.reformeTour = S.tour; fermer(); mode = 'dossier'; negociation = null;
   // Le vote se compte sur l'état affiché au pointage ; les accords prennent effet ensuite.
   const v = voteReforme(r, bonus);
-  soutiens.forEach(a => { appliquer(a.e, true); S.maj = clamp(S.maj + 3, 120, 420); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Accord : ${a.t.toLowerCase()}` }); });
+  soutiens.forEach(a => { appliquer(a.e, true); S.maj = clamp(S.maj + 3, 120, 420); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Accord avec ${a.n.toLowerCase()} : ${a.t.charAt(0).toLowerCase() + a.t.slice(1)}` }); });
   setTimeout(() => {
     enCours = false;
     if (v.passe) { adopterReforme(r, facteur); evenement('Assemblée nationale', 'Réforme adoptée', `${r.t}. ${v.pour} voix pour, ${v.contre} contre.`, v, '/mandats/art/parliament.webp', [['Continuer', apresReforme]]); }
@@ -480,22 +557,24 @@ function adopterReforme(r, facteur = 1) {
   pulser(appliquer(adoucir(r.e), true));
   if (r.ch) S.chantiers.push({ t: r.ch.t, n: r.ch.n, fait: 0, e: adoucir(r.ch.e), ville: 'Paris' });
   S.titres.push({ k: '', l: 'Réforme', t: `${r.t} : adoptée` });
-  S.decisions.push({ tour: S.tour, dossier: 'Grande réforme', choix: r.t, poids: r.eco + 10 });
+  S.decisions.push({ tour: S.tour, dossier: 'Grande réforme', choix: r.t, e: { ...r.e, def: (r.e.def || 0) - r.eco * facteur }, poids: r.eco + 10 });
+  const reforme = S.decisions.at(-1);
+  if (r.ch) S.chantiers.at(-1).dec = S.decisions.length - 1;
   S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Réforme adoptée : ${r.t}` });
-  if (r.risque && rng() < r.risque.p) { appliquer(r.risque.e, true); S.titres.push({ k: 'c', l: 'Dérapage', t: r.risque.h }); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: r.risque.h }); }
+  if (r.risque && rng() < r.risque.p) { appliquer(r.risque.e, true); reforme.e = cumuler(reforme.e, r.risque.e); S.titres.push({ k: 'c', l: 'Dérapage', t: r.risque.h }); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: r.risque.h }); }
   onde('Paris', 'var(--or)');
 }
 function apresReforme() { rendre(); if (finSiPerdu()) return; setTimeout(verifierFin, reduit ? 0 : 900); }
 $('#b-reformes').addEventListener('click', ouvrirReformes);
 
 /* ---------- Hémicycle ---------- */
-function hemicycle(pour, abst, contre, libs) {
+function hemicycle(pour, abst, contre, libs, fixe = false) {
   const rangs = [26, 32, 38, 44, 50, 56, 62, 68, 76, 84, 92];
   const sieges = []; rangs.forEach((n, r) => { const R = 60 + r * 12; for (let i = 0; i < n; i++) { const a = Math.PI * (1 - i / (n - 1)); sieges.push({ x: 200 + R * Math.cos(a), y: 200 - R * Math.sin(a), a }); } });
   sieges.sort((p, q) => q.a - p.a);
   const total = sieges.length, k = total / 577;
   const nP = Math.round(pour * k), nA = Math.round(abst * k);
-  return `<svg class="hemi" viewBox="0 0 400 210" role="img" aria-label="${libs[0]} ${pour}, ${libs[1]} ${abst}, ${libs[2]} ${contre}">${sieges.map((s, i) => `<circle class="siege" style="animation-delay:${reduit ? 0 : 300 + i * 2.2}ms" cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.6" fill="${i < nP ? 'var(--bleu)' : i < nP + nA ? 'rgba(244,239,227,.35)' : 'var(--argile)'}"/>`).join('')}</svg>`;
+  return `<svg class="hemi" viewBox="0 0 400 210" role="img" aria-label="${libs[0]} ${pour}, ${libs[1]} ${abst}, ${libs[2]} ${contre}">${sieges.map((s, i) => `<circle class="siege${fixe ? ' fixe' : ''}" style="animation-delay:${reduit || fixe ? 0 : 300 + i * 2.2}ms" cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.6" fill="${i < nP ? 'var(--bleu)' : i < nP + nA ? 'rgba(244,239,227,.35)' : 'var(--argile)'}"/>`).join('')}</svg>`;
 }
 function evenement(sur, titre, texte, v, fond, actions) {
   $('#evt-sur').textContent = sur; lettres($('#t-evt'), titre); $('#evt-texte').textContent = texte;
@@ -511,6 +590,15 @@ function fin(type) {
   S.fini = true; sauver();
   const ms = moyenneServices();
   const score = Math.round(clamp(50 + (S.op - 40) * .8 + (ms - 50) * .5 - (S.ten - 40) * .3 - (S.def - 152.51) * .35 - Math.max(0, S.def - 165) * .9, 2, 98));
+  const perdu = type !== 'terme' || score < 40;
+  const CAUSE = {
+    tutelle: [`Le déficit a atteint ${fr(S.def, 1)} Md€. Au-delà de 215 Md€, les marchés ne prêtent plus.`, 'def', 1],
+    demission: [`Opinion ${fr(S.op)} %, tension ${fr(S.ten)} / 100. Sous 8 % et au-delà de 88, vous ne pouvez plus gouverner.`, 'op', -1],
+    renverse: ['Deux trimestres d’insurrection. La rue a eu raison du pouvoir.', 'ten', 1],
+    censure: ['Trois gouvernements renversés par l’Assemblée.', 'maj', -1],
+    abandon: ['Vous avez choisi de partir.', null, 0]
+  }[type];
+  const fautifs = CAUSE && CAUSE[1] ? S.decisions.filter(x => x.e && (x.e[CAUSE[1]] || 0) * CAUSE[2] > 0).sort((a, b) => (b.e[CAUSE[1]] - a.e[CAUSE[1]]) * CAUSE[2]).slice(0, 3) : [];
   const T = {
     terme: score >= 55 ? ['Réélu', 'Les Français vous renouvellent leur confiance.'] : score >= 40 ? ['Second tour serré', 'Un bilan défendable, une campagne indécise.'] : ['Battu', 'Le pays tourne la page de votre mandat.'],
     demission: ['Démission', 'La rue et les sondages ont eu raison de votre mandat.'],
@@ -519,7 +607,10 @@ function fin(type) {
     renverse: ['Renversé par la rue', 'L’insurrection a duré deux trimestres. Vous quittez l’Élysée sous les huées.'],
     abandon: ['Démission', 'Vous avez choisi de partir. Une élection anticipée est convoquée.']
   }[type];
-  $('#fin-sur').textContent = type === 'terme' ? `Fin du mandat · ${S.profil}` : `Fin prématurée · année ${Math.floor(S.tour / 4) + 1}`;
+  $('#fin-sur').textContent = type === 'terme' ? `Fin du mandat · ${S.profil}` : `Mandat interrompu · année ${Math.floor(S.tour / 4) + 1}, ${SAISONS[S.tour % 4].toLowerCase()}`;
+  $('#fin-verdict').textContent = type === 'terme' ? (score >= 55 ? 'Victoire' : score >= 40 ? 'Ballottage' : 'Défaite') : 'Défaite';
+  $('#fin-verdict').className = 'verdict ' + (perdu ? 'perdu' : score >= 55 ? 'gagne' : 'neutre');
+  $('#fin-cause').hidden = !CAUSE; $('#fin-cause').innerHTML = CAUSE ? `<b>Pourquoi vous tombez</b>${CAUSE[0]}${fautifs.length ? `<span>Les décisions qui vous y ont mené :</span><ol>${fautifs.map(x => `<li>Année ${Math.floor(x.tour / 4) + 1} · ${x.dossier} : ${x.choix}</li>`).join('')}</ol>` : ''}` : '';
   lettres($('#t-fin'), T[0]); $('#fin-texte').textContent = T[1] + (type === 'terme' ? ` Intentions de vote : ${score} % au second tour.` : '');
   $('#fin-fond').style.backgroundImage = `url(${type === 'terme' && score >= 40 ? '/mandats/art/legacy.webp' : '/mandats/art/rupture.webp'})`;
   $('#fin-chiffres').innerHTML = [['Déficit', fr(S.def, 1) + ' Md€', `152,51 au départ`], ['Opinion', fr(S.op) + ' %', ''], ['Services publics', fr(ms) + ' / 100', ''], ['Tension sociale', fr(S.ten) + ' / 100', '']].map(([a, b, c]) => `<div><span>${a}</span><b class="tab">${b}</b><small>${c}</small></div>`).join('');
