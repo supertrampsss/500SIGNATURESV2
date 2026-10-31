@@ -27,6 +27,11 @@ export const SOURCES = {
   budget: { nom: "Direction du Budget", titre: "Rapport sur les pensions de retraite de la fonction publique, annexe au PLF 2027", url: "https://www.budget.gouv.fr/documentation/documents-budgetaires" },
   ocde: { nom: "OCDE", titre: "Taxing Wages 2026, France, données 2025", url: "https://www.oecd.org/en/publications/taxing-wages_20725124.html" },
   ofgl: { nom: "OFGL", titre: "Comptes des communes (balances comptables DGFiP)", url: "https://data.ofgl.fr/" },
+  fonctions: { nom: "DGFiP", titre: "Balances comptables des collectivités, présentation croisée nature-fonction", url: "https://data.economie.gouv.fr/explore/dataset/balances-comptables-des-collectivites-et-des-etablissements-publics-locaux-avec-la-presentation-croisee-nature-fonction-2025/" },
+  fiscalite: { nom: "DGFiP", titre: "Fiscalité locale des particuliers et recensement des éléments d’imposition", url: "https://data.economie.gouv.fr/explore/dataset/fiscalite-locale-des-particuliers/" },
+  associations: { nom: "Direction du Budget", titre: "Effort financier de l’État en faveur des associations, versements 2021", url: "https://data.economie.gouv.fr/explore/dataset/plf-2023-effort-financier-de-l-etat-en-faveur-des-associations-liste-des-credits/" },
+  ssmsi: { nom: "SSMSI, ministère de l’Intérieur", titre: "Délinquance enregistrée par la police et la gendarmerie, par commune", url: "https://www.data.gouv.fr/fr/datasets/bases-statistiques-communale-et-departementale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/" },
+  territoires: { nom: "Insee, SDES, Éducation nationale", titre: "Recensement, revenus localisés (Filosofi), parc social (RPLS), annuaire de l’éducation", url: "https://www.insee.fr/fr/statistiques" },
 } as const;
 
 export type Comptes = { annee: string; recettes: number; depenses: number; ecart: number; nature: "deficit" | "excedent" | "equilibre" };
@@ -107,16 +112,68 @@ export function comparaison(pays: Record<string, Territoire | undefined>, indica
   return { annee, valeurs: PAYS_EUROPE.map(([code, nom], i) => ({ code, nom, valeur: liste[i]![annee] })) };
 }
 
-/* ---------- Communes (OFGL) ---------- */
+/* ---------- Communes (OFGL, DGFiP, SSMSI, Insee) ---------- */
+
+/** Faits et délits enregistrés (SSMSI), du plus grave au plus courant ; taux pour 1 000 habitants. */
+export const DELITS: readonly [string, string][] = [
+  ["violences_hors_famille", "Violences physiques hors famille"], ["violences_intrafamiliales", "Violences dans la famille"],
+  ["violences_sexuelles", "Violences sexuelles"], ["vols_violents", "Vols avec violence"], ["cambriolages", "Cambriolages"],
+  ["vols_sans_violence", "Vols sans violence"], ["vols_dans_vehicules", "Vols dans les véhicules"], ["vols_vehicules", "Vols de véhicules"],
+  ["degradations", "Dégradations"], ["trafic_stupefiants", "Trafic de stupéfiants"],
+];
+
+/** Les repères nationaux qu'une commune peut regarder en face : même définition, même année. */
+export type RepereFrance = { delits?: { annee: string; taux: Record<string, number> }; pauvrete?: [string, number]; niveauVie?: [string, number]; salaire?: [string, number] };
+
+export function repereFrance(fr?: Territoire): RepereFrance {
+  const s = series(fr);
+  const r: RepereFrance = {};
+  const annee = derniere(s.ssmsi_violences_hors_famille_nombre)?.[0];
+  const pop = annee ? s.eurostat_population?.[annee] : undefined;
+  if (annee && fini(pop) && pop > 0) {
+    const taux = Object.fromEntries(DELITS.flatMap(([id]) => { const n = s[`ssmsi_${id}_nombre`]?.[annee]; return fini(n) ? [[id, n / pop * 1000]] : []; }));
+    if (Object.keys(taux).length) r.delits = { annee, taux };
+  }
+  const p = derniere(s.insee_taux_pauvrete_60); if (p) r.pauvrete = p;
+  const n = derniere(s.insee_niveau_vie_d5); if (n) r.niveauVie = n;
+  const w = derniere(s.insee_salaire_net_eqtp_mensuel); if (w) r.salaire = w;
+  return r;
+}
+
+type Ligne = [string, number];
+/** Les six postes communs aux nomenclatures M14 et M57 (pipeline : fonctions_communes.py). */
+const MISSIONS_COMMUNE: Record<string, string> = {
+  services_generaux: "Administration générale", enseignement: "Écoles et formation", culture_sport: "Culture, sport, jeunesse",
+  social_famille: "Social, santé, famille", amenagement_economie: "Urbanisme, logement, environnement", securite: "Sécurité et salubrité",
+};
 
 export type Ville = {
   nom: string; code: string; population?: number;
   annee: string; recettes: number; depenses: number; epargne: number;
   parts?: { fonctionnement: number; capital?: number; nette?: number; brute?: number };
   dette?: { annee: string; stock: number; precedent?: number; emprunts?: number; remboursements?: number };
-  investissement?: { annee: string; montant: number };
+  investissement?: { annee: string; montant: number; lignes: Ligne[] };
   impots?: number; dotations?: number; services?: number;
+  /** Ce qui rentre et ce qui sort dans l'année, poste par poste ; « Autres » complète au total publié. */
+  entrees?: Ligne[]; sorties?: Ligne[];
+  missions?: { annee: string; lignes: Ligne[] };
+  associations?: { annee: string; montant: number; etat?: { annee: string; montant: number; nombre?: number } };
+  foncier?: { annee: string; taux: number; tauxGlobal?: number; lignes: Ligne[] };
+  delits?: { annee: string; lignes: [string, string, number, number][] };
+  portrait?: { pauvrete?: [string, number]; niveauVie?: [string, number]; salaire?: [string, number]; chomage?: [string, number]; logementsSociaux?: [string, number, string]; ecoles?: [string, number]; colleges?: [string, number] };
 };
+
+/** Postes non nuls d'une même année, complétés d'une ligne « Autres » quand le total publié l'exige. */
+function postes(s: Record<string, Serie>, annee: string, total: number, ids: [string, string][]): Ligne[] | undefined {
+  const lignes = ids.flatMap(([id, nom]) => { const v = s[id]?.[annee]; return fini(v) && v > 0 ? [[nom, v] as Ligne] : []; }).sort((a, b) => b[1] - a[1]);
+  if (lignes.length < 2) return;
+  const reste = total - lignes.reduce((a, l) => a + l[1], 0);
+  if (reste > total * .005) lignes.push(["Autres", reste]);
+  return lignes;
+}
+
+/** Une valeur et son année, la dernière publiée. */
+const dernier = (s?: Serie): [string, number] | undefined => { const d = derniere(s); return d && /^\d{4}$/.test(d[0]) ? d : undefined; };
 
 /** Le dernier exercice où recettes, dépenses et épargne brute de fonctionnement se recoupent. */
 export function ville(t: Territoire, code: string): Ville | undefined {
@@ -135,10 +192,46 @@ export function ville(t: Territoire, code: string): Ville | undefined {
     emprunts: s.ofgl_emprunts_hors_gad?.[stock[0]], remboursements: s.ofgl_remboursements_d_emprunts_hors_gad?.[stock[0]],
   } : undefined;
   const inv = derniere(s.ofgl_depenses_d_investissement_hors_remb);
-  const pop = t.population ?? derniere(s.ofgl_population_reference)?.[1];
+  const p0 = t.population ?? derniere(s.ofgl_population_reference)?.[1];
+  const population = fini(p0) && p0 > 0 ? p0 : undefined;
+
+  const entrees = postes(s, annee, recettes, [["ofgl_impots_locaux", "Impôts locaux"], ["ofgl_autres_impots_et_taxes", "Autres impôts et taxes"], ["ofgl_concours_de_l_etat", "Dotations de l’État"], ["ofgl_ventes_de_biens_et_services", "Cantines, crèches, piscines…"], ["ofgl_subventions_recues_et_participations", "Subventions reçues"]]);
+  const sorties = postes(s, annee, depenses, [["ofgl_frais_personnel", "Salaires des agents"], ["ofgl_achats_et_charges_externes", "Achats et entretien"], ["ofgl_depenses_d_intervention", "Aides et subventions versées"], ["ofgl_charges_financieres", "Intérêts de la dette"]]);
+
+  const fonctions = Object.keys(s).filter(k => k.startsWith("fonction_commune_") && !k.endsWith("retraitements_ofgl"));
+  const anMissions = anneeCommune(fonctions.map(k => s[k]));
+  const missions = anMissions ? fonctions.flatMap(k => { const v = s[k][anMissions]; const id = k.slice("fonction_commune_".length); return v > 0 ? [[MISSIONS_COMMUNE[id] ?? id.replace(/_/g, " ").replace(/^./, c => c.toUpperCase()), v] as Ligne] : []; }).sort((a, b) => b[1] - a[1]) : [];
+
+  const asso = dernier(s.ofgl_subventions_aux_personnes_de_droit_prive), etat = dernier(s.etat_subventions_associations);
+  const nbAsso = etat ? s.etat_subventions_associations_etablissements?.[etat[0]] : undefined;
+
+  const taux = dernier(s.dgfip_taux_tfb_commune);
+  const foncier = taux ? { annee: taux[0], taux: taux[1], tauxGlobal: s.dgfip_taux_tfb_global?.[taux[0]], lignes: ([["dgfip_produit_foncier_bati", "Taxe foncière, part communale"], ["dgfip_taxe_fonciere_ordures_menageres", "Ordures ménagères"], ["dgfip_produit_th_residences_secondaires", "Résidences secondaires"], ["dgfip_produit_foncier_non_bati", "Terrains non bâtis"]] as [string, string][]).flatMap(([id, nom]) => { const v = s[id]?.[taux[0]]; return fini(v) && v > 0 ? [[nom, v] as Ligne] : []; }) } : undefined;
+
+  const anDelits = derniere(s.ssmsi_violences_hors_famille_nombre)?.[0];
+  const delits = anDelits && population ? { annee: anDelits, lignes: DELITS.flatMap(([id, nom]) => { const n = s[`ssmsi_${id}_nombre`]?.[anDelits]; return fini(n) ? [[id, nom, n, n / population * 1000] as [string, string, number, number]] : []; }) } : undefined;
+
+  const actifs = dernier(s.insee_actifs), chomeurs = actifs ? s.insee_chomeurs_rp?.[actifs[0]] : undefined;
+  // Parc social (RPLS) et résidences principales (recensement) : même année si possible, sinon les deux années sont dites.
+  const anSociaux = anneeCommune([s.rpls_logements_sociaux, s.insee_residences_principales]);
+  const sociaux = anSociaux ? [anSociaux, s.rpls_logements_sociaux[anSociaux]] as [string, number] : dernier(s.rpls_logements_sociaux);
+  const menages = anSociaux ? [anSociaux, s.insee_residences_principales[anSociaux]] as [string, number] : dernier(s.insee_residences_principales);
+  const portrait = {
+    pauvrete: dernier(s.insee_taux_pauvrete), niveauVie: dernier(s.insee_niveau_vie_median), salaire: dernier(s.insee_salaire_net_eqtp_mensuel),
+    chomage: actifs && fini(chomeurs) && actifs[1] > 0 ? [actifs[0], chomeurs / actifs[1] * 100] as [string, number] : undefined,
+    logementsSociaux: sociaux && menages && menages[1] > 0 ? [sociaux[0], sociaux[1] / menages[1] * 100, menages[0]] as [string, number, string] : undefined,
+    ecoles: dernier(s.menj_ecoles), colleges: dernier(s.menj_colleges_lycees),
+  };
+
   return {
-    nom: t.nom, code, population: fini(pop) && pop > 0 ? pop : undefined, annee, recettes, depenses, epargne, parts,
-    dette, investissement: inv ? { annee: inv[0], montant: inv[1] } : undefined,
+    nom: t.nom, code, population, annee, recettes, depenses, epargne, parts, dette,
+    investissement: inv ? { annee: inv[0], montant: inv[1], lignes: postes(s, inv[0], inv[1], [["ofgl_depenses_d_equipement", "Travaux et équipements"], ["ofgl_subventions_d_equipement_versees", "Aides aux projets d’autres acteurs"]]) ?? [] } : undefined,
     impots: s.ofgl_impots_et_taxes?.[annee], dotations: s.ofgl_concours_de_l_etat?.[annee], services: s.ofgl_ventes_de_biens_et_services?.[annee],
+    entrees, sorties,
+    missions: anMissions && missions.length >= 2 ? { annee: anMissions, lignes: missions } : undefined,
+    associations: asso && asso[1] > 0 ? { annee: asso[0], montant: asso[1], etat: etat && etat[1] > 0 ? { annee: etat[0], montant: etat[1], nombre: fini(nbAsso) ? nbAsso : undefined } : undefined } : undefined,
+    foncier: foncier && foncier.taux > 0 ? foncier : undefined,
+    delits: delits && delits.lignes.length >= 3 ? delits : undefined,
+    portrait: Object.values(portrait).some(Boolean) ? portrait : undefined,
   };
 }

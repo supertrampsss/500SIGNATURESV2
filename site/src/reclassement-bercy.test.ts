@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { reclassementBercy, renduReclassementBercy } from './reclassement-bercy.ts';
+import { reclassementBercy } from './reclassement-bercy.ts';
 test('les budgets et retraites sont monétaires, sourcés et réconciliés',()=>{
  const r=reclassementBercy();assert.equal(r.ministeres.length,19);
  assert.deepEqual(r.selection.map(m=>m.nom),['Éducation nationale','Intérieur','Défense · Armées et anciens combattants']);
@@ -13,12 +13,4 @@ test('les budgets et retraites sont monétaires, sourcés et réconciliés',()=>
   assert.ok(m.budget>0);
   if(m.retraites!==null){assert.ok(m.retraites>=0 && m.retraites<=m.budget);assert.equal(m.retraites+(m.budget-m.retraites),m.budget);}
  }
- const html=renduReclassementBercy();assert.match(html,/Md€/);assert.match(html,/Défense/);
- assert.match(html,/89,09/);assert.match(html,/28,46/);assert.match(html,/60,63/);
- assert.equal((html.match(/class="budget-comparison"/g)??[]).length,1);
- assert.equal((html.match(/class="budget-comparison__row"/g)??[]).length,19);
- assert.match(html,/Les budgets des ministères/);assert.match(html,/PLF 2027 · En milliards d’euros/);
- assert.match(html,/Budget affiché/);assert.match(html,/Ponctionné pour financer les retraites/);assert.match(html,/Budget restant/);
- assert.match(html,/Non disponible/);assert.match(html,/Bercy · PLF 2027/);
- assert.doesNotMatch(html,/budget-flow|≈|Les 19 ministères|stacked-percent|123,3|hors retraites/);
 });

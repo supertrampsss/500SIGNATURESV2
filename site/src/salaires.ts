@@ -1,7 +1,14 @@
-import { renduReclassementBercy } from "./reclassement-bercy.ts";
-import { timeChart } from "./chart-studio.ts";
+/**
+ * Page Salaires, au format du récit : une scène collée, des cartes qui défilent par-dessus
+ * (runtime : recit/runtime.ts). Le salaire du profil OCDE, puis où va la dépense publique,
+ * les retraites dans les budgets des ministères et l'évolution de la répartition.
+ */
+import { reclassementBercy, SOURCE_RECLASSEMENT_BERCY } from "./reclassement-bercy.ts";
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
+import { SOURCES } from "./recit/calculs.ts";
+import { etapesPaie, fmt, rail, renduEtape, sources, vuePaie, type Etape } from "./recit/rendu.ts";
+import { valeursAccessibles, type LigneBarre } from "./recit/ville.ts";
 
 /** OCDE, Taxing Wages 2026, France 2025 : célibataire sans enfant au salaire moyen, en % du coût employeur. */
 export const PROFIL_TRAVAIL = [
@@ -10,8 +17,6 @@ export const PROFIL_TRAVAIL = [
   ['Impôt sur le revenu', 12.2],
   ['Cotisations patronales', 26.7],
 ] as const;
-const eurosProfil = new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
-function formaterProfil(valeur:number):string {return `${eurosProfil.format(valeur)} €`;}
 
 const MISSIONS = [
  ["protection_sociale","Retraites et prestations sociales","Pensions, chômage, famille, pauvreté et aides au logement"],
@@ -62,70 +67,83 @@ export function historiqueRepartition(series:Territoire["series"]) {
    return data?.year===year && data.basis===latest.basis ? [data] : [];
  });
 }
-function graphiqueRepartition(postes:Array<{label:string;values:Record<string,number>}>) {
- const titre=postes.length===1 ? postes[0].label : "Les principaux postes de dépense";
- return timeChart({title:titre,description:"Part de 100 € de dépenses publiques consacrée à chaque poste, à périmètre comparable.",unit:"Part des dépenses publiques",series:postes.map(({label,values})=>({name:label,values})),format:v=>`${v.toLocaleString("fr-FR",{maximumFractionDigits:1})} €`});
-}
-function evolutionAllocation(series:Territoire["series"]):string {
- const history=historiqueRepartition(series);if(history.length<2)return "";
- const latest=history.at(-1)!;
- const data=Object.fromEntries(latest.missions.map(m=>[m.label,Object.fromEntries(history.flatMap(h=>{const entry=h.missions.find(v=>v.label===m.label);return entry?[[h.year,entry.share*100]]:[];}))]));
- const principaux=latest.missions.slice().sort((a,b)=>b.share-a.share).slice(0,4);
- const selection=principaux[0]?.label ?? latest.missions[0].label;
- const seriesPrincipales=principaux.map(m=>({label:m.label,values:data[m.label]}));
- return `<section class="salary-history" id="salary-history" data-salary-history="${echapper(JSON.stringify(data))}"><h2>Comment la répartition a changé</h2><p>Depuis ${history[0].year}, quelle part de 100 € de dépenses publiques va à chaque poste ? Les parts observées décrivent la dépense collective de chaque année.</p><div class="salary-history__controls"><label for="salary-history-choice">Poste de dépense</label><select id="salary-history-choice">${latest.missions.map(m=>`<option>${echapper(m.label)}</option>`).join("")}</select><button type="button" class="salary-history__share" data-salary-history-share>Partager le graphique</button><span class="salary-history__share-status" role="status" aria-live="polite"></span></div><div data-salary-history-chart>${graphiqueRepartition(seriesPrincipales.length ? seriesPrincipales : [{label:selection,values:data[selection]}])}</div><p class="salaires__sources">${latest.basis}.</p></section>`;
+
+export const CHAPITRES_SALAIRES = [["paie", "Votre paie"], ["depense", "Où va l’argent"], ["ministeres", "Les ministères"], ["evolution", "Dans le temps"], ["mandats", "Mandats"]] as const;
+
+const md = (n: number) => fmt(n / 1e9, n >= 1e10 ? 1 : 2);
+
+/** Les postes de dépense, du plus lourd au plus léger ; au-delà de neuf, un seul « Tout le reste ». */
+function lignesDepense(missions: { label: string; share: number }[]): LigneBarre[] {
+  const tri = missions.slice().sort((a, b) => b.share - a.share);
+  const tete = tri.slice(0, 9).map(m => ({ n: m.label, v: m.share * 100, t: `${fmt(m.share * 100, 2)} €`, c: "bleu" as const }));
+  const reste = tri.slice(9).reduce((a, m) => a + m.share * 100, 0);
+  return reste > 0 ? [...tete, { n: "Tout le reste", v: reste, t: `${fmt(reste, 2)} €`, c: "bleu" as const }] : tete;
 }
 
-function allocation(series:Territoire['series']):string {
- const data=repartitionCollective(series);
- if(!data)return `<section class="salaires__allocation"><h2>Sur 100 € de dépenses publiques</h2><p>Les comptes publiés montrent les sommes consacrées aux retraites, à la santé, à l’éducation et aux autres missions.</p><a href="/#argent">Consulter les dépenses publiques</a></section>`;
- return `<section class="salaires__allocation" aria-labelledby="allocation-titre"><header><p class="salaires__eyebrow">La dépense collective</p><h2 id="allocation-titre">Sur 100 € de dépenses publiques</h2><p>La répartition de ${data.year} décrit l’ensemble des administrations publiques. Cette base de 100 € est indépendante du profil salarial présenté plus haut.</p></header><ol class="salary-missions">${data.missions.map(m=>`<li><div><h3>${m.label}</h3><p>${m.description}</p></div><strong data-allocation-share="${m.share}">${formaterProfil(100*m.share)}</strong><span class="salary-mission-bar" style="--share:${m.share*100}%" aria-hidden="true"></span></li>`).join('')}</ol><p class="salaires__sources">${data.basis}, ${data.year}. Les impôts, les cotisations et l’emprunt participent au financement public ; cette répartition décrit les dépenses, sans affecter les prélèvements d’une personne à chaque poste. Les rémunérations publiques comprennent les cotisations sociales employeur, effectives et imputées ; les financements des retraites publiques ne s’ajoutent pas aux dépenses. Les valeurs affichées sont arrondies au centime. <a href="/#argent">Consulter les comptes</a> · <a href="/#sources">Sources et méthode</a></p></section>`;
+/** Courbes des quatre premiers postes, en euros sur 100 € de dépense publique, sur la même échelle. */
+function courbes(series: Territoire["series"]): { html: string; postes: { label: string; debut: [string, number]; fin: [string, number] }[] } | undefined {
+  const histoire = historiqueRepartition(series);
+  if (histoire.length < 2) return;
+  const derniere = histoire.at(-1)!;
+  const tete = derniere.missions.slice().sort((a, b) => b.share - a.share).slice(0, 4).map(m => m.label);
+  const annees = histoire.map(h => Number(h.year));
+  const lignes = tete.map(label => histoire.flatMap(h => { const m = h.missions.find(x => x.label === label); return m ? [[Number(h.year), m.share * 100] as [number, number]] : []; }));
+  const max = Math.ceil(Math.max(...lignes.flat().map(p => p[1])) / 5) * 5;
+  const [a0, a1] = [annees[0], annees.at(-1)!];
+  const X = (a: number) => 40 + (a - a0) / Math.max(1, a1 - a0) * 380, Y = (v: number) => 20 + (1 - v / max) * 300;
+  // Les noms se posent à droite des courbes, écartés d'au moins 18 unités pour ne jamais se chevaucher.
+  const COURT: Record<string, string> = { "Rémunération des agents publics": "Agents publics", "Soins et services remboursés": "Soins remboursés", "Achats de biens et de services": "Achats", "Investissement public": "Investissement" };
+  const places = lignes.map((pts, i) => ({ i, y: Y(pts.at(-1)![1]) })).sort((a, b) => a.y - b.y);
+  places.forEach((p, j) => { if (j && p.y - places[j - 1].y < 18) p.y = places[j - 1].y + 18; });
+  const yNom = Object.fromEntries(places.map(p => [p.i, p.y]));
+  const grille = Array.from({ length: max / 5 + 1 }, (_, i) => i * 5).map(v => `<line x1="40" x2="420" y1="${Y(v)}" y2="${Y(v)}"/><text x="32" y="${Y(v) + 4}" text-anchor="end">${v} €</text>`).join("");
+  const traces = lignes.map((pts, i) => `<g class="courbe" data-i="${i}"><path d="${pts.map(([a, v], j) => `${j ? "L" : "M"}${X(a).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/><circle cx="${X(pts.at(-1)![0])}" cy="${Y(pts.at(-1)![1])}" r="5"/><text x="${X(pts.at(-1)![0]) + 12}" y="${yNom[i] + 4}">${echapper(COURT[tete[i]] ?? tete[i])}</text></g>`).join("");
+  const html = `<svg class="courbes" viewBox="0 0 640 350" role="presentation"><g class="grille">${grille}<text x="40" y="344">${a0}</text><text x="420" y="344" text-anchor="end">${a1}</text></g>${traces}</svg>`;
+  return { html, postes: lignes.map((pts, i) => ({ label: tete[i], debut: [String(pts[0][0]), pts[0][1]], fin: [String(pts.at(-1)![0]), pts.at(-1)![1]] })) };
 }
 
-export function renduSalaires(series:Territoire['series']={}):string {
- return `<section class="salaires" id="salaires-contenu">
-  <header class="salaires__entree"><p class="salaires__eyebrow">Salaires et revenus</p><h1>Du coût du travail au revenu reçu.</h1><p class="salaires__intro">Un repère sourcé pour comprendre le passage entre coût employeur, salaire brut et revenu après prélèvements.</p></header>
-  <div class="salaires__atelier">
-   <section class="salaires__profil" aria-labelledby="profil-titre"><h2 id="profil-titre">Un profil statistique précis</h2><p><strong>Célibataire sans enfant au salaire moyen français, en 2025.</strong> L’OCDE publie les prélèvements de ce profil. Nous ramenons le coût employeur à 100 € pour en montrer les composantes.</p><p>Le salaire brut représente 73,30 € et le net avant impôt 65,00 € sur cette base. Le revenu après prélèvements représente 52,80 €.</p><p>Les règles et la situation du ménage modifient le résultat d’une personne. Ce profil statistique ne permet pas de reconstituer votre paie à partir du seul net reçu.</p><p><a class="salaires__outil" href="https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" rel="noreferrer">Calculer avec l’Urssaf</a></p><p>Le simulateur officiel permet de renseigner les caractéristiques d’une situation salariée. Les hypothèses du calcul sont à vérifier dans cet outil.</p></section>
-   <section class="salaires__resultat" aria-labelledby="profil-resultat"><div class="salaires__total"><p>Pour 100 € de coût employeur</p><h2 id="profil-resultat">52,80 €</h2><p>de revenu après prélèvements · profil OCDE 2025</p></div><div class="salaires__barre" aria-hidden="true">${PROFIL_TRAVAIL.map(([_,part],i)=>`<span class="salaires__segment salaires__segment--${i}" style="width:${part}%"></span>`).join('')}</div><dl class="salaires__ventilation">${PROFIL_TRAVAIL.map(([label,part],i)=>`<div><dt><i class="salaires__cle salaires__segment--${i}" aria-hidden="true"></i>${label}</dt><dd>${formaterProfil(part)}</dd></div>`).join('')}</dl><p class="salaires__sources"><a href="https://www.oecd.org/en/publications/taxing-wages-2026_3a5169ef-en/full-report/overview_d93131c3.html" rel="noreferrer">OCDE, Taxing Wages 2026, tableau 1.2</a> · année 2025, consulté le 3 octobre 2026. Les parts sont rapportées au coût employeur et totalisent 100 %.</p></section>
-  </div>
-  <section class="salaires__lecture"><h2>Lire les différents montants</h2><p>Le coût employeur comprend le brut et les cotisations patronales. Les cotisations salariales sont ensuite déduites du brut pour obtenir le net avant impôt. Le prélèvement d’impôt intervient pour passer au montant versé.</p><p> · <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F559?lang=fr" rel="noreferrer">Lire les lignes d’un bulletin de paie</a></p></section>
-  ${allocation(series)}
-  ${renduReclassementBercy()}
-  ${evolutionAllocation(series)}
-  <section class="salaires__detail"><h2>Deux bases de lecture</h2><p>La première décompose un coût employeur de 100 € pour le seul profil OCDE indiqué. La seconde répartit 100 € de dépenses publiques entre les postes observés dans les comptes. Elles décrivent des périmètres différents : aucune affectation personnelle de cotisations n’est calculée.</p></section>
- </section>`;
-}
+export function renduSalaires(series: Territoire["series"] = {}): string {
+  const e: Etape[] = etapesPaie("paie");
+  e.push({ chapitre: "paie", tableau: "paie", k: 4, titre: "Et <em>votre</em> fiche de paie&nbsp;?", desc: "Ces montants valent pour un salarié type. Le simulateur officiel de l’Urssaf calcule votre cas : temps partiel, cadre, heures supplémentaires…", contenu: `<a class="etape__lien" href="https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" rel="noreferrer noopener" target="_blank">Simuler mon salaire</a>` });
 
-export function brancherSalaires(root: HTMLElement): void {
-  const history=root.querySelector<HTMLElement>('[data-salary-history]');
-  const choixPoste=history?.querySelector<HTMLSelectElement>('select');
-  const afficherPoste=(label:string)=>{
-    if(!history)return;
-    const data=JSON.parse(history.dataset.salaryHistory!);
-    history.querySelector('[data-salary-history-chart]')!.innerHTML=graphiqueRepartition([{label,values:data[label]}]);
-  };
-  if (choixPoste && typeof window !== "undefined") {
-    const partage=new URLSearchParams(window.location.search).get("poste");
-    if (partage && Array.from(choixPoste.options).some(option=>option.value===partage)) {
-      choixPoste.value=partage;
-      afficherPoste(partage);
-    }
+  const dep = repartitionCollective(series);
+  if (dep) {
+    const lignes = lignesDepense(dep.missions);
+    const spec = (cle?: number) => ({ "data-barres": JSON.stringify({ lignes, legende: `Sur 100 € de dépense publique · ${dep.year}` }), ...(cle === undefined ? {} : { "data-cle": String(cle) }) });
+    const t = "Sur 100 € de dépense publique, <em>où va l’argent&nbsp;?</em>";
+    lignes.slice(0, 4).forEach((l, i) => e.push({ chapitre: "depense", tableau: "barres", k: i, titre: i ? t : "Ces cotisations et ces impôts, <em>où vont-ils&nbsp;?</em>", lib: `${l.n} · ${dep.year}`, valeur: l.v, decimales: 2, unite: "€", sous: "sur 100 € de dépense publique", ton: i ? undefined : "argile", desc: i ? undefined : "Ils rejoignent toutes les autres recettes publiques. Voici comment l’ensemble est dépensé.", attributs: spec(i) }));
+    e.push({ chapitre: "depense", tableau: "barres", k: 9, titre: "Du plus lourd <em>au plus léger</em>.", desc: "Les prestations sont versées aux ménages ; les autres postes paient les services publics et leur financement.", attributs: spec(), contenu: valeursAccessibles({ mode: "barres", lignes, legende: `Sur 100 € de dépense publique · ${dep.year}` }) });
   }
-  choixPoste?.addEventListener('change',event=>{
-    const label=(event.target as HTMLSelectElement).value;
-    afficherPoste(label);
+
+  const { ministeres } = reclassementBercy();
+  // Les ministères où les retraites pèsent au moins 5 % du budget : là où la mécanique se voit.
+  const avec = ministeres.filter(m => m.retraites !== null && m.retraites / m.budget >= .05).sort((a, b) => b.budget - a.budget).slice(0, 8);
+  const lignesMin: LigneBarre[] = avec.map(m => ({ n: m.nom.replace("Défense · Armées et anciens combattants", "Défense"), v: m.budget, p: m.retraites!, t: `${md(m.budget)} Md€`, s: `dont ${md(m.retraites!)} Md€ pour les retraites`, c: "bleu" }));
+  const educ = ministeres.find(m => m.nom === "Éducation nationale");
+  const specMin = (cle?: number) => ({ "data-barres": JSON.stringify({ lignes: lignesMin, legende: "Budget 2027, en milliards d’euros", repere: "Part qui paie des retraites", partie: true }), ...(cle === undefined ? {} : { "data-cle": String(cle) }) });
+  if (educ?.retraites) e.push({ chapitre: "ministeres", tableau: "barres", k: 0, titre: "Dans chaque ministère, <em>une part paie des retraites</em>.", lib: "Éducation nationale · budget 2027", valeur: educ.retraites / 1e9, decimales: 1, unite: "Md€", sous: `sur ${md(educ.budget)} Md€, soit ${fmt(educ.retraites / educ.budget * 100)} €  sur 100 €`, ton: "argile", desc: "Les retraites des anciens agents sont payées par le budget de leur ministère.", attributs: specMin(lignesMin.findIndex(l => l.n === "Éducation nationale")) });
+  e.push({ chapitre: "ministeres", tableau: "barres", k: 1, titre: "Intérieur, Défense, Justice : <em>même mécanique</em>.", desc: "La part hachurée est estimée à partir des documents budgétaires. Elle fait déjà partie des retraites de la dépense publique.", attributs: specMin(), contenu: valeursAccessibles({ mode: "barres", lignes: lignesMin, legende: "Budget 2027 des ministères" }) });
+
+  const c = courbes(series);
+  if (c) c.postes.slice(0, 3).forEach((p, i) => {
+    const ecart = p.fin[1] - p.debut[1];
+    e.push({ chapitre: "evolution", tableau: "courbes", k: i, titre: i ? `${echapper(p.label)} : <em>${ecart >= 0 ? "en hausse" : "en baisse"}</em>.` : `Depuis ${p.debut[0]}, <em>la répartition bouge</em>.`, lib: `${p.label} · ${p.fin[0]}`, valeur: p.fin[1], decimales: 2, unite: "€", sous: `${fmt(p.debut[1], 2)} € en ${p.debut[0]}, ${ecart >= 0 ? "+" : "−"}${fmt(Math.abs(ecart), 2)} €`, ton: ecart > 0 ? "argile" : "or" });
   });
-  history?.querySelector<HTMLButtonElement>('[data-salary-history-share]')?.addEventListener('click',async()=>{
-    const url=new URL('/salaires/',window.location.origin);url.hash='salary-history';
-    const label=choixPoste?.value;
-    if(label)url.searchParams.set('poste',label);
-    const status=history.querySelector<HTMLElement>('.salary-history__share-status');
-    try {
-      if (typeof navigator.share === 'function') { await navigator.share({title:'Comment la répartition a changé',url:url.href}); }
-      else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.href); }
-      else throw new Error('clipboard unavailable');
-      if(status)status.textContent='Lien copié.';
-    } catch { if(status)status.textContent=`Lien : ${url.href}`; }
-  });
+
+  e.push({ chapitre: "mandats", tableau: "final", titre: "À vous de <em>trancher</em>.", desc: "Retraites, impôts, services publics : dans Mandats, chaque choix a un prix.", contenu: `<a class="final__cta" href="/mandats/">Commencer mon mandat</a><p class="final__note"><a href="/">Relire le récit</a></p>` });
+
+  const html = e.map((x, i) => {
+    const debut = e.findIndex(y => y.chapitre === x.chapitre) === i;
+    return (debut ? `<span class="ancre" id="${x.chapitre}"></span>` : "") + renduEtape(x, i, i === 0, CHAPITRES_SALAIRES);
+  }).join("");
+  const scene = `<div class="recit__scene" aria-hidden="true">
+    <div class="fond fond--hemi"><div class="plan"></div><div class="voile"></div></div>
+    <div class="zone">${vuePaie()}<div class="viz viz--barres" data-viz="barres"></div>${c ? `<div class="viz viz--courbes" data-viz="courbes">${c.html}</div>` : ""}</div>
+  </div>`;
+  const liste = [SOURCES.ocde, SOURCES.eurostat, { nom: "Direction du Budget", titre: "Budgets des ministères et contributions aux pensions, PLF 2027", url: SOURCE_RECLASSEMENT_BERCY }, { nom: "Urssaf", titre: "Simulateur de salaire brut et net", url: "https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" }];
+  return `<div class="recit recit--salaires" data-recit id="salaires-contenu">
+    ${scene}
+    <div class="recit__flux">${rail(CHAPITRES_SALAIRES)}${html}</div>
+    ${sources(liste)}
+  </div>`;
 }

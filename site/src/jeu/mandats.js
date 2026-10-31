@@ -579,7 +579,7 @@ function hemicycle(pour, abst, contre, libs, fixe = false) {
 function evenement(sur, titre, texte, v, fond, actions) {
   $('#evt-sur').textContent = sur; lettres($('#t-evt'), titre); $('#evt-texte').textContent = texte;
   $('#evt-fond').style.backgroundImage = `url(${fond})`;
-  $('#evt-hemi').innerHTML = v ? `<div style="max-width:620px">${hemicycle(v.pour, v.abst, v.contre, sur.includes('censure') ? ['Censure', 'Abstention', 'Contre la censure'] : ['Pour', 'Abstention', 'Contre'])}</div>` : '';
+  $('#evt-hemi').innerHTML = v ? `<div class="evt-hemi">${hemicycle(v.pour, v.abst, v.contre, sur.includes('censure') ? ['Censure', 'Abstention', 'Contre la censure'] : ['Pour', 'Abstention', 'Contre'])}</div>` : '';
   $('#evt-actions').innerHTML = '';
   actions.forEach(([l, f], i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cta' + (i ? ' second' : ''); b.textContent = l; b.addEventListener('click', () => { ferme('#e-evt'); f(); }); $('#evt-actions').appendChild(b); });
   ecran('#e-evt'); $('#evt-actions button').focus();

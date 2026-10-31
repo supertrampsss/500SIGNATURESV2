@@ -39,8 +39,8 @@ test('l’historique ne mélange pas des exercices incomplets ou des bases diff�
  const history=historiqueRepartition(series);
  assert.deepEqual(history.map(h=>h.year),['2000','2002']);
  for(const h of history)assert.ok(Math.abs(h.missions.reduce((sum,m)=>sum+m.share,0)-1)<1e-12);
- const html=renduSalaires(series);assert.match(html,/salary-history-choice/);assert.match(html,/Depuis 2000/);assert.match(html,/id="salary-history"/);assert.match(html,/data-salary-history-share/);assert.match(html,/Les principaux postes de dépense/);
- assert.ok((html.match(/chart-key chart-key--/g)??[]).length>=4);
+ const html=renduSalaires(series);
+ assert.match(html,/data-viz="courbes"/);assert.match(html,/Depuis 2000/);assert.match(html,/>2000</);
 });
 
 
@@ -60,15 +60,18 @@ test('le regroupement des pensions conserve tous les montants et les exercices h
   assert.ok(data.missions.every(m=>!m.label.includes('réversion')));
  }
  const html=renduSalaires(series);
- assert.match(html,/Vieillesse, minima vieillesse et pensions de réversion/);
+ assert.match(html,/Sur 100 € de dépense publique/);assert.match(html,/Retraites · 2024/);
  delete series.eurostat_apu_prestations_survivants['2024'];
  assert.equal(repartitionCollective(series)!.year,'2023');
  assert.deepEqual(historiqueRepartition(series).map(h=>h.year),['2023']);
 });
 
 
-test("le pont budgétaire Bercy apparaît une fois sur Salaires",()=>{
+test("Salaires se lit comme le récit : chapitres, salaire, ministères, sans source sous les chiffres",()=>{
  const html=renduSalaires();
- assert.equal((html.match(/id="reclassement-bercy"/g)??[]).length,1);
- assert.match(html,/Défense · Armées et anciens combattants/); assert.equal((html.match(/class="budget-comparison__row"/g) ?? []).length,19);
+ assert.match(html,/<h1 class="etape__titre">Votre salaire, <em>vu par votre employeur<\/em>\.<\/h1>/);
+ assert.equal((html.match(/data-tableau="paie"/g)??[]).length,6);
+ assert.match(html,/52,80/);assert.match(html,/Éducation nationale · budget 2027/);
+ assert.match(html,/data-rail="ministeres"/);assert.doesNotMatch(html,/etape__source/);
+ assert.match(html,/href="\/mandats\/"/);
 });
