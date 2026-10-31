@@ -13,8 +13,10 @@ for(const url of urls){
 }
 const recit = await (await get(origin+'/')).text();
 if(!recit.includes('etape__gros')) failures.push('/ : le récit publié ne porte aucun chiffre');
+// Paramètre unique : on vérifie le déploiement lui-même, pas une copie gardée par le cache du domaine.
+const jeton = Date.now().toString(36);
 for(const path of ['/bilan/','/territoire/','/analyses/','/mandats/jouer/']){
-  const response = await get(origin+path);
+  const response = await get(`${origin}${path}?verification=${jeton}`);
   if(response.status!==404) failures.push(`${path} : HTTP ${response.status}, 404 attendu`);
 }
 if(failures.length){ console.error(failures.join('\n')); process.exit(1); }
