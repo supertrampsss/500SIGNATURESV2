@@ -47,7 +47,7 @@ self.addEventListener('fetch',event=>{
  const methodPage=url.pathname==='/mandats/methode/'||url.pathname==='/mandats/methode/index.html';
  const winterPage=url.pathname==='/mandats/france/hiver/'||url.pathname==='/mandats/france/hiver/index.html';
  const newGamePage=url.pathname==='/mandats/jouer/'||url.pathname==='/mandats/jouer/index.html';
- const key=winterPage?'/mandats/france/hiver/':newGamePage?'/mandats/jouer/':gamePage?'/mandats/':methodPage?'/mandats/methode/':url.href;
+ const key=winterPage?'/mandats/france/hiver/':newGamePage?'/mandats/jouer/':gamePage?'/mandats/jouer/':methodPage?'/mandats/methode/':url.href;
  if(gamePage||methodPage||winterPage||newGamePage){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(key);return cached||new Response('Le jeu doit être préparé avec une connexion avant de jouer hors ligne.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;}
  const lightArt=url.pathname.replace('-1536.webp','-768.webp');
  if(lightArt!==url.pathname&&URLS.has(new URL(lightArt,self.location.origin).href)){event.respondWith(fetch(request).catch(async()=>{const cached=await(await caches.open(CACHE)).match(lightArt);return cached||Response.error();}));return;}

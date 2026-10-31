@@ -67,7 +67,7 @@ try {
   if(missing.status!==404 || !noindex(await missing.text())) failures.push('La page inexistante ne répond pas 404/noindex');
   const legacy=await get(origin+'/simulateur');
   const destination=legacy.headers.get('location');
-  if(![301,302,307,308].includes(legacy.status) || !destination || new URL(destination,origin).pathname!=='/mandats/') failures.push('Redirection historique /simulateur incorrecte');
+  if(![301,302,307,308].includes(legacy.status) || !destination || new URL(destination,origin).pathname!=='/mandats/jouer/') failures.push('Redirection historique /simulateur incorrecte');
   for(const path of ['/accueil','/accueil/']) {
     const response=await get(origin+path);
     const location=response.headers.get('location');

@@ -54,7 +54,7 @@ try {
     assert.equal(response.status,301,path);
     assert.equal(response.location,'https://500signatures.fr'+path,path);
   }
-  for(const [path,target] of [['/accueil','/'],['/accueil/','/'],['/carte','/territoire'],['/methode/','/sources'],['/simulateur','/mandats/'],['/simulateur/v2/','/mandats/']]){
+  for(const [path,target] of [['/accueil','/'],['/accueil/','/'],['/carte','/territoire'],['/methode/','/sources'],['/simulateur','/mandats/jouer/'],['/simulateur/v2/','/mandats/jouer/'],['/mandats','/mandats/jouer/'],['/mandats/','/mandats/jouer/']]){
     const response=await get(path);
     results.push({host:'500signatures.fr',path,status:response.status,location:response.location});
     assert.equal(response.status,301,path);
