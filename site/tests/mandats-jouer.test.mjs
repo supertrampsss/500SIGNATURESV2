@@ -74,8 +74,12 @@ test('une grande réforme passe devant l’Assemblée et laisse sa trace', async
   // Coûts et effets différés visibles avant le vote, comme dans le catalogue.
   await expect(page.locator('.consequences-reforme .puce').first()).toBeVisible();
   const avant = await page.locator('#pointage b').first().textContent();
-  await page.getByRole('button', { name: /Négocier avec les centristes/ }).click();
-  await expect(page.getByRole('button', { name: /Négocier avec les centristes/ })).toHaveAttribute('aria-pressed', 'true');
+  const centristes = page.locator('.option.nego[data-a="centre"]');
+  await centristes.click();
+  await expect(centristes).toHaveAttribute('aria-pressed', 'true');
+  // Le capital politique se dépense : un jeton de moins, et l'hémicycle se met à jour.
+  await expect(page.locator('#jetons')).toContainText('2 / 3');
+  await expect(page.locator('#pointage .hemi circle')).not.toHaveCount(0);
   const annonce = await page.locator('#pointage b').first().textContent();
   expect(Number(annonce)).toBeGreaterThan(Number(avant));
   await page.getByRole('button', { name: 'Présenter au vote' }).click();
