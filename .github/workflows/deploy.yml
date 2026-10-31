@@ -79,6 +79,20 @@ jobs:
           python -m plateforme.domaine --project plateforme \
             --domain 500signatures.fr --domain www.500signatures.fr
 
+      - name: Vider le cache du domaine
+        # Les anciennes pages (supprimées le 31 octobre 2026) restaient servies par le cache
+        # de Cloudflare, avec une durée d'une semaine. Une purge après chaque publication
+        # aligne le domaine sur le déploiement. Sans droit de purge, l'étape le dit et passe.
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -e
+          ZONE=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones?name=500signatures.fr" | python3 -c "import json,sys;r=json.load(sys.stdin)['result'];print(r[0]['id'] if r else '')")
+          if [ -z "$ZONE" ]; then echo "Zone introuvable avec ce jeton : purge impossible."; exit 1; fi
+          curl -fsS -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache" --data '{"purge_everything":true}' | python3 -c "import json,sys;print('Purge :', json.load(sys.stdin)['success'])"
+
       - name: Autoriser le navigateur à lire les données
         # Le site et les données ne sont pas sur la même origine. Sans politique
         # CORS sur le bucket, la page n'affiche que « Les données n'ont pas pu
