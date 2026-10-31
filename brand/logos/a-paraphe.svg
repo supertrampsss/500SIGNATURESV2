@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 170" width="640" height="340" role="img" aria-label="500 Signatures, concept Paraphe">
+  <title>500 Signatures — concept A, Le paraphe</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap');</style>
+  <rect width="320" height="170" fill="#060b17"/>
+  <g transform="translate(40 18)" fill="none" stroke="#f4efe3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 12 H25 L20 50 C28 44 37 42 45 42.5 C61 44 72 55 72 69 C72 85 59 96 43 96 C31 96 22 91 16 83"/>
+    <ellipse cx="118" cy="54" rx="27" ry="42"/>
+    <ellipse cx="186" cy="54" rx="27" ry="42"/>
+    <path d="M2 116 C60 106 140 102 200 108 C220 110 234 104 244 92" stroke="#d9b45f" stroke-width="5"/>
+  </g>
+  <text x="160" y="160" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, Menlo, monospace" font-weight="500" font-size="13" letter-spacing="7" fill="#b9b2a3">SIGNATURES</text>
+</svg>
