@@ -94,10 +94,10 @@ test("la publication part du répertoire qui porte les fonctions d'edge", async 
   assert.equal(depuis, RACINE_SITE, "les fonctions du site vivent sous site/functions");
 });
 
-test("la fonction d'aperçu est bien dans ce répertoire-là", async () => {
+test("la fonction de domaine canonique est bien dans ce répertoire-là", async () => {
   const etape = await etapePublication();
   const depuis = path.resolve(RACINE_DEPOT, etape.repertoire);
-  await access(path.join(depuis, "functions", "simulateur", "_middleware.ts"));
+  await access(path.join(depuis, "functions", "_middleware.ts"));
 });
 
 test("la publication porte le répertoire que le build écrit", async () => {

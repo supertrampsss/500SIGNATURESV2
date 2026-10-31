@@ -4,30 +4,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/mandats-assets.ts && node --experimental-strip-types scripts/prerendre.ts && node --experimental-strip-types scripts/mandats-guides.ts && node --experimental-strip-types scripts/seo-discovery.ts && node --experimental-strip-types scripts/mandats-offline.ts && node scripts/analytics-build.mjs",
+    "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/prerendre.ts && node scripts/analytics-build.mjs",
     "test": "node scripts/test-unit.mjs",
     "preview": "vite preview",
-    "test:board": "playwright test --config playwright.board.config.ts",
-    "test:story": "playwright test --config playwright.story.config.ts",
-    "test:mandats": "playwright test --config playwright.mandats.config.ts",
-    "test:recit": "playwright test --config playwright.recit.config.ts",
-    "test:mandats:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort",
+    "test:e2e": "playwright test",
+    "test:serve": "vite preview --host 127.0.0.1 --port 4180 --strictPort",
     "check": "npm test && npm run build",
-    "check:types": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json",
-    "build:client": "npm run check:types && vite build",
-    "check:local": "npm test && npm run build:client",
-    "business:case": "node --experimental-strip-types scripts/business-case.ts",
-    "audit:visual": "playwright test --config playwright.visual.config.ts",
     "check:production": "node scripts/check-production.mjs",
     "test:edge": "node scripts/check-edge-routing.mjs"
   },
-  "dependencies": {
-    "maplibre-gl": "^5.9.0",
-    "pmtiles": "^4.4.0"
-  },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "@resvg/resvg-wasm": "^2.6.2",
     "@types/node": "^22.20.1",
     "typescript": "^5.9.0",
     "vite": "^7.1.0"

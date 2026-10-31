@@ -48,28 +48,17 @@ try {
     assert.equal(main.headers['x-content-type-options'],'nosniff',path);
     assert.ok(main.body.includes(url),path+' : canonique absente');
   }
-  for(const path of ['/robots.txt','/sitemap.xml','/ads.txt','/questions/hausse-prix-gaz/?utm_source=verification&lecture=gaz%20France']){
-    const response=await get(path,'www.500signatures.fr');
-    results.push({host:'www.500signatures.fr',path,status:response.status,location:response.location});
-    assert.equal(response.status,301,path);
-    assert.equal(response.location,'https://500signatures.fr'+path,path);
-  }
-  for(const [path,target] of [['/accueil','/'],['/accueil/','/'],['/carte','/territoire'],['/methode/','/sources'],['/simulateur','/mandats/jouer/'],['/simulateur/v2/','/mandats/jouer/'],['/mandats','/mandats/jouer/'],['/mandats/','/mandats/jouer/']]){
+  // Les anciennes pages sont supprimées (31 octobre 2026) : ni page, ni redirection.
+  for(const path of ['/bilan/','/territoire/','/analyses/','/sources/','/accueil/','/mandats/jouer/','/simulateur/']){
     const response=await get(path);
     results.push({host:'500signatures.fr',path,status:response.status,location:response.location});
-    assert.equal(response.status,301,path);
-    assert.equal(new URL(response.location,'https://500signatures.fr').pathname,target,path);
+    assert.equal(response.status,404,path);
+    assert.match(response.body,/noindex/i,path);
   }
-  const preview=await get('/bilan/','preview.pages.dev');
-  assert.equal(preview.status,200,'Aperçu conservé');
-  assert.equal(preview.location,null,'Aperçu sans redirection de domaine');
-  const missing=await get('/__edge-routing-missing');
-  assert.equal(missing.status,404,'Vraie 404 conservée');
-  assert.match(missing.body,/noindex/i);
   const asset=await get('/analytics-consent.js');
   assert.equal(asset.status,200,'Script de consentement statique conservé');
   assert.equal(asset.headers['x-content-type-options'],'nosniff');
-  console.log(`Cloudflare local : ${urls.length} pages et leurs redirections www, paramètres, anciennes adresses, aperçu, 404 et script statique conformes.`);
+  console.log(`Cloudflare local : ${urls.length} pages, redirections www, anciennes adresses en 404 et script statique conformes.`);
 } catch(error){failure=error;process.exitCode=1;console.error(error);}
 finally {
   await writeFile(new URL('http.json',artifacts),JSON.stringify({checkedAt:new Date().toISOString(),runtime:'Wrangler 4.147.0 local',port,success:!failure,error:failure?.message,results},null,2));

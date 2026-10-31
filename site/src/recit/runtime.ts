@@ -144,12 +144,21 @@ export function brancherRecit(): void {
   let visible = true;
   const obsScene = new IntersectionObserver(([x]) => { visible = x.isIntersecting; if (visible) relancer(); });
   obsScene.observe(sceneEl);
-  const obs = new IntersectionObserver(entrees => { for (const x of entrees) if (x.isIntersecting) activer(x.target as HTMLElement); }, { rootMargin: "-48% 0px -48% 0px" });
-  etapes.forEach(x => obs.observe(x));
-  addEventListener("resize", () => { taille(); relancer(); });
+  // L'étape qui croise le milieu de l'écran devient courante. Calculé à chaque défilement
+  // (une fois par image) plutôt qu'observé : une restauration de position ou une insertion
+  // d'étapes ne peut pas laisser la scène sur une étape périmée.
+  let attente = 0;
+  function mesurer() {
+    attente = 0; const milieu = innerHeight / 2;
+    const ici = etapes.find(x => { const r = x.getBoundingClientRect(); return r.top <= milieu && r.bottom > milieu; });
+    if (ici) activer(ici);
+  }
+  const programmer = () => { if (!attente) attente = requestAnimationFrame(mesurer); };
+  addEventListener("scroll", programmer, { passive: true });
+  addEventListener("resize", () => { taille(); relancer(); programmer(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) relancer(); });
   new ResizeObserver(() => arbre()).observe(vArbre ?? zone);
-  taille(); activer(etapes[0]);
+  taille(); activer(etapes[0]); mesurer();
   (document as any).fonts?.ready?.then(() => taille());
 
   /* ---------- Votre ville ---------- */
@@ -177,11 +186,10 @@ export function brancherRecit(): void {
       const lot = await territoires("commune", e.p ?? e.c.slice(0, 2));
       const t = lot[e.c]; const v = t && calculVille(t, e.c);
       if (!v) { etat.textContent = `Les comptes de ${e.n} ne sont pas publiés.`; return; }
-      etapes.filter(x => cadre.contains(x)).forEach(x => obs.unobserve(x));
       cadre.innerHTML = renduVille(v, etapes.length);
       const nouvelles = [...cadre.querySelectorAll<HTMLElement>(".etape")];
-      nouvelles.forEach(x => obs.observe(x));
       etapes = [...racine.querySelectorAll<HTMLElement>(".etape")];
+      programmer();
       etat.textContent = `${v.nom} : ${nouvelles.length} étapes ci-dessous.`;
       const url = new URL(location.href); url.searchParams.set("ville", e.c); history.replaceState(history.state, "", url);
       if (defiler && nouvelles[0]) nouvelles[0].scrollIntoView({ behavior: reduit() ? "auto" : "smooth", block: "center" });

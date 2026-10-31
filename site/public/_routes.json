@@ -1,13 +1,14 @@
 {
   "version": 1,
-  "include": ["/*"],
+  "include": [
+    "/*"
+  ],
   "exclude": [
     "/assets/*",
     "/polices/*",
-    "/france/*",
-    "/ville/*",
     "/mandats/art/*",
-    "/og/*",
+    "/mandats/fonts/*",
+    "/brand/*",
     "/analytics-consent.js"
   ]
 }

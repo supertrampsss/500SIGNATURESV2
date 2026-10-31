@@ -134,7 +134,7 @@ export function etapeMandats(pays: Record<string, Territoire | undefined>): Etap
     chapitre: "mandats", tableau: "final", titre: "À vous de <em>gouverner</em>.",
     desc: "Cinq ans à l’Élysée. Le budget, l’Assemblée, la rue, les marchés : chaque décision a un prix.",
     contenu: `<div class="final__ligne"><span><b>5 ans</b>de mandat</span><span><b>577</b>députés</span>${c?.nature === "deficit" ? `<span><b>${fmt(md(c.ecart), 1)} Md€</b>de déficit à reprendre</span>` : ""}</div>
-      <a class="final__cta" href="/mandats/jouer/">Commencer mon mandat</a><p class="final__note">Jeu gratuit, sans compte. Les résultats de la partie sont simulés.</p>`,
+      <a class="final__cta" href="/mandats/">Commencer mon mandat</a><p class="final__note">Jeu gratuit, sans compte. Les résultats de la partie sont simulés.</p>`,
   };
 }
 
@@ -185,7 +185,7 @@ function sources(): string {
     </div>
     <div class="pied__bloc"><h2>Le projet.</h2>
       <p>500 Signatures rend les comptes publics lisibles par tous, puis vous laisse gouverner dans Mandats. Le site est gratuit, sans compte et indépendant de tout parti.</p>
-      <p class="pied__liens"><a href="/salaires/">Salaires</a><a href="/mandats/jouer/">Mandats</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" rel="noreferrer noopener" target="_blank">500 Signatures sur X</a></p>
+      <p class="pied__liens"><a href="/salaires/">Salaires</a><a href="/mandats/">Mandats</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" rel="noreferrer noopener" target="_blank">500 Signatures sur X</a></p>
     </div>
   </footer>`;
 }

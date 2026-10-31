@@ -1,8 +1,0 @@
-{
-  "method": "Two final exports from the actual packed newly baked Blender source. The first full-bake export differs only in the exporter-generated distant mesh data name; its entire binary buffer (geometry, UV, normals and all embedded images) is unchanged. A stable distant geometry name makes the complete final GLB and metadata reproducible. No second independent bake, browser performance or visual conformity claim.",
-  "glbBytes": 11764076,
-  "sha256": "fd8d587d9a82beeb889365969d1c2b1c57f202db84a42b947a31f86099a17a1e",
-  "exportByteIdentical": true,
-  "metadataByteIdentical": true,
-  "fullBakeBinaryByteIdentical": true
-}
