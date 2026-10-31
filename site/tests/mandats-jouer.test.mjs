@@ -6,11 +6,13 @@ import { test, expect } from '@playwright/test';
 const HOME = '/mandats/jouer/';
 
 async function sansDebordement(page) {
-  const [largeur, ecran] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
-  expect(largeur).toBeLessThanOrEqual(ecran);
+  // Comparer à la fenêtre configurée : un débordement élargit innerWidth sur mobile (dézoom).
+  const largeur = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(largeur, 'aucun débordement horizontal').toBeLessThanOrEqual(page.viewportSize().width + 1);
 }
 
 async function avancer(page) {
+  await sansDebordement(page);
   if (await page.locator('#e-fin.ouvert').count()) return 'fin';
   if (await page.locator('#e-budget.ouvert').count()) { await page.locator('#b-voter').click(); return 'budget'; }
   if (await page.locator('#e-evt.ouvert').count()) {

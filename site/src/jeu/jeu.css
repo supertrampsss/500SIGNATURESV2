@@ -47,7 +47,7 @@ button{font:inherit;color:inherit}
 .temps i.an{margin-left:5px}
 .jauges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:880px;justify-self:center;width:100%}
 .jauge{position:relative;display:flex;flex-direction:column;gap:6px;padding:10px 14px;border:1px solid var(--trait);border-radius:10px;background:rgba(19,34,58,.6);min-width:0}
-.jauge__l{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.jauge__l{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 8px;min-width:0}
 .jauge__l span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--iv3);white-space:nowrap}
 .jauge__v{font-family:var(--f-titre);font-size:28px;line-height:1;font-weight:400;letter-spacing:-.01em;white-space:nowrap}
 .jauge__v small{font-family:var(--f-texte);font-size:13px;color:var(--iv3);margin-left:3px}
