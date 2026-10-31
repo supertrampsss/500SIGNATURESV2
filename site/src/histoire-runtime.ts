@@ -1,3 +1,5 @@
+import { indexRecherche } from "./donnees.ts";
+import { suggestions } from "./mailles.ts";
 /**
  * Contrôleur de l'histoire de l'accueil (rendu : histoire.ts).
  * Une étape à la fois : bouton Suivant, toucher (moitié droite / gauche), glisser, flèches,
@@ -128,7 +130,8 @@ export function brancherHistoire(): void {
   let accu = 0, verrou = 0;
   ecoute(window, "wheel", (e: WheelEvent) => {
     const b = racine.getBoundingClientRect(); if (!index.hidden) return;
-    const pleine = b.top <= 2 && b.bottom >= innerHeight - 2;
+    const haut = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--decalage-entete")) || 0;
+    const pleine = b.top <= haut + 2 && b.top >= -2 && b.bottom >= innerHeight - 2;
     const vers = e.deltaY > 0 ? 1 : -1;
     if (!pleine || (vers > 0 && cur === etapes.length - 1) || (vers < 0 && cur === 0)) return;
     e.preventDefault(); const now = performance.now(); if (now < verrou) { accu = 0; return; }
@@ -144,7 +147,20 @@ export function brancherHistoire(): void {
   ecoute(window, "resize", () => { taille(); if (scene === "pieces") relancer(); });
   const ro = new ResizeObserver(() => arbre()); if (vArbre) ro.observe(vArbre); nettoyages.push(() => ro.disconnect());
   ecoute(document as any, "visibilitychange", () => { if (!document.hidden) relancer(); });
-  // Le formulaire de commune ouvre Ville ; les puces ouvrent directement une commune.
+  // Le formulaire de commune ouvre la fiche trouvée par la recherche de Ville ; à défaut, la page Ville.
+  const formCommune = racine.querySelector<HTMLFormElement>(".histoire__commune form");
+  if (formCommune) ecoute(formCommune, "submit", async (e: Event) => {
+    e.preventDefault();
+    const requete = (formCommune.querySelector("input")?.value ?? "").trim().toLowerCase();
+    let cible = "/territoire/";
+    if (requete.length >= 2) {
+      try {
+        const [premier] = suggestions(await indexRecherche(), requete, "commune", 1);
+        if (premier) cible = `/territoire/?niveau=${encodeURIComponent(premier.l)}&territoire=${encodeURIComponent(premier.c)}`;
+      } catch { /* index indisponible : la page Ville garde sa propre recherche */ }
+    }
+    location.assign(cible);
+  });
   taille(); aller(0); (document as any).fonts?.ready?.then(() => taille());
   detacher = () => { nettoyages.forEach(f => f()); cancelAnimationFrame(raf); clearInterval(direct); racine.classList.remove("histoire--active"); };
 }

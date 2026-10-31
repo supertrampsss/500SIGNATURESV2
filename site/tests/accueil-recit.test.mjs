@@ -118,6 +118,14 @@ test('l’histoire raconte les comptes publiés, étape par étape, jusqu’au j
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   const total = await page.locator('.histoire__etape').count();
   expect(total).toBeGreaterThan(10);
+  if (!info.project.use.isMobile) {
+    // Un cran de molette avance d’une étape quand la scène occupe l’écran sous l’en-tête.
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, 120);
+    await expect(courante(page)).toHaveAttribute('data-i', '1');
+    await page.locator('.histoire__prec').click({ force: true });
+    await expect(courante(page)).toHaveAttribute('data-i', '0');
+  }
   // Les montants affichés sont ceux de la publication, sans arrondi caché.
   expect(await valeurAffichee(page, '[data-tableau="carte"][data-k="1"]')).toBeCloseTo(annual.expenses / 1e9, 6);
   expect(await valeurAffichee(page, '[data-tableau="billets"]')).toBeCloseTo(annual.receipts / 1e9, 6);
@@ -132,6 +140,8 @@ test('l’histoire raconte les comptes publiés, étape par étape, jusqu’au j
     await noOverflow(page);
     await evidence(page, info, `histoire-${name}`, { annual, displayed: await step.locator('.histoire__titre').innerText() });
   }
+  const champ = page.locator('#histoire-commune');
+  await expect(champ).toBeVisible();
   const ville = page.locator('.histoire__villes a').first();
   await expect(ville).toHaveAttribute('href', /\/territoire\/\?niveau=commune&territoire=\d+/);
   await entirelyVisible(ville);
@@ -473,4 +483,15 @@ test('des comptes absents ne sont jamais présentés comme zéro euro', async ({
   await expect(page.locator('[data-recit-empty] a[href="/sources/"]')).toBeVisible();
   await noOverflow(page);
   await evidence(page, info, 'recit-comptes-absents');
+});
+
+test('la recherche de commune de l’histoire ouvre la fiche trouvée', async ({ page }, info) => {
+  await servePublication(page);
+  await openHome(page);
+  await chooseStep(page, '[data-tableau="commune"]', info);
+  const champ = page.locator('#histoire-commune');
+  await champ.fill('Bordeaux');
+  await champ.press('Enter');
+  await expect(page).toHaveURL(/\/territoire\/\?niveau=commune&territoire=33063$/);
+  await expect(page.locator('#vue-territoire')).toBeVisible();
 });

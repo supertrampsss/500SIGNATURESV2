@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 const PAGES = [
-  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: '100 €' },
+  { slug: 'accueil', path: '/accueil/', vue: 'accueil', heading: 'Chaque année' },
   { slug: 'france', path: '/bilan/', vue: 'bilan', heading: 'Les comptes' },
   { slug: 'villes', path: '/territoire', vue: 'territoire', heading: 'Les comptes de votre ville, en clair.' },
   { slug: 'ville-bordeaux', path: '/territoire?niveau=commune&territoire=33063', vue: 'territoire', heading: 'Bordeaux' },
