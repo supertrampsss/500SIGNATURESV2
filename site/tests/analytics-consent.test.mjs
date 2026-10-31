@@ -29,10 +29,9 @@ test('Audience : refus sans Google et consentement réversible, sans paramètres
  await expect.poll(async()=>(await views()).length).toBe(1);
  expect((await views())[0][2].page_location).toBe(new URL(page.url()).origin+'/');
  expect(JSON.stringify(await views())).not.toMatch(/8000|r01a|prive/);
- if(!await page.locator('#navigation-principale a[href="/bilan/"]').isVisible())await page.getByRole('button',{name:'Ouvrir le menu'}).click();
- await page.locator('#navigation-principale a[href="/bilan/"]').click();
+ await page.locator('.recit__pied a[href="/confidentialite/"]').click();
  await expect.poll(async()=>(await views()).length).toBe(2);
- expect((await views())[1][2].page_location).toBe(new URL(page.url()).origin+'/bilan/');
+ expect((await views())[1][2].page_location).toBe(new URL(page.url()).origin+'/confidentialite/');
  await page.screenshot({path:info.outputPath('audience-consentement.png')});
  await page.getByRole('button',{name:'Choix de mesure d’audience',exact:true}).click();
  await page.getByRole('button',{name:'Refuser',exact:true}).click();

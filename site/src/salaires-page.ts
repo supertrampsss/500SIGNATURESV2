@@ -1,34 +1,17 @@
-import './styles/budget-flow.css';
-import './styles/budget-comparison.css';
-import './styles/stacked-percent.css';
+/** Page Salaires : même socle que le récit (en-tête, polices), contenu de lecture sur ivoire. */
+import "./recit/recit.css";
+import "./styles/budget-flow.css";
+import "./styles/budget-comparison.css";
+import "./styles/stacked-percent.css";
+import "./styles/data-studio.css";
+import "./styles/reclassement-bercy.css";
+import "./styles/salaires.css";
+import "./styles/salaires-page.css";
 import { bindChartControls } from "./chart-controls.ts";
-import { brancherSalaires, renduSalaires } from './salaires.ts';
-import { brancherMenuNavigation, suivreHauteurEntete, renduNavigation } from './navigation.ts';
-import { brancherTheme } from './theme.ts';
-import './style.css';
-import './styles/fondations.css';
-import './styles/navigation.css';
-import './styles/analyses-revue.css';
-import './styles/editorial-identity.css';
-import './styles/data-studio.css';
-import './styles/shared-design.css';
-import './styles/revue-civique.css';
-import './styles/site-shell-v2.css';
-import './styles/salaires.css';
-import './styles/reclassement-bercy.css';
-import './styles/identite-v2.css';
-import { brancherApparitions } from './apparition.ts';
+import { brancherSalaires, renduSalaires } from "./salaires.ts";
 
-const contenu = document.getElementById('contenu');
-if (contenu && !document.getElementById('salaires-contenu')) contenu.innerHTML = renduSalaires();
-document.body.dataset.vue = 'salaires';
-const navigation = document.getElementById('navigation-principale');
-if (navigation) navigation.innerHTML = renduNavigation('/salaires', true).replace(/ data-vue="[^"]*"/g, '');
-const salaires = document.getElementById('salaires-contenu');
+const contenu = document.getElementById("contenu");
+if (contenu && !document.getElementById("salaires-contenu")) contenu.innerHTML = renduSalaires();
+const salaires = document.getElementById("salaires-contenu");
 if (salaires) brancherSalaires(salaires);
-brancherTheme();
-brancherMenuNavigation();
-suivreHauteurEntete();
-
 bindChartControls(document);
-requestAnimationFrame(() => brancherApparitions());

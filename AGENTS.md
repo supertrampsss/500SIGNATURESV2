@@ -2,464 +2,61 @@
 
 Make decisions that improve UX, DX and AX together: a clear product, maintainable code,
 and enough explicit context for the next developer or agent to change it safely.
-When these conflict, protect the user journey and explain the trade-off in the PR.
 Prefer the smallest coherent change with evidence; never claim zero regression risk.
 
-## Product contract
-
-- French, plain language, concise visible choices, mobile first.
-- A measure card validates in one click and advances directly. Preserve reading position.
-- France is the current game priority: v17 has thirty two-month clock periods over five years, with presidential orders and autonomous government initiatives independent of that clock. New national games use v17; explicit older links and saves retain their rules. The current approved strategy brief requires that compatibility. Discuss municipal
-  expansion separately. Existing municipal data and journeys still need compatibility.
-- Show consequences after a decision; distinguish immediate and delayed effects.
-- Keep finance, observed data and simulation assumptions separate. Never invent sources.
-- France comparisons use France, Germany, Spain and Italy only when comparable data exist.
-  Reuse `PAYS_VISIBLES`; do not restore an all-countries control or an outer Europe frame.
-- Keep essential controls accessible without hover; respect reduced motion.
-- Preserve new-game saves, deep links and offline use. Historical prelaunch saves are not a compatibility requirement. Do not clear storage to hide a bug.
-- No advertising in gameplay. Do not activate social publishing or tracking as a side effect.
-
-## Business decisions
-
-[Current product and business decisions](docs/product-business-decisions.md) is the
-current reference; earlier strategy documents are historical context. Advertising
-is the owner's chosen business model; keep public reading and gameplay free.
-Use `site/src/advertising-policy.ts`: one editorial placement initially, at most
-two on long pages after validation, none in gameplay, results or essential sources.
-Prefer manual in-flow placements and direct sponsorship replacing existing slots.
-No sticky ads, interstitials, automatic refresh or targeting based on game decisions
-or salary inputs. Do not infer SDK consent from a non-personalized ad label.
-Label audience, rates, sales and costs as assumptions until measured. Include
-eligibility, fill, reached inventory, direct sales effort and editorial costs;
-never double-count inventory or deduct network fees twice. Commercial modules
-must not change scores or observed data. Do not restore paid-workshop priorities.
-
-## Find the right code
-
-- `site/src/mandats/`: game engine, domain rules, session persistence and rendering.
-- `site/src/mandats/living-board.css`: national board layout and responsive command zone.
-- `site/src/mandats/decision-transition.ts`: decision lock and cancellable visual hand-off.
-- `site/src/mandats/branch-replay.ts`: validated branches and original trajectory archive.
-- `site/src/mandats/living-recaps.ts`: annual milestones and end-of-mandate replay.
-- `site/src/mandats/national-command.ts`: concise national status and decision effects.
-- `site/src/mandats/national-scene-state.ts`: game state to scene state.
-- `site/src/mandats/presidency-runtime.ts`: current presidency clock, reader and saved commands.
-- `site/src/mandats/presidency-view.ts` and `presidency-desk.css`: the approved presidential desk.
-- `site/src/mandats/map-runtime.ts`: illustrated map interactions for earlier campaigns.
-- `site/src/`: other product tabs and data presentation.
-- `site/scripts/`: static rendering, social assets and offline bundle generation.
-- `site/tests/`: Playwright journeys, including mobile, reduced motion and offline.
-- `pipeline/`: Python data ingestion and validation. `infra/`: infrastructure.
-- `docs/`: methodology, setup and historical plans. Older plans are context, not current scope.
-
-## Work and verify
-
-### Identité v2 et Mandats nouvelle formule (30 October 2026)
-
-The owner approved a single visual identity and a fundamental redesign of the game.
-This supersedes earlier palette and Mandats interface directions where they conflict.
-
-- Identity: night `#0b1422` opens pages (home story, France, Villes, Salaires heroes,
-  Mandats), ivory `#f4efe3` / `#fbfaf6` is for reading data. Gold `#d9b45f` marks money
-  in and actions; clay `#e07a55` marks deficit, pressure and crisis. Spectral Light
-  (300, 300 italic) for large numbers and titles, IBM Plex Mono for amounts, years and
-  sources, Public Sans for text. All fonts are self-hosted in `public/polices/` (OFL).
-- Reference year for the site narrative is 2025. Where a breakdown is only published
-  for another year, label that year explicitly; never mix bases silently.
-- `src/apparition.ts` reveals blocks below the fold and draws chart strokes once.
-  Nothing is hidden without it; reduced motion disables every effect.
-  `src/styles/identite-v2.css` holds the hero overrides for France, Villes and Salaires.
-- Mandats nouvelle formule lives at `/mandats/jouer/` (`mandats/jouer/index.html`,
-  `src/jeu/`). It is turn-based: twenty quarters, two dossiers per quarter that close
-  the quarter automatically, an autumn budget voted by the Assembly or passed with
-  49.3 (censure risk), permanent "Grandes réformes" with large savings and a vote,
-  and a five-level street escalation (manifestations, blocages, émeutes, insurrection)
-  that can end the mandate. Options with random outcomes show their risk before the
-  choice. `src/jeu/contenu.js` holds every dossier and reform; all effects are game
-  assumptions, only the 2025 accounts are published figures.
-- The site navigation and the home call to action point to `/mandats/jouer/`. The
-  previous game stays at `/mandats/` for existing saves, explicit version links and
-  its browser suites until the owner decides to retire it.
-- Debt has consequences (31 October 2026): spreads widen above 165 Md€, ratings are downgraded at 175 and 195 Md€ (opinion, tension, rate) and restored below 160 Md€, and the final score penalises each Md€ above 165 more heavily. Measured with full-mandate bots: unchecked spending ends under creditor tutelle, one reform a year with balanced choices is re-elected, and maximal austerity still loses. Re-measure all strategies after changing any economic rule.
-- Mandats v3 (31 October 2026, owner feedback): desktop is three real columns (dashboard | map fitted to its cell with a container query | Conseil des ministres). A Danger banner names the distance to each defeat threshold; the end screen states the verdict, the threshold crossed and the three decisions that pushed the culprit metric. Reform negotiation: each group's stance depends on the reform, each demands its own concession, and deals cost political capital (3 tokens, +2 per year, 5 max; hostile = 2). Budget: spending steps of 3 Md€ on ±5, four tax levers (TVA, IR, IS, CSG) with their own yield and political cost. Re-measure strategies after changing any of these.
-- Dossiers must be cornelian and politically balanced: each option carries a real cost,
-  no option is presented as the right answer, and no real politician is named.
-
-
-### Mandats: approved presidential desk (29 October 2026)
-
-The owner selected **Le bureau du pouvoir**, direction 5, in
-`docs/mandats-desk/reference.png`. This supersedes earlier visual compositions
-for v17: walnut table, physical relief map, ivory dossier, persistent folders for
-major reforms, government and the balance sheet. Keep the v17 rules and real
-state, versioned v1–16 behavior, keyboard navigation and saved trajectories.
-`presidency-desk.css` scopes this presentation to `.presidency--desk`.
-`desk-france.webp` and `desk-walnut.webp` contain only artwork; all labels,
-counters, choices and dates must remain live HTML. Keep their offline assets.
-Compare actual desktop and phone screenshots to the selected reference. Verify
-small phones, last choices, reform access, pause, focus, offline saves and the
-causal balance sheet. See `docs/mandats-desk.md` for failure cases and evidence.
-
-The owner also requires direct decisions and a clean codebase. Wide screens open
-the suggested dossier immediately; phones start with the map. Re-selecting the
-active subject keeps it open. The national reform folder opens its first available
-law and links to the six sectors without duplicating their decision cards.
-
-The unreachable Babylon reconstruction, unused city/SVG renderers and their
-exclusive asset recipes were removed after tracing runtime, build and CI consumers.
-Their history remains in Git; historical game versions still use their maintained
-illustrated interfaces and versioned rules. Do not restore obsolete renderers from
-older instructions below. Keep MapLibre and PMTiles for the site's active maps.
-
-### Mandats: presidential strategy v17 (19 October 2026)
-
-The owner approved the complete strategy rework in the attached brief. New national
-games use v17 and preserve versioned v1–16 reconstruction. This takes precedence
-over older calendar-survival goals and earlier navigation prohibitions where they
-conflict with permanent reform access. Keep the current approved illustrated map.
-See [the contract and failure cases](docs/mandats-strategy-v17.md).
-
-`presidency-strategy-engine.ts` owns v17 rules; `presidency-strategy-content.ts` owns
-six sector chains and distinct durable routes; `presidency-api.ts` dispatches views
-without changing v16 rules. Ministers handle recurring operations in the same finite
-reserve and execution queue as player orders. Objectives measure actual services,
-backlog, finances and a working government. Completing thirty periods is not a win.
-After full-game observation, at x1 one v17 period lasts 30 seconds (15 active
-minutes over the mandate); v16 keeps 15 seconds. Preserve atomic saves,
-shared-preview adoption, pause, hidden tabs, offline use and journal-index replay.
-
-First inspect a three-minute playable opening, correct its observed defects, then
-play full mandates and both strategies over several seeds. Run the strategy browser
-suite and bounded audit alongside existing gates; retain the independent v16 numeric
-fixture, legal inputs, actual screenshots and clips. Distinguish technical checks,
-agent playthroughs and external human feedback. Do not claim fun from passing tests.
-
-### Mandats: contextual mobile board and complete decision loops (17 October 2026)
-
-The owner approved `docs/mandats-audit-plan-mobile-boucles.md`. Remove the old
-Réformes / Gouvernement / Priorités navigation: decisions belong on the map.
-Sector priorities are in sector cards, institutions and budgets in contextual
-events, programme preparation and delivery in sector follow-ups. The existing
-approved illustration remains. `presidency-board.css` owns the new viewport
-composition; `presidency-board-layout.ts` projects anchors, separates labels and
-groups close events when a small phone cannot fit them. A grouped event must
-remain named and actionable through its group. Keep the map draggable and its
-whole-country view available. Show pressure as pressure, never as service quality.
-
-Government agreement, vote result and appointment are separate saved transitions.
-A rejected identical proposal cannot be submitted repeatedly in one period.
-Reforms have contextual arrival, one explicit deferral, expiration, withdrawal
-and another orientation after rejection. `presidencyFeedback` supplies the real
-order result. A funded intervention still awaits teams and actual delivery.
-Budget redeployment conserves accounts and happens at most once per year.
-Seeded crisis selection considers conditions and prevention; civil pressure can
-recede when causes are treated. Preserve replay and explicit v1–15 rules.
-
-Verify both existing presidency/crisis journeys through
-`playwright.mobile-boucles.config.ts`, plus bounded, escalation and loops audits.
-Retain real mobile Chromium and WebKit gameplay recordings and saved legal inputs.
-Inspect labels, clusters, keyboard focus, both outcomes, pause and reduced motion.
-Animation presence in CSS is not proof of its visibility or of gameplay quality.
-
-### Mandats: faithful miniature, spontaneous reforms and major crises (17 October 2026)
-
-The owner explicitly replaces the old map with the attached October 17 ImageGen
-reference in `docs/mandats-reference-v2/reference.png`. V16 uses `presidency-france-v2.webp`, a clean detailed miniature with
-navy seas and ivory land. This supersedes earlier requirements to retain the old
-v16 illustration. Keep actual HTML controls and state-driven effects above it;
-never bake labels, alerts or values into the artwork. The sidebar is actual news,
-not the reference's explanatory three-frame storyboard. Sector rules stay real.
-
-Reforms and institutional choices appear directly on the map through
-`presidencyEvents`; the catalogue is optional. `presidencyCrises` combines local
-and civil incidents. Prolonged neglected service crises can cause strike, blockade,
-revolt, government resignation and revolution with visible response windows.
-Each stage has distinct funded responses. A delivered agreement provides respite;
-a neglected revolution can end the mandate early. Presidential resignation is a
-voluntary saved choice. Censure still concerns the government. Seeded variation
-must preserve replay, export, offline behavior and v1–15 numeric rules.
-
-`presidency-reference.css` owns this composition. Compare the live page with the
-approved reference and inspect phone, compact, desktop and WebKit before delivery.
-Run the presidency and crises suites, the bounded model audit and escalation audit.
-See `docs/mandats-reference-v2.md` and `docs/mandats-escalade-v16.md`.
-
-### Mandats: persistent incidents and animated pressure (17 October 2026)
-
-The owner approved the crisis refactor and emphasised animation, simultaneous
-problems and fast pressure. Keep the approved illustrated map. The twelve authored
-incidents in `presidency-crises.ts` replace the fixed generic shock calendar only
-for the new v16 presidency. Preserve versions 1–15. Incident responses share actual
-credits, preparation and execution with other programmes; only delivery contains
-or resolves them. Temporary containment can expire, acquired backlog remains, and
-successful recovery provides real quiet periods. Origins use incident IDs and a
-separate journal index, never a guessed period-to-journal conversion.
-
-`presidency-crisis-view.ts` derives live vector effects, alerts and incident briefs;
-`presidency-crises.css` owns choreography. Do not bake controls or numbers into art,
-let animations issue commands, replace state with animation completion, or hide
-ministerial news entirely on mobile. Keep specific responses first and ordinary
-sector development accessible below. Pause stops deadlines and ambient motion;
-reduced motion retains the same information. Sounds are opt-in. The sound control
-must not overlap an open phone command panel.
-
-Run `playwright.crises.config.ts` alongside the presidency suite and bounded model
-audit. `MANDATS_CRISES_PHASE` separates reports from concurrent review runs. Retain
-before/after captures, legal inputs and a real gameplay clip. The compressed v15
-fixture is a numeric snapshot of main at 4c21961, not a generated expectation from
-the new implementation. See `docs/mandats-crises-vivantes.md` for assumptions,
-failure modes, reviewed corrections and evidence.
-
-### Mandats: living presidency, approved mockups 2 + 4 (16 October 2026)
-
-The owner validated a full gameplay change: independent time, standing presidential
-priorities and operational initiatives by the government. This supersedes the old
-prohibition on time controls for v16. Use the approved propagation map and direct
-map commands in `docs/mandats-presidency/reference-{2,4}.png`; the country remains
-visible without a mandatory queue of questions. See
-[the contract and prewritten failure modes](docs/mandats-presidency-contract.md).
-
-`presidency-engine.ts` owns rules and resources, `presidency-runtime.ts` the browser
-clock and interactions, and `presidency-view.ts` / `presidency.css` the new board.
-Only `live-tick` advances `Game.turn`; `choices` and `history` contain every journal
-entry, including orders. The current illustration is 1672 by 941 native pixels,
-not a Full HD master. Never bake UI, routes, progress or minister decisions into art.
-
-Persist a transition before showing it. Pause on storage failure, hidden tabs and
-reading panels; no elapsed-time catchup. A shared preview stays read-only until
-explicit adoption. Government spending uses the same finite reserve and execution
-as player orders. A minister cannot create credits or pass a law. Source rules,
-votes, charges, actual delivery and expiration must agree. Keep explicit versions
-1–15 and municipal compatibility; do not feed v16 order journals into legacy
-sequential dossier reconstruction.
-
-Run the presidency browser suite and bounded model audit alongside the existing
-gates. Retain legal inputs, source hashes, before/after failures and inspected
-1672 × 941, 390 px, 320 px and WebKit captures. The owner has approved implementation
-and systematic PR delivery; ask no additional direction confirmation.
-
-### Mandats: reports and reform access (16 October 2026)
-
-The owner requires visible consequences for repeated deferrals and direct access to
-major national reforms. Keep the national reform button outside the emergency
-console's scrolling and disclosures, including while a front is open. Show the
-real current reform and identify upcoming authored reforms honestly; the existing
-residency/benefits dossier is not a complete immigration law.
-
-V15 adds a temporary recovery programme in disrupted/crisis sectors, dimensioned
-to the actual backlog with funding, preparation, shared implementation and finite
-delivery. Do not reset stocks or add a generic penalty per click. Preserve explicit
-v13/v14 numerical rules. Quantified waiting receipts are presentation fixes from
-v14 onward, including actual backlog changes beyond pressure 100 and funded waiting.
-Run `playwright.reports.config.ts` alongside command, pressure and existing gates.
-See [failure hypotheses and evidence](docs/mandats-reports-reformes.md).
-
-### Mandats: interface rework (16 October 2026)
-
-The owner explicitly rejected the Mobbin map-exploration / bottom-sheet direction
-and requires Plague Inc as the interface reference. The approved illustrated map
-remains the visual source. V14 uses a strategic board: persistent situation news,
-six simultaneous sector readings, actual execution resources and coalition support,
-and a separate initiative menu. Keep header, HUD and navigation within the viewport.
-The phone initiative menu occupies the central play area; Pays / Fermer returns to
-the board. Keep every front actionable or linked to Bilan without spending time.
-Do not hide all six stocks behind a disclosure or invent a global crisis score,
-DNA, real-time deterioration, speed controls, or new policy dependencies.
-
-`map-interface.css` owns the composition, `map-situation-view.ts` and
-`map-situation.css` the state-derived HUD, `map-strategy.css` the initiative menu,
-`map-pressure-view.ts` and `map-pressure.css` the detailed Bilan, and
-`map-panels.ts` / `map-panels.css` Government and Projects. Render real seats,
-saved vote outcomes, delivery capacity, costs and deadlines; never add display-only
-game rules. Preserve full-card decisions, scrolling to the last choice, keyboard,
-inline save errors, camera controls and the site link. Run
-`npx playwright test --config playwright.command.config.ts` and the interface,
-rework, social and pressure checks. Retain before/after captures and inspect the approved
-1672 × 941 format plus desktop, 390 px, 320 px and WebKit. See
-[the interface evidence](docs/mandats-interface-rework.md). The existing raster
-illustration is not a new Full HD master.
-
-### Mandats: persistent pressure (15 October 2026)
-
-The owner requests iterative multi-agent scenario modelling and a pressure loop
-inspired by Plague Inc. New national games use v14 and preserve the illustrated
-map. Follow [the pressure contract](docs/mandats-pressure-contract.md) and retain
-the [scenario matrix](docs/mandats-pressure-scenarios.json), including identified
-extensions not yet modelled. Never claim exhaustive exploration of every sequence.
-
-V14 additionally retains active cyber/hospital and port incidents and their explicit sector disruptions, and reuses already funded social concessions. V13 and explicit older links keep their published rules.
-
-Six sector stocks persist across authored dossiers. Reading and inspection never
-advance time; each real decision advances all fronts by one two-month period.
-Votes, implementation capacity, temporary relief, narrative/social delivery and
-annual accounts must agree. Rejected laws cannot engage their proposed effects.
-Temporary operating rates accrue only during their active periods, including
-expenses already acquired before expiration. Cross-sector links read a common
-previous-period state. Recovery must create real breathing room.
-
-`pressure-engine.ts` owns transitions and shared delivery allocation;
-`pressure-content.ts` owns explicit mappings and hypothesis costs;
-`pressure-agenda.ts` owns state-derived responses. Keep rules outside the views.
-Run the bounded model audit and pressure browser configuration alongside the
-existing rework/social suites. Retain seeds, strategies, inputs, invariant reports
-and inspected desktop/390 px/320 px/WebKit screenshots before delivery.
-
-### Shared mobile header
-
-`site/src/navigation.ts` owns the compact menu and its grouped controls. Do not
-create a second controller in a page module. Scope the compact grid to headers
-with `.entete__actions`; static headers and explicit older Mandats links keep
-their visible navigation. Mandats v12 uses its own header and exposes the site
-through Ma partie, then Retour au site. Verify both paths with
-`npx playwright test --config playwright.header.config.ts`
-after building `site/`; retain the report, open/closed captures and replay inputs
-under `site/header-artifacts/`.
-
-### Mandats: direct decision flow (26 September 2026)
-
-- A v11 decision saves immediately, renders its next agenda/year/ending, then overlays
-  the recorded verdict for 1.8 seconds. No result page or mandatory Continue action.
-- `decision-verdict.ts` owns only transient presentation. Closing, cancelling or
-  interrupting it never calls the engine. Keep Escape, reduced motion and double-click protection.
-- Each introduction explains the concrete problem in plain French. Do not repeat
-  the previous outcome or list all choices again. Keep projects, promises and detailed
-  vote history in Bilan, away from the next decision.
-
-### Mandats: consequential narrative campaign (26 September 2026)
-
-Follow [the narrative contract](docs/mandats-next-contract.md). `narrative-content.ts`
-owns authored situations; `narrative-engine.ts` owns their eligibility, agenda,
-promises and projects; the views render calculated state. Opening a front never
-spends a decision. Rejected laws cannot finance a project or apply an amendment.
-Project delivery and missed promises must keep their originating decision so a
-causal replay can actually return to it. Rebuild derived state from versioned
-inputs, never from imported balances or display labels. Shared dilemmas preserve
-the local save until the player adopts them by making a decision.
-
-Use `npm run test:story` for the narrative journeys and `npm run test:board` for
-the existing journeys. Retain `site/story-artifacts/` reports, screenshots and
-replay inputs, and inspect the 320 px, 390 px and desktop compositions. Keep the
-site navigation and game balance accessible. Secondary history must not push
-the decision cards several screens below the mobile scene.
-
-### Mandats: political consequences (24 September 2026)
-
-The owner approved consequential Assembly votes, coalition bargains, government
-censure, dissolution, misconduct proceedings and rare institutional rupture.
-Follow [the political contract](docs/mandats-political-contract.md). A rejected
-law grants none of its implementation effects; elections change subsequent votes;
-political obligations and early endings survive export, reload and replay.
-Censure concerns the government, not presidential removal. Keep all calculations
-in the deterministic versioned engine. Use `politics.ts`, `political-dilemmas.ts`,
-`politics-view.ts` and `political-motion.ts`; artwork adds parliament, council and
-rupture scenes. Render votes from their saved results, with skip and reduced motion.
-Do not replace concrete sacrifices with generic “maintain course” options.
-
-
-### Mandats: approved illustrated map (15 October 2026)
-
-The owner explicitly abandoned the 3D reconstruction and requested the approved
-mockup itself as an illustrated map. This supersedes the 8 October requirement
-for a Babylon.js scene. Use `docs/mandats-diorama/reference-ordinateur.png` as the
-visual source, with the interactive HTML interface and real saved state.
-Follow [the illustrated-map contract](docs/mandats-illustrated.md) and
-[social consequences](docs/mandats-social-contract.md).
-
-The source illustration retains the approved geography, buildings, mountains,
-water and lighting. Static game pins and controls are restored locally so live
-subjects, projects and mobilisations can be drawn from actual game state.
-Do not reintroduce a 3D renderer or rebuild the map from geometric primitives.
-The approved navy header, ivory panel, serif headings and red alerts remain the
-visual target. The small card chevrons may follow this approved reference.
-
-Opening, zooming, panning or inspecting never spends a turn. Preserve the image
-and its view between choices. Keep keyboard, reduced motion, image-load failure,
-save/reload and opt-in offline play usable. Finishing five years remains the
-survival objective; unrest alone does not remove the president. The short v12
-verdict stays nonmodal. Earlier explicit game versions retain their own rules.
-
-`map-state.ts` derives state, `map-runtime.ts` owns the illustrated view and
-interactions, `map-illustrated-layout.ts` owns image anchors, `map-view.ts` and
-`map-game.css` own its interface. The old 3D sources and comparisons are historical.
-Run a full build and the rework/social browser suites, now checking the real
-illustration lifecycle and game consequences. Keep the input records, reports
-and desktop/390 px/320 px/WebKit captures. Compare the whole live page directly
-with the approved image before claiming visual completion.
-
-### Mandats: approved ten-screen visual reference (24 September 2026)
-
-The owner approved the ten image-generated mobile compositions as the visual
-target, including their detailed architectural miniatures, paper materials,
-navy/ivory/red palette and large editorial serif typography. Do not simplify
-them back into administrative panels. Use the production art in
-`site/public/mandats/art/{office,school,hospital,nation,chapter,legacy,energy}.webp`
-with real HTML controls, state and text. The artwork follows dossier themes;
-only the game engine supplies quantitative consequences. Never bake game text
-or metrics into a screenshot used as the interface.
-
-The visual journey covers entry, choice, feedback, crisis, annual recap, next
-chapter, exploration, final legacy, replay selection and trajectory comparison.
-`cinema-board.css`, `cinema-shell.css`, `living-recaps.css` and `branch-replay.css`
-own these compositions. Inspect actual desktop and phone renders before delivery.
-Keep the entire measure card clickable and preserve new-game archives, export,
-import and opt-in offline play. The site's ordinary navigation remains reachable.
-
-### France: approved full-page visual reference (21 September 2026)
-
-The owner's full desktop/mobile mockup `codex-clipboard-38fe691f-cbf0-4957-adf1-75a44ccb8736.png`
-supersedes earlier France visual recommendations: navy/red on off-white, Assembly
-photograph, compact chapter navigation and four KPIs, line charts, receipts table,
-stacked spending bar, redistribution columns, paired social-security/debt panels,
-European bar charts, seven illustrated topic cards and the complete footer.
-Use `site/src/france-page.ts` and `site/src/styles/france-page.css` for this composition.
-Keep all existing analyses accessible inside their topic and all numbers sourced.
-Do not restore the old dot plots, giant headings or long ungrouped analysis layout.
-France remains the national accounts page; Villes remains the territorial explorer.
-Inspect the entire rendered page, including mobile and opened topics, before claiming
-visual completion. A passing build is not evidence of visual fidelity.
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for commands and checks by change type.
-Inspect the working tree before edits and preserve other people's changes.
-Keep domain rules outside UI code; use the existing stack before adding dependencies.
-
-### Testing policy
-
-- Highly prefer end-to-end (E2E) tests as the sole testing mechanism. Exercise complex
-  features through real user journeys, including their consequential state changes.
-- At the end of E2E runs, produce a verifiable, repeatable artifact: retain the test
-  report and relevant screenshots, traces, exports, or captured outputs. Record the
-  inputs needed to reproduce the journey, such as its seed, browser, and viewport.
-- Never write unit tests after writing the code they test. If a system must be tested
-  in isolation, first document the realistic ways it could fail, then write focused
-  unit tests from that failure list before writing the implementation. Keep those tests
-  only for failure modes the E2E suite cannot reliably expose; do not test constants,
-  implementation details, or mirror the code path without a concrete defect scenario.
-- All retained `*.test.ts` under `site/src` and `site/scripts` are discovered
-  automatically; do not maintain import lists. For UI changes inspect the resulting
-  screens as well as automated checks.
-Report what changed, what was tested, and remaining limits. Never equate unit tests
-with visual validation or a successful build with a successful production deployment.
-Use a reviewable branch/PR. Respect existing merge gates and user authorization.
-The owner requests systematic delivery: after validation, push the branch and merge
-its PR without another confirmation. Keep required checks and branch protections;
-report blockers instead of bypassing them. A later explicit hold takes precedence.
-
-## Editorial voice (owner feedback, 19 September 2026)
-
-- Speak as the project with French « nous » / « on », not a personal « je ».
-- Lead social posts with a concrete, strong question or stake, including the
-  presidential election horizon when relevant. Mention Dossiers alongside the tools.
-- Explain methods and scope positively and precisely. Avoid wording that belittles
-  the product, such as « le modèle est simplifié, ce n’est pas une fiche de paie ».
-  Preserve necessary factual qualifications, dates, units and sources.
-- Keep the Villes landing page neutral: no preselected city or suggested-city buttons.
-- Apply Humanizer principles: natural French, no stock slogans or invented claims.
-
-## Dossiers (owner-approved Journal layout, 19 September 2026)
-
-- Visible navigation label: Dossiers. Preserve /analyses/ URLs.
-- Introduce the subject, develop it with useful charts, finish with a conclusion.
-- One reading column using the France palette and fonts. No author byline.
-- Sources and publication/update dates belong at the bottom of each article.
-- No verdict, proof-path, citation button, method panel, or collapsible article content.
-- Cards are fully clickable, with a visible hover and keyboard focus.
+## The site (owner decision, 31 October 2026)
+
+The site has three pages and nothing else. Old pages, their addresses and their code
+were deleted (the site had not been shared); do not restore them or add redirects.
+
+- `/` — **the story** (`site/src/recit/`). One page read by ordinary scrolling, from the
+  bill of the State to the game: the bill, receipts, deficit, debt, where the money goes,
+  Europe, your salary, your city, Mandats. It replaces the former Accueil, France, Ville and
+  Dossiers. A sticky scene (map, banknotes, bars, treemap, coins, city charts, Assembly)
+  follows the step crossing the middle of the screen; the text cards scroll over it.
+  No wheel hijacking, no "Next" button. `rendu.ts` is pure (prerender and browser),
+  `calculs.ts` reads published series and returns `undefined` when data is missing
+  (a step without data disappears, never shows 0), `ville.ts` renders a chosen commune,
+  `runtime.ts` animates. `/?ville=CODE` reopens the story on that commune.
+- `/salaires/` — the salary page (`src/salaires.ts`, `src/salaires-page.ts`), same header.
+- `/mandats/` — the game (`mandats/index.html`, `src/jeu/`). Turn-based: twenty quarters,
+  two dossiers per quarter, an autumn budget (vote or 49.3), major reforms negotiated with
+  political capital, a five-level street escalation. The defeat screen states the verdict,
+  the threshold crossed and the decisions (including budgets and realised risks) behind it.
+  Debt has market consequences above 165 Md€. All effects are game assumptions; only the
+  published accounts are facts. Re-measure strategies with full-mandate bots after changing
+  any economic rule. Dossiers stay cornelian and politically balanced; no real politician.
+  Offline play is opt-in: the build writes `dist/mandats/sw.js` (`scripts/prerendre.ts`).
+- `/confidentialite/` — privacy.
+
+Menu: Récit, Salaires, Mandats.
+
+## Identity
+
+Night `#060b17`/`#0b1422` for telling, ivory `#fbfaf6` for reading sources. Gold `#d9b45f`
+for money in and actions, clay `#e07a55` for deficit and pressure. Spectral Light for titles
+and big numbers, IBM Plex Mono for amounts, years and sources, Public Sans for text; fonts
+are self-hosted in `site/public/polices/`. Reduced motion keeps every state without animation.
+Avoid CSS `filter` animations on many elements: they crashed WebKit.
+
+## Data rules
+
+Every number carries its source and year under it. When a breakdown exists only for another
+year, label that year. France comparisons use France, Germany, Spain and Italy only.
+Never invent sources. Keep observed data and game assumptions separate.
+
+## Verify
+
+From `site/`: `npm test` (unit), `npm run build` (types, build, prerender), then
+`npx playwright test` (story, city, no-JS, reduced motion, salaries, consent, game; five
+formats incl. 320 px and WebKit). Inspect real desktop and phone screenshots for UI changes.
+`npm run test:edge` checks routes in the local Cloudflare runtime.
+From `pipeline/`: `ruff check .` and `pytest -q`.
+
+Report what changed, what was tested and what remains. The owner requests systematic
+delivery: push the branch and merge the PR once CI is green, without asking again.
+
+## Editorial voice
+
+French, plain, « nous » / « on ». Natural sentences, no stock slogans or invented claims.
+Explain methods positively and precisely, with dates, units and sources.

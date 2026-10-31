@@ -6,15 +6,20 @@
   <meta name="robots" content="noindex,follow">
   <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
   <style>
-    body{margin:0;background:#f5f4ed;color:#092d58;font:18px/1.6 Arial,sans-serif}
-    main{max-width:720px;margin:12vh auto;padding:32px}
-    h1{font:500 clamp(36px,7vw,64px)/1.1 Georgia,serif}
-    a{color:#b51e32;text-underline-offset:4px}nav{display:flex;flex-wrap:wrap;gap:24px}
+    @font-face{font-family:"Spectral";font-weight:300;font-display:swap;src:url("/polices/spectral-300-latin.woff2") format("woff2")}
+    @font-face{font-family:"Public Sans";font-weight:100 900;font-display:swap;src:url("/polices/public-sans-latin.woff2") format("woff2")}
+    body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(110% 80% at 70% 115%,#172c63 0%,#0c1630 40%,#060b17 78%);color:#f4efe3;font:17px/1.6 "Public Sans",system-ui,sans-serif}
+    main{max-width:640px;padding:32px 20px}
+    p.k{font:500 12px ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#b9b2a3}
+    h1{font:300 clamp(40px,7vw,72px)/1.02 "Spectral",Georgia,serif;letter-spacing:-.03em;margin:.2em 0}
+    nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+    a{color:#f4efe3;text-decoration:none;border:1px solid #f4efe333;border-radius:999px;padding:10px 18px}
+    a.j{background:#d9b45f;color:#060b17;border-color:#d9b45f;font-weight:700}
   </style>
 </head>
 <body><main>
-  <p>500 Signatures · 404</p>
-  <h1>Cette page est introuvable.</h1>
-  <p>L'adresse peut avoir changé. Retrouvez les pages publiques du site.</p>
-  <nav aria-label="Pages du site"><a href="/">Accueil</a><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/jouer/">Mandats</a></nav>
+  <p class="k">500 Signatures · 404</p>
+  <h1>Cette page n’existe pas.</h1>
+  <p>Le site tient désormais en un récit, une page Salaires et le jeu.</p>
+  <nav aria-label="Pages du site"><a href="/">Le récit</a><a href="/salaires/">Salaires</a><a class="j" href="/mandats/">Mandats</a></nav>
 </main></body></html>

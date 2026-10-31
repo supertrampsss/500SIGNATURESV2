@@ -19,6 +19,6 @@ test('les budgets et retraites sont monétaires, sourcés et réconciliés',()=>
  assert.equal((html.match(/class="budget-comparison__row"/g)??[]).length,19);
  assert.match(html,/Les budgets des ministères/);assert.match(html,/PLF 2027 · En milliards d’euros/);
  assert.match(html,/Budget affiché/);assert.match(html,/Ponctionné pour financer les retraites/);assert.match(html,/Budget restant/);
- assert.match(html,/Non disponible/);assert.match(html,/Bercy · PLF 2027/);assert.match(html,/Sources et calculs/);
+ assert.match(html,/Non disponible/);assert.match(html,/Bercy · PLF 2027/);
  assert.doesNotMatch(html,/budget-flow|≈|Les 19 ministères|stacked-percent|123,3|hors retraites/);
 });

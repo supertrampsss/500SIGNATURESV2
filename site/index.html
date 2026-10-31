@@ -1,215 +1,32 @@
 <!doctype html>
-<html lang="fr" data-theme="clair">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Le titre et la description du GABARIT, c'est-à-dire de cinq adresses :
-         la racine, où l'accueil est servi écrit, et les quatre chemins de vues
-         que le repli SPA sert avec ce même document — `/territoire`,
-         `/reperes`, `/detail`, `/simulateur`. `/methode` en est sortie : elle a
-         son propre document, écrit au build (`injecterMethode`,
-         scripts/prerendre.ts), avec son titre, sa description et sa canonique.
-         Ils nomment donc le site, jamais une de ses vues — « carte des finances
-         locales » décrivait la carte, qui a quitté la racine pour `/territoire`
-         au lot 4, et se peignait ainsi sur l'image de partage de l'accueil.
-
-         La description est le message principal du site (spec §8), dont
-         `MESSAGE_PRINCIPAL` (src/accueil.ts) est la rédaction : un `<meta>` ne
-         peut pas lire une constante, et c'est un test qui tient les deux
-         accordées (prerendre.test.ts, « le gabarit ne s'annonce plus comme une
-         de ses vues »). -->
-    <title>Comptes publics, villes et décisions | 500 Signatures</title>
-    <meta
-      name="description"
-      content="500 signatures transforme les chiffres publics et les annonces politiques en dossiers compréhensibles, vérifiés et accessibles à tous."
-    />
-
-<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
-<link rel="alternate icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
-    <!-- Le thème est écrit sur <html> avant le premier rendu : lu après, la
-         page s'affichait en clair puis basculait en sombre sous les yeux. -->
-    <script>document.documentElement.dataset.theme = "clair";</script>
-    <!-- Polices auto-hébergées : plus aucun appel à fonts.googleapis.com.
-         Le `<link>` d'avant bloquait le premier rendu et transférait l'adresse
-         IP de chaque lecteur hors de l'Union européenne — non conforme pour un
-         service civique français. Spectral et Public Sans sont sous SIL OFL :
-         les woff2 vivent dans public/polices/ et les @font-face dans
-         src/style.css, avec `font-display: swap`. -->
+    <title>Où va votre argent ? Les comptes publics en un récit | 500 Signatures</title>
+    <meta name="description" content="Dépenses, recettes, déficit, dette, salaire et comptes de votre ville : les finances publiques françaises racontées en une page, chiffres officiels à l’appui. Puis gouvernez dans Mandats." />
+    <link rel="canonical" href="https://500signatures.fr/" />
+    <meta property="og:title" content="Où va votre argent ? | 500 Signatures" />
+    <meta property="og:description" content="Les finances publiques françaises racontées en une page, chiffres officiels à l’appui." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://500signatures.fr/" />
+    <meta name="theme-color" content="#060b17" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="preload" href="/polices/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/polices/spectral-300-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
-  <body class="plein-ecran">
+  <body>
     <a class="evitement" href="#contenu">Aller au contenu</a>
-
-    <!-- L'en-tête porte la marque et les trois destinations permanentes. La
-         recherche appartient désormais à Territoires, seule vue où elle sert. -->
     <header class="entete">
-      <a data-brand-name="500 SIGNATURES" class="entete__marque" href="/" aria-label="500 Signatures, accueil">
-        <span class="entete__wordmark">500 Signatures</span>
-      </a>
-      <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>
+      <a class="entete__marque" href="/">500 Signatures</a>
+      <nav class="entete__nav" aria-label="Navigation principale">
+        <a href="/" aria-current="page">Récit</a>
+        <a href="/salaires/">Salaires</a>
+        <a class="jouer" href="/mandats/">Mandats</a>
+      </nav>
     </header>
-
-    <main id="contenu">
-    <!-- L'accueil, à la racine du site et sur `/accueil/`. Ce n'est pas une vue de l'application
-         monoécran — `CHEMINS` (routes.ts) n'en porte aucune entrée, et la carte
-         reste à `/territoire` — mais elle occupe le même cadre, et
-         `basculerVue` la montre et la masque comme les autres.
-
-         Vide et VISIBLE : c'est le pré-rendu qui l'écrit, sur les fichiers
-         publiés qu'il lit au build (`injecterAccueil`, scripts/prerendre.ts), et
-         `dist/index.html` part donc avec l'accueil dedans. Repliée sous
-         `hidden`, cette page n'aurait été servie qu'à qui exécute JavaScript :
-         un robot qui n'en exécute pas — et la première exploration d'un moteur
-         fixe l'impression mise en cache — lisait la racine sur le squelette de
-         la carte, où aucun mot du message principal n'apparaît.
-
-         Le prix est de l'autre côté : le gabarit sert cinq adresses, et sur les
-         quatre chemins de vues qui lui restent l'accueil s'affiche le temps que
-         le paquet arrive. C'est le défaut qu'on avait déjà, à l'envers — la
-         racine montrait le cadre de la carte en attendant — et il quitte ainsi
-         l'adresse par laquelle on entre. Un document par vue le fait
-         disparaître : `/methode` a le sien, et le pré-rendu y replie ce cadre-ci
-         (`injecterMethode`, scripts/prerendre.ts). -->
-    <div class="vue vue--accueil" id="vue-accueil"></div>
-
-    <!-- `hidden` au départ, pour la même raison : deux vues visibles avant que
-         `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
-         l'un sous l'autre. -->
-    <div class="vue vue--territoire" id="vue-territoire" hidden>
-      <section class="territoire-recherche" aria-labelledby="territoire-recherche-titre">
-        <div class="territoire-recherche__introduction">
-          <p class="territoire-recherche__surtitre">VILLE</p>
-          <h1 id="territoire-recherche-titre">Les comptes de votre ville, en clair.</h1>
-          <p class="territoire-recherche__intro">Recettes, dépenses, dette et population : recherchez une commune pour lire ses chiffres.</p>
-          <noscript><p>La recherche et les fiches interactives nécessitent JavaScript. Les <a href="/sources/">sources</a> et les <a href="/bilan/">comptes nationaux</a> restent lisibles sans JavaScript.</p></noscript>
-          <div class="territoire-recherche__outil">
-            <span class="territoire-recherche__champ-titre">Changer de ville</span>
-            <div class="recherche territoire-recherche__champ">
-              <label for="recherche" class="visuellement-cache">Rechercher une ville</label>
-              <input id="recherche" type="search" autocomplete="off" role="combobox"
-                     aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
-                     placeholder="Rechercher une ville" />
-              <ul id="suggestions" role="listbox" aria-label="Villes trouvées" hidden></ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="panneau panneau--territoire" id="panneau" aria-label="Fiche de la ville">
-          <div class="panneau__contenu" id="volet-territoire">
-            <div class="fiche" id="fiche" aria-live="polite">
-              <p class="etat etat--vide">
-                <span class="etat__titre">Aucune ville choisie</span>
-                <span class="etat__quoi">Recherchez une ville dans le champ en haut de page.</span>
-              </p>
-            </div>
-          </div>
-        </aside>
-
-      <!-- La suite analytique, la comparaison, puis seulement les territoires
-           semblables. Le classement de la couche
-           affichée et son export CSV — cent territoires sur les 34 875
-           communes, réglés sur l'indicateur affiché — ont été retirés :
-           demandé par le propriétaire du site, ils n'ont plus d'écran. -->
-      <section class="territoire__tables">
-        <section class="territoire-donnees-completes" aria-labelledby="territoire-donnees-completes-titre">
-          <header class="territoire-donnees-completes__entete">
-            <p class="territoire-section-kicker">TOUTES LES DONNÉES</p>
-            <h2 id="territoire-donnees-completes-titre">Toutes les données de la ville</h2>
-            <p>Les chiffres publiés, classés par thème.</p>
-          </header>
-          <div class="territoire-donnees-completes__contenu">
-            <div id="detail"></div>
-          </div>
-        </section>
-        <section class="comparateur" id="comparateur" hidden></section>
-      </section>
-
-      <section class="usage-faq" aria-labelledby="ville-questions-titre">
-        <h2 id="ville-questions-titre">Lire les comptes d’une ville</h2>
-        <details><summary>Comment retrouver ma commune ?</summary><p>Saisissez son nom dans le champ de recherche, puis choisissez la commune dans les résultats. Aucune ville n’est sélectionnée à votre place.</p></details>
-        <details><summary>Peut-on comparer directement deux communes ?</summary><p>Comparez des données portant sur le même exercice et le même périmètre. Un montant total et un montant par habitant répondent à des questions différentes. Vérifiez aussi les compétences prises en charge par la commune et son intercommunalité avant d’interpréter un écart.</p></details>
-        <details><summary>Que signifie une donnée absente ?</summary><p>Une valeur manquante n’est pas un zéro. La fiche présente les données disponibles dans la publication utilisée ; les périodes et la couverture peuvent varier entre séries. La page <a href="/sources/">Sources et méthode</a> permet de remonter aux jeux publiés et à leur producteur.</p></details>
-      </section>
-      <footer class="territoire-footer" aria-label="Pied de page Ville">
-        <strong>500 Signatures</strong>
-        <span>Des données pour une démocratie plus proche.</span>
-        <nav><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/jouer/">Mandats</a><a href="/sources/">Sources</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a class="site-x-link" href="https://x.com/500signaturesfr" target="_blank" rel="noreferrer noopener" aria-label="500 Signatures sur X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg></a></nav>
-      </footer>
-    </div>
-
-    <div class="vue" id="vue-bilan" hidden>
-
-      <section class="national" id="national" hidden>
-        <section class="bilan-couverture" id="france-verdict">
-          <div class="bilan-couverture__papier">
-            <div id="conclusion-france-verdict"></div>
-          </div>
-        </section>
-        <nav class="bilan-reperage" aria-label="Chapitres des comptes publics"><a href="#france-verdict">Point de départ</a><a href="#france-entrees">Recettes</a><a href="#france-sorties">Dépenses</a><a href="#france-complements">Redistribution</a><a href="#france-dette">Dette</a><a href="#bloc-europe">Europe</a><a href="#insights-france">Arbitrages</a></nav>
-
-
-        <section class="bilan-chapitre" id="france-entrees">
-          <div id="conclusion-france-entrees"></div>
-          <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
-          <p class="chapitre__pont" id="pont-perimetre" hidden></p>
-          <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
-        </section>
-
-        <section class="bilan-chapitre" id="france-sorties">
-          <div id="conclusion-france-sorties"></div>
-          <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-                    <section class="bilan-complements" id="france-complements" hidden aria-labelledby="redistribution-title">
-            <header class="redistribution-intro"><p class="design-eyebrow">Protection sociale</p><h2 id="redistribution-title">Ce que la redistribution change</h2><p>Les niveaux de vie avant et après impôts directs et prestations sociales.</p></header>
-            <article class="bloc bloc--large" id="bloc-redistribution"></article>
-            <article class="bloc bloc--large" id="bloc-secu"></article>
-          </section>
-        </section>
-
-        <section class="bilan-chapitre" id="france-dette">
-          <div id="conclusion-france-dette"></div>
-          <article class="bloc bloc--large" id="bloc-dette"></article>
-        </section>
-        <section class="bilan-chapitre europe-unifiee" aria-label="La France et ses voisins">
-          <article class="bloc bloc--large" id="bloc-europe"></article>
-          <article class="bloc bloc--large" id="bloc-fonctions"></article>
-        </section>
-
-        <section class="accounts-reading" aria-label="Lectures nationales">
-          <div id="insights-france"></div>
-        </section>
-        <section class="bilan-dossier-section" id="bilan-dossier-section" hidden aria-labelledby="bilan-dossier-title">
-          <div id="bilan-dossier"></div>
-        </section>
-        <section class="mandats-invitation" aria-labelledby="mandats-invitation-title"><div><p class="design-eyebrow">À vous de décider</p><h2 id="mandats-invitation-title">Et si vous teniez les comptes ?</h2><p>Un mandat. Vos arbitrages. Leurs conséquences.</p></div><a href="/mandats/?mode=national">Prendre les décisions</a></section>
-
-        <footer class="bilan-footer" aria-label="Pied de page du bilan France">
-          <div class="bilan-footer__proofs">
-            <div><span aria-hidden="true">◌</span><strong>Des données fiables</strong><small>Sources publiques officielles</small></div>
-            <div><span aria-hidden="true">⌁</span><strong>Des analyses indépendantes</strong><small>Pour un débat éclairé</small></div>
-            <div><span aria-hidden="true">?</span><strong>Une information accessible</strong><small>Parce que les finances concernent tous les citoyens</small></div>
-          </div>
-          <div class="bilan-footer__bottom">
-            <strong>500 Signatures</strong>
-            <span>Des données publiques pour comprendre.</span>
-            <nav aria-label="Navigation de fin de page"><a href="/bilan/">France</a><a href="/territoire/">Ville</a><a href="/analyses/">Dossiers</a><a href="/mandats/jouer/">Mandats</a><a href="/a-propos/">À propos et corrections</a><a href="/confidentialite/">Confidentialité</a><a class="site-x-link" href="https://x.com/500signaturesfr" target="_blank" rel="noreferrer noopener" aria-label="500 Signatures sur X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg></a></nav>
-            <small>Sources publiques · Méthodologie</small>
-          </div>
-        </footer>
-
-
-      </section>
-
-    </div>
-
-    <!-- Le simulateur : vide tant que le fichier n'est pas publié, et son
-         entrée de menu n'est écrite qu'à ce moment-là. Rien de cliquable ne
-         doit mener à une section vide. -->
-
-
-
-    </main>
-
-    <script type="module" src="/src/main.ts"></script>
+    <main id="contenu"><!--recit--></main>
+    <script type="module" src="/src/recit/main.ts"></script>
   </body>
 </html>

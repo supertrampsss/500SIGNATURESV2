@@ -1,8 +1,0 @@
-{
-  "retainedSHA256": "15b574c8e41c07b3f9ecca3c5072344ac6adadc336fa440cc27789c2cd13af9a",
-  "rebuiltSHA256": "15b574c8e41c07b3f9ecca3c5072344ac6adadc336fa440cc27789c2cd13af9a",
-  "byteIdentical": true,
-  "bytes": 10663282,
-  "command": "node tools/mandats-assets/bake-terrain.mjs",
-  "method": "A second canonical source bake, with no camera, renderer or game-state override."
-}

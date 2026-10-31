@@ -1,39 +1,15 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
+
+const page = (chemin: string) => fileURLToPath(new URL(chemin, import.meta.url));
+
+/** Quatre pages : le récit, Salaires, le jeu Mandats et la confidentialité. */
 export default defineConfig({
-  // Vite extracts shared CSS before entry CSS. The approved theme must remain
-  // last in every generated document, just as it is in the source imports.
-  plugins: [{
-    name: "france-prerender-preview",
-    configurePreviewServer(server) {
-      server.middlewares.use((req, _res, next) => {
-        const [pathname, query] = (req.url ?? "").split("?");
-        if (pathname === "/bilan" || pathname === "/bilan/") {
-          req.url = `/bilan/index.html${query === undefined ? "" : `?${query}`}`;
-        }
-        next();
-      });
-    },
-  }, {
-    name: "shared-design-last",
-    transformIndexHtml: {
-      order: "post",
-      handler(html) {
-        const links = [...html.matchAll(/<link\b[^>]*href="[^\"]*\/shared-design-[^\"]+\.css"[^>]*>/g)].map(match => match[0]);
-        if (!links.length) return html;
-        for (const link of links) html = html.replace(link, "");
-        return html.replace("</head>", `${links.join("\n")}\n</head>`);
-      },
-    },
-  }],
-  server: { host: "0.0.0.0", allowedHosts: ["terminal.local"] },
+  server: { host: "0.0.0.0" },
   build: { rollupOptions: { input: {
-    salaires: fileURLToPath(new URL("./salaires/index.html", import.meta.url)),
-    principal: fileURLToPath(new URL("./index.html", import.meta.url)),
-    hiver: fileURLToPath(new URL("./mandats/france/hiver/index.html", import.meta.url)),
-    mandats: fileURLToPath(new URL("./mandats/index.html", import.meta.url)),
-    jouer: fileURLToPath(new URL("./mandats/jouer/index.html", import.meta.url)),
-    methodeMandats: fileURLToPath(new URL("./mandats/methode/index.html", import.meta.url)),
-    confidentialite: fileURLToPath(new URL("./confidentialite/index.html", import.meta.url)),
+    recit: page("./index.html"),
+    salaires: page("./salaires/index.html"),
+    mandats: page("./mandats/index.html"),
+    confidentialite: page("./confidentialite/index.html"),
   } } },
 });

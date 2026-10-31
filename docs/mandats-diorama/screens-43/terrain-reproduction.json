@@ -1,8 +1,0 @@
-{
-  "command": "node tools/mandats-assets/bake-terrain.mjs",
-  "method": "Two independent exports of the canonical authoring generator from unchanged sources. Actual archive and source manifest compared byte for byte. This is authoring reproducibility, not browser performance or artistic conformity.",
-  "archiveByteIdentical": true,
-  "manifestByteIdentical": true,
-  "sha256": "20fa6bceccbd67bd815e0ea1a332363835abe47ddb01e9b4e9490d63694d4921",
-  "compressedBytes": 10911476
-}

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 // Mandats nouvelle formule : parcours réel d'une première année, sans horloge.
 // Mouvement réduit pour que les transitions ne rallongent pas le parcours ; les
 // mêmes règles s'appliquent avec les animations.
-const HOME = '/mandats/jouer/';
+const HOME = '/mandats/';
 
 async function sansDebordement(page) {
   // Comparer à la fenêtre configurée : un débordement élargit innerWidth sur mobile (dézoom).
