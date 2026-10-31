@@ -231,6 +231,11 @@ function alerte() {
   const b = document.createElement('div'); b.className = 'bandeau'; b.textContent = 'Alerte · crise en cours'; document.body.appendChild(b);
   setTimeout(() => { a.remove(); b.remove(); }, 2100);
 }
+function cumuler(...effets) {
+  const total = {};
+  for (const e of effets) for (const [k, v] of Object.entries(e || {})) total[k] = (total[k] || 0) + v;
+  return total;
+}
 function appliquerDecision(d, o, i) {
   const m = S.main.find(x => x.id === d.id); m.choix = i;
   const deltas = appliquer(o.e, true); pulser(deltas);
@@ -241,11 +246,13 @@ function appliquerDecision(d, o, i) {
   const suite = () => { if (!S.fini && S.main.every(x => x.choix !== null)) setTimeout(verifierFin, reduit ? 300 : 1100); };
   if (o.special === 'demission') S.fini = true;
   if (derapage) { alerte(); evenement('Dérapage', derapage.titre, derapage.texte, null, '/mandats/art/rupture.webp', [['Faire face', suite]]); } else suite();
-  if (o.ch) S.chantiers.push({ t: o.ch.t, n: o.ch.n, fait: 0, e: o.ch.e, ville: d.ville });
+  // Le chantier rattache ses effets à cette décision le jour où il est livré.
+  if (o.ch) S.chantiers.push({ t: o.ch.t, n: o.ch.n, fait: 0, e: o.ch.e, ville: d.ville, dec: S.decisions.length });
   if (o.f) S.f[o.f] = S.tour;
   S.titres.push({ k: d.crise ? 'c' : '', l: d.dom, t: o.h });
 
-  S.decisions.push({ tour: S.tour, dossier: d.titre, choix: o.t, e: { ...o.e, ...(o.ch ? Object.fromEntries(Object.entries(o.ch.e).map(([k, v]) => [k, (o.e[k] || 0) + v])) : {}) }, poids: Object.values(o.e).reduce((a, v) => a + Math.abs(v), 0) + (o.ch ? 6 : 0) });
+  // Effets réellement survenus : le choix, plus le dérapage s'il a eu lieu.
+  S.decisions.push({ tour: S.tour, dossier: d.titre, choix: o.t, e: cumuler(o.e, derapage?.e), poids: Object.values(o.e).reduce((a, v) => a + Math.abs(v), 0) + (o.ch ? 6 : 0) + (derapage ? 6 : 0) });
   rendre();
   const suivant = document.querySelector('.dossier:not(.signe)'); if (suivant) suivant.focus();
 }
@@ -259,7 +266,7 @@ function evoluer() {
   const avant = { op: S.op, ten: S.ten, def: S.def };
   // chantiers
   const livres = [];
-  S.chantiers.forEach(c => { c.fait++; if (c.fait >= c.n) { appliquer(c.e); livres.push(c); } });
+  S.chantiers.forEach(c => { c.fait++; if (c.fait >= c.n) { appliquer(c.e); livres.push(c); const dec = S.decisions[c.dec]; if (dec) dec.e = cumuler(dec.e, c.e); } });
   S.chantiers = S.chantiers.filter(c => c.fait < c.n);
   livres.forEach(c => S.titres.push({ k: 'b', l: 'Livré', t: c.t }));
   S.flash = livres.map(c => c.ville);
@@ -383,10 +390,17 @@ function majBudget() {
   $('#v-pronostic').style.color = b.passe ? 'var(--bleu)' : 'var(--argile)';
 }
 function adopter(b) {
+  // Le budget adopté entre dans l'historique causal avec ses effets mesurés.
+  const suivis = ['op', 'ten', 'def', 'maj', ...Object.keys(DOMAINES)], avant = Object.fromEntries(suivis.map(k => [k, S[k]]));
+  const leviers = POSTES.concat(LEVIERS).filter(([k]) => projet[k] !== S.budget[k]).length;
   for (const [k, , , , e] of LEVIERS) { const d = projet[k] - S.budget[k]; if (!d) continue; for (const [m, v] of Object.entries(e)) S[m] = clamp(S[m] + v * (d > 0 ? d : d * -.5) * (d > 0 ? 1 : -1), ...(BORNES[m] || [0, 100])); }
   S.def = clamp(b.def, 40, 320);
   S.ten = clamp(S.ten - POSTES.reduce((a, [k]) => a + Math.min(0, projet[k] - S.budget[k]), 0) * 1.2, 0, 100);
   S.budget = { ...projet };
+  if (leviers) {
+    const e = Object.fromEntries(suivis.map(k => [k, S[k] - avant[k]]).filter(([, v]) => Math.abs(v) > .01));
+    S.decisions.push({ tour: S.tour, dossier: 'Budget', choix: `Budget de l’année ${Math.floor(S.tour / 4) + 1}`, e, poids: Object.values(e).reduce((a, v) => a + Math.abs(v), 0) });
+  }
 }
 $('#b-voter').addEventListener('click', () => {
   const b = calculBudget(); ferme('#e-budget');
@@ -544,8 +558,10 @@ function adopterReforme(r, facteur = 1) {
   if (r.ch) S.chantiers.push({ t: r.ch.t, n: r.ch.n, fait: 0, e: adoucir(r.ch.e), ville: 'Paris' });
   S.titres.push({ k: '', l: 'Réforme', t: `${r.t} : adoptée` });
   S.decisions.push({ tour: S.tour, dossier: 'Grande réforme', choix: r.t, e: { ...r.e, def: (r.e.def || 0) - r.eco * facteur }, poids: r.eco + 10 });
+  const reforme = S.decisions.at(-1);
+  if (r.ch) S.chantiers.at(-1).dec = S.decisions.length - 1;
   S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: `Réforme adoptée : ${r.t}` });
-  if (r.risque && rng() < r.risque.p) { appliquer(r.risque.e, true); S.titres.push({ k: 'c', l: 'Dérapage', t: r.risque.h }); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: r.risque.h }); }
+  if (r.risque && rng() < r.risque.p) { appliquer(r.risque.e, true); reforme.e = cumuler(reforme.e, r.risque.e); S.titres.push({ k: 'c', l: 'Dérapage', t: r.risque.h }); S.fil.push({ q: `A${Math.floor(S.tour / 4) + 1}`, t: r.risque.h }); }
   onde('Paris', 'var(--or)');
 }
 function apresReforme() { rendre(); if (finSiPerdu()) return; setTimeout(verifierFin, reduit ? 0 : 900); }
