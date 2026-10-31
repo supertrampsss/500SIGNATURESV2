@@ -81,6 +81,12 @@ This supersedes earlier palette and Mandats interface directions where they conf
   previous game stays at `/mandats/` for existing saves, explicit version links and
   its browser suites until the owner decides to retire it.
 - Debt has consequences (31 October 2026): spreads widen above 165 Md€, ratings are downgraded at 175 and 195 Md€ (opinion, tension, rate) and restored below 160 Md€, and the final score penalises each Md€ above 165 more heavily. Measured with full-mandate bots: unchecked spending ends under creditor tutelle, one reform a year with balanced choices is re-elected, and maximal austerity still loses. Re-measure all strategies after changing any economic rule.
+- Home story (31 October 2026, approved prototype): `src/histoire.ts` renders the
+  homepage as one stage of seven chapters (La facture → Mandats) and `src/histoire-runtime.ts`
+  drives it (Suivant/Précédent, tap halves, swipe, arrows, one wheel step only when the stage
+  fills the viewport). Without JavaScript the steps read as a list. Every amount comes from
+  the published accounts, `distributionDepenses` or `PROFIL_TRAVAIL`; the Bercy pensions step
+  is a dated, labelled figure. The last step links to `/mandats/jouer/`.
 - Dossiers must be cornelian and politically balanced: each option carries a real cost,
   no option is presented as the right answer, and no real politician is named.
 

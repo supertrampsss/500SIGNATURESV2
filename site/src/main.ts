@@ -126,6 +126,8 @@ import "./styles/territoire-france.css";
 import "./styles/territoire-dossier.css";
 import "./styles/accueil-recit.css";
 import "./styles/identite-v2.css";
+import "./styles/histoire.css";
+import { brancherHistoire } from "./histoire-runtime.ts";
 import { brancherRecitAccueil } from "./accueil-recit-runtime.ts";
 import { brancherApparitions } from "./apparition.ts";
 import { comptesRecit } from "./recit-comptes.ts";
@@ -135,6 +137,7 @@ import { bindChartControls } from "./chart-controls.ts";
 bindChartControls(document);
 brancherFrancePage();
 brancherRecitAccueil();
+brancherHistoire();
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -2417,6 +2420,7 @@ async function peindreAccueil(): Promise<void> {
     // Une publication identique conserve le document, ses ancres et la lecture.
     if (cadre.dataset.publication === donnees.version()) {
       brancherRecitAccueil();
+      brancherHistoire();
       accueilPeint = true;
       return;
     }
@@ -2424,6 +2428,7 @@ async function peindreAccueil(): Promise<void> {
     // Une panne ne doit pas effacer les comptes déjà servis dans le HTML.
     if (!comptesRecit(paysAccueil.FR) && cadre.querySelector("[data-recit]")) {
       brancherRecitAccueil();
+      brancherHistoire();
       return;
     }
     const sourcesOuvertes = cadre.querySelector<HTMLDialogElement>(".recit-sources:modal");
@@ -2434,6 +2439,7 @@ async function peindreAccueil(): Promise<void> {
     cadre.innerHTML = renduAccueil({ france: paysAccueil.FR });
     cadre.dataset.publication = donnees.version();
     brancherRecitAccueil();
+    brancherHistoire();
     if (restituerSource) cadre.querySelector<HTMLElement>("[data-recit-source]")?.focus({ preventScroll: true });
     accueilPeint = true;
   } finally { accueilEnCours = false; }
@@ -2492,6 +2498,7 @@ function basculerVue(): void {
   appliquerModeCarte(false);
   $("vue-accueil").hidden = vue !== "accueil";
   brancherRecitAccueil();
+  brancherHistoire();
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
   requestAnimationFrame(() => brancherApparitions());

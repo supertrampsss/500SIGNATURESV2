@@ -43,7 +43,7 @@ function graphique(comptes: ComptesRecit): { grille: string; legende: string } {
   };
 }
 
-function sources(comptes: ComptesRecit): string {
+export function renduSourcesRecit(comptes: ComptesRecit): string {
   const ecart = comptes.depenses - comptes.recettes;
   const solde = comptes.recettes - comptes.depenses;
   const qualification = comptes.nature === "deficit" ? "le déficit"
@@ -119,6 +119,6 @@ export function renduRecitComptes(france?: Territoire): string {
       <figure class="recit-visual" data-recit-visual role="img" aria-label="${echapper(description)}">${grille}<figcaption class="recit-legend">${legende}</figcaption></figure>
     </div>
     ${renduChapitresRecit(france)}
-    ${sources(comptes)}
+    ${renduSourcesRecit(comptes)}
   </section>`;
 }

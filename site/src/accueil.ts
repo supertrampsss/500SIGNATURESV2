@@ -1,7 +1,7 @@
 /** Accueil éditorial : les comptes publiés prennent forme, puis les outils
  * restent accessibles directement. Rendu pur partagé avec le pré-rendu. */
 
-import { renduRecitComptes } from "./accueil-recit.ts";
+import { renduHistoire } from "./histoire.ts";
 import type { Territoire } from "./donnees.ts";
 
 /** Description commune au gabarit et à la carte de partage du simulateur. */
@@ -25,7 +25,7 @@ export function renduQuestionsAccueil(): string {
 /** Un récit, des questions concrètes, puis une simulation clairement identifiée. */
 export function rendu(donnees: DonneesAccueil): string {
   return `<div class="accueil accueil-story accueil-recit">
-    ${renduRecitComptes(donnees.france)}
+    ${renduHistoire(donnees.france)}
     <section class="recit-explorer" aria-labelledby="recit-explorer-title">
       <div class="recit-explorer-intro"><p class="recit-kicker">Derrière les montants</p><h2 id="recit-explorer-title">C’est aussi<br>votre histoire.</h2><p>Une fiche de paie. Une école. Une rue.<br>Les comptes publics font partie du quotidien.</p><figure><img src="/france/logement.jpg" alt="Immeubles et vie de quartier en France" width="720" height="480" loading="lazy"><figcaption><a href="/france/credits.html">Crédits photographiques</a></figcaption></figure></div>
       <div class="recit-questions">

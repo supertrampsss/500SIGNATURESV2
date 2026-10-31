@@ -1045,12 +1045,13 @@ test("12 bis. le pré-rendu sert les outils avant la simulation", () => {
 test("12 ter. les trois étapes sourcées sont servies sur le même exercice que le navigateur", () => {
   const corps = corpsAccueil(FRANCE_ACCUEIL);
   assert.equal(corps, renduAccueil({ france: FRANCE_ACCUEIL }));
-  assert.match(corps, /France · 2024/);
-  for (const id of ["recit-recettes", "recit-depenses", "recit-ecart", "recit-sources"]) {
-    assert.ok(corps.includes(`id="${id}"`), `${id} absent du HTML servi`);
+  assert.match(corps, /comptes 2024\./);
+  for (const tableau of ["billets", "ecart", "pieces", "final"]) {
+    assert.ok(corps.includes(`data-tableau="${tableau}"`), `${tableau} absent du HTML servi`);
   }
+  assert.ok(corps.includes('id="recit-sources"'));
   // Le profil salarial de l'OCDE porte sa propre année ; seuls les comptes nationaux sont contrôlés ici.
-  assert.doesNotMatch(corps.slice(0, corps.indexOf('id="recit-salaire"')), /2025/);
+  assert.doesNotMatch(corps.slice(0, corps.indexOf('data-chapitre="4"')), /2025/);
   const html = injecterAccueil(GABARIT_REEL, corps, "v-comptes");
   assert.ok(texteDuMain(html).includes("2024"));
   assert.equal(corps, corpsAccueil(FRANCE_ACCUEIL));

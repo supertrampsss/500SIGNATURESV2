@@ -31,8 +31,8 @@ test('Accueil : le récit et les accès aux données précèdent le jeu',async({
  if(!await page.locator('#navigation-principale').isVisible()) await page.getByRole('button',{name:'Ouvrir le menu',exact:true}).click();
  const navigation=page.getByRole('navigation',{name:'Navigation principale',exact:true});
  await expect(navigation.getByRole('link')).toHaveText(['Accueil','France','Ville','Salaires','Dossiers','Mandats']);
- await expect(page.locator('#recit-recettes .recit-title')).toHaveText(/^100\s*€\s*entrent\.$/);
- await expect(page.locator('[data-recit-panel]')).toHaveCount(3);
+ await expect(page.locator('.histoire--active .histoire__etape.est-courante .histoire__titre')).toContainText('Chaque année, la France');
+ expect(await page.locator('.histoire__etape').count()).toBeGreaterThan(10);
  const content=page.locator('.accueil-story');
  const geometry=await content.evaluate(root=>({recit:root.querySelector('[data-recit]').getBoundingClientRect().top,game:root.querySelector('.recit-mandats').getBoundingClientRect().top}));
  expect(geometry.recit).toBeLessThan(geometry.game);
@@ -49,7 +49,7 @@ test('Accueil garde son contenu publié et sa géométrie quand les données son
  await expect(page.locator('.recit-publication-note')).toContainText('Les comptes de la publication affichée restent consultables');
  await page.keyboard.press('Escape');
  await expect(page.locator('.story-questions')).toHaveCount(0);
- await expect(page.locator('[data-recit-panel]')).toHaveCount(3);
+ expect(await page.locator('.histoire__etape').count()).toBeGreaterThan(10);
  const geometry=await page.evaluate(()=>{
   const header=document.querySelector('.entete').getBoundingClientRect();
   const home=document.querySelector('.accueil-story').getBoundingClientRect();

@@ -91,12 +91,13 @@ test("le récit utilise le dernier exercice national commun sans inventer les do
       eurostat_apu_depenses: { "2023": 1500000, "2024": 1650000 },
     },
   } });
-  assert.match(html, /France · 2024/);
-  assert.match(html, /id="recit-recettes"/);
-  assert.match(html, /id="recit-depenses"/);
-  assert.match(html, /id="recit-ecart"/);
-  assert.match(html, /data-nature="deficit"/);
+  assert.match(html, /data-histoire/);
+  assert.match(html, /comptes 2024\./);
+  assert.match(html, /data-tableau="billets"/);
+  assert.match(html, /data-tableau="ecart"/);
+  assert.match(html, /Il manque/);
+  assert.match(html, /id="recit-sources"/);
   // Le profil salarial de l'OCDE porte sa propre année ; seuls les comptes nationaux sont contrôlés ici.
-  assert.doesNotMatch(html.slice(0, html.indexOf('id="recit-salaire"')), /2025/);
+  assert.doesNotMatch(html.slice(0, html.indexOf('data-chapitre="4"')), /2025/);
   assert.doesNotMatch(rendu({}), /class="recit-number"/);
 });

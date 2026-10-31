@@ -200,12 +200,12 @@ for (const pageCible of PAGES) {
           home: home ? { left: home.left, right: home.right, width: home.width } : null,
           brandIcons: document.querySelectorAll('.brand-e').length,
           duplicateQuestions: document.querySelectorAll('.story-questions').length,
-          steps: document.querySelectorAll('[data-recit-panel]').length,
+          steps: document.querySelectorAll('.histoire__etape').length,
         };
       });
       expect.soft(accueil.brandIcons, 'le header Accueil doit rester texte seul').toBe(0);
       expect.soft(accueil.duplicateQuestions, 'le second jeu de cartes doit rester supprimé').toBe(0);
-      expect.soft(accueil.steps, 'les trois étapes du récit sont présentes').toBe(3);
+      expect.soft(accueil.steps, 'les étapes de l’histoire sont présentes').toBeGreaterThan(10);
       expect.soft(accueil.header).not.toBeNull();
       expect.soft(accueil.home).not.toBeNull();
       if (accueil.header && accueil.home) {

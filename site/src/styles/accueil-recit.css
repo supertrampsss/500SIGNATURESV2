@@ -82,8 +82,8 @@ html[data-theme] body[data-vue="accueil"] .accueil-recit {
 .recit-source-accounts { margin:24px 0; }
 .recit-source-accounts > div { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid #aab2a5; padding:10px 0; }
 .recit-source-accounts dd { margin:0; font-weight:600; }
-.recit[data-enhanced] .recit-sources { position:fixed; inset:0; margin:auto; max-height:calc(100dvh - 32px); overflow:auto; overscroll-behavior:contain; }
-.recit[data-enhanced] .recit-sources button { display:block; }
+:is(.recit,.recit-histoire)[data-enhanced] .recit-sources { position:fixed; inset:0; margin:auto; max-height:calc(100dvh - 32px); overflow:auto; overscroll-behavior:contain; }
+:is(.recit,.recit-histoire)[data-enhanced] .recit-sources button { display:block; }
 .recit-sources::backdrop { background:#050a14c9; backdrop-filter:blur(6px); }
 .recit--empty { padding:90px 6%; }
 .recit--empty .recit-title { font-size:clamp(44px,7vw,90px); }

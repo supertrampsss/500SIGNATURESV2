@@ -12,7 +12,6 @@ const gap = (annual.expenses - annual.receipts) / annual.receipts * 100;
 const fr = value => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
 const compactText = text => text.replace(/[\s\u00a0\u202f]/g, '');
 const remoteData = /https:\/\/[^/]+\.r2\.dev\//;
-const steps = ['recit-recettes', 'recit-depenses', 'recit-ecart'];
 const expectedVersions = new WeakMap();
 const navigationEvents = new WeakMap();
 
@@ -88,71 +87,73 @@ async function openHome(page) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-async function chooseStep(page, index, info) {
-  const link = page.locator(`[data-recit-step="${index}"]`);
-  await expect(link).toHaveAttribute('href', `#${steps[index]}`);
-  await activate(link, info);
-  await expect(page.locator('[data-recit]')).toHaveAttribute('data-step', String(index));
-  await expect(page.locator(`#${steps[index]} .recit-title`)).toBeInViewport();
+const courante = page => page.locator('.histoire__etape.est-courante');
+const indexCourant = page => courante(page).getAttribute('data-i').then(Number);
+
+/** Advance with the visible Next control (or the keyboard) until a step matching `selector` is current. */
+async function chooseStep(page, selector, info, { keyboard = false } = {}) {
+  const target = Number(await page.locator(`.histoire__etape${selector}`).first().getAttribute('data-i'));
+  const precedent = page.locator('.histoire__prec');
+  while (await indexCourant(page) > target) await precedent.click({ force: true });
+  while (await indexCourant(page) < target) {
+    if (keyboard) await page.keyboard.press('ArrowRight');
+    else if (info.project.use.hasTouch) await page.locator('.histoire__suiv').tap({ force: true });
+    else await page.locator('.histoire__suiv').click({ force: true });
+  }
+  await expect(courante(page)).toHaveAttribute('data-i', String(target));
+  // La dernière étape se lit dans son panneau final, avec l’appel au jeu.
+  const titre = selector.includes('final') ? page.locator('.histoire__final-titre') : courante(page).locator('.histoire__titre');
+  await expect(titre).toBeInViewport();
+  return courante(page);
 }
 
-async function readDiagram(page, index) {
-  const shared = page.locator('[data-recit-visual]');
-  const grid = await shared.isVisible() ? shared.locator('.recit-grid') : page.locator(`[data-recit-panel="${index}"] .recit-mobile-visual .recit-grid`);
-  await expect(grid).toBeVisible();
-  return grid.evaluate(element => {
-    const unit = Number(element.dataset.unit);
-    const cells = [...element.querySelectorAll('.recit-unit')].map(cell => ({
-      receipt: Number(cell.style.getPropertyValue('--receipt')),
-      expense: Number(cell.style.getPropertyValue('--expense')),
-      change: cell.dataset.change,
-      renderedFraction: parseFloat(getComputedStyle(cell.querySelector('.recit-unit__fill')).width) / parseFloat(getComputedStyle(cell).width),
-      opacity: Number(getComputedStyle(cell.querySelector('.recit-unit__fill')).opacity),
-    }));
-    return { unit, count: cells.length, receipts: cells.reduce((sum, cell) => sum + cell.receipt * unit, 0),
-      expenses: cells.reduce((sum, cell) => sum + cell.expense * unit, 0),
-      vividAmount: cells.filter(cell => cell.opacity > .5).reduce((sum, cell) => sum + cell.renderedFraction * unit, 0),
-      fractions: cells.filter(cell => cell.expense > 0 && cell.expense < 1), cells };
-  });
-}
+const valeurAffichee = (page, selector) => page.locator(`.histoire__etape${selector} .histoire__gros`).first().getAttribute('data-valeur').then(Number);
 
-test('les trois étapes racontent les comptes publiés, avec leurs vraies fractions', async ({ page }, info) => {
+test('l’histoire raconte les comptes publiés, étape par étape, jusqu’au jeu', async ({ page }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await servePublication(page);
   await openHome(page);
-  await expect(page.locator('[data-recit]')).toHaveAttribute('data-nature', 'deficit');
-  const expected = [100, ratio, gap];
-  for (const [index, amount] of expected.entries()) {
-    await chooseStep(page, index, info);
-    const panel = page.locator(`[data-recit-panel="${index}"]`);
-    await expect(panel.locator('.recit-number')).toContainText(fr(amount));
-    await expect(panel.locator('.recit-number')).toContainText('€');
-    await expect(panel.locator('.recit-explanation')).not.toBeEmpty();
-    const diagram = await readDiagram(page, index);
-    expect(diagram.receipts).toBeCloseTo(100, 8);
-    expect(diagram.expenses).toBeCloseTo(ratio, 8);
-    expect(diagram.expenses - diagram.receipts).toBeCloseTo(gap, 8);
-    expect(diagram.fractions).toHaveLength(1);
-    expect(diagram.fractions[0].expense).toBeCloseTo(ratio - Math.floor(ratio), 8);
-    await expect.poll(async () => (await readDiagram(page, index)).vividAmount,
-      { message: 'les blocs réellement peints représentent le montant de l’étape' }).toBeCloseTo(amount, 1);
+  await expect(page.locator('.histoire')).toHaveClass(/histoire--active/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  const total = await page.locator('.histoire__etape').count();
+  expect(total).toBeGreaterThan(10);
+  // Les montants affichés sont ceux de la publication, sans arrondi caché.
+  expect(await valeurAffichee(page, '[data-tableau="carte"][data-k="1"]')).toBeCloseTo(annual.expenses / 1e9, 6);
+  expect(await valeurAffichee(page, '[data-tableau="billets"]')).toBeCloseTo(annual.receipts / 1e9, 6);
+  expect(await valeurAffichee(page, '[data-tableau="ecart"][data-k="0"]')).toBeCloseTo(annual.receipts / 1e9, 6);
+  expect(await valeurAffichee(page, '[data-tableau="ecart"][data-k="1"]:not(:has([data-direct]))')).toBeCloseTo((annual.expenses - annual.receipts) / 1e9, 6);
+  for (const [selector, name] of [['[data-tableau="billets"]', 'recettes'], ['[data-tableau="ecart"][data-k="1"]', 'ecart'], ['[data-tableau="arbre"]', 'arbre'], ['[data-tableau="pieces"]', 'salaire'], ['[data-tableau="commune"]', 'commune']]) {
+    // La répartition des dépenses n'existe que si la publication la fournit.
+    if (!await page.locator(`.histoire__etape${selector}`).count()) continue;
+    const step = await chooseStep(page, selector, info, { keyboard: name === 'arbre' });
+    await expect(page.locator('.histoire')).toHaveAttribute('data-tableau', selector.match(/"([a-z]+)"/)[1]);
+    await expect(page.locator('.histoire__compteur')).toContainText(`/ ${total}`);
     await noOverflow(page);
-    await evidence(page, info, `recit-etape-${index}`, { annual, displayed: await panel.locator('.recit-title').innerText(), diagram });
+    await evidence(page, info, `histoire-${name}`, { annual, displayed: await step.locator('.histoire__titre').innerText() });
   }
-  await expect(page.locator('[data-recit]')).toContainText(annual.year);
-  await expect(page.locator('.story-mandats__metrics')).toHaveCount(0);
+  const ville = page.locator('.histoire__villes a').first();
+  await expect(ville).toHaveAttribute('href', /\/territoire\/\?niveau=commune&territoire=\d+/);
+  await entirelyVisible(ville);
+  await chooseStep(page, '[data-tableau="final"]', info);
+  const jouer = page.locator('.histoire__cta');
+  await expect(jouer).toHaveAttribute('href', '/mandats/jouer/');
+  await entirelyVisible(jouer);
+  await evidence(page, info, 'histoire-final');
+  await expect(page.locator('.histoire__suiv')).toContainText('Recommencer');
+  await page.locator('.histoire__suiv').click({ force: true });
+  await expect(courante(page)).toHaveAttribute('data-i', '0');
+  await expect(page.locator('#recit-sources')).toContainText(annual.year);
   expect(errors).toEqual([]);
 });
 
 test('les sources se consultent au clavier et au toucher sans perdre la lecture', async ({ page, browserName }, info) => {
   await servePublication(page);
   await openHome(page);
-  await chooseStep(page, 2, info);
+  await chooseStep(page, '[data-tableau="ecart"]', info);
   const trigger = page.locator('[data-recit-source]');
   await entirelyVisible(trigger);
-  const before = await page.evaluate(() => ({ scroll: scrollY, step: document.querySelector('[data-recit]').dataset.step }));
-  expect(before.step, 'les sources restent accessibles depuis l’étape en cours').toBe('2');
+  const before = await page.evaluate(() => ({ scroll: scrollY, step: document.querySelector('.histoire__etape.est-courante').dataset.i }));
   await trigger.focus();
   await page.keyboard.press('Enter');
   const dialog = page.locator('#recit-sources');
@@ -187,7 +188,7 @@ test('les sources se consultent au clavier et au toucher sans perdre la lecture'
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
   expect(await page.evaluate(() => scrollY)).toBeCloseTo(before.scroll, 0);
-  await expect(page.locator('[data-recit]')).toHaveAttribute('data-step', before.step);
+  await expect(courante(page)).toHaveAttribute('data-i', before.step);
 
   await activate(trigger, info);
   await entirelyVisible(dialog.locator('[data-recit-close]'));
@@ -285,7 +286,7 @@ test('la première visite conserve un choix de mesure d’audience accessible', 
   await noOverflow(page);
   await evidence(page, info, 'recit-premiere-visite', {
     consentBounds: await consent.boundingBox(),
-    headingBounds: await page.locator('#recit-recettes .recit-title').boundingBox(),
+    headingBounds: await page.locator('.histoire__etape.est-courante .histoire__titre').boundingBox(),
   });
   await entirelyVisible(refusal);
   await evidence(page, info, 'recit-choix-audience');
@@ -306,7 +307,7 @@ test('un lien direct vers les sources ouvre le même document consultable', asyn
   await expect(page.locator('#vue-accueil')).toHaveAttribute('data-publication', expectedVersions.get(page));
   await expect(dialog).not.toBeVisible();
   await expect(page).not.toHaveURL(/#recit-sources$/);
-  await chooseStep(page, 0, info);
+  await chooseStep(page, '[data-tableau="billets"]', info);
   await evidence(page, info, 'recit-lien-direct-sources');
 });
 
@@ -335,7 +336,7 @@ test('une nouvelle publication arrivée pendant la lecture attend la fermeture d
   await expect(page.locator('#vue-accueil')).toHaveAttribute('data-publication', oldPublication);
   await activate(dialog.locator('[data-recit-close]'), info);
   await expect(page.locator('#vue-accueil')).toHaveAttribute('data-publication', version);
-  await expect(page.locator('#recit-depenses .recit-number')).toContainText('105');
+  expect(await valeurAffichee(page, '[data-tableau="carte"][data-k="1"]')).toBeCloseTo(1050 / 1e9, 9);
   await expect(trigger).toBeFocused();
   await expect(dialog).not.toBeVisible();
   await evidence(page, info, 'recit-publication-differee', { synthetic: true, before: oldPublication, after: version });
@@ -349,7 +350,7 @@ async function observePublishedStory(page) {
       const story = document.querySelector('#vue-accueil .accueil-story');
       if (!story || window.__publishedStory) return;
       window.__publishedStory = story;
-      window.__publishedTitles = [...story.querySelectorAll('.recit-title')].map(element => element.textContent);
+      window.__publishedTitles = [...story.querySelectorAll('.histoire__gros')].map(element => element.dataset.valeur);
       observer.disconnect();
     });
     observer.observe(document, { childList: true, subtree: true });
@@ -366,7 +367,7 @@ for (const condition of ['same-publication', 'unavailable-manifest', 'unavailabl
     if (condition === 'unavailable-manifest') await page.route(remoteData, route => route.abort());
     else await servePublication(page, { version: condition === 'same-publication' ? stamp : `${stamp}-new`, failCountries: condition === 'unavailable-countries' });
     await openHome(page);
-    await chooseStep(page, 1, info);
+    await chooseStep(page, '[data-tableau="billets"]', info);
     await activate(page.locator('[data-recit-source]'), info);
     await expect(page.locator('#recit-sources')).toBeVisible();
     if (condition === 'unavailable-manifest') await expect(page.locator('.recit-publication-note')).toContainText('Les comptes de la publication affichée restent consultables');
@@ -374,7 +375,7 @@ for (const condition of ['same-publication', 'unavailable-manifest', 'unavailabl
     const preserved = await page.evaluate(() => ({
       sameNode: window.__publishedStory === document.querySelector('#vue-accueil .accueil-story'),
       before: window.__publishedTitles,
-      after: [...document.querySelectorAll('#vue-accueil .recit-title')].map(element => element.textContent),
+      after: [...document.querySelectorAll('#vue-accueil .histoire__gros')].map(element => element.dataset.valeur),
     }));
     expect(preserved.sameNode).toBe(true);
     expect(preserved.after).toEqual(preserved.before);
@@ -389,23 +390,17 @@ test('sans JavaScript les trois explications et les sources se lisent en continu
   const page = await context.newPage();
   try {
     await page.goto('/');
-    for (const id of steps) {
-      const panel = page.locator(`#${id}`);
-      await expect(panel.locator('.recit-title')).toBeVisible();
-      await expect(panel.locator('.recit-explanation')).not.toBeEmpty();
-      await panel.scrollIntoViewIfNeeded();
-      const geometry = await panel.evaluate(element => {
-        const style = getComputedStyle(element);
-        const height = element.getBoundingClientRect().height;
-        const layoutChildren = parent => [...parent.children].flatMap(child =>
-          getComputedStyle(child).display === 'contents' ? layoutChildren(child) : [child]);
-        const contentHeight = layoutChildren(element).reduce((sum, child) => sum + child.getBoundingClientRect().height, 0);
-        return { height, position: style.position,
-          emptySpace: height - contentHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) };
-      });
-      expect(['sticky', 'fixed']).not.toContain(geometry.position);
-      expect(geometry.emptySpace, 'pas de hauteur vide réservée à une animation absente').toBeLessThan(128);
+    const etapes = page.locator('.histoire__etape');
+    expect(await etapes.count()).toBeGreaterThan(10);
+    for (const index of [0, 3, 8]) {
+      const step = etapes.nth(index);
+      await step.scrollIntoViewIfNeeded();
+      await expect(step.locator('.histoire__titre')).toBeVisible();
+      expect(await step.evaluate(element => getComputedStyle(element).position)).not.toMatch(/sticky|fixed|absolute/);
     }
+    await expect(page.locator('.histoire__bas, .histoire__haut')).toHaveCount(2);
+    await expect(page.locator('.histoire__bas')).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Commencer mon mandat', exact: true })).toHaveAttribute('href', '/mandats/jouer/');
     const dialog = page.locator('#recit-sources');
     await expect(dialog).toHaveAttribute('open', '');
     expect(await dialog.evaluate(element => element.matches(':modal'))).toBe(false);
@@ -425,20 +420,13 @@ test('le mouvement réduit et le retour arrière gardent les trois idées dispon
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await servePublication(page);
   await openHome(page);
-  await chooseStep(page, 1, info);
-  await chooseStep(page, 2, info);
-  await page.goBack();
-  await expect(page.locator('[data-recit]')).toHaveAttribute('data-step', '1');
-  await expect(page.locator('#recit-depenses .recit-title')).toBeInViewport();
-  await page.goForward();
-  await expect(page.locator('[data-recit]')).toHaveAttribute('data-step', '2');
-  for (const id of steps) await expect(page.locator(`#${id} .recit-explanation`)).not.toBeEmpty();
+  const step = await chooseStep(page, '[data-tableau="pieces"]', info, { keyboard: true });
+  await expect(step.locator('.histoire__titre .m').first()).toHaveCSS('opacity', '1');
+  const avant = await indexCourant(page);
+  await page.keyboard.press('ArrowLeft');
+  await expect(courante(page)).toHaveAttribute('data-i', String(avant - 1));
   const mobile = info.project.use.viewport.width <= 844;
-  if (mobile) {
-    const positions = await page.locator('.recit-step, .recit-mobile-visual').evaluateAll(elements => elements.map(element => getComputedStyle(element).position));
-    expect(positions).not.toContain('sticky');
-    expect(positions).not.toContain('fixed');
-  }
+  if (mobile) await expect(page.locator('.histoire__suiv')).toBeVisible();
   await noOverflow(page);
   await evidence(page, info, 'recit-mouvement-reduit');
 });
@@ -446,8 +434,8 @@ test('le mouvement réduit et le retour arrière gardent les trois idées dispon
 // Synthetic variants exercise honest wording when a future publication changes
 // the balance. They are not presented as French historical accounts.
 for (const variant of [
-  { name: 'excedent', receipt: 1000, expense: 975, word: 'restent.', number: '2,5' },
-  { name: 'equilibre', receipt: 1000, expense: 1000, word: 'd’écart.', number: '0' },
+  { name: 'excedent', receipt: 1000, expense: 975, label: 'Excédent' },
+  { name: 'equilibre', receipt: 1000, expense: 1000, label: 'Équilibre' },
 ]) {
   test(`une publication ${variant.name} ne garde pas le récit d’un déficit`, async ({ page }, info) => {
     const pays = structuredClone(publication.pays);
@@ -455,13 +443,12 @@ for (const variant of [
     pays.FR.series.eurostat_apu_depenses = { '2030': variant.expense };
     await servePublication(page, { pays });
     await openHome(page);
-    await expect(page.locator('[data-recit]')).toHaveAttribute('data-nature', variant.name);
-    await chooseStep(page, 2, info);
-    await expect(page.locator('#recit-ecart .recit-number')).toContainText(variant.number);
-    await expect(page.locator('#recit-ecart .recit-verb')).toHaveText(variant.word);
-    const diagram = await readDiagram(page, 2);
-    expect(diagram.expenses).toBeCloseTo(variant.expense / variant.receipt * 100, 8);
-    expect(diagram.cells.filter(cell => cell.change === 'gap')).toHaveLength(0);
+    await expect(page.locator('.histoire')).not.toContainText('Il manque');
+    await expect(page.locator('[data-direct]')).toHaveCount(0);
+    const step = await chooseStep(page, '[data-tableau="ecart"][data-k="1"]', info);
+    await expect(step.locator('.histoire__lib')).toHaveText(variant.label);
+    expect(await valeurAffichee(page, '[data-tableau="ecart"][data-k="1"]')).toBeCloseTo(Math.abs(variant.expense - variant.receipt) / 1e9, 12);
+    const diagram = { receipts: variant.receipt, expenses: variant.expense };
     await noOverflow(page);
     await evidence(page, info, `recit-${variant.name}`, { synthetic: true, diagram });
   });
@@ -476,13 +463,13 @@ test('des comptes absents ne sont jamais présentés comme zéro euro', async ({
   // SSR accounts that the separate network-failure journeys must preserve.
   await page.route(/http:\/\/127\.0\.0\.1:4180\/$/, async route => {
     const response = await route.fetch();
-    const body = (await response.text()).replace(/<section class="recit"[\s\S]*?<\/section>/, '');
+    const body = (await response.text()).replace(/<div class="recit-histoire" data-recit>[\s\S]*?<\/dialog><\/div>/, '');
     await route.fulfill({ response, body });
   });
   await page.goto('/');
   await expect(page.locator('[data-recit-empty]')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Les comptes publics, à portée de main.');
-  await expect(page.locator('.recit-number, .recit-grid')).toHaveCount(0);
+  await expect(page.locator('.recit-number, .recit-grid, .histoire__gros')).toHaveCount(0);
   await expect(page.locator('[data-recit-empty] a[href="/sources/"]')).toBeVisible();
   await noOverflow(page);
   await evidence(page, info, 'recit-comptes-absents');

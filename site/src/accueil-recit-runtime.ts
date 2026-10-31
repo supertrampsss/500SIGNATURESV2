@@ -108,12 +108,16 @@ export function brancherRecitAccueil(): void {
   };
   window.addEventListener("hashchange", suivreAncre, { signal });
   if (sources && typeof sources.showModal === "function") {
+    // Le document pré-rendu garde la boîte ouverte pour une lecture sans JavaScript :
+    // sa fermeture initiale ne doit pas déplacer le focus.
+    let ouvertParLecteur = false;
     sources.close();
     racine.querySelector("[data-recit-source]")?.addEventListener("click", (event) => {
       const clic = event as MouseEvent;
       if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
       event.preventDefault();
       ouverture = event.currentTarget as HTMLElement;
+      ouvertParLecteur = true;
       sources.showModal();
     }, { signal });
     sources.querySelector("[data-recit-close]")?.addEventListener("click", () => sources.close(), { signal });
@@ -126,7 +130,8 @@ export function brancherRecitAccueil(): void {
         adresse.hash = "";
         history.replaceState(history.state, "", adresse);
       }
-      ouverture?.focus({ preventScroll: true });
+      if (ouvertParLecteur || location.hash === "#recit-sources") ouverture?.focus({ preventScroll: true });
+      ouvertParLecteur = false;
     }, { signal });
   }
   racine.dataset.enhanced = "true";
