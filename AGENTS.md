@@ -17,8 +17,14 @@ were deleted (the site had not been shared); do not restore them or add redirect
   No wheel hijacking, no "Next" button. `rendu.ts` is pure (prerender and browser),
   `calculs.ts` reads published series and returns `undefined` when data is missing
   (a step without data disappears, never shows 0), `ville.ts` renders a chosen commune,
-  `runtime.ts` animates. `/?ville=CODE` reopens the story on that commune.
-- `/salaires/` — the salary page (`src/salaires.ts`, `src/salaires-page.ts`), same header.
+  `runtime.ts` animates. `/?ville=CODE` reopens the story on that commune. A commune shows
+  its budget line by line, spending by mission, associations, what is left to invest, debt,
+  investment, property tax, recorded crime per 1,000 inhabitants (France marker, same year)
+  and a portrait (poverty, income, jobs, social housing, schools).
+- `/salaires/` — the salary page, in the same scrolling format as the story
+  (`src/salaires.ts` renders steps with `recit/rendu.ts`, `recit/runtime.ts` animates):
+  the OECD pay waterfall, where 100 € of public spending goes, pensions inside ministry
+  budgets (PLF 2027), and how the split moved over time.
 - `/mandats/` — the game (`mandats/index.html`, `src/jeu/`). Turn-based: twenty quarters,
   two dossiers per quarter, an autumn budget (vote or 49.3), major reforms negotiated with
   political capital, a five-level street escalation. The defeat screen states the verdict,
@@ -41,8 +47,10 @@ Avoid CSS `filter` animations on many elements: they crashed WebKit.
 
 ## Data rules
 
-Every number carries its source and year under it. When a breakdown exists only for another
-year, label that year. France comparisons use France, Germany, Spain and Italy only.
+Every number carries its year in the label above it; sources are listed once, in the page
+footer (owner decision, 31 October 2026: no source line or filler sentence under the cards).
+When a breakdown exists only for another year, label that year. Say "retraites", not
+"pensions"; say "budget de l'année" or "dépenses du quotidien", not "fonctionnement". France comparisons use France, Germany, Spain and Italy only.
 Never invent sources. Keep observed data and game assumptions separate.
 
 ## Verify

@@ -26,9 +26,17 @@ async function sansDebordement(page) {
   expect(largeur, 'aucun débordement horizontal').toBeLessThanOrEqual(page.viewportSize().width + 1);
 }
 
+/** Rien n'est rogné : les grands chiffres tiennent dans leur carte, les noms des barres dans leur ligne. */
+async function lisible(page) {
+  const debords = await page.evaluate(() => [...document.querySelectorAll('.est-courante .etape__gros, .viz.on .barre-l .n, .viz.on .barre-l b, .viz.on .tuile:not([hidden]) span:not([hidden]), .viz.on .kpi b')]
+    .filter(el => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map(el => `${el.className}: ${el.textContent}`));
+  expect(debords, 'aucun texte rogné').toEqual([]);
+}
+
 async function preuve(page, info, nom, details = {}) {
   const image = info.outputPath(`${nom}.png`);
-  await page.screenshot({ path: image });
+  // Les transitions finies sont menées à leur état final : on photographie ce que lit le lecteur.
+  await page.screenshot({ path: image, animations: 'disabled' });
   await info.attach(nom, { path: image, contentType: 'image/png' });
   const fichier = info.outputPath(`${nom}.json`);
   await writeFile(fichier, JSON.stringify({ projet: info.project.name, fenetre: page.viewportSize(), url: page.url(), ...details }, null, 2));
@@ -63,20 +71,35 @@ test('le récit se lit en défilant, de la facture jusqu’au jeu', async ({ pag
     ['[data-tableau="dette"]', 'dette', 'dette'],
     ['[data-tableau="arbre"]', 'arbre', 'argent'],
     ['[data-tableau="europe"]', 'europe', 'europe'],
-    ['[data-tableau="pieces"]', 'pieces', 'salaire'],
+    ['[data-tableau="paie"][data-k="4"]', 'paie', 'salaire'],
   ]) {
     if (!await page.locator(`.etape${selecteur}`).count()) continue;
     const etape = await lire(page, selecteur);
     await expect(page.locator('[data-recit]')).toHaveAttribute('data-tableau', tableau);
     await expect(page.locator(`[data-rail="${chapitre}"]`)).toHaveClass(/actif/);
-    await expect(etape.locator('.etape__source')).not.toBeEmpty();
     await sansDebordement(page);
+    await lisible(page);
     await preuve(page, info, `recit-${tableau}`, { titre: await etape.locator('.etape__titre').innerText() });
   }
-  // Chaque chiffre porte sa source et son année ; aucune étape n'affiche « 0 » faute de donnée.
+  // Les sources sont réunies en pied de page, pas répétées sous chaque chiffre ;
+  // aucune étape n'affiche « 0 » faute de donnée.
+  await expect(page.locator('.etape__source')).toHaveCount(0);
   for (const valeur of await page.locator('.etape__gros:not([data-direct])').evaluateAll(els => els.map(e => Number(e.dataset.valeur)))) {
     expect(Number.isFinite(valeur) && valeur !== 0).toBe(true);
   }
+  // Le compteur en direct grandit sans sortir de sa carte.
+  const direct = await lire(page, ':has([data-direct])');
+  await page.waitForTimeout(400);
+  await lisible(page);
+  // Le chiffre copié est le chiffre lu, pas les rouleaux de l'animation.
+  const copie = await page.locator('.etape[data-tableau="dette"]').first().evaluate(async el => {
+    el.scrollIntoView({ block: 'center' }); dispatchEvent(new Event('scroll'));
+    await new Promise(r => setTimeout(r, 300));
+    const gros = el.querySelector('.etape__gros'); const sel = getSelection(); const r = document.createRange(); r.selectNodeContents(gros); sel.removeAllRanges(); sel.addRange(r);
+    return sel.toString();
+  });
+  expect(copie).not.toMatch(/0123456789/);
+  expect(direct).toBeTruthy();
   // Le rail mène directement à un chapitre.
   await page.locator('[data-rail="mandats"]').click();
   await expect(page.locator('.etape[data-tableau="final"]')).toHaveClass(/est-courante/);
@@ -91,6 +114,7 @@ test('le récit se lit en défilant, de la facture jusqu’au jeu', async ({ pag
 });
 
 test('votre ville s’insère dans le récit et se partage par son adresse', async ({ page }, info) => {
+  test.setTimeout(120_000);
   await servir(page);
   await page.goto('/');
   await lire(page, '[data-tableau="ville"]');
@@ -108,16 +132,24 @@ test('votre ville s’insère dans le récit et se partage par son adresse', asy
   const recettes = Number(await etapes.first().locator('.etape__gros').getAttribute('data-valeur'));
   const annee = (await etapes.first().locator('.etape__lib').innerText()).match(/\d{4}/)[0];
   expect(recettes).toBeCloseTo(bordeaux.ofgl_recettes_fonctionnement[annee] / 1e6, 6);
-  const dette = page.locator('[data-ville-etapes] .etape[data-k="4"]');
+  const dette = page.locator('[data-ville-etapes] .etape[data-sujet="dette"]');
   if (await dette.count()) {
     expect(Number(await dette.locator('.etape__gros').getAttribute('data-valeur'))).toBeCloseTo(bordeaux.ofgl_encours_dette[derniere(bordeaux.ofgl_encours_dette)] / 1e6, 6);
   }
+  // Le détail de la commune : postes, missions, associations, impôts, sécurité, portrait.
+  const sujets = await etapes.evaluateAll(els => els.map(el => el.dataset.sujet));
+  for (const s of ['recettes', 'depenses', 'missions', 'associations', 'reste', 'dette', 'investissement', 'foncier', 'securite', 'portrait']) expect(sujets).toContain(s);
+  await expect(etapes.first()).not.toContainText(/fonctionnement/i);
   for (let i = 0; i < await etapes.count(); i++) {
     await etapes.nth(i).evaluate(el => { el.scrollIntoView({ block: 'center' }); dispatchEvent(new Event('scroll')); });
     await expect(etapes.nth(i)).toHaveClass(/est-courante/);
+    await page.waitForTimeout(300);
     await sansDebordement(page);
+    await lisible(page);
+    const sujet = sujets[i];
+    if (sujet === 'securite') await expect(page.locator('[data-viz="ville"] .barre-l em').first()).toBeAttached();
+    if (['recettes', 'missions', 'securite', 'portrait', 'investissement'].includes(sujet)) await preuve(page, info, `ville-${sujet}`);
   }
-  await preuve(page, info, 'ville-bordeaux');
   // Une recherche sans résultat le dit.
   await lire(page, '[data-tableau="ville"]');
   await champ.fill('Zzzzz');
@@ -156,12 +188,26 @@ test('mouvement réduit : mêmes chiffres, sans animation', async ({ page }) => 
   await expect(page.locator('.odo')).toHaveCount(0);
 });
 
-test('Salaires et confidentialité partagent l’en-tête du récit', async ({ page }) => {
+test('Salaires se lit comme le récit, et la confidentialité partage l’en-tête', async ({ page }, info) => {
+  const erreurs = [];
+  page.on('pageerror', e => erreurs.push(e.message));
+  await servir(page);
   await page.goto('/salaires/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Du coût du travail au revenu reçu.');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Votre salaire, vu par votre employeur.');
   await expect(page.locator('.entete__nav a[aria-current="page"]')).toHaveText('Salaires');
-  await expect(page.locator('#profil-resultat')).toHaveText('52,80 €');
-  await sansDebordement(page);
+  await expect(page.locator('.recit--actif')).toBeVisible();
+  for (const [selecteur, tableau, nom] of [['[data-tableau="paie"][data-k="2"]', 'paie', 'salaires-paie'], ['[data-tableau="barres"][data-chapitre="depense"]', 'barres', 'salaires-depense'], ['[data-tableau="barres"][data-chapitre="ministeres"]', 'barres', 'salaires-ministeres'], ['[data-tableau="courbes"]', 'courbes', 'salaires-courbes']]) {
+    if (!await page.locator(`.etape${selecteur}`).count()) continue;
+    await lire(page, selecteur);
+    await expect(page.locator('[data-recit]')).toHaveAttribute('data-tableau', tableau);
+    await page.waitForTimeout(300);
+    await sansDebordement(page);
+    await lisible(page);
+    await preuve(page, info, nom);
+  }
+  await expect(page.locator('.etape[data-tableau="paie"][data-k="4"]').first()).toContainText('52,80');
+  await expect(page.locator('.etape__source')).toHaveCount(0);
+  expect(erreurs).toEqual([]);
   await page.goto('/confidentialite/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Vos données, simplement.');
   await sansDebordement(page);
