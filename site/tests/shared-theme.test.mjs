@@ -15,7 +15,7 @@ test('Mandats expose un accès au site et le lien revient à la page d’accueil
  await page.getByRole('button',{name:'Ma partie',exact:true}).click();
  await page.getByRole('link',{name:'Retour au site',exact:true}).click();
  await expect(page).toHaveURL(/https?:\/\/[^/]+\/$/);
- await expect(page.locator('#recit-recettes .recit-title')).toHaveText(/^100\s*€\s*entrent\.$/);
+ await expect(page.locator('.histoire__etape.est-courante .histoire__titre')).toContainText('Chaque année, la France');
  for(const path of ['/mandats/methode/','/mandats/comprendre/','/bilan/']){
   await page.goto(path);
   const accueil=page.getByRole('navigation',{name:'Navigation principale',exact:true}).getByRole('link',{name:'Accueil',exact:true});
