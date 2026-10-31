@@ -260,7 +260,8 @@ function evoluer() {
   if (S.def > 180) S.taux = clamp(S.taux + .25, 1, 8); else if (S.def > 165) S.taux = clamp(S.taux + .14, 1, 8); else if (S.def > 158) S.taux = clamp(S.taux + .06, 1, 8); else if (S.def < 135) S.taux = clamp(S.taux - .08, 1, 8);
   // Notation : une dégradation par palier franchi (175 puis 195 Md€), un relèvement sous 160 Md€. Hypothèses de jeu.
   const palier = S.def >= 195 ? 2 : S.def >= 175 ? 1 : 0, note = S.note || 0;
-  if (palier > note) { S.note = palier; S.taux = clamp(S.taux + .4, 1, 8); S.op = clamp(S.op - 5, 0, 100); S.ten = clamp(S.ten + 4, 0, 100); S.titres.push({ k: 'c', l: 'Notation', t: palier === 1 ? 'Les agences dégradent la note de la France' : 'Nouvelle dégradation : la dette française sous surveillance' }); }
+  // Chaque palier franchi coûte, même si deux le sont dans le même trimestre.
+  if (palier > note) { for (let n = note + 1; n <= palier; n++) { S.taux = clamp(S.taux + .4, 1, 8); S.op = clamp(S.op - 5, 0, 100); S.ten = clamp(S.ten + 4, 0, 100); S.titres.push({ k: 'c', l: 'Notation', t: n === 1 ? 'Les agences dégradent la note de la France' : 'Nouvelle dégradation : la dette française sous surveillance' }); } S.note = palier; }
   else if (note && S.def < 160) { S.note = note - 1; S.taux = clamp(S.taux - .2, 1, 8); S.titres.push({ k: 'b', l: 'Notation', t: 'Les agences relèvent la note de la France' }); }
   if (S.op < 30) S.maj = clamp(S.maj - 3, 120, 420);
   if (S.tour % 4 === 3) S.def = clamp(S.def + (S.taux - 3.3) * 8, 40, 320);
