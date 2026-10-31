@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>500 Signatures · bannière X</title>
+<link rel="stylesheet" href="../polices.css">
+<style>
+/* Bannière X, 1500 × 500. Sur ordinateur, la photo de profil couvre le coin bas gauche : rien d'important à gauche de 360 px. Sur téléphone, X rogne le haut et le bas : le texte reste dans la bande centrale. */
+html,body{margin:0;background:#060b17}
+.cadre{position:relative;width:1500px;height:500px;overflow:hidden;background:radial-gradient(70% 120% at 82% 10%,#16244a 0%,#0b1422 45%,#060b17 80%);color:#f4efe3;font-family:"Public Sans",system-ui,sans-serif}
+.grille{position:absolute;inset:0;background-image:linear-gradient(#f4efe30a 1px,transparent 1px),linear-gradient(90deg,#f4efe30a 1px,transparent 1px);background-size:50px 50px;mask-image:linear-gradient(90deg,transparent 0,#000 40%,#000 100%)}
+.texte{position:absolute;left:440px;top:118px;width:900px}
+h1{margin:0;font:300 84px/1.02 "Spectral",Georgia,serif;letter-spacing:-.015em}
+h1 em{font-style:italic;color:#d9b45f}
+p{margin:26px 0 0;font:500 23px "IBM Plex Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:#b9b2a3}
+p b{font-weight:500;color:#f4efe3}
+svg.trait{position:absolute;left:420px;top:330px;width:960px;height:90px;overflow:visible}
+</style></head><body>
+<div class="cadre">
+  <div class="grille"></div>
+  <div class="texte">
+    <h1>Où va votre <em>argent</em> ?</h1>
+    <p>Les comptes publics, ligne par ligne · <b>500signatures.fr</b></p>
+  </div>
+  <svg class="trait" viewBox="0 0 960 90" fill="none" aria-hidden="true"><path d="M8 60 C240 38 560 30 800 44 C860 48 910 36 950 6" stroke="#d9b45f" stroke-width="3.5" stroke-linecap="round"/></svg>
+</div>
+</body></html>

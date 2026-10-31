@@ -6,3 +6,7 @@ Identité du 31 octobre 2026. Les règles complètes sont dans le guide (artifac
 - `social/` : modèles de publication à modifier dans le navigateur (clic sur un texte) puis à capturer : citation et annonce 1200 × 675, couverture de carrousel 1080 × 1350, story 1080 × 1920, témoignage 1200 × 675.
 
 Le modèle de témoignage contient un texte de remplacement : ne publier qu’un message réel, avec l’accord de son auteur.
+
+- `x/` : bannière (1500 × 500) et photo de profil (400 × 400) du compte X, en PNG prêts à importer (`@2x` pour la haute définition) et en HTML source.
+
+Ouvrir les fichiers HTML et SVG dans Chrome ou Edge. Firefox bloque les polices chargées depuis un fichier local et affiche alors des polices de secours ; pour Firefox, servir le dépôt en local (`npx serve .` à la racine) ou utiliser les PNG.
