@@ -256,9 +256,15 @@ function evoluer() {
   const ms = moyenneServices();
   S.ten = clamp(S.ten + (50 - ms) * .09 + (40 - S.op) * .05 - (S.ten - 40) * .06 + (rng() - .5) * 3, 0, 100);
   S.op = clamp(S.op + (ms - 50) * .06 - (S.ten - 50) * .04 - (S.op - 42) * .07 - .3 + (rng() - .5) * 2, 0, 100);
-  if (S.def > 165) S.taux = clamp(S.taux + .12, 1, 8); else if (S.def > 158) S.taux = clamp(S.taux + .06, 1, 8); else if (S.def < 135) S.taux = clamp(S.taux - .05, 1, 8);
+  // Marchés : l'écart de taux s'élargit au-delà de 165 Md€, nettement au-delà de 180 Md€.
+  if (S.def > 180) S.taux = clamp(S.taux + .25, 1, 8); else if (S.def > 165) S.taux = clamp(S.taux + .14, 1, 8); else if (S.def > 158) S.taux = clamp(S.taux + .06, 1, 8); else if (S.def < 135) S.taux = clamp(S.taux - .08, 1, 8);
+  // Notation : une dégradation par palier franchi (175 puis 195 Md€), un relèvement sous 160 Md€. Hypothèses de jeu.
+  const palier = S.def >= 195 ? 2 : S.def >= 175 ? 1 : 0, note = S.note || 0;
+  // Chaque palier franchi coûte, même si deux le sont dans le même trimestre.
+  if (palier > note) { for (let n = note + 1; n <= palier; n++) { S.taux = clamp(S.taux + .4, 1, 8); S.op = clamp(S.op - 5, 0, 100); S.ten = clamp(S.ten + 4, 0, 100); S.titres.push({ k: 'c', l: 'Notation', t: n === 1 ? 'Les agences dégradent la note de la France' : 'Nouvelle dégradation : la dette française sous surveillance' }); } S.note = palier; }
+  else if (note && S.def < 160) { S.note = note - 1; S.taux = clamp(S.taux - .2, 1, 8); S.titres.push({ k: 'b', l: 'Notation', t: 'Les agences relèvent la note de la France' }); }
   if (S.op < 30) S.maj = clamp(S.maj - 3, 120, 420);
-  if (S.tour % 4 === 3) S.def = clamp(S.def + (S.taux - 3.3) * 5, 40, 320);
+  if (S.tour % 4 === 3) S.def = clamp(S.def + (S.taux - 3.3) * 8, 40, 320);
   // la rue : un niveau par trimestre vers la cible
   const cibleN = S.ten < 52 ? 0 : S.ten < 63 ? 1 : S.ten < 73 ? 2 : S.ten < 84 ? 3 : 4;
   if (cibleN > S.rue) { S.rue++; S.titres.push({ k: 'c', l: 'La rue', t: RUE[S.rue][1] }); }
@@ -504,7 +510,7 @@ function evenement(sur, titre, texte, v, fond, actions) {
 function fin(type) {
   S.fini = true; sauver();
   const ms = moyenneServices();
-  const score = Math.round(clamp(50 + (S.op - 40) * .8 + (ms - 50) * .5 - (S.ten - 40) * .3 - (S.def - 152.51) * .35, 2, 98));
+  const score = Math.round(clamp(50 + (S.op - 40) * .8 + (ms - 50) * .5 - (S.ten - 40) * .3 - (S.def - 152.51) * .35 - Math.max(0, S.def - 165) * .9, 2, 98));
   const T = {
     terme: score >= 55 ? ['Réélu', 'Les Français vous renouvellent leur confiance.'] : score >= 40 ? ['Second tour serré', 'Un bilan défendable, une campagne indécise.'] : ['Battu', 'Le pays tourne la page de votre mandat.'],
     demission: ['Démission', 'La rue et les sondages ont eu raison de votre mandat.'],
