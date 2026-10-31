@@ -212,7 +212,7 @@ export function sources(liste: readonly { nom: string; titre: string; url: strin
     </div>
     <div class="pied__bloc"><h2>Le projet.</h2>
       <p>500 Signatures rend les comptes publics lisibles par tous, puis vous laisse gouverner dans Mandats. Le site est gratuit, sans compte et indépendant de tout parti.</p>
-      <p class="pied__liens"><a href="/salaires/">Salaires</a><a href="/mandats/">Mandats</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500signaturesfr" rel="noreferrer noopener" target="_blank">500 Signatures sur X</a></p>
+      <p class="pied__liens"><a href="/salaires/">Salaires</a><a href="/mandats/">Mandats</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500Signatures" rel="noreferrer noopener" target="_blank">500 Signatures sur X</a></p>
     </div>
   </footer>`;
 }
