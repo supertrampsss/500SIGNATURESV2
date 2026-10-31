@@ -38,7 +38,9 @@ async function preuve(page, info, nom, details = {}) {
 /** Fait défiler jusqu'à une étape et attend qu'elle pilote la scène. */
 async function lire(page, selecteur) {
   const etape = page.locator(`.etape${selecteur}`).first();
-  await etape.evaluate(el => el.scrollIntoView({ block: 'center' }));
+  // Chrome sans écran peut différer l'événement de défilement jusqu'à la prochaine image :
+  // on le signale explicitement après avoir déplacé la page.
+  await etape.evaluate(el => { el.scrollIntoView({ block: 'center' }); dispatchEvent(new Event('scroll')); });
   await expect(etape).toHaveClass(/est-courante/);
   return etape;
 }
@@ -111,19 +113,21 @@ test('votre ville s’insère dans le récit et se partage par son adresse', asy
     expect(Number(await dette.locator('.etape__gros').getAttribute('data-valeur'))).toBeCloseTo(bordeaux.ofgl_encours_dette[derniere(bordeaux.ofgl_encours_dette)] / 1e6, 6);
   }
   for (let i = 0; i < await etapes.count(); i++) {
-    await etapes.nth(i).evaluate(el => el.scrollIntoView({ block: 'center' }));
+    await etapes.nth(i).evaluate(el => { el.scrollIntoView({ block: 'center' }); dispatchEvent(new Event('scroll')); });
     await expect(etapes.nth(i)).toHaveClass(/est-courante/);
     await sansDebordement(page);
   }
   await preuve(page, info, 'ville-bordeaux');
-  // Le lien partagé rouvre le récit sur la même ville, sans défiler à la place du lecteur.
-  await page.goto('/?ville=33063');
-  await expect(page.locator('[data-ville-etapes] .etape').first()).toContainText('Bordeaux');
   // Une recherche sans résultat le dit.
   await lire(page, '[data-tableau="ville"]');
   await champ.fill('Zzzzz');
   await champ.press('Enter');
   await expect(page.locator('.ville-etat')).toHaveText('Aucune commune trouvée.');
+  // Le lien partagé rouvre le récit sur la même ville, sans défiler à la place du lecteur.
+  await page.goto('about:blank');
+  await page.goto('/?ville=33063');
+  await expect(page.locator('[data-ville-etapes] .etape').first()).toContainText('Bordeaux', { timeout: 30000 });
+  expect(await page.evaluate(() => scrollY)).toBe(0);
 });
 
 test('sans JavaScript, le récit et ses sources se lisent en continu', async ({ browser, baseURL }, info) => {

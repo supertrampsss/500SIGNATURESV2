@@ -147,15 +147,15 @@ export function brancherRecit(): void {
   // L'étape qui croise le milieu de l'écran devient courante. Calculé à chaque défilement
   // (une fois par image) plutôt qu'observé : une restauration de position ou une insertion
   // d'étapes ne peut pas laisser la scène sur une étape périmée.
-  let attente = 0;
   function mesurer() {
-    attente = 0; const milieu = innerHeight / 2;
+    const milieu = innerHeight / 2;
     const ici = etapes.find(x => { const r = x.getBoundingClientRect(); return r.top <= milieu && r.bottom > milieu; });
     if (ici) activer(ici);
   }
-  const programmer = () => { if (!attente) attente = requestAnimationFrame(mesurer); };
-  addEventListener("scroll", programmer, { passive: true });
-  addEventListener("resize", () => { taille(); relancer(); programmer(); });
+  // Lecture directe à chaque défilement : quelques rectangles, et aucune image d'animation
+  // à attendre (une image suspendue laissait la scène sur l'étape précédente).
+  addEventListener("scroll", mesurer, { passive: true });
+  addEventListener("resize", () => { taille(); relancer(); mesurer(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) relancer(); });
   new ResizeObserver(() => arbre()).observe(vArbre ?? zone);
   taille(); activer(etapes[0]); mesurer();
@@ -189,7 +189,7 @@ export function brancherRecit(): void {
       cadre.innerHTML = renduVille(v, etapes.length);
       const nouvelles = [...cadre.querySelectorAll<HTMLElement>(".etape")];
       etapes = [...racine.querySelectorAll<HTMLElement>(".etape")];
-      programmer();
+      mesurer();
       etat.textContent = `${v.nom} : ${nouvelles.length} étapes ci-dessous.`;
       const url = new URL(location.href); url.searchParams.set("ville", e.c); history.replaceState(history.state, "", url);
       if (defiler && nouvelles[0]) nouvelles[0].scrollIntoView({ behavior: reduit() ? "auto" : "smooth", block: "center" });
