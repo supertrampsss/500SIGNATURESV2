@@ -47,7 +47,7 @@ button{font:inherit;color:inherit}
 .temps i.an{margin-left:5px}
 .jauges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:880px;justify-self:center;width:100%}
 .jauge{position:relative;display:flex;flex-direction:column;gap:6px;padding:10px 14px;border:1px solid var(--trait);border-radius:10px;background:rgba(19,34,58,.6);min-width:0}
-.jauge__l{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.jauge__l{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 8px;min-width:0}
 .jauge__l span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--iv3);white-space:nowrap}
 .jauge__v{font-family:var(--f-titre);font-size:28px;line-height:1;font-weight:400;letter-spacing:-.01em;white-space:nowrap}
 .jauge__v small{font-family:var(--f-texte);font-size:13px;color:var(--iv3);margin-left:3px}
@@ -305,3 +305,59 @@ a.btn-ic{color:var(--ivoire);text-decoration:none;font-family:var(--f-mono);font
 .option.nego[aria-pressed="true"] b::before{content:"✓ ";color:var(--or-fonce)}
 .actions-nego{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 .cta.second-clair{background:transparent;color:var(--encre);border:1px solid var(--encre)}
+
+/* ---------- Refonte v3 (31 octobre 2026) ---------- */
+/* Bureau : trois colonnes réelles. Tableau de bord | carte ajustée à sa cellule | Conseil des ministres. */
+@media (min-width:901px){
+  .jeu{grid-template-columns:clamp(250px,19vw,300px) minmax(0,1fr) clamp(320px,24vw,400px);grid-template-rows:auto minmax(0,1fr);column-gap:clamp(16px,1.6vw,28px)}
+  .hud{grid-column:1/-1}
+  .plateau{display:contents}
+  .cote{grid-column:1;grid-row:2;padding-block:18px}
+  .scene{grid-column:2;grid-row:2;padding-block:18px;container-type:size;align-items:center;justify-content:center}
+  .carte{width:min(100cqw,calc(100cqh * 1.5));max-width:none}
+  .main{grid-column:3;grid-row:2;min-height:0;overflow:auto;padding-block:18px;gap:14px}
+  .main__tete{flex-direction:column;align-items:stretch;gap:12px}
+  .main__tete h2{font-size:21px}
+  .main__tete .cta{justify-content:center}
+  .cartes{flex-direction:column;justify-content:flex-start;overflow:visible;padding:2px}
+  .dossier{flex:0 0 auto;width:100%;min-width:0;min-height:0}
+  .dossier .t{font-size:21px}
+}
+/* Alerte avant la chute */
+.alerte-fin{grid-column:1/-1;margin:0;padding:9px 14px;border-radius:8px;background:rgba(224,122,85,.14);border:1px solid rgba(224,122,85,.55);color:#ffd9c9;font-size:13px;line-height:1.4;animation:alerte 2.4s ease-in-out infinite}
+.alerte-fin b{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--argile);margin-right:8px}
+@keyframes alerte{50%{border-color:rgba(224,122,85,1);box-shadow:0 0 24px rgba(224,122,85,.25)}}
+/* Fin : verdict lisible */
+.verdict{display:inline-block;margin:0 0 6px;font-family:var(--f-mono);font-size:13px;letter-spacing:.2em;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid}
+.verdict.perdu{color:var(--argile);border-color:var(--argile);background:rgba(224,122,85,.12)}
+.verdict.gagne{color:var(--or);border-color:var(--or);background:rgba(217,180,95,.12)}
+.verdict.neutre{color:var(--iv2);border-color:var(--iv3)}
+.cause{border-left:3px solid var(--argile);padding:12px 16px;background:rgba(224,122,85,.08);border-radius:0 8px 8px 0;font-size:16px;line-height:1.45;max-width:62ch}
+.cause b{display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--argile);margin-bottom:6px}
+.cause span{display:block;margin-top:10px;font-size:14px;color:var(--iv2)}
+.cause ol{margin:6px 0 0;padding-left:20px;font-size:14px;color:var(--iv2)}
+/* Négociation */
+.capital{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border:1px solid rgba(19,34,58,.15);border-radius:10px}
+.capital .mono{color:var(--encre-2)}
+.capital small{flex-basis:100%;font-size:12px;color:var(--encre-2)}
+#jetons{display:inline-flex;align-items:center;gap:5px}
+#jetons i{width:13px;height:13px;border-radius:50%;border:2px solid var(--or-fonce,#9c7425);transition:background .3s,transform .3s}
+#jetons i.plein{background:var(--or);border-color:var(--or)}
+#jetons b{margin-left:6px;font-family:var(--f-mono);font-size:12px;color:var(--encre-2)}
+.nego__tete{display:flex;align-items:center;gap:10px}
+.nego__tete b{flex:1}
+.stance{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid currentColor;color:var(--encre-2)}
+.stance.bon{color:#1f6b4f}.stance.mal{color:var(--argile-fonce)}
+.prix{color:var(--or-fonce,#9c7425);letter-spacing:2px;font-size:12px}
+.option.nego[disabled]{opacity:.45;cursor:not-allowed}
+.pointage__hemi{max-width:360px;margin:0 auto 4px}
+.pointage__hemi .hemi{width:100%;height:auto;display:block}
+.siege.fixe{opacity:1;animation:none;transition:fill .45s}
+.lignes-b__t{margin:14px 0 2px;color:var(--iv3)}
+.lignes-b__t:first-child{margin-top:0}
+.point.gauche{flex-direction:row-reverse;transform:translate(calc(-100% + 6px),-50%)}
+.hud .outils{grid-row:1;grid-column:3}
+.hud .alerte-fin{grid-row:2}
+@media (max-width:900px){.hud .outils{grid-column:2}.hud .alerte-fin{grid-row:3}}
+@media (min-width:901px){.budget .cent{position:sticky;top:24px}}
+.verdict{align-self:flex-start;width:max-content}

@@ -31,6 +31,7 @@
       <div class="jauge" id="j-maj"><div class="jauge__l"><span>Majorité</span></div><div class="jauge__v tab"><span data-v></span><small>/ 577</small></div><div class="barre"><b></b><i class="repere" style="left:50.1%" title="289 sièges"></i></div></div>
       <div class="jauge" id="j-ten"><div class="jauge__l"><span>Tension</span><span id="rue-niv" style="color:var(--or)"></span></div><div class="jauge__v tab"><span data-v></span><small>/ 100</small></div><div class="barre"><b></b></div></div>
     </div>
+    <p class="alerte-fin" id="alerte-fin" role="alert" hidden></p>
     <div class="outils">
       <a class="btn-ic btn-site" href="/" aria-label="Retour au site 500 Signatures">500 Signatures</a>
       <button class="btn-ic" type="button" id="b-regles" aria-label="Règles">?</button>
@@ -100,7 +101,7 @@
   <div class="ecran__in">
     <p class="mono sur-titre" id="budget-sur">Automne · loi de finances</p>
     <h2 class="grand" id="t-budget" style="font-size:clamp(40px,6vw,80px)">Le budget de <em>l’année 2</em></h2>
-    <p class="chapo">Ajustez les crédits et les impôts. Chaque cran vaut 2 Md€ de dépense ou 5 Md€ d’impôts. Puis présentez le texte aux députés, ou engagez le 49.3.</p>
+    <p class="chapo">Six postes de dépense, quatre impôts. Chaque levier a son rendement et son prix politique : la TVA rapporte gros mais fâche tout le monde, l’impôt sur le revenu divise votre majorité. Puis présentez le texte aux députés, ou engagez le 49.3.</p>
     <div class="budget">
       <div class="lignes-b" id="lignes-b"></div>
       <div class="cent">
@@ -134,8 +135,10 @@
   <div class="ecran__fond" id="fin-fond" style="background-image:url(/mandats/art/legacy.webp)"></div>
   <div class="ecran__in">
     <p class="mono sur-titre" id="fin-sur">Fin du mandat</p>
+    <p class="verdict" id="fin-verdict"></p>
     <h2 class="grand" id="t-fin"></h2>
     <p class="chapo" id="fin-texte"></p>
+    <div class="cause" id="fin-cause" hidden></div>
     <div class="bilan-chiffres" id="fin-chiffres"></div>
     <h3 class="mono" style="margin:8px 0 0;color:var(--iv3)">Les décisions qui ont compté</h3>
     <ul class="titres" id="fin-decisions"></ul>
