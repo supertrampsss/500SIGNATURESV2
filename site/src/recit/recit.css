@@ -202,14 +202,12 @@ h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(64px,8vw,132px)}
 .final__note{font:400 12px var(--mono);color:var(--gris);margin-top:22px}
 
 /* Pied : sources, ivoire */
-.recit__pied{position:relative;z-index:3;background:var(--iv-2);color:#0b1422;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:48px;padding:72px var(--marge)}
-.recit__pied h2{font:300 clamp(28px,3vw,40px)/1.1 var(--serif);margin:0 0 14px}
-.recit__pied p{max-width:56ch;margin:0 0 14px;color:#24314a}
-.pied__sources{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px}
-.pied__sources li{display:grid;gap:2px;border-top:1px solid #0b142222;padding-top:10px}
-.pied__sources a{font:700 15px var(--sans)}.pied__sources span{font:400 13px var(--sans);color:#4a5568}
-.pied__liens{display:flex;flex-wrap:wrap;gap:12px 22px}
-.pied__liens a{font:600 14px var(--sans)}
+.recit__pied{position:relative;z-index:3;background:var(--nuit);color:var(--iv);border-top:1px solid var(--ligne);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px 40px;padding:36px var(--marge)}
+.pied__marque a{font:300 24px/1.1 var(--serif);color:var(--iv);text-decoration:none}
+.pied__marque p{margin:6px 0 0;font:400 13px var(--sans);color:var(--gris)}
+.pied__liens{display:flex;flex-wrap:wrap;gap:10px 24px}
+.pied__liens a,.pied__liens button{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gris);text-decoration:none;background:none;border:0;padding:0;cursor:pointer}
+.pied__liens a:hover,.pied__liens a:focus-visible,.pied__liens button:hover,.pied__liens button:focus-visible{color:var(--or)}
 
 /* Téléphones : visuel en haut, cartes en bas */
 @media (max-width:760px){
