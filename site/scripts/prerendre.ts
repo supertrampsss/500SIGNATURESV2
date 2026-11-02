@@ -1,5 +1,5 @@
 /**
- * Pré-rendu : écrit le récit et la page Salaires avec les données publiées au moment du build,
+ * Pré-rendu : écrit le récit, la page Salaires et la page Sources avec les données publiées au moment du build,
  * pour que les pages se lisent sans JavaScript et que les moteurs voient le texte.
  * Le build échoue si la publication est injoignable : mieux vaut ne pas publier qu'un site vide.
  */
@@ -10,12 +10,13 @@ import { fileURLToPath } from "node:url";
 import type { Territoire } from "../src/donnees.ts";
 import { renduRecit } from "../src/recit/rendu.ts";
 import { renduSalaires } from "../src/salaires.ts";
+import { renduSources } from "../src/sources.ts";
 import { contenuAdsTxt, injecterAdsense } from "./adsense.ts";
 
 const DIST = fileURLToPath(new URL("../dist/", import.meta.url));
 const BASE = process.env.VITE_DONNEES_URL ?? "https://pub-fc39d357004540a182a907aed4875ef5.r2.dev";
 const SITE = (process.env.SITE_URL ?? "https://500signatures.fr").replace(/\/$/, "");
-const PAGES = ["/", "/salaires/", "/mandats/", "/confidentialite/"];
+const PAGES = ["/", "/salaires/", "/mandats/", "/sources/", "/confidentialite/"];
 
 async function lireJson<T>(url: string): Promise<T> {
   const reponse = await fetch(url);
@@ -61,6 +62,9 @@ async function principal() {
 
   const salaires = path.join(DIST, "salaires", "index.html");
   await writeFile(salaires, remplacer(await readFile(salaires, "utf8"), '<main id="contenu"></main>', `<main id="contenu">${renduSalaires(pays.FR?.series)}</main>`), "utf8");
+
+  const pageSources = path.join(DIST, "sources", "index.html");
+  await writeFile(pageSources, remplacer(await readFile(pageSources, "utf8"), "<div data-sources></div>", `<div data-sources>${renduSources()}</div>`), "utf8");
 
   await ecrireHorsLigne();
 

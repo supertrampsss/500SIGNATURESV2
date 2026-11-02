@@ -47,8 +47,10 @@ Avoid CSS `filter` animations on many elements: they crashed WebKit.
 
 ## Data rules
 
-Every number carries its year in the label above it; sources are listed once, in the page
-footer (owner decision, 31 October 2026: no source line or filler sentence under the cards).
+Every number carries its year in the label above it; sources are listed once, on the
+`/sources/` page linked from every footer (owner decisions: 31 October 2026, no source line or
+filler sentence under the cards; 2 November 2026, a short footer with a Sources link instead
+of the full list).
 When a breakdown exists only for another year, label that year. Say "retraites", not
 "pensions"; say "budget de l'année" or "dépenses du quotidien", not "fonctionnement". France comparisons use France, Germany, Spain and Italy only.
 Never invent sources. Keep observed data and game assumptions separate.

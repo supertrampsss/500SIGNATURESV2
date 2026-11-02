@@ -22,7 +22,7 @@ test('Audience : refus sans Google et consentement réversible, sans paramètres
  await page.reload();
  await expect(page.getByRole('region',{name:'Mesure d’audience'})).toHaveCount(0);
  expect(requests).toEqual([]);
- await page.getByRole('button',{name:'Choix de mesure d’audience',exact:true}).click();
+ await page.getByRole('button',{name:'Mesure d’audience',exact:true}).first().click();
  await page.getByRole('button',{name:'Accepter',exact:true}).click();
  await expect.poll(()=>requests.length).toBe(1);
  const views=async()=>collected;
@@ -33,9 +33,9 @@ test('Audience : refus sans Google et consentement réversible, sans paramètres
  await expect.poll(async()=>(await views()).length).toBe(2);
  expect((await views())[1][2].page_location).toBe(new URL(page.url()).origin+'/confidentialite/');
  await page.screenshot({path:info.outputPath('audience-consentement.png')});
- await page.getByRole('button',{name:'Choix de mesure d’audience',exact:true}).click();
+ await page.getByRole('button',{name:'Mesure d’audience',exact:true}).first().click();
  await page.getByRole('button',{name:'Refuser',exact:true}).click();
- await expect(page.getByRole('button',{name:'Choix de mesure d’audience',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Mesure d’audience',exact:true}).first()).toBeVisible();
  await expect(page.locator('script[src*="googletagmanager"]')).toHaveCount(0);
  await page.goto('/mandats/');
  await expect(page.locator('script[src*="analytics-consent"]')).toHaveCount(0);

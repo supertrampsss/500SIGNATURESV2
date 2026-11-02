@@ -7,7 +7,10 @@ import { reclassementBercy, SOURCE_RECLASSEMENT_BERCY } from "./reclassement-ber
 import type { Territoire } from "./donnees.ts";
 import { echapper } from "./texte.ts";
 import { SOURCES } from "./recit/calculs.ts";
-import { etapesPaie, fmt, rail, renduEtape, sources, vuePaie, type Etape } from "./recit/rendu.ts";
+
+/** Sources propres à la page Salaires, listées sur la page Sources. */
+export const SOURCES_SALAIRES = [SOURCES.ocde, SOURCES.eurostat, { nom: "Direction du Budget", titre: "Budgets des ministères et contributions aux pensions, PLF 2027", url: SOURCE_RECLASSEMENT_BERCY }, { nom: "Urssaf", titre: "Simulateur de salaire brut et net", url: "https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" }] as const;
+import { etapesPaie, fmt, pied, rail, renduEtape, vuePaie, type Etape } from "./recit/rendu.ts";
 import { valeursAccessibles, type LigneBarre } from "./recit/ville.ts";
 
 /** OCDE, Taxing Wages 2026, France 2025 : célibataire sans enfant au salaire moyen, en % du coût employeur. */
@@ -140,10 +143,9 @@ export function renduSalaires(series: Territoire["series"] = {}): string {
     <div class="fond fond--hemi"><div class="plan"></div><div class="voile"></div></div>
     <div class="zone">${vuePaie()}<div class="viz viz--barres" data-viz="barres"></div>${c ? `<div class="viz viz--courbes" data-viz="courbes">${c.html}</div>` : ""}</div>
   </div>`;
-  const liste = [SOURCES.ocde, SOURCES.eurostat, { nom: "Direction du Budget", titre: "Budgets des ministères et contributions aux pensions, PLF 2027", url: SOURCE_RECLASSEMENT_BERCY }, { nom: "Urssaf", titre: "Simulateur de salaire brut et net", url: "https://mon-entreprise.urssaf.fr/simulateurs/salaire-brut-net" }];
   return `<div class="recit recit--salaires" data-recit id="salaires-contenu">
     ${scene}
     <div class="recit__flux">${rail(CHAPITRES_SALAIRES)}${html}</div>
-    ${sources(liste)}
+    ${pied()}
   </div>`;
 }

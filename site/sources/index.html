@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sources des chiffres | 500 Signatures</title>
+  <meta name="description" content="Les publications officielles d’où viennent tous les chiffres de 500 Signatures : Eurostat, Insee, OCDE, DGFiP, OFGL, Direction du Budget.">
+  <link rel="canonical" href="https://500signatures.fr/sources/">
+  <meta name="theme-color" content="#060b17">
+  <link rel="icon" href="/brand/favicon.svg?v=2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=2">
+  <link rel="alternate icon" href="/brand/favicon-32.png?v=2" type="image/png" sizes="32x32">
+  <link rel="stylesheet" href="/src/recit/recit.css">
+  <style>
+    .privacy{background:var(--iv-2);color:#0b1422;padding:clamp(48px,7vw,96px) var(--marge) 80px;min-height:calc(100svh - var(--hdr))}
+    .privacy>*{max-width:780px;margin-left:auto;margin-right:auto}
+    .privacy__kicker{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#96793a;margin-bottom:12px}
+    .privacy h1{font:300 clamp(44px,6vw,80px)/.98 var(--serif);letter-spacing:-.03em;margin-top:0}
+    .privacy__lead{font:300 20px/1.45 var(--serif);color:#24314a;margin-bottom:36px}
+    .privacy section{padding:22px 0;border-top:1px solid #0b14221f}
+    .privacy h2{font:300 26px/1.15 var(--serif);margin:0 0 8px}
+    .privacy p{color:#24314a;line-height:1.6}
+    .privacy__choix{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+    .privacy footer{margin-top:28px;padding-top:18px;border-top:1px solid #0b14221f;font:400 12px var(--mono);color:#4a5568}
+      .privacy .pied__sources{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
+    .privacy .pied__sources li{display:grid;gap:2px;border-top:1px solid #0b142222;padding-top:10px}
+    .privacy .pied__sources a{font:700 15px var(--sans);color:#0b1422}.privacy .pied__sources span{font:400 13px var(--sans);color:#4a5568}
+  </style>
+</head>
+<body>
+  <a class="evitement" href="#contenu">Aller au contenu</a>
+  <header class="entete">
+    <a class="entete__marque" href="/">500 Signatures</a>
+    <nav class="entete__nav" aria-label="Navigation principale">
+      <a href="/">Récit</a>
+      <a href="/salaires/">Salaires</a>
+      <a class="jouer" href="/mandats/">Mandats</a>
+    </nav>
+  </header>
+  <main class="privacy" id="contenu">
+    <p class="privacy__kicker">Sources</p>
+    <h1>Les chiffres, à la source.</h1>
+    <p class="privacy__lead">Chaque montant du site vient d’une publication officielle. L’année de chaque chiffre est écrite juste à côté de lui.</p>
+    <div data-sources></div>
+    <footer><a href="/">Revenir au récit</a> · <a href="/confidentialite/">Confidentialité</a> · <button type="button" class="privacy__choix" data-audience-choix>Mesure d’audience</button></footer>
+  </main>
+  <script type="module" src="/src/sources.ts"></script>
+</body>
+</html>

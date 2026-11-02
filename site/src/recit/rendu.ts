@@ -9,7 +9,7 @@
 import type { Territoire } from "../donnees.ts";
 import { echapper } from "../texte.ts";
 import {
-  comptes, comparaison, dette, PAIE, PENSIONS_EDUCATION, periodeLisible, prelevements, repartition, repereFrance, SOURCES,
+  comptes, comparaison, dette, PAIE, PENSIONS_EDUCATION, periodeLisible, prelevements, repartition, repereFrance,
 } from "./calculs.ts";
 
 export const CHAPITRES = [
@@ -204,24 +204,24 @@ export function rail(chapitres: Chapitres = CHAPITRES): string {
   return `<nav class="recit__rail" aria-label="Chapitres" style="--n:${chapitres.length}"><ol>${chapitres.map(([c, nom]) => `<li><a href="#${c}" data-rail="${c}"><i></i><span>${nom}</span></a></li>`).join("")}</ol></nav>`;
 }
 
-export function sources(liste: readonly { nom: string; titre: string; url: string }[] = Object.values(SOURCES)): string {
-  return `<footer class="recit__pied" id="sources">
-    <div class="pied__bloc"><h2>Les chiffres, à la source.</h2>
-      <p>Chaque montant de cette page vient d’une des publications officielles ci-dessous. L’année de chaque chiffre est écrite juste au-dessus de lui.</p>
-      <ul class="pied__sources">${liste.map(s => `<li><a href="${s.url}" rel="noreferrer noopener" target="_blank">${echapper(s.nom)}</a><span>${echapper(s.titre)}</span></li>`).join("")}</ul>
-    </div>
-    <div class="pied__bloc"><h2>Le projet.</h2>
-      <p>500 Signatures rend les comptes publics lisibles par tous, puis vous laisse gouverner dans Mandats. Le site est gratuit, sans compte et indépendant de tout parti.</p>
-      <p class="pied__liens"><a href="/salaires/">Salaires</a><a href="/mandats/">Mandats</a><a href="/confidentialite/">Confidentialité</a><a href="https://x.com/500Signatures" rel="noreferrer noopener" target="_blank">500 Signatures sur X</a></p>
-    </div>
+/** Pied de page commun : la marque, quelques liens et l'accès aux sources. Le choix de mesure d'audience n'y figure que là où elle existe (le récit). */
+export function pied(audience = false): string {
+  return `<footer class="recit__pied">
+    <div class="pied__marque"><a href="/">500 Signatures</a><p>Les comptes publics, lisibles par tous. Gratuit, sans compte, indépendant de tout parti.</p></div>
+    <nav class="pied__liens" aria-label="Pied de page"><a href="/salaires/">Salaires</a><a href="/mandats/">Mandats</a><a href="/sources/">Sources</a><a href="/confidentialite/">Confidentialité</a>${audience ? `<button type="button" data-audience-choix>Mesure d’audience</button>` : ""}<a href="https://x.com/500Signatures" rel="noreferrer noopener" target="_blank">X</a></nav>
   </footer>`;
+}
+
+/** Liste de sources, pour la page Sources. */
+export function listeSources(liste: readonly { nom: string; titre: string; url: string }[]): string {
+  return `<ul class="pied__sources">${liste.map(s => `<li><a href="${s.url}" rel="noreferrer noopener" target="_blank">${echapper(s.nom)}</a><span>${echapper(s.titre)}</span></li>`).join("")}</ul>`;
 }
 
 /** La page entière. Sans comptes publiés, une introduction honnête remplace le récit chiffré. */
 export function renduRecit(pays: Record<string, Territoire | undefined>): string {
   const france = etapesFrance(pays);
   if (!france.length) {
-    return `<div class="recit recit--vide" data-recit-vide><section class="etape"><div class="etape__carte"><h1 class="etape__titre">Les comptes publics, <em>à portée de main</em>.</h1><p class="etape__desc">Les comptes nationaux sont momentanément indisponibles. Vous pouvez chercher votre commune ou jouer à Mandats.</p></div></section>${renduEtape(etapeRechercheVille(pays), 0)}${renduEtape(etapeMandats(pays), 1)}${sources()}</div>`;
+    return `<div class="recit recit--vide" data-recit-vide><section class="etape"><div class="etape__carte"><h1 class="etape__titre">Les comptes publics, <em>à portée de main</em>.</h1><p class="etape__desc">Les comptes nationaux sont momentanément indisponibles. Vous pouvez chercher votre commune ou jouer à Mandats.</p></div></section>${renduEtape(etapeRechercheVille(pays), 0)}${renduEtape(etapeMandats(pays), 1)}${pied(true)}</div>`;
   }
   const etapes = [...france, etapeRechercheVille(pays), etapeMandats(pays)];
   const html = etapes.map((x, i) => {
@@ -232,6 +232,6 @@ export function renduRecit(pays: Record<string, Territoire | undefined>): string
   return `<div class="recit" data-recit>
     ${scene(pays)}
     <div class="recit__flux">${rail()}${html}</div>
-    ${sources()}
+    ${pied(true)}
   </div>`;
 }

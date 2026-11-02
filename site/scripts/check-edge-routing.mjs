@@ -49,7 +49,8 @@ try {
     assert.ok(main.body.includes(url),path+' : canonique absente');
   }
   // Les anciennes pages sont supprimées (31 octobre 2026) : ni page, ni redirection.
-  for(const path of ['/bilan/','/territoire/','/analyses/','/sources/','/accueil/','/mandats/jouer/','/simulateur/']){
+  // /sources/ revient le 2 novembre 2026 comme page des sources, liée depuis chaque pied de page.
+  for(const path of ['/bilan/','/territoire/','/analyses/','/accueil/','/mandats/jouer/','/simulateur/']){
     const response=await get(path);
     results.push({host:'500signatures.fr',path,status:response.status,location:response.location});
     assert.equal(response.status,404,path);
