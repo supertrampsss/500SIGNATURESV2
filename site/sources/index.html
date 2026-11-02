@@ -20,6 +20,7 @@
     .privacy section{padding:22px 0;border-top:1px solid #0b14221f}
     .privacy h2{font:300 26px/1.15 var(--serif);margin:0 0 8px}
     .privacy p{color:#24314a;line-height:1.6}
+    .privacy__choix{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
     .privacy footer{margin-top:28px;padding-top:18px;border-top:1px solid #0b14221f;font:400 12px var(--mono);color:#4a5568}
       .privacy .pied__sources{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
     .privacy .pied__sources li{display:grid;gap:2px;border-top:1px solid #0b142222;padding-top:10px}
@@ -41,7 +42,7 @@
     <h1>Les chiffres, à la source.</h1>
     <p class="privacy__lead">Chaque montant du site vient d’une publication officielle. L’année de chaque chiffre est écrite juste à côté de lui.</p>
     <div data-sources></div>
-    <footer><a href="/">Revenir au récit</a></footer>
+    <footer><a href="/">Revenir au récit</a> · <a href="/confidentialite/">Confidentialité</a> · <button type="button" class="privacy__choix" data-audience-choix>Mesure d’audience</button></footer>
   </main>
   <script type="module" src="/src/sources.ts"></script>
 </body>
