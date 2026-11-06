@@ -6,10 +6,10 @@
 import { indexRecherche, initialiser, territoires } from "../donnees.ts";
 import { ville as calculVille, type RepereFrance } from "./calculs.ts";
 import { renduVille, type LigneBarre, type VueVille } from "./ville.ts";
+import { communeChoisie, rechercherCommunes, type CodesPostaux } from "./recherche.ts";
 
 const fr = (n: number, d = 0) => n.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }).replace(/\u202f/g, "\u00a0");
 const reduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const normaliser = (t: string) => t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 /** Barres horizontales lisibles à toutes les tailles : nom et montant au-dessus, barre dessous. */
@@ -148,6 +148,9 @@ export function brancherRecit(): void {
 
   /* ---------- Étape courante ---------- */
   const rail = [...racine.querySelectorAll<HTMLElement>("[data-rail]")];
+  const sommaire = racine.querySelector<HTMLDetailsElement>(".recit__sommaire");
+  sommaire?.addEventListener("click", e => { if ((e.target as HTMLElement).closest("a")) sommaire.open = false; });
+  sommaire?.addEventListener("keydown", e => { if (e.key === "Escape") { sommaire.open = false; sommaire.querySelector("summary")?.focus(); } });
   function activer(el: HTMLElement) {
     if (el === courante) return; const avant = courante?.dataset; courante = el; const s = el.dataset;
     etapes.forEach(x => x.classList.toggle("est-courante", x === el));
@@ -172,7 +175,8 @@ export function brancherRecit(): void {
     } else if (gros && !reduit()) odometre(gros);
     else if (gros) ajuster(gros);
     const ch = s.chapitre; let passe = true;
-    rail.forEach(a => { const ici = a.dataset.rail === ch; if (ici) passe = false; a.classList.toggle("actif", ici); a.classList.toggle("passe", passe && !ici); });
+    rail.forEach(a => { const ici = a.dataset.rail === ch; if (ici) passe = false; a.classList.toggle("actif", ici); a.classList.toggle("passe", passe && !ici); if (ici) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+    sommaire?.querySelectorAll<HTMLAnchorElement>("a").forEach(a => { if (a.dataset.chapitreLien === ch) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
   }
   let visible = true;
   new IntersectionObserver(([x]) => { visible = x.isIntersecting; if (visible) relancer(); }).observe(sceneEl);
@@ -196,25 +200,60 @@ export function brancherRecit(): void {
   const cadre = $<HTMLElement>("[data-ville-etapes]");
   const france: RepereFrance = (() => { try { return JSON.parse(form?.closest<HTMLElement>(".etape")?.dataset.france || "{}"); } catch { return {}; } })();
   type Entree = { c: string; n: string; l: string; p: string | null };
-  let pret: Promise<void> | undefined, index: Entree[] = [], choix: Entree[] = [], actif = -1;
-  const charger = () => (pret ??= initialiser().then(() => undefined));
+  let pret: Promise<void> | undefined, index: Entree[] = [], choix: Entree[] = [], total = 0, actif = -1, sequence = 0;
+  let postaux: Promise<CodesPostaux> | undefined;
+  const reessayer = $<HTMLButtonElement>(".ville-reessayer");
+  let reprise: (() => void) | undefined;
+  const charger = () => (pret ??= initialiser().then(() => undefined).catch(erreur => { pret = undefined; throw erreur; }));
   async function communes(): Promise<Entree[]> { await charger(); if (!index.length) index = (await indexRecherche()).filter(e => e.l === "commune"); return index; }
-  function proposer(liste2: Entree[]) {
-    if (!liste || !champ) return; choix = liste2; actif = -1;
+  function proposer(liste2: Entree[], nombre = liste2.length) {
+    if (!liste || !champ) return; choix = liste2; total = nombre; actif = -1;
     liste.innerHTML = liste2.map((e, i) => `<li role="option" id="ville-opt-${i}" data-i="${i}" aria-selected="false">${esc(e.n)}<small>${esc(e.p ?? "")}</small></li>`).join("");
     liste.hidden = !liste2.length; champ.setAttribute("aria-expanded", String(!!liste2.length));
+    champ.removeAttribute("aria-activedescendant");
   }
-  async function chercher(q: string): Promise<Entree[]> {
-    const n = normaliser(q); if (n.length < 2) return [];
+  function erreur(message: string, action: () => void) {
+    if (etat) etat.textContent = message;
+    reprise = action; if (reessayer) reessayer.hidden = false;
+  }
+  function nettoyerErreur() { reprise = undefined; if (reessayer) reessayer.hidden = true; }
+  async function chercher(q: string) {
     const toutes = await communes();
-    return toutes.filter(e => normaliser(e.n).startsWith(n) || e.c === q.trim()).sort((a, b) => a.n.length - b.n.length || a.n.localeCompare(b.n, "fr")).slice(0, 8);
+    // Instantané officiel local : ni la commune tapée ni le code postal ne quittent le site.
+    const codes = /^\d{5}$/.test(q.trim()) ? await (postaux ??= fetch("/recherche/codes-postaux.json").then(async r => {
+      if (!r.ok) throw new Error("Correspondances postales indisponibles.");
+      return (await r.json()).codes as CodesPostaux;
+    }).catch(e => { postaux = undefined; throw e; })) : {};
+    return rechercherCommunes(toutes, q, codes);
+  }
+  async function rechercher(ouvrirUnique = false) {
+    if (!champ) return;
+    const q = champ.value, demande = ++sequence;
+    nettoyerErreur(); proposer([]);
+    if (q.trim().length < 2) { if (etat) etat.textContent = ""; return; }
+    if (etat) etat.textContent = "Recherche des communes…";
+    try {
+      const r = await chercher(q);
+      if (demande !== sequence || champ.value !== q) return;
+      proposer(r.resultats, r.total);
+      const cible = communeChoisie(r.resultats, r.total, -1);
+      if (ouvrirUnique && cible) { await ouvrir(cible); return; }
+      if (etat) etat.textContent = r.total === 0 ? "Aucune commune trouvée." : r.total > 8
+        ? `${r.total} communes correspondent. Affinez le nom ou choisissez parmi les huit premières.`
+        : r.total === 1 ? "Choisissez la commune ou cliquez sur Voir les comptes."
+        : `${r.total} communes correspondent. Choisissez votre commune dans la liste.`;
+    } catch {
+      if (demande !== sequence || champ.value !== q) return;
+      erreur("La recherche est momentanément indisponible. Votre saisie est conservée.", () => { void rechercher(ouvrirUnique); });
+    }
   }
   async function ouvrir(e: Entree, defiler = true) {
-    if (!cadre || !etat) return; proposer([]); if (champ) champ.value = e.n;
+    if (!cadre || !etat) return; const demande = ++sequence; nettoyerErreur(); proposer([]); if (champ) champ.value = e.n;
     etat.textContent = `Chargement de ${e.n}…`;
     try {
       await charger();
       const lot = await territoires("commune", e.p ?? e.c.slice(0, 2));
+      if (demande !== sequence) return;
       const t = lot[e.c]; const v = t && calculVille(t, e.c);
       if (!v) { etat.textContent = `Les comptes de ${e.n} ne sont pas publiés.`; return; }
       cadre.innerHTML = renduVille(v, etapes.length, france);
@@ -224,18 +263,19 @@ export function brancherRecit(): void {
       etat.textContent = `${v.nom} : ${nouvelles.length} étapes ci-dessous.`;
       const url = new URL(location.href); url.searchParams.set("ville", e.c); history.replaceState(history.state, "", url);
       if (defiler && nouvelles[0]) nouvelles[0].scrollIntoView({ behavior: reduit() ? "auto" : "smooth", block: "center" });
-    } catch { etat.textContent = "Les comptes des communes sont momentanément indisponibles."; }
+    } catch { if (demande === sequence) erreur("Les comptes des communes sont momentanément indisponibles.", () => { void ouvrir(e, defiler); }); }
   }
   if (form && champ && liste) {
-    champ.addEventListener("input", async () => { const q = champ.value; const r = await chercher(q); if (champ.value === q) proposer(r); });
+    champ.addEventListener("input", () => { void rechercher(); });
+    reessayer?.addEventListener("click", () => reprise?.());
     champ.addEventListener("keydown", e => {
       if (!choix.length) return;
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); actif = (actif + (e.key === "ArrowDown" ? 1 : -1) + choix.length) % choix.length; liste.querySelectorAll("li").forEach((li, i) => li.setAttribute("aria-selected", String(i === actif))); champ.setAttribute("aria-activedescendant", `ville-opt-${actif}`); }
-      if (e.key === "Escape") proposer([]);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); actif = (actif + (e.key === "ArrowDown" ? 1 : -1) + choix.length) % choix.length; liste.querySelectorAll("li").forEach((li, i) => li.setAttribute("aria-selected", String(i === actif))); champ.setAttribute("aria-activedescendant", `ville-opt-${actif}`); liste.children[actif]?.scrollIntoView({ block: "nearest" }); }
+      if (e.key === "Escape") { ++sequence; proposer([]); }
     });
     liste.addEventListener("mousedown", e => e.preventDefault());
-    liste.addEventListener("click", e => { const li = (e.target as HTMLElement).closest("li"); if (li) ouvrir(choix[Number(li.dataset.i)]); });
-    form.addEventListener("submit", async e => { e.preventDefault(); const r = choix.length ? choix : await chercher(champ.value); const cible = r[Math.max(0, actif)]; if (cible) ouvrir(cible); else if (etat) etat.textContent = "Aucune commune trouvée."; });
+    liste.addEventListener("click", e => { const li = (e.target as HTMLElement).closest("li"); const cible = li && choix[Number(li.dataset.i)]; if (cible) void ouvrir(cible); });
+    form.addEventListener("submit", e => { e.preventDefault(); const cible = communeChoisie(choix, total, actif); if (cible) void ouvrir(cible); else void rechercher(true); });
     racine.addEventListener("click", e => { if ((e.target as HTMLElement).closest("[data-autre-ville]")) { e.preventDefault(); champ.value = ""; champ.closest(".etape")?.scrollIntoView({ behavior: reduit() ? "auto" : "smooth", block: "center" }); champ.focus({ preventScroll: true }); } });
     const code = new URL(location.href).searchParams.get("ville");
     if (code && /^[0-9AB]{5}$/.test(code)) communes().then(l => { const e = l.find(x => x.c === code); if (e) ouvrir(e, false); }).catch(() => undefined);

@@ -20,17 +20,22 @@ const cache = new Map<string, Promise<unknown>>();
 
 async function lire<T>(chemin: string): Promise<T> {
   if (!cache.has(chemin)) {
-    cache.set(chemin, fetch(`${racine}/${chemin}`).then((r) => {
+    const requete = fetch(`${racine}/${chemin}`).then((r) => {
       if (!r.ok) throw new Error(`${chemin} indisponible (${r.status})`);
       return r.json();
-    }));
+    }).catch(erreur => { cache.delete(chemin); throw erreur; });
+    cache.set(chemin, requete);
   }
   return cache.get(chemin) as Promise<T>;
 }
 
 /** Lit la version publiée ; les lectures suivantes portent toutes sur elle. */
 export async function initialiser(): Promise<string> {
-  const { version } = await fetch(`${BASE}/data/derniere.json`).then((r) => r.json());
+  const { version } = await fetch(`${BASE}/data/derniere.json`).then((r) => {
+    if (!r.ok) throw new Error(`Publication indisponible (${r.status})`);
+    return r.json();
+  });
+  if (typeof version !== "string" || !version) throw new Error("Version de publication absente.");
   racine = `${BASE}/data/${version}`;
   return version;
 }
