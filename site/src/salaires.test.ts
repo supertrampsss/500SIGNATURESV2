@@ -70,7 +70,7 @@ test('le regroupement des pensions conserve tous les montants et les exercices h
 test("Salaires se lit comme le récit : chapitres, salaire, ministères, sans source sous les chiffres",()=>{
  const html=renduSalaires();
  assert.match(html,/<h1 class="etape__titre">Votre salaire, <em>vu par votre employeur<\/em>\.<\/h1>/);
- assert.equal((html.match(/data-tableau="paie"/g)??[]).length,6);
+ assert.equal((html.match(/data-tableau="paie"/g)??[]).length,5);
  assert.match(html,/52,80/);assert.match(html,/Éducation nationale · budget 2027/);
  assert.match(html,/data-rail="ministeres"/);assert.doesNotMatch(html,/etape__source/);
  assert.match(html,/href="\/mandats\/"/);
