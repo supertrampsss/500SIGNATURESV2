@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sources des chiffres | 500 Signatures</title>
-  <meta name="description" content="Les publications officielles d’où viennent tous les chiffres de 500 Signatures : Eurostat, Insee, OCDE, DGFiP, OFGL, Direction du Budget.">
+  <title>Sources et méthode des comptes publics | 500 Signatures</title>
+  <meta name="description" content="Sources des finances publiques, salaires et comptes des communes : années, bases de comparaison, données manquantes et distinction avec le jeu Mandats.">
   <link rel="canonical" href="https://500signatures.fr/sources/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sources et méthode des comptes publics | 500 Signatures">
+  <meta property="og:description" content="Retrouver les publications officielles et comprendre les années, les ratios et les limites des chiffres présentés.">
+  <meta property="og:url" content="https://500signatures.fr/sources/">
+  <meta property="og:site_name" content="500 Signatures">
   <meta name="theme-color" content="#060b17">
   <link rel="icon" href="/brand/favicon.svg?v=2" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=2">
@@ -25,6 +30,12 @@
       .privacy .pied__sources{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
     .privacy .pied__sources li{display:grid;gap:2px;border-top:1px solid #0b142222;padding-top:10px}
     .privacy .pied__sources a{font:700 15px var(--sans);color:#0b1422}.privacy .pied__sources span{font:400 13px var(--sans);color:#4a5568}
+    .sources__sommaire{display:flex;flex-wrap:wrap;gap:8px 18px;padding:0 0 24px;font:500 14px var(--sans)}
+    .sources__sommaire a{color:#24314a;text-underline-offset:3px}
+    .sources__methode{display:grid;grid-template-columns:minmax(130px,1fr) 3fr;gap:16px 28px;margin:20px 0 0}
+    .sources__methode dt{font:700 15px var(--sans);color:#0b1422}
+    .sources__methode dd{margin:0;color:#24314a;line-height:1.6}
+    @media(max-width:560px){.sources__methode{grid-template-columns:1fr;gap:6px}.sources__methode dd{margin-bottom:18px}}
   </style>
 </head>
 <body>
@@ -38,9 +49,9 @@
     </nav>
   </header>
   <main class="privacy" id="contenu">
-    <p class="privacy__kicker">Sources</p>
-    <h1>Les chiffres, à la source.</h1>
-    <p class="privacy__lead">Chaque montant du site vient d’une publication officielle. L’année de chaque chiffre est écrite juste à côté de lui.</p>
+    <p class="privacy__kicker">Comptes publics</p>
+    <h1>Sources et méthode.</h1>
+    <p class="privacy__lead">D’où viennent les chiffres, comment nous les comparons, et ce qui relève d’une simulation.</p>
     <div data-sources></div>
     <footer><a href="/">Revenir au récit</a> · <a href="/confidentialite/">Confidentialité</a> · <button type="button" class="privacy__choix" data-audience-choix>Mesure d’audience</button></footer>
   </main>

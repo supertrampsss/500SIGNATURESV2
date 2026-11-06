@@ -174,6 +174,18 @@ test('sans JavaScript, le récit et ses sources se lisent en continu', async ({ 
     await expect(page.getByRole('link', { name: 'Commencer mon mandat' })).toHaveAttribute('href', '/mandats/');
     await sansDebordement(page);
     await preuve(page, info, 'recit-sans-javascript');
+    const site = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+    expect(site['@type']).toBe('WebSite');
+    expect(site.url).toBe(await page.locator('link[rel="canonical"]').getAttribute('href'));
+    await page.goto('/sources/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sources et méthode.');
+    await expect(page.locator('#methode')).toContainText('Une absence n’est pas remplacée par zéro');
+    await expect(page.locator('#mandats')).toContainText('hypothèses de jeu');
+    await page.getByRole('navigation', { name: 'Sur cette page' }).getByRole('link', { name: 'Salaires', exact: true }).click();
+    await expect(page).toHaveURL(/#salaires$/);
+    await expect(page.locator('#salaires a[href="/salaires/"]')).toBeVisible();
+    await sansDebordement(page);
+    await preuve(page, info, 'sources-sans-javascript');
   } finally { await contexte.close(); }
 });
 
@@ -212,7 +224,7 @@ test('Salaires se lit comme le récit, et la confidentialité partage l’en-tê
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Vos données, simplement.');
   await sansDebordement(page);
   await page.goto('/sources/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Les chiffres, à la source.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sources et méthode.');
   await expect(page.locator('[data-sources] a[href^="https://"]').first()).toBeVisible();
   expect(await page.locator('[data-sources] li').count()).toBeGreaterThan(10);
   await sansDebordement(page);
