@@ -57,14 +57,12 @@ export function etapesFrance(pays: Record<string, Territoire | undefined>): Etap
   const po = prelevements(france);
   if (po) e.push({ chapitre: "recettes", tableau: "billets", k: 1, titre: po.part >= 40 ? "Près de <em>la moitié</em> de la richesse produite." : "Une part de <em>la richesse produite</em>.", lib: `Prélèvements obligatoires · ${po.annee}`, valeur: po.part, decimales: 1, unite: "% du PIB", desc: "Impôts et cotisations sociales, rapportés à tout ce que le pays produit en un an." });
 
-  const t3 = "Ce qui entre, <em>ce qui sort</em>.";
-  e.push({ chapitre: "deficit", tableau: "ecart", k: 0, titre: t3, lib: `Recettes · ${a}`, valeur: md(c.recettes), decimales: 1, unite: "Md€", sous: `face à ${fmt(md(c.depenses), 1)} Md€ de dépenses` });
   if (c.nature === "deficit") {
     e.push({ chapitre: "deficit", tableau: "ecart", k: 1, titre: "Il manque <em>chaque année</em>…", lib: `Déficit public · ${a}`, valeur: md(c.ecart), decimales: 1, unite: "Md€", sous: `${fmt(c.ecart / c.recettes * 100, 2)} € empruntés pour 100 € de recettes`, ton: "argile" });
     const parSeconde = c.ecart / (365 * 24 * 3600);
     e.push({ chapitre: "deficit", tableau: "ecart", k: 1, direct: true, titre: "Depuis que vous lisez <em>cette page</em>…", lib: "Emprunté depuis votre arrivée", valeur: parSeconde, unite: "€", sous: `${fmt(parSeconde, 0)} € par seconde, en moyenne`, ton: "argile" });
   } else {
-    e.push({ chapitre: "deficit", tableau: "ecart", k: 1, titre: t3, lib: `${c.nature === "excedent" ? "Excédent" : "Équilibre"} · ${a}`, valeur: md(Math.abs(c.ecart)), decimales: 1, unite: "Md€",  });
+    e.push({ chapitre: "deficit", tableau: "ecart", k: 1, titre: "Ce qui entre, <em>ce qui sort</em>.", lib: `${c.nature === "excedent" ? "Excédent" : "Équilibre"} · ${a}`, valeur: md(Math.abs(c.ecart)), decimales: 1, unite: "Md€",  });
   }
 
   const d = dette(france);
@@ -79,14 +77,14 @@ export function etapesFrance(pays: Record<string, Territoire | undefined>): Etap
   if (r) {
     const t4 = "Pour 100 € de recettes, <em>où va l’argent&nbsp;?</em>";
     const DESC: Record<string, string> = { Retraites: "Pensions de retraite et de réversion, fonctionnaires compris.", "Rémunérations des agents publics": "Agents de l’État, des hôpitaux et des collectivités.", "Soins et services remboursés": "Soins, médicaments et services remboursés aux ménages.", "Achats de biens et services": "Fournitures, énergie, prestations achetées.", Investissement: "Routes, bâtiments, équipements, défense.", "Intérêts de la dette": "Le coût de la dette déjà accumulée." };
-    r.postes.slice(0, 6).forEach((p, i) => {
-      e.push({ chapitre: "argent", tableau: "arbre", k: i, titre: t4, lib: `${p.nom} · ${r.annee}`, valeur: p.part, decimales: 2, unite: "€", sous: `sur 100 € de recettes`, desc: DESC[p.nom] });
+    // Un seul titre pour la série ; les intérêts sont déjà dans « La dette » (année plus récente) et le total redirait le déficit.
+    r.postes.slice(0, 6).filter(p => p.nom !== "Intérêts de la dette").forEach((p, i) => {
+      e.push({ chapitre: "argent", tableau: "arbre", k: i, titre: i === 0 ? t4 : `<em>${p.nom}</em>.`, lib: i === 0 ? `${p.nom} · ${r.annee}` : `Sur 100 € de recettes · ${r.annee}`, valeur: p.part, decimales: 2, unite: "€", sous: i === 0 ? "sur 100 € de recettes" : undefined, desc: DESC[p.nom] });
       if (p.nom === "Retraites") {
         const pe = PENSIONS_EDUCATION;
         e.push({ chapitre: "argent", tableau: "bercy", titre: "Un tiers du budget de l’Éducation <em>paie des retraites</em>.", lib: `Éducation nationale · budget ${pe.annee}`, valeur: pe.part, unite: "€", sous: "sur 100 € servent aux retraites des anciens agents", ton: "argile", desc: `${fmt(pe.pensions, 1)} Md€ sur ${fmt(pe.credits, 1)} Md€. Cet argent fait déjà partie des ${fmt(p.part, 2)} € des retraites.` });
       }
     });
-    e.push({ chapitre: "argent", tableau: "arbre", k: 9, titre: t4, lib: `Au total · ${r.annee}`, valeur: r.total, decimales: 2, unite: "€", sous: r.total > 100 ? `${fmt(r.total - 100, 2)} € de plus que ce qui est entré` : undefined, ton: r.total > 100 ? "argile" : undefined });
   }
 
   const dep = comparaison(pays, "eurostat_depenses_publiques_pib");
@@ -100,7 +98,7 @@ export function etapesFrance(pays: Record<string, Territoire | undefined>): Etap
       ? (rang === 1 ? "La France dépense <em>plus que ses voisins</em>." : `La <em>${RANGS[rang]}</em> dépense publique des quatre.`)
       : (rang === 1 ? "Et elle est <em>la plus endettée</em> des quatre." : `La <em>${RANGS[rang]}</em> dette publique des quatre.`);
     const autres = comp.valeurs.filter(v => v.code !== "FR").map(v => `${v.nom} ${fmt(v.valeur, 1)} %`).join(" · ");
-    e.push({ chapitre: "europe", tableau: "europe", k, titre, lib: `${lib} · ${comp.annee}`, valeur: fr.valeur, decimales: 1, unite: "% du PIB", sous: autres, attributs: { "data-europe": JSON.stringify(comp.valeurs.map(v => [v.nom, v.valeur])) } });
+    e.push({ chapitre: "europe", tableau: "europe", k, titre, lib: `${lib} · ${comp.annee}`, valeur: fr.valeur, decimales: 1, unite: "% du PIB", sous: autres, desc: sujet === "dette" ? `Mesure Eurostat de fin ${comp.annee}, commune aux quatre pays (la dette plus haut est le dernier chiffre de l’Insee).` : undefined, attributs: { "data-europe": JSON.stringify(comp.valeurs.map(v => [v.nom, v.valeur])) } });
   }
 
   const paie = etapesPaie("salaire");
@@ -119,8 +117,7 @@ export function etapesPaie(chapitre: string): Etape[] {
     { chapitre, tableau: "paie", k: 0, titre: "Votre salaire, <em>vu par votre employeur</em>.", lib: "Ce que paie l’employeur · 2025", valeur: 100, decimales: 2, unite: "€", sous: "pour un salarié payé au salaire moyen", ton: "or", desc: "Célibataire, sans enfant. Suivons ces 100 € jusqu’à son compte en banque." },
     { chapitre, tableau: "paie", k: 1, titre: `Avant même la fiche de paie, <em>${fmt(PAIE.patronales, 2)} € partent</em>.`, lib: "Cotisations patronales", valeur: PAIE.patronales, decimales: 2, unite: "€", sous: `Il reste ${fmt(brut, 2)} € : le salaire brut`, ton: "argile", desc: "Elles financent les retraites, l’assurance maladie, le chômage et les allocations familiales." },
     { chapitre, tableau: "paie", k: 2, titre: `Sur la fiche de paie, <em>${fmt(PAIE.salariales, 2)} € de plus</em>.`, lib: "Cotisations salariales et CSG", valeur: PAIE.salariales, decimales: 2, unite: "€", sous: `Il reste ${fmt(net, 2)} € : le net avant impôt`, ton: "argile", desc: "Retraite complémentaire, CSG et CRDS, retenues avant le virement." },
-    { chapitre, tableau: "paie", k: 3, titre: "Puis <em>l’impôt sur le revenu</em>.", lib: "Prélevé à la source", valeur: PAIE.impot, decimales: 2, unite: "€", sous: `Il reste ${fmt(PAIE.reste, 2)} €`, ton: "argile" },
-    { chapitre, tableau: "paie", k: 4, titre: `Au bout du compte, <em>il reste ${fmt(PAIE.reste, 2)} €</em>.`, lib: "Ce que le salarié garde", valeur: PAIE.reste, decimales: 2, unite: "€", sous: `${fmt(100 - PAIE.reste, 2)} € sont partis aux caisses publiques`, ton: "or" },
+    { chapitre, tableau: "paie", k: 3, titre: `Puis l’impôt sur le revenu : <em>il reste ${fmt(PAIE.reste, 2)} €</em>.`, lib: "Impôt prélevé à la source", valeur: PAIE.impot, decimales: 2, unite: "€", sous: `${fmt(100 - PAIE.reste, 2)} € sont partis aux caisses publiques`, ton: "argile" },
   ];
   return e;
 }
