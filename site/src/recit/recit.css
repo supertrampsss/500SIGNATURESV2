@@ -142,6 +142,7 @@ canvas.fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 
 /* Rail des chapitres */
 .recit__rail{display:none}
+.recit__sommaire{display:none}
 .recit--actif .recit__rail{display:block;position:sticky;top:var(--hdr);z-index:20;padding:12px var(--marge) 0;pointer-events:none}
 .recit__rail ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,9),minmax(0,1fr));gap:6px}
 .recit__rail a{pointer-events:auto;display:block;text-decoration:none;padding-bottom:8px}
@@ -182,12 +183,14 @@ h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(64px,8vw,132px)}
 .ville-recherche{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .ville-recherche input{flex:1;min-width:0;font:400 18px var(--sans);padding:15px 16px;border-radius:10px;border:1px solid #f4efe344;background:var(--nuit-2);color:var(--iv)}
 .ville-recherche input:focus{outline:none;border-color:var(--or);box-shadow:0 0 0 4px #d9b45f2e}
-.ville-recherche button{font:800 15px var(--sans);border:0;border-radius:10px;padding:0 20px;background:var(--or);color:#1a1206;cursor:pointer}
-.ville-suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;list-style:none;margin:0;padding:6px;background:var(--nuit-1);border:1px solid #f4efe333;border-radius:10px;box-shadow:0 20px 50px #000a;max-height:280px;overflow:auto}
+.ville-recherche button{font:800 15px var(--sans);border:0;border-radius:10px;padding:14px 16px;background:var(--or);color:#1a1206;cursor:pointer}
+.ville-suggestions{flex-basis:100%;list-style:none;margin:0;padding:6px;background:var(--nuit-1);border:1px solid #f4efe333;border-radius:10px;max-height:min(280px,35svh);overflow:auto}
 .ville-suggestions li{padding:10px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
 .ville-suggestions li:hover,.ville-suggestions li[aria-selected=true]{background:#f4efe314}
 .ville-suggestions small{font:500 11px var(--mono);color:var(--gris)}
 .ville-etat{flex-basis:100%;font:400 12px var(--mono);color:var(--gris);margin:6px 0 0;min-height:1.2em}
+.ville-aide{flex-basis:100%;font:400 12px/1.5 var(--sans);color:var(--gris);margin:0}
+.ville-recherche .ville-reessayer{font-size:13px;padding:10px 14px}
 
 /* Mandats */
 .etape[data-tableau=final]{justify-content:center;text-align:center}
@@ -214,7 +217,7 @@ h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(64px,8vw,132px)}
   :root{--hdr:56px}
   .entete__marque{font-size:18px}
   .entete__nav{gap:14px}.entete__nav a{font-size:13px}.entete__nav a.jouer{padding:7px 12px}
-  .zone{left:var(--marge);right:var(--marge);top:56px;bottom:auto;height:38%}
+  .zone{left:var(--marge);right:var(--marge);top:80px;bottom:auto;height:38%}
   .carte{left:50%;top:34%;width:150vw}
   .fond--carte .voile{background:linear-gradient(0deg,var(--nuit) 0%,#060b17cc 40%,#060b1755 70%,#060b17aa 100%)}
   .recit--actif .etape{align-items:flex-end;padding:0 12px 16px;min-height:calc(var(--ecran) + 2px)}
@@ -225,6 +228,12 @@ h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(64px,8vw,132px)}
   .etape__gros{font-size:clamp(40px,12vw,58px)}h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(52px,15vw,72px)}
   .etape__desc{font-size:16px}.etape__sous{font-size:14px}
   .recit__rail ol{gap:3px}
+  .recit--actif .recit__rail{height:70px;margin-bottom:-70px}
+  .recit__sommaire{display:block;pointer-events:auto;margin-bottom:6px}
+  .recit__sommaire summary{width:max-content;cursor:pointer;padding:5px 10px;border:1px solid var(--ligne);border-radius:6px;background:var(--nuit-1);font:500 12px var(--sans)}
+  .recit__sommaire ul{position:absolute;left:var(--marge);right:var(--marge);top:42px;max-height:calc(100svh - var(--hdr) - 100px);overflow:auto;list-style:none;margin:0;padding:8px;background:var(--nuit-1);border:1px solid var(--ligne);border-radius:10px;box-shadow:0 16px 40px #0009;z-index:2}
+  .recit__sommaire li a{padding:10px 12px;font:500 14px var(--sans);border-radius:6px}
+  .recit__sommaire a:hover,.recit__sommaire a[aria-current=location]{background:#f4efe314;color:var(--or)}
   .recit__rail span{display:none}.recit__rail a.actif span{display:block;position:absolute;left:var(--marge);right:var(--marge);overflow:visible;pointer-events:none}
   .recit__rail a{padding-bottom:22px}
   .pays{grid-template-columns:78px 1fr auto;gap:8px;font-size:10px}.pays i{height:20px}.pays b{font-size:14px}
@@ -251,7 +260,17 @@ h1.etape__titre+.etape__lib+.etape__gros{font-size:clamp(64px,8vw,132px)}
   .kpi{padding:5px 8px}.kpi b{font-size:15px}.kpi small{display:none}.kpi span{font-size:8px}
   .viz--paie{gap:6px}.paie__ligne small{display:none}.paie__barre{height:12px}.paie__ligne p b{font-size:15px}
 }
-@media (max-width:760px) and (max-height:640px){.etape__desc{display:none}.zone{height:32%}}
+@media (max-width:760px) and (max-height:640px){.zone{height:32%}.recit--actif .etape{padding-top:110px}.etape__desc{font-size:15px}}
+@media (max-width:460px){.ville-recherche input{flex-basis:100%}.ville-recherche button[type=submit]{width:100%}}
+@media (min-width:761px) and (max-height:640px){
+  .recit--actif .etape[data-i="0"]{min-height:calc(var(--ecran) - 44px);padding-top:24px;padding-bottom:24px}
+  .etape[data-i="0"] h1.etape__titre{font-size:34px}
+  .etape[data-i="0"] .etape__chap{margin-bottom:8px}
+  .etape[data-i="0"] .etape__lib{margin-top:12px}
+  .recit--actif .etape[data-i="0"] .etape__gros{font-size:52px}
+  .etape[data-i="0"] .etape__sous{margin-top:8px;font-size:14px}
+  .etape[data-i="0"] .etape__lien{margin-top:12px}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 /* Mandats : tout le final tient dans l'écran sur ordinateur */

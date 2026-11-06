@@ -49,7 +49,7 @@ export function etapesFrance(pays: Record<string, Territoire | undefined>): Etap
   const a = c.annee;
   const e: Etape[] = [];
   const t1 = "Chaque année, la France <em>dépense</em>…";
-  e.push({ chapitre: "facture", tableau: "carte", k: 1, titre: t1, lib: `Dépenses publiques · ${a}`, valeur: md(c.depenses), decimales: 1, unite: "Md€", sous: "État, Sécurité sociale, collectivités" });
+  e.push({ chapitre: "facture", tableau: "carte", k: 1, titre: t1, lib: `Dépenses publiques · ${a}`, valeur: md(c.depenses), decimales: 1, unite: "Md€", sous: "État, Sécurité sociale, collectivités", contenu: `<a class="etape__lien" href="#ville">Voir les comptes de ma commune</a>` });
   const pop = france?.population;
   if (pop && pop > 0) e.push({ chapitre: "facture", tableau: "carte", k: 2, titre: "Ramené à <em>chacun</em>.", lib: `Par habitant · ${a}`, valeur: Math.round(c.depenses / pop), unite: "€", sous: `${fmt(md(c.depenses), 1)} Md€ ÷ ${fmt(pop / 1e6, 1)} millions d’habitants`, desc: "Bébés et retraités compris." });
 
@@ -147,10 +147,12 @@ export function etapeRechercheVille(pays: Record<string, Territoire | undefined>
     attributs: { "data-france": JSON.stringify(repereFrance(pays.FR)) },
     contenu: `<form class="ville-recherche" action="/" method="get" role="search">
       <label class="sr-only" for="ville-champ">Rechercher une commune</label>
-      <input id="ville-champ" name="ville" placeholder="Nom de votre commune" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="ville-suggestions" aria-autocomplete="list" required minlength="2">
-      <button type="submit">Voir</button>
+      <input id="ville-champ" name="ville" placeholder="Commune ou code postal" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="ville-suggestions" aria-describedby="ville-aide" aria-autocomplete="list" required minlength="2">
+      <button type="submit">Voir les comptes</button>
+      <p id="ville-aide" class="ville-aide">Nom, code postal ou code INSEE. Choisissez votre commune parmi les propositions.</p>
       <ul class="ville-suggestions" id="ville-suggestions" role="listbox" hidden></ul>
       <p class="ville-etat" role="status" aria-live="polite"></p>
+      <button class="ville-reessayer" type="button" hidden>Réessayer</button>
     </form>`,
   };
 }
@@ -201,7 +203,9 @@ function scene(pays: Record<string, Territoire | undefined>): string {
 }
 
 export function rail(chapitres: Chapitres = CHAPITRES): string {
-  return `<nav class="recit__rail" aria-label="Chapitres" style="--n:${chapitres.length}"><ol>${chapitres.map(([c, nom]) => `<li><a href="#${c}" data-rail="${c}"><i></i><span>${nom}</span></a></li>`).join("")}</ol></nav>`;
+  return `<nav class="recit__rail" aria-label="Chapitres" style="--n:${chapitres.length}">
+    <details class="recit__sommaire"><summary>Chapitres</summary><ul>${chapitres.map(([c, nom]) => `<li><a href="#${c}" data-chapitre-lien="${c}">${nom}</a></li>`).join("")}</ul></details>
+    <ol>${chapitres.map(([c, nom]) => `<li><a href="#${c}" data-rail="${c}" aria-label="${nom}"><i></i><span>${nom}</span></a></li>`).join("")}</ol></nav>`;
 }
 
 /** Pied de page commun : la marque, quelques liens et l'accès aux sources. Le choix de mesure d'audience n'y figure que là où elle existe (le récit). */
