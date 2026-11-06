@@ -71,7 +71,7 @@ test('le récit se lit en défilant, de la facture jusqu’au jeu', async ({ pag
     ['[data-tableau="dette"]', 'dette', 'dette'],
     ['[data-tableau="arbre"]', 'arbre', 'argent'],
     ['[data-tableau="europe"]', 'europe', 'europe'],
-    ['[data-tableau="paie"][data-k="4"]', 'paie', 'salaire'],
+    ['[data-tableau="paie"][data-k="3"]', 'paie', 'salaire'],
   ]) {
     if (!await page.locator(`.etape${selecteur}`).count()) continue;
     const etape = await lire(page, selecteur);
@@ -205,7 +205,7 @@ test('Salaires se lit comme le récit, et la confidentialité partage l’en-tê
     await lisible(page);
     await preuve(page, info, nom);
   }
-  await expect(page.locator('.etape[data-tableau="paie"][data-k="4"]').first()).toContainText('52,80');
+  await expect(page.locator('.etape[data-tableau="paie"][data-k="3"]').first()).toContainText('52,80');
   await expect(page.locator('.etape__source')).toHaveCount(0);
   expect(erreurs).toEqual([]);
   await page.goto('/confidentialite/');
