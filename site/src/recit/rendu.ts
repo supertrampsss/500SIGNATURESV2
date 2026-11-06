@@ -85,6 +85,9 @@ export function etapesFrance(pays: Record<string, Territoire | undefined>): Etap
         e.push({ chapitre: "argent", tableau: "bercy", titre: "Un tiers du budget de l’Éducation <em>paie des retraites</em>.", lib: `Éducation nationale · budget ${pe.annee}`, valeur: pe.part, unite: "€", sous: "sur 100 € servent aux retraites des anciens agents", ton: "argile", desc: `${fmt(pe.pensions, 1)} Md€ sur ${fmt(pe.credits, 1)} Md€. Cet argent fait déjà partie des ${fmt(p.part, 2)} € des retraites.` });
       }
     });
+    // Le dernier poste révèle tout l’arbre (k = 9), intérêts et autres dépenses compris.
+    const fin = e.filter(x => x.tableau === "arbre").at(-1);
+    if (fin) fin.k = 9;
   }
 
   const dep = comparaison(pays, "eurostat_depenses_publiques_pib");
